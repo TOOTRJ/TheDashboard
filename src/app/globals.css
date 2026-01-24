@@ -1,26 +1,996 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+  --color-neon-cyan: var(--neon-cyan);
+  --color-neon-pink: var(--neon-pink);
+  --color-neon-purple: var(--neon-purple);
+  --color-neon-yellow: var(--neon-yellow);
+  --color-neon-green: var(--neon-green);
+  --color-neon-orange: var(--neon-orange);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  --radius: 0.5rem;
+  --background: #1a1a2e;
+  --foreground: #eaeaea;
+  --card: #16162a;
+  --card-foreground: #eaeaea;
+  --popover: #16162a;
+  --popover-foreground: #eaeaea;
+  --primary: #00fff5;
+  --primary-foreground: #0a0a0f;
+  --secondary: #2d2d44;
+  --secondary-foreground: #eaeaea;
+  --muted: #2d2d44;
+  --muted-foreground: #a0a0b0;
+  --accent: #ff00ff;
+  --accent-foreground: #ffffff;
+  --destructive: #ff3366;
+  --border: rgba(0, 255, 245, 0.15);
+  --input: rgba(0, 255, 245, 0.1);
+  --ring: #00fff5;
+  --neon-cyan: #00fff5;
+  --neon-pink: #ff00ff;
+  --neon-purple: #bf00ff;
+  --neon-yellow: #ffff00;
+  --neon-green: #39ff14;
+  --neon-orange: #ff6600;
+  --chart-1: #00fff5;
+  --chart-2: #ff00ff;
+  --chart-3: #bf00ff;
+  --chart-4: #39ff14;
+  --chart-5: #ffff00;
+  --sidebar: #0f0f1a;
+  --sidebar-foreground: #eaeaea;
+  --sidebar-primary: #00fff5;
+  --sidebar-primary-foreground: #0a0a0f;
+  --sidebar-accent: #1a1a2e;
+  --sidebar-accent-foreground: #00fff5;
+  --sidebar-border: rgba(0, 255, 245, 0.1);
+  --sidebar-ring: #00fff5;
+}
+
+.dark {
+  --background: #0a0a0f;
+  --foreground: #eaeaea;
+  --card: #0f0f1a;
+  --card-foreground: #eaeaea;
+  --popover: #0f0f1a;
+  --popover-foreground: #eaeaea;
+  --primary: #00fff5;
+  --primary-foreground: #0a0a0f;
+  --secondary: #1a1a2e;
+  --secondary-foreground: #eaeaea;
+  --muted: #1a1a2e;
+  --muted-foreground: #7a7a8c;
+  --accent: #ff00ff;
+  --accent-foreground: #ffffff;
+  --destructive: #ff3366;
+  --border: rgba(0, 255, 245, 0.12);
+  --input: rgba(0, 255, 245, 0.08);
+  --ring: #00fff5;
+  --sidebar: #050508;
+  --sidebar-foreground: #eaeaea;
+  --sidebar-primary: #00fff5;
+  --sidebar-primary-foreground: #0a0a0f;
+  --sidebar-accent: #0f0f1a;
+  --sidebar-accent-foreground: #00fff5;
+  --sidebar-border: rgba(0, 255, 245, 0.08);
+  --sidebar-ring: #00fff5;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
   }
 }
 
-body {
+/* ========================================
+   SYNTHWAVE GRID BACKGROUND WITH ANIMATION
+   ======================================== */
+.synthwave-grid {
+  background-image: 
+    linear-gradient(rgba(0, 255, 245, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 255, 245, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  animation: grid-move 20s linear infinite;
+}
+
+@keyframes grid-move {
+  0% { background-position: 0 0; }
+  100% { background-position: 40px 40px; }
+}
+
+/* Perspective grid floor effect */
+.perspective-grid {
+  background: 
+    linear-gradient(to bottom, transparent 0%, rgba(0, 255, 245, 0.05) 100%),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 39px,
+      rgba(0, 255, 245, 0.1) 39px,
+      rgba(0, 255, 245, 0.1) 40px
+    );
+  transform: perspective(500px) rotateX(60deg);
+  transform-origin: center top;
+}
+
+/* ========================================
+   NEON GLOW EFFECTS - ANIMATED
+   ======================================== */
+.neon-glow-cyan {
+  box-shadow: 
+    0 0 5px rgba(0, 255, 245, 0.3),
+    0 0 10px rgba(0, 255, 245, 0.2),
+    0 0 20px rgba(0, 255, 245, 0.1);
+  animation: neon-pulse-cyan 2s ease-in-out infinite;
+}
+
+.neon-glow-pink {
+  box-shadow: 
+    0 0 5px rgba(255, 0, 255, 0.3),
+    0 0 10px rgba(255, 0, 255, 0.2),
+    0 0 20px rgba(255, 0, 255, 0.1);
+  animation: neon-pulse-pink 2s ease-in-out infinite;
+}
+
+.neon-glow-green {
+  box-shadow: 
+    0 0 5px rgba(57, 255, 20, 0.3),
+    0 0 10px rgba(57, 255, 20, 0.2),
+    0 0 20px rgba(57, 255, 20, 0.1);
+  animation: neon-pulse-green 2s ease-in-out infinite;
+}
+
+@keyframes neon-pulse-cyan {
+  0%, 100% {
+    box-shadow: 
+      0 0 5px rgba(0, 255, 245, 0.3),
+      0 0 10px rgba(0, 255, 245, 0.2),
+      0 0 20px rgba(0, 255, 245, 0.1);
+  }
+  50% {
+    box-shadow: 
+      0 0 10px rgba(0, 255, 245, 0.5),
+      0 0 20px rgba(0, 255, 245, 0.3),
+      0 0 40px rgba(0, 255, 245, 0.2);
+  }
+}
+
+@keyframes neon-pulse-pink {
+  0%, 100% {
+    box-shadow: 
+      0 0 5px rgba(255, 0, 255, 0.3),
+      0 0 10px rgba(255, 0, 255, 0.2),
+      0 0 20px rgba(255, 0, 255, 0.1);
+  }
+  50% {
+    box-shadow: 
+      0 0 10px rgba(255, 0, 255, 0.5),
+      0 0 20px rgba(255, 0, 255, 0.3),
+      0 0 40px rgba(255, 0, 255, 0.2);
+  }
+}
+
+@keyframes neon-pulse-green {
+  0%, 100% {
+    box-shadow: 
+      0 0 5px rgba(57, 255, 20, 0.3),
+      0 0 10px rgba(57, 255, 20, 0.2),
+      0 0 20px rgba(57, 255, 20, 0.1);
+  }
+  50% {
+    box-shadow: 
+      0 0 10px rgba(57, 255, 20, 0.5),
+      0 0 20px rgba(57, 255, 20, 0.3),
+      0 0 40px rgba(57, 255, 20, 0.2);
+  }
+}
+
+/* ========================================
+   NEON TEXT EFFECTS - ANIMATED
+   ======================================== */
+.neon-text-cyan {
+  text-shadow: 
+    0 0 5px rgba(0, 255, 245, 0.5),
+    0 0 10px rgba(0, 255, 245, 0.3),
+    0 0 20px rgba(0, 255, 245, 0.2);
+  animation: text-glow-cyan 3s ease-in-out infinite;
+}
+
+.neon-text-pink {
+  text-shadow: 
+    0 0 5px rgba(255, 0, 255, 0.5),
+    0 0 10px rgba(255, 0, 255, 0.3),
+    0 0 20px rgba(255, 0, 255, 0.2);
+  animation: text-glow-pink 3s ease-in-out infinite;
+}
+
+.neon-text-green {
+  text-shadow: 
+    0 0 5px rgba(57, 255, 20, 0.5),
+    0 0 10px rgba(57, 255, 20, 0.3);
+}
+
+.neon-text-red {
+  text-shadow: 
+    0 0 5px rgba(255, 51, 102, 0.5),
+    0 0 10px rgba(255, 51, 102, 0.3);
+}
+
+@keyframes text-glow-cyan {
+  0%, 100% {
+    text-shadow: 
+      0 0 5px rgba(0, 255, 245, 0.5),
+      0 0 10px rgba(0, 255, 245, 0.3),
+      0 0 20px rgba(0, 255, 245, 0.2);
+  }
+  50% {
+    text-shadow: 
+      0 0 10px rgba(0, 255, 245, 0.8),
+      0 0 20px rgba(0, 255, 245, 0.5),
+      0 0 40px rgba(0, 255, 245, 0.3);
+  }
+}
+
+@keyframes text-glow-pink {
+  0%, 100% {
+    text-shadow: 
+      0 0 5px rgba(255, 0, 255, 0.5),
+      0 0 10px rgba(255, 0, 255, 0.3),
+      0 0 20px rgba(255, 0, 255, 0.2);
+  }
+  50% {
+    text-shadow: 
+      0 0 10px rgba(255, 0, 255, 0.8),
+      0 0 20px rgba(255, 0, 255, 0.5),
+      0 0 40px rgba(255, 0, 255, 0.3);
+  }
+}
+
+/* ========================================
+   GLITCH TEXT EFFECT
+   ======================================== */
+.glitch {
+  position: relative;
+  animation: glitch-skew 4s infinite linear alternate-reverse;
+}
+
+.glitch::before,
+.glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.glitch::before {
+  left: 2px;
+  text-shadow: -2px 0 #ff00ff;
+  clip: rect(44px, 450px, 56px, 0);
+  animation: glitch-anim 5s infinite linear alternate-reverse;
+}
+
+.glitch::after {
+  left: -2px;
+  text-shadow: -2px 0 #00fff5;
+  clip: rect(44px, 450px, 56px, 0);
+  animation: glitch-anim2 5s infinite linear alternate-reverse;
+}
+
+@keyframes glitch-anim {
+  0% { clip: rect(31px, 9999px, 94px, 0); transform: skew(0.5deg); }
+  5% { clip: rect(70px, 9999px, 71px, 0); transform: skew(0.7deg); }
+  10% { clip: rect(29px, 9999px, 24px, 0); transform: skew(0.1deg); }
+  15% { clip: rect(64px, 9999px, 46px, 0); transform: skew(0.3deg); }
+  20% { clip: rect(15px, 9999px, 84px, 0); transform: skew(0.9deg); }
+  25% { clip: rect(95px, 9999px, 12px, 0); transform: skew(0.2deg); }
+  30% { clip: rect(8px, 9999px, 45px, 0); transform: skew(0.6deg); }
+  35% { clip: rect(42px, 9999px, 67px, 0); transform: skew(0.4deg); }
+  40% { clip: rect(78px, 9999px, 34px, 0); transform: skew(0.8deg); }
+  45% { clip: rect(23px, 9999px, 89px, 0); transform: skew(0.1deg); }
+  50% { clip: rect(56px, 9999px, 21px, 0); transform: skew(0.5deg); }
+  55% { clip: rect(91px, 9999px, 58px, 0); transform: skew(0.3deg); }
+  60% { clip: rect(12px, 9999px, 76px, 0); transform: skew(0.7deg); }
+  65% { clip: rect(67px, 9999px, 43px, 0); transform: skew(0.2deg); }
+  70% { clip: rect(34px, 9999px, 95px, 0); transform: skew(0.6deg); }
+  75% { clip: rect(89px, 9999px, 17px, 0); transform: skew(0.4deg); }
+  80% { clip: rect(45px, 9999px, 62px, 0); transform: skew(0.8deg); }
+  85% { clip: rect(21px, 9999px, 88px, 0); transform: skew(0.1deg); }
+  90% { clip: rect(76px, 9999px, 29px, 0); transform: skew(0.5deg); }
+  95% { clip: rect(58px, 9999px, 51px, 0); transform: skew(0.3deg); }
+  100% { clip: rect(43px, 9999px, 73px, 0); transform: skew(0.7deg); }
+}
+
+@keyframes glitch-anim2 {
+  0% { clip: rect(65px, 9999px, 12px, 0); transform: skew(0.3deg); }
+  5% { clip: rect(23px, 9999px, 87px, 0); transform: skew(0.1deg); }
+  10% { clip: rect(91px, 9999px, 34px, 0); transform: skew(0.8deg); }
+  15% { clip: rect(45px, 9999px, 56px, 0); transform: skew(0.4deg); }
+  20% { clip: rect(78px, 9999px, 19px, 0); transform: skew(0.6deg); }
+  25% { clip: rect(12px, 9999px, 95px, 0); transform: skew(0.2deg); }
+  30% { clip: rect(67px, 9999px, 41px, 0); transform: skew(0.9deg); }
+  35% { clip: rect(34px, 9999px, 72px, 0); transform: skew(0.5deg); }
+  40% { clip: rect(89px, 9999px, 28px, 0); transform: skew(0.1deg); }
+  45% { clip: rect(56px, 9999px, 83px, 0); transform: skew(0.7deg); }
+  50% { clip: rect(21px, 9999px, 47px, 0); transform: skew(0.3deg); }
+  55% { clip: rect(76px, 9999px, 62px, 0); transform: skew(0.6deg); }
+  60% { clip: rect(43px, 9999px, 91px, 0); transform: skew(0.2deg); }
+  65% { clip: rect(95px, 9999px, 15px, 0); transform: skew(0.8deg); }
+  70% { clip: rect(58px, 9999px, 38px, 0); transform: skew(0.4deg); }
+  75% { clip: rect(29px, 9999px, 79px, 0); transform: skew(0.1deg); }
+  80% { clip: rect(84px, 9999px, 52px, 0); transform: skew(0.5deg); }
+  85% { clip: rect(47px, 9999px, 24px, 0); transform: skew(0.9deg); }
+  90% { clip: rect(19px, 9999px, 68px, 0); transform: skew(0.3deg); }
+  95% { clip: rect(72px, 9999px, 35px, 0); transform: skew(0.7deg); }
+  100% { clip: rect(38px, 9999px, 86px, 0); transform: skew(0.2deg); }
+}
+
+@keyframes glitch-skew {
+  0% { transform: skew(0deg); }
+  20% { transform: skew(0deg); }
+  21% { transform: skew(1deg); }
+  22% { transform: skew(-1deg); }
+  23% { transform: skew(0deg); }
+  100% { transform: skew(0deg); }
+}
+
+/* ========================================
+   ANIMATED GRADIENT BORDER
+   ======================================== */
+.gradient-border-animated {
+  position: relative;
+  background: var(--card);
+  border-radius: var(--radius);
+}
+
+.gradient-border-animated::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    var(--gradient-angle, 0deg),
+    var(--neon-cyan),
+    var(--neon-pink),
+    var(--neon-purple),
+    var(--neon-cyan)
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: rotate-gradient 4s linear infinite;
+}
+
+@property --gradient-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes rotate-gradient {
+  0% { --gradient-angle: 0deg; }
+  100% { --gradient-angle: 360deg; }
+}
+
+/* Fallback for browsers that don't support @property */
+@supports not (background: paint(something)) {
+  .gradient-border-animated::before {
+    animation: rotate-gradient-fallback 4s linear infinite;
+  }
+  
+  @keyframes rotate-gradient-fallback {
+    0% { background: linear-gradient(0deg, var(--neon-cyan), var(--neon-pink), var(--neon-purple), var(--neon-cyan)); }
+    25% { background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink), var(--neon-purple), var(--neon-cyan)); }
+    50% { background: linear-gradient(180deg, var(--neon-cyan), var(--neon-pink), var(--neon-purple), var(--neon-cyan)); }
+    75% { background: linear-gradient(270deg, var(--neon-cyan), var(--neon-pink), var(--neon-purple), var(--neon-cyan)); }
+    100% { background: linear-gradient(360deg, var(--neon-cyan), var(--neon-pink), var(--neon-purple), var(--neon-cyan)); }
+  }
+}
+
+/* ========================================
+   SHIMMER / SKELETON LOADER
+   ======================================== */
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(0, 255, 245, 0.05) 0%,
+    rgba(0, 255, 245, 0.15) 50%,
+    rgba(0, 255, 245, 0.05) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ========================================
+   FLOATING ANIMATION
+   ======================================== */
+.float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.float-delay-1 { animation-delay: -1s; }
+.float-delay-2 { animation-delay: -2s; }
+.float-delay-3 { animation-delay: -3s; }
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+/* ========================================
+   PULSE ANIMATIONS
+   ======================================== */
+.pulse-slow {
+  animation: pulse-slow 3s ease-in-out infinite;
+}
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(0.98); }
+}
+
+.pulse-ring {
+  position: relative;
+}
+
+.pulse-ring::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
+  border: 2px solid var(--neon-cyan);
+  animation: pulse-ring-anim 2s ease-out infinite;
+}
+
+@keyframes pulse-ring-anim {
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(1.3); opacity: 0; }
+}
+
+/* ========================================
+   SCALE IN ANIMATION
+   ======================================== */
+.scale-in {
+  animation: scale-in 0.3s ease-out;
+}
+
+@keyframes scale-in {
+  0% { transform: scale(0.9); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* ========================================
+   SLIDE ANIMATIONS
+   ======================================== */
+.slide-up {
+  animation: slide-up 0.4s ease-out;
+}
+
+.slide-down {
+  animation: slide-down 0.4s ease-out;
+}
+
+.slide-left {
+  animation: slide-left 0.4s ease-out;
+}
+
+.slide-right {
+  animation: slide-right 0.4s ease-out;
+}
+
+@keyframes slide-up {
+  0% { transform: translateY(20px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slide-down {
+  0% { transform: translateY(-20px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slide-left {
+  0% { transform: translateX(20px); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slide-right {
+  0% { transform: translateX(-20px); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+/* Staggered animations */
+.stagger-1 { animation-delay: 0.05s; }
+.stagger-2 { animation-delay: 0.1s; }
+.stagger-3 { animation-delay: 0.15s; }
+.stagger-4 { animation-delay: 0.2s; }
+.stagger-5 { animation-delay: 0.25s; }
+.stagger-6 { animation-delay: 0.3s; }
+
+/* ========================================
+   TYPEWRITER EFFECT
+   ======================================== */
+.typewriter {
+  overflow: hidden;
+  border-right: 2px solid var(--neon-cyan);
+  white-space: nowrap;
+  animation: 
+    typing 2s steps(20, end),
+    blink-caret 0.75s step-end infinite;
+}
+
+@keyframes typing {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+@keyframes blink-caret {
+  from, to { border-color: transparent; }
+  50% { border-color: var(--neon-cyan); }
+}
+
+/* ========================================
+   CARD HOVER EFFECTS - ENHANCED
+   ======================================== */
+.card-hover-glow {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-hover-glow:hover {
+  box-shadow: 
+    0 0 20px rgba(0, 255, 245, 0.2),
+    0 0 40px rgba(0, 255, 245, 0.1),
+    0 0 60px rgba(0, 255, 245, 0.05),
+    0 10px 40px rgba(0, 0, 0, 0.3);
+  transform: translateY(-4px);
+}
+
+.card-hover-glow:hover .card-icon {
+  transform: scale(1.1) rotate(5deg);
+}
+
+/* 3D tilt effect on hover */
+.card-3d {
+  transform-style: preserve-3d;
+  transition: transform 0.3s ease;
+}
+
+.card-3d:hover {
+  transform: perspective(1000px) rotateX(2deg) rotateY(-2deg) translateY(-5px);
+}
+
+/* ========================================
+   BUTTON EFFECTS
+   ======================================== */
+.btn-glow {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.btn-glow::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: left 0.5s ease;
+}
+
+.btn-glow:hover::before {
+  left: 100%;
+}
+
+.btn-glow:hover {
+  box-shadow: 
+    0 0 20px rgba(0, 255, 245, 0.4),
+    0 0 40px rgba(0, 255, 245, 0.2);
+}
+
+/* ========================================
+   RIPPLE EFFECT
+   ======================================== */
+.ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.ripple::after {
+  content: "";
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  background-image: radial-gradient(circle, rgba(0, 255, 245, 0.3) 10%, transparent 10.01%);
+  background-repeat: no-repeat;
+  background-position: 50%;
+  transform: scale(10, 10);
+  opacity: 0;
+  transition: transform 0.5s, opacity 0.5s;
+}
+
+.ripple:active::after {
+  transform: scale(0, 0);
+  opacity: 0.3;
+  transition: 0s;
+}
+
+/* ========================================
+   SCANLINES OVERLAY
+   ======================================== */
+.scanlines {
+  position: relative;
+}
+
+.scanlines::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.03) 2px,
+    rgba(0, 0, 0, 0.03) 4px
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ========================================
+   TICKER TAPE ANIMATION
+   ======================================== */
+@keyframes ticker {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.ticker-tape {
+  animation: ticker 30s linear infinite;
+}
+
+.ticker-tape:hover {
+  animation-play-state: paused;
+}
+
+/* ========================================
+   NUMBER COUNTER ANIMATION
+   ======================================== */
+.counter {
+  display: inline-block;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ========================================
+   CHART ENTRY ANIMATION
+   ======================================== */
+.chart-line-draw {
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  animation: draw-line 2s ease-out forwards;
+}
+
+@keyframes draw-line {
+  to { stroke-dashoffset: 0; }
+}
+
+/* ========================================
+   LIVE INDICATOR
+   ======================================== */
+.live-indicator {
+  position: relative;
+}
+
+.live-indicator::before {
+  content: "";
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: inherit;
+  animation: live-ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes live-ping {
+  0% { transform: scale(1); opacity: 1; }
+  75%, 100% { transform: scale(2); opacity: 0; }
+}
+
+/* ========================================
+   MATRIX RAIN BACKGROUND (OPTIONAL)
+   ======================================== */
+.matrix-bg {
+  background: linear-gradient(180deg, 
+    transparent 0%, 
+    rgba(0, 255, 245, 0.02) 50%, 
+    transparent 100%
+  );
+  animation: matrix-scroll 10s linear infinite;
+}
+
+@keyframes matrix-scroll {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 100vh; }
+}
+
+/* ========================================
+   CUSTOM SCROLLBAR - ENHANCED
+   ======================================== */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
   background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--neon-cyan), var(--neon-pink));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--neon-pink), var(--neon-cyan));
+}
+
+/* ========================================
+   PRICE ANIMATIONS
+   ======================================== */
+.price-up {
+  color: #39ff14;
+  animation: price-flash-green 0.5s ease;
+}
+
+.price-down {
+  color: #ff3366;
+  animation: price-flash-red 0.5s ease;
+}
+
+@keyframes price-flash-green {
+  0%, 100% { background: transparent; }
+  50% { background: rgba(57, 255, 20, 0.2); }
+}
+
+@keyframes price-flash-red {
+  0%, 100% { background: transparent; }
+  50% { background: rgba(255, 51, 102, 0.2); }
+}
+
+/* ========================================
+   FOCUS RING ANIMATION
+   ======================================== */
+*:focus-visible {
+  outline: 2px solid var(--neon-cyan);
+  outline-offset: 2px;
+  animation: focus-pulse 2s ease-in-out infinite;
+}
+
+@keyframes focus-pulse {
+  0%, 100% { outline-color: var(--neon-cyan); }
+  50% { outline-color: var(--neon-pink); }
+}
+
+/* ========================================
+   TOOLTIP ANIMATION
+   ======================================== */
+.tooltip-animate {
+  animation: tooltip-in 0.2s ease-out;
+}
+
+@keyframes tooltip-in {
+  0% { 
+    opacity: 0; 
+    transform: scale(0.95) translateY(5px); 
+  }
+  100% { 
+    opacity: 1; 
+    transform: scale(1) translateY(0); 
+  }
+}
+
+/* ========================================
+   AURORA BACKGROUND
+   ======================================== */
+.aurora-bg {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.aurora-bg::before,
+.aurora-bg::after {
+  content: "";
+  position: absolute;
+  width: 150%;
+  height: 150%;
+  border-radius: 50%;
+  filter: blur(100px);
+  opacity: 0.15;
+  animation: aurora 15s ease-in-out infinite;
+}
+
+.aurora-bg::before {
+  background: radial-gradient(circle, var(--neon-cyan) 0%, transparent 70%);
+  top: -50%;
+  left: -25%;
+  animation-delay: 0s;
+}
+
+.aurora-bg::after {
+  background: radial-gradient(circle, var(--neon-pink) 0%, transparent 70%);
+  bottom: -50%;
+  right: -25%;
+  animation-delay: -7.5s;
+}
+
+@keyframes aurora {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(10%, 10%) scale(1.1); }
+  50% { transform: translate(-5%, 15%) scale(0.9); }
+  75% { transform: translate(-10%, -5%) scale(1.05); }
+}
+
+/* ========================================
+   DATA STREAM EFFECT
+   ======================================== */
+.data-stream {
+  position: relative;
+  overflow: hidden;
+}
+
+.data-stream::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent);
+  animation: data-flow 2s linear infinite;
+}
+
+@keyframes data-flow {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* ========================================
+   RETRO CRT EFFECT
+   ======================================== */
+.crt-flicker {
+  animation: crt-flicker 0.15s infinite;
+}
+
+@keyframes crt-flicker {
+  0% { opacity: 0.97; }
+  50% { opacity: 1; }
+  100% { opacity: 0.98; }
+}
+
+/* ========================================
+   PARTICLE ANIMATION (CSS ONLY)
+   ======================================== */
+.particles {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: var(--neon-cyan);
+  border-radius: 50%;
+  opacity: 0.6;
+  animation: particle-float 15s linear infinite;
+}
+
+.particle:nth-child(2) {
+  left: 20%;
+  animation-delay: -2s;
+  background: var(--neon-pink);
+}
+
+.particle:nth-child(3) {
+  left: 40%;
+  animation-delay: -4s;
+  background: var(--neon-purple);
+}
+
+.particle:nth-child(4) {
+  left: 60%;
+  animation-delay: -6s;
+  background: var(--neon-green);
+}
+
+.particle:nth-child(5) {
+  left: 80%;
+  animation-delay: -8s;
+  background: var(--neon-yellow);
+}
+
+@keyframes particle-float {
+  0% {
+    transform: translateY(100vh) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.6;
+  }
+  90% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateY(-100vh) rotate(720deg);
+    opacity: 0;
+  }
 }
