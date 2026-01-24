@@ -243,7 +243,7 @@ export default function AnalyticsPage() {
                       tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
                     />
                     <Tooltip 
-                      formatter={(value: number) => [`+$${value.toLocaleString("en-US")}`, "P&L"]}
+                      formatter={(value) => [`+$${(value as number)?.toLocaleString("en-US") ?? '0'}`, "P&L"]}
                       contentStyle={{
                         backgroundColor: 'rgba(15, 15, 26, 0.95)',
                         border: '1px solid rgba(57, 255, 20, 0.2)',
@@ -290,7 +290,7 @@ export default function AnalyticsPage() {
                       width={70}
                     />
                     <Tooltip 
-                      formatter={(value: number) => [`$${value.toLocaleString("en-US")}`, "Volume"]}
+                      formatter={(value) => [`$${(value as number)?.toLocaleString("en-US") ?? '0'}`, "Volume"]}
                       contentStyle={{
                         backgroundColor: 'rgba(15, 15, 26, 0.95)',
                         border: '1px solid rgba(191, 0, 255, 0.2)',
@@ -347,7 +347,7 @@ export default function AnalyticsPage() {
                       domain={[40, 80]}
                     />
                     <Tooltip 
-                      formatter={(value: number) => [`${value.toFixed(1)}%`, "Win Rate"]}
+                      formatter={(value) => [`${(value as number)?.toFixed(1) ?? '0'}%`, "Win Rate"]}
                       contentStyle={{
                         backgroundColor: 'rgba(15, 15, 26, 0.95)',
                         border: '1px solid rgba(255, 255, 0, 0.2)',

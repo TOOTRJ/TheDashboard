@@ -272,7 +272,7 @@ export function Charts() {
                   ))}
                 </Pie>
                 <Tooltip 
-                  formatter={(value: number) => [`$${value.toLocaleString("en-US")}`, "Value"]}
+                  formatter={(value) => [`$${(value as number)?.toLocaleString("en-US") ?? '0'}`, "Value"]}
                   contentStyle={{
                     backgroundColor: 'rgba(15, 15, 26, 0.95)',
                     border: '1px solid rgba(255, 0, 255, 0.3)',
@@ -356,7 +356,7 @@ export function Charts() {
                   width={80}
                 />
                 <Tooltip 
-                  formatter={(value: number) => [`$${value.toLocaleString("en-US")}`, "Volume"]}
+                  formatter={(value) => [`$${(value as number)?.toLocaleString("en-US") ?? '0'}`, "Volume"]}
                   contentStyle={{
                     backgroundColor: 'rgba(15, 15, 26, 0.95)',
                     border: '1px solid rgba(191, 0, 255, 0.3)',

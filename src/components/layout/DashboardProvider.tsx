@@ -10,7 +10,7 @@ type DashboardContextValue = {
   setDateRange: (value: DateRangeKey) => void;
   searchQuery: string;
   setSearchQuery: (value: string) => void;
-  dateRangeOptions: { label: string; value: DateRangeKey }[];
+  dateRangeOptions: readonly { readonly label: string; readonly value: DateRangeKey }[];
 };
 
 const DashboardContext = React.createContext<DashboardContextValue | null>(null);
