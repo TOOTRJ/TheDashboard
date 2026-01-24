@@ -150,7 +150,7 @@ export default function AnalyticsPage() {
                       tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
                     />
                     <Tooltip 
-                      formatter={(value: number) => [`$${value.toLocaleString("en-US")}`, "Portfolio"]}
+                      formatter={(value) => [`$${(value as number)?.toLocaleString("en-US") ?? '0'}`, "Portfolio"]}
                       contentStyle={{
                         backgroundColor: 'rgba(15, 15, 26, 0.95)',
                         border: '1px solid rgba(0, 255, 245, 0.2)',
