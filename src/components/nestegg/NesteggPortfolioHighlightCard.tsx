@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/formatters";
 import { Wallet, TrendingUp } from "lucide-react";
@@ -8,12 +9,14 @@ type Props = {
   currentPortfolio: number;
   projectedAtRetirement: number;
   retirementAge: number;
+  portfolioLinked?: boolean;
 };
 
 export function NesteggPortfolioHighlightCard({
   currentPortfolio,
   projectedAtRetirement,
   retirementAge,
+  portfolioLinked = false,
 }: Props) {
   return (
     <Card className="border-[#00fff5]/20 bg-card/85 backdrop-blur-sm shadow-[0_0_24px_-8px_rgba(0,255,245,0.1)]">
@@ -34,7 +37,17 @@ export function NesteggPortfolioHighlightCard({
                 {formatCurrency(currentPortfolio)}
               </p>
               <p className="text-[11px] text-muted-foreground mt-1 leading-snug">
-                What you have invested today (same as plan inputs).
+                {portfolioLinked ? (
+                  <>
+                    From your{" "}
+                    <Link href="/portfolio" className="text-[#00fff5]/80 hover:text-[#00fff5] underline underline-offset-2">
+                      portfolio
+                    </Link>
+                    .
+                  </>
+                ) : (
+                  "What you have invested today (same as plan inputs)."
+                )}
               </p>
             </div>
           </div>

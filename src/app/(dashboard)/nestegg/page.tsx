@@ -66,6 +66,8 @@ import {
   saveNesteggDraft,
 } from "@/lib/nestegg/storage";
 import { formatCurrency } from "@/lib/formatters";
+import { fetchPortfolioTotal, fetchPortfolioGoal } from "@/lib/portfolio/portfolio-supabase";
+import { buildGoalProjectionSeries } from "@/lib/nestegg/future-value";
 
 function mergeInputs(prev: NesteggInputs, patch: Partial<NesteggInputs>): NesteggInputs {
   const next = { ...prev, ...patch };
@@ -127,6 +129,9 @@ export default function NesteggPage() {
   const [savingScenario, setSavingScenario] = React.useState(false);
   const [scenarioNameDraft, setScenarioNameDraft] = React.useState("");
   const [planInputsOpen, setPlanInputsOpen] = React.useState(false);
+  const [portfolioLinked, setPortfolioLinked] = React.useState(false);
+  const [portfolioGoal, setPortfolioGoal] = React.useState(0);
+  const [portfolioGoalYear, setPortfolioGoalYear] = React.useState<number | null>(null);
   const planInputsSectionRef = React.useRef<HTMLDivElement>(null);
 
   /* ── Light MC — live, debounced (~200 paths for approximate results) ── */
@@ -189,18 +194,28 @@ export default function NesteggPage() {
 
     (async () => {
       if (user) {
-        const rows = await fetchNesteggScenariosFromSupabase();
+        const [rows, portfolioTotal, goalData] = await Promise.all([
+          fetchNesteggScenariosFromSupabase(),
+          fetchPortfolioTotal(),
+          fetchPortfolioGoal(),
+        ]);
         if (cancelled) return;
+        setPortfolioGoal(goalData.goal);
+        setPortfolioGoalYear(goalData.goalYear);
         setCloudScenarios(rows);
+        const hasPortfolio = portfolioTotal > 0;
 
         if (rows.length > 0) {
           const latest = rows[0];
           const normalized = normalizeNesteggInputs(latest.inputs);
-          setInputs(normalized);
+          const withPortfolio = hasPortfolio
+            ? { ...normalized, currentSavings: portfolioTotal }
+            : normalized;
+          setInputs(withPortfolio);
           setScenario(latest.marketScenario);
           setActiveSavedScenario({ id: latest.id, name: latest.name });
           setLoadedBaseline({
-            inputs: normalized,
+            inputs: withPortfolio,
             marketScenario: latest.marketScenario,
             name: latest.name,
           });
@@ -209,17 +224,24 @@ export default function NesteggPage() {
         } else {
           const d = loadNesteggDraft();
           if (d) {
-            setInputs(d.inputs);
+            const withPortfolio = hasPortfolio
+              ? { ...d.inputs, currentSavings: portfolioTotal }
+              : d.inputs;
+            setInputs(withPortfolio);
             setScenario(d.marketScenario);
             setCompareOverlay(d.compareOverlay);
           } else {
-            setInputs({ ...DEFAULT_NESTEGG_INPUTS });
+            setInputs({
+              ...DEFAULT_NESTEGG_INPUTS,
+              currentSavings: hasPortfolio ? portfolioTotal : 0,
+            });
             setScenario("base");
             setCompareOverlay(false);
           }
           setActiveSavedScenario(null);
           setLoadedBaseline(null);
         }
+        setPortfolioLinked(hasPortfolio);
       } else {
         const d = loadNesteggDraft();
         if (d) {
@@ -230,6 +252,7 @@ export default function NesteggPage() {
         setCloudScenarios([]);
         setActiveSavedScenario(null);
         setLoadedBaseline(null);
+        setPortfolioLinked(false);
       }
       setHydrated(true);
     })();
@@ -385,6 +408,21 @@ export default function NesteggPage() {
     () => buildRetirementCashflowYears(scenarioInputs, 15),
     [scenarioInputs]
   );
+
+  const goalProjection = React.useMemo(() => {
+    if (!portfolioGoal || portfolioGoal <= 0 || !portfolioGoalYear) return null;
+    const now = new Date().getFullYear();
+    const monthsToGoal = Math.max(0, (portfolioGoalYear - now) * 12);
+    if (monthsToGoal <= 0) return null;
+    return buildGoalProjectionSeries({
+      currentBalance: inputs.currentSavings,
+      goalAmount: portfolioGoal,
+      monthsToGoal,
+      annualReturnPercent: inputs.annualReturnPercent,
+      annualEscalationPercent: inputs.salaryGrowthPercent,
+      currentMonthly: inputs.monthlyContribution,
+    });
+  }, [inputs.currentSavings, inputs.annualReturnPercent, inputs.salaryGrowthPercent, inputs.monthlyContribution, portfolioGoal, portfolioGoalYear]);
 
   const horizonAge = planHorizonAge(inputs);
 
@@ -683,6 +721,7 @@ export default function NesteggPage() {
           currentPortfolio={inputs.currentSavings}
           projectedAtRetirement={result.nestEggAtRetirement}
           retirementAge={inputs.retirementAge}
+          portfolioLinked={portfolioLinked}
         />
 
         <div className="grid gap-4 xl:grid-cols-3 xl:items-stretch">
@@ -715,6 +754,11 @@ export default function NesteggPage() {
           retirementAge={inputs.retirementAge}
           depletionAge={result.depletionAge}
           lifeExpectancy={horizonAge}
+          goalProjection={goalProjection}
+          goalAmount={portfolioGoal}
+          goalYear={portfolioGoalYear}
+          currentMonthly={inputs.monthlyContribution}
+          escalationPercent={inputs.salaryGrowthPercent}
         />
 
         {/* ── Plan Inputs (collapsible) ── */}
