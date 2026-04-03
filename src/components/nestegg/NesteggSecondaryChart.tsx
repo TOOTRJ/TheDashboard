@@ -29,18 +29,21 @@ type Props = {
 
 export function NesteggSecondaryChart({ data }: Props) {
   return (
-    <Card className="border-[#00fff5]/20 bg-card/80 backdrop-blur-sm h-full flex flex-col">
+    <Card className="border-[#ff00ff]/12 bg-card/65 backdrop-blur-sm h-full flex flex-col">
       <CardHeader className="pb-2">
         <div className="flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#ff00ff]/10">
-            <BarChart2 className="h-4 w-4 text-[#ff00ff]" aria-hidden />
+            <BarChart2 className="h-4 w-4 text-[#ff99ff]" aria-hidden />
           </div>
           <div>
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-[#ff00ff]">
-              Retirement cash flow
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+              Supporting view
+            </p>
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-[#ff99ff] mt-0.5">
+              Early retirement cash flow
             </h3>
-            <p className="text-[11px] text-muted-foreground">
-              Annual income vs expenses in early retirement (inflation-adjusted path)
+            <p className="text-[11px] text-muted-foreground mt-1">
+              Income vs expenses in the first years after you retire (modeled path)
             </p>
           </div>
         </div>

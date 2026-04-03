@@ -39,9 +39,14 @@ export function NesteggAdvancedSettings({ inputs, onChange }: Props) {
           aria-expanded={open}
           className="flex h-auto w-full items-center justify-between rounded-lg px-3 py-3 text-left hover:bg-[#00fff5]/5"
         >
-          <span className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-[#00fff5]">
-            <Settings2 className="h-4 w-4" aria-hidden />
-            Advanced settings
+          <span className="flex min-w-0 flex-1 flex-col items-start gap-0.5 text-left sm:flex-row sm:items-center sm:gap-2">
+            <span className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-[#00fff5]">
+              <Settings2 className="h-4 w-4 shrink-0" aria-hidden />
+              Advanced assumptions
+            </span>
+            <span className="text-[11px] font-normal normal-case tracking-normal text-muted-foreground sm:pl-1">
+              Inflation, income, and other planning details
+            </span>
           </span>
           <ChevronDown
             className={cn(

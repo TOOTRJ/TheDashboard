@@ -17,6 +17,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 type Props = {
   rows: ScenarioMonteCompareRow[];
   loading?: boolean;
+  /** Hide the card title row when wrapped in a parent section (e.g. collapsible). */
+  hideHeader?: boolean;
 };
 
 const NEON = {
@@ -25,25 +27,27 @@ const NEON = {
   agg: "#ff00ff",
 };
 
-export function NesteggComparisonTable({ rows, loading }: Props) {
+export function NesteggComparisonTable({ rows, loading, hideHeader = false }: Props) {
   return (
     <Card className="border-[#00fff5]/20 bg-card/80 backdrop-blur-sm">
-      <CardHeader className="pb-2">
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#00fff5]/10">
-            <Columns3 className="h-4 w-4 text-[#00fff5]" aria-hidden />
+      {!hideHeader ? (
+        <CardHeader className="pb-2">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#00fff5]/10">
+              <Columns3 className="h-4 w-4 text-[#00fff5]" aria-hidden />
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold uppercase tracking-wider text-[#00fff5]">
+                Compare market presets
+              </h3>
+              <p className="text-[11px] text-muted-foreground">
+                Same plan, three stress levels — see how success odds and balances shift
+              </p>
+            </div>
           </div>
-          <div>
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-[#00fff5]">
-              Scenario comparison
-            </h3>
-            <p className="text-[11px] text-muted-foreground">
-              Monte Carlo metrics for Base, Conservative, and Aggressive presets (same inputs)
-            </p>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent className="overflow-x-auto pt-0">
+        </CardHeader>
+      ) : null}
+      <CardContent className={hideHeader ? "overflow-x-auto pt-1" : "overflow-x-auto pt-0"}>
         <Table>
           <TableHeader>
             <TableRow className="border-[#00fff5]/10 hover:bg-transparent">
@@ -51,16 +55,16 @@ export function NesteggComparisonTable({ rows, loading }: Props) {
                 Preset
               </TableHead>
               <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                Success
+                Chance of success
               </TableHead>
               <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                Nest egg at retirement
+                At retirement (median)
               </TableHead>
               <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                Ending balance (median)
+                Balance at end (median)
               </TableHead>
               <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                Median depletion age
+                Typical depletion age
               </TableHead>
             </TableRow>
           </TableHeader>

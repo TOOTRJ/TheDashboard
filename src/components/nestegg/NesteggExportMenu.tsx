@@ -1,6 +1,6 @@
 "use client";
 
-import { Download, FileText, MoreHorizontal } from "lucide-react";
+import { Download, FileText, MoreHorizontal, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -24,6 +25,7 @@ type Props = {
   marketScenario: NesteggScenarioId;
   deterministic: ProjectionResult;
   monteCarlo: MonteCarloResult | null;
+  onResetDefaults: () => void;
 };
 
 export function NesteggExportMenu({
@@ -31,6 +33,7 @@ export function NesteggExportMenu({
   marketScenario,
   deterministic,
   monteCarlo,
+  onResetDefaults,
 }: Props) {
   const stamp = new Date().toISOString().slice(0, 10);
 
@@ -62,11 +65,12 @@ export function NesteggExportMenu({
         <Button
           type="button"
           variant="outline"
-          size="sm"
-          className="h-9 border-[#bf00ff]/25 bg-[#bf00ff]/5 text-xs hover:bg-[#bf00ff]/15 hover:text-[#ff99ff]"
+          size="icon"
+          className="h-9 w-9 shrink-0 border-[#bf00ff]/25 bg-[#bf00ff]/5 hover:bg-[#bf00ff]/15 hover:text-[#ff99ff]"
+          aria-label="More actions"
+          title="Export, print, reset"
         >
-          <MoreHorizontal className="mr-2 h-4 w-4" />
-          Export
+          <MoreHorizontal className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
@@ -92,6 +96,17 @@ export function NesteggExportMenu({
         >
           <FileText className="h-3.5 w-3.5 text-[#ff99ff]" />
           Print / Save as PDF
+        </DropdownMenuItem>
+        <DropdownMenuSeparator className="bg-[#bf00ff]/20" />
+        <DropdownMenuItem
+          className="text-xs gap-2 cursor-pointer"
+          onSelect={(e) => {
+            e.preventDefault();
+            onResetDefaults();
+          }}
+        >
+          <RotateCcw className="h-3.5 w-3.5 text-[#00fff5]" />
+          Reset to app defaults
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

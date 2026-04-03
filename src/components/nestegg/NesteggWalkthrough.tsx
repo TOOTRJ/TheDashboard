@@ -14,20 +14,20 @@ const STORAGE_KEY = "nestegg-onboarding-v1";
 
 const STEPS = [
   {
-    title: "Start with your story",
-    body: "Enter ages, savings, and monthly numbers in the left column. Everything else builds on these basics.",
+    title: "See your headline results first",
+    body: "The top of Nestegg shows your snapshot, key odds, and the main chart. Scroll down when you are ready to change inputs.",
   },
   {
     title: "Presets & saved plans",
-    body: "Pick Base, Conservative, or Aggressive for stress-testing. Sign in to save named scenarios you can reload later.",
+    body: "Pick Base, Conservative, or Aggressive to stress-test the same plan. Sign in to save named scenarios you can reload later.",
   },
   {
-    title: "Probability & charts",
-    body: "Success rate and percentile rails summarize uncertainty. The chart shows either one path, three overlays, or Monte Carlo bands.",
+    title: "Probability & the chart",
+    body: "Success rate and bands summarize uncertainty. The big chart shows growth, retirement, and drawdown — toggle compare mode to overlay presets.",
   },
   {
-    title: "Explore safely",
-    body: "Use Quick what-if for fast tweaks. Open “How it works” anytime — you can replay this tour from the guide panel.",
+    title: "Play with ideas",
+    body: "Use Try a different plan for one-tap tests. Open How it works anytime — replay this tour from the guide.",
   },
 ];
 

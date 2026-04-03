@@ -122,7 +122,17 @@ export function NesteggControls({ inputs, onChange }: Props) {
           </div>
         </div>
       </CardHeader>
-      <CardContent className="grid gap-5 sm:grid-cols-2">
+      <CardContent className="space-y-6">
+        <div className="space-y-4">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-[#00fff5]/90">
+              You &amp; timeline
+            </p>
+            <p className="text-[11px] text-muted-foreground mt-1">
+              Ages set how long you save and how long the plan needs to last.
+            </p>
+          </div>
+          <div className="grid gap-5 sm:grid-cols-2">
         <RangeWithNumber
           id="currentAge"
           label="Current age"
@@ -154,6 +164,19 @@ export function NesteggControls({ inputs, onChange }: Props) {
           step={1}
           format={(n) => `${n} yrs`}
         />
+          </div>
+        </div>
+
+        <div className="space-y-4 border-t border-[#00fff5]/10 pt-5">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-[#00fff5]/90">
+              Savings &amp; growth
+            </p>
+            <p className="text-[11px] text-muted-foreground mt-1">
+              What you have today, what you add, and the return you expect before retiring.
+            </p>
+          </div>
+          <div className="grid gap-5 sm:grid-cols-2">
         <Field id="currentSavings" label="Current savings">
           <Input
             id="currentSavings"
@@ -191,6 +214,19 @@ export function NesteggControls({ inputs, onChange }: Props) {
           step={0.25}
           format={(n) => formatPercent(n, 2)}
         />
+          </div>
+        </div>
+
+        <div className="space-y-4 border-t border-[#00fff5]/10 pt-5">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-[#00fff5]/90">
+              Retirement spending
+            </p>
+            <p className="text-[11px] text-muted-foreground mt-1">
+              A monthly spending target in today&apos;s dollars; the model steps it up with inflation.
+            </p>
+          </div>
+        <div className="grid gap-5 sm:grid-cols-2">
         <div className="sm:col-span-2">
           <Field id="monthlyRetirementSpending" label="Monthly retirement spending">
             <Input
@@ -208,6 +244,8 @@ export function NesteggControls({ inputs, onChange }: Props) {
               In today&apos;s dollars; spending steps up with inflation in retirement
             </p>
           </Field>
+        </div>
+        </div>
         </div>
       </CardContent>
     </Card>

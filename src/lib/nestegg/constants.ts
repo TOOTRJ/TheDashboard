@@ -4,7 +4,8 @@ export const DEFAULT_NESTEGG_INPUTS: NesteggInputs = {
   currentAge: 32,
   retirementAge: 65,
   lifeExpectancy: 90,
-  currentSavings: 85000,
+  /** Default starting portfolio for new / demo plans (editable in plan inputs). */
+  currentSavings: 100_000,
   monthlyContribution: 1200,
   annualReturnPercent: 7,
   monthlyRetirementSpending: 6000,

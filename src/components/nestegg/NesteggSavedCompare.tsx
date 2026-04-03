@@ -42,6 +42,8 @@ type Props = {
   activeSavedId: string | null;
   /** Main MC from page (avoid duplicate simulation). */
   workspaceMonteCarlo: MonteCarloResult | null;
+  /** Hide the card title row when wrapped in a parent section (e.g. collapsible). */
+  hideHeader?: boolean;
 };
 
 const NONE = "__none__";
@@ -52,6 +54,7 @@ export function NesteggSavedCompare({
   workspaceMarketScenario,
   activeSavedId,
   workspaceMonteCarlo,
+  hideHeader = false,
 }: Props) {
   const [compareId, setCompareId] = React.useState<string>(NONE);
   const [compareMc, setCompareMc] = React.useState<MonteCarloResult | null>(null);
@@ -103,103 +106,111 @@ export function NesteggSavedCompare({
 
   if (options.length === 0) return null;
 
+  const inputDiffSheet =
+    compareId !== NONE && selectedRow ? (
+      <Sheet>
+        <SheetTrigger asChild>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-8 border-[#bf00ff]/30 text-[11px] text-[#ff99ff] hover:bg-[#bf00ff]/10"
+          >
+            <ListTree className="mr-1.5 h-3.5 w-3.5" />
+            Input diff
+          </Button>
+        </SheetTrigger>
+        <SheetContent
+          side="right"
+          className="w-full overflow-y-auto border-[#bf00ff]/20 bg-card/95 backdrop-blur-xl sm:max-w-lg"
+        >
+          <SheetHeader>
+            <SheetTitle className="text-[#bf00ff] uppercase tracking-wider text-sm">
+              Plan inputs vs {selectedRow.name}
+            </SheetTitle>
+          </SheetHeader>
+          <div className="mt-4 px-1">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-[#bf00ff]/10 hover:bg-transparent">
+                  <TableHead className="text-[10px] uppercase text-muted-foreground">
+                    Field
+                  </TableHead>
+                  <TableHead className="text-[10px] uppercase text-[#00fff5]">
+                    Workspace
+                  </TableHead>
+                  <TableHead className="text-[10px] uppercase text-[#ff99ff]">
+                    Saved
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {diffRows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    className={cn(
+                      "border-[#bf00ff]/10",
+                      row.changed && "bg-[#ffff00]/5"
+                    )}
+                  >
+                    <TableCell className="text-xs text-muted-foreground align-top">
+                      {row.label}
+                    </TableCell>
+                    <TableCell
+                      className={cn(
+                        "text-xs font-mono align-top",
+                        row.changed && "text-[#00fff5]"
+                      )}
+                    >
+                      {row.a}
+                    </TableCell>
+                    <TableCell
+                      className={cn(
+                        "text-xs font-mono align-top",
+                        row.changed && "text-[#ff99ff]"
+                      )}
+                    >
+                      {row.b}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            <p className="mt-4 text-[10px] text-muted-foreground leading-relaxed">
+              Changed rows are highlighted. Market preset and numeric assumptions can both move your
+              Monte Carlo snapshot.
+            </p>
+          </div>
+        </SheetContent>
+      </Sheet>
+    ) : null;
+
   return (
     <Card className="border-[#bf00ff]/20 bg-card/80 backdrop-blur-sm overflow-hidden">
-      <CardHeader className="pb-2">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#bf00ff]/10">
-              <GitCompare className="h-4 w-4 text-[#bf00ff]" aria-hidden />
+      {!hideHeader ? (
+        <CardHeader className="pb-2">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#bf00ff]/10">
+                <GitCompare className="h-4 w-4 text-[#bf00ff]" aria-hidden />
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-sm font-semibold uppercase tracking-wider text-[#bf00ff]">
+                  Compare to a saved plan
+                </h3>
+                <p className="text-[11px] text-muted-foreground">
+                  Side-by-side probability — does not change your workspace
+                </p>
+              </div>
             </div>
-            <div className="min-w-0">
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-[#bf00ff]">
-                Compare to a saved plan
-              </h3>
-              <p className="text-[11px] text-muted-foreground">
-                Side-by-side probability — does not change your workspace
-              </p>
-            </div>
+            {inputDiffSheet}
           </div>
-          {compareId !== NONE && selectedRow ? (
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="h-8 border-[#bf00ff]/30 text-[11px] text-[#ff99ff] hover:bg-[#bf00ff]/10"
-                >
-                  <ListTree className="mr-1.5 h-3.5 w-3.5" />
-                  Input diff
-                </Button>
-              </SheetTrigger>
-              <SheetContent
-                side="right"
-                className="w-full overflow-y-auto border-[#bf00ff]/20 bg-card/95 backdrop-blur-xl sm:max-w-lg"
-              >
-                <SheetHeader>
-                  <SheetTitle className="text-[#bf00ff] uppercase tracking-wider text-sm">
-                    Plan inputs vs {selectedRow.name}
-                  </SheetTitle>
-                </SheetHeader>
-                <div className="mt-4 px-1">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="border-[#bf00ff]/10 hover:bg-transparent">
-                        <TableHead className="text-[10px] uppercase text-muted-foreground">
-                          Field
-                        </TableHead>
-                        <TableHead className="text-[10px] uppercase text-[#00fff5]">
-                          Workspace
-                        </TableHead>
-                        <TableHead className="text-[10px] uppercase text-[#ff99ff]">
-                          Saved
-                        </TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {diffRows.map((row) => (
-                        <TableRow
-                          key={row.id}
-                          className={cn(
-                            "border-[#bf00ff]/10",
-                            row.changed && "bg-[#ffff00]/5"
-                          )}
-                        >
-                          <TableCell className="text-xs text-muted-foreground align-top">
-                            {row.label}
-                          </TableCell>
-                          <TableCell
-                            className={cn(
-                              "text-xs font-mono align-top",
-                              row.changed && "text-[#00fff5]"
-                            )}
-                          >
-                            {row.a}
-                          </TableCell>
-                          <TableCell
-                            className={cn(
-                              "text-xs font-mono align-top",
-                              row.changed && "text-[#ff99ff]"
-                            )}
-                          >
-                            {row.b}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                  <p className="mt-4 text-[10px] text-muted-foreground leading-relaxed">
-                    Changed rows are highlighted. Market preset and numeric assumptions can both move
-                    your Monte Carlo snapshot.
-                  </p>
-                </div>
-              </SheetContent>
-            </Sheet>
-          ) : null}
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-3 pt-0">
+        </CardHeader>
+      ) : null}
+      <CardContent className={hideHeader ? "space-y-3 pt-1" : "space-y-3 pt-0"}>
+        {hideHeader && inputDiffSheet ? (
+          <div className="flex justify-end">{inputDiffSheet}</div>
+        ) : null}
         <div className="space-y-1">
           <Label htmlFor="compare-saved" className="text-[10px] uppercase tracking-wider">
             Saved plan

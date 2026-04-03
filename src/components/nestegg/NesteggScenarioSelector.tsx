@@ -18,7 +18,7 @@ export function NesteggScenarioSelector({ value, onChange, className }: Props) {
       onValueChange={(v) => onChange(v as NesteggScenarioId)}
       className={cn("w-full", className)}
     >
-      <TabsList className="grid w-full grid-cols-3 bg-card/50 border border-[#00fff5]/20 h-auto p-1 gap-1">
+      <TabsList className="grid w-full grid-cols-3 bg-card/50 border border-[#00fff5]/20 h-auto p-1 gap-1 ring-1 ring-[#00fff5]/5">
         {(["base", "conservative", "aggressive"] as const).map((id) => (
           <TabsTrigger
             key={id}
@@ -30,7 +30,7 @@ export function NesteggScenarioSelector({ value, onChange, className }: Props) {
                   ? "Lower returns and slightly higher inflation stress-test."
                   : "Higher returns; use alongside conservative for range."
             }
-            className="text-xs uppercase tracking-wider data-[state=active]:bg-[#00fff5]/10 data-[state=active]:text-[#00fff5] py-2"
+            className="text-xs uppercase tracking-wider py-2.5 rounded-md transition-colors data-[state=active]:bg-[#00fff5]/15 data-[state=active]:text-[#00fff5] data-[state=active]:shadow-[0_0_16px_-4px_rgba(0,255,245,0.35)] data-[state=active]:ring-1 data-[state=active]:ring-[#00fff5]/40"
           >
             {SCENARIO_LABELS[id]}
           </TabsTrigger>

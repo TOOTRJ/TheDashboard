@@ -16,6 +16,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/formatters";
 import type { MonteCarloBandPoint } from "@/lib/nestegg/monte-carlo";
 import type { ProjectionPoint } from "@/lib/nestegg/types";
+import { cn } from "@/lib/utils";
 import { LineChart as LineChartIcon } from "lucide-react";
 
 const NEON = {
@@ -42,6 +43,7 @@ type Props = {
   lifeExpectancy: number;
   /** When set and not in compare mode, show median path + percentile rails. */
   monteCarloBands?: MonteCarloBandPoint[] | null;
+  className?: string;
 };
 
 function ChartTooltip({
@@ -98,6 +100,7 @@ export function NesteggProjectionChart({
   depletionAge,
   lifeExpectancy,
   monteCarloBands,
+  className,
 }: Props) {
   const bandMode = Boolean(!compareMode && monteCarloBands && monteCarloBands.length > 0);
 
@@ -113,25 +116,37 @@ export function NesteggProjectionChart({
       : null;
 
   return (
-    <Card className="border-[#00fff5]/20 bg-card/80 backdrop-blur-sm h-full">
-      <CardHeader className="pb-2">
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#00fff5]/10">
-            <LineChartIcon className="h-4 w-4 text-[#00fff5]" aria-hidden />
+    <Card
+      className={cn(
+        "border-[#00fff5]/25 bg-card/85 backdrop-blur-sm h-full shadow-[0_0_32px_-8px_rgba(0,255,245,0.12)]",
+        className
+      )}
+    >
+      <CardHeader className="pb-2 space-y-2">
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#00fff5]/12 ring-1 ring-[#00fff5]/20">
+            <LineChartIcon className="h-5 w-5 text-[#00fff5]" aria-hidden />
           </div>
-          <div>
+          <div className="min-w-0 flex-1">
             <h3 className="text-sm font-semibold uppercase tracking-wider text-[#00fff5]">
-              Net worth over time
+              Your wealth over time
             </h3>
-            <p className="text-[11px] text-muted-foreground">
+            <p className="text-[11px] text-muted-foreground mt-0.5">
               {bandMode
-                ? "Median path with 10th–90th percentile rails (Monte Carlo)"
-                : "Accumulation, retirement start, and drawdown through your horizon"}
+                ? "Typical path with a stress and upside band from the simulation"
+                : compareMode
+                  ? "Three market presets on the same inputs — compare curves at a glance"
+                  : "Growth while you save, then drawdown after you retire — through your planning horizon"}
+            </p>
+            <p className="text-[11px] text-muted-foreground/90 mt-2 leading-snug border-t border-[#00fff5]/10 pt-2">
+              {bandMode
+                ? "The green line is the median path; faded lines show softer vs tougher outcomes."
+                : "Watch this line move when you change savings, retirement age, or spending. Markers show retirement and, if modeled, when the balance may reach zero."}
             </p>
           </div>
         </div>
       </CardHeader>
-      <CardContent className="h-[320px] sm:h-[380px]">
+      <CardContent className="h-[320px] sm:h-[400px] min-h-[280px]">
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={data}>
             <defs>

@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+export type NesteggProbabilityTier = "all" | "primary" | "secondary";
+
 type Props = {
   mc: MonteCarloResult | null;
   deterministic: ProjectionResult;
@@ -22,7 +24,14 @@ type Props = {
   /** Recomputing batched simulation */
   isRefreshing?: boolean;
   progress?: number;
+  /** Split headline vs deeper metrics without changing any calculations. */
+  tier?: NesteggProbabilityTier;
+  /** Hide the built-in section title when a parent (e.g. collapsible) already has one. */
+  hideSectionLabel?: boolean;
 };
+
+const PRIMARY_CARD_INDEXES = [0, 3, 2] as const;
+const SECONDARY_CARD_INDEXES = [1, 4, 5] as const;
 
 export function NesteggProbabilityCards({
   mc,
@@ -30,20 +39,31 @@ export function NesteggProbabilityCards({
   lifeExpectancy,
   isRefreshing,
   progress = 0,
+  tier = "all",
+  hideSectionLabel = false,
 }: Props) {
+  const skeletonCount = tier === "primary" ? 3 : tier === "secondary" ? 3 : 6;
+
   if (!mc) {
+    if (tier === "secondary") return null;
     return (
       <div className="space-y-2">
-        <div className="flex items-center justify-between gap-2 px-1">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-[#39ff14]/80">
-            Probability engine
-          </p>
-          <span className="text-[10px] text-muted-foreground tabular-nums">
-            Preparing…
-          </span>
-        </div>
+        {!(hideSectionLabel && tier === "primary") ? (
+          <div className="flex items-center justify-between gap-2 px-1">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-[#39ff14]/80">
+              {tier === "primary" ? "Headline results" : "Probability engine"}
+            </p>
+            <span className="text-[10px] text-muted-foreground tabular-nums">
+              Preparing…
+            </span>
+          </div>
+        ) : (
+          <div className="flex justify-end px-1">
+            <span className="text-[10px] text-muted-foreground tabular-nums">Preparing…</span>
+          </div>
+        )}
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => (
+          {Array.from({ length: skeletonCount }).map((_, i) => (
             <Card
               key={i}
               className="border-[#00fff5]/15 bg-card/80 backdrop-blur-sm overflow-hidden"
@@ -85,58 +105,83 @@ export function NesteggProbabilityCards({
       title: "Chance of success",
       value: `${successPct}%`,
       sub: `${mc.paths.toLocaleString()} simulated paths`,
-      detail: "Portfolio stays funded through your planning horizon.",
+      detail:
+        "Share of paths where your portfolio stays funded through your planning horizon.",
       icon: Gauge,
       accent: "text-[#39ff14]",
     },
     {
-      title: "Median outcome (end)",
+      title: "Most likely balance at the end",
       value: medianEnd,
-      sub: `Pessimistic ${pessimisticEnd} · Optimistic ${optimisticEnd}`,
-      detail: "10th–90th percentile ending balances across simulations.",
+      sub: `Stress case ${pessimisticEnd} · upside ${optimisticEnd}`,
+      detail: "Typical range of ending balances (10th–90th percentile across runs).",
       icon: Activity,
       accent: "text-[#00fff5]",
     },
     {
-      title: "Projected nest egg at retirement",
+      title: "What you may have at retirement",
       value: medianRetire,
-      sub: "Median across simulations",
-      detail: "When you stop contributing (simulation median).",
+      sub: "Typical result across simulations",
+      detail: "Median balance when you retire and stop contributing.",
       icon: PiggyBank,
       accent: "text-[#bf00ff]",
     },
     {
-      title: "Chance of running out",
+      title: "Risk of running out of money",
       value: `${runOutPct}%`,
-      sub: "Before end of horizon",
-      detail: "Paths where assets hit zero early.",
+      sub: "Before end of your horizon",
+      detail: "Paths where assets reach zero before the plan ends.",
       icon: TrendingDown,
       accent: runOutPct > 35 ? "text-[#ff3366]" : "text-[#ffff00]",
     },
     {
-      title: "Portfolio may last until",
+      title: "How long your money may last",
       value: `~${Math.round(mc.portfolioMayLastUntilMedianAge)}`,
       sub: mayLast,
-      detail: "Median last age with assets across paths (years).",
+      detail: "Typical last age with assets still in the portfolio (across paths).",
       icon: Timer,
       accent: "text-[#00fff5]",
     },
     {
-      title: "Weaker outcomes & cash flow",
+      title: "Stress path & cash flow",
       value:
         mc.worstCaseDepletionAge !== null
-          ? `~${Math.ceil(mc.worstCaseDepletionAge)} depletion (stress)`
+          ? `~${Math.ceil(mc.worstCaseDepletionAge)} in weaker paths`
           : "No early depletion in most paths",
-      sub: `Monthly ${gap} (year 1, before draws)`,
-      detail: "10th percentile depletion age among paths that fail; first-year income vs spending.",
+      sub: `Year 1: ${gap} (before portfolio draws)`,
+      detail:
+        "Rough picture of weaker outcomes and first-year income vs spending before draws.",
       icon: AlertTriangle,
       accent: "text-[#ff99ff]",
     },
   ];
 
+  const indexes =
+    tier === "primary"
+      ? PRIMARY_CARD_INDEXES
+      : tier === "secondary"
+        ? SECONDARY_CARD_INDEXES
+        : ([0, 1, 2, 3, 4, 5] as const);
+  const visibleCards = indexes.map((i) => cards[i]!);
+
   return (
     <div className="space-y-2">
-      {isRefreshing ? (
+      {tier !== "secondary" && !(hideSectionLabel && tier === "primary") ? (
+        <div className="flex items-center justify-between gap-2 px-1">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-[#39ff14]/80">
+            {tier === "primary" ? "Headline results" : "Probability engine"}
+          </p>
+          {isRefreshing ? (
+            <span className="text-[10px] text-muted-foreground tabular-nums">Updating…</span>
+          ) : null}
+        </div>
+      ) : null}
+      {tier !== "secondary" && hideSectionLabel && tier === "primary" && isRefreshing ? (
+        <div className="flex justify-end px-1">
+          <span className="text-[10px] text-muted-foreground tabular-nums">Updating…</span>
+        </div>
+      ) : null}
+      {tier !== "secondary" && isRefreshing ? (
         <div
           className="h-0.5 w-full overflow-hidden rounded-full bg-[#00fff5]/10"
           role="progressbar"
@@ -153,10 +198,10 @@ export function NesteggProbabilityCards({
       <div
         className={cn(
           "grid gap-3 sm:grid-cols-2 xl:grid-cols-3 transition-opacity duration-200",
-          isRefreshing && "opacity-75"
+          isRefreshing && tier !== "secondary" && "opacity-75"
         )}
       >
-      {cards.map((c) => {
+      {visibleCards.map((c) => {
         const Icon = c.icon;
         return (
           <Card

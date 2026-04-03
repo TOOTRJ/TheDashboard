@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/formatters";
 import type { ProjectionResult, ReadinessLevel } from "@/lib/nestegg/types";
 import { Landmark, Hourglass, Scale, Target } from "lucide-react";
+
 import { cn } from "@/lib/utils";
 
 const readinessCopy: Record<
@@ -28,12 +29,16 @@ const readinessCopy: Record<
   },
 };
 
+export type NesteggSummaryTier = "all" | "primary" | "secondary";
+
 type Props = {
   result: ProjectionResult;
   lifeExpectancy: number;
+  /** Core vs supporting deterministic snapshot cards (same numbers). */
+  tier?: NesteggSummaryTier;
 };
 
-export function NesteggSummaryCards({ result, lifeExpectancy }: Props) {
+export function NesteggSummaryCards({ result, lifeExpectancy, tier = "all" }: Props) {
   const {
     nestEggAtRetirement,
     depletionAge,
@@ -56,10 +61,10 @@ export function NesteggSummaryCards({ result, lifeExpectancy }: Props) {
   const gapLabel =
     monthlyGapOrSurplus >= 0
       ? `${formatCurrency(monthlyGapOrSurplus)} / mo surplus`
-      : `${formatCurrency(Math.abs(monthlyGapOrSurplus))} / mo gap`;
+      : `${formatCurrency(Math.abs(monthlyGapOrSurplus))} / mo shortfall`;
 
   const gapDetail =
-    "First-year retirement cash flow (income minus spending, before portfolio draws).";
+    "First year of retirement: income minus spending, before portfolio withdrawals.";
 
   const rc = readinessCopy[readiness];
 
@@ -72,28 +77,28 @@ export function NesteggSummaryCards({ result, lifeExpectancy }: Props) {
     accent: string;
   }> = [
     {
-      title: "Projected nest egg at retirement",
+      title: "What you’ll have at retirement",
       value: formatCurrency(nestEggAtRetirement),
-      detail: "Estimated balance when you stop contributing and begin drawdown.",
+      detail: "Single-path estimate when you stop contributing and begin drawdown.",
       icon: Landmark,
       accent: "text-[#00fff5]",
     },
     {
-      title: "Estimated portfolio longevity",
+      title: "How long your money may last",
       value: longevityLabel,
       detail: longevityDetail,
       icon: Hourglass,
       accent: "text-[#bf00ff]",
     },
     {
-      title: "Monthly retirement gap or surplus",
+      title: "Retirement cash flow (year one)",
       value: gapLabel,
       detail: gapDetail,
       icon: Scale,
       accent: monthlyGapOrSurplus >= 0 ? "text-[#39ff14]" : "text-[#ff3366]",
     },
     {
-      title: "Retirement readiness",
+      title: "Plan readiness",
       value: readiness,
       sub: `${readinessScore} / 100`,
       detail: rc.hint,
@@ -102,14 +107,30 @@ export function NesteggSummaryCards({ result, lifeExpectancy }: Props) {
     },
   ];
 
+  const indexes =
+    tier === "primary"
+      ? ([0, 1] as const)
+      : tier === "secondary"
+        ? ([2, 3] as const)
+        : ([0, 1, 2, 3] as const);
+  const visibleCards = indexes.map((i) => cards[i]!);
+
   return (
-    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-      {cards.map((c) => {
+    <div
+      className={cn(
+        "grid gap-3 sm:grid-cols-2",
+        tier === "all" ? "xl:grid-cols-4" : "xl:grid-cols-2"
+      )}
+    >
+      {visibleCards.map((c) => {
         const Icon = c.icon;
         return (
           <Card
             key={c.title}
-            className="border-[#00fff5]/20 bg-card/80 backdrop-blur-sm"
+            className={cn(
+              "border-[#00fff5]/20 bg-card/80 backdrop-blur-sm",
+              tier === "secondary" && "border-[#00fff5]/10 bg-card/60"
+            )}
           >
             <CardHeader className="pb-2">
               <div className="flex items-start gap-2">

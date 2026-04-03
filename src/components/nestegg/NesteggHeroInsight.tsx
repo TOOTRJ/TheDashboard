@@ -8,6 +8,8 @@ type Props = {
   tone: "positive" | "caution" | "warning";
   /** Optional Monte Carlo / probability lines (plain English, concise). */
   highlights?: string[];
+  /** Hide the small “Plan snapshot” line when the parent section already has a title. */
+  hideEyebrow?: boolean;
 };
 
 const toneStyles = {
@@ -31,14 +33,14 @@ const toneStyles = {
   },
 };
 
-export function NesteggHeroInsight({ message, tone, highlights }: Props) {
+export function NesteggHeroInsight({ message, tone, highlights, hideEyebrow }: Props) {
   const s = toneStyles[tone];
   const Icon = s.icon;
 
   return (
     <div
       className={cn(
-        "relative overflow-hidden rounded-xl border px-5 py-4 backdrop-blur-sm",
+        "relative overflow-hidden rounded-xl border px-5 py-5 sm:px-6 backdrop-blur-sm",
         s.border,
         "bg-gradient-to-br",
         s.bg
@@ -55,10 +57,17 @@ export function NesteggHeroInsight({ message, tone, highlights }: Props) {
           <Icon className="h-5 w-5" aria-hidden />
         </div>
         <div>
-          <p className={cn("text-[10px] font-bold uppercase tracking-widest", s.text)}>
-            Key insight
-          </p>
-          <p className="mt-1 text-sm leading-relaxed text-foreground sm:text-base">
+          {!hideEyebrow ? (
+            <p className={cn("text-[10px] font-bold uppercase tracking-widest", s.text)}>
+              Plan snapshot
+            </p>
+          ) : null}
+          <p
+            className={cn(
+              "text-sm leading-relaxed text-foreground sm:text-base",
+              !hideEyebrow && "mt-1.5"
+            )}
+          >
             {message}
           </p>
           {highlights && highlights.length > 0 ? (

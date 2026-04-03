@@ -82,6 +82,43 @@ export async function deleteNesteggScenarioFromSupabase(id: string): Promise<boo
   return true;
 }
 
+export async function updateNesteggScenarioInSupabase(
+  id: string,
+  inputs: NesteggInputs,
+  marketScenario: NesteggScenarioId,
+  options?: { name?: string }
+): Promise<SavedNesteggScenario | null> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const normalized = normalizeNesteggInputs(inputs) as unknown as Record<string, unknown>;
+  const payload: Record<string, unknown> = {
+    inputs: normalized,
+    market_scenario: marketScenario,
+    updated_at: new Date().toISOString(),
+  };
+  if (options?.name !== undefined) {
+    payload.name = options.name.trim() || "Untitled";
+  }
+
+  const { data, error } = await supabase
+    .from("nestegg_scenarios")
+    .update(payload)
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .select("id,user_id,name,inputs,market_scenario,updated_at")
+    .single();
+
+  if (error || !data) {
+    console.warn("nestegg_scenarios update:", error?.message);
+    return null;
+  }
+  return rowToSaved(data as Row);
+}
+
 export async function updateNesteggScenarioNameInSupabase(
   id: string,
   name: string

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { toast } from "sonner";
-import { PiggyBank, RotateCcw } from "lucide-react";
+import { PiggyBank, SlidersHorizontal } from "lucide-react";
 
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
 import { NesteggControls } from "@/components/nestegg/NesteggControls";
 import { NesteggAdvancedSettings } from "@/components/nestegg/NesteggAdvancedSettings";
 import { NesteggFidelitySettings } from "@/components/nestegg/NesteggFidelitySettings";
@@ -24,7 +25,7 @@ import { NesteggHeroInsight } from "@/components/nestegg/NesteggHeroInsight";
 import { NesteggSummaryCards } from "@/components/nestegg/NesteggSummaryCards";
 import { NesteggProjectionChart } from "@/components/nestegg/NesteggProjectionChart";
 import { NesteggSecondaryChart } from "@/components/nestegg/NesteggSecondaryChart";
-import { NesteggScenariosManager } from "@/components/nestegg/NesteggScenariosManager";
+import { NesteggSavedPlanTabsToolbar } from "@/components/nestegg/NesteggSavedPlanTabsToolbar";
 import { NesteggProbabilityCards } from "@/components/nestegg/NesteggProbabilityCards";
 import { NesteggComparisonTable } from "@/components/nestegg/NesteggComparisonTable";
 import { NesteggQuickWhatIf } from "@/components/nestegg/NesteggQuickWhatIf";
@@ -34,6 +35,10 @@ import { NesteggWalkthrough } from "@/components/nestegg/NesteggWalkthrough";
 import { NesteggSavedCompare } from "@/components/nestegg/NesteggSavedCompare";
 import { NesteggMonteCarloSettings } from "@/components/nestegg/NesteggMonteCarloSettings";
 import { NesteggExportMenu } from "@/components/nestegg/NesteggExportMenu";
+import { NesteggOrientationStrip } from "@/components/nestegg/NesteggOrientationStrip";
+import { NesteggExpandedMetricsSection } from "@/components/nestegg/NesteggExpandedMetricsSection";
+import { NesteggPortfolioHighlightCard } from "@/components/nestegg/NesteggPortfolioHighlightCard";
+import { NesteggCollapsibleBlock } from "@/components/nestegg/NesteggCollapsibleBlock";
 import {
   DEFAULT_NESTEGG_INPUTS,
   SCENARIO_LABELS,
@@ -56,7 +61,10 @@ import {
   buildRetirementCashflowYears,
   planHorizonAge,
 } from "@/lib/nestegg/projections";
-import { fetchNesteggScenariosFromSupabase } from "@/lib/nestegg/scenarios-supabase";
+import {
+  fetchNesteggScenariosFromSupabase,
+  updateNesteggScenarioInSupabase,
+} from "@/lib/nestegg/scenarios-supabase";
 import type { NesteggInputs, NesteggScenarioId, SavedNesteggScenario } from "@/lib/nestegg/types";
 import {
   defaultDraftState,
@@ -101,6 +109,8 @@ type ActiveSaved = { id: string; name: string };
 type LoadedBaseline = {
   inputs: NesteggInputs;
   marketScenario: NesteggScenarioId;
+  /** Last saved scenario label (cloud plans only). */
+  name: string;
 };
 
 const SELECT_DEFAULTS = "__defaults__";
@@ -117,6 +127,10 @@ export default function NesteggPage() {
   const [activeSavedScenario, setActiveSavedScenario] = React.useState<ActiveSaved | null>(null);
   const [loadedBaseline, setLoadedBaseline] = React.useState<LoadedBaseline | null>(null);
   const [tourReplay, setTourReplay] = React.useState(0);
+  const [savingScenario, setSavingScenario] = React.useState(false);
+  const [scenarioNameDraft, setScenarioNameDraft] = React.useState("");
+  const [planInputsOpen, setPlanInputsOpen] = React.useState(false);
+  const planInputsSectionRef = React.useRef<HTMLDivElement>(null);
 
   const activeSavedRef = React.useRef<ActiveSaved | null>(null);
   React.useEffect(() => {
@@ -144,9 +158,20 @@ export default function NesteggPage() {
     setLoadedBaseline({
       inputs: normalized,
       marketScenario: row.marketScenario,
+      name: row.name,
     });
     setActiveSavedScenario({ id: row.id, name: row.name });
   }, []);
+
+  React.useEffect(() => {
+    if (!activeSavedScenario) {
+      setScenarioNameDraft("");
+      return;
+    }
+    setScenarioNameDraft(activeSavedScenario.name);
+    // Reset label draft only when switching to another saved plan (id), not on every parent re-render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- activeSavedScenario.id
+  }, [activeSavedScenario?.id]);
 
   React.useEffect(() => {
     if (authLoading) return;
@@ -167,6 +192,7 @@ export default function NesteggPage() {
           setLoadedBaseline({
             inputs: normalized,
             marketScenario: latest.marketScenario,
+            name: latest.name,
           });
           const d = loadNesteggDraft();
           setCompareOverlay(d?.compareOverlay ?? false);
@@ -272,18 +298,18 @@ export default function NesteggPage() {
     if (!monteCarlo) return [];
     const lines: string[] = [];
     lines.push(
-      `In ${monteCarlo.paths.toLocaleString()} simulations, your plan succeeds about ${Math.round(
+      `Across ${monteCarlo.paths.toLocaleString()} test runs, things look on track about ${Math.round(
         monteCarlo.successRate * 100
       )}% of the time.`
     );
     if (monteCarlo.worstCaseDepletionAge !== null && monteCarlo.chanceRunOut > 0.05) {
       lines.push(
-        `In weaker paths, assets may be depleted around age ${Math.ceil(monteCarlo.worstCaseDepletionAge)}.`
+        `In tougher outcomes, money may run low around age ${Math.ceil(monteCarlo.worstCaseDepletionAge)}.`
       );
     }
     if (result.suggestedExtraMonthly && result.suggestedExtraMonthly > 0) {
       lines.push(
-        `Saving about ${formatCurrency(result.suggestedExtraMonthly)} more per month could improve your odds.`
+        `Saving about ${formatCurrency(result.suggestedExtraMonthly)} more per month could nudge those odds up.`
       );
     }
     return lines.slice(0, 3);
@@ -309,7 +335,8 @@ export default function NesteggPage() {
     activeSavedScenario !== null &&
     loadedBaseline !== null &&
     (!nesteggInputsEqual(inputs, loadedBaseline.inputs) ||
-      scenario !== loadedBaseline.marketScenario);
+      scenario !== loadedBaseline.marketScenario ||
+      scenarioNameDraft.trim() !== loadedBaseline.name);
 
   const activePlanIsOnCloud =
     activeSavedScenario !== null &&
@@ -323,18 +350,39 @@ export default function NesteggPage() {
       ? SELECT_DEFAULTS
       : SELECT_CUSTOM;
 
+  const canSaveCloudPlan =
+    Boolean(user) && activeSavedScenario !== null && activePlanIsOnCloud;
+
   const onPatch = React.useCallback((patch: Partial<NesteggInputs>) => {
     setInputs((prev) => mergeInputs(prev, patch));
   }, []);
 
-  const resetToAppDefaults = React.useCallback(() => {
-    const d = defaultDraftState();
-    setInputs(d.inputs);
-    setScenario(d.marketScenario);
-    setCompareOverlay(d.compareOverlay);
-    setActiveSavedScenario(null);
-    setLoadedBaseline(null);
-  }, []);
+  const resetToAppDefaults = React.useCallback(
+    (options?: { clearSavedPlan: boolean }) => {
+      const d = defaultDraftState();
+      setInputs(d.inputs);
+      setScenario(d.marketScenario);
+      setCompareOverlay(d.compareOverlay);
+
+      if (options?.clearSavedPlan) {
+        setActiveSavedScenario(null);
+        setLoadedBaseline(null);
+        return;
+      }
+
+      const onCloud =
+        activeSavedScenario !== null &&
+        cloudScenarios.some((s) => s.id === activeSavedScenario.id);
+      if (onCloud) {
+        setScenarioNameDraft(activeSavedScenario.name);
+        return;
+      }
+
+      setActiveSavedScenario(null);
+      setLoadedBaseline(null);
+    },
+    [activeSavedScenario, cloudScenarios]
+  );
 
   const onLoadScenario = React.useCallback(
     (row: SavedNesteggScenario) => {
@@ -379,7 +427,7 @@ export default function NesteggPage() {
   const onSavedPlanSelect = React.useCallback(
     (value: string) => {
       if (value === SELECT_DEFAULTS) {
-        resetToAppDefaults();
+        resetToAppDefaults({ clearSavedPlan: true });
         toast.success("App defaults");
         return;
       }
@@ -392,6 +440,69 @@ export default function NesteggPage() {
     },
     [cloudScenarios, onLoadScenario, resetToAppDefaults]
   );
+
+  const handleSaveActiveScenario = React.useCallback(async () => {
+    if (!user || !activeSavedScenario || !activePlanIsOnCloud) return;
+    setSavingScenario(true);
+    try {
+      const row = await updateNesteggScenarioInSupabase(
+        activeSavedScenario.id,
+        inputs,
+        scenario,
+        { name: scenarioNameDraft.trim() || "Untitled" }
+      );
+      if (!row) {
+        toast.error("Could not save", {
+          description: "Check your connection and try again.",
+        });
+        return;
+      }
+      const normalized = normalizeNesteggInputs(inputs);
+      setLoadedBaseline({
+        inputs: normalized,
+        marketScenario: scenario,
+        name: row.name,
+      });
+      setActiveSavedScenario({ id: row.id, name: row.name });
+      setScenarioNameDraft(row.name);
+      await refreshCloudScenarios();
+      toast.success("Saved to plan", { description: row.name });
+    } finally {
+      setSavingScenario(false);
+    }
+  }, [
+    user,
+    activeSavedScenario,
+    activePlanIsOnCloud,
+    inputs,
+    scenario,
+    scenarioNameDraft,
+    refreshCloudScenarios,
+  ]);
+
+  const focusPlanInputsSection = React.useCallback(() => {
+    setPlanInputsOpen(true);
+    window.setTimeout(() => {
+      planInputsSectionRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 80);
+  }, []);
+
+  const planInputsTitle = React.useMemo(() => {
+    if (activeSavedScenario && activePlanIsOnCloud) {
+      return scenarioNameDraft.trim() || activeSavedScenario.name;
+    }
+    return "Your plan inputs";
+  }, [activeSavedScenario, activePlanIsOnCloud, scenarioNameDraft]);
+
+  const planInputsDescription = React.useMemo(() => {
+    if (activeSavedScenario && activePlanIsOnCloud) {
+      return "Switch plans with the tabs below, or edit — updates apply to the chart above.";
+    }
+    return "Market presets, volatility, and the numbers that drive the chart above.";
+  }, [activeSavedScenario, activePlanIsOnCloud]);
 
   return (
     <div className="space-y-6 pb-10">
@@ -418,36 +529,36 @@ export default function NesteggPage() {
                 <Badge
                   variant="outline"
                   className="border-[#ff00ff]/35 bg-[#ff00ff]/10 text-[#ff99ff] text-[10px] font-medium normal-case tracking-normal max-w-[min(100%,280px)] truncate"
-                  title={activeSavedScenario.name}
+                  title={scenarioNameDraft || activeSavedScenario.name}
                 >
-                  {activeSavedScenario.name}
+                  Viewing: {scenarioNameDraft || activeSavedScenario.name}
                 </Badge>
               ) : null}
-              {dirtyFromSaved ? (
+              {dirtyFromSaved && canSaveCloudPlan ? (
                 <span className="text-[10px] text-amber-400/90 uppercase tracking-wider">
-                  Unsaved edits
+                  Unsaved edits (save in plan inputs)
                 </span>
               ) : null}
             </div>
-            <p className="text-xs text-muted-foreground max-w-xl">
-              Retirement analytics and scenario modeling — adjust assumptions and see how your
-              trajectory responds in real time.
+            <p className="text-xs text-muted-foreground max-w-xl leading-relaxed">
+              Explore retirement outcomes, compare stress tests, and tune your plan — results update
+              as you go.
               {user
-                ? " Saved plans sync to your account; new visits load your most recently saved plan."
-                : " Sign in to save named scenarios; this device still remembers your in-progress edits."}
+                ? " Saved plans sync to your account; a recent visit loads your latest saved plan."
+                : " Sign in to save named plans; this device still remembers your in-progress edits."}
             </p>
             {user && cloudScenarios.length > 0 ? (
-              <div className="flex flex-wrap items-center gap-2 pt-1">
+              <div className="flex flex-col gap-1.5 pt-1 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2">
                 <Label
                   htmlFor="saved-plan-select"
                   className="text-[10px] uppercase tracking-wider text-muted-foreground shrink-0"
                 >
-                  Saved plan
+                  Load a saved plan
                 </Label>
                 <Select value={savedPlanSelectValue} onValueChange={onSavedPlanSelect}>
                   <SelectTrigger
                     id="saved-plan-select"
-                    className="h-8 w-full min-w-[200px] max-w-sm border-[#ff00ff]/25 bg-[#ff00ff]/5 text-xs focus:border-[#ff00ff]/45 sm:w-[280px]"
+                    className="h-9 w-full min-w-[200px] max-w-sm border-[#ff00ff]/25 bg-[#ff00ff]/5 text-xs focus:border-[#ff00ff]/45 sm:w-[min(100%,280px)]"
                   >
                     <SelectValue placeholder="Choose a saved plan" />
                   </SelectTrigger>
@@ -473,112 +584,247 @@ export default function NesteggPage() {
             ) : null}
           </div>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 justify-end sm:justify-start">
           <NesteggExportMenu
             inputs={inputs}
             marketScenario={scenario}
             deterministic={result}
             monteCarlo={monteCarlo}
+            onResetDefaults={() => {
+              const wasOnCloud =
+                activeSavedScenario !== null &&
+                cloudScenarios.some((s) => s.id === activeSavedScenario.id);
+              resetToAppDefaults();
+              if (wasOnCloud) {
+                toast.success("App defaults applied to this plan", {
+                  description: "Save changes to this tab to update your cloud copy.",
+                });
+              } else {
+                toast.success("Restored app defaults");
+              }
+            }}
           />
           <NesteggGuideSheet onReplayTour={() => setTourReplay((k) => k + 1)} />
           <Button
             type="button"
             variant="outline"
-            className="border-[#00fff5]/20 hover:bg-[#00fff5]/10 hover:text-[#00fff5] hover:border-[#00fff5]/40"
-            onClick={() => {
-              resetToAppDefaults();
-              toast.success("Reset to demo defaults");
-            }}
+            className="border-[#ff00ff]/25 hover:bg-[#ff00ff]/10 hover:text-[#ff99ff] hover:border-[#ff00ff]/40"
+            onClick={focusPlanInputsSection}
           >
-            <RotateCcw className="mr-2 h-4 w-4" />
-            Reset defaults
+            <SlidersHorizontal className="mr-2 h-4 w-4" aria-hidden />
+            Edit plan inputs
           </Button>
-          <NesteggScenariosManager
-            inputs={inputs}
-            marketScenario={scenario}
-            onLoadScenario={onLoadScenario}
-            cloudScenarios={cloudScenarios}
-            onRefreshCloud={refreshCloudScenarios}
-            cloudRefreshing={cloudRefreshing}
-            activeSavedScenarioId={activeSavedScenario?.id ?? null}
-            onCloudSaved={onCloudSaved}
-            onCloudScenarioDeleted={handleCloudScenarioDeleted}
-          />
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-12 lg:items-start">
-        <div className="space-y-4 lg:col-span-4 order-2 lg:order-1">
-          <NesteggScenarioSelector value={scenario} onChange={setScenario} />
-          <NesteggMonteCarloSettings inputs={inputs} onChange={onPatch} />
-          <NesteggControls inputs={inputs} onChange={onPatch} />
-          <NesteggAdvancedSettings inputs={inputs} onChange={onPatch} />
-          <NesteggFidelitySettings inputs={inputs} onChange={onPatch} />
-          <div className="flex items-center justify-between rounded-lg border border-[#00fff5]/15 bg-card/50 px-3 py-3">
-            <div className="space-y-0.5">
-              <Label htmlFor="compare-overlay" className="text-xs font-semibold text-foreground">
-                Compare all scenarios on chart
-              </Label>
-              <p className="text-[10px] text-muted-foreground">
-                Overlay Base, Conservative, and Aggressive projections
-              </p>
-            </div>
-            <Switch
-              id="compare-overlay"
-              checked={compareOverlay}
-              onCheckedChange={setCompareOverlay}
-              className="data-[state=checked]:bg-[#00fff5]"
+      <NesteggOrientationStrip />
+
+      <div className="space-y-5 lg:space-y-6">
+        <NesteggPortfolioHighlightCard
+          currentPortfolio={inputs.currentSavings}
+          projectedAtRetirement={result.nestEggAtRetirement}
+          retirementAge={inputs.retirementAge}
+        />
+
+        <div className="grid gap-4 xl:grid-cols-3 xl:items-stretch">
+          <div className="xl:col-span-2 min-w-0">
+            <NesteggProjectionChart
+              singleSeries={result.series}
+              compareMode={compareOverlay}
+              compareData={compareData}
+              retirementAge={inputs.retirementAge}
+              depletionAge={result.depletionAge}
+              lifeExpectancy={horizonAge}
+              monteCarloBands={compareOverlay || !monteCarlo ? null : monteCarlo.bandSeries}
             />
+          </div>
+          <div className="xl:col-span-1 min-h-[260px] min-w-0">
+            <NesteggSecondaryChart data={cashflowData} />
           </div>
         </div>
 
-        <div className="space-y-4 lg:col-span-8 order-1 lg:order-2">
-          <NesteggHeroInsight
-            message={result.heroMessage}
-            tone={result.heroTone}
-            highlights={heroHighlights}
-          />
-          <NesteggProbabilityCards
-            mc={monteCarlo}
-            deterministic={result}
-            lifeExpectancy={horizonAge}
-            isRefreshing={mcRunning && monteCarlo !== null}
-            progress={mcProgress}
-          />
-          <NesteggSummaryCards result={result} lifeExpectancy={horizonAge} />
-          <div className="grid gap-4 xl:grid-cols-3">
-            <div className="xl:col-span-2">
-              <NesteggProjectionChart
-                singleSeries={result.series}
-                compareMode={compareOverlay}
-                compareData={compareData}
-                retirementAge={inputs.retirementAge}
-                depletionAge={result.depletionAge}
-                lifeExpectancy={horizonAge}
-                monteCarloBands={compareOverlay || !monteCarlo ? null : monteCarlo.bandSeries}
-              />
-            </div>
-            <div className="xl:col-span-1 min-h-[280px]">
-              <NesteggSecondaryChart data={cashflowData} />
+        <NesteggCollapsibleBlock
+          ref={planInputsSectionRef}
+          className="scroll-mt-24"
+          title={planInputsTitle}
+          description={planInputsDescription}
+          open={planInputsOpen}
+          onOpenChange={setPlanInputsOpen}
+          headerVariant="planInputs"
+          planInputsTitleMode={activeSavedScenario && activePlanIsOnCloud ? "named" : "default"}
+        >
+          <div className="rounded-lg border border-[#00fff5]/10 bg-card/30 p-3 sm:p-4 space-y-4">
+            <NesteggSavedPlanTabsToolbar
+              inputs={inputs}
+              marketScenario={scenario}
+              cloudScenarios={cloudScenarios}
+              activeSavedScenarioId={activeSavedScenario?.id ?? null}
+              onLoadScenario={onLoadScenario}
+              onRefreshCloud={refreshCloudScenarios}
+              cloudRefreshing={cloudRefreshing}
+              onCloudSaved={onCloudSaved}
+              onCloudScenarioDeleted={handleCloudScenarioDeleted}
+              canSaveActivePlan={canSaveCloudPlan}
+              dirtyActivePlan={dirtyFromSaved}
+              savingActivePlan={savingScenario}
+              onSaveActivePlan={handleSaveActiveScenario}
+              activePlanLabelPreview={
+                activeSavedScenario && activePlanIsOnCloud
+                  ? scenarioNameDraft.trim() || activeSavedScenario.name
+                  : ""
+              }
+            />
+            {user && activeSavedScenario && activePlanIsOnCloud ? (
+              <>
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="scenario-label"
+                    className="text-[10px] uppercase tracking-wider text-muted-foreground"
+                  >
+                    Scenario label
+                  </Label>
+                  <Input
+                    id="scenario-label"
+                    value={scenarioNameDraft}
+                    onChange={(e) => setScenarioNameDraft(e.target.value)}
+                    className="border-[#ff00ff]/25 bg-[#ff00ff]/5 focus-visible:border-[#ff00ff]/45 max-w-md font-medium text-[#ff99ff] placeholder:text-muted-foreground"
+                    placeholder="Name this plan"
+                    maxLength={120}
+                    autoComplete="off"
+                  />
+                  <p className="text-[10px] text-muted-foreground leading-snug">
+                    This name appears in your saved plans list and in the header above. Use{" "}
+                    <span className="font-medium text-foreground/90">Save changes to this tab</span>{" "}
+                    in the toolbar to store it in the cloud.
+                  </p>
+                </div>
+              </>
+            ) : null}
+            <div className="grid gap-4 lg:grid-cols-2 lg:items-start">
+              <div className="space-y-4 lg:sticky lg:top-4 lg:self-start">
+                <div className="space-y-2">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-0.5">
+                    Market presets
+                  </p>
+                  <p className="text-[11px] text-muted-foreground px-0.5">
+                    Same inputs, three stress levels — switch tabs to see odds and the chart update.
+                  </p>
+                  <NesteggScenarioSelector value={scenario} onChange={setScenario} />
+                </div>
+                <NesteggMonteCarloSettings inputs={inputs} onChange={onPatch} />
+                <NesteggControls inputs={inputs} onChange={onPatch} />
+              </div>
+              <div className="space-y-4">
+                <NesteggAdvancedSettings inputs={inputs} onChange={onPatch} />
+                <NesteggFidelitySettings inputs={inputs} onChange={onPatch} />
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-lg border border-[#00fff5]/15 bg-card/50 px-3 py-3">
+                  <div className="space-y-0.5 min-w-0">
+                    <Label htmlFor="compare-overlay" className="text-xs font-semibold text-foreground">
+                      Overlay three curves on the chart
+                    </Label>
+                    <p className="text-[10px] text-muted-foreground leading-snug">
+                      Show Base, Conservative, and Aggressive projections at once
+                    </p>
+                  </div>
+                  <Switch
+                    id="compare-overlay"
+                    checked={compareOverlay}
+                    onCheckedChange={setCompareOverlay}
+                    className="shrink-0 data-[state=checked]:bg-[#00fff5]"
+                  />
+                </div>
+              </div>
             </div>
           </div>
-          <NesteggComparisonTable rows={compareRows} loading={mcRunning} />
-          {user && cloudScenarios.length > 0 ? (
+        </NesteggCollapsibleBlock>
+
+        <div className="space-y-3">
+          <NesteggCollapsibleBlock
+            title="Plan snapshot"
+            description="Plain-language read on how your plan looks right now."
+            defaultOpen={false}
+          >
+            <NesteggHeroInsight
+              message={result.heroMessage}
+              tone={result.heroTone}
+              highlights={heroHighlights}
+              hideEyebrow
+            />
+          </NesteggCollapsibleBlock>
+          <NesteggCollapsibleBlock
+            title="Headline results"
+            description="Simulation odds — chance of success, risk of running out, and more."
+            defaultOpen={false}
+          >
+            <NesteggProbabilityCards
+              tier="primary"
+              hideSectionLabel
+              mc={monteCarlo}
+              deterministic={result}
+              lifeExpectancy={horizonAge}
+              isRefreshing={mcRunning && monteCarlo !== null}
+              progress={mcProgress}
+            />
+          </NesteggCollapsibleBlock>
+          <NesteggCollapsibleBlock
+            title="Baseline snapshot"
+            description="Single-path balances alongside the headline odds above."
+            defaultOpen={false}
+          >
+            <NesteggSummaryCards tier="primary" result={result} lifeExpectancy={horizonAge} />
+          </NesteggCollapsibleBlock>
+        </div>
+
+        <NesteggCollapsibleBlock
+          title="Compare market presets"
+          description="Same plan, three stress levels — see how success odds and balances shift."
+          defaultOpen={false}
+        >
+          <NesteggComparisonTable rows={compareRows} loading={mcRunning} hideHeader />
+        </NesteggCollapsibleBlock>
+
+        {user && cloudScenarios.length > 0 ? (
+          <NesteggCollapsibleBlock
+            title="Compare to a saved plan"
+            description="Side-by-side probability — does not change your workspace."
+            defaultOpen={false}
+          >
             <NesteggSavedCompare
               cloudScenarios={cloudScenarios}
               workspaceInputs={inputs}
               workspaceMarketScenario={scenario}
               activeSavedId={activeSavedScenario?.id ?? null}
               workspaceMonteCarlo={monteCarlo}
+              hideHeader
             />
-          ) : null}
-          <NesteggQuickWhatIf inputs={inputs} onPatch={onPatch} />
-          <NesteggInsightsPanel insights={nesteggInsights} />
-          <p className="text-[10px] text-muted-foreground leading-relaxed px-1">
-            For educational planning purposes only. Not financial advice. Past performance does not
-            guarantee future results; returns, inflation, taxes, and health costs are uncertain.
-          </p>
-        </div>
+          </NesteggCollapsibleBlock>
+        ) : null}
+
+        <NesteggCollapsibleBlock
+          title="Try a different plan"
+          description="One-tap ideas to test — save a variant from Saved scenarios if you like it."
+          defaultOpen={false}
+        >
+          <NesteggQuickWhatIf inputs={inputs} onPatch={onPatch} hideHeader />
+        </NesteggCollapsibleBlock>
+
+        <NesteggExpandedMetricsSection>
+          <NesteggProbabilityCards
+            tier="secondary"
+            mc={monteCarlo}
+            deterministic={result}
+            lifeExpectancy={horizonAge}
+            isRefreshing={false}
+            progress={mcProgress}
+          />
+          <NesteggSummaryCards tier="secondary" result={result} lifeExpectancy={horizonAge} />
+        </NesteggExpandedMetricsSection>
+
+        <NesteggInsightsPanel insights={nesteggInsights} />
+        <p className="text-[10px] text-muted-foreground leading-relaxed px-1">
+          For educational planning purposes only. Not financial advice. Past performance does not
+          guarantee future results; returns, inflation, taxes, and health costs are uncertain.
+        </p>
       </div>
     </div>
   );

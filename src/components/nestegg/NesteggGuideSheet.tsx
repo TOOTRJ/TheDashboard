@@ -47,69 +47,69 @@ export function NesteggGuideSheet({ onReplayTour }: Props) {
               What Nestegg does
             </h4>
             <p>
-              Nestegg projects your portfolio from today through a planning horizon, including
-              working years, retirement spending, inflation, and optional income like Social
-              Security. Monte Carlo adds randomized returns so you can see a range of outcomes, not
-              just one straight line.
+              Nestegg projects your portfolio from today through your planning horizon: working
+              years, retirement spending, inflation, and optional income like Social Security. Monte
+              Carlo adds randomized returns so you see a range of outcomes, not just one line.
             </p>
           </section>
           <section>
             <h4 className="text-xs font-bold uppercase tracking-wider text-foreground mb-2">
-              Step 1 — Baseline assumptions
+              Step 1 — Review the story first
             </h4>
             <p>
-              Set ages, savings, contributions, spending, and income in the left column. Advanced
-              settings let you tune inflation, taxes, and household details.
+              The top of the page shows headline results and your main chart. When you are ready to
+              tune details, scroll to <span className="text-foreground">Your plan inputs</span> for
+              ages, savings, spending, and presets. Advanced assumptions cover inflation, income, and
+              household options.
             </p>
           </section>
           <section>
             <h4 className="text-xs font-bold uppercase tracking-wider text-foreground mb-2">
-              Step 2 — Projected nest egg
+              Step 2 — Chance of success
             </h4>
             <p>
-              The summary cards show deterministic projections and probability-weighted results.
-              “Chance of success” is the share of Monte Carlo paths that stay funded through your
-              horizon.
+              “Chance of success” is the share of simulated paths that stay funded through your
+              horizon. It complements the straight-line snapshot, not a guarantee — use it to
+              compare ideas on similar footing.
             </p>
           </section>
           <section>
             <h4 className="text-xs font-bold uppercase tracking-wider text-foreground mb-2">
-              Step 3 — Compare success probability
+              Step 3 — Compare presets
             </h4>
             <p>
-              Use the scenario comparison table to see how Base, Conservative, and Aggressive
-              presets compare on the same inputs. Toggle “Compare all scenarios on chart” to overlay
-              deterministic curves.
+              Use the comparison table for Base, Conservative, and Aggressive on the same inputs.
+              Turn on <span className="text-foreground">Compare all scenarios on chart</span> to
+              overlay three deterministic curves on the main chart.
             </p>
           </section>
           <section>
             <h4 className="text-xs font-bold uppercase tracking-wider text-foreground mb-2">
-              Step 4 — Test alternates
+              Step 4 — Try quick changes
             </h4>
             <p>
-              Quick what-if buttons apply small changes instantly. If you like a variant, use{" "}
-              <span className="text-foreground">Saved scenarios</span> to store it under a new
-              name.
+              Use <span className="text-foreground">Try a different plan</span> for one-tap tweaks.
+              If you like a variant, open <span className="text-foreground">Saved scenarios</span>{" "}
+              to store it under a new name.
             </p>
           </section>
           <section>
             <h4 className="text-xs font-bold uppercase tracking-wider text-foreground mb-2">
-              Step 5 — Saved scenarios
+              Step 5 — Saved plans
             </h4>
             <p>
-              Signed-in users can save named plans to the cloud. Your latest saved plan loads on
+              Signed-in users can save named plans to the cloud. Your latest saved plan can load on
               return visits. Duplicate or rename from the saved list when you iterate.
             </p>
           </section>
           <section>
             <h4 className="text-xs font-bold uppercase tracking-wider text-foreground mb-2">
-              What the charts mean
+              What the main chart shows
             </h4>
             <p>
-              The main chart shows either a single deterministic path, three overlaid presets, or a
-              median path with 10th–90th percentile rails from Monte Carlo. The retirement marker is
-              when contributions stop; a depletion marker appears if the balance is modeled to hit
-              zero.
+              Either one deterministic path, three overlaid presets, or a median path with softer and
+              tougher outcome bands. The retirement marker is when contributions stop; a depletion
+              marker appears if the balance is modeled to hit zero.
             </p>
           </section>
           <section>
@@ -117,9 +117,9 @@ export function NesteggGuideSheet({ onReplayTour }: Props) {
               What “Monte Carlo” means here
             </h4>
             <p>
-              We run many paths with randomized monthly returns around your expected return and a
-              volatility that matches your risk profile. It illustrates uncertainty — not a
-              guarantee — and helps compare plans on similar footing.
+              Many paths with randomized monthly returns around your expected return and a volatility
+              tied to your risk profile. It illustrates uncertainty — not a promise — and helps
+              compare plans fairly.
             </p>
           </section>
           <section>
