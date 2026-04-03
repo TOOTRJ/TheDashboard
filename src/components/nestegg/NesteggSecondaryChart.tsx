@@ -29,7 +29,7 @@ type Props = {
 
 export function NesteggSecondaryChart({ data }: Props) {
   return (
-    <Card className="border-[#ff00ff]/12 bg-card/65 backdrop-blur-sm h-full flex flex-col">
+    <Card className="border-[#ff00ff]/12 bg-card/65 backdrop-blur-sm flex flex-col">
       <CardHeader className="pb-2">
         <div className="flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#ff00ff]/10">
@@ -48,7 +48,7 @@ export function NesteggSecondaryChart({ data }: Props) {
           </div>
         </div>
       </CardHeader>
-      <CardContent className="h-[280px] sm:h-[320px] flex-1 min-h-[240px]">
+      <CardContent className="h-[280px] sm:h-[320px] min-h-[240px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
             <CartesianGrid

@@ -15,16 +15,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
-import { NesteggControls } from "@/components/nestegg/NesteggControls";
-import { NesteggAdvancedSettings } from "@/components/nestegg/NesteggAdvancedSettings";
-import { NesteggFidelitySettings } from "@/components/nestegg/NesteggFidelitySettings";
-import { NesteggScenarioSelector } from "@/components/nestegg/NesteggScenarioSelector";
 import { NesteggHeroInsight } from "@/components/nestegg/NesteggHeroInsight";
 import { NesteggSummaryCards } from "@/components/nestegg/NesteggSummaryCards";
 import { NesteggProjectionChart } from "@/components/nestegg/NesteggProjectionChart";
-import { NesteggSecondaryChart } from "@/components/nestegg/NesteggSecondaryChart";
 import { NesteggSavedPlanTabsToolbar } from "@/components/nestegg/NesteggSavedPlanTabsToolbar";
 import { NesteggProbabilityCards } from "@/components/nestegg/NesteggProbabilityCards";
 import { NesteggComparisonTable } from "@/components/nestegg/NesteggComparisonTable";
@@ -33,11 +27,13 @@ import { NesteggInsightsPanel } from "@/components/nestegg/NesteggInsightsPanel"
 import { NesteggGuideSheet } from "@/components/nestegg/NesteggGuideSheet";
 import { NesteggWalkthrough } from "@/components/nestegg/NesteggWalkthrough";
 import { NesteggSavedCompare } from "@/components/nestegg/NesteggSavedCompare";
-import { NesteggMonteCarloSettings } from "@/components/nestegg/NesteggMonteCarloSettings";
 import { NesteggExportMenu } from "@/components/nestegg/NesteggExportMenu";
 import { NesteggExpandedMetricsSection } from "@/components/nestegg/NesteggExpandedMetricsSection";
 import { NesteggPortfolioHighlightCard } from "@/components/nestegg/NesteggPortfolioHighlightCard";
 import { NesteggCollapsibleBlock } from "@/components/nestegg/NesteggCollapsibleBlock";
+import { NesteggQuickInputsPanel } from "@/components/nestegg/NesteggQuickInputsPanel";
+import { NesteggChartTabs } from "@/components/nestegg/NesteggChartTabs";
+import { NesteggAllInputsPanel } from "@/components/nestegg/NesteggAllInputsPanel";
 import {
   DEFAULT_NESTEGG_INPUTS,
   SCENARIO_LABELS,
@@ -379,12 +375,11 @@ export default function NesteggPage() {
   }, [lightMc, result.suggestedExtraMonthly]);
 
   const compareData = React.useMemo(() => {
-    if (!compareOverlay) return [];
     const b = runProjection(applyScenarioToInputs(inputs, "base"));
     const c = runProjection(applyScenarioToInputs(inputs, "conservative"));
     const a = runProjection(applyScenarioToInputs(inputs, "aggressive"));
     return mergeComparisonSeries(b.series, c.series, a.series);
-  }, [inputs, compareOverlay]);
+  }, [inputs]);
 
   const cashflowData = React.useMemo(
     () => buildRetirementCashflowYears(scenarioInputs, 15),
@@ -702,10 +697,25 @@ export default function NesteggPage() {
               monteCarloBands={compareOverlay || !lightMc ? null : lightMc.bandSeries}
             />
           </div>
-          <div className="xl:col-span-1 min-h-[260px] min-w-0">
-            <NesteggSecondaryChart data={cashflowData} />
+          <div className="xl:col-span-1 min-w-0">
+            <NesteggQuickInputsPanel
+              inputs={inputs}
+              onChange={onPatch}
+              canSave={canSaveCloudPlan}
+              dirty={dirtyFromSaved}
+              saving={savingScenario}
+              onSave={handleSaveActiveScenario}
+            />
           </div>
         </div>
+
+        <NesteggChartTabs
+          cashflowData={cashflowData}
+          compareData={compareData}
+          retirementAge={inputs.retirementAge}
+          depletionAge={result.depletionAge}
+          lifeExpectancy={horizonAge}
+        />
 
         {/* ── Plan Inputs (collapsible) ── */}
         <NesteggCollapsibleBlock
@@ -740,66 +750,37 @@ export default function NesteggPage() {
               }
             />
             {user && activeSavedScenario && activePlanIsOnCloud ? (
-              <>
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="scenario-label"
-                    className="text-[10px] uppercase tracking-wider text-muted-foreground"
-                  >
-                    Scenario label
-                  </Label>
-                  <Input
-                    id="scenario-label"
-                    value={scenarioNameDraft}
-                    onChange={(e) => setScenarioNameDraft(e.target.value)}
-                    className="border-[#ff00ff]/25 bg-[#ff00ff]/5 focus-visible:border-[#ff00ff]/45 max-w-md font-medium text-[#ff99ff] placeholder:text-muted-foreground"
-                    placeholder="Name this plan"
-                    maxLength={120}
-                    autoComplete="off"
-                  />
-                  <p className="text-[10px] text-muted-foreground leading-snug">
-                    This name appears in your saved plans list and in the header above. Use{" "}
-                    <span className="font-medium text-foreground/90">Save changes to this tab</span>{" "}
-                    in the toolbar to store it in the cloud.
-                  </p>
-                </div>
-              </>
+              <div className="space-y-2">
+                <Label
+                  htmlFor="scenario-label"
+                  className="text-[10px] uppercase tracking-wider text-muted-foreground"
+                >
+                  Scenario label
+                </Label>
+                <Input
+                  id="scenario-label"
+                  value={scenarioNameDraft}
+                  onChange={(e) => setScenarioNameDraft(e.target.value)}
+                  className="border-[#ff00ff]/25 bg-[#ff00ff]/5 focus-visible:border-[#ff00ff]/45 max-w-md font-medium text-[#ff99ff] placeholder:text-muted-foreground"
+                  placeholder="Name this plan"
+                  maxLength={120}
+                  autoComplete="off"
+                />
+                <p className="text-[10px] text-muted-foreground leading-snug">
+                  This name appears in your saved plans list and in the header above. Use{" "}
+                  <span className="font-medium text-foreground/90">Save changes to this tab</span>{" "}
+                  in the toolbar to store it in the cloud.
+                </p>
+              </div>
             ) : null}
-            <div className="grid gap-4 lg:grid-cols-2 lg:items-start">
-              <div className="space-y-4 lg:sticky lg:top-4 lg:self-start">
-                <div className="space-y-2">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-0.5">
-                    Market presets
-                  </p>
-                  <p className="text-[11px] text-muted-foreground px-0.5">
-                    Same inputs, three stress levels — switch tabs to see odds and the chart update.
-                  </p>
-                  <NesteggScenarioSelector value={scenario} onChange={setScenario} />
-                </div>
-                <NesteggMonteCarloSettings inputs={inputs} onChange={onPatch} />
-                <NesteggControls inputs={inputs} onChange={onPatch} />
-              </div>
-              <div className="space-y-4">
-                <NesteggAdvancedSettings inputs={inputs} onChange={onPatch} />
-                <NesteggFidelitySettings inputs={inputs} onChange={onPatch} />
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-lg border border-[#00fff5]/15 bg-card/50 px-3 py-3">
-                  <div className="space-y-0.5 min-w-0">
-                    <Label htmlFor="compare-overlay" className="text-xs font-semibold text-foreground">
-                      Overlay three curves on the chart
-                    </Label>
-                    <p className="text-[10px] text-muted-foreground leading-snug">
-                      Show Base, Conservative, and Aggressive projections at once
-                    </p>
-                  </div>
-                  <Switch
-                    id="compare-overlay"
-                    checked={compareOverlay}
-                    onCheckedChange={setCompareOverlay}
-                    className="shrink-0 data-[state=checked]:bg-[#00fff5]"
-                  />
-                </div>
-              </div>
-            </div>
+            <NesteggAllInputsPanel
+              inputs={inputs}
+              onChange={onPatch}
+              scenario={scenario}
+              onScenarioChange={setScenario}
+              compareOverlay={compareOverlay}
+              onCompareOverlayChange={setCompareOverlay}
+            />
           </div>
         </NesteggCollapsibleBlock>
 
