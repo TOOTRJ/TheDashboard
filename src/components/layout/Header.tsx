@@ -47,6 +47,10 @@ const titleMap: Record<string, { title: string; description: string }> = {
     title: "Market Analytics",
     description: "Deep dive into your trading performance and market trends",
   },
+  "/nestegg": {
+    title: "Nestegg",
+    description: "Retirement analytics and scenario modeling",
+  },
   "/reports": {
     title: "Trade Log",
     description: "Complete history of your trading activity",
@@ -117,15 +121,22 @@ function MarketTicker() {
 export function Header({ onOpenMobileNav }: { onOpenMobileNav: () => void }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, signOut } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const { dateRange, setDateRange, searchQuery, setSearchQuery, dateRangeOptions } =
     useDashboardFilters();
   const [isSearchFocused, setIsSearchFocused] = React.useState(false);
 
   const headerCopy = React.useMemo(() => titleMap[pathname] ?? titleMap["/"], [pathname]);
 
-  const displayName = user?.user_metadata?.display_name || user?.email?.split("@")[0] || "Trader";
+  const displayName =
+    profile?.full_name ||
+    user?.user_metadata?.full_name ||
+    user?.user_metadata?.display_name ||
+    user?.email?.split("@")[0] ||
+    "Trader";
   const initials = displayName.slice(0, 2).toUpperCase();
+  const avatarSrc =
+    profile?.avatar_url || user?.user_metadata?.avatar_url;
 
   const handleSignOut = async () => {
     await signOut();
@@ -190,7 +201,7 @@ export function Header({ onOpenMobileNav }: { onOpenMobileNav: () => void }) {
               >
                 <div className="relative">
                   <Avatar className="h-8 w-8 border border-[#00fff5]/30 transition-all duration-300 group-hover:border-[#00fff5]/60 group-hover:shadow-[0_0_10px_rgba(0,255,245,0.3)]">
-                    <AvatarImage src={user?.user_metadata?.avatar_url} alt="User avatar" />
+                    <AvatarImage src={avatarSrc ?? undefined} alt="User avatar" />
                     <AvatarFallback className="bg-[#00fff5]/20 text-[#00fff5]">{initials}</AvatarFallback>
                   </Avatar>
                   <div className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-background bg-[#39ff14]" />

@@ -2,10 +2,24 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
+/** Only allow same-origin relative paths to prevent open redirects. */
+function getSafeNextPath(next: string | null, fallback: string): string {
+  if (!next) return fallback;
+  let path: string;
+  try {
+    path = decodeURIComponent(next);
+  } catch {
+    return fallback;
+  }
+  if (!path.startsWith("/") || path.startsWith("//")) return fallback;
+  if (path.includes("://")) return fallback;
+  return path;
+}
+
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/";
+  const next = getSafeNextPath(searchParams.get("next"), "/");
 
   if (code) {
     const cookieStore = await cookies();

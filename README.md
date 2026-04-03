@@ -1,5 +1,9 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Nestegg (retirement calculator)
+
+The **Nestegg** feature at `/nestegg` is documented in **[README-NESTEGG.md](./README-NESTEGG.md)**, including a high-level overview and a detailed breakdown of the projection math and code layout.
+
 ## Getting Started
 
 First, run the development server:

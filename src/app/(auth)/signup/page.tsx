@@ -55,7 +55,7 @@ export default function SignupPage() {
         password,
         options: {
           data: {
-            display_name: displayName || email.split("@")[0],
+            full_name: displayName.trim() || email.split("@")[0],
           },
         },
       });

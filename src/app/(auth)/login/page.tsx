@@ -7,6 +7,14 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Terminal, Zap, Lock, Mail, Eye, EyeOff, AlertCircle, Loader2 } from "lucide-react";
 
 function GoogleIcon({ className }: { className?: string }) {
@@ -27,8 +35,27 @@ export default function LoginPage() {
   const [error, setError] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(false);
   const [googleLoading, setGoogleLoading] = React.useState(false);
+  const [forgotOpen, setForgotOpen] = React.useState(false);
+  const [resetEmail, setResetEmail] = React.useState("");
+  const [resetLoading, setResetLoading] = React.useState(false);
+  const [resetError, setResetError] = React.useState<string | null>(null);
+  const [resetSent, setResetSent] = React.useState(false);
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = React.useMemo(() => createClient(), []);
+
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const err = params.get("error");
+    if (err === "recovery_session") {
+      setError(
+        "This password reset link is invalid or has expired. Request a new one with “Forgot password?” below."
+      );
+      router.replace("/login", { scroll: false });
+    } else if (err === "auth_callback_error") {
+      setError("Sign-in could not be completed. Try again or use another method.");
+      router.replace("/login", { scroll: false });
+    }
+  }, [router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,6 +101,43 @@ export default function LoginPage() {
     } catch {
       setError("An unexpected error occurred");
       setGoogleLoading(false);
+    }
+  };
+
+  const openForgotPassword = () => {
+    setResetEmail(email.trim());
+    setResetError(null);
+    setResetSent(false);
+    setForgotOpen(true);
+  };
+
+  const handlePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setResetError(null);
+    const trimmed = resetEmail.trim().toLowerCase();
+    if (!trimmed) {
+      setResetError("Enter your email address.");
+      return;
+    }
+
+    setResetLoading(true);
+    try {
+      const callback = new URL("/auth/callback", window.location.origin);
+      callback.searchParams.set("next", "/auth/update-password");
+
+      const { error: resetErr } = await supabase.auth.resetPasswordForEmail(trimmed, {
+        redirectTo: callback.toString(),
+      });
+
+      if (resetErr) {
+        setResetError(resetErr.message);
+      } else {
+        setResetSent(true);
+      }
+    } catch {
+      setResetError("An unexpected error occurred");
+    } finally {
+      setResetLoading(false);
     }
   };
 
@@ -191,6 +255,15 @@ export default function LoginPage() {
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
+                  <div className="flex justify-end pt-1">
+                    <button
+                      type="button"
+                      onClick={openForgotPassword}
+                      className="text-xs text-[#00fff5] hover:text-[#00fff5]/80 font-medium transition-colors hover:underline"
+                    >
+                      Forgot password?
+                    </button>
+                  </div>
                 </div>
 
                 <Button
@@ -265,6 +338,91 @@ export default function LoginPage() {
           </p>
         </div>
       </div>
+
+      <Dialog
+        open={forgotOpen}
+        onOpenChange={(open) => {
+          setForgotOpen(open);
+          if (!open) {
+            setResetError(null);
+            setResetSent(false);
+          }
+        }}
+      >
+        <DialogContent className="border-[#00fff5]/20 bg-card/95 backdrop-blur-xl sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-[#00fff5]">Reset password</DialogTitle>
+            <DialogDescription>
+              {resetSent
+                ? "Check your inbox for a link to choose a new password. If it doesn’t arrive in a few minutes, check spam or try again."
+                : "We’ll email a secure link to set a new password. For your security, we don’t confirm whether that address is registered."}
+            </DialogDescription>
+          </DialogHeader>
+
+          {!resetSent ? (
+            <form onSubmit={handlePasswordReset} className="space-y-4">
+              {resetError && (
+                <div className="p-3 rounded-lg bg-[#ff3366]/10 border border-[#ff3366]/30 flex items-center gap-2 text-sm text-[#ff3366]">
+                  <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                  {resetError}
+                </div>
+              )}
+              <div className="space-y-2">
+                <Label htmlFor="reset-email" className="text-xs uppercase tracking-wider text-muted-foreground">
+                  Email
+                </Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="reset-email"
+                    type="email"
+                    autoComplete="email"
+                    placeholder="trader@nexus.io"
+                    value={resetEmail}
+                    onChange={(e) => setResetEmail(e.target.value)}
+                    required
+                    className="pl-10 bg-background/50 border-[#00fff5]/20 focus:border-[#00fff5]/50"
+                  />
+                </div>
+              </div>
+              <DialogFooter className="gap-2 sm:gap-0">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setForgotOpen(false)}
+                  className="border-[#00fff5]/20"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={resetLoading}
+                  className="bg-gradient-to-r from-[#00fff5] to-[#00d4aa] text-black font-semibold hover:from-[#00fff5]/90 hover:to-[#00d4aa]/90"
+                >
+                  {resetLoading ? (
+                    <span className="flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Sending…
+                    </span>
+                  ) : (
+                    "Send reset link"
+                  )}
+                </Button>
+              </DialogFooter>
+            </form>
+          ) : (
+            <DialogFooter>
+              <Button
+                type="button"
+                onClick={() => setForgotOpen(false)}
+                className="w-full bg-gradient-to-r from-[#00fff5] to-[#00d4aa] text-black font-semibold"
+              >
+                Done
+              </Button>
+            </DialogFooter>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
