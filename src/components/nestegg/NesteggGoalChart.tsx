@@ -14,8 +14,9 @@ import {
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/formatters";
-import type { GoalProjectionPoint } from "@/lib/nestegg/future-value";
-import { Target } from "lucide-react";
+import type { GoalProjectionResult, GoalProjectionPoint } from "@/lib/nestegg/future-value";
+import { CheckCircle, Target, AlertTriangle, TrendingUp } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const NEON = {
   cyan: "#00fff5",
@@ -26,13 +27,13 @@ const NEON = {
 };
 
 type Props = {
-  series: GoalProjectionPoint[];
+  projection: GoalProjectionResult;
   goalAmount: number;
   targetYear: number;
-  requiredMonthly: number;
   currentMonthly: number;
-  currentPathEndBalance: number;
   escalationPercent: number;
+  /** Monte Carlo probability of reaching goal (0-1), null if not computed. */
+  goalProbability?: number | null;
 };
 
 function ChartTooltip({
@@ -60,16 +61,77 @@ function ChartTooltip({
 }
 
 export function NesteggGoalChart({
-  series,
+  projection,
   goalAmount,
   targetYear,
-  requiredMonthly,
   currentMonthly,
-  currentPathEndBalance,
   escalationPercent,
+  goalProbability,
 }: Props) {
+  const {
+    requiredMonthly,
+    series,
+    currentPathEndBalance,
+    totalContributed,
+    totalGrowth,
+    status,
+    progressPercent,
+    extraSavingsNeeded,
+    yearsAtCurrentPace,
+    inflationAdjustedGoal,
+    timelineSensitivity,
+    returnSensitivity,
+  } = projection;
+
   const gap = goalAmount - currentPathEndBalance;
-  const onTrack = currentPathEndBalance >= goalAmount;
+
+  const statusConfig = {
+    ahead: {
+      icon: CheckCircle,
+      color: "text-[#39ff14]",
+      bg: "bg-[#39ff14]/10",
+      border: "border-[#39ff14]/20",
+      label: "Ahead of schedule",
+      message: "Your portfolio growth alone is projected to exceed your goal — no additional savings required.",
+    },
+    "on-track": {
+      icon: CheckCircle,
+      color: "text-[#00fff5]",
+      bg: "bg-[#00fff5]/10",
+      border: "border-[#00fff5]/20",
+      label: "On track",
+      message: "At your current savings rate, you're projected to reach your goal by the target year.",
+    },
+    behind: {
+      icon: AlertTriangle,
+      color: "text-[#ffff00]",
+      bg: "bg-[#ffff00]/10",
+      border: "border-[#ffff00]/20",
+      label: "Needs adjustment",
+      message: extraSavingsNeeded > 0
+        ? `Save about ${formatCurrency(extraSavingsNeeded)} more per month to get on track.`
+        : "Consider extending your timeline or adjusting your goal.",
+    },
+    "past-deadline": {
+      icon: AlertTriangle,
+      color: "text-[#ff3366]",
+      bg: "bg-[#ff3366]/10",
+      border: "border-[#ff3366]/20",
+      label: "Target year has passed",
+      message: "Update your target year on the Portfolio page to see a new projection.",
+    },
+    "no-goal": {
+      icon: Target,
+      color: "text-muted-foreground",
+      bg: "bg-muted/10",
+      border: "border-muted/20",
+      label: "No goal set",
+      message: "Set a goal on your Portfolio page.",
+    },
+  };
+
+  const sc = statusConfig[status];
+  const StatusIcon = sc.icon;
 
   return (
     <Card className="border-[#39ff14]/20 bg-card/85 backdrop-blur-sm h-full shadow-[0_0_32px_-8px_rgba(57,255,20,0.12)]">
@@ -83,138 +145,147 @@ export function NesteggGoalChart({
               Goal tracker
             </h3>
             <p className="text-[11px] text-muted-foreground mt-0.5">
-              Reach {formatCurrency(goalAmount)} by {targetYear} — green line shows the
-              pace you need, cyan shows your current trajectory
+              Reach {formatCurrency(goalAmount)} by {targetYear}
+              <span className="text-muted-foreground/70 ml-1">
+                ({formatCurrency(inflationAdjustedGoal)} in today&apos;s dollars)
+              </span>
             </p>
+          </div>
+        </div>
+
+        {/* Progress bar */}
+        <div className="space-y-1">
+          <div className="flex justify-between text-[10px]">
+            <span className="text-muted-foreground">{progressPercent}% of goal</span>
+            <span className="font-mono text-[#39ff14]">{formatCurrency(projection.series[0]?.goalPath ?? 0)} / {formatCurrency(goalAmount)}</span>
+          </div>
+          <div className="h-1.5 w-full rounded-full bg-[#39ff14]/10 overflow-hidden">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-[#39ff14]/60 to-[#00fff5]/60 transition-[width] duration-300"
+              style={{ width: `${Math.min(100, progressPercent)}%` }}
+            />
+          </div>
+        </div>
+
+        {/* Status badge */}
+        <div className={cn("flex items-center gap-2 rounded-lg px-3 py-2 text-xs", sc.bg, sc.border, "border")}>
+          <StatusIcon className={cn("h-4 w-4 shrink-0", sc.color)} />
+          <div>
+            <span className={cn("font-semibold", sc.color)}>{sc.label}</span>
+            <span className="text-muted-foreground ml-1.5">{sc.message}</span>
           </div>
         </div>
       </CardHeader>
+
       <CardContent className="space-y-3">
-        <div className="h-[280px] sm:h-[320px] min-h-[240px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={series}>
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="rgba(57, 255, 20, 0.08)"
-                vertical={false}
-              />
-              <XAxis
-                dataKey="year"
-                type="number"
-                domain={["dataMin", "dataMax"]}
-                tickLine={false}
-                axisLine={false}
-                tick={{ fill: NEON.muted, fontSize: 10 }}
-              />
-              <YAxis
-                tickLine={false}
-                axisLine={false}
-                tick={{ fill: NEON.muted, fontSize: 10 }}
-                tickFormatter={(v) =>
-                  v >= 1_000_000
-                    ? `$${(v / 1_000_000).toFixed(1)}M`
-                    : `$${(v / 1000).toFixed(0)}k`
-                }
-              />
-              <Tooltip
-                content={(props) => (
-                  <ChartTooltip
-                    active={props.active}
-                    payload={props.payload as Array<{ payload: Record<string, number> }>}
-                  />
-                )}
-              />
-              <Legend
-                wrapperStyle={{ fontSize: 11 }}
-                formatter={(value) => (
-                  <span className="text-muted-foreground uppercase tracking-wider">
-                    {value}
-                  </span>
-                )}
-              />
-              <Line
-                type="monotone"
-                dataKey="goalPath"
-                name="Goal pace"
-                stroke={NEON.green}
-                strokeWidth={2.5}
-                dot={false}
-                style={{ filter: `drop-shadow(0 0 8px ${NEON.green})` }}
-              />
-              <Line
-                type="monotone"
-                dataKey="currentPath"
-                name="Current pace"
-                stroke={NEON.cyan}
-                strokeWidth={2}
-                dot={false}
-                style={{ filter: `drop-shadow(0 0 6px ${NEON.cyan})` }}
-              />
-              <ReferenceLine
-                y={goalAmount}
-                stroke={NEON.yellow}
-                strokeDasharray="6 4"
-                strokeOpacity={0.6}
-                label={{
-                  value: "Goal",
-                  fill: NEON.yellow,
-                  fontSize: 10,
-                  position: "right",
-                }}
-              />
-              <ReferenceLine
-                x={targetYear}
-                stroke={NEON.pink}
-                strokeDasharray="4 4"
-                strokeOpacity={0.5}
-                label={{
-                  value: String(targetYear),
-                  fill: NEON.pink,
-                  fontSize: 10,
-                  position: "top",
-                }}
-              />
-            </ComposedChart>
-          </ResponsiveContainer>
+        {/* Chart */}
+        {series.length > 1 ? (
+          <div className="h-[260px] sm:h-[300px] min-h-[220px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart data={series}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(57, 255, 20, 0.08)" vertical={false} />
+                <XAxis dataKey="year" type="number" domain={["dataMin", "dataMax"]} tickLine={false} axisLine={false} tick={{ fill: NEON.muted, fontSize: 10 }} />
+                <YAxis tickLine={false} axisLine={false} tick={{ fill: NEON.muted, fontSize: 10 }} tickFormatter={(v) => v >= 1_000_000 ? `$${(v / 1_000_000).toFixed(1)}M` : `$${(v / 1000).toFixed(0)}k`} />
+                <Tooltip content={(props) => <ChartTooltip active={props.active} payload={props.payload as Array<{ payload: Record<string, number> }>} />} />
+                <Legend wrapperStyle={{ fontSize: 11 }} formatter={(value) => <span className="text-muted-foreground uppercase tracking-wider">{value}</span>} />
+                <Line type="monotone" dataKey="goalPath" name="Goal pace" stroke={NEON.green} strokeWidth={2.5} dot={false} style={{ filter: `drop-shadow(0 0 8px ${NEON.green})` }} />
+                <Line type="monotone" dataKey="currentPath" name="Current pace" stroke={NEON.cyan} strokeWidth={2} dot={false} style={{ filter: `drop-shadow(0 0 6px ${NEON.cyan})` }} />
+                <ReferenceLine y={goalAmount} stroke={NEON.yellow} strokeDasharray="6 4" strokeOpacity={0.6} label={{ value: "Goal", fill: NEON.yellow, fontSize: 10, position: "right" }} />
+                <ReferenceLine x={targetYear} stroke={NEON.pink} strokeDasharray="4 4" strokeOpacity={0.5} label={{ value: String(targetYear), fill: NEON.pink, fontSize: 10, position: "top" }} />
+              </ComposedChart>
+            </ResponsiveContainer>
+          </div>
+        ) : null}
+
+        {/* Primary metrics */}
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4 text-xs rounded-lg border border-[#39ff14]/15 bg-[#39ff14]/[0.03] p-3">
+          <div>
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Required monthly</p>
+            <p className="font-mono font-semibold text-[#39ff14] mt-0.5">
+              {requiredMonthly > 0 ? `${formatCurrency(requiredMonthly)}/mo` : status === "ahead" ? "None needed" : "$0/mo"}
+              {escalationPercent > 0 && requiredMonthly > 0 ? <span className="text-muted-foreground font-normal ml-1">+{escalationPercent}%/yr</span> : null}
+            </p>
+          </div>
+          <div>
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Extra savings needed</p>
+            <p className={cn("font-mono font-semibold mt-0.5", extraSavingsNeeded > 0 ? "text-[#ffff00]" : "text-[#39ff14]")}>
+              {extraSavingsNeeded > 0 ? `+${formatCurrency(extraSavingsNeeded)}/mo` : "On track"}
+            </p>
+          </div>
+          <div>
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">At current rate ({formatCurrency(currentMonthly)}/mo)</p>
+            <p className="font-mono font-semibold text-[#00fff5] mt-0.5">{formatCurrency(currentPathEndBalance)}</p>
+          </div>
+          <div>
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+              {currentPathEndBalance >= goalAmount ? "Surplus" : "Gap"}
+            </p>
+            <p className={cn("font-mono font-semibold mt-0.5", currentPathEndBalance >= goalAmount ? "text-[#39ff14]" : "text-[#ff3366]")}>
+              {currentPathEndBalance >= goalAmount ? "+" : "-"}{formatCurrency(Math.abs(gap))}
+            </p>
+          </div>
         </div>
 
-        {/* Summary metrics */}
-        <div className="grid gap-2 sm:grid-cols-3 text-xs rounded-lg border border-[#39ff14]/15 bg-[#39ff14]/[0.03] p-3">
+        {/* Contributions vs Growth + Years at current pace + MC probability */}
+        <div className="grid gap-2 sm:grid-cols-3 text-xs rounded-lg border border-[#00fff5]/15 bg-[#00fff5]/[0.03] p-3">
+          <div>
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Contributions needed</p>
+            <p className="font-mono font-semibold text-[#00fff5] mt-0.5">{formatCurrency(totalContributed)}</p>
+          </div>
+          <div>
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">From investment growth</p>
+            <p className="font-mono font-semibold text-[#bf00ff] mt-0.5">{formatCurrency(totalGrowth)}</p>
+          </div>
           <div>
             <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
-              Required monthly
+              {yearsAtCurrentPace !== null ? "Years at current pace" : "Goal probability"}
             </p>
-            <p className="font-mono font-semibold text-[#39ff14] mt-0.5">
-              {formatCurrency(requiredMonthly)}/mo
-              {escalationPercent > 0 ? (
-                <span className="text-muted-foreground font-normal ml-1">
-                  +{escalationPercent}%/yr
+            <p className="font-mono font-semibold mt-0.5">
+              {yearsAtCurrentPace !== null ? (
+                <span className={yearsAtCurrentPace <= (targetYear - new Date().getFullYear()) ? "text-[#39ff14]" : "text-[#ffff00]"}>
+                  {yearsAtCurrentPace === 0 ? "Already there" : `~${yearsAtCurrentPace} yrs`}
                 </span>
-              ) : null}
-            </p>
-          </div>
-          <div>
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
-              At current rate ({formatCurrency(currentMonthly)}/mo)
-            </p>
-            <p className="font-mono font-semibold text-[#00fff5] mt-0.5">
-              {formatCurrency(currentPathEndBalance)}
-            </p>
-          </div>
-          <div>
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
-              {onTrack ? "Surplus" : "Gap"}
-            </p>
-            <p
-              className={`font-mono font-semibold mt-0.5 ${
-                onTrack ? "text-[#39ff14]" : "text-[#ff3366]"
-              }`}
-            >
-              {onTrack ? "+" : "-"}
-              {formatCurrency(Math.abs(gap))}
+              ) : goalProbability != null ? (
+                <span className={goalProbability >= 0.7 ? "text-[#39ff14]" : goalProbability >= 0.5 ? "text-[#ffff00]" : "text-[#ff3366]"}>
+                  {Math.round(goalProbability * 100)}%
+                </span>
+              ) : (
+                <span className="text-muted-foreground">80+ yrs</span>
+              )}
             </p>
           </div>
         </div>
+
+        {/* Sensitivity tables */}
+        {timelineSensitivity.length > 0 ? (
+          <div className="rounded-lg border border-[#ff00ff]/15 bg-[#ff00ff]/[0.02] p-3 space-y-2">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-[#ff99ff]/80">
+              Timeline sensitivity
+            </p>
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px]">
+              {timelineSensitivity.map((row) => (
+                <div key={row.year} className={cn("font-mono", row.year === targetYear ? "text-[#39ff14] font-semibold" : "text-muted-foreground")}>
+                  {row.year}: {row.requiredMonthly > 0 ? `${formatCurrency(row.requiredMonthly)}/mo` : row.requiredMonthly === 0 ? "None" : "N/A"}
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        {returnSensitivity.length > 0 ? (
+          <div className="rounded-lg border border-[#bf00ff]/15 bg-[#bf00ff]/[0.02] p-3 space-y-2">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-[#bf00ff]/80">
+              Return sensitivity
+            </p>
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px]">
+              {returnSensitivity.map((row) => (
+                <div key={row.returnPercent} className={cn("font-mono", row.returnPercent === Math.round(projection.series.length > 0 ? 7 : 0) ? "text-[#39ff14] font-semibold" : "text-muted-foreground")}>
+                  {row.returnPercent}%: {row.requiredMonthly > 0 ? `${formatCurrency(row.requiredMonthly)}/mo` : row.requiredMonthly === 0 ? "None" : "N/A"}
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
       </CardContent>
     </Card>
   );

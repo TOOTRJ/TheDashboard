@@ -421,8 +421,24 @@ export default function NesteggPage() {
       annualReturnPercent: inputs.annualReturnPercent,
       annualEscalationPercent: inputs.salaryGrowthPercent,
       currentMonthly: inputs.monthlyContribution,
+      inflationPercent: inputs.inflationPercent,
     });
-  }, [inputs.currentSavings, inputs.annualReturnPercent, inputs.salaryGrowthPercent, inputs.monthlyContribution, portfolioGoal, portfolioGoalYear]);
+  }, [inputs.currentSavings, inputs.annualReturnPercent, inputs.salaryGrowthPercent, inputs.monthlyContribution, inputs.inflationPercent, portfolioGoal, portfolioGoalYear]);
+
+  const goalProbability = React.useMemo(() => {
+    if (!lightMc || !portfolioGoal || portfolioGoal <= 0) return null;
+    const retirementIdx = lightMc.bandSeries.findIndex(
+      (p) => p.age >= inputs.retirementAge
+    );
+    if (retirementIdx < 0) return null;
+    const band = lightMc.bandSeries[retirementIdx]!;
+    if (band.p10 >= portfolioGoal) return 0.95;
+    if (band.p25 >= portfolioGoal) return 0.8;
+    if (band.p50 >= portfolioGoal) return 0.55;
+    if (band.p75 >= portfolioGoal) return 0.3;
+    if (band.p90 >= portfolioGoal) return 0.12;
+    return 0.05;
+  }, [lightMc, portfolioGoal, inputs.retirementAge]);
 
   const horizonAge = planHorizonAge(inputs);
 
@@ -734,6 +750,7 @@ export default function NesteggPage() {
               depletionAge={result.depletionAge}
               lifeExpectancy={horizonAge}
               monteCarloBands={compareOverlay || !lightMc ? null : lightMc.bandSeries}
+              goalAmount={portfolioGoal > 0 ? portfolioGoal : null}
             />
           </div>
           <div className="xl:col-span-1 min-w-0">
@@ -759,6 +776,7 @@ export default function NesteggPage() {
           goalYear={portfolioGoalYear}
           currentMonthly={inputs.monthlyContribution}
           escalationPercent={inputs.salaryGrowthPercent}
+          goalProbability={goalProbability}
         />
 
         {/* ── Plan Inputs (collapsible) ── */}

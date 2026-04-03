@@ -33,6 +33,7 @@ type Props = {
   goalYear: number | null;
   currentMonthly: number;
   escalationPercent: number;
+  goalProbability?: number | null;
 };
 
 export function NesteggChartTabs({
@@ -46,6 +47,7 @@ export function NesteggChartTabs({
   goalYear,
   currentMonthly,
   escalationPercent,
+  goalProbability,
 }: Props) {
   return (
     <Tabs defaultValue="cashflow" className="space-y-2">
@@ -89,20 +91,19 @@ export function NesteggChartTabs({
       <TabsContent value="goal" className="mt-0 min-h-[420px]">
         {goalProjection && goalYear ? (
           <NesteggGoalChart
-            series={goalProjection.series}
+            projection={goalProjection}
             goalAmount={goalAmount}
             targetYear={goalYear}
-            requiredMonthly={goalProjection.requiredMonthly}
             currentMonthly={currentMonthly}
-            currentPathEndBalance={goalProjection.currentPathEndBalance}
             escalationPercent={escalationPercent}
+            goalProbability={goalProbability}
           />
         ) : (
           <div className="flex flex-col items-center justify-center py-16 text-center space-y-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#39ff14]/12 ring-1 ring-[#39ff14]/20">
               <Target className="h-5 w-5 text-[#39ff14]" aria-hidden />
             </div>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground max-w-sm">
               Set a portfolio goal and target year on your{" "}
               <Link
                 href="/portfolio"

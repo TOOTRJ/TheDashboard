@@ -43,6 +43,8 @@ type Props = {
   lifeExpectancy: number;
   /** When set and not in compare mode, show median path + percentile rails. */
   monteCarloBands?: MonteCarloBandPoint[] | null;
+  /** Optional horizontal goal line on the chart. */
+  goalAmount?: number | null;
   className?: string;
 };
 
@@ -100,6 +102,7 @@ export function NesteggProjectionChart({
   depletionAge,
   lifeExpectancy,
   monteCarloBands,
+  goalAmount,
   className,
 }: Props) {
   const bandMode = Boolean(!compareMode && monteCarloBands && monteCarloBands.length > 0);
@@ -306,6 +309,20 @@ export function NesteggProjectionChart({
                   fill: NEON.green,
                   fontSize: 10,
                   position: "top",
+                }}
+              />
+            ) : null}
+            {goalAmount && goalAmount > 0 ? (
+              <ReferenceLine
+                y={goalAmount}
+                stroke={NEON.yellow}
+                strokeDasharray="6 4"
+                strokeOpacity={0.5}
+                label={{
+                  value: "Goal",
+                  fill: NEON.yellow,
+                  fontSize: 10,
+                  position: "right",
                 }}
               />
             ) : null}

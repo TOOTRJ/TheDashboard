@@ -2,7 +2,8 @@
 
 import * as React from "react";
 import { toast } from "sonner";
-import { Pencil, Plus, Save, Target, Trash2, Wallet, X } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, Pencil, Plus, Save, Target, Trash2, Wallet, X } from "lucide-react";
 
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,7 @@ import {
   updatePortfolioGoal,
   type PortfolioAccount,
 } from "@/lib/portfolio/portfolio-supabase";
+import { computeRequiredMonthlySavings } from "@/lib/nestegg/future-value";
 
 export default function PortfolioPage() {
   const { user, loading: authLoading } = useAuth();
@@ -70,6 +72,7 @@ export default function PortfolioPage() {
   }, [user, authLoading]);
 
   const handleSaveGoal = async () => {
+    const prev = { ...goalSaved };
     setSavingGoal(true);
     const amount = Number(goalAmount) || 0;
     const year = goalYear ? Number(goalYear) : null;
@@ -80,8 +83,36 @@ export default function PortfolioPage() {
       return;
     }
     setGoalSaved({ amount, year });
-    toast.success("Portfolio goal saved");
+    toast.success("Portfolio goal saved", {
+      action: {
+        label: "Undo",
+        onClick: async () => {
+          await updatePortfolioGoal(prev.amount, prev.year);
+          setGoalAmount(prev.amount > 0 ? String(prev.amount) : "");
+          setGoalYear(prev.year != null ? String(prev.year) : "");
+          setGoalSaved(prev);
+          toast.success("Goal reverted");
+        },
+      },
+    });
   };
+
+  const goalProgress = goalSaved.amount > 0 ? Math.min(100, Math.round((total / goalSaved.amount) * 100)) : 0;
+
+  const requiredMonthlyPreview = React.useMemo(() => {
+    if (!goalSaved.amount || goalSaved.amount <= 0 || !goalSaved.year) return null;
+    const now = new Date().getFullYear();
+    const months = Math.max(0, (goalSaved.year - now) * 12);
+    if (months <= 0) return null;
+    const req = computeRequiredMonthlySavings({
+      currentBalance: total,
+      goalAmount: goalSaved.amount,
+      monthsToGoal: months,
+      annualReturnPercent: 7,
+      annualEscalationPercent: 0,
+    });
+    return req;
+  }, [total, goalSaved.amount, goalSaved.year]);
 
   const handleAdd = async () => {
     const name = newName.trim();
@@ -249,12 +280,59 @@ export default function PortfolioPage() {
             </Button>
           </div>
           {goalSaved.amount > 0 && goalSaved.year ? (
-            <p className="text-[11px] text-muted-foreground">
-              Grow your portfolio from{" "}
-              <span className="font-mono text-[#00fff5]">{formatCurrency(total)}</span> to{" "}
-              <span className="font-mono text-[#39ff14]">{formatCurrency(goalSaved.amount)}</span> by{" "}
-              <span className="font-mono text-[#39ff14]">{goalSaved.year}</span>.
-            </p>
+            <div className="space-y-2.5 rounded-lg border border-[#39ff14]/10 bg-[#39ff14]/[0.02] p-3">
+              <p className="text-[11px] text-muted-foreground">
+                Grow your portfolio from{" "}
+                <span className="font-mono text-[#00fff5]">{formatCurrency(total)}</span> to{" "}
+                <span className="font-mono text-[#39ff14]">{formatCurrency(goalSaved.amount)}</span> by{" "}
+                <span className="font-mono text-[#39ff14]">{goalSaved.year}</span>.
+              </p>
+              {/* Progress bar */}
+              <div className="space-y-1">
+                <div className="flex justify-between text-[10px]">
+                  <span className="text-muted-foreground">{goalProgress}% of goal</span>
+                  <span className="font-mono text-[#39ff14]">
+                    {formatCurrency(total)} / {formatCurrency(goalSaved.amount)}
+                  </span>
+                </div>
+                <div className="h-1.5 w-full rounded-full bg-[#39ff14]/10 overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-[#39ff14]/60 to-[#00fff5]/60 transition-[width] duration-300"
+                    style={{ width: `${goalProgress}%` }}
+                  />
+                </div>
+              </div>
+              {/* Required monthly preview */}
+              {requiredMonthlyPreview !== null ? (
+                <p className="text-[11px] text-muted-foreground">
+                  {requiredMonthlyPreview === 0 ? (
+                    <span className="text-[#39ff14] font-medium">
+                      Your portfolio growth alone is projected to exceed your goal.
+                    </span>
+                  ) : requiredMonthlyPreview === -1 ? (
+                    <span className="text-[#ff3366] font-medium">
+                      This goal may require a longer timeline or lower target.
+                    </span>
+                  ) : (
+                    <>
+                      Estimated{" "}
+                      <span className="font-mono text-[#39ff14] font-medium">
+                        {formatCurrency(requiredMonthlyPreview)}/mo
+                      </span>{" "}
+                      needed at 7% return.
+                    </>
+                  )}
+                </p>
+              ) : null}
+              {/* Link to NestEgg */}
+              <Link
+                href="/nestegg"
+                className="inline-flex items-center gap-1.5 text-[11px] text-[#39ff14]/80 hover:text-[#39ff14] underline underline-offset-2 transition-colors"
+              >
+                View full projection in NestEgg
+                <ArrowRight className="h-3 w-3" />
+              </Link>
+            </div>
           ) : null}
         </CardContent>
       </Card>
