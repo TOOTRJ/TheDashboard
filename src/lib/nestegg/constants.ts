@@ -54,8 +54,8 @@ export function normalizeNesteggInputs(raw: unknown): NesteggInputs {
     annualReturnPercent: Number(o.annualReturnPercent) || DEFAULT_NESTEGG_INPUTS.annualReturnPercent,
     monthlyRetirementSpending:
       Number(o.monthlyRetirementSpending) || DEFAULT_NESTEGG_INPUTS.monthlyRetirementSpending,
-    inflationPercent: Number(o.inflationPercent) ?? DEFAULT_NESTEGG_INPUTS.inflationPercent,
-    salaryGrowthPercent: Number(o.salaryGrowthPercent) ?? DEFAULT_NESTEGG_INPUTS.salaryGrowthPercent,
+    inflationPercent: clampNum(Number(o.inflationPercent), 0, 8, DEFAULT_NESTEGG_INPUTS.inflationPercent),
+    salaryGrowthPercent: clampNum(Number(o.salaryGrowthPercent), 0, 10, DEFAULT_NESTEGG_INPUTS.salaryGrowthPercent),
     socialSecurityMonthly: Number(o.socialSecurityMonthly) || 0,
     otherRetirementIncomeMonthly: Number(o.otherRetirementIncomeMonthly) || 0,
     oneTimeIncome: Number(o.oneTimeIncome) || 0,

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { toast } from "sonner";
-import { PiggyBank, SlidersHorizontal } from "lucide-react";
+import { FlaskConical, PiggyBank, SlidersHorizontal } from "lucide-react";
 
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Badge } from "@/components/ui/badge";
@@ -48,9 +48,8 @@ import {
 } from "@/lib/nestegg/constants";
 import { buildNesteggInsights } from "@/lib/nestegg/insights-engine";
 import {
-  runMonteCarlo,
   runMonteCarloBatched,
-  runMonteCarloScenarioComparison,
+  runMonteCarloScenarioComparisonBatched,
   type ScenarioMonteCompareRow,
   type MonteCarloResult,
 } from "@/lib/nestegg/monte-carlo";
@@ -108,12 +107,15 @@ type ActiveSaved = { id: string; name: string };
 type LoadedBaseline = {
   inputs: NesteggInputs;
   marketScenario: NesteggScenarioId;
-  /** Last saved scenario label (cloud plans only). */
   name: string;
 };
 
 const SELECT_DEFAULTS = "__defaults__";
 const SELECT_CUSTOM = "__custom__";
+
+const LIGHT_MC_PATHS = 200;
+const LIGHT_MC_DEBOUNCE_MS = 800;
+const FULL_MC_PATHS = 1100;
 
 export default function NesteggPage() {
   const { user, loading: authLoading } = useAuth();
@@ -130,6 +132,20 @@ export default function NesteggPage() {
   const [scenarioNameDraft, setScenarioNameDraft] = React.useState("");
   const [planInputsOpen, setPlanInputsOpen] = React.useState(false);
   const planInputsSectionRef = React.useRef<HTMLDivElement>(null);
+
+  /* ── Light MC — live, debounced (~200 paths for approximate results) ── */
+  const [lightMc, setLightMc] = React.useState<MonteCarloResult | null>(null);
+  const [lightMcRunning, setLightMcRunning] = React.useState(false);
+  const lightMcFirstRunRef = React.useRef(true);
+
+  /* ── Full MC — on-demand via button (~2,470 total paths) ── */
+  const [fullMc, setFullMc] = React.useState<MonteCarloResult | null>(null);
+  const [fullCompareRows, setFullCompareRows] = React.useState<ScenarioMonteCompareRow[]>([]);
+  const [fullConservativeMc, setFullConservativeMc] = React.useState<MonteCarloResult | null>(null);
+  const [fullMcProgress, setFullMcProgress] = React.useState(0);
+  const [fullMcRunning, setFullMcRunning] = React.useState(false);
+  const fullMcInputsKeyRef = React.useRef<string | null>(null);
+  const fullAnalysisCancelRef = React.useRef<(() => void) | null>(null);
 
   const activeSavedRef = React.useRef<ActiveSaved | null>(null);
   React.useEffect(() => {
@@ -168,7 +184,6 @@ export default function NesteggPage() {
       return;
     }
     setScenarioNameDraft(activeSavedScenario.name);
-    // Reset label draft only when switching to another saved plan (id), not on every parent re-render.
     // eslint-disable-next-line react-hooks/exhaustive-deps -- activeSavedScenario.id
   }, [activeSavedScenario?.id]);
 
@@ -240,8 +255,15 @@ export default function NesteggPage() {
     return () => window.clearTimeout(id);
   }, [inputs, scenario, compareOverlay, hydrated]);
 
+  /* ── Derived / memoized projection data ── */
+
   const scenarioInputs = React.useMemo(
     () => applyScenarioToInputs(inputs, scenario),
+    [inputs, scenario]
+  );
+
+  const monteCarloDepsKey = React.useMemo(
+    () => JSON.stringify({ scenario, inputs }),
     [inputs, scenario]
   );
 
@@ -250,60 +272,102 @@ export default function NesteggPage() {
     [scenarioInputs]
   );
 
-  const [monteCarlo, setMonteCarlo] = React.useState<MonteCarloResult | null>(null);
-  const [compareRows, setCompareRows] = React.useState<ScenarioMonteCompareRow[]>([]);
-  const [conservativeMcForInsights, setConservativeMcForInsights] =
-    React.useState<MonteCarloResult | null>(null);
-  const [mcProgress, setMcProgress] = React.useState(0);
-  const [mcRunning, setMcRunning] = React.useState(true);
+  /* ── Light MC effect — runs automatically, debounced after first run ── */
 
   React.useEffect(() => {
+    const scenarioInputsForMc = applyScenarioToInputs(inputs, scenario);
     let cancelled = false;
-    setMcRunning(true);
-    setMcProgress(0);
-    setCompareRows([]);
 
-    void runMonteCarloBatched(scenarioInputs, scenario, {
-      paths: 1100,
-      chunkSize: 100,
-      onProgress: (f) => {
-        if (!cancelled) setMcProgress(f);
-      },
-    }).then((main) => {
-      if (cancelled) return;
-      setMonteCarlo(main);
-      setCompareRows(runMonteCarloScenarioComparison(inputs, SCENARIO_LABELS));
-      setConservativeMcForInsights(
-        runMonteCarlo(applyScenarioToInputs(inputs, "conservative"), "conservative", {
-          paths: 320,
-        })
-      );
-      setMcRunning(false);
-    });
+    const run = () => {
+      setLightMcRunning(true);
+      void runMonteCarloBatched(scenarioInputsForMc, scenario, {
+        paths: LIGHT_MC_PATHS,
+        chunkSize: LIGHT_MC_PATHS,
+      }).then((mc) => {
+        if (cancelled) return;
+        setLightMc(mc);
+        setLightMcRunning(false);
+      });
+    };
 
+    if (lightMcFirstRunRef.current) {
+      lightMcFirstRunRef.current = false;
+      run();
+      return () => { cancelled = true; };
+    }
+
+    const timer = window.setTimeout(run, LIGHT_MC_DEBOUNCE_MS);
     return () => {
       cancelled = true;
+      window.clearTimeout(timer);
     };
-  }, [scenarioInputs, scenario, inputs]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- monteCarloDepsKey
+  }, [monteCarloDepsKey]);
+
+  /* ── Full MC — triggered by user clicking "Run full analysis" ── */
+
+  const fullMcStale = fullMc !== null && fullMcInputsKeyRef.current !== monteCarloDepsKey;
+
+  const runFullAnalysis = React.useCallback(async () => {
+    fullAnalysisCancelRef.current?.();
+    let cancelled = false;
+    fullAnalysisCancelRef.current = () => { cancelled = true; };
+
+    const currentKey = monteCarloDepsKey;
+    const scenarioInputsForMc = applyScenarioToInputs(inputs, scenario);
+
+    setFullMcRunning(true);
+    setFullMcProgress(0);
+
+    try {
+      const main = await runMonteCarloBatched(scenarioInputsForMc, scenario, {
+        paths: FULL_MC_PATHS,
+        chunkSize: 100,
+        onProgress: (f) => { if (!cancelled) setFullMcProgress(f); },
+      });
+      if (cancelled) return;
+      setFullMc(main);
+
+      const compare = await runMonteCarloScenarioComparisonBatched(inputs, SCENARIO_LABELS);
+      if (cancelled) return;
+      setFullCompareRows(compare);
+
+      const conservative = await runMonteCarloBatched(
+        applyScenarioToInputs(inputs, "conservative"),
+        "conservative",
+        { paths: 320, chunkSize: 160 }
+      );
+      if (cancelled) return;
+      setFullConservativeMc(conservative);
+
+      fullMcInputsKeyRef.current = currentKey;
+    } finally {
+      if (!cancelled) {
+        setFullMcRunning(false);
+      }
+    }
+  }, [inputs, scenario, monteCarloDepsKey]);
+
+  /* ── Insights (require full MC) ── */
 
   const nesteggInsights = React.useMemo(() => {
-    if (!monteCarlo || !conservativeMcForInsights) return [];
-    return buildNesteggInsights(inputs, result, monteCarlo, {
-      conservativeMcSuccessRate: conservativeMcForInsights.successRate,
+    if (!fullMc || !fullConservativeMc) return [];
+    return buildNesteggInsights(inputs, result, fullMc, {
+      conservativeMcSuccessRate: fullConservativeMc.successRate,
     });
-  }, [inputs, result, monteCarlo, conservativeMcForInsights]);
+  }, [inputs, result, fullMc, fullConservativeMc]);
 
   const heroHighlights = React.useMemo(() => {
-    if (!monteCarlo) return [];
+    if (!lightMc) return [];
     const lines: string[] = [];
     lines.push(
-      `Across ${monteCarlo.paths.toLocaleString()} test runs, things look on track about ${Math.round(
-        monteCarlo.successRate * 100
+      `Quick check (~${lightMc.paths} runs): on track about ${Math.round(
+        lightMc.successRate * 100
       )}% of the time.`
     );
-    if (monteCarlo.worstCaseDepletionAge !== null && monteCarlo.chanceRunOut > 0.05) {
+    if (lightMc.worstCaseDepletionAge !== null && lightMc.chanceRunOut > 0.05) {
       lines.push(
-        `In tougher outcomes, money may run low around age ${Math.ceil(monteCarlo.worstCaseDepletionAge)}.`
+        `In tougher outcomes, money may run low around age ${Math.ceil(lightMc.worstCaseDepletionAge)}.`
       );
     }
     if (result.suggestedExtraMonthly && result.suggestedExtraMonthly > 0) {
@@ -312,14 +376,15 @@ export default function NesteggPage() {
       );
     }
     return lines.slice(0, 3);
-  }, [monteCarlo, result.suggestedExtraMonthly]);
+  }, [lightMc, result.suggestedExtraMonthly]);
 
   const compareData = React.useMemo(() => {
+    if (!compareOverlay) return [];
     const b = runProjection(applyScenarioToInputs(inputs, "base"));
     const c = runProjection(applyScenarioToInputs(inputs, "conservative"));
     const a = runProjection(applyScenarioToInputs(inputs, "aggressive"));
     return mergeComparisonSeries(b.series, c.series, a.series);
-  }, [inputs]);
+  }, [inputs, compareOverlay]);
 
   const cashflowData = React.useMemo(
     () => buildRetirementCashflowYears(scenarioInputs, 15),
@@ -503,6 +568,9 @@ export default function NesteggPage() {
     return "Market presets, volatility, and the numbers that drive the chart above.";
   }, [activeSavedScenario, activePlanIsOnCloud]);
 
+  /* ── Best available MC for export / saved-compare (prefer full, fall back to light) ── */
+  const bestAvailableMc = fullMcStale ? lightMc : (fullMc ?? lightMc);
+
   return (
     <div className="space-y-6 pb-10">
       <NesteggWalkthrough replayKey={tourReplay} />
@@ -553,7 +621,7 @@ export default function NesteggPage() {
             inputs={inputs}
             marketScenario={scenario}
             deterministic={result}
-            monteCarlo={monteCarlo}
+            monteCarlo={bestAvailableMc}
             onResetDefaults={() => {
               const wasOnCloud =
                 activeSavedScenario !== null &&
@@ -631,7 +699,7 @@ export default function NesteggPage() {
               retirementAge={inputs.retirementAge}
               depletionAge={result.depletionAge}
               lifeExpectancy={horizonAge}
-              monteCarloBands={compareOverlay || !monteCarlo ? null : monteCarlo.bandSeries}
+              monteCarloBands={compareOverlay || !lightMc ? null : lightMc.bandSeries}
             />
           </div>
           <div className="xl:col-span-1 min-h-[260px] min-w-0">
@@ -639,6 +707,7 @@ export default function NesteggPage() {
           </div>
         </div>
 
+        {/* ── Plan Inputs (collapsible) ── */}
         <NesteggCollapsibleBlock
           ref={planInputsSectionRef}
           className="scroll-mt-24"
@@ -734,6 +803,8 @@ export default function NesteggPage() {
           </div>
         </NesteggCollapsibleBlock>
 
+        {/* ── Live sections (powered by deterministic + light MC) ── */}
+
         <div className="space-y-3">
           <NesteggCollapsibleBlock
             title="Plan snapshot"
@@ -749,17 +820,17 @@ export default function NesteggPage() {
           </NesteggCollapsibleBlock>
           <NesteggCollapsibleBlock
             title="Headline results"
-            description="Simulation odds — chance of success, risk of running out, and more."
+            description="Quick simulation odds — updates live as you edit (~200 paths, approximate)."
             defaultOpen={false}
           >
             <NesteggProbabilityCards
               tier="primary"
               hideSectionLabel
-              mc={monteCarlo}
+              mc={lightMc}
               deterministic={result}
               lifeExpectancy={horizonAge}
-              isRefreshing={mcRunning && monteCarlo !== null}
-              progress={mcProgress}
+              isRefreshing={lightMcRunning && lightMc !== null}
+              progress={0}
             />
           </NesteggCollapsibleBlock>
           <NesteggCollapsibleBlock
@@ -772,11 +843,82 @@ export default function NesteggPage() {
         </div>
 
         <NesteggCollapsibleBlock
-          title="Compare market presets"
-          description="Same plan, three stress levels — see how success odds and balances shift."
+          title="Try a different plan"
+          description="One-tap ideas to test — save a variant from Saved scenarios if you like it."
           defaultOpen={false}
         >
-          <NesteggComparisonTable rows={compareRows} loading={mcRunning} hideHeader />
+          <NesteggQuickWhatIf inputs={inputs} onPatch={onPatch} hideHeader />
+        </NesteggCollapsibleBlock>
+
+        {/* ── Full analysis trigger ── */}
+
+        <div className="rounded-xl border border-[#39ff14]/20 bg-gradient-to-br from-[#39ff14]/5 via-transparent to-[#00fff5]/5 p-5 space-y-3">
+          <div className="flex flex-col items-center text-center gap-3 sm:flex-row sm:text-left">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#39ff14]/12 ring-1 ring-[#39ff14]/20">
+              <FlaskConical className="h-5 w-5 text-[#39ff14]" aria-hidden />
+            </div>
+            <div className="min-w-0 flex-1 space-y-0.5">
+              <p className="text-sm font-semibold uppercase tracking-wider text-[#39ff14]">
+                Full analysis
+              </p>
+              <p className="text-[11px] text-muted-foreground leading-snug">
+                Run {FULL_MC_PATHS.toLocaleString()}+ simulation paths for precise success rates,
+                three-scenario comparison, and detailed insights.
+              </p>
+              {fullMcStale ? (
+                <p className="text-[10px] text-amber-400/90">
+                  Inputs changed since last run — re-run for updated results
+                </p>
+              ) : null}
+            </div>
+            <Button
+              type="button"
+              onClick={runFullAnalysis}
+              disabled={fullMcRunning}
+              className="shrink-0 border border-[#39ff14]/30 bg-[#39ff14]/10 text-[#39ff14] hover:bg-[#39ff14]/20 hover:text-[#39ff14] h-10 px-5"
+            >
+              <FlaskConical className="mr-2 h-4 w-4" aria-hidden />
+              {fullMcRunning ? "Running…" : fullMc ? "Re-run analysis" : "Run full analysis"}
+            </Button>
+          </div>
+          {fullMcRunning ? (
+            <div
+              className="h-1 w-full overflow-hidden rounded-full bg-[#39ff14]/10"
+              role="progressbar"
+              aria-valuenow={Math.round(fullMcProgress * 100)}
+              aria-valuemin={0}
+              aria-valuemax={100}
+            >
+              <div
+                className="h-full bg-gradient-to-r from-[#39ff14]/50 to-[#00fff5]/50 transition-[width] duration-150 ease-out"
+                style={{ width: `${Math.max(4, fullMcProgress * 100)}%` }}
+              />
+            </div>
+          ) : null}
+        </div>
+
+        {/* ── Full-analysis sections (populated after user runs full MC) ── */}
+
+        <NesteggCollapsibleBlock
+          title="Compare market presets"
+          description={
+            fullMc
+              ? "Same plan, three stress levels — see how success odds and balances shift."
+              : "Run a full analysis above to compare scenarios with Monte Carlo."
+          }
+          defaultOpen={false}
+        >
+          {fullMc ? (
+            <NesteggComparisonTable
+              rows={fullCompareRows}
+              loading={fullMcRunning && fullCompareRows.length === 0}
+              hideHeader
+            />
+          ) : (
+            <p className="text-xs text-muted-foreground text-center py-4">
+              Run a full analysis to populate this comparison.
+            </p>
+          )}
         </NesteggCollapsibleBlock>
 
         {user && cloudScenarios.length > 0 ? (
@@ -790,30 +932,30 @@ export default function NesteggPage() {
               workspaceInputs={inputs}
               workspaceMarketScenario={scenario}
               activeSavedId={activeSavedScenario?.id ?? null}
-              workspaceMonteCarlo={monteCarlo}
+              workspaceMonteCarlo={bestAvailableMc}
               hideHeader
             />
           </NesteggCollapsibleBlock>
         ) : null}
 
-        <NesteggCollapsibleBlock
-          title="Try a different plan"
-          description="One-tap ideas to test — save a variant from Saved scenarios if you like it."
-          defaultOpen={false}
-        >
-          <NesteggQuickWhatIf inputs={inputs} onPatch={onPatch} hideHeader />
-        </NesteggCollapsibleBlock>
-
         <NesteggExpandedMetricsSection>
-          <NesteggProbabilityCards
-            tier="secondary"
-            mc={monteCarlo}
-            deterministic={result}
-            lifeExpectancy={horizonAge}
-            isRefreshing={false}
-            progress={mcProgress}
-          />
-          <NesteggSummaryCards tier="secondary" result={result} lifeExpectancy={horizonAge} />
+          {fullMc ? (
+            <>
+              <NesteggProbabilityCards
+                tier="secondary"
+                mc={fullMc}
+                deterministic={result}
+                lifeExpectancy={horizonAge}
+                isRefreshing={false}
+                progress={0}
+              />
+              <NesteggSummaryCards tier="secondary" result={result} lifeExpectancy={horizonAge} />
+            </>
+          ) : (
+            <p className="text-xs text-muted-foreground text-center py-4">
+              Run a full analysis to see detailed simulation metrics.
+            </p>
+          )}
         </NesteggExpandedMetricsSection>
 
         <NesteggInsightsPanel insights={nesteggInsights} />

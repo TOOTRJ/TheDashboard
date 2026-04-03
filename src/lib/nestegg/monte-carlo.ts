@@ -503,3 +503,35 @@ export function runMonteCarloScenarioComparison(
     };
   });
 }
+
+/**
+ * Async/batched version of `runMonteCarloScenarioComparison`.
+ * Yields between scenarios so the UI stays responsive.
+ */
+export async function runMonteCarloScenarioComparisonBatched(
+  inputs: NesteggInputs,
+  labels: Record<NesteggScenarioId, string>,
+  options?: { pathsPerScenario?: number }
+): Promise<ScenarioMonteCompareRow[]> {
+  const ids: NesteggScenarioId[] = ["base", "conservative", "aggressive"];
+  const pathsEach = clamp(options?.pathsPerScenario ?? COMPARE_PATHS, 100, MAX_PATHS);
+  const rows: ScenarioMonteCompareRow[] = [];
+
+  for (const scenarioId of ids) {
+    const adjusted = applyScenarioToInputs(inputs, scenarioId);
+    const mc = await runMonteCarloBatched(adjusted, scenarioId, {
+      paths: pathsEach,
+      chunkSize: Math.ceil(pathsEach / 3),
+    });
+    rows.push({
+      scenarioId,
+      label: labels[scenarioId] ?? scenarioId,
+      successRate: mc.successRate,
+      medianNestEggAtRetirement: mc.medianNestEggAtRetirement,
+      medianEndingBalance: mc.medianEndingBalance,
+      medianDepletionAge: mc.medianDepletionAgeAmongFailures,
+    });
+  }
+
+  return rows;
+}
