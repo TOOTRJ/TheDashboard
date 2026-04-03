@@ -35,7 +35,6 @@ import { NesteggWalkthrough } from "@/components/nestegg/NesteggWalkthrough";
 import { NesteggSavedCompare } from "@/components/nestegg/NesteggSavedCompare";
 import { NesteggMonteCarloSettings } from "@/components/nestegg/NesteggMonteCarloSettings";
 import { NesteggExportMenu } from "@/components/nestegg/NesteggExportMenu";
-import { NesteggOrientationStrip } from "@/components/nestegg/NesteggOrientationStrip";
 import { NesteggExpandedMetricsSection } from "@/components/nestegg/NesteggExpandedMetricsSection";
 import { NesteggPortfolioHighlightCard } from "@/components/nestegg/NesteggPortfolioHighlightCard";
 import { NesteggCollapsibleBlock } from "@/components/nestegg/NesteggCollapsibleBlock";
@@ -547,44 +546,9 @@ export default function NesteggPage() {
                 ? " Saved plans sync to your account; a recent visit loads your latest saved plan."
                 : " Sign in to save named plans; this device still remembers your in-progress edits."}
             </p>
-            {user && cloudScenarios.length > 0 ? (
-              <div className="flex flex-col gap-1.5 pt-1 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2">
-                <Label
-                  htmlFor="saved-plan-select"
-                  className="text-[10px] uppercase tracking-wider text-muted-foreground shrink-0"
-                >
-                  Load a saved plan
-                </Label>
-                <Select value={savedPlanSelectValue} onValueChange={onSavedPlanSelect}>
-                  <SelectTrigger
-                    id="saved-plan-select"
-                    className="h-9 w-full min-w-[200px] max-w-sm border-[#ff00ff]/25 bg-[#ff00ff]/5 text-xs focus:border-[#ff00ff]/45 sm:w-[min(100%,280px)]"
-                  >
-                    <SelectValue placeholder="Choose a saved plan" />
-                  </SelectTrigger>
-                  <SelectContent className="border-[#ff00ff]/20 bg-card/95 backdrop-blur-xl">
-                    <SelectItem value={SELECT_DEFAULTS} className="text-xs">
-                      App defaults (reset)
-                    </SelectItem>
-                    {savedPlanSelectValue === SELECT_CUSTOM ? (
-                      <SelectItem value={SELECT_CUSTOM} className="text-xs" disabled>
-                        {activeSavedScenario
-                          ? `${activeSavedScenario.name} (refresh list if missing)`
-                          : "Custom workspace (save a scenario to keep)"}
-                      </SelectItem>
-                    ) : null}
-                    {cloudScenarios.map((s) => (
-                      <SelectItem key={s.id} value={s.id} className="text-xs">
-                        {s.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            ) : null}
           </div>
         </div>
-        <div className="flex flex-wrap gap-2 justify-end sm:justify-start">
+        <div className="flex flex-wrap items-center gap-2 justify-end sm:justify-start">
           <NesteggExportMenu
             inputs={inputs}
             marketScenario={scenario}
@@ -605,6 +569,40 @@ export default function NesteggPage() {
             }}
           />
           <NesteggGuideSheet onReplayTour={() => setTourReplay((k) => k + 1)} />
+          {user && cloudScenarios.length > 0 ? (
+            <Select value={savedPlanSelectValue} onValueChange={onSavedPlanSelect}>
+              <SelectTrigger
+                id="saved-plan-select"
+                aria-label="Select plan"
+                className="h-9 min-w-[min(100vw-10rem,220px)] max-w-[min(100vw-2rem,300px)] border-[#ff00ff]/25 bg-[#ff00ff]/5 text-xs focus:border-[#ff00ff]/45"
+              >
+                <span className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden">
+                  <span className="shrink-0 text-muted-foreground">Plan:</span>
+                  <SelectValue
+                    placeholder="Choose a saved plan"
+                    className="min-w-0 flex-1 truncate text-left"
+                  />
+                </span>
+              </SelectTrigger>
+              <SelectContent className="border-[#ff00ff]/20 bg-card/95 backdrop-blur-xl">
+                <SelectItem value={SELECT_DEFAULTS} className="text-xs">
+                  App defaults (reset)
+                </SelectItem>
+                {savedPlanSelectValue === SELECT_CUSTOM ? (
+                  <SelectItem value={SELECT_CUSTOM} className="text-xs" disabled>
+                    {activeSavedScenario
+                      ? `${activeSavedScenario.name} (refresh list if missing)`
+                      : "Custom workspace (save a scenario to keep)"}
+                  </SelectItem>
+                ) : null}
+                {cloudScenarios.map((s) => (
+                  <SelectItem key={s.id} value={s.id} className="text-xs">
+                    {s.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : null}
           <Button
             type="button"
             variant="outline"
@@ -616,8 +614,6 @@ export default function NesteggPage() {
           </Button>
         </div>
       </div>
-
-      <NesteggOrientationStrip />
 
       <div className="space-y-5 lg:space-y-6">
         <NesteggPortfolioHighlightCard

@@ -53,6 +53,10 @@ export const NesteggCollapsibleBlock = React.forwardRef<HTMLDivElement, Props>(
     const isPlanInputs = headerVariant === "planInputs";
     const namedPlanTitle = isPlanInputs && planInputsTitleMode === "named";
 
+    const planInputsNameClass = namedPlanTitle
+      ? "normal-case tracking-tight bg-gradient-to-r from-[#ff99ff] via-[#ff00ff] to-[#00fff5] bg-clip-text text-transparent drop-shadow-[0_0_12px_rgba(255,0,255,0.35)] max-w-[85vw] sm:max-w-lg truncate"
+      : "uppercase tracking-wider bg-gradient-to-r from-[#ff99ff] via-[#ff00ff] to-[#00fff5] bg-clip-text text-transparent drop-shadow-[0_0_12px_rgba(255,0,255,0.35)] max-w-[85vw] sm:max-w-md truncate";
+
     return (
     <div
       ref={ref}
@@ -81,14 +85,21 @@ export const NesteggCollapsibleBlock = React.forwardRef<HTMLDivElement, Props>(
             className={cn(
               "text-sm font-semibold",
               isPlanInputs
-                ? namedPlanTitle
-                  ? "normal-case tracking-tight bg-gradient-to-r from-[#ff99ff] via-[#ff00ff] to-[#00fff5] bg-clip-text text-transparent drop-shadow-[0_0_12px_rgba(255,0,255,0.35)] max-w-[85vw] sm:max-w-lg truncate"
-                  : "uppercase tracking-wider bg-gradient-to-r from-[#ff99ff] via-[#ff00ff] to-[#00fff5] bg-clip-text text-transparent drop-shadow-[0_0_12px_rgba(255,0,255,0.35)] max-w-[85vw] sm:max-w-md truncate"
+                ? "flex min-w-0 flex-wrap items-baseline gap-x-1 gap-y-0.5"
                 : "uppercase tracking-wider text-[#00fff5]"
             )}
-            title={title}
+            title={isPlanInputs ? `Plan Inputs: ${title}` : title}
           >
-            {title}
+            {isPlanInputs ? (
+              <>
+                <span className="shrink-0 text-muted-foreground/90 font-medium normal-case tracking-normal">
+                  Plan Inputs:
+                </span>
+                <span className={cn("min-w-0", planInputsNameClass)}>{title}</span>
+              </>
+            ) : (
+              title
+            )}
           </p>
           {description ? (
             <p

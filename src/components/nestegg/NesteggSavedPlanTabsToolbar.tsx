@@ -1,11 +1,19 @@
 "use client";
 
 import * as React from "react";
-import { Bookmark, Copy, Loader2, Pencil, Save, Trash2, Upload } from "lucide-react";
+import { Bookmark, Copy, Loader2, Pencil, Save, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { NesteggInputs, NesteggScenarioId, SavedNesteggScenario } from "@/lib/nestegg/types";
@@ -56,6 +64,7 @@ export function NesteggSavedPlanTabsToolbar({
   const [saveNewOpen, setSaveNewOpen] = React.useState(false);
   const [editingId, setEditingId] = React.useState<string | null>(null);
   const [editName, setEditName] = React.useState("");
+  const [deleteTarget, setDeleteTarget] = React.useState<SavedNesteggScenario | null>(null);
 
   const activeRow = React.useMemo(
     () => cloudScenarios.find((s) => s.id === activeSavedScenarioId) ?? null,
@@ -99,6 +108,7 @@ export function NesteggSavedPlanTabsToolbar({
     if (ok) {
       await onCloudScenarioDeleted(id);
       toast.message("Scenario removed");
+      setDeleteTarget(null);
     } else {
       toast.error("Delete failed");
     }
@@ -144,32 +154,58 @@ export function NesteggSavedPlanTabsToolbar({
             {cloudScenarios.map((s) => {
               const selected = activeSavedScenarioId === s.id;
               return (
-                <button
+                <div
                   key={s.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={selected}
-                  onClick={() => {
-                    onLoadScenario(s);
-                    toast.success("Loaded", { description: s.name });
-                  }}
                   className={cn(
-                    "relative shrink-0 rounded-t-lg border border-b-0 px-3 py-2 text-left text-xs font-medium transition-colors max-w-[min(100vw-2rem,220px)]",
+                    "relative flex shrink-0 items-stretch rounded-t-lg border border-b-0 max-w-[min(100vw-2rem,260px)] overflow-hidden",
                     selected
-                      ? "z-[1] border-[#ff00ff]/45 bg-[#ff00ff]/12 text-[#ff99ff] shadow-[0_-4px_16px_-4px_rgba(255,0,255,0.25)]"
-                      : "border-transparent bg-card/30 text-muted-foreground hover:bg-card/50 hover:text-foreground"
+                      ? "z-[1] border-[#ff00ff]/45 bg-[#ff00ff]/12 shadow-[0_-4px_16px_-4px_rgba(255,0,255,0.25)]"
+                      : "border-transparent bg-card/30"
                   )}
                 >
-                  <span className="block truncate" title={s.name}>
-                    {s.name}
-                  </span>
-                  <span className="mt-0.5 block truncate text-[10px] font-normal text-muted-foreground">
-                    {new Date(s.updatedAt).toLocaleDateString(undefined, {
-                      month: "short",
-                      day: "numeric",
-                    })}
-                  </span>
-                </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={selected}
+                    onClick={() => {
+                      onLoadScenario(s);
+                      toast.success("Loaded", { description: s.name });
+                    }}
+                    className={cn(
+                      "min-w-0 flex-1 px-3 py-2 text-left text-xs font-medium transition-colors",
+                      selected
+                        ? "text-[#ff99ff]"
+                        : "text-muted-foreground hover:bg-card/50 hover:text-foreground"
+                    )}
+                  >
+                    <span className="block truncate" title={s.name}>
+                      {s.name}
+                    </span>
+                    <span className="mt-0.5 block truncate text-[10px] font-normal text-muted-foreground">
+                      {new Date(s.updatedAt).toLocaleDateString(undefined, {
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    aria-label={`Delete ${s.name}`}
+                    className={cn(
+                      "flex shrink-0 items-center justify-center px-2 border-l transition-colors",
+                      selected
+                        ? "border-[#ff00ff]/30 bg-black/15 hover:bg-[#ff3366]/20 hover:text-[#ff3366] text-muted-foreground"
+                        : "border-[#00fff5]/10 bg-black/10 hover:bg-[#ff3366]/15 hover:text-[#ff3366] text-muted-foreground"
+                    )}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setDeleteTarget(s);
+                    }}
+                  >
+                    <X className="h-3.5 w-3.5 opacity-90" aria-hidden />
+                  </button>
+                </div>
               );
             })}
           </div>
@@ -355,9 +391,9 @@ export function NesteggSavedPlanTabsToolbar({
               variant="ghost"
               className="h-9 w-9 text-muted-foreground hover:text-[#ff3366]"
               aria-label={`Delete ${activeRow.name}`}
-              onClick={() => void handleDelete(activeRow.id)}
+              onClick={() => setDeleteTarget(activeRow)}
             >
-              <Trash2 className="h-4 w-4" aria-hidden />
+              <X className="h-4 w-4" aria-hidden />
             </Button>
           </div>
         ) : null}
@@ -418,6 +454,32 @@ export function NesteggSavedPlanTabsToolbar({
           </div>
         ) : null}
       </div>
+
+      <Dialog open={deleteTarget !== null} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <DialogContent className="border-[#ff00ff]/25 bg-card/95 backdrop-blur-xl sm:max-w-md" showCloseButton>
+          <DialogHeader>
+            <DialogTitle>Delete saved plan?</DialogTitle>
+            <DialogDescription>
+              {deleteTarget
+                ? `This removes "${deleteTarget.name}" from your account. You can't undo this.`
+                : null}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button type="button" variant="outline" onClick={() => setDeleteTarget(null)}>
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              className="bg-[#b91c1c] hover:bg-[#991b1b]"
+              onClick={() => deleteTarget && void handleDelete(deleteTarget.id)}
+            >
+              Delete plan
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
