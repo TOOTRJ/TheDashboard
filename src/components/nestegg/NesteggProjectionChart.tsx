@@ -2,9 +2,9 @@
 
 import {
   CartesianGrid,
+  ComposedChart,
   Legend,
   Line,
-  LineChart,
   ReferenceLine,
   ResponsiveContainer,
   Tooltip,
@@ -14,6 +14,7 @@ import {
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/formatters";
+import type { MonteCarloBandPoint } from "@/lib/nestegg/monte-carlo";
 import type { ProjectionPoint } from "@/lib/nestegg/types";
 import { LineChart as LineChartIcon } from "lucide-react";
 
@@ -39,16 +40,20 @@ type Props = {
   retirementAge: number;
   depletionAge: number | null;
   lifeExpectancy: number;
+  /** When set and not in compare mode, show median path + percentile rails. */
+  monteCarloBands?: MonteCarloBandPoint[] | null;
 };
 
 function ChartTooltip({
   active,
   payload,
   compareMode,
+  bandMode,
 }: {
   active?: boolean;
   payload?: Array<{ payload: Record<string, number> }>;
   compareMode: boolean;
+  bandMode: boolean;
 }) {
   if (!active || !payload?.length) return null;
   const row = payload[0].payload;
@@ -70,6 +75,12 @@ function ChartTooltip({
             Aggressive: {formatCurrency(row.aggressive)}
           </li>
         </ul>
+      ) : bandMode ? (
+        <ul className="space-y-0.5 font-mono text-[11px] text-muted-foreground">
+          <li className="text-[#39ff14]">Median: {formatCurrency(row.p50)}</li>
+          <li>90th pct: {formatCurrency(row.p90)}</li>
+          <li>10th pct: {formatCurrency(row.p10)}</li>
+        </ul>
       ) : (
         <p className="font-mono text-foreground">
           {formatCurrency(row.balance as number)}
@@ -86,10 +97,15 @@ export function NesteggProjectionChart({
   retirementAge,
   depletionAge,
   lifeExpectancy,
+  monteCarloBands,
 }: Props) {
+  const bandMode = Boolean(!compareMode && monteCarloBands && monteCarloBands.length > 0);
+
   const data = compareMode
     ? compareData
-    : singleSeries.map((p) => ({ age: p.age, balance: p.balance }));
+    : bandMode
+      ? monteCarloBands!
+      : singleSeries.map((p) => ({ age: p.age, balance: p.balance }));
 
   const depletionX =
     depletionAge !== null && depletionAge <= lifeExpectancy
@@ -108,14 +124,16 @@ export function NesteggProjectionChart({
               Net worth over time
             </h3>
             <p className="text-[11px] text-muted-foreground">
-              Accumulation, retirement start, and drawdown through your horizon
+              {bandMode
+                ? "Median path with 10th–90th percentile rails (Monte Carlo)"
+                : "Accumulation, retirement start, and drawdown through your horizon"}
             </p>
           </div>
         </div>
       </CardHeader>
       <CardContent className="h-[320px] sm:h-[380px]">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data}>
+          <ComposedChart data={data}>
             <defs>
               <linearGradient id="nesteggLine" x1="0" y1="0" x2="1" y2="0">
                 <stop offset="0%" stopColor={NEON.cyan} stopOpacity={0.5} />
@@ -159,6 +177,7 @@ export function NesteggProjectionChart({
                   active={props.active}
                   payload={props.payload as Array<{ payload: Record<string, number> }>}
                   compareMode={compareMode}
+                  bandMode={bandMode}
                 />
               )}
             />
@@ -200,6 +219,46 @@ export function NesteggProjectionChart({
                   style={{ filter: `drop-shadow(0 0 6px ${NEON.pink})` }}
                 />
               </>
+            ) : bandMode ? (
+              <>
+                <Legend
+                  wrapperStyle={{ fontSize: 11 }}
+                  formatter={(value) => (
+                    <span className="text-muted-foreground uppercase tracking-wider">
+                      {value}
+                    </span>
+                  )}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="p90"
+                  name="90th pct"
+                  stroke={NEON.cyan}
+                  strokeWidth={1}
+                  strokeOpacity={0.45}
+                  dot={false}
+                  strokeDasharray="4 4"
+                />
+                <Line
+                  type="monotone"
+                  dataKey="p50"
+                  name="Median path"
+                  stroke={NEON.green}
+                  strokeWidth={2.5}
+                  dot={false}
+                  style={{ filter: `drop-shadow(0 0 8px ${NEON.green})` }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="p10"
+                  name="10th pct"
+                  stroke={NEON.pink}
+                  strokeWidth={1}
+                  strokeOpacity={0.45}
+                  dot={false}
+                  strokeDasharray="4 4"
+                />
+              </>
             ) : (
               <Line
                 type="monotone"
@@ -235,7 +294,7 @@ export function NesteggProjectionChart({
                 }}
               />
             ) : null}
-          </LineChart>
+          </ComposedChart>
         </ResponsiveContainer>
       </CardContent>
     </Card>

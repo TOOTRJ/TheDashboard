@@ -1,6 +1,6 @@
 # Nestegg — Retirement calculator
 
-Nestegg is a **retirement planning and scenario modeling** page inside The Dashboard. It lives at the **`/nestegg`** route. **Draft state** (inputs, scenario tab, compare toggle) **auto-saves to `localStorage`** and restores on return; **named scenarios** can be saved **locally** or to **Supabase** when signed in (see `supabase/migrations`). This document explains structure and **math** at high and low levels.
+Nestegg is a **retirement planning and scenario modeling** page inside The Dashboard at **`/nestegg`**. It combines a **deterministic** month-by-month projection with **Monte Carlo** paths for probability-style outputs. **Draft state** (inputs, market preset, compare overlay) **auto-saves to `localStorage`**; **named scenarios** persist to **Supabase** when the user is signed in (see `supabase/migrations/20260402120000_nestegg_scenarios.sql`).
 
 ---
 
@@ -9,170 +9,117 @@ Nestegg is a **retirement planning and scenario modeling** page inside The Dashb
 | Area | Location |
 |------|----------|
 | Page (UI, layout, wiring) | `src/app/(dashboard)/nestegg/page.tsx` |
-| Projection engine & insights | `src/lib/nestegg/projections.ts` |
+| Deterministic projection & hero heuristics | `src/lib/nestegg/projections.ts` |
+| Retirement spend/income (incl. survivor phase) | `src/lib/nestegg/retirement-cashflow.ts` |
+| Monte Carlo simulation | `src/lib/nestegg/monte-carlo.ts` (`runMonteCarlo`, `runMonteCarloBatched`) |
+| Rule-based insight bullets | `src/lib/nestegg/insights-engine.ts` |
+| CSV / print report | `src/lib/nestegg/export-report.ts` |
+| Saved vs workspace input diff | `src/lib/nestegg/plan-diff.ts` |
 | RMD divisors (approx.) | `src/lib/nestegg/rmd.ts` |
-| Defaults, `normalizeNesteggInputs` | `src/lib/nestegg/constants.ts` |
-| Local draft + saved scenarios | `src/lib/nestegg/storage.ts` |
-| Supabase CRUD | `src/lib/nestegg/scenarios-supabase.ts` |
-| DB migration (run in Supabase) | `supabase/migrations/20260402120000_nestegg_scenarios.sql` |
+| Defaults, `normalizeNesteggInputs`, market presets | `src/lib/nestegg/constants.ts` |
+| Local draft only | `src/lib/nestegg/storage.ts` (`nestegg-draft-v1`) |
+| Supabase: list, insert, update name, delete | `src/lib/nestegg/scenarios-supabase.ts` |
+| DB migration | `supabase/migrations/20260402120000_nestegg_scenarios.sql` |
 | TypeScript types | `src/lib/nestegg/types.ts` |
-| Nestegg components | `src/components/nestegg/` |
-| Slider (Radix) | `src/components/ui/slider.tsx` |
-| Sidebar / shell title | `src/components/layout/Sidebar.tsx`, `Header.tsx` |
+| UI components | `src/components/nestegg/` |
+| Formatting helpers | `src/lib/formatters.ts` (e.g. `formatCurrency`) |
+| Charts | **Recharts** (`NesteggProjectionChart`, `NesteggSecondaryChart`) |
+| Sidebar / shell | `src/components/layout/Sidebar.tsx`, `Header.tsx` |
 
-The UI calls `runProjection(...)` whenever inputs or scenario change. Charts read the returned **time series**; cards and hero copy read **summary fields** on the same result object.
+The page calls **`runProjection(scenarioInputs)`** for deterministic summaries, hero, readiness, and the default single-line chart. **Compare all scenarios on chart** runs three deterministic projections and **`mergeComparisonSeries`**. **`runMonteCarloBatched`** (chunked, `requestAnimationFrame` between chunks) drives the main probability run on the client; **`runMonteCarlo`** remains for sync use (e.g. smaller batches in comparisons). Probability cards, percentile bands (when not in compare-all mode), preset comparison table, saved-plan compare, and **`buildNesteggInsights`** use Monte Carlo outputs where noted below.
 
 ---
 
 ## High level: what the calculator does
 
-1. **You set assumptions** — current age, retirement age, life expectancy, savings, contributions, expected return, retirement spending, plus optional inflation, salary growth, Social Security, other income, and one-time cash flows at retirement.
-2. **The engine simulates month by month** from **now (current age)** through **life expectancy**, updating a single **portfolio balance**.
-3. **Before retirement**, the balance compounds and you add monthly contributions (which can grow each year with salary growth).
-4. **After retirement**, the balance still compounds, but each month the model subtracts **net spending**: retirement spending minus Social Security and other monthly income, with spending and those incomes stepped up by **inflation** each retirement year.
-5. **Outputs** include: balance over time (chart), balance at retirement, whether money lasts to the end of the plan, approximate age when the balance hits zero (if it does), a simple **readiness score**, and (when relevant) a rough **“save more per month”** hint.
-
-Optional **flat marginal tax** on portfolio draws and a simplified **RMD floor** (Uniform Lifetime divisors) are available; there are **no real tax brackets**, separate account types, fees, or Monte Carlo. The core remains a **deterministic, nominal-dollar** simulation.
+1. **Assumptions** — ages, life expectancy, savings, contributions, return, retirement spending, inflation, salary growth, Social Security, other income, one-time flows, optional tax gross-up on draws, optional RMD floor, household mode, optional **custom MC volatility**, optional **survivor transition** (couple).
+2. **Deterministic core** — month-by-month balance from current age through **`planHorizonAge`** with a **fixed** effective return path (see below).
+3. **Monte Carlo** — many paths with the same cash-flow logic as deterministic, plus **random monthly return noise**; annual volatility from **risk profile** or **custom %** (`monteCarloVolatilityPercent`). Main run is **batched** so the UI stays responsive.
+4. **Market presets (Base / Conservative / Aggressive)** — `applyScenarioToInputs` adjusts return (and conservative inflation) **before** any run; the **scenario tab** is saved with cloud scenarios.
+5. **UI** — hero + probability cards + summary cards, main chart (deterministic line, **or** three-line overlay, **or** median + 10th/90th rails), cash-flow chart, preset comparison table, **saved plan** compare + **input diff** sheet, **Monte Carlo volatility** panel, quick what-if, **Export** (CSV + print/PDF), insights, **How it works** sheet, optional first-run tour.
 
 ---
 
-## High level: the math in plain language
+## Deterministic engine (`projections.ts`)
 
-### Two phases
+Single fixed return path: **nominal** dollars, no explicit fees.
 
-- **Accumulation:** Portfolio earns a **compound return** every month. Each month you also **deposit** a contribution. The contribution amount can **increase once per calendar year** in the model (salary growth), matching “raises” in a simple way.
-- **Decumulation (retirement):** Portfolio still earns the same monthly compound return. Each month you **withdraw the net cost of living**: spending minus recurring income (Social Security + other). Spending and those incomes **grow once per retirement year** at the inflation rate. **One-time** income and expense hit the balance **once**, on the **first month of retirement**.
+### Effective annual return
 
-### Effective return (what actually gets compounded)
+1. **Risk profile:** Conservative **−0.5%**, Moderate **0%**, Aggressive **+0.5%** on the typed annual return, then **clamped** to **0.5%–15%** per year.
+2. **Monthly compounding:** \(r_{\text{month}} = (1 + r)^{1/12} - 1\) (`monthlyRateFromAnnual`).
 
-The annual return you type is adjusted in two ways before it becomes a monthly rate:
+### Market preset (`applyScenarioToInputs`)
 
-1. **Risk profile** (Advanced): Conservative **−0.5%**, Moderate **0%**, Aggressive **+0.5%** to the annual return, then the result is **clamped** between **0.5%** and **15%** per year.
-2. **Scenario tab** (Base / Conservative / Aggressive): Applied **before** the projection runs by changing the **annual return** and (for Conservative only) **inflation** in a copy of your inputs — see `applyScenarioToInputs` in `constants.ts`.
-
-So: **scenario tweaks the inputs → risk profile tweaks return inside `runProjection` → monthly compounding uses the final effective annual return.**
-
-### What “lasts through life expectancy” means
-
-The simulation runs through **`planHorizonAge`**: your **life expectancy**, or in **couple** mode the **maximum** of your and your partner’s life expectancies. If the balance **never goes negative** before the end of that horizon, the plan **lasts**. If it hits zero, the model records the approximate **depletion age** (continuous age: current age + months elapsed / 12). The UI treats “success” as **depletion is null** or **depletion age ≥ plan horizon**.
-
-### Readiness score (app metric, not advice)
-
-The score is a **heuristic** (0–100) that rewards: lasting the full horizon, non-negative **first-year** monthly cash flow (income minus spending, ignoring portfolio), and having projected **nest egg at retirement** in the ballpark of a **25× annual spending** rule of thumb. It penalizes early depletion and very early retirement when the plan fails. Labels map from the score: **Excellent**, **Strong**, **Needs Attention**, **High Risk**.
-
-### “Extra monthly savings” hint
-
-If the plan **does not** last to life expectancy, the code runs a **binary search** on **additional** monthly contribution (0–20,000) added **uniformly** through the working years, re-running the full projection each trial, to find a **minimum** extra amount (rounded to the nearest $25) that makes the plan last. If no amount in range works, the hint is omitted.
-
----
-
-## Low level: implementation details and formulas
-
-### Monthly rate from annual return
-
-Let \(r\) be the **effective** annual return as a decimal (e.g. 7% → 0.07). The **equivalent monthly** compound rate is:
-
-\[
-r_{\text{month}} = (1 + r)^{1/12} - 1
-\]
-
-Implemented as `monthlyRateFromAnnual` in `projections.ts`.
-
-### Time indices
-
-- `planEndAge = planHorizonAge(inputs)` — `max(lifeExpectancy, spouseLifeExpectancy)` in **couple** mode, else `lifeExpectancy`.
-- `totalMonths = (planEndAge - currentAge) × 12` — months simulated (if zero, a single chart point is emitted).
-- `monthsWorking = max(0, (retirementAge - currentAge) × 12)` — months with **your** primary contributions.
-- `spouseWorkMonths = max(0, (spouseRetirementAge - spouseCurrentAge) × 12)` in **couple** mode — months with **partner** contributions (same salary-growth curve).
-- Loop: `monthIdx` runs **1 … totalMonths** (inclusive).
-
-### Order of operations **each month**
-
-For each `monthIdx`:
-
-1. **Grow:** `balance *= (1 + r_month)`.
-2. **Primary still working** (`monthIdx <= monthsWorking`):  
-   `yearIndex = floor((monthIdx - 1) / 12)`.  
-   `balance += monthlyContribution × (1 + salaryGrowth)^yearIndex`
-3. **Partner still working** (**couple** and `monthIdx <= spouseWorkMonths`):  
-   `balance += spouseMonthlyContribution × (1 + salaryGrowth)^yearIndex`
-4. **Retired** (`monthIdx > monthsWorking`) — primary has stopped working for spending purposes:  
-   - On the **first** retired month only: `balance += oneTimeIncome - oneTimeExpense`.  
-   - `yearsRetired = floor((monthIdx - monthsWorking - 1) / 12)`.  
-   - `spend = monthlyRetirementSpending × (1 + inflation)^yearsRetired`  
-   - `income = (socialSecurityMonthly + otherRetirementIncomeMonthly) × (1 + inflation)^yearsRetired`  
-   - If **couple** and `monthIdx > spouseWorkMonths`, add partner SS with its own retired-year index for inflation.  
-   - Let `netFromPortfolio = spend - income`.  
-   - **RMD (optional):** if enabled and `primaryAge >= rmdStartAge`, `rmdMonthly = ((balance × taxDeferredShare) / divisor(floor(primaryAge))) / 12` using `uniformLifetimeDivisor` in `rmd.ts`.  
-   - **Tax (optional, flat marginal):** if `netFromPortfolio > 0` and tax enabled, `draw = netFromPortfolio / (1 - marginalRate)`; else `draw = netFromPortfolio`. Then `draw = max(draw, rmdMonthly)`.  
-   - If `netFromPortfolio <= 0`: `balance -= netFromPortfolio` (surplus), then if RMD &gt; 0 subtract **RMD** as an extra outflow.  
-   - If `netFromPortfolio > 0`: `balance -= draw` as above.
-5. If `balance < 0`, set `balance = 0` and, if not already set, `depletionAge = currentAge + monthIdx / 12`.
-
-**Nest egg at retirement** is the balance **after** processing the **last working month** (`monthIdx === monthsWorking` when `monthsWorking > 0`). If `monthsWorking === 0`, it is taken **after** one-time flows on the first retired month, **before** that month’s recurring net withdrawal (see code paths in `runProjection`).
-
-### Chart sampling
-
-A point is appended to the **series** when `monthIdx` is a multiple of **12** (end of each simulated year) or equals `totalMonths`, so the x-axis is roughly **age at year-end**: `age = currentAge + monthIdx / 12`.
-
-### Monthly gap / surplus (summary card)
-
-This is **not** portfolio-based. It is:
-
-\[
-\text{socialSecurityMonthly} + \text{otherRetirementIncomeMonthly} + \text{(spouse SS if couple)} - \text{monthlyRetirementSpending}
-\]
-
-using **entered** values (first-year, nominal), for a quick “income vs budget” read.
-
-### Scenario adjustments (`constants.ts`)
-
-| Scenario | Effect on inputs |
-|----------|------------------|
+| Preset | Effect |
+|--------|--------|
 | **Base** | No change |
 | **Conservative** | `annualReturnPercent = max(1, annual − 2)`; `inflationPercent = min(8, inflation + 0.5)` |
 | **Aggressive** | `annualReturnPercent = min(12, annual + 2)` |
 
-These adjusted inputs are what get passed into `runProjection` for that scenario’s run.
+### Survivor modeling (couple, optional)
 
-### Compare-all on chart
+When **`enableSurvivorModeling`** is on, after the **earlier** partner reaches their life expectancy (in simulation months), retirement spending scales by **`survivorSpendingRatioPercent`**, and Social Security uses a **simplified survivor benefit** (`max` of the two benefits, plus other income). Implemented in **`retirement-cashflow.ts`** and used by both **`runProjection`** and **`simulatePath`** (Monte Carlo).
 
-Three projections are run (Base, Conservative, Aggressive) with the **same** underlying form inputs; series are **merged by age** in `mergeComparisonSeries` so Recharts can plot three lines.
+### Horizon, chart series, readiness, cash-flow chart
 
-### Secondary “retirement cash flow” bars
+Same as before: **`planHorizonAge`**, year-end series points, readiness / extra-savings hint, **`buildRetirementCashflowYears`** for the side chart. See **`runProjection`** for the full month loop.
 
-`buildRetirementCashflowYears` builds **15** years of **annual** totals for **expenses** and **income** only, using the same inflation growth on spending and income as in the main simulation (year index `y = 0 … 14`). In **couple** mode, **partner Social Security** is included in the income series. It does **not** re-run the balance; it is a **side visualization** of the inflation path of those flows.
+---
+
+## Monte Carlo (`monte-carlo.ts`)
+
+- **Paths:** main UI run uses **~1100** paths (batched). Hard cap **1500**. Preset comparison uses **350** paths per row.
+- **Volatility:** **`effectiveAnnualVolatilityPercent(inputs)`** — uses **`monteCarloVolatilityPercent`** when set (4–45%), else **`ANNUAL_VOLATILITY_BY_RISK`** by risk profile.
+- **RNG:** **mulberry32**, seeded from inputs + scenario.
+- **Batched execution:** **`runMonteCarloBatched`** processes paths in chunks and yields with **`requestAnimationFrame`** so React can paint progress; **`runMonteCarlo`** remains for synchronous use.
+- **Success / bands:** same meaning as before (success through horizon; p10–p90 bands aligned to deterministic series ages).
 
 ---
 
 ## Persistence & saved scenarios
 
-- **Draft:** On change (debounced), `saveNesteggDraft` writes inputs, market scenario tab, and compare overlay to `localStorage` under `nestegg-draft-v1`. On load, `loadNesteggDraft` restores if present.
-- **Named scenarios (local):** Stored in `nestegg-saved-scenarios-v1` as JSON; managed from **Saved scenarios** on the Nestegg page.
-- **Named scenarios (cloud):** If the user is signed in and the `nestegg_scenarios` table exists with RLS, rows are saved per `user_id`. Apply the SQL in `supabase/migrations/20260402120000_nestegg_scenarios.sql` in the Supabase SQL editor or CLI.
+- **Draft:** **`nestegg-draft-v1`** — inputs, `marketScenario`, `compareOverlay`.
+- **Cloud:** `nestegg_scenarios` — insert, delete, rename, duplicate; RLS per user.
 
 ---
 
-## What the model does **not** do
+## Export
 
-- No **progressive tax brackets** (only a **flat marginal** gross-up on draws); no IRAs vs taxable vs Roth modeling or capital gains.
-- **RMD** uses a **single** tax-deferred share of the **whole** balance and approximate divisors — not per-account rules.
-- No variability of returns (single fixed return path).
-- No fees explicitly modeled.
-- Couple mode is a **simplified** two-earner / two-SS model (no separate filing status, no survivor logic).
-- **Suggested extra savings** only increases the **primary** monthly contribution; it is a rough binary search, not financial planning software.
+- **`buildNesteggScenarioCsv` / `downloadNesteggCsv`** — assumptions + deterministic + optional MC summary.
+- **`openNesteggPrintReport`** — opens a **new tab** with print-friendly HTML; user uses **Print → Save as PDF** in the browser.
 
 ---
 
-## Further improvements
+## In-app help
 
-- **Progressive tax brackets** (federal/state) and withholding-aware draws.
-- **Per-account** buckets (401k / Roth / taxable) and proportional drawdown.
-- **Monte Carlo** or historical return sequences.
-- **Spouse** survivor expenses and filing-status changes.
+- **`nestegg-onboarding-v1` (localStorage)** — welcome tour.
+- **`NesteggGuideSheet`** — full guide; replay tour.
+
+---
+
+## App shell / hydration note
+
+If you see a **hydration mismatch** in dev tools on **`<body>`** with attributes like **`data-gr-ext-installed`** or **`data-new-gr-c-s-check-loaded`**, that is usually a **browser extension** (e.g. Grammarly) mutating the DOM before React hydrates — not Nestegg or Monte Carlo. The root **`layout.tsx`** sets **`suppressHydrationWarning`** on **`<body>`** (and **`html`**) so those extension-injected attributes do not trigger spurious warnings.
+
+---
+
+## What the model still does **not** do
+
+- No progressive tax brackets; no per-account buckets.
+- **Monte Carlo** is a simplified volatility model, not a full institutional simulator.
+- Couple / survivor logic is **educational**, not filing-status or SSA-rule complete.
+
+---
+
+## Possible next steps
+
+- Optional **Web Worker** for Monte Carlo (off main thread entirely).
+- Deeper tax and account-type modeling.
+- Automated tests on `runProjection` / `runMonteCarlo` invariants.
 
 ---
 
 ## Disclaimer
 
-Nestegg is for **educational planning** inside the app. It is **not** financial, legal, or tax advice. Real outcomes depend on markets, policy, health, and behavior that this toy model cannot capture.
+Nestegg is for **educational planning** inside the app. It is **not** financial, legal, or tax advice.

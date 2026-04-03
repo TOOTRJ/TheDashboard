@@ -23,6 +23,13 @@ export function NesteggScenarioSelector({ value, onChange, className }: Props) {
           <TabsTrigger
             key={id}
             value={id}
+            title={
+              id === "base"
+                ? "Uses your entered return and inflation as-is."
+                : id === "conservative"
+                  ? "Lower returns and slightly higher inflation stress-test."
+                  : "Higher returns; use alongside conservative for range."
+            }
             className="text-xs uppercase tracking-wider data-[state=active]:bg-[#00fff5]/10 data-[state=active]:text-[#00fff5] py-2"
           >
             {SCENARIO_LABELS[id]}

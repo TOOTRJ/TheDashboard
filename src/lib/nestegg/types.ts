@@ -31,6 +31,15 @@ export type NesteggInputs = {
   rmdStartAge: number;
   /** 0–100: portion of balance treated as tax-deferred for RMD divisor math */
   taxDeferredSharePercent: number;
+  /**
+   * Annual return volatility (%) for Monte Carlo noise.
+   * `null` = use risk-profile default (see `ANNUAL_VOLATILITY_BY_RISK`).
+   */
+  monteCarloVolatilityPercent: number | null;
+  /** Couple only: after first death, scale retirement spending by this % of household level. */
+  enableSurvivorModeling: boolean;
+  /** 35–100: % of household retirement spending for survivor-only phase */
+  survivorSpendingRatioPercent: number;
 };
 
 export type ProjectionPhase = "accumulation" | "retirement";

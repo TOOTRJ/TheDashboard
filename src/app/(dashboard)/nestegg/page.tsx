@@ -25,13 +25,31 @@ import { NesteggSummaryCards } from "@/components/nestegg/NesteggSummaryCards";
 import { NesteggProjectionChart } from "@/components/nestegg/NesteggProjectionChart";
 import { NesteggSecondaryChart } from "@/components/nestegg/NesteggSecondaryChart";
 import { NesteggScenariosManager } from "@/components/nestegg/NesteggScenariosManager";
+import { NesteggProbabilityCards } from "@/components/nestegg/NesteggProbabilityCards";
+import { NesteggComparisonTable } from "@/components/nestegg/NesteggComparisonTable";
+import { NesteggQuickWhatIf } from "@/components/nestegg/NesteggQuickWhatIf";
+import { NesteggInsightsPanel } from "@/components/nestegg/NesteggInsightsPanel";
+import { NesteggGuideSheet } from "@/components/nestegg/NesteggGuideSheet";
+import { NesteggWalkthrough } from "@/components/nestegg/NesteggWalkthrough";
+import { NesteggSavedCompare } from "@/components/nestegg/NesteggSavedCompare";
+import { NesteggMonteCarloSettings } from "@/components/nestegg/NesteggMonteCarloSettings";
+import { NesteggExportMenu } from "@/components/nestegg/NesteggExportMenu";
 import {
   DEFAULT_NESTEGG_INPUTS,
+  SCENARIO_LABELS,
   applyScenarioToInputs,
   isNesteggWorkspaceAppDefaults,
   nesteggInputsEqual,
   normalizeNesteggInputs,
 } from "@/lib/nestegg/constants";
+import { buildNesteggInsights } from "@/lib/nestegg/insights-engine";
+import {
+  runMonteCarlo,
+  runMonteCarloBatched,
+  runMonteCarloScenarioComparison,
+  type ScenarioMonteCompareRow,
+  type MonteCarloResult,
+} from "@/lib/nestegg/monte-carlo";
 import {
   runProjection,
   mergeComparisonSeries,
@@ -45,6 +63,7 @@ import {
   loadNesteggDraft,
   saveNesteggDraft,
 } from "@/lib/nestegg/storage";
+import { formatCurrency } from "@/lib/formatters";
 
 function mergeInputs(prev: NesteggInputs, patch: Partial<NesteggInputs>): NesteggInputs {
   const next = { ...prev, ...patch };
@@ -67,6 +86,13 @@ function mergeInputs(prev: NesteggInputs, patch: Partial<NesteggInputs>): Nesteg
   next.marginalTaxRatePercent = Math.min(50, Math.max(0, next.marginalTaxRatePercent));
   next.rmdStartAge = Math.min(80, Math.max(65, Math.round(next.rmdStartAge)));
   next.taxDeferredSharePercent = Math.min(100, Math.max(0, next.taxDeferredSharePercent));
+  if (next.monteCarloVolatilityPercent !== null && next.monteCarloVolatilityPercent !== undefined) {
+    next.monteCarloVolatilityPercent = Math.min(45, Math.max(4, next.monteCarloVolatilityPercent));
+  }
+  next.survivorSpendingRatioPercent = Math.min(
+    100,
+    Math.max(35, Math.round(next.survivorSpendingRatioPercent))
+  );
   return next;
 }
 
@@ -90,6 +116,7 @@ export default function NesteggPage() {
   const [cloudRefreshing, setCloudRefreshing] = React.useState(false);
   const [activeSavedScenario, setActiveSavedScenario] = React.useState<ActiveSaved | null>(null);
   const [loadedBaseline, setLoadedBaseline] = React.useState<LoadedBaseline | null>(null);
+  const [tourReplay, setTourReplay] = React.useState(0);
 
   const activeSavedRef = React.useRef<ActiveSaved | null>(null);
   React.useEffect(() => {
@@ -198,6 +225,70 @@ export default function NesteggPage() {
     [scenarioInputs]
   );
 
+  const [monteCarlo, setMonteCarlo] = React.useState<MonteCarloResult | null>(null);
+  const [compareRows, setCompareRows] = React.useState<ScenarioMonteCompareRow[]>([]);
+  const [conservativeMcForInsights, setConservativeMcForInsights] =
+    React.useState<MonteCarloResult | null>(null);
+  const [mcProgress, setMcProgress] = React.useState(0);
+  const [mcRunning, setMcRunning] = React.useState(true);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    setMcRunning(true);
+    setMcProgress(0);
+    setCompareRows([]);
+
+    void runMonteCarloBatched(scenarioInputs, scenario, {
+      paths: 1100,
+      chunkSize: 100,
+      onProgress: (f) => {
+        if (!cancelled) setMcProgress(f);
+      },
+    }).then((main) => {
+      if (cancelled) return;
+      setMonteCarlo(main);
+      setCompareRows(runMonteCarloScenarioComparison(inputs, SCENARIO_LABELS));
+      setConservativeMcForInsights(
+        runMonteCarlo(applyScenarioToInputs(inputs, "conservative"), "conservative", {
+          paths: 320,
+        })
+      );
+      setMcRunning(false);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [scenarioInputs, scenario, inputs]);
+
+  const nesteggInsights = React.useMemo(() => {
+    if (!monteCarlo || !conservativeMcForInsights) return [];
+    return buildNesteggInsights(inputs, result, monteCarlo, {
+      conservativeMcSuccessRate: conservativeMcForInsights.successRate,
+    });
+  }, [inputs, result, monteCarlo, conservativeMcForInsights]);
+
+  const heroHighlights = React.useMemo(() => {
+    if (!monteCarlo) return [];
+    const lines: string[] = [];
+    lines.push(
+      `In ${monteCarlo.paths.toLocaleString()} simulations, your plan succeeds about ${Math.round(
+        monteCarlo.successRate * 100
+      )}% of the time.`
+    );
+    if (monteCarlo.worstCaseDepletionAge !== null && monteCarlo.chanceRunOut > 0.05) {
+      lines.push(
+        `In weaker paths, assets may be depleted around age ${Math.ceil(monteCarlo.worstCaseDepletionAge)}.`
+      );
+    }
+    if (result.suggestedExtraMonthly && result.suggestedExtraMonthly > 0) {
+      lines.push(
+        `Saving about ${formatCurrency(result.suggestedExtraMonthly)} more per month could improve your odds.`
+      );
+    }
+    return lines.slice(0, 3);
+  }, [monteCarlo, result.suggestedExtraMonthly]);
+
   const compareData = React.useMemo(() => {
     const b = runProjection(applyScenarioToInputs(inputs, "base"));
     const c = runProjection(applyScenarioToInputs(inputs, "conservative"));
@@ -304,6 +395,7 @@ export default function NesteggPage() {
 
   return (
     <div className="space-y-6 pb-10">
+      <NesteggWalkthrough replayKey={tourReplay} />
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:items-start">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#00fff5]/20 bg-gradient-to-br from-[#00fff5]/20 to-[#ff00ff]/15">
@@ -382,6 +474,13 @@ export default function NesteggPage() {
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
+          <NesteggExportMenu
+            inputs={inputs}
+            marketScenario={scenario}
+            deterministic={result}
+            monteCarlo={monteCarlo}
+          />
+          <NesteggGuideSheet onReplayTour={() => setTourReplay((k) => k + 1)} />
           <Button
             type="button"
             variant="outline"
@@ -409,8 +508,9 @@ export default function NesteggPage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-12 lg:items-start">
-        <div className="space-y-4 lg:col-span-4">
+        <div className="space-y-4 lg:col-span-4 order-2 lg:order-1">
           <NesteggScenarioSelector value={scenario} onChange={setScenario} />
+          <NesteggMonteCarloSettings inputs={inputs} onChange={onPatch} />
           <NesteggControls inputs={inputs} onChange={onPatch} />
           <NesteggAdvancedSettings inputs={inputs} onChange={onPatch} />
           <NesteggFidelitySettings inputs={inputs} onChange={onPatch} />
@@ -432,8 +532,19 @@ export default function NesteggPage() {
           </div>
         </div>
 
-        <div className="space-y-4 lg:col-span-8">
-          <NesteggHeroInsight message={result.heroMessage} tone={result.heroTone} />
+        <div className="space-y-4 lg:col-span-8 order-1 lg:order-2">
+          <NesteggHeroInsight
+            message={result.heroMessage}
+            tone={result.heroTone}
+            highlights={heroHighlights}
+          />
+          <NesteggProbabilityCards
+            mc={monteCarlo}
+            deterministic={result}
+            lifeExpectancy={horizonAge}
+            isRefreshing={mcRunning && monteCarlo !== null}
+            progress={mcProgress}
+          />
           <NesteggSummaryCards result={result} lifeExpectancy={horizonAge} />
           <div className="grid gap-4 xl:grid-cols-3">
             <div className="xl:col-span-2">
@@ -444,12 +555,25 @@ export default function NesteggPage() {
                 retirementAge={inputs.retirementAge}
                 depletionAge={result.depletionAge}
                 lifeExpectancy={horizonAge}
+                monteCarloBands={compareOverlay || !monteCarlo ? null : monteCarlo.bandSeries}
               />
             </div>
             <div className="xl:col-span-1 min-h-[280px]">
               <NesteggSecondaryChart data={cashflowData} />
             </div>
           </div>
+          <NesteggComparisonTable rows={compareRows} loading={mcRunning} />
+          {user && cloudScenarios.length > 0 ? (
+            <NesteggSavedCompare
+              cloudScenarios={cloudScenarios}
+              workspaceInputs={inputs}
+              workspaceMarketScenario={scenario}
+              activeSavedId={activeSavedScenario?.id ?? null}
+              workspaceMonteCarlo={monteCarlo}
+            />
+          ) : null}
+          <NesteggQuickWhatIf inputs={inputs} onPatch={onPatch} />
+          <NesteggInsightsPanel insights={nesteggInsights} />
           <p className="text-[10px] text-muted-foreground leading-relaxed px-1">
             For educational planning purposes only. Not financial advice. Past performance does not
             guarantee future results; returns, inflation, taxes, and health costs are uncertain.

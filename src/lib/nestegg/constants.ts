@@ -26,6 +26,9 @@ export const DEFAULT_NESTEGG_INPUTS: NesteggInputs = {
   enableRmd: false,
   rmdStartAge: 73,
   taxDeferredSharePercent: 100,
+  monteCarloVolatilityPercent: null,
+  enableSurvivorModeling: false,
+  survivorSpendingRatioPercent: 72,
 };
 
 export const SCENARIO_LABELS: Record<NesteggScenarioId, string> = {
@@ -71,6 +74,20 @@ export function normalizeNesteggInputs(raw: unknown): NesteggInputs {
     enableRmd: Boolean(o.enableRmd),
     rmdStartAge: clampNum(Number(o.rmdStartAge), 65, 80, 73),
     taxDeferredSharePercent: clampNum(Number(o.taxDeferredSharePercent), 0, 100, 100),
+    monteCarloVolatilityPercent: (() => {
+      const v = o.monteCarloVolatilityPercent;
+      if (v === null || v === undefined || String(v) === "") return null;
+      const n = Number(v);
+      if (!Number.isFinite(n)) return null;
+      return clampNum(n, 4, 45, 13);
+    })(),
+    enableSurvivorModeling: Boolean(o.enableSurvivorModeling),
+    survivorSpendingRatioPercent: clampNum(
+      Number(o.survivorSpendingRatioPercent),
+      35,
+      100,
+      72
+    ),
   };
 }
 
@@ -107,7 +124,10 @@ export function nesteggInputsEqual(a: NesteggInputs, b: NesteggInputs): boolean 
     a.marginalTaxRatePercent === b.marginalTaxRatePercent &&
     a.enableRmd === b.enableRmd &&
     a.rmdStartAge === b.rmdStartAge &&
-    a.taxDeferredSharePercent === b.taxDeferredSharePercent
+    a.taxDeferredSharePercent === b.taxDeferredSharePercent &&
+    a.monteCarloVolatilityPercent === b.monteCarloVolatilityPercent &&
+    a.enableSurvivorModeling === b.enableSurvivorModeling &&
+    a.survivorSpendingRatioPercent === b.survivorSpendingRatioPercent
   );
 }
 

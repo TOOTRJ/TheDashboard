@@ -6,6 +6,8 @@ import { Sparkles, AlertTriangle, Info } from "lucide-react";
 type Props = {
   message: string;
   tone: "positive" | "caution" | "warning";
+  /** Optional Monte Carlo / probability lines (plain English, concise). */
+  highlights?: string[];
 };
 
 const toneStyles = {
@@ -29,7 +31,7 @@ const toneStyles = {
   },
 };
 
-export function NesteggHeroInsight({ message, tone }: Props) {
+export function NesteggHeroInsight({ message, tone, highlights }: Props) {
   const s = toneStyles[tone];
   const Icon = s.icon;
 
@@ -59,6 +61,18 @@ export function NesteggHeroInsight({ message, tone }: Props) {
           <p className="mt-1 text-sm leading-relaxed text-foreground sm:text-base">
             {message}
           </p>
+          {highlights && highlights.length > 0 ? (
+            <ul className="mt-3 space-y-1.5 border-t border-white/10 pt-3 text-xs text-muted-foreground sm:text-sm">
+              {highlights.map((h, i) => (
+                <li key={i} className="flex gap-2 leading-snug">
+                  <span className="text-[#00fff5]/80" aria-hidden>
+                    ·
+                  </span>
+                  <span>{h}</span>
+                </li>
+              ))}
+            </ul>
+          ) : null}
         </div>
       </div>
     </div>

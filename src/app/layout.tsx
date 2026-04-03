@@ -29,7 +29,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning className="dark">
-      <body className={`${inter.variable} ${orbitron.variable} antialiased`}>
+      <body
+        className={`${inter.variable} ${orbitron.variable} antialiased`}
+        suppressHydrationWarning
+      >
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           <AuthProvider>
             {children}

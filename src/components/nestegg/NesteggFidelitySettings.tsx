@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import {
   Select,
@@ -173,6 +174,48 @@ export function NesteggFidelitySettings({ inputs, onChange }: Props) {
                       }
                       className={inputClass}
                     />
+                  </div>
+                  <div className="sm:col-span-2 rounded-lg border border-[#ff99ff]/20 bg-gradient-to-br from-[#ff99ff]/8 to-transparent p-3 space-y-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <Label
+                          htmlFor="survivor-model"
+                          className="text-xs font-medium text-[#ff99ff]"
+                        >
+                          Survivor transition
+                        </Label>
+                        <p className="text-[10px] text-muted-foreground mt-0.5 leading-snug">
+                          After the first modeled death, spending scales down and Social Security
+                          follows a simplified survivor benefit (larger of the two benefits).
+                        </p>
+                      </div>
+                      <Switch
+                        id="survivor-model"
+                        checked={inputs.enableSurvivorModeling}
+                        onCheckedChange={(v) => onChange({ enableSurvivorModeling: v })}
+                        className="data-[state=checked]:bg-[#ff99ff]"
+                      />
+                    </div>
+                    {inputs.enableSurvivorModeling ? (
+                      <div className="space-y-2 pt-1">
+                        <div className="flex justify-between text-[10px] uppercase tracking-wider text-muted-foreground">
+                          <span>Survivor spending (% of household)</span>
+                          <span className="font-mono text-[#ff99ff] tabular-nums">
+                            {inputs.survivorSpendingRatioPercent}%
+                          </span>
+                        </div>
+                        <Slider
+                          min={35}
+                          max={100}
+                          step={1}
+                          value={[inputs.survivorSpendingRatioPercent]}
+                          onValueChange={([v]) =>
+                            onChange({ survivorSpendingRatioPercent: v })
+                          }
+                          aria-label="Survivor spending as percent of household retirement spending"
+                        />
+                      </div>
+                    ) : null}
                   </div>
                 </>
               ) : null}

@@ -4,6 +4,7 @@ import type {
   ProjectionResult,
   ReadinessLevel,
 } from "./types";
+import { retirementSpendAndIncome } from "./retirement-cashflow";
 import { uniformLifetimeDivisor } from "./rmd";
 
 function monthlyRateFromAnnual(annualPercent: number): number {
@@ -43,7 +44,6 @@ export function runProjection(
     monthlyContribution,
     annualReturnPercent,
     monthlyRetirementSpending,
-    inflationPercent,
     salaryGrowthPercent,
     socialSecurityMonthly,
     otherRetirementIncomeMonthly,
@@ -69,7 +69,6 @@ export function runProjection(
   const effectiveReturn = clamp(annualReturnPercent + riskAdj, 0.5, 15);
 
   const monthlyR = monthlyRateFromAnnual(effectiveReturn);
-  const inflation = inflationPercent / 100;
   const salaryGrowth = salaryGrowthPercent / 100;
 
   const totalMonths = Math.max(0, (planEndAge - currentAge) * 12);
@@ -110,21 +109,12 @@ export function runProjection(
         }
       }
 
-      const monthsRetired = monthIdx - monthsWorking - 1;
-      const yearsRetired = Math.floor(monthsRetired / 12);
-      const spend =
-        monthlyRetirementSpending * Math.pow(1 + inflation, yearsRetired);
-
-      let income =
-        (socialSecurityMonthly + otherRetirementIncomeMonthly) *
-        Math.pow(1 + inflation, yearsRetired);
-
-      if (householdMode === "couple" && monthIdx > spouseWorkMonths) {
-        const spouseMonthsRetired = monthIdx - spouseWorkMonths - 1;
-        const spouseYearsRetired = Math.floor(spouseMonthsRetired / 12);
-        income +=
-          spouseSocialSecurityMonthly * Math.pow(1 + inflation, spouseYearsRetired);
-      }
+      const { spend, income } = retirementSpendAndIncome(
+        inputs,
+        monthIdx,
+        monthsWorking,
+        spouseWorkMonths
+      );
 
       const netFromPortfolio = spend - income;
 
