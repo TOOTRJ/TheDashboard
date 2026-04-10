@@ -51,6 +51,10 @@ const titleMap: Record<string, { title: string; description: string }> = {
     title: "Nestegg",
     description: "Retirement analytics and scenario modeling",
   },
+  "/probes": {
+    title: "Von Neumann Probes",
+    description: "Self-replicating evolutionary trading colony",
+  },
   "/reports": {
     title: "Trade Log",
     description: "Complete history of your trading activity",
@@ -125,6 +129,8 @@ export function Header({ onOpenMobileNav }: { onOpenMobileNav: () => void }) {
   const { dateRange, setDateRange, searchQuery, setSearchQuery, dateRangeOptions } =
     useDashboardFilters();
   const [isSearchFocused, setIsSearchFocused] = React.useState(false);
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => { setMounted(true); }, []);
 
   const headerCopy = React.useMemo(() => titleMap[pathname] ?? titleMap["/"], [pathname]);
 
@@ -193,58 +199,67 @@ export function Header({ onOpenMobileNav }: { onOpenMobileNav: () => void }) {
           
           <ThemeToggle />
           
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button 
-                variant="ghost" 
-                className="flex items-center gap-2 hover:bg-[#00fff5]/10 transition-all duration-300 group"
+          {mounted ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="flex items-center gap-2 hover:bg-[#00fff5]/10 transition-all duration-300 group"
+                >
+                  <div className="relative">
+                    <Avatar className="h-8 w-8 border border-[#00fff5]/30 transition-all duration-300 group-hover:border-[#00fff5]/60 group-hover:shadow-[0_0_10px_rgba(0,255,245,0.3)]">
+                      <AvatarImage src={avatarSrc ?? undefined} alt="User avatar" />
+                      <AvatarFallback className="bg-[#00fff5]/20 text-[#00fff5]">{initials}</AvatarFallback>
+                    </Avatar>
+                    <div className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-background bg-[#39ff14]" />
+                  </div>
+                  <span className="hidden text-sm font-medium sm:inline-flex text-foreground group-hover:text-[#00fff5] transition-colors">
+                    {displayName}
+                  </span>
+                  <ChevronDown className="hidden h-4 w-4 sm:inline-flex text-muted-foreground group-hover:text-[#00fff5] transition-all duration-300 group-hover:rotate-180" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                className="w-48 border-[#00fff5]/20 bg-card/95 backdrop-blur-xl scale-in"
               >
-                <div className="relative">
-                  <Avatar className="h-8 w-8 border border-[#00fff5]/30 transition-all duration-300 group-hover:border-[#00fff5]/60 group-hover:shadow-[0_0_10px_rgba(0,255,245,0.3)]">
-                    <AvatarImage src={avatarSrc ?? undefined} alt="User avatar" />
-                    <AvatarFallback className="bg-[#00fff5]/20 text-[#00fff5]">{initials}</AvatarFallback>
-                  </Avatar>
-                  <div className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-background bg-[#39ff14]" />
-                </div>
-                <span className="hidden text-sm font-medium sm:inline-flex text-foreground group-hover:text-[#00fff5] transition-colors">
-                  {displayName}
-                </span>
-                <ChevronDown className="hidden h-4 w-4 sm:inline-flex text-muted-foreground group-hover:text-[#00fff5] transition-all duration-300 group-hover:rotate-180" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent 
-              align="end" 
-              className="w-48 border-[#00fff5]/20 bg-card/95 backdrop-blur-xl scale-in"
-            >
-              <DropdownMenuLabel className="text-[#00fff5]">
-                <div className="flex flex-col">
-                  <span>{displayName}</span>
-                  <span className="text-xs font-normal text-muted-foreground truncate">{user?.email}</span>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator className="bg-[#00fff5]/10" />
-              <DropdownMenuItem className="focus:bg-[#00fff5]/10 focus:text-[#00fff5] cursor-pointer transition-colors">
-                <User className="h-4 w-4 mr-2" />
-                Profile
-              </DropdownMenuItem>
-              <DropdownMenuItem className="focus:bg-[#00fff5]/10 focus:text-[#00fff5] cursor-pointer transition-colors">
-                <Settings className="h-4 w-4 mr-2" />
-                Wallet Settings
-              </DropdownMenuItem>
-              <DropdownMenuItem className="focus:bg-[#00fff5]/10 focus:text-[#00fff5] cursor-pointer transition-colors">
-                <Key className="h-4 w-4 mr-2" />
-                API Keys
-              </DropdownMenuItem>
-              <DropdownMenuSeparator className="bg-[#00fff5]/10" />
-              <DropdownMenuItem 
-                onClick={handleSignOut}
-                className="focus:bg-[#ff3366]/10 text-[#ff3366] focus:text-[#ff3366] cursor-pointer transition-colors"
-              >
-                <LogOut className="h-4 w-4 mr-2" />
-                Sign Out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                <DropdownMenuLabel className="text-[#00fff5]">
+                  <div className="flex flex-col">
+                    <span>{displayName}</span>
+                    <span className="text-xs font-normal text-muted-foreground truncate">{user?.email}</span>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator className="bg-[#00fff5]/10" />
+                <DropdownMenuItem className="focus:bg-[#00fff5]/10 focus:text-[#00fff5] cursor-pointer transition-colors">
+                  <User className="h-4 w-4 mr-2" />
+                  Profile
+                </DropdownMenuItem>
+                <DropdownMenuItem className="focus:bg-[#00fff5]/10 focus:text-[#00fff5] cursor-pointer transition-colors">
+                  <Settings className="h-4 w-4 mr-2" />
+                  Wallet Settings
+                </DropdownMenuItem>
+                <DropdownMenuItem className="focus:bg-[#00fff5]/10 focus:text-[#00fff5] cursor-pointer transition-colors">
+                  <Key className="h-4 w-4 mr-2" />
+                  API Keys
+                </DropdownMenuItem>
+                <DropdownMenuSeparator className="bg-[#00fff5]/10" />
+                <DropdownMenuItem
+                  onClick={handleSignOut}
+                  className="focus:bg-[#ff3366]/10 text-[#ff3366] focus:text-[#ff3366] cursor-pointer transition-colors"
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sign Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Button variant="ghost" className="flex items-center gap-2">
+              <Avatar className="h-8 w-8 border border-[#00fff5]/30">
+                <AvatarFallback className="bg-[#00fff5]/20 text-[#00fff5]">{initials}</AvatarFallback>
+              </Avatar>
+              <span className="hidden text-sm font-medium sm:inline-flex">{displayName}</span>
+            </Button>
+          )}
         </div>
       </div>
       
@@ -271,22 +286,26 @@ export function Header({ onOpenMobileNav }: { onOpenMobileNav: () => void }) {
             </div>
           )}
         </div>
-        <Select value={dateRange} onValueChange={(value) => setDateRange(value as typeof dateRange)}>
-          <SelectTrigger className="w-[180px] border-[#00fff5]/20 bg-[#00fff5]/5 focus:border-[#00fff5]/40 focus:ring-[#00fff5]/20 transition-all duration-300 hover:bg-[#00fff5]/10">
-            <SelectValue placeholder="Date range" />
-          </SelectTrigger>
-          <SelectContent className="border-[#00fff5]/20 bg-card/95 backdrop-blur-xl">
-            {dateRangeOptions.map((option) => (
-              <SelectItem 
-                key={option.value} 
-                value={option.value}
-                className="focus:bg-[#00fff5]/10 focus:text-[#00fff5] cursor-pointer transition-colors"
-              >
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {mounted ? (
+          <Select value={dateRange} onValueChange={(value) => setDateRange(value as typeof dateRange)}>
+            <SelectTrigger className="w-[180px] border-[#00fff5]/20 bg-[#00fff5]/5 focus:border-[#00fff5]/40 focus:ring-[#00fff5]/20 transition-all duration-300 hover:bg-[#00fff5]/10">
+              <SelectValue placeholder="Date range" />
+            </SelectTrigger>
+            <SelectContent className="border-[#00fff5]/20 bg-card/95 backdrop-blur-xl">
+              {dateRangeOptions.map((option) => (
+                <SelectItem
+                  key={option.value}
+                  value={option.value}
+                  className="focus:bg-[#00fff5]/10 focus:text-[#00fff5] cursor-pointer transition-colors"
+                >
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ) : (
+          <div className="w-[180px] h-9 rounded-md border border-[#00fff5]/20 bg-[#00fff5]/5" />
+        )}
       </div>
     </header>
   );

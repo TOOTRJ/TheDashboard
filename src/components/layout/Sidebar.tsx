@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   Activity,
   BarChart3,
+  Dna,
   FileText,
   LayoutDashboard,
   PanelLeftClose,
@@ -28,6 +29,7 @@ const navItems = [
   { label: "Analytics", href: "/analytics", icon: BarChart3 },
   { label: "Portfolio", href: "/portfolio", icon: Wallet },
   { label: "Nestegg", href: "/nestegg", icon: PiggyBank },
+  { label: "Probes", href: "/probes", icon: Dna },
   { label: "Trade Log", href: "/reports", icon: FileText },
   { label: "Settings", href: "/settings", icon: Settings },
 ];
