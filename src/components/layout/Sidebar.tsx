@@ -17,6 +17,7 @@ import {
   TrendingDown,
   FlaskConical,
   PiggyBank,
+  BookOpen,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -31,6 +32,7 @@ const navItems = [
   { label: "Nestegg", href: "/nestegg", icon: PiggyBank },
   { label: "Probes", href: "/probes", icon: Dna },
   { label: "Trade Log", href: "/reports", icon: FileText },
+  { label: "Docs", href: "/docs", icon: BookOpen },
   { label: "Settings", href: "/settings", icon: Settings },
 ];
 

@@ -1,10 +1,9 @@
 """
-Evolution engine — crossover, mutation, fitness scoring, selection, and diversity.
+Evolution utilities — fitness scoring, mutation, and diversity measurement.
 
-All functions accept an optional ColonyConfig to respect:
-  - enabled_genes: only evolvable genes participate in crossover/mutation
-  - gene_overrides: fixed genes are preserved unchanged
-  - available_assets: asset crossover respects the restricted pool
+GA-specific operators (selection, crossover, reproduce) live in
+strategies/genetic_algorithm.py. This module contains shared utilities
+used by probe.py, genesis.py, and all strategy implementations.
 """
 
 from __future__ import annotations
@@ -63,105 +62,7 @@ def compute_sharpe(returns: list[float], risk_free: float = 0.0) -> float:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# SELECTION (NEW — fitness-ranked)
-# ══════════════════════════════════════════════════════════════════════════════
-
-
-def select_parents_by_fitness(
-    probes: list[Probe],
-    top_pct: float = 0.30,
-    min_trades: int = 3,
-    min_roi: float = 0.0,
-) -> list[Probe]:
-    """
-    Select top probes by fitness for reproduction.
-    Filters: must have >= min_trades and roi >= min_roi (floor).
-    Returns the top top_pct% sorted by fitness descending.
-    """
-    eligible = [
-        p for p in probes
-        if p.num_trades >= min_trades and p.roi >= min_roi
-    ]
-    if not eligible:
-        return []
-
-    ranked = sorted(eligible, key=lambda p: p.fitness, reverse=True)
-    n = max(1, int(len(ranked) * top_pct))
-    return ranked[:n]
-
-
-def tournament_select(probes: list[Probe], k: int = 3) -> Optional[Probe]:
-    """Tournament selection: pick k random probes, return the fittest."""
-    if not probes:
-        return None
-    tournament = random.sample(probes, min(k, len(probes)))
-    return max(tournament, key=lambda p: p.fitness)
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# CROSSOVER
-# ══════════════════════════════════════════════════════════════════════════════
-
-
-def crossover(
-    parent_a: Genome,
-    parent_b: Genome,
-    generation: int,
-    colony_config: Optional[ColonyConfig] = None,
-) -> tuple[Genome, Genome]:
-    """
-    Uniform crossover. For evolvable genes: 50/50 from either parent.
-    For fixed/disabled genes: both children get parent_a's value.
-    Asset crossover prefers parental assets.
-    """
-    child_a_genes: dict[str, float] = {}
-    child_b_genes: dict[str, float] = {}
-
-    for gene in NUMERIC_GENES:
-        a_val = getattr(parent_a, gene)
-        b_val = getattr(parent_b, gene)
-
-        evolvable = colony_config.is_gene_evolvable(gene) if colony_config else True
-
-        if evolvable and random.random() > 0.5:
-            child_a_genes[gene] = a_val
-            child_b_genes[gene] = b_val
-        else:
-            child_a_genes[gene] = a_val if not evolvable else b_val
-            child_b_genes[gene] = a_val if not evolvable else a_val
-
-    # Asset crossover: prefer parental assets
-    effective_assets = (
-        colony_config.get_effective_assets() if colony_config else AVAILABLE_ASSETS
-    )
-    parent_assets = list(set(parent_a.assets + parent_b.assets))
-    # Filter to effective assets
-    parent_assets = [a for a in parent_assets if a in effective_assets]
-    if not parent_assets:
-        parent_assets = effective_assets
-
-    def pick_assets(n_gene: float) -> list[str]:
-        n = max(1, min(len(parent_assets), int(round(n_gene))))
-        return random.sample(parent_assets, min(n, len(parent_assets)))
-
-    child_a = Genome(
-        **child_a_genes,
-        assets=pick_assets(child_a_genes["num_assets"]),
-        generation=generation,
-        parent_ids=[],
-    )
-    child_b = Genome(
-        **child_b_genes,
-        assets=pick_assets(child_b_genes["num_assets"]),
-        generation=generation,
-        parent_ids=[],
-    )
-
-    return child_a.validate(colony_config), child_b.validate(colony_config)
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# MUTATION
+# MUTATION (shared utility — used by GA strategy, diversity injection, auto-spawn)
 # ══════════════════════════════════════════════════════════════════════════════
 
 
@@ -201,44 +102,6 @@ def mutate(
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# REPRODUCTION
-# ══════════════════════════════════════════════════════════════════════════════
-
-
-def reproduce(
-    parent: Genome,
-    population: list[Genome],
-    num_children: int = 2,
-    mutation_rate: float = 0.20,
-    colony_config: Optional[ColonyConfig] = None,
-) -> list[Genome]:
-    """
-    Produce children. Sexual (crossover+mutate) or asexual (clone+mutate).
-    """
-    generation = parent.generation + 1
-    children = []
-    mates = [g for g in population if g is not parent]
-
-    for _ in range(num_children):
-        if mates and random.random() > 0.3:
-            mate = random.choice(mates)
-            child, _ = crossover(parent, mate, generation, colony_config)
-            child = mutate(child, mutation_rate, colony_config=colony_config)
-        else:
-            child = Genome(
-                **{g: getattr(parent, g) for g in NUMERIC_GENES},
-                assets=list(parent.assets),
-                generation=generation,
-                parent_ids=[],
-            )
-            child = mutate(child, mutation_rate * 1.5, colony_config=colony_config)
-
-        children.append(child)
-
-    return children
-
-
-# ══════════════════════════════════════════════════════════════════════════════
 # DIVERSITY
 # ══════════════════════════════════════════════════════════════════════════════
 
@@ -268,9 +131,47 @@ def population_diversity(genomes: list[Genome]) -> float:
         return 1.0
     distances = []
     for i, a in enumerate(genomes):
-        for b in genomes[i + 1:]:
+        for b in genomes[i + 1 :]:
             distances.append(genome_distance(a, b))
     return sum(distances) / len(distances)
+
+
+def inject_diversity_genomes(
+    genomes: list[Genome],
+    current_generation: int,
+    dead_probes: Optional[list] = None,
+    colony_config: Optional[ColonyConfig] = None,
+    count: int = 2,
+) -> list[Genome]:
+    """
+    Create `count` diversity-injection genomes.
+    Prefers strongly-mutated copies of the best dead probe.
+    Falls back to random Gen-0 genomes.
+    """
+    injected: list[Genome] = []
+    for _ in range(count):
+        if dead_probes:
+            best_dead = max(dead_probes[-50:], key=lambda p: p.fitness)
+            child = Genome(
+                **{g: getattr(best_dead.genome, g) for g in NUMERIC_GENES},
+                assets=list(best_dead.genome.assets),
+                generation=current_generation,
+                parent_ids=[best_dead.probe_id],
+            )
+            child = mutate(
+                child,
+                mutation_rate=0.30,
+                mutation_strength=0.25,
+                colony_config=colony_config,
+            )
+            injected.append(child)
+        else:
+            injected.append(
+                random_genome(
+                    generation=current_generation, colony_config=colony_config
+                )
+            )
+    return injected
 
 
 def inject_diversity(
@@ -281,28 +182,11 @@ def inject_diversity(
     dead_probes: Optional[list] = None,
     colony_config: Optional[ColonyConfig] = None,
 ) -> list[Genome]:
-    """
-    If diversity is low, inject genomes. Prefers mutated copies of
-    best dead probes over random Gen-0.
-    """
+    """Deprecated: use inject_diversity_genomes() instead.
+    Kept for backward compatibility during transition."""
     diversity = population_diversity(population)
     if diversity >= diversity_threshold:
         return []
-
-    injected: list[Genome] = []
-    for _ in range(inject_count):
-        if dead_probes:
-            # Pick best dead probe and mutate strongly
-            best_dead = max(dead_probes, key=lambda p: p.fitness)
-            child = Genome(
-                **{g: getattr(best_dead.genome, g) for g in NUMERIC_GENES},
-                assets=list(best_dead.genome.assets),
-                generation=current_generation,
-                parent_ids=[best_dead.probe_id],
-            )
-            child = mutate(child, mutation_rate=0.30, mutation_strength=0.25, colony_config=colony_config)
-            injected.append(child)
-        else:
-            injected.append(random_genome(generation=current_generation, colony_config=colony_config))
-
-    return injected
+    return inject_diversity_genomes(
+        population, current_generation, dead_probes, colony_config, inject_count
+    )

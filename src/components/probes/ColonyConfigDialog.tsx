@@ -37,6 +37,13 @@ import {
   type ColonyConfig,
   type GeneOverride,
 } from "@/lib/probes/colony-config";
+import type { StrategyInfo } from "@/lib/probes/types";
+import {
+  STRATEGY_LABELS,
+  STRATEGY_DESCRIPTIONS,
+  VN_API_URL,
+  VN_API_KEY,
+} from "@/lib/probes/constants";
 
 interface Props {
   open: boolean;
@@ -62,6 +69,26 @@ export function ColonyConfigDialog({ open, onClose, onStart, starting }: Props) 
   );
   const [geneOverrides, setGeneOverrides] = React.useState<Record<string, GeneOverride>>({});
   const [selectedAssets, setSelectedAssets] = React.useState<string[]>([...ALL_ASSETS]);
+  const [strategies, setStrategies] = React.useState<StrategyInfo[]>([]);
+
+  // Fetch available strategies on mount
+  React.useEffect(() => {
+    fetch(`${VN_API_URL}/api/v1/strategies`, {
+      headers: { "X-API-Key": VN_API_KEY },
+    })
+      .then((r) => (r.ok ? r.json() : Promise.reject(r)))
+      .then((data: StrategyInfo[]) => setStrategies(data))
+      .catch(() => {
+        // Fallback to local constants
+        setStrategies(
+          Object.keys(STRATEGY_LABELS).map((name) => ({
+            name,
+            label: STRATEGY_LABELS[name],
+            description: STRATEGY_DESCRIPTIONS[name] ?? "",
+          })),
+        );
+      });
+  }, []);
 
   // Apply preset
   const applyPreset = (presetName: string) => {
@@ -152,6 +179,33 @@ export function ColonyConfigDialog({ open, onClose, onStart, starting }: Props) 
             Colony Configuration
           </DialogTitle>
         </DialogHeader>
+
+        {/* Strategy selector */}
+        <div className="mt-2">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-[#bf00ff]">
+            Strategy
+          </span>
+          <Select
+            value={config.strategy}
+            onValueChange={(v) => setConfig((c) => ({ ...c, strategy: v }))}
+          >
+            <SelectTrigger className="mt-1 w-full h-8 border-[#bf00ff]/20 bg-[#bf00ff]/5 text-xs">
+              <SelectValue placeholder="Select strategy" />
+            </SelectTrigger>
+            <SelectContent className="border-[#bf00ff]/20 bg-card">
+              {strategies.map((s) => (
+                <SelectItem key={s.name} value={s.name}>
+                  {s.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {strategies.find((s) => s.name === config.strategy)?.description && (
+            <p className="text-[10px] text-muted-foreground mt-1">
+              {strategies.find((s) => s.name === config.strategy)!.description}
+            </p>
+          )}
+        </div>
 
         {/* Mode + Preset selector */}
         <div className="flex flex-wrap gap-3 mt-2">

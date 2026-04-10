@@ -98,53 +98,93 @@ export async function fetchFitnessSnapshots(
 
 /**
  * Fetch all distinct simulation runs with summary info.
+ * Tries vn_colonies table first (new schema), falls back to grouping from vn_probes.
  * Returns newest first.
  */
 export async function fetchColonyRuns(): Promise<ColonyRun[]> {
-  const { data, error } = await supabase()
-    .from("vn_probes")
-    .select("run_id, mode, born_at, updated_at, fitness_score")
-    .not("run_id", "is", null)
-    .order("born_at", { ascending: false });
+  // Try the new vn_colonies table first
+  const { data: colonies, error: colErr } = await supabase()
+    .from("vn_colonies")
+    .select("id, strategy, mode, status, started_at, stopped_at")
+    .order("created_at", { ascending: false });
 
-  if (error || !data) {
-    console.error("fetchColonyRuns error:", error);
-    return [];
+  if (!colErr && colonies && colonies.length > 0) {
+    return _enrichColonyRuns(colonies);
   }
 
-  // Group by run_id and compute aggregates
-  const runsMap = new Map<string, ColonyRun>();
+  // Fallback: group from vn_probes (pre-migration data)
+  return _fetchColonyRunsFromProbes();
+}
+
+async function _enrichColonyRuns(
+  colonies: Array<{ id: string; strategy: string; mode: string; started_at: string; stopped_at: string | null }>,
+): Promise<ColonyRun[]> {
+  const colonyIds = colonies.map((c) => c.id);
+
+  const { data: probes } = await supabase()
+    .from("vn_probes")
+    .select("run_id, fitness_score")
+    .in("run_id", colonyIds);
+
+  const probeAgg = new Map<string, { count: number; best: number }>();
+  for (const p of (probes ?? []) as Array<{ run_id: string; fitness_score: number }>) {
+    const existing = probeAgg.get(p.run_id);
+    if (existing) {
+      existing.count += 1;
+      existing.best = Math.max(existing.best, p.fitness_score ?? 0);
+    } else {
+      probeAgg.set(p.run_id, { count: 1, best: p.fitness_score ?? 0 });
+    }
+  }
+
+  return colonies.map((c) => {
+    const agg = probeAgg.get(c.id);
+    return {
+      run_id: c.id,
+      mode: c.mode,
+      strategy: c.strategy,
+      started_at: c.started_at,
+      ended_at: c.stopped_at,
+      probe_count: agg?.count ?? 0,
+      best_fitness: agg?.best ?? 0,
+    } as ColonyRun;
+  });
+}
+
+async function _fetchColonyRunsFromProbes(): Promise<ColonyRun[]> {
+  const { data, error } = await supabase()
+    .from("vn_probes")
+    .select("run_id, mode, fitness_score, created_at")
+    .not("run_id", "is", null)
+    .order("created_at", { ascending: false });
+
+  if (error || !data) return [];
+
+  const runs = new Map<string, ColonyRun>();
   for (const row of data as Array<{
     run_id: string;
     mode: string;
-    born_at: string;
-    updated_at: string;
     fitness_score: number;
+    created_at: string;
   }>) {
     if (!row.run_id) continue;
-    const existing = runsMap.get(row.run_id);
+    const existing = runs.get(row.run_id);
     if (existing) {
       existing.probe_count += 1;
-      existing.best_fitness = Math.max(existing.best_fitness, row.fitness_score);
-      // Track latest activity as ended_at
-      if (row.updated_at > (existing.ended_at ?? "")) {
-        existing.ended_at = row.updated_at;
-      }
+      existing.best_fitness = Math.max(existing.best_fitness, row.fitness_score ?? 0);
     } else {
-      runsMap.set(row.run_id, {
+      runs.set(row.run_id, {
         run_id: row.run_id,
         mode: row.mode,
-        started_at: row.born_at,
-        ended_at: row.updated_at,
+        started_at: row.created_at,
+        ended_at: null,
         probe_count: 1,
-        best_fitness: row.fitness_score,
+        best_fitness: row.fitness_score ?? 0,
       });
     }
   }
 
-  return Array.from(runsMap.values()).sort(
-    (a, b) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime(),
-  );
+  return Array.from(runs.values());
 }
 
 export async function deleteAllProbes(): Promise<boolean> {

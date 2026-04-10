@@ -9,6 +9,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import uuid
 from contextlib import asynccontextmanager
 from typing import Optional
 
@@ -16,21 +17,20 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Head
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from ..config import VN_API_KEY, VN_WS_PORT
+from ..config import VN_API_KEY
 from ..core.colony_config import ColonyConfig, GeneOverride, PRESET_CONFIGS
+from ..core.colony_manager import ColonyManager
 from ..core.gene_registry import GENE_REGISTRY
-from ..core.genesis import GenesisController
 from ..core.genome import AVAILABLE_ASSETS
+from ..core.strategies import list_strategies
 from ..core.types import ProbeEvent
 from ..db.repository import VonNeumannRepository, EventPersister
-from ..market.sim_feed import SimulationFeed
 from .websocket import ws_manager
 
 logger = logging.getLogger(__name__)
 
-# Global state
-_genesis: Optional[GenesisController] = None
-_genesis_task: Optional[asyncio.Task] = None
+# Colony manager (replaces the old _genesis singleton)
+colony_manager = ColonyManager()
 
 
 @asynccontextmanager
@@ -42,12 +42,7 @@ async def lifespan(app: FastAPI):
     )
     logger.info("[Server] Von Neumann service starting")
     yield
-    # Shutdown
-    global _genesis, _genesis_task
-    if _genesis:
-        await _genesis.stop()
-    if _genesis_task:
-        _genesis_task.cancel()
+    await colony_manager.shutdown()
     logger.info("[Server] Von Neumann service stopped")
 
 
@@ -71,13 +66,19 @@ def verify_api_key(x_api_key: str = Header(alias="x-api-key", default="")) -> st
     return x_api_key
 
 
-# ── Event handler (bridges Genesis -> WS + DB) ──────────────────────────────
+# ── Event handler factory ────────────────────────────────────────────────────
 
 
-async def _on_event(event: ProbeEvent) -> None:
-    """Dual-write: persist to DB + broadcast to WS clients."""
-    # Broadcast to WebSocket clients
-    await ws_manager.broadcast(event.to_ws_message())
+def _make_dual_handler(
+    colony_id: str, persister: EventPersister
+):
+    """Create an event handler that persists to DB and broadcasts to WS with colony_id."""
+    async def handler(event: ProbeEvent) -> None:
+        await persister.handle(event)
+        msg = event.to_ws_message()
+        msg["colony_id"] = colony_id
+        await ws_manager.broadcast(msg)
+    return handler
 
 
 # ── Models ───────────────────────────────────────────────────────────────────
@@ -95,13 +96,14 @@ class ColonyConfigModel(BaseModel):
     enabled_genes: Optional[list[str]] = None
     available_assets: Optional[list[str]] = None
     max_lifespan_ticks: Optional[int] = None
-    reproduction_interval: int = 100
+    reproduction_interval: Optional[int] = None
 
 
 class StartRequest(BaseModel):
     user_id: str
     mode: str = "simulation"
-    preset: Optional[str] = None  # "default", "rsi_focus", etc.
+    strategy: str = "genetic_algorithm"
+    preset: Optional[str] = None
     colony_config: Optional[ColonyConfigModel] = None
     max_probes: int = 50
     max_capital: float = 10_000.0
@@ -113,13 +115,11 @@ class StartRequest(BaseModel):
 
 def _build_colony_config(req: StartRequest) -> ColonyConfig:
     """Convert API request to internal ColonyConfig."""
-    # Start with preset if specified
     if req.preset and req.preset in PRESET_CONFIGS:
         config = ColonyConfig.from_dict(PRESET_CONFIGS[req.preset].to_dict())
     else:
         config = ColonyConfig()
 
-    # Overlay explicit colony_config on top of preset
     if req.colony_config:
         if req.colony_config.gene_overrides:
             for name, override in req.colony_config.gene_overrides.items():
@@ -133,9 +133,46 @@ def _build_colony_config(req: StartRequest) -> ColonyConfig:
             config.available_assets = req.colony_config.available_assets
         if req.colony_config.max_lifespan_ticks is not None:
             config.max_lifespan_ticks = req.colony_config.max_lifespan_ticks
-        config.reproduction_interval = req.colony_config.reproduction_interval
+        if req.colony_config.reproduction_interval is not None:
+            config.reproduction_interval = req.colony_config.reproduction_interval
 
     return config
+
+
+async def _start_colony(req: StartRequest) -> dict:
+    """Shared logic for starting a colony (used by both new and compat endpoints)."""
+    colony_id = str(uuid.uuid4())
+    mode = req.mode if req.mode in ("simulation", "paper") else "simulation"
+    colony_config = _build_colony_config(req)
+
+    repo = VonNeumannRepository(req.user_id, run_id=colony_id)
+    persister = EventPersister(repo, mode=mode)
+    handler = _make_dual_handler(colony_id, persister)
+
+    await colony_manager.create_colony(
+        colony_id=colony_id,
+        user_id=req.user_id,
+        mode=mode,
+        strategy_name=req.strategy,
+        colony_config=colony_config,
+        on_event=handler,
+        max_probes=req.max_probes,
+        gen0_count=req.gen0_count,
+        seed_capital=req.seed_capital,
+        max_capital=req.max_capital,
+        tick_interval_ms=req.tick_interval_ms,
+        mutation_rate=req.mutation_rate,
+    )
+
+    repo.insert_colony(colony_id, req.strategy, req.model_dump(), mode)
+
+    return {
+        "status": "started",
+        "run_id": colony_id,
+        "colony_id": colony_id,
+        "strategy": req.strategy,
+        "config": req.model_dump(),
+    }
 
 
 # ── REST Endpoints ───────────────────────────────────────────────────────────
@@ -143,92 +180,27 @@ def _build_colony_config(req: StartRequest) -> ColonyConfig:
 
 @app.get("/api/v1/health")
 async def health():
-    return {"status": "ok", "ws_clients": ws_manager.client_count}
+    return {
+        "status": "ok",
+        "ws_clients": ws_manager.client_count,
+        "active_colonies": colony_manager.active_count(),
+    }
 
 
 @app.get("/api/v1/status")
 async def get_status(x_api_key: str = Header(alias="x-api-key", default="")):
     verify_api_key(x_api_key)
-    if not _genesis:
+    cid = colony_manager.latest_colony_id()
+    if not cid:
         return {"status": "stopped", "message": "No simulation running"}
-    return _genesis.status()
+    colony = colony_manager.get_colony(cid)
+    return colony.status() if colony else {"status": "stopped"}
 
 
-@app.post("/api/v1/simulation/start")
-async def start_simulation(
-    req: StartRequest,
-    x_api_key: str = Header(alias="x-api-key", default=""),
-):
-    verify_api_key(x_api_key)
-    global _genesis, _genesis_task
-
-    if _genesis and _genesis._running:
-        raise HTTPException(status_code=409, detail="Simulation already running")
-
-    # Create the right market feed based on mode
-    mode = req.mode if req.mode in ("simulation", "paper") else "simulation"
-    if mode == "paper":
-        from ..market.jupiter_feed import JupiterFeed
-        feed = JupiterFeed()
-        logger.info("[Server] Paper trading mode — using live Jupiter prices")
-    else:
-        feed = SimulationFeed()
-        logger.info("[Server] Simulation mode — using synthetic prices")
-
-    colony_config = _build_colony_config(req)
-
-    _genesis = GenesisController(
-        market_feed=feed,
-        user_id=req.user_id,
-        mode=mode,
-        max_probes=req.max_probes,
-        max_capital=req.max_capital,
-        seed_capital=req.seed_capital,
-        gen0_count=req.gen0_count,
-        tick_interval_ms=req.tick_interval_ms,
-        mutation_rate=req.mutation_rate,
-        colony_config=colony_config,
-    )
-
-    # Set up DB persistence with run_id from Genesis
-    repo = VonNeumannRepository(req.user_id, run_id=_genesis.run_id)
-    persister = EventPersister(repo, mode=mode)
-
-    async def dual_handler(event: ProbeEvent) -> None:
-        await persister.handle(event)
-        await _on_event(event)
-
-    _genesis._on_event = dual_handler
-
-    _genesis_task = asyncio.create_task(_genesis.start())
-    return {"status": "started", "run_id": _genesis.run_id, "config": req.model_dump()}
-
-
-@app.post("/api/v1/simulation/stop")
-async def stop_simulation(x_api_key: str = Header(alias="x-api-key", default="")):
-    verify_api_key(x_api_key)
-    if not _genesis:
-        raise HTTPException(status_code=404, detail="No simulation running")
-    await _genesis.stop()
-    return {"status": "stopped"}
-
-
-@app.post("/api/v1/simulation/pause")
-async def pause_simulation(x_api_key: str = Header(alias="x-api-key", default="")):
-    verify_api_key(x_api_key)
-    if not _genesis:
-        raise HTTPException(status_code=404, detail="No simulation running")
-    _genesis.pause()
-    return {"status": "paused"}
-
-
-@app.post("/api/v1/simulation/resume")
-async def resume_simulation(x_api_key: str = Header(alias="x-api-key", default="")):
-    verify_api_key(x_api_key)
-    if not _genesis:
-        raise HTTPException(status_code=404, detail="No simulation running")
-    _genesis.resume()
-    return {"status": "resumed"}
+@app.get("/api/v1/strategies")
+async def get_strategies():
+    """List all available evolution strategies."""
+    return list_strategies()
 
 
 @app.get("/api/v1/gene-registry")
@@ -237,10 +209,109 @@ async def get_gene_registry():
     return {
         "genes": GENE_REGISTRY.to_json_schema(),
         "available_assets": AVAILABLE_ASSETS,
-        "presets": {
-            name: cfg.to_dict() for name, cfg in PRESET_CONFIGS.items()
-        },
+        "presets": {name: cfg.to_dict() for name, cfg in PRESET_CONFIGS.items()},
     }
+
+
+# ── Colony endpoints (new) ──────────────────────────────────────────────────
+
+
+@app.post("/api/v1/colonies/")
+async def create_colony(
+    req: StartRequest,
+    x_api_key: str = Header(alias="x-api-key", default=""),
+):
+    verify_api_key(x_api_key)
+    result = await _start_colony(req)
+    return result
+
+
+@app.get("/api/v1/colonies/")
+async def list_colonies(x_api_key: str = Header(alias="x-api-key", default="")):
+    verify_api_key(x_api_key)
+    return colony_manager.list_colonies()
+
+
+@app.get("/api/v1/colonies/{colony_id}")
+async def get_colony(colony_id: str, x_api_key: str = Header(alias="x-api-key", default="")):
+    verify_api_key(x_api_key)
+    colony = colony_manager.get_colony(colony_id)
+    if not colony:
+        raise HTTPException(status_code=404, detail="Colony not found")
+    return colony.status()
+
+
+@app.post("/api/v1/colonies/{colony_id}/stop")
+async def stop_colony(colony_id: str, x_api_key: str = Header(alias="x-api-key", default="")):
+    verify_api_key(x_api_key)
+    colony = colony_manager.get_colony(colony_id)
+    if not colony:
+        raise HTTPException(status_code=404, detail="Colony not found")
+    await colony_manager.stop_colony(colony_id)
+    return {"status": "stopped", "colony_id": colony_id}
+
+
+@app.post("/api/v1/colonies/{colony_id}/pause")
+async def pause_colony(colony_id: str, x_api_key: str = Header(alias="x-api-key", default="")):
+    verify_api_key(x_api_key)
+    colony = colony_manager.get_colony(colony_id)
+    if not colony:
+        raise HTTPException(status_code=404, detail="Colony not found")
+    await colony_manager.pause_colony(colony_id)
+    return {"status": "paused", "colony_id": colony_id}
+
+
+@app.post("/api/v1/colonies/{colony_id}/resume")
+async def resume_colony(colony_id: str, x_api_key: str = Header(alias="x-api-key", default="")):
+    verify_api_key(x_api_key)
+    colony = colony_manager.get_colony(colony_id)
+    if not colony:
+        raise HTTPException(status_code=404, detail="Colony not found")
+    await colony_manager.resume_colony(colony_id)
+    return {"status": "resumed", "colony_id": colony_id}
+
+
+# ── Backward-compatible simulation endpoints ────────────────────────────────
+
+
+@app.post("/api/v1/simulation/start")
+async def start_simulation(
+    req: StartRequest,
+    x_api_key: str = Header(alias="x-api-key", default=""),
+):
+    verify_api_key(x_api_key)
+    result = await _start_colony(req)
+    return result
+
+
+@app.post("/api/v1/simulation/stop")
+async def stop_simulation(x_api_key: str = Header(alias="x-api-key", default="")):
+    verify_api_key(x_api_key)
+    cid = colony_manager.latest_colony_id()
+    if not cid:
+        raise HTTPException(status_code=404, detail="No simulation running")
+    await colony_manager.stop_colony(cid)
+    return {"status": "stopped"}
+
+
+@app.post("/api/v1/simulation/pause")
+async def pause_simulation(x_api_key: str = Header(alias="x-api-key", default="")):
+    verify_api_key(x_api_key)
+    cid = colony_manager.latest_colony_id()
+    if not cid:
+        raise HTTPException(status_code=404, detail="No simulation running")
+    await colony_manager.pause_colony(cid)
+    return {"status": "paused"}
+
+
+@app.post("/api/v1/simulation/resume")
+async def resume_simulation(x_api_key: str = Header(alias="x-api-key", default="")):
+    verify_api_key(x_api_key)
+    cid = colony_manager.latest_colony_id()
+    if not cid:
+        raise HTTPException(status_code=404, detail="No simulation running")
+    await colony_manager.resume_colony(cid)
+    return {"status": "resumed"}
 
 
 # ── WebSocket ────────────────────────────────────────────────────────────────
@@ -254,15 +325,17 @@ async def websocket_endpoint(websocket: WebSocket):
             data = await websocket.receive_text()
             try:
                 msg = json.loads(data)
-                msg_type = msg.get("type")
-                if msg_type == "command":
+                if msg.get("type") == "command":
                     action = msg.get("data", {}).get("action")
-                    if action == "stop" and _genesis:
-                        await _genesis.stop()
-                    elif action == "pause" and _genesis:
-                        _genesis.pause()
-                    elif action == "resume" and _genesis:
-                        _genesis.resume()
+                    target = msg.get("data", {}).get("colony_id") or colony_manager.latest_colony_id()
+                    if not target:
+                        continue
+                    if action == "stop":
+                        await colony_manager.stop_colony(target)
+                    elif action == "pause":
+                        await colony_manager.pause_colony(target)
+                    elif action == "resume":
+                        await colony_manager.resume_colony(target)
             except json.JSONDecodeError:
                 pass
     except WebSocketDisconnect:

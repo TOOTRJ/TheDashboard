@@ -132,6 +132,29 @@ class VonNeumannRepository:
         except Exception as e:
             logger.error(f"[DB] insert_fitness_snapshot failed: {e}")
 
+    # ── Colonies ──────────────────────────────────────────────────────────
+
+    def insert_colony(self, colony_id: str, strategy: str, config: dict, mode: str) -> None:
+        try:
+            self.db.table("vn_colonies").insert({
+                "id": colony_id,
+                "user_id": self.user_id,
+                "strategy": strategy,
+                "config": config,
+                "mode": mode,
+            }).execute()
+        except Exception as e:
+            logger.error(f"[DB] insert_colony failed: {e}")
+
+    def update_colony_status(self, colony_id: str, status: str) -> None:
+        fields: dict = {"status": status, "updated_at": datetime.now(timezone.utc).isoformat()}
+        if status == "stopped":
+            fields["stopped_at"] = datetime.now(timezone.utc).isoformat()
+        try:
+            self.db.table("vn_colonies").update(fields).eq("id", colony_id).execute()
+        except Exception as e:
+            logger.error(f"[DB] update_colony_status failed: {e}")
+
     # ── Generation stats ─────────────────────────────────────────────────
 
     def upsert_generation_stats(self, stats: dict) -> None:
@@ -238,3 +261,9 @@ class EventPersister:
 
         elif etype == EventType.GENERATION_COMPLETE:
             self.repo.upsert_generation_stats(data)
+
+        elif etype == EventType.SIMULATION_STATUS:
+            if data.get("status") == "stopped":
+                run_id = data.get("run_id") or data.get("colony_id")
+                if run_id:
+                    self.repo.update_colony_status(run_id, "stopped")

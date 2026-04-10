@@ -29,3 +29,17 @@ export const VN_WS_URL =
   process.env.NEXT_PUBLIC_VN_WS_URL || "ws://localhost:8765/ws";
 export const VN_API_KEY =
   process.env.VN_API_KEY || "vn-dev-key-8be90a19744ac928";
+
+export const STRATEGY_LABELS: Record<string, string> = {
+  genetic_algorithm: "Genetic Algorithm",
+  differential_evolution: "Differential Evolution",
+  particle_swarm: "Particle Swarm Optimization",
+  cma_es: "CMA-ES",
+};
+
+export const STRATEGY_DESCRIPTIONS: Record<string, string> = {
+  genetic_algorithm: "Classic GA with tournament selection, uniform crossover, and Gaussian mutation.",
+  differential_evolution: "DE/rand/1/bin -- differential mutation with binomial crossover.",
+  particle_swarm: "PSO with inertia weight, cognitive and social components.",
+  cma_es: "Covariance Matrix Adaptation Evolution Strategy.",
+};

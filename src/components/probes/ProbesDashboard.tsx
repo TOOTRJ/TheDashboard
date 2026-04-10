@@ -8,6 +8,7 @@ import type {
   SystemStatus,
   SimulationStatus,
   ColonyRun,
+  ColonyInfo,
   PriceTick,
 } from "@/lib/probes/types";
 import type { StartConfig } from "@/lib/probes/colony-config";
@@ -28,6 +29,8 @@ interface Props {
   connected: boolean;
   simStatus: SimulationStatus;
   mode: string;
+  strategy?: string;
+  activeColonies: ColonyInfo[];
   starting: boolean;
   colonyRuns: ColonyRun[];
   activeRunId: string | null;
@@ -46,6 +49,8 @@ export function ProbesDashboard({
   connected,
   simStatus,
   mode,
+  strategy,
+  activeColonies,
   starting,
   colonyRuns,
   activeRunId,
@@ -78,6 +83,8 @@ export function ProbesDashboard({
               probes.filter((p) => p.state !== "DEAD").length
             }
             mode={mode}
+            strategy={strategy}
+            activeColonies={activeColonies}
             starting={starting}
             onStart={onStart}
             onStop={onStop}
@@ -88,6 +95,7 @@ export function ProbesDashboard({
         <ColonySelector
           runs={colonyRuns}
           activeRunId={activeRunId}
+          activeColonies={activeColonies}
           onSelectRun={onSelectRun}
         />
       </div>

@@ -121,12 +121,14 @@ export interface GenerationStats {
 export interface WsMessage {
   type: string;
   timestamp: string;
+  colony_id?: string;
   data: Record<string, unknown>;
 }
 
 export interface ColonyRun {
   run_id: string;
   mode: string;
+  strategy?: string;
   started_at: string;
   ended_at: string | null;
   probe_count: number;
@@ -142,7 +144,9 @@ export interface PriceTick {
 export interface SystemStatus {
   status: SimulationStatus;
   run_id: string;
+  colony_id?: string;
   mode: string;
+  strategy?: string;
   jup_api_calls: number;
   generation: number;
   tick: number;
@@ -156,4 +160,25 @@ export interface SystemStatus {
   diversity: number;
   started_at: string | null;
   uptime_secs: number;
+}
+
+export interface ColonyInfo {
+  colony_id: string;
+  strategy: string;
+  mode: string;
+  status: SimulationStatus;
+  generation: number;
+  tick: number;
+  live_probes: number;
+  dead_probes: number;
+  total_capital: number;
+  diversity: number;
+  started_at: string;
+  uptime_secs: number;
+}
+
+export interface StrategyInfo {
+  name: string;
+  label: string;
+  description: string;
 }

@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { toast } from "sonner";
-import { Dna } from "lucide-react";
+import { BookOpen, Dna } from "lucide-react";
 
 import { useAuth } from "@/components/auth/AuthProvider";
 import { ProbesDashboard } from "@/components/probes/ProbesDashboard";
@@ -22,6 +23,7 @@ import type {
   SimulationStatus,
   SystemStatus,
   ColonyRun,
+  ColonyInfo,
   PriceTick,
   WsMessage,
 } from "@/lib/probes/types";
@@ -39,11 +41,15 @@ export default function ProbesPage() {
   const [systemStatus, setSystemStatus] = React.useState<SystemStatus | null>(null);
   const [starting, setStarting] = React.useState(false);
   const [prices, setPrices] = React.useState<Record<string, PriceTick>>({});
+  const [activeColonies, setActiveColonies] = React.useState<ColonyInfo[]>([]);
+  const [selectedColonyId, setSelectedColonyId] = React.useState<string | null>(null);
   // Track previous prices for computing change %
   const prevPrices = React.useRef<Record<string, number>>({});
 
   // WS callback — fires for every message, no drops from batching
   const handleWsMessage = React.useCallback((msg: WsMessage) => {
+    const colonyId = msg.colony_id;
+
     switch (msg.type) {
       case "probe_born":
       case "probe_update": {
@@ -82,8 +88,37 @@ export default function ProbesPage() {
         setSimStatus(d.status);
         setSimMode(d.mode || "simulation");
         if (d.run_id) setRunId(d.run_id);
+        setActiveColonies((prev) => {
+          const filtered = prev.filter((c) => c.colony_id !== colonyId);
+          if (d.status !== "stopped" && colonyId) {
+            const raw = d as unknown as Record<string, unknown>;
+            filtered.push({
+              colony_id: colonyId,
+              strategy: (raw.strategy as string) || "genetic_algorithm",
+              mode: (raw.mode as string) || "simulation",
+              status: d.status,
+              generation: (raw.generation as number) || 0,
+              tick: (raw.tick as number) || 0,
+              live_probes: (raw.live_probes as number) || 0,
+              dead_probes: (raw.dead_probes as number) || 0,
+              total_capital: (raw.total_capital as number) || 0,
+              diversity: (raw.diversity as number) || 0,
+              started_at: (raw.started_at as string) || "",
+              uptime_secs: (raw.uptime_secs as number) || 0,
+            });
+          }
+          return filtered;
+        });
         break;
       }
+      default:
+        break;
+    }
+
+    // Filter out events for other colonies when a specific colony is selected
+    if (selectedColonyId && colonyId && colonyId !== selectedColonyId) return;
+
+    switch (msg.type) {
       case "generation_complete": {
         const d = msg.data as unknown as GenerationStats;
         setGenStats((prev) => {
@@ -115,7 +150,7 @@ export default function ProbesPage() {
         break;
       }
     }
-  }, []);
+  }, [selectedColonyId]);
 
   const { connected } = useProbesWebSocket(handleWsMessage);
 
@@ -199,6 +234,20 @@ export default function ProbesPage() {
     return () => { cancelled = true; };
   }, [user, authLoading, checkServiceStatus, refreshFromSupabase, refreshColonyRuns]);
 
+  // ── Fetch active colonies periodically ────────────────────────────────
+
+  React.useEffect(() => {
+    const fetchActive = async () => {
+      try {
+        const data = await apiCall("/api/v1/colonies/", "GET");
+        if (Array.isArray(data)) setActiveColonies(data);
+      } catch { /* backend offline */ }
+    };
+    fetchActive();
+    const interval = setInterval(fetchActive, 10_000);
+    return () => clearInterval(interval);
+  }, []);
+
   // ── Periodic Supabase refresh while sim is active ─────────────────────
 
   React.useEffect(() => {
@@ -221,6 +270,7 @@ export default function ProbesPage() {
       const result = await apiCall("/api/v1/simulation/start", "POST", {
         user_id: user.id,
         mode: startConfig.mode,
+        strategy: startConfig.strategy,
         preset: startConfig.preset,
         colony_config: startConfig.colony_config,
         gen0_count: startConfig.gen0_count,
@@ -233,6 +283,7 @@ export default function ProbesPage() {
 
       const newRunId = result.run_id as string;
       setRunId(newRunId);
+      setSelectedColonyId(newRunId);
       setSimStatus("running");
       setSimMode(startConfig.mode);
       await refreshColonyRuns();
@@ -328,6 +379,8 @@ export default function ProbesPage() {
         probes={probes}
         generationStats={genStats}
         systemStatus={systemStatus}
+        strategy={systemStatus?.strategy}
+        activeColonies={activeColonies}
         connected={connected}
         simStatus={simStatus}
         mode={simMode}
@@ -409,6 +462,13 @@ function PageHeader({
             genetic crossover and mutation — profitable ones reproduce, losing ones
             die.
           </p>
+          <Link
+            href="/docs#probes"
+            className="mt-1 inline-flex items-center gap-1 text-[11px] text-white/30 hover:text-[#00fff5] transition-colors"
+          >
+            <BookOpen className="h-3 w-3" />
+            View Documentation
+          </Link>
         </div>
       </div>
       {isActive && startedAt && (

@@ -40,6 +40,7 @@ export function buildDefaultConfig(): ColonyConfig {
 /** Full start config sent to the API */
 export interface StartConfig {
   mode: "simulation" | "paper";
+  strategy: string;
   preset?: string;
   colony_config: ColonyConfig;
   gen0_count: number;
@@ -53,6 +54,7 @@ export interface StartConfig {
 export function buildDefaultStartConfig(): StartConfig {
   return {
     mode: "simulation",
+    strategy: "genetic_algorithm",
     colony_config: buildDefaultConfig(),
     gen0_count: 10,
     max_capital: 10_000,

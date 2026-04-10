@@ -3,8 +3,8 @@ Genesis Controller — the top-level orchestrator.
 
 Responsibilities:
   - Spawn and fund Gen-0 probes (respecting ColonyConfig)
-  - Evaluate fitness-ranked reproduction at intervals (not per-tick)
-  - Handle death events (reclaim capital, best-of-dead auto-spawn)
+  - Delegate evolution to a pluggable EvolutionStrategy
+  - Handle death events (reclaim capital, strategy-aware auto-spawn)
   - Enforce population cap, capital limits, max lifespan
   - Run circuit breakers and diversity injection
   - Drive the tick loop and broadcast events
@@ -19,16 +19,11 @@ from datetime import datetime, timezone
 from typing import Optional, Callable, Awaitable
 
 from .colony_config import ColonyConfig
-from .evolution import (
-    inject_diversity,
-    population_diversity,
-    reproduce,
-    select_parents_by_fitness,
-    tournament_select,
-)
+from .evolution import population_diversity
 from .genome import Genome, random_genome
 from .names import generate_probe_name
 from .probe import Probe
+from .strategies.base import EvolutionStrategy
 from .types import EventType, ProbeEvent, ProbeState, FitnessSnapshot
 from ..market.feed import MarketFeed
 
@@ -41,6 +36,8 @@ class GenesisController:
     def __init__(
         self,
         market_feed: MarketFeed,
+        strategy: EvolutionStrategy,
+        colony_id: str,
         user_id: str,
         mode: str = "simulation",
         max_probes: int = 50,
@@ -57,6 +54,7 @@ class GenesisController:
         on_event: Optional[Callable[[ProbeEvent], Awaitable[None]]] = None,
     ):
         self.market_feed = market_feed
+        self.strategy = strategy
         self.user_id = user_id
         self.mode = mode
 
@@ -87,7 +85,8 @@ class GenesisController:
         self.circuit_breaker_active = False
 
         # State
-        self.run_id = str(uuid.uuid4())
+        self.colony_id = colony_id
+        self.run_id = colony_id  # Alias for backward compatibility
         self.probes: dict[str, Probe] = {}
         self.dead_probes: list[Probe] = []
         self.current_generation = 0
@@ -102,6 +101,9 @@ class GenesisController:
         # Capital tracking
         self._initial_total_capital = 0.0
 
+        # Latest prices (updated each tick for use during probe retirement)
+        self._latest_prices: dict[str, float] = {}
+
         # Generation tracking
         self._generation_probe_counts: dict[int, int] = {}
         self._generation_dead_counts: dict[int, int] = {}
@@ -115,8 +117,8 @@ class GenesisController:
         self.reproduction_interval = self.colony_config.reproduction_interval
 
         logger.info(
-            f"[Genesis] Init. mode={mode} max_probes={max_probes} "
-            f"max_capital=${max_capital} gen0={gen0_count} "
+            f"[Genesis] Init. mode={mode} strategy={strategy.name} "
+            f"max_probes={max_probes} max_capital=${max_capital} gen0={gen0_count} "
             f"repro_interval={self.reproduction_interval}"
         )
 
@@ -136,6 +138,8 @@ class GenesisController:
             "status": "running" if self._running and not self._paused else
                       "paused" if self._paused else "stopped",
             "run_id": self.run_id,
+            "colony_id": self.colony_id,
+            "strategy": self.strategy.name,
             "mode": self.mode,
             "generation": self.current_generation,
             "tick": self.tick_count,
@@ -176,6 +180,9 @@ class GenesisController:
         # Backfill price history for paper mode
         if self.mode == "paper":
             await self._backfill_probes()
+
+        # Initialize the strategy with live probes
+        self.strategy.initialize(list(self.probes.values()), self.colony_config)
 
         self._initial_total_capital = self.active_capital + self.reserve_capital
 
@@ -253,74 +260,118 @@ class GenesisController:
         ))
         return probe
 
-    # ── Lifecycle: Reproduction ──────────────────────────────────────────
+    # ── Probe retirement (strategy-driven) ───────────────────────────────
+
+    async def _retire_probe(self, probe: Probe, reason: str = "evolution") -> float:
+        """Close positions, transition to DEAD, archive. Returns reclaimed capital.
+        Handles both TRADING and OBSERVING probes correctly."""
+        # Close all open positions
+        for asset in list(probe.open_positions.keys()):
+            price = self._latest_prices.get(asset, 0)
+            if price <= 0:
+                buf = probe._price_buffer.get(asset, [])
+                price = buf[-1] if buf else 0
+            evt = probe._close_position(asset, price, "EVOLUTION")
+            if evt:
+                await self._emit(evt)
+
+        # State transition depends on current state
+        if probe.state == ProbeState.TRADING:
+            probe._transition(ProbeState.REPRODUCING)
+            await self._emit(ProbeEvent(
+                event_type=EventType.PROBE_REPRODUCING,
+                probe_id=probe.probe_id,
+                data=probe.summary(),
+            ))
+            probe._transition(ProbeState.DEAD)
+        elif probe.state == ProbeState.OBSERVING:
+            probe._transition(ProbeState.DYING)
+            probe.died_at = datetime.now(timezone.utc)
+            probe.death_reason = reason
+            await self._emit(ProbeEvent(
+                event_type=EventType.PROBE_DYING,
+                probe_id=probe.probe_id,
+                data={"reason": reason, **probe.summary()},
+            ))
+            probe._transition(ProbeState.DEAD)
+        else:
+            probe.state = ProbeState.DEAD
+
+        reclaimed = probe.capital
+        self.reserve_capital += reclaimed
+
+        gen = probe.genome.generation
+        self._generation_reproduced[gen] = self._generation_reproduced.get(gen, 0) + 1
+        self.dead_probes.append(probe)
+        if probe.probe_id in self.probes:
+            del self.probes[probe.probe_id]
+
+        return reclaimed
+
+    @staticmethod
+    def _transfer_price_buffers(source: Probe, target: Probe) -> None:
+        """Copy price/volume buffers from a retired probe to its offspring."""
+        for asset in source.genome.assets:
+            if asset in source._price_buffer:
+                target._price_buffer[asset] = list(source._price_buffer[asset])
+            if asset in source._volume_buffer:
+                target._volume_buffer[asset] = list(source._volume_buffer[asset])
+
+    # ── Lifecycle: Reproduction (strategy-delegated) ─────────────────────
 
     async def _evaluate_reproduction(self) -> None:
-        """
-        Fitness-ranked reproduction. Called every reproduction_interval ticks.
-        Top 30% by fitness reproduce (if they meet the benchmark floor).
-        """
+        """Delegate evolution to the strategy. Called every reproduction_interval ticks."""
         live = [p for p in self.probes.values()
                 if p.state in (ProbeState.OBSERVING, ProbeState.TRADING)]
         if len(live) < 2:
             return
 
-        parents = select_parents_by_fitness(
-            live, top_pct=0.30, min_trades=3, min_roi=0.0
-        )
+        result = self.strategy.evolve(live, self.dead_probes, self.colony_config)
 
-        for parent in parents:
-            # Floor check: ROI must meet minimum benchmark
-            if parent.roi < parent.genome.benchmark_target_pct:
+        # 1. Retire probes: close positions, reclaim capital, archive
+        total_reclaimed = 0.0
+        retired_probes: dict[str, Probe] = {}
+        for probe_id in result.retire_ids:
+            probe = self.probes.get(probe_id)
+            if not probe or probe.state == ProbeState.DEAD:
                 continue
-            await self._handle_reproduce(parent)
+            retired_probes[probe_id] = probe
+            reclaimed = await self._retire_probe(probe)
+            total_reclaimed += reclaimed
 
-    async def _handle_reproduce(self, parent: Probe) -> None:
-        logger.info(
-            f"[Genesis] {parent.probe_name} reproducing. "
-            f"Fitness={parent.fitness:.3f} ROI={parent.roi*100:.1f}%"
-        )
+        # 2. Spawn offspring with capital from retired probes
+        if result.offspring:
+            if result.retire_ids and total_reclaimed > 0:
+                per_child = (total_reclaimed * self.capital_split) / len(result.offspring)
+            else:
+                per_child = self.seed_capital
+            for i, genome in enumerate(result.offspring):
+                # Set parent_ids from strategy's parent_map
+                idx = str(i)
+                if idx in result.parent_map:
+                    genome.parent_ids = result.parent_map[idx]
 
-        # Close all open positions
-        events = parent._trigger_reproduce()
-        for evt in events:
-            await self._emit(evt)
+                spawn_capital = min(per_child, self.reserve_capital)
+                if spawn_capital < 1.0:
+                    continue
+                new_probe = await self._spawn_probe(genome, spawn_capital)
 
-        live_genomes = [p.genome for p in self.live_probes if p is not parent]
+                # Transfer price buffers from retired parent to offspring
+                if new_probe and genome.parent_ids:
+                    parent_id = genome.parent_ids[0]
+                    parent = retired_probes.get(parent_id)
+                    if parent:
+                        self._transfer_price_buffers(parent, new_probe)
+                        if hasattr(self.strategy, 'remap_probe_id'):
+                            self.strategy.remap_probe_id(parent_id, new_probe.probe_id)
 
-        # Use tournament selection for mate
-        live_list = [p for p in self.live_probes if p is not parent]
-        mate = tournament_select(live_list, k=3)
-        mate_genomes = live_genomes if mate is None else [g for g in live_genomes]
-
-        child_genomes = reproduce(
-            parent=parent.genome,
-            population=mate_genomes,
-            num_children=self.child_count,
-            mutation_rate=self.mutation_rate,
-            colony_config=self.colony_config,
-        )
-
-        child_capital = parent.capital * self.capital_split
-        remaining = parent.capital - (child_capital * len(child_genomes))
-        self.reserve_capital += max(0, remaining)
-
-        for child_genome in child_genomes:
-            child_genome.parent_ids = [parent.probe_id]
-            if mate:
-                child_genome.parent_ids.append(mate.probe_id)
-            await self._spawn_probe(child_genome, child_capital)
-
-        # Archive parent
-        parent_gen = parent.genome.generation
-        self._generation_reproduced[parent_gen] = self._generation_reproduced.get(parent_gen, 0) + 1
-        self.dead_probes.append(parent)
-        parent.state = ProbeState.DEAD
-        if parent.probe_id in self.probes:
-            del self.probes[parent.probe_id]
-
+        # 3. Check diversity
         await self._check_diversity()
-        await self._maybe_emit_generation_stats(parent_gen)
+        # 4. Generation stats
+        for probe_id in result.retire_ids:
+            probe = retired_probes.get(probe_id)
+            if probe:
+                await self._maybe_emit_generation_stats(probe.genome.generation)
 
     # ── Lifecycle: Death ─────────────────────────────────────────────────
 
@@ -336,25 +387,17 @@ class GenesisController:
 
         await self._maybe_emit_generation_stats(probe_gen)
 
-        # Auto-spawn: best-of-dead instead of random
+        # Auto-spawn: use strategy's diversity injection
         live_count = len(self.live_probes)
         if live_count < self.gen0_count // 2 and self.reserve_capital >= self.seed_capital:
-            logger.info("[Genesis] Population low — spawning from best-of-dead")
-            if self.dead_probes:
-                recent_dead = self.dead_probes[-50:]
-                best = max(recent_dead, key=lambda p: p.fitness)
-                from .evolution import mutate
-                child_genome = Genome(
-                    **{g: getattr(best.genome, g) for g in Genome.__dataclass_fields__ if hasattr(best.genome, g) and g not in ('assets', 'generation', 'parent_ids')},
-                    assets=list(best.genome.assets),
-                    generation=self.current_generation,
-                    parent_ids=[best.probe_id],
-                )
-                child_genome = mutate(child_genome, mutation_rate=0.30, colony_config=self.colony_config)
-                await self._spawn_probe(child_genome, self.seed_capital)
-            else:
-                genome = random_genome(generation=self.current_generation, colony_config=self.colony_config)
-                await self._spawn_probe(genome, self.seed_capital)
+            logger.info("[Genesis] Population low -- spawning via strategy diversity injection")
+            genomes = [p.genome for p in self.live_probes]
+            new_genomes = self.strategy.inject_diversity(
+                genomes, self.dead_probes, self.colony_config,
+                current_generation=self.current_generation, count=1,
+            )
+            for g in new_genomes:
+                await self._spawn_probe(g, self.seed_capital)
 
     # ── Tick loop ────────────────────────────────────────────────────────
 
@@ -390,6 +433,10 @@ class GenesisController:
         all_assets = list({a for p in live for a in p.genome.assets})
         ticks = await self.market_feed.get_ticks(all_assets)
 
+        # Store latest prices for use during probe retirement
+        for asset, tick in ticks.items():
+            self._latest_prices[asset] = tick.price
+
         for probe in live:
             for asset in probe.genome.assets:
                 if asset in ticks:
@@ -409,7 +456,7 @@ class GenesisController:
                     data={"prices": price_data, "tick": self.tick_count},
                 ))
 
-        # Tick each probe — collect only death events (reproduction is interval-based now)
+        # Tick each probe — collect only death events
         dying: list[Probe] = []
 
         for probe in live:
@@ -418,8 +465,6 @@ class GenesisController:
                 await self._emit(evt)
                 if evt.event_type == EventType.PROBE_DYING:
                     dying.append(probe)
-                # NOTE: PROBE_REPRODUCING from probe.tick() is now ignored here.
-                # Reproduction is handled by _evaluate_reproduction() at intervals.
 
         # Process death events
         for probe in dying:
@@ -437,7 +482,7 @@ class GenesisController:
                             await self._emit(evt)
                         await self._handle_die(probe)
 
-        # Fitness-ranked reproduction at intervals
+        # Strategy-driven reproduction at intervals
         if self.tick_count % self.reproduction_interval == 0:
             await self._evaluate_reproduction()
 
@@ -481,17 +526,18 @@ class GenesisController:
     # ── Diversity ────────────────────────────────────────────────────────
 
     async def _check_diversity(self) -> None:
-        live_genomes = [p.genome for p in self.live_probes]
-        new_genomes = inject_diversity(
-            live_genomes,
-            self.current_generation,
-            self.diversity_threshold,
-            dead_probes=self.dead_probes if self.dead_probes else None,
-            colony_config=self.colony_config,
-        )
-        for genome in new_genomes:
-            if self.reserve_capital >= self.seed_capital:
-                await self._spawn_probe(genome, self.seed_capital)
+        genomes = [p.genome for p in self.live_probes]
+        if len(genomes) < 2:
+            return
+        diversity = self.strategy.compute_diversity(genomes)
+        if diversity < self.diversity_threshold:
+            new_genomes = self.strategy.inject_diversity(
+                genomes, self.dead_probes, self.colony_config,
+                current_generation=self.current_generation, count=2,
+            )
+            for g in new_genomes:
+                if self.reserve_capital >= self.seed_capital:
+                    await self._spawn_probe(g, self.seed_capital)
 
     # ── Fitness snapshots ────────────────────────────────────────────────
 

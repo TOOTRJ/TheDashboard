@@ -51,6 +51,7 @@ class ColonyConfig:
     available_assets: Optional[list[str]] = None  # None = all assets
     max_lifespan_ticks: Optional[int] = None
     reproduction_interval: int = 100  # Evaluate fitness-ranked reproduction every N ticks
+    mutation_rate: Optional[float] = None  # None = use strategy default
 
     def is_gene_evolvable(self, gene_name: str) -> bool:
         """Returns False if gene is fixed or not in enabled_genes."""
@@ -97,13 +98,16 @@ class ColonyConfig:
         return list(AVAILABLE_ASSETS)
 
     def to_dict(self) -> dict:
-        return {
+        d: dict[str, Any] = {
             "gene_overrides": {k: v.to_dict() for k, v in self.gene_overrides.items()},
             "enabled_genes": self.enabled_genes,
             "available_assets": self.available_assets,
             "max_lifespan_ticks": self.max_lifespan_ticks,
             "reproduction_interval": self.reproduction_interval,
         }
+        if self.mutation_rate is not None:
+            d["mutation_rate"] = self.mutation_rate
+        return d
 
     @classmethod
     def from_dict(cls, d: dict) -> ColonyConfig:
@@ -117,6 +121,7 @@ class ColonyConfig:
             available_assets=d.get("available_assets"),
             max_lifespan_ticks=d.get("max_lifespan_ticks"),
             reproduction_interval=d.get("reproduction_interval", 100),
+            mutation_rate=d.get("mutation_rate"),
         )
 
 

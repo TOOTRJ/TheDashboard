@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ConnectionStatus } from "./ConnectionStatus";
 import { ColonyConfigDialog } from "./ColonyConfigDialog";
-import type { SimulationStatus } from "@/lib/probes/types";
+import type { SimulationStatus, ColonyInfo } from "@/lib/probes/types";
 import type { StartConfig } from "@/lib/probes/colony-config";
+import { STRATEGY_LABELS } from "@/lib/probes/constants";
 
 interface Props {
   status: SimulationStatus;
@@ -16,6 +17,8 @@ interface Props {
   tick: number;
   liveProbes: number;
   mode: string;
+  strategy?: string;
+  activeColonies?: ColonyInfo[];
   starting: boolean;
   onStart: (config: StartConfig) => void;
   onStop: () => void;
@@ -30,6 +33,8 @@ export function SimulationControls({
   tick,
   liveProbes,
   mode,
+  strategy,
+  activeColonies,
   starting,
   onStart,
   onStop,
@@ -102,6 +107,21 @@ export function SimulationControls({
             }}
           >
             {mode === "paper" ? "LIVE PRICES" : "SIMULATED"}
+          </Badge>
+        )}
+
+        {status !== "stopped" && strategy && (
+          <Badge variant="outline" className="ml-2 text-xs">
+            {STRATEGY_LABELS[strategy] ?? strategy}
+          </Badge>
+        )}
+
+        {activeColonies && activeColonies.length > 1 && (
+          <Badge
+            variant="outline"
+            className="text-[10px] px-1.5 py-0 border-[#bf00ff]/40 bg-[#bf00ff]/10 text-[#bf00ff]"
+          >
+            {activeColonies.length} colonies
           </Badge>
         )}
 

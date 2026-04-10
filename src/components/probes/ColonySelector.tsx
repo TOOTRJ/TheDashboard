@@ -11,11 +11,13 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import type { ColonyRun } from "@/lib/probes/types";
+import type { ColonyRun, ColonyInfo } from "@/lib/probes/types";
+import { STRATEGY_LABELS } from "@/lib/probes/constants";
 
 interface Props {
   runs: ColonyRun[];
   activeRunId: string | null;
+  activeColonies: ColonyInfo[];
   onSelectRun: (runId: string) => void;
 }
 
@@ -40,10 +42,18 @@ function formatTimeAgo(dateStr: string): string {
   return `${days}d ago`;
 }
 
-export function ColonySelector({ runs, activeRunId, onSelectRun }: Props) {
+function formatUptime(secs: number): string {
+  if (secs < 60) return `${secs}s`;
+  const mins = Math.floor(secs / 60);
+  if (mins < 60) return `${mins}m ${secs % 60}s`;
+  const hrs = Math.floor(mins / 60);
+  return `${hrs}h ${mins % 60}m`;
+}
+
+export function ColonySelector({ runs, activeRunId, activeColonies, onSelectRun }: Props) {
   const [open, setOpen] = React.useState(false);
 
-  if (runs.length <= 1) return null;
+  if (activeColonies.length === 0 && runs.length <= 1) return null;
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -54,7 +64,7 @@ export function ColonySelector({ runs, activeRunId, onSelectRun }: Props) {
           className="h-8 border-[#bf00ff]/20 bg-[#bf00ff]/5 text-[#bf00ff] hover:bg-[#bf00ff]/15 hover:border-[#bf00ff]/40 text-xs"
         >
           <History className="mr-1.5 h-3.5 w-3.5" />
-          History ({runs.length})
+          History ({runs.length + activeColonies.length})
         </Button>
       </SheetTrigger>
       <SheetContent
@@ -67,6 +77,73 @@ export function ColonySelector({ runs, activeRunId, onSelectRun }: Props) {
           </SheetTitle>
         </SheetHeader>
         <div className="mt-4 space-y-2 max-h-[calc(100vh-120px)] overflow-y-auto">
+          {/* Active colonies */}
+          {activeColonies.length > 0 && (
+            <>
+              <span className="text-[10px] font-bold uppercase tracking-widest text-[#39ff14]">
+                Active
+              </span>
+              {activeColonies.map((col) => (
+                <button
+                  key={col.colony_id}
+                  onClick={() => {
+                    onSelectRun(col.colony_id);
+                    setOpen(false);
+                  }}
+                  className={`
+                    w-full rounded-lg border p-3 text-left transition-all
+                    ${col.colony_id === activeRunId
+                      ? "border-[#39ff14]/40 bg-[#39ff14]/10"
+                      : "border-[#39ff14]/10 bg-card/50 hover:border-[#39ff14]/30 hover:bg-[#39ff14]/5"
+                    }
+                  `}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <Dna className="h-3.5 w-3.5 text-[#39ff14]" />
+                      <span className="text-xs font-mono text-muted-foreground">
+                        {col.colony_id.slice(0, 8)}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Badge
+                        variant="outline"
+                        className="text-[9px] px-1 py-0 border-[#bf00ff]/40 text-[#bf00ff]"
+                      >
+                        {STRATEGY_LABELS[col.strategy] ?? col.strategy}
+                      </Badge>
+                      <Badge
+                        variant="outline"
+                        className="text-[9px] px-1 py-0 border-[#39ff14]/40 text-[#39ff14] bg-[#39ff14]/10"
+                      >
+                        LIVE
+                      </Badge>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 text-[10px]">
+                    <div className="flex items-center gap-1 text-muted-foreground">
+                      <Dna className="h-3 w-3" />
+                      Gen {col.generation}
+                    </div>
+                    <div className="flex items-center gap-1 text-muted-foreground">
+                      <Trophy className="h-3 w-3" />
+                      <span className="font-mono text-[#39ff14]">{col.live_probes}</span> probes
+                    </div>
+                    <div className="flex items-center gap-1 text-muted-foreground">
+                      <Clock className="h-3 w-3" />
+                      {formatUptime(col.uptime_secs)}
+                    </div>
+                  </div>
+                </button>
+              ))}
+              {runs.length > 0 && (
+                <span className="text-[10px] font-bold uppercase tracking-widest text-[#bf00ff] mt-2 block">
+                  History
+                </span>
+              )}
+            </>
+          )}
+
           {runs.map((run) => {
             const isActive = run.run_id === activeRunId;
             return (
