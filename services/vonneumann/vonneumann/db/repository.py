@@ -27,6 +27,7 @@ class VonNeumannRepository:
     # ── Probes ───────────────────────────────────────────────────────────
 
     def insert_probe(self, probe_data: dict) -> None:
+        parent_ids = probe_data.get("parent_ids") or []
         row = {
             "id": probe_data["probe_id"],
             "user_id": self.user_id,
@@ -34,6 +35,7 @@ class VonNeumannRepository:
             "probe_name": probe_data.get("probe_name", ""),
             "generation": probe_data.get("generation", 0),
             "parent_id": probe_data.get("parent_id"),
+            "parent_ids": parent_ids,
             "state": probe_data.get("state", "BORN"),
             "genome": probe_data.get("genome", {}),
             "initial_capital": probe_data.get("initial_capital", 0),
@@ -186,12 +188,13 @@ class EventPersister:
         data = event.data
 
         if etype == EventType.PROBE_BORN:
-            parent_ids = data.get("genome", {}).get("parent_ids", [])
+            parent_ids = data.get("genome", {}).get("parent_ids", []) or []
             self.repo.insert_probe({
                 "probe_id": event.probe_id,
                 "probe_name": data.get("probe_name", ""),
                 "generation": data.get("generation", 0),
                 "parent_id": parent_ids[0] if parent_ids else None,
+                "parent_ids": parent_ids,
                 "state": data.get("state", "OBSERVING"),
                 "genome": data.get("genome", {}),
                 "initial_capital": data.get("initial_capital", 0),

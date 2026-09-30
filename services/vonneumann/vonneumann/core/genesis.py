@@ -19,7 +19,7 @@ from datetime import datetime, timezone
 from typing import Optional, Callable, Awaitable
 
 from .colony_config import ColonyConfig
-from .evolution import population_diversity
+from .evolution import NUMERIC_GENES, mutate, population_diversity
 from .genome import Genome, random_genome
 from .names import generate_probe_name
 from .probe import Probe
@@ -104,6 +104,10 @@ class GenesisController:
         # Latest prices (updated each tick for use during probe retirement)
         self._latest_prices: dict[str, float] = {}
 
+        # Optional background volume-refresh task (for paper/live modes where
+        # the feed supports periodic OHLCV volume refresh from a secondary source).
+        self._volume_task: Optional[asyncio.Task] = None
+
         # Generation tracking
         self._generation_probe_counts: dict[int, int] = {}
         self._generation_dead_counts: dict[int, int] = {}
@@ -130,7 +134,8 @@ class GenesisController:
 
     @property
     def active_capital(self) -> float:
-        return sum(p.capital for p in self.live_probes)
+        """Total portfolio value across all live probes (USDC + open positions)."""
+        return sum(p.total_value for p in self.live_probes)
 
     def status(self) -> dict:
         live = self.live_probes
@@ -192,21 +197,53 @@ class GenesisController:
             data=self.status(),
         ))
 
+        # Start background volume refresher if the feed supports it.
+        if hasattr(self.market_feed, "refresh_volumes"):
+            self._volume_task = asyncio.create_task(self._volume_refresh_loop())
+
         await self._tick_loop()
+
+    async def _volume_refresh_loop(self) -> None:
+        """Background task: periodically refresh volume data from secondary source."""
+        while self._running:
+            try:
+                await self.market_feed.refresh_volumes()
+            except Exception as e:
+                logger.debug(f"[Genesis] Volume refresh error: {e}")
+            await asyncio.sleep(30)
 
     async def _backfill_probes(self) -> None:
         if not hasattr(self.market_feed, 'backfill_probe'):
             return
-        all_assets = list({a for p in self.live_probes for a in p.genome.assets})
-        logger.info(f"[Genesis] Backfilling {len(all_assets)} assets...")
-        history = await self.market_feed.backfill_probe(all_assets, timeframe_minutes=15, limit=100)
+        # Group probes by timeframe to minimize API calls
+        timeframe_groups: dict[int, list[str]] = {}
         for probe in self.live_probes:
+            tf = probe.genome.int_genes()["timeframe_minutes"]
+            for asset in probe.genome.assets:
+                timeframe_groups.setdefault(tf, [])
+                if asset not in timeframe_groups[tf]:
+                    timeframe_groups[tf].append(asset)
+
+        all_history: dict[int, dict] = {}
+        for tf, assets in timeframe_groups.items():
+            logger.info(f"[Genesis] Backfilling {len(assets)} assets at {tf}m timeframe...")
+            all_history[tf] = await self.market_feed.backfill_probe(assets, timeframe_minutes=tf, limit=100)
+
+        for probe in self.live_probes:
+            tf = probe.genome.int_genes()["timeframe_minutes"]
+            history = all_history.get(tf, {})
             for asset in probe.genome.assets:
                 for candle in history.get(asset, []):
                     probe.on_price_update(asset, candle["price"], candle["volume"])
 
     async def stop(self) -> None:
         self._running = False
+        if self._volume_task and not self._volume_task.done():
+            self._volume_task.cancel()
+            try:
+                await self._volume_task
+            except (asyncio.CancelledError, Exception):
+                pass
         logger.info("[Genesis] Stopping.")
         await self._emit(ProbeEvent(
             event_type=EventType.SIMULATION_STATUS,
@@ -399,6 +436,58 @@ class GenesisController:
             for g in new_genomes:
                 await self._spawn_probe(g, self.seed_capital)
 
+    async def _handle_self_reproduce(self, probe: Probe) -> None:
+        """A probe hit its own reproduction target (ROI/$ threshold).
+
+        Probe has already transitioned to REPRODUCING and closed its positions.
+        We finalize the transition to DEAD, reclaim its capital, and spawn
+        `child_count` mutated asexual clones so the lineage propagates.
+        """
+        if probe.state != ProbeState.REPRODUCING:
+            return
+
+        reclaimed = probe.capital
+        probe._transition(ProbeState.DEAD)
+        self.reserve_capital += reclaimed
+
+        probe_gen = probe.genome.generation
+        self._generation_reproduced[probe_gen] = self._generation_reproduced.get(probe_gen, 0) + 1
+        self.dead_probes.append(probe)
+        if probe.probe_id in self.probes:
+            del self.probes[probe.probe_id]
+
+        # Spawn mutated asexual children that inherit this probe's successful genome.
+        if self.child_count > 0:
+            per_child = (reclaimed * self.capital_split) / self.child_count
+            if per_child < 1.0:
+                per_child = min(self.seed_capital, self.reserve_capital)
+            logger.info(
+                f"[Genesis] Self-reproduce: {probe.probe_name} spawning "
+                f"{self.child_count} children at ${per_child:.2f} each"
+            )
+            for _ in range(self.child_count):
+                spawn_capital = min(per_child, self.reserve_capital)
+                if spawn_capital < 1.0:
+                    break
+                child = Genome(
+                    **{g: getattr(probe.genome, g) for g in NUMERIC_GENES},
+                    assets=list(probe.genome.assets),
+                    generation=probe.genome.generation + 1,
+                    parent_ids=[probe.probe_id],
+                )
+                child = mutate(
+                    child,
+                    mutation_rate=self.mutation_rate,
+                    colony_config=self.colony_config,
+                )
+                new_probe = await self._spawn_probe(child, spawn_capital)
+                if new_probe:
+                    self._transfer_price_buffers(probe, new_probe)
+                    if hasattr(self.strategy, "remap_probe_id"):
+                        self.strategy.remap_probe_id(probe.probe_id, new_probe.probe_id)
+
+        await self._maybe_emit_generation_stats(probe_gen)
+
     # ── Tick loop ────────────────────────────────────────────────────────
 
     async def _tick_loop(self) -> None:
@@ -456,8 +545,9 @@ class GenesisController:
                     data={"prices": price_data, "tick": self.tick_count},
                 ))
 
-        # Tick each probe — collect only death events
+        # Tick each probe — collect death and self-reproduce events
         dying: list[Probe] = []
+        self_reproducing: list[Probe] = []
 
         for probe in live:
             events = probe.tick()
@@ -465,10 +555,16 @@ class GenesisController:
                 await self._emit(evt)
                 if evt.event_type == EventType.PROBE_DYING:
                     dying.append(probe)
+                elif evt.event_type == EventType.PROBE_REPRODUCING:
+                    self_reproducing.append(probe)
 
         # Process death events
         for probe in dying:
             await self._handle_die(probe)
+
+        # Process self-triggered reproduction events (probe hit ROI/dollar target)
+        for probe in self_reproducing:
+            await self._handle_self_reproduce(probe)
 
         # Max lifespan enforcement
         max_life = self.colony_config.max_lifespan_ticks

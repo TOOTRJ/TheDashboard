@@ -80,6 +80,14 @@ class JupiterFeed(MarketFeed):
         self._cache: dict[str, tuple[float, MarketTick]] = {}
         self._cache_ttl = 0.8  # seconds — slightly under 1s tick
 
+        # Volume cache — Jupiter price API doesn't include volume, so we
+        # refresh from Birdeye OHLCV on a slow schedule and merge the last
+        # known volume into each tick. Without this, the `volume_threshold`
+        # signal gene is silently neutralized after ~20 live ticks.
+        self._volume_cache: dict[str, float] = {}
+        self._last_volume_refresh: float = 0.0
+        self._volume_refresh_interval: float = 60.0  # seconds
+
         self._session: Optional[aiohttp.ClientSession] = None
 
     async def _get_session(self) -> aiohttp.ClientSession:
@@ -138,7 +146,7 @@ class JupiterFeed(MarketFeed):
                     tick = MarketTick(
                         asset=asset,
                         price=price,
-                        volume=0,  # Jupiter price API doesn't include volume
+                        volume=self._volume_cache.get(asset, 0.0),
                         timestamp=now,
                     )
                     result[asset] = tick
@@ -169,6 +177,49 @@ class JupiterFeed(MarketFeed):
         """Get prices for multiple assets — single API call."""
         all_prices = await self._fetch_all_prices()
         return {a: all_prices[a] for a in assets if a in all_prices}
+
+    # ── Volume refresh (via Birdeye) ─────────────────────────────────────
+    # Jupiter's price API doesn't return volume. We keep a small per-asset
+    # cache that we refresh from Birdeye 1-minute OHLCV on a slow schedule
+    # so the `volume_threshold` signal gene has real data to work with.
+
+    async def refresh_volumes(self, assets: Optional[list[str]] = None) -> None:
+        """Refresh cached volumes from Birdeye. Rate-limited internally — safe to call every tick."""
+        if not self._birdeye_key:
+            return
+
+        now = time.time()
+        if now - self._last_volume_refresh < self._volume_refresh_interval:
+            return
+        self._last_volume_refresh = now
+
+        target_assets = assets or list(TOKEN_MINTS.keys())
+        session = await self._get_session()
+
+        for asset in target_assets:
+            mint = TOKEN_MINTS.get(asset)
+            if not mint:
+                continue
+            try:
+                async with session.get(
+                    "https://public-api.birdeye.so/defi/ohlcv",
+                    params={
+                        "address": mint,
+                        "type": "1m",
+                        "time_from": int(now) - 180,
+                        "time_to": int(now),
+                    },
+                    headers=self._birdeye_headers,
+                ) as resp:
+                    if resp.status != 200:
+                        continue
+                    data = await resp.json()
+                    items = data.get("data", {}).get("items", [])
+                    if items:
+                        self._volume_cache[asset] = float(items[-1].get("v", 0) or 0)
+            except Exception as e:
+                logger.debug(f"[Jupiter] Volume refresh error for {asset}: {e}")
+            await asyncio.sleep(0.75)  # Birdeye rate limit
 
     # ── OHLCV Backfill (via Birdeye) ─────────────────────────────────────
     # Jupiter doesn't have a candle history endpoint, so we use Birdeye

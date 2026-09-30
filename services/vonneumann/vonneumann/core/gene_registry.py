@@ -218,7 +218,7 @@ GENE_REGISTRY.register(GeneDefinition(
     name="position_size_pct",
     label="Position Size %",
     group=GeneGroup.RISK,
-    min=0.05, max=0.30, default=0.15,
+    min=0.05, max=0.90, default=0.75,
     description="Fraction of capital allocated per trade.",
 ))
 
@@ -243,7 +243,7 @@ GENE_REGISTRY.register(GeneDefinition(
     name="max_open_positions",
     label="Max Positions",
     group=GeneGroup.RISK,
-    min=1, max=4, default=2.0,
+    min=1, max=4, default=1.0,
     gene_type=GeneType.INT,
     description="Maximum number of simultaneous open positions.",
 ))
@@ -265,6 +265,14 @@ GENE_REGISTRY.register(GeneDefinition(
     group=GeneGroup.LIFECYCLE,
     min=0.03, max=0.15, default=0.08,
     description="Minimum ROI percentage required for a probe to be eligible for reproduction.",
+))
+
+GENE_REGISTRY.register(GeneDefinition(
+    name="reproduce_target_dollars",
+    label="Reproduce At $",
+    group=GeneGroup.LIFECYCLE,
+    min=2.0, max=50.0, default=10.0,
+    description="Dollar profit target for reproduction eligibility (OR'd with ROI %).",
 ))
 
 GENE_REGISTRY.register(GeneDefinition(

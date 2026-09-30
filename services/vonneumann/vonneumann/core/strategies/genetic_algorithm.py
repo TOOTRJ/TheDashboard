@@ -55,16 +55,12 @@ class GeneticAlgorithmStrategy(EvolutionStrategy):
         parent_map: dict[str, list[str]] = {}
 
         for parent in parents:
-            if parent.roi < parent.genome.benchmark_target_pct:
-                continue
-
             mate_pool = [p for p in probes if p.probe_id != parent.probe_id]
             mate = tournament_select(mate_pool, k=3)
-            mate_genomes = [p.genome for p in mate_pool]
 
             children = reproduce(
                 parent.genome,
-                mate_genomes,
+                mate.genome if mate else None,
                 self.child_count,
                 self.mutation_rate,
                 colony_config,
@@ -168,21 +164,31 @@ def crossover(
 
 def reproduce(
     parent: Genome,
-    population: list[Genome],
+    mate: Optional[Genome],
     num_children: int = 2,
     mutation_rate: float = 0.20,
     colony_config: Optional[ColonyConfig] = None,
 ) -> list[Genome]:
-    """Produce children via sexual (crossover+mutate) or asexual (clone+mutate)."""
-    generation = parent.generation + 1
-    children = []
-    mates = [g for g in population if g is not parent]
+    """Produce children via sexual (crossover+mutate) or asexual (clone+mutate).
 
-    for _ in range(num_children):
-        if mates and random.random() > 0.3:
-            mate = random.choice(mates)
-            child, _ = crossover(parent, mate, generation, colony_config)
-            child = mutate(child, mutation_rate, colony_config=colony_config)
+    Uses the caller-provided mate (already selected via tournament) so that
+    the genealogy recorded by the caller matches who actually bred. When no
+    mate is available, falls back to asexual cloning.
+
+    Both children from each crossover are kept and mutated independently to
+    avoid wasting work.
+    """
+    generation = parent.generation + 1
+    children: list[Genome] = []
+
+    while len(children) < num_children:
+        if mate is not None and random.random() > 0.3:
+            child_a, child_b = crossover(parent, mate, generation, colony_config)
+            child_a = mutate(child_a, mutation_rate, colony_config=colony_config)
+            children.append(child_a)
+            if len(children) < num_children:
+                child_b = mutate(child_b, mutation_rate, colony_config=colony_config)
+                children.append(child_b)
         else:
             child = Genome(
                 **{g: getattr(parent, g) for g in NUMERIC_GENES},
@@ -191,6 +197,6 @@ def reproduce(
                 parent_ids=[],
             )
             child = mutate(child, mutation_rate * 1.5, colony_config=colony_config)
-        children.append(child)
+            children.append(child)
 
-    return children
+    return children[:num_children]

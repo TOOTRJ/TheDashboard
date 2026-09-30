@@ -25,6 +25,8 @@ export interface ColonyPreset {
   label: string;
   description: string;
   config: ColonyConfig;
+  /** Overrides applied to StartConfig (mutation_rate, etc.) */
+  startOverrides?: Partial<Pick<StartConfig, "mutation_rate" | "max_probes" | "gen0_count" | "seed_capital" | "tick_interval_ms">>;
 }
 
 export function buildDefaultConfig(): ColonyConfig {
@@ -85,7 +87,7 @@ export const PRESETS: ColonyPreset[] = [
       enabled_genes: [
         "rsi_period", "rsi_oversold", "rsi_overbought",
         "stop_loss_pct", "take_profit_pct", "position_size_pct",
-        "benchmark_target_pct", "death_drawdown_pct",
+        "benchmark_target_pct", "reproduce_target_dollars", "death_drawdown_pct",
       ],
       available_assets: null,
       max_lifespan_ticks: null,
@@ -116,6 +118,79 @@ export const PRESETS: ColonyPreset[] = [
     config: {
       gene_overrides: {
         benchmark_target_pct: { min: 0.03, max: 0.08 },
+        reproduce_target_dollars: { min: 2.0, max: 8.0 },
+      },
+      enabled_genes: null,
+      available_assets: null,
+      max_lifespan_ticks: null,
+      reproduction_interval: 50,
+    },
+  },
+  {
+    name: "high_risk",
+    label: "High Risk",
+    description: "Big positions, wide stops, aggressive reproduction.",
+    config: {
+      gene_overrides: {
+        position_size_pct: { min: 0.70, max: 0.90 },
+        stop_loss_pct: { min: 0.05, max: 0.10 },
+        take_profit_pct: { min: 0.10, max: 0.20 },
+        max_open_positions: { fixed: 4.0 },
+        benchmark_target_pct: { min: 0.03, max: 0.06 },
+        reproduce_target_dollars: { min: 2.0, max: 5.0 },
+        death_drawdown_pct: { min: 0.25, max: 0.35 },
+      },
+      enabled_genes: null,
+      available_assets: null,
+      max_lifespan_ticks: null,
+      reproduction_interval: 75,
+    },
+  },
+  {
+    name: "fast_evolution",
+    label: "Fast Evolution",
+    description: "Rapid generations. High mutation, short lifespan, frequent reproduction.",
+    config: {
+      gene_overrides: {
+        benchmark_target_pct: { min: 0.03, max: 0.05 },
+        reproduce_target_dollars: { min: 2.0, max: 5.0 },
+        timeframe_minutes: { min: 5, max: 15 },
+      },
+      enabled_genes: null,
+      available_assets: null,
+      max_lifespan_ticks: 200,
+      reproduction_interval: 25,
+    },
+    startOverrides: { mutation_rate: 0.35 },
+  },
+  {
+    name: "slow_evolution",
+    label: "Slow & Steady",
+    description: "Probes mature fully. Low mutation, long lifespan, high bar to reproduce.",
+    config: {
+      gene_overrides: {
+        benchmark_target_pct: { min: 0.08, max: 0.15 },
+        reproduce_target_dollars: { min: 15.0, max: 50.0 },
+        timeframe_minutes: { min: 30, max: 60 },
+      },
+      enabled_genes: null,
+      available_assets: null,
+      max_lifespan_ticks: null,
+      reproduction_interval: 200,
+    },
+    startOverrides: { mutation_rate: 0.10 },
+  },
+  {
+    name: "scalper",
+    label: "Scalper",
+    description: "Fast in/out, tight stops, small profits. High trade volume.",
+    config: {
+      gene_overrides: {
+        position_size_pct: { min: 0.10, max: 0.25 },
+        stop_loss_pct: { min: 0.01, max: 0.03 },
+        take_profit_pct: { min: 0.03, max: 0.06 },
+        timeframe_minutes: { fixed: 5.0 },
+        max_open_positions: { min: 2, max: 4 },
       },
       enabled_genes: null,
       available_assets: null,

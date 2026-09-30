@@ -467,16 +467,16 @@ export default function DocsPage() {
         <Table
           headers={["Preset", "Behavior"]}
           rows={[
-            ["Default", "All 14 genes evolve freely across their full range. All 8 assets available."],
+            ["Default", "All 15 genes evolve freely across their full range. All 8 assets available."],
             ["RSI Focus", "EMA and volume genes are fixed; only RSI + risk + lifecycle genes evolve."],
             ["Conservative Risk", "Tighter risk gene bounds (smaller positions, tighter stops). Max 1 open position."],
-            ["Wide Exploration", "Lower reproduction benchmark (3-8% ROI), reproduction every 50 ticks instead of 100."],
+            ["Wide Exploration", "Lower reproduction benchmarks (3-8% ROI, $2-$8 profit), reproduction every 50 ticks instead of 100."],
           ]}
         />
 
         <H4 id="probes-config-genes">Gene Controls</H4>
         <P>
-          Each of the 14 genes can be individually configured. Genes are organized into three groups: Signal, Risk, and Lifecycle. For each gene you can:
+          Each of the 15 genes can be individually configured. Genes are organized into three groups: Signal, Risk, and Lifecycle. For each gene you can:
         </P>
         <ul className="list-disc list-inside text-sm text-white/70 space-y-1 mb-3 ml-4">
           <li>Enable or disable it from mutation/crossover (checkbox)</li>
@@ -729,6 +729,7 @@ export default function DocsPage() {
             ["max_open_positions", "Risk", "INT", "1", "4", "2"],
             ["timeframe_minutes", "Lifecycle", "INT", "5", "60", "15"],
             ["benchmark_target_pct", "Lifecycle", "FLOAT", "0.03", "0.15", "0.08"],
+            ["reproduce_target_dollars", "Lifecycle", "FLOAT", "2.0", "50.0", "10.0"],
             ["death_drawdown_pct", "Lifecycle", "FLOAT", "0.10", "0.35", "0.20"],
             ["num_assets", "Lifecycle", "INT", "1", "3", "2"],
           ]}
@@ -747,7 +748,9 @@ export default function DocsPage() {
         </P>
 
         <H3 id="service-signal-computation">Signal Computation</H3>
-        <P>Each probe computes its own trading signals using its genome parameters:</P>
+        <P>
+          Each probe computes its own trading signals using its genome parameters. Signal evaluation (entry/exit) is gated by the probe&rsquo;s <Code>timeframe_minutes</Code> gene &mdash; signals are only checked every <Code>timeframe_minutes</Code> ticks. Stop loss and take profit are still checked every tick for risk management. A probe with <Code>timeframe_minutes=5</Code> evaluates signals every 5 ticks, while one with <Code>timeframe_minutes=60</Code> is much more deliberate.
+        </P>
 
         <H4 id="service-signal-rsi">RSI (Relative Strength Index)</H4>
         <P>
@@ -784,7 +787,7 @@ export default function DocsPage() {
           After processing all asset signals each tick, the probe checks two lifecycle conditions:
         </P>
         <ul className="list-disc list-inside text-sm text-white/70 space-y-1 mb-3 ml-4">
-          <li><strong>Reproduce:</strong> <Code>roi &ge; benchmark_target_pct</Code> (probe has earned enough to spawn offspring)</li>
+          <li><strong>Reproduce:</strong> <Code>roi &ge; benchmark_target_pct</Code> OR <Code>profit &ge; reproduce_target_dollars</Code> (probe has earned enough to spawn offspring via either percentage or absolute dollar threshold)</li>
           <li><strong>Die:</strong> <Code>max_drawdown &ge; death_drawdown_pct</Code> (probe has lost too much from peak)</li>
         </ul>
 
@@ -904,7 +907,7 @@ If num_trades < 3:  fitness = ROI - 0.5  (harsh penalty for insufficient data)`}
 
         <H4 id="evo-ga-selection">Selection</H4>
         <P>
-          Fitness-ranked selection: filter probes with &ge;3 trades and non-negative ROI, sort by fitness descending, take the top 30%. Each selected parent must also meet its genome&rsquo;s <Code>benchmark_target_pct</Code> ROI threshold to actually reproduce.
+          Fitness-ranked selection: filter probes with &ge;3 trades and non-negative ROI, sort by fitness descending, take the top 30%. All selected parents reproduce with a mate chosen via tournament selection.
         </P>
 
         <H4 id="evo-ga-tournament">Tournament Selection (Mate)</H4>
@@ -982,7 +985,7 @@ Parameters:
 
         <H3 id="evo-cmaes">CMA-ES</H3>
         <P>
-          Covariance Matrix Adaptation Evolution Strategy. Uses the <Code>cmaes</Code> Python package with an ask-and-tell interface. Best suited for continuous optimization in parameter spaces under 100 dimensions (the system has 14 genes).
+          Covariance Matrix Adaptation Evolution Strategy. Uses the <Code>cmaes</Code> Python package with an ask-and-tell interface. Best suited for continuous optimization in parameter spaces under 100 dimensions (the system has 15 genes).
         </P>
 
         <H4 id="evo-cmaes-flow">Ask-Tell Flow</H4>

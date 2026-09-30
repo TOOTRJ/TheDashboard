@@ -50,14 +50,15 @@ class Genome:
     volume_threshold: float = 1.4
 
     # Risk genes
-    position_size_pct: float = 0.15
+    position_size_pct: float = 0.75
     stop_loss_pct: float = 0.03
     take_profit_pct: float = 0.07
-    max_open_positions: float = 2.0
+    max_open_positions: float = 1.0
 
     # Lifecycle genes
     timeframe_minutes: float = 15.0
     benchmark_target_pct: float = 0.08
+    reproduce_target_dollars: float = 10.0
     death_drawdown_pct: float = 0.20
     num_assets: float = 2.0
 

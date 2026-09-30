@@ -29,6 +29,7 @@ export interface Genome {
   max_open_positions: number;
   timeframe_minutes: number;
   benchmark_target_pct: number;
+  reproduce_target_dollars: number;
   death_drawdown_pct: number;
   num_assets: number;
   assets: string[];
