@@ -811,3 +811,16 @@ test("launch labels and validation explain modeled evaluation minutes without ch
   assert.match(errors.find((issue) => issue.field === "reproduction_interval").message, /Evaluation window \(market minutes\)/);
   assert.match(errors.find((issue) => issue.field === "max_lifespan_ticks").message, /Maximum candidate age \(market minutes after warmup\)/);
 });
+
+
+test("DE launch requires complete funded target/trial pairs", () => {
+  for (const gen0_count of [2, 4, 6, 7, 9, 11]) {
+    const config = { ...valid(), strategy: "differential_evolution", gen0_count };
+    assert.ok(configs.validateStartConfig(config).some((issue) => issue.field === "gen0_count"));
+  }
+  for (const gen0_count of [8, 10, 50]) {
+    const config = { ...valid(), strategy: "differential_evolution", gen0_count,
+      max_probes: gen0_count, max_capital: gen0_count * 100, seed_capital: 100 };
+    assert.deepEqual(plain(configs.validateStartConfig(config)), []);
+  }
+});

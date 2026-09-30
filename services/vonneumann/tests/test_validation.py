@@ -60,6 +60,19 @@ class ConfigurationValidationTests(OfflineTestMixin, unittest.TestCase):
             with self.subTest(payload=payload):
                 self.assert_rejected(payload)
 
+    def test_de_funds_complete_pairs_before_any_side_effect(self):
+        for count in (2, 4, 6, 7, 9, 11):
+            with self.subTest(count=count):
+                self.assert_rejected({"strategy": "differential_evolution", "gen0_count": count})
+        for count in (8, 10, 50):
+            request = StartRequest(strategy="differential_evolution", gen0_count=count,
+                                   max_probes=count, seed_capital=100, max_capital=count * 100)
+            self.assertEqual(request.gen0_count, count)
+        self.assert_rejected({"strategy": "differential_evolution", "gen0_count": 8,
+                              "max_probes": 7})
+        self.assert_rejected({"strategy": "differential_evolution", "gen0_count": 8,
+                              "seed_capital": 100, "max_capital": 799})
+
     def test_nonfinite_values_are_safe_json_errors_without_raw_input(self):
         for value in ("NaN", "Infinity", "-Infinity"):
             for field in ("max_capital", "seed_capital", "mutation_rate"):

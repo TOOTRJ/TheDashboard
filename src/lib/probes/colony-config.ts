@@ -91,7 +91,7 @@ export function validateStartConfig(input: unknown): ConfigIssue[] {
   for (const key of ["gen0_count", "max_probes", "max_capital", "seed_capital", "tick_interval_ms", "mutation_rate"] as const) numeric(key, input[key]);
   if (typeof input.gen0_count === "number" && typeof input.max_probes === "number" && input.gen0_count > input.max_probes) add("max_probes", "Maximum probes must cover the initial population.");
   if (typeof input.gen0_count === "number" && typeof input.seed_capital === "number" && typeof input.max_capital === "number" && input.gen0_count * input.seed_capital > input.max_capital) add("max_capital", "Maximum capital must fund every initial probe (initial probes × capital per probe).");
-  if (input.strategy === "differential_evolution" && typeof input.gen0_count === "number" && input.gen0_count < 4) add("gen0_count", "Differential evolution requires at least four initial probes.");
+  if (input.strategy === "differential_evolution" && typeof input.gen0_count === "number" && (input.gen0_count < 8 || input.gen0_count % 2 !== 0)) add("gen0_count", "Differential evolution requires an even number of at least eight funded accounts: one target and one trial per optimizer slot.");
   const config = input.colony_config;
   if (!record(config)) { add("colony_config", "Provide colony gene and lifecycle settings."); return issues; }
   if (Object.keys(config).some((key) => !["gene_overrides", "enabled_genes", "available_assets", "max_lifespan_ticks", "reproduction_interval"].includes(key))) add("colony_config", "Remove unsupported colony settings.");

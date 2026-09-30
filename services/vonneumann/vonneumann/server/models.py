@@ -96,8 +96,8 @@ class StartRequest(StrictModel):
             raise ValueError("Initial population must not exceed the population limit")
         if self.gen0_count * self.seed_capital > self.max_capital:
             raise ValueError("Capital must fund every initial probe")
-        if self.strategy == "differential_evolution" and self.gen0_count < 4:
-            raise ValueError("Differential evolution requires at least four initial probes")
+        if self.strategy == "differential_evolution" and (self.gen0_count < 8 or self.gen0_count % 2):
+            raise ValueError("Differential evolution requires an even number of at least eight funded target/trial accounts")
         validate_colony_config(build_colony_config(self))
         return self
 

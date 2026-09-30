@@ -673,22 +673,16 @@ class GenesisController:
             result = self.strategy.evolve(list(evaluated), [], self.colony_config)
             if not set(result.retire_ids).issubset(cohort.member_ids):
                 raise ValueError("Optimizer returned unknown candidate IDs")
-            # Every next comparison uses fresh equal-budget accounts. This
-            # bounded bridge also resets unevolved survivors on the new window.
+            # Never truncate or invent candidates: the optimizer must bind the
+            # exact complete proposal that will be evaluated on the next window.
             size = len(cohort.member_ids)
-            children = list(result.offspring[:size])
+            children = list(result.offspring)
+            if len(children) != size:
+                raise ValueError("Optimizer returned an incomplete or oversized cohort")
             parents = {str(i): result.parent_map.get(str(i), children[i].parent_ids)
                        for i in range(len(children))}
-            carry = [p for p in evaluated if p.probe_id not in result.retire_ids] or list(evaluated)
-            for candidate in carry:
-                if len(children) >= size:
-                    break
-                child = candidate.genome
-                child.generation = self.current_generation + 1
-                parents[str(len(children))] = [candidate.probe_id]
-                children.append(child)
-            if len(children) != size:
-                raise ValueError("Optimizer returned an incomplete cohort")
+            self._last_evaluation["selection"] = deepcopy(result.metadata)
+            await self._publish_evaluation()
             await self._apply_replacement(EvolutionResult(children, list(self.probes), parents, result.metadata))
             self._bind_evaluation()
             await self._publish_evaluation()
