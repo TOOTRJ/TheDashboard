@@ -7,6 +7,7 @@ isolation is exercised separately from the probe arithmetic.
 from __future__ import annotations
 
 import unittest
+from types import SimpleNamespace
 
 from tests.security_support import OfflineTestMixin, deny_network
 
@@ -125,15 +126,14 @@ class PriceArithmeticTests(OfflineTestMixin, unittest.TestCase):
     def test_valid_zero_volume_and_tiny_price_remain_supported(self):
         probe = self.probe()
         probe.on_price_update(ASSET, 1e-12, 0.0)
-        self.assertEqual(probe._price_buffer[ASSET], [1e-12])
-        self.assertEqual(probe._volume_buffer[ASSET], [0.0])
+        self.assertEqual(probe._marks.get(ASSET), 1e-12)
 
-    def test_valid_buffers_keep_matching_bounded_history(self):
+    def test_quote_updates_retain_only_the_current_mark(self):
         probe = self.probe()
         for index in range(205):
             probe.on_price_update(ASSET, index + 1.0, float(index))
-        self.assertEqual(probe._price_buffer[ASSET], [float(x) for x in range(6, 206)])
-        self.assertEqual(probe._volume_buffer[ASSET], [float(x) for x in range(5, 205)])
+        self.assertEqual(probe._marks.get(ASSET), 205.0)
+        self.assertFalse(hasattr(probe, "_price_buffer"))
 
     def test_huge_integer_market_inputs_raise_typed_errors_without_buffer_mutation(self):
         probe = self.probe()
@@ -145,8 +145,10 @@ class PriceArithmeticTests(OfflineTestMixin, unittest.TestCase):
 
     def test_valid_large_volume_average_preserves_ratio_instead_of_overflowing(self):
         probe = self.probe(ema_fast=2.0, ema_slow=3.0)
-        for _ in range(20):
-            probe.on_price_update(ASSET, 100.0, 1e308)
+        snapshot = SimpleNamespace(end=1260, closes=(100.0,) * 21,
+                                   volumes=(1e308,) * 21, emas={2: 100.0, 3: 100.0},
+                                   completed_count=21)
+        probe.attach_candle_history(SimpleNamespace(latest=lambda *_: snapshot))
         _decision, signals = probe._has_entry_signal(ASSET)
         self.assertEqual(signals["volume_ratio"], 1.0)
 
@@ -319,7 +321,7 @@ class PriceArithmeticTests(OfflineTestMixin, unittest.TestCase):
                 probe._transition(ProbeState.TRADING)
                 self.open(probe)
                 self.open(probe, OTHER_ASSET)
-                probe._price_buffer[OTHER_ASSET] = []
+                probe._marks.pop(OTHER_ASSET, None)
                 invoke = probe._trigger_reproduce if action == "reproduce" else \
                     lambda: probe._trigger_die("TEST")
                 self.assert_invalid_without_mutation(probe, invoke)

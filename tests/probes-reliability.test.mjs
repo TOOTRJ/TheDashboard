@@ -99,6 +99,8 @@ test("colony history preserves persisted terminal diagnostics without exposing r
   assert.match(transport.formatColonyFailure("feed_configuration"), /configured HTTPS Solana mainnet RPC/);
   assert.match(transport.formatColonyFailure("feed_stale"), /quote became stale/);
   assert.match(transport.formatColonyFailure("feed_source_invalid"), /source time is missing, invalid/);
+  assert.match(transport.formatColonyFailure("candle_configuration"), /private Birdeye key/);
+  assert.match(transport.formatColonyFailure("candle_history_invalid"), /history is missing, incomplete, revised/);
   assert.match(transport.formatColonyFailure("invalid_market_value"), /market observation or position value is invalid/);
   assert.match(transport.formatColonyFailure("funding_insufficient"), /cannot fully fund/);
   assert.match(transport.formatColonyFailure("funding_capacity"), /exceeds the configured capacity/);

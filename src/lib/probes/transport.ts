@@ -83,6 +83,8 @@ export function formatColonyFailure(code: unknown): string {
     feed_configuration: "Paper mode needs a configured HTTPS Solana mainnet RPC so the worker can verify quote source times. Check the worker's RPC configuration before retrying.",
     feed_stale: "A required market quote became stale. Execution stopped; review retained positions before starting another run.",
     feed_source_invalid: "A quote's source time is missing, invalid, or older than previously accepted data. Execution stopped; verify the market-data providers before retrying.",
+    candle_configuration: "Completed candles need the worker's private Birdeye key in paper mode or aligned one-minute simulation steps. Check this run's configuration before retrying.",
+    candle_history_invalid: "Completed candle history is missing, incomplete, revised, or invalid. Execution stopped; review retained positions and the candle provider before starting another run.",
     invalid_market_value: "A market observation or position value is invalid. Execution stopped; verify market data and reconcile saved positions before starting another run.",
     funding_insufficient: "The colony cannot fully fund its next candidate population. Execution stopped; review the reserve, realized losses, and candidate budget.",
     funding_capacity: "The replacement population exceeds the configured capacity. Execution stopped; review the strategy's population growth and probe limit.",

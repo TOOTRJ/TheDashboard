@@ -2,7 +2,8 @@
 
 Drift and volatility describe one modeled step, not elapsed wall time or
 calibrated market returns. The default step is one simulated minute; playback
-delays do not change the path. This feed does not aggregate timeframe candles.
+delays do not change the path. Minute candles use the step's two endpoints;
+their high/low describe this synthetic model, not an intraminute market path.
 """
 
 from __future__ import annotations
@@ -20,7 +21,8 @@ from ..core.market_validation import (
     nonnegative_value,
     positive_price,
 )
-from .feed import MarketFeed, MarketTick
+from .feed import MarketFeed, MarketFeedError, MarketTick
+from .candles import MinuteCandle
 
 # Baseline prices for simulation assets
 BASE_PRICES: dict[str, float] = {
@@ -92,6 +94,7 @@ class SimulationFeed(MarketFeed):
         self._next_timestamp()  # A configured step must advance the float clock.
         self._assets: dict[str, AssetState] = {}
         self._rngs: dict[str, random.Random] = {}
+        self._candles: dict[str, MinuteCandle] = {}
 
         for asset, price in BASE_PRICES.items():
             self._assets[asset] = AssetState(
@@ -125,6 +128,8 @@ class SimulationFeed(MarketFeed):
             "drift": self._drift,
             "volatility": self._volatility,
             "volume_noise": self._volume_noise,
+            "candle_model": "minute-endpoints-v1",
+            "volume_unit": "synthetic_base_token",
         }
 
     @staticmethod
@@ -212,6 +217,7 @@ class SimulationFeed(MarketFeed):
         next_assets = {}
         next_rngs = {}
         ticks = {}
+        candles = {}
         for asset, state in self._assets.items():
             rng = random.Random(0)
             rng.setstate(self._rngs[asset].getstate())
@@ -219,6 +225,16 @@ class SimulationFeed(MarketFeed):
             next_assets[asset] = next_state
             next_rngs[asset] = rng
             ticks[asset] = MarketTick(asset, next_state.current_price, volume, timestamp)
+            if self._step_seconds == 60 and self._start_timestamp % 60 == 0:
+                candles[asset] = MinuteCandle(
+                    asset=asset, start=int(timestamp - 60),
+                    open=state.current_price,
+                    high=max(state.current_price, next_state.current_price),
+                    low=min(state.current_price, next_state.current_price),
+                    close=next_state.current_price, volume=volume,
+                    source="simulation-minute-endpoints-v1",
+                    volume_unit="synthetic_base_token",
+                )
 
         # No await or mutation precedes this commit. A bad asset, clock, or draw
         # leaves every price, RNG (including its Gaussian cache), and time intact.
@@ -226,7 +242,16 @@ class SimulationFeed(MarketFeed):
         self._rngs = next_rngs
         self._current_timestamp = timestamp
         self._frame_number += 1
+        self._candles = candles
         return {asset: ticks[asset] for asset in requested}
+
+    async def get_candles(self, assets: list[str], *, warmup: bool = False) -> list[MinuteCandle]:
+        """Read the last atomic frame once or repeatedly, without another step."""
+        if self._step_seconds != 60 or self._start_timestamp % 60 != 0:
+            raise MarketFeedError("candle_clock_configuration")
+        if any(asset not in self._assets for asset in assets):
+            raise MarketFeedError("unsupported_asset")
+        return [self._candles[asset] for asset in dict.fromkeys(assets) if asset in self._candles]
 
     def get_current_price(self, asset: str) -> float:
         """Read the last modeled price without advancing the market clock."""

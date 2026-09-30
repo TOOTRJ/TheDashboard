@@ -50,3 +50,11 @@ class MarketFeed(ABC):
     async def get_ticks(self, assets: list[str]) -> dict[str, MarketTick]:
         """Return latest ticks for multiple assets at once."""
         ...
+
+    async def get_candles(self, assets: list[str], *, warmup: bool = False) -> list:
+        """Return completed canonical minutes without advancing the quote clock.
+
+        Feeds must implement this explicitly; price polls cannot stand in for
+        completed candles or their volume.
+        """
+        raise MarketFeedError("candles_unavailable")

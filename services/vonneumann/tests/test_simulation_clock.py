@@ -140,6 +140,7 @@ class SimulationClockTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase):
             "model_version": "gbm-discrete-v1", "seed": str(seed),
             "start_timestamp": 0.0, "step_seconds": 0.25,
             "drift": 0.01, "volatility": 0.03, "volume_noise": 0.1,
+            "candle_model": "minute-endpoints-v1", "volume_unit": "synthetic_base_token",
         }
         self.assertEqual(json.loads(json.dumps(feed.simulation_spec, allow_nan=False)), expected_spec)
         changed = feed.simulation_spec
