@@ -2,7 +2,7 @@
 
 The local dependency repair is implemented. Fresh npm audits report **zero known vulnerabilities** for both the full installed graph and the production graph. Both Python lock files contain **49 exact, hashed packages**, and their PyPI advisory scans report **zero known vulnerabilities**. These results describe the advisory databases and versions checked today; they are not a claim that the application is secure or ready to deploy.
 
-**An additional Next.js security update remains a release gate.** The official [September security notice](https://nextjs.org/blog/upcoming-nextjs-security-release-september-2026), updated September 29, says that 16.3.7 contains a bug fix but **does not include** the security fixes scheduled for September 30. The announced versions are now **16.3.8 and 15.5.27**, covering nine vulnerabilities: one critical, two high, five medium, and one low. Their full affected ranges and impact are not published in that notice. Recheck the actual published advisories and registry before release, upgrade to the reviewed fix, and rerun validation. No future version was assumed available or installed.
+**An additional Next.js security update remains an open security follow-up.** The official [September security notice](https://nextjs.org/blog/upcoming-nextjs-security-release-september-2026), updated September 29, says that 16.3.7 contains a bug fix but **does not include** the security fixes scheduled for September 30. The announced versions are now **16.3.8 and 15.5.27**, covering nine vulnerabilities: one critical, two high, five medium, and one low. Their full affected ranges and impact are not published in that notice. The user-authorized dashboard release uses the latest published 16.3.7; the announced patches were unavailable at the release check. Recheck the actual published advisories and registry, upgrade when the reviewed fix is available, and rerun validation. No future version was assumed available or installed.
 
 ## Scope and isolation
 
@@ -23,7 +23,7 @@ The original fresh audit reproduced **15 vulnerable packages: 1 critical, 10 hig
 | `react`, `react-dom` | 19.2.3 | **19.2.8** | Latest published patch on the existing 19.2 line; avoid an unnecessary 19.3 feature upgrade. Next's declared peers accept this version. |
 | `eslint` | 9.39.2 installed, `^9` declared | **9.39.5** | Latest 9.x patch, exact-pinned. Existing React/import/accessibility/hooks plugins declare support through ESLint 9, so an unreviewed ESLint 10 upgrade would violate peer ranges. |
 
-Other direct version declarations remain unchanged. `package-lock.json` pins their resolved graph. After the direct updates, `npm audit fix` **without `--force`**, with lifecycle scripts disabled, updated compatible transitive dependencies. Its resulting lock diff was reviewed: no unrelated direct package upgrade or peer override was introduced.
+In this initial security batch, other direct version declarations remained unchanged; the later dependency follow-up below supersedes that baseline. `package-lock.json` pins their resolved graph. After the direct updates, `npm audit fix` **without `--force`**, with lifecycle scripts disabled, updated compatible transitive dependencies. Its resulting lock diff was reviewed: no unrelated direct package upgrade or peer override was introduced.
 
 | Previously flagged package/group | Main resulting versions | Reachability assessment |
 |---|---|---|
