@@ -7,12 +7,13 @@ Extracted from the original monolithic evolution.py.
 from __future__ import annotations
 
 import random
+from copy import deepcopy
 from typing import Optional, TYPE_CHECKING
 
 from ..evolution import NUMERIC_GENES, mutate
-from ..gene_registry import GENE_REGISTRY
 from ..genome import AVAILABLE_ASSETS, Genome
 from .base import EvolutionResult, EvolutionStrategy
+from .cohort_contract import SelectionCohort, preserve_fixed_controls
 
 if TYPE_CHECKING:
     from ..colony_config import ColonyConfig
@@ -30,14 +31,20 @@ class GeneticAlgorithmStrategy(EvolutionStrategy):
     def __init__(self) -> None:
         self.mutation_rate = 0.20
         self.mutation_strength = 0.15
-        self.top_pct = 0.30
-        self.child_count = 2
-        self.min_trades = 3
-        self.min_roi = 0.0
+        self._cohort = SelectionCohort()
 
     def initialize(self, probes: list[Probe], colony_config: ColonyConfig) -> None:
-        if colony_config.mutation_rate is not None:
-            self.mutation_rate = colony_config.mutation_rate
+        if len(probes) < 2:
+            raise ValueError("Genetic Algorithm requires at least two evaluation accounts")
+        self._cohort.initialize(probes)
+        self.mutation_rate = (.20 if colony_config.mutation_rate is None
+                              else colony_config.mutation_rate)
+
+    def bind_candidates(self, probes: list[Probe]) -> None:
+        self._cohort.bind(probes)
+
+    def abort_cohort(self) -> None:
+        self._cohort.abort()
 
     def evolve(
         self,
@@ -45,64 +52,54 @@ class GeneticAlgorithmStrategy(EvolutionStrategy):
         dead_probes: list[Probe],
         colony_config: ColonyConfig,
     ) -> EvolutionResult:
-        parents = select_parents_by_fitness(
-            probes, self.top_pct, self.min_trades, self.min_roi
-        )
-        if len(parents) < 2:
-            return EvolutionResult(offspring=[], retire_ids=[])
-
+        eligible = self._cohort.results(probes)
         offspring: list[Genome] = []
-        retire_ids: list[str] = []
         parent_map: dict[str, list[str]] = {}
+        operations = []
 
-        for parent in parents:
-            mate_pool = [p for p in probes if p.probe_id != parent.probe_id]
+        # A complete no-trade or losing window is still valid evidence. Select
+        # only from this exact completed cohort and keep a bounded population.
+        while len(offspring) < len(eligible):
+            parent = tournament_select(eligible, k=3)
+            mate_pool = [p for p in eligible if p.probe_id != parent.probe_id]
             mate = tournament_select(mate_pool, k=3)
+            sexual = mate is not None and random.random() > 0.3
 
+            child_operations = []
             children = reproduce(
                 parent.genome,
-                mate.genome if mate else None,
-                self.child_count,
+                mate.genome if sexual else None,
+                min(2, len(eligible) - len(offspring)),
                 self.mutation_rate,
                 colony_config,
+                operations=child_operations,
             )
 
-            for child in children:
+            for child, operation in zip(children, child_operations):
                 idx = str(len(offspring))
                 parent_ids = [parent.probe_id]
-                if mate:
+                if operation == "crossover_mutation":
                     parent_ids.append(mate.probe_id)
                 parent_map[idx] = parent_ids
                 offspring.append(child)
+                operations.append({"offspring_index": int(idx),
+                                   "operation": operation,
+                                   "parent_ids": list(parent_ids)})
 
-            retire_ids.append(parent.probe_id)
-
+        self._cohort.propose(offspring, eligible)
         return EvolutionResult(
             offspring=offspring,
-            retire_ids=retire_ids,
+            retire_ids=[p.probe_id for p in eligible],
             parent_map=parent_map,
-            metadata={"parents_selected": len(retire_ids)},
+            metadata={"selection_policy": "completed-window-generational-ga-v1",
+                      "iteration_id": eligible[0].iteration_id,
+                      "evaluation_accounts": len(eligible), "offspring": operations},
         )
 
 
 # ══════════════════════════════════════════════════════════════════════════════
 # GA OPERATORS (extracted from evolution.py)
 # ══════════════════════════════════════════════════════════════════════════════
-
-
-def select_parents_by_fitness(
-    probes: list[Probe],
-    top_pct: float = 0.30,
-    min_trades: int = 3,
-    min_roi: float = 0.0,
-) -> list[Probe]:
-    """Select top probes by fitness for reproduction."""
-    eligible = [p for p in probes if p.num_trades >= min_trades and p.roi >= min_roi]
-    if not eligible:
-        return []
-    ranked = sorted(eligible, key=lambda p: p.fitness, reverse=True)
-    n = max(1, int(len(ranked) * top_pct))
-    return ranked[:n]
 
 
 def tournament_select(probes: list[Probe], k: int = 3) -> Optional[Probe]:
@@ -118,6 +115,7 @@ def crossover(
     parent_b: Genome,
     generation: int,
     colony_config: Optional[ColonyConfig] = None,
+    *, repair_flags: Optional[list[bool]] = None,
 ) -> tuple[Genome, Genome]:
     """Uniform crossover with asset merging."""
     child_a_genes: dict[str, float] = {}
@@ -138,7 +136,8 @@ def crossover(
     effective_assets = (
         colony_config.get_effective_assets() if colony_config else AVAILABLE_ASSETS
     )
-    parent_assets = list(set(parent_a.assets + parent_b.assets))
+    # Stable ordered union: hash randomization must not change sampled assets.
+    parent_assets = list(dict.fromkeys(parent_a.assets + parent_b.assets))
     parent_assets = [a for a in parent_assets if a in effective_assets]
     if not parent_assets:
         parent_assets = effective_assets
@@ -160,7 +159,14 @@ def crossover(
         parent_ids=[],
     )
 
-    return child_a.validate(colony_config), child_b.validate(colony_config)
+    children = []
+    for child in (child_a, child_b):
+        child.validate(colony_config)
+        repaired = preserve_fixed_controls(child, parent_a, colony_config)
+        children.append(repaired)
+        if repair_flags is not None:
+            repair_flags.append(repaired is not child)
+    return tuple(children)
 
 
 def reproduce(
@@ -169,27 +175,44 @@ def reproduce(
     num_children: int = 2,
     mutation_rate: float = 0.20,
     colony_config: Optional[ColonyConfig] = None,
+    *, operations: Optional[list[str]] = None,
 ) -> list[Genome]:
     """Produce children via sexual (crossover+mutate) or asexual (clone+mutate).
 
-    Uses the caller-provided mate (already selected via tournament) so that
-    the genealogy recorded by the caller matches who actually bred. When no
-    mate is available, falls back to asexual cloning.
+    The caller chooses whether this is sexual and supplies a mate only for
+    actual crossover. This makes recorded genealogy match the operation.
 
     Both children from each crossover are kept and mutated independently to
     avoid wasting work.
     """
-    generation = parent.generation + 1
+    generation = max(parent.generation, mate.generation if mate else parent.generation) + 1
     children: list[Genome] = []
 
+    if colony_config is not None and not any(colony_config.is_gene_evolvable(g) for g in NUMERIC_GENES):
+        for _ in range(num_children):
+            child = deepcopy(parent)
+            child.generation, child.parent_ids = generation, []
+            children.append(child)
+            if operations is not None:
+                operations.append("no_active_clone")
+        return children
+
+    def finish(child, rate, crossed=False, reverted=False):
+        mutated = mutate(child, rate, colony_config=colony_config)
+        result = preserve_fixed_controls(mutated, parent, colony_config)
+        repaired = reverted or result is not mutated
+        if operations is not None:
+            operations.append("fixed_repair_clone" if repaired else
+                              "crossover_mutation" if crossed else "clone_mutation")
+        return result
+
     while len(children) < num_children:
-        if mate is not None and random.random() > 0.3:
-            child_a, child_b = crossover(parent, mate, generation, colony_config)
-            child_a = mutate(child_a, mutation_rate, colony_config=colony_config)
-            children.append(child_a)
+        if mate is not None:
+            repair_flags = []
+            child_a, child_b = crossover(parent, mate, generation, colony_config, repair_flags=repair_flags)
+            children.append(finish(child_a, mutation_rate, crossed=True, reverted=repair_flags[0]))
             if len(children) < num_children:
-                child_b = mutate(child_b, mutation_rate, colony_config=colony_config)
-                children.append(child_b)
+                children.append(finish(child_b, mutation_rate, crossed=True, reverted=repair_flags[1]))
         else:
             child = Genome(
                 **{g: getattr(parent, g) for g in NUMERIC_GENES},
@@ -197,7 +220,6 @@ def reproduce(
                 generation=generation,
                 parent_ids=[],
             )
-            child = mutate(child, mutation_rate * 1.5, colony_config=colony_config)
-            children.append(child)
+            children.append(finish(child, mutation_rate * 1.5))
 
     return children[:num_children]

@@ -16,12 +16,13 @@ from unittest.mock import AsyncMock, patch
 from tests.security_support import A1, USER_A, OfflineTestMixin, deny_network
 
 with deny_network():
-    from vonneumann.core.colony_config import ColonyConfig
+    from vonneumann.core.colony_config import ColonyConfig, GeneOverride
     from vonneumann.core.funding import FundingError
     from vonneumann.core.genesis import GenesisController
     from vonneumann.core.genome import Genome
     from vonneumann.core.strategies.base import EvolutionResult, EvolutionStrategy
     from vonneumann.core.strategies.cma_es import CMAEvolutionStrategy
+    from vonneumann.core.strategies.differential_evolution import DifferentialEvolutionStrategy
     from vonneumann.core.strategies.genetic_algorithm import GeneticAlgorithmStrategy
     from vonneumann.core.strategies.particle_swarm import ParticleSwarmStrategy
     from vonneumann.core.types import EventType, ProbeState
@@ -74,6 +75,7 @@ class FundingContinuityTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase)
             gen0_count=population, max_probes=max_probes, max_capital=capital,
             seed_capital=seed, diversity_threshold=0.0, on_event=event,
             colony_config=ColonyConfig(
+                gene_overrides={"position_size_pct": GeneOverride(fixed=.5)},
                 enabled_genes=["rsi_period", "rsi_oversold"],
                 available_assets=[ASSET],
             ),
@@ -133,21 +135,23 @@ class FundingContinuityTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase)
         controller._event_time = lambda: datetime.fromtimestamp(ended, timezone.utc)
         await controller._evaluate_reproduction()
 
-    async def assert_sixty_replacements(self, strategy):
-        controller = await self.controller(strategy, capital=600.0)
+    async def assert_sixty_replacements(self, strategy, population=6):
+        capital = population * 100.0
+        controller = await self.controller(strategy, capital=capital, population=population,
+                                           max_probes=population)
         self.assertEqual(controller.capital_split, 0.45)
         for cycle in range(1, 61):
             previous_ids = set(controller.probes)
             await self.complete_cash_window(controller)
             with self.subTest(strategy=strategy.name, cycle=cycle):
-                self.assertEqual(len(controller.live_probes), 6)
+                self.assertEqual(len(controller.live_probes), population)
                 self.assertTrue(previous_ids.isdisjoint(controller.probes))
                 self.assertEqual(controller.current_generation, cycle)
-                self.assertEqual(len(controller.dead_probes), cycle * 6)
+                self.assertEqual(len(controller.dead_probes), cycle * population)
                 self.assertAlmostEqual(controller.reserve_capital, 0.0, places=9)
-                self.assertAlmostEqual(controller.active_capital, 600.0, places=9)
+                self.assertAlmostEqual(controller.active_capital, capital, places=9)
                 self.assertAlmostEqual(controller.reserve_capital +
-                                       controller.active_capital, 600.0, places=9)
+                                       controller.active_capital, capital, places=9)
                 for probe in controller.live_probes:
                     self.assertEqual(probe.initial_capital, 100.0)
                     self.assertEqual(probe.capital, 100.0)
@@ -162,6 +166,12 @@ class FundingContinuityTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase)
 
     async def test_real_cma_es_preserves_full_population_for_sixty_cycles(self):
         await self.assert_sixty_replacements(CMAEvolutionStrategy())
+
+    async def test_real_ga_small_population_preserves_sixty_complete_groups(self):
+        await self.assert_sixty_replacements(GeneticAlgorithmStrategy(), population=2)
+
+    async def test_real_de_preserves_sixty_complete_paired_groups(self):
+        await self.assert_sixty_replacements(DifferentialEvolutionStrategy(), population=8)
 
     async def test_real_ga_cohort_replacement_preserves_equal_budgets_without_growth(self):
         controller = await self.controller(GeneticAlgorithmStrategy(), population=10,

@@ -136,6 +136,21 @@ class ControllerCohortTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase):
         self.assertIsNotNone(c._cohort.ends_at)
         await self.tick(c, c._cohort.ends_at - self.clock.wall + extra_delay)
 
+    async def test_controller_refuses_partial_or_oversized_optimizer_proposal(self):
+        for count in (1, 3):
+            with self.subTest(count=count):
+                c = await self.controller()
+                await self.start(c)
+                before_ids, before_reserve = set(c.probes), c.reserve_capital
+                children = [self.genome() for _ in range(count)]
+                result = EvolutionResult(children, list(c.probes))
+                with patch.object(c.strategy, "evolve", return_value=result):
+                    with self.assertRaisesRegex(ValueError, "incomplete or oversized"):
+                        await self.complete(c)
+                self.assertEqual(set(c.probes), before_ids)
+                self.assertEqual(c.reserve_capital, before_reserve)
+                self.assertFalse(c.dead_probes)
+
     async def asked_cma(self, *, threshold=1):
         c = await self.controller(strategy=CMAEvolutionStrategy(), population=4, capital=800,
                                   threshold=threshold)

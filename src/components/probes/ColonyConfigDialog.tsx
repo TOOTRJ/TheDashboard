@@ -499,6 +499,12 @@ export function ColonyConfigDialog({ open, onClose, onStart, starting, startErro
                 onChange={(e) => setConfig((c) => ({ ...c, gen0_count: Number(e.target.value) }))}
                 className="h-7 text-xs font-mono border-[#00fff5]/20 bg-transparent"
               />
+              {config.strategy === "differential_evolution" && (
+                <p className="text-[10px] text-muted-foreground">
+                  Choose an even count of at least 8. Each optimizer slot uses two funded accounts
+                  to compare its target and trial over the same market window.
+                </p>
+              )}
             </div>
             <div className="space-y-1">
               <Label className="text-[9px] uppercase tracking-wider text-muted-foreground">
