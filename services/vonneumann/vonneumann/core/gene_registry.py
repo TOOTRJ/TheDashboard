@@ -6,16 +6,17 @@ Adding a new gene:
   2. Add the field to the Genome dataclass in genome.py
   3. That's it — evolution, validation, config UI, radar chart all auto-discover it
 
-Each gene has: name, label, group, bounds, default, type, description, constraints.
-Constraints are functions that correct a gene value given the full genome snapshot,
-ensuring structural invariants (e.g., ema_fast < ema_slow).
+Each gene has a type, hard bounds and default. Resolved domains combine these
+with colony controls before deterministic phenotype projection. Coupled
+relationships can only adjust active genes inside their configured domains.
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from typing import Callable, Optional, Any
+from typing import Any
+import math
 
 
 class GeneType(str, Enum):
@@ -39,11 +40,35 @@ class GeneDefinition:
     default: float
     gene_type: GeneType = GeneType.FLOAT
     description: str = ""
-    # Constraint function: (value, genome_dict) -> corrected value
-    # Called AFTER bounds clamping, in registration order
-    constraint: Optional[Callable[[float, dict], float]] = field(
-        default=None, repr=False, compare=False
-    )
+
+
+GENOME_POLICY = {"version": "configured-phenotype-v1", "integer_rounding": "nearest_half_up",
+                 "disabled": "configured_default", "validation": "deterministic_no_rng"}
+RELATIONSHIPS = (("ema_fast", "ema_slow"), ("stop_loss_pct", "take_profit_pct"))
+
+
+def finite_gene(value: Any) -> float:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise ValueError("Gene values must be finite numbers")
+    try:
+        value = float(value)
+    except (OverflowError, ValueError):
+        raise ValueError("Gene values must be finite numbers") from None
+    if not math.isfinite(value):
+        raise ValueError("Gene values must be finite numbers")
+    return value
+
+
+@dataclass(frozen=True)
+class GeneDomain:
+    minimum: float
+    maximum: float
+    default: float
+    integer: bool
+
+    @property
+    def evolvable(self) -> bool:
+        return self.minimum < self.maximum
 
 
 class GeneRegistry:
@@ -84,25 +109,79 @@ class GeneRegistry:
     def by_group(self, group: GeneGroup) -> list[GeneDefinition]:
         return [g for g in self.all_genes() if g.group == group]
 
-    def validate_genome(self, genome_dict: dict[str, float]) -> dict[str, float]:
-        """
-        Validate a genome dict: clamp to bounds, then run constraints.
-        Returns a corrected copy.
-        """
-        result = dict(genome_dict)
-
-        # Phase 1: Clamp all values to hard bounds
+    def resolve_domains(self, overrides: dict | None = None,
+                        enabled_genes: list[str] | None = None,
+                        asset_count: int = 8) -> dict[str, GeneDomain]:
+        """Resolve one feasible domain for construction, projection and operators."""
+        overrides = {} if overrides is None else overrides
+        if (not isinstance(overrides, dict) or any(name not in self._genes for name in overrides) or
+                isinstance(asset_count, bool) or not isinstance(asset_count, int) or asset_count < 1):
+            raise ValueError("Invalid gene configuration")
+        if enabled_genes is not None and (not isinstance(enabled_genes, list) or
+                any(not isinstance(name, str) or name not in self._genes for name in enabled_genes) or
+                len(enabled_genes) != len(set(enabled_genes))):
+            raise ValueError("Enabled genes must be unique registered genes")
+        domains = {}
         for gene in self.all_genes():
-            if gene.name in result:
-                result[gene.name] = max(gene.min, min(gene.max, result[gene.name]))
+            override = overrides.get(gene.name, {})
+            if not isinstance(override, dict) or set(override) - {"min", "max", "default", "fixed"}:
+                raise ValueError("Invalid gene override")
+            values = {key: finite_gene(value) for key, value in override.items() if value is not None}
+            if any(value < gene.min or value > gene.max for value in values.values()):
+                raise ValueError("Gene overrides must stay within registry bounds")
+            integer = gene.gene_type == GeneType.INT
+            if integer and any(not value.is_integer() for value in values.values()):
+                raise ValueError("Integer gene overrides must be whole numbers")
+            lo, hi = values.get("min", gene.min), values.get("max", gene.max)
+            if lo > hi:
+                raise ValueError("Gene minimum must not exceed its maximum")
+            if any(not lo <= values[key] <= hi for key in ("fixed", "default") if key in values):
+                raise ValueError("Gene fixed and default values must fit the configured range")
+            if gene.name == "num_assets":
+                hi = min(hi, asset_count)
+                if lo > hi or any(values[key] > hi for key in ("fixed", "default") if key in values):
+                    raise ValueError("Asset count must fit the available asset pool")
+            default = values.get("default", min(hi, max(lo, gene.default)))
+            if "fixed" in values:
+                lo = hi = default = values["fixed"]
+            elif enabled_genes is not None and gene.name not in enabled_genes:
+                lo = hi = default
+            domains[gene.name] = GeneDomain(lo, hi, default, integer)
+        for lower, upper in RELATIONSHIPS:
+            if lower in domains and upper in domains and domains[lower].minimum >= domains[upper].maximum:
+                raise ValueError("Fixed, disabled and active gene values must permit their required relationships")
+        return domains
 
-        # Phase 2: Run constraint functions in registration order
+    def validate_genome(self, genome_dict: dict[str, float],
+                        domains: dict[str, GeneDomain] | None = None) -> dict[str, float]:
+        """Deterministically project finite values into a feasible phenotype.
+
+        Integer conversion precedes coupled constraints. A zero-width domain is
+        immutable, including disabled defaults, explicit fixed and equal bounds.
+        """
+        if set(genome_dict) != set(self._genes):
+            raise ValueError("A genome must contain every registered numeric gene")
+        domains = self.resolve_domains() if domains is None else domains
+        result = {}
         for gene in self.all_genes():
-            if gene.constraint and gene.name in result:
-                corrected = gene.constraint(result[gene.name], result)
-                # Re-clamp after constraint to guarantee bounds
-                result[gene.name] = max(gene.min, min(gene.max, corrected))
-
+            value = finite_gene(genome_dict[gene.name])
+            domain = domains[gene.name]
+            value = min(domain.maximum, max(domain.minimum, value))
+            if domain.integer:
+                value = float(math.floor(value + 0.5))
+            result[gene.name] = value
+        for lower, upper in RELATIONSHIPS:
+            if lower not in result or upper not in result or result[lower] < result[upper]:
+                continue
+            lower_domain, upper_domain = domains[lower], domains[upper]
+            before = lambda value: value - 1 if lower_domain.integer else math.nextafter(value, -math.inf)
+            after = lambda value: value + 1 if upper_domain.integer else math.nextafter(value, math.inf)
+            if lower_domain.evolvable:
+                result[lower] = max(lower_domain.minimum, min(result[lower], before(result[upper])))
+            if result[lower] >= result[upper] and upper_domain.evolvable:
+                result[upper] = min(upper_domain.maximum, max(result[upper], after(result[lower])))
+            if result[lower] >= result[upper]:
+                raise ValueError("Configured gene relationship cannot be preserved")
         return result
 
     def to_json_schema(self) -> list[dict[str, Any]]:
@@ -120,35 +199,6 @@ class GeneRegistry:
             }
             for g in self.all_genes()
         ]
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# CONSTRAINT FUNCTIONS
-# ══════════════════════════════════════════════════════════════════════════════
-
-
-def _ema_fast_constraint(val: float, genome: dict) -> float:
-    """ema_fast must be < ema_slow."""
-    ema_slow = genome.get("ema_slow", 21.0)
-    if val >= ema_slow:
-        return max(3.0, ema_slow * 0.5)
-    return val
-
-
-def _rsi_oversold_constraint(val: float, genome: dict) -> float:
-    """rsi_oversold must be < rsi_overbought, with at least 10 gap."""
-    overbought = genome.get("rsi_overbought", 70.0)
-    if val >= overbought - 5:
-        return max(20.0, overbought - 15)
-    return val
-
-
-def _stop_loss_constraint(val: float, genome: dict) -> float:
-    """stop_loss_pct must be < take_profit_pct."""
-    tp = genome.get("take_profit_pct", 0.07)
-    if val >= tp:
-        return max(0.01, tp * 0.4)
-    return val
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -174,7 +224,6 @@ GENE_REGISTRY.register(GeneDefinition(
     group=GeneGroup.SIGNAL,
     min=20, max=45, default=32.0,
     description="RSI threshold below which an asset is considered oversold (buy signal).",
-    constraint=_rsi_oversold_constraint,
 ))
 
 GENE_REGISTRY.register(GeneDefinition(
@@ -192,7 +241,6 @@ GENE_REGISTRY.register(GeneDefinition(
     min=3, max=20, default=9.0,
     gene_type=GeneType.INT,
     description="Period of the fast Exponential Moving Average. Must be less than EMA Slow.",
-    constraint=_ema_fast_constraint,
 ))
 
 GENE_REGISTRY.register(GeneDefinition(
@@ -228,7 +276,6 @@ GENE_REGISTRY.register(GeneDefinition(
     group=GeneGroup.RISK,
     min=0.01, max=0.10, default=0.03,
     description="Maximum loss percentage before a position is automatically closed.",
-    constraint=_stop_loss_constraint,
 ))
 
 GENE_REGISTRY.register(GeneDefinition(

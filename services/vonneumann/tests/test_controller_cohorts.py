@@ -11,10 +11,10 @@ from tests.security_support import A1, USER_A, OfflineTestMixin, deny_network
 from tests.test_source_time_controller import ControlledClock
 
 with deny_network():
-    from vonneumann.core.colony_config import ColonyConfig
+    from vonneumann.core.colony_config import ColonyConfig, GeneOverride
     from vonneumann.core.funding import FundingError
     from vonneumann.core.genesis import GenesisController
-    from vonneumann.core.genome import Genome
+    from vonneumann.core.genome import Genome, NUMERIC_GENES
     from vonneumann.core.probe import Probe
     from vonneumann.core.strategies.base import EvolutionResult, EvolutionStrategy
     from vonneumann.core.strategies.cma_es import CMAEvolutionStrategy
@@ -95,7 +95,7 @@ class ControllerCohortTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase):
         return Genome(assets=[ASSET], num_assets=1, timeframe_minutes=5,
                       rsi_period=5, ema_fast=3, ema_slow=10,
                       position_size_pct=.5, stop_loss_pct=.1, take_profit_pct=.2,
-                      death_drawdown_pct=.5, benchmark_target_pct=.15,
+                      death_drawdown_pct=.35, benchmark_target_pct=.15,
                       reproduce_target_dollars=50)
 
     async def controller(self, *, strategy=None, population=2, capital=400,
@@ -109,6 +109,9 @@ class ControllerCohortTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase):
             max_capital=capital, tick_interval_ms=pacing, diversity_threshold=0,
             circuit_breaker_drop_pct=threshold,
             colony_config=ColonyConfig(available_assets=[ASSET],
+                gene_overrides={name: GeneOverride(fixed=getattr(self.genome(), name))
+                                for name in NUMERIC_GENES
+                                if name not in {"rsi_oversold", "volume_threshold"}},
                 enabled_genes=["rsi_oversold", "volume_threshold"],
                 reproduction_interval=horizon, max_lifespan_ticks=lifespan),
             on_event=event)

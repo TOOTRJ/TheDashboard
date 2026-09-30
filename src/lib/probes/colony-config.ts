@@ -108,7 +108,8 @@ export function validateStartConfig(input: unknown): ConfigIssue[] {
   checkSelection("available_assets", ALL_ASSETS, true);
   if (!record(config.gene_overrides)) { add("gene_overrides", "Provide registered gene overrides."); return issues; }
   const overrides: Record<string, unknown> = { ...preset?.config.gene_overrides, ...config.gene_overrides };
-  const ranges = new Map<string, { min: number; max: number; fixed: boolean }>();
+  const ranges = new Map<string, { min: number; max: number }>();
+  const assets = Array.isArray(config.available_assets) ? config.available_assets.length : ALL_ASSETS.length;
   for (const name of Object.keys(overrides)) {
     if (!names.includes(name)) add("gene_overrides", "Overrides may only use registered genes.");
   }
@@ -132,16 +133,20 @@ export function validateStartConfig(input: unknown): ConfigIssue[] {
     for (const key of ["fixed", "default"]) {
       if (typeof value[key] === "number" && (value[key] < min || value[key] > max)) add(gene.name, `${gene.label}: ${key} must fit within its configured range.`);
     }
+    const effectiveMax = gene.name === "num_assets" ? Math.min(max, assets) : max;
+    if (min > effectiveMax || (gene.name === "num_assets" && [value.fixed, value.default].some((item) => typeof item === "number" && item > effectiveMax))) {
+      add(gene.name, "The configured asset count must fit the selected trading pairs.");
+    }
+    const resolvedDefault = typeof value.default === "number" ? value.default : Math.min(effectiveMax, Math.max(min, gene.default));
     const fixed = typeof value.fixed === "number";
-    ranges.set(gene.name, { min: fixed ? value.fixed as number : min, max: fixed ? value.fixed as number : max, fixed });
+    const disabled = Array.isArray(config.enabled_genes) && !config.enabled_genes.includes(gene.name);
+    const locked = fixed ? value.fixed as number : disabled ? resolvedDefault : undefined;
+    ranges.set(gene.name, { min: locked ?? min, max: locked ?? effectiveMax });
   }
   for (const [lower, upper, label] of [["ema_fast", "ema_slow", "EMA fast must remain below EMA slow"], ["stop_loss_pct", "take_profit_pct", "Stop loss must remain below take profit"]]) {
     const lo = ranges.get(lower), hi = ranges.get(upper);
-    if (lo && hi && (lo.min >= hi.max || (lo.fixed && lo.min >= hi.min))) add(lower, `${label}, including across the other gene's range when fixed.`);
+    if (lo && hi && lo.min >= hi.max) add(lower, `${label}; fixed values and disabled defaults must allow a valid pair.`);
   }
-  const assets = Array.isArray(config.available_assets) ? config.available_assets.length : ALL_ASSETS.length;
-  const count = ranges.get("num_assets");
-  if (Object.hasOwn(overrides, "num_assets") && count && count.min > assets) add("num_assets", "The configured asset count must fit the selected trading pairs.");
   return issues;
 }
 

@@ -62,14 +62,15 @@ def mutate(
     Gaussian mutation. Only mutates evolvable genes.
     Fixed/disabled genes are untouched.
     """
+    domains = colony_config.resolve_gene_domains() if colony_config else GENE_REGISTRY.resolve_domains()
     for gene_name in NUMERIC_GENES:
-        evolvable = colony_config.is_gene_evolvable(gene_name) if colony_config else True
+        evolvable = domains[gene_name].evolvable
         if not evolvable:
             continue
 
         if random.random() < mutation_rate:
-            gene_def = GENE_REGISTRY.get(gene_name)
-            gene_range = gene_def.max - gene_def.min
+            domain = domains[gene_name]
+            gene_range = domain.maximum - domain.minimum
             noise = random.gauss(0, mutation_strength * gene_range)
             current = getattr(genome, gene_name)
             setattr(genome, gene_name, current + noise)

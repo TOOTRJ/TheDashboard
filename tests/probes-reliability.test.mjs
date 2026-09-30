@@ -192,7 +192,7 @@ test("gene and asset constraints reject unknown, impossible, duplicate, and unsa
     { gene_overrides: { stop_loss_pct: { min: 0.05, max: 0.02 } } },
     { gene_overrides: { stop_loss_pct: { min: 0.04, fixed: 0.03 } } },
     { gene_overrides: { ema_fast: { fixed: 15 }, ema_slow: { fixed: 10 } } },
-    { gene_overrides: { stop_loss_pct: { fixed: 0.05 }, take_profit_pct: { min: 0.03, max: 0.06 } } },
+    { gene_overrides: { stop_loss_pct: { fixed: 0.05 }, take_profit_pct: { min: 0.03, max: 0.05 } } },
     { available_assets: ["SOL/USDC"], gene_overrides: { num_assets: { min: 2 } } },
   ]) assert.ok(configs.validateStartConfig({ ...valid(), colony_config: { ...valid().colony_config, ...patch } }).length > 0);
   const unlocked = { ...valid(), preset: "rsi_focus", colony_config: {

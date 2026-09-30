@@ -1,0 +1,303 @@
+[
+  {
+    "name": "defaults",
+    "accepted": true,
+    "config": {}
+  },
+  {
+    "name": "all_disabled",
+    "accepted": true,
+    "config": {
+      "enabled_genes": []
+    }
+  },
+  {
+    "name": "fixed_three_assets",
+    "accepted": true,
+    "config": {
+      "gene_overrides": {
+        "num_assets": {
+          "fixed": 3
+        }
+      }
+    }
+  },
+  {
+    "name": "one_asset_implicit_default",
+    "accepted": true,
+    "config": {
+      "available_assets": [
+        "SOL/USDC"
+      ]
+    }
+  },
+  {
+    "name": "one_asset_disabled_implicit_default",
+    "accepted": true,
+    "config": {
+      "available_assets": [
+        "SOL/USDC"
+      ],
+      "enabled_genes": []
+    }
+  },
+  {
+    "name": "feasible_fixed_fast",
+    "accepted": true,
+    "config": {
+      "gene_overrides": {
+        "ema_fast": {
+          "fixed": 15
+        }
+      }
+    }
+  },
+  {
+    "name": "feasible_fixed_stop",
+    "accepted": true,
+    "config": {
+      "gene_overrides": {
+        "stop_loss_pct": {
+          "fixed": 0.05
+        }
+      }
+    }
+  },
+  {
+    "name": "incompatible_disabled_defaults",
+    "accepted": false,
+    "config": {
+      "enabled_genes": [],
+      "gene_overrides": {
+        "ema_fast": {
+          "default": 20
+        },
+        "ema_slow": {
+          "default": 10
+        }
+      }
+    }
+  },
+  {
+    "name": "disabled_fast_active_slow",
+    "accepted": true,
+    "config": {
+      "enabled_genes": [
+        "ema_slow"
+      ],
+      "gene_overrides": {
+        "ema_fast": {
+          "default": 20
+        }
+      }
+    }
+  },
+  {
+    "name": "fixed_fast_no_feasible_slow",
+    "accepted": false,
+    "config": {
+      "gene_overrides": {
+        "ema_fast": {
+          "fixed": 20
+        },
+        "ema_slow": {
+          "max": 20
+        }
+      }
+    }
+  },
+  {
+    "name": "overlapping_integer_domains",
+    "accepted": true,
+    "config": {
+      "gene_overrides": {
+        "ema_fast": {
+          "min": 15,
+          "max": 20
+        },
+        "ema_slow": {
+          "min": 16,
+          "max": 20
+        }
+      }
+    }
+  },
+  {
+    "name": "explicit_count_default_exceeds_pool",
+    "accepted": false,
+    "config": {
+      "available_assets": [
+        "SOL/USDC"
+      ],
+      "gene_overrides": {
+        "num_assets": {
+          "default": 2
+        }
+      }
+    }
+  },
+  {
+    "name": "fixed_count_exceeds_pool",
+    "accepted": false,
+    "config": {
+      "available_assets": [
+        "SOL/USDC"
+      ],
+      "gene_overrides": {
+        "num_assets": {
+          "fixed": 2
+        }
+      }
+    }
+  },
+  {
+    "name": "explicit_count_default_fits",
+    "accepted": true,
+    "config": {
+      "enabled_genes": [],
+      "available_assets": [
+        "SOL/USDC"
+      ],
+      "gene_overrides": {
+        "num_assets": {
+          "default": 1
+        }
+      }
+    }
+  },
+  {
+    "name": "zero_width",
+    "accepted": true,
+    "config": {
+      "gene_overrides": {
+        "rsi_period": {
+          "min": 12,
+          "max": 12
+        }
+      }
+    }
+  },
+  {
+    "name": "swapped_range",
+    "accepted": false,
+    "config": {
+      "gene_overrides": {
+        "rsi_period": {
+          "min": 20,
+          "max": 10
+        }
+      }
+    }
+  },
+  {
+    "name": "fractional_integer_override",
+    "accepted": false,
+    "config": {
+      "gene_overrides": {
+        "ema_fast": {
+          "min": 9.5
+        }
+      }
+    }
+  },
+  {
+    "name": "out_of_global_bounds",
+    "accepted": false,
+    "config": {
+      "gene_overrides": {
+        "ema_fast": {
+          "min": 100,
+          "max": 2
+        }
+      }
+    }
+  },
+  {
+    "name": "empty_assets",
+    "accepted": false,
+    "config": {
+      "available_assets": []
+    }
+  },
+  {
+    "name": "duplicate_assets",
+    "accepted": false,
+    "config": {
+      "available_assets": [
+        "SOL/USDC",
+        "SOL/USDC"
+      ]
+    }
+  },
+  {
+    "name": "bad_disabled_risk_defaults",
+    "accepted": false,
+    "config": {
+      "enabled_genes": [],
+      "gene_overrides": {
+        "stop_loss_pct": {
+          "default": 0.1
+        },
+        "take_profit_pct": {
+          "default": 0.05
+        }
+      }
+    }
+  },
+  {
+    "name": "equal_fixed_risk",
+    "accepted": false,
+    "config": {
+      "gene_overrides": {
+        "stop_loss_pct": {
+          "fixed": 0.1
+        },
+        "take_profit_pct": {
+          "fixed": 0.1
+        }
+      }
+    }
+  },
+  {
+    "name": "unknown_gene",
+    "accepted": false,
+    "config": {
+      "enabled_genes": [
+        "private"
+      ]
+    }
+  },
+  {
+    "name": "duplicate_enabled",
+    "accepted": false,
+    "config": {
+      "enabled_genes": [
+        "ema_fast",
+        "ema_fast"
+      ]
+    }
+  },
+  {
+    "name": "integer_boolean",
+    "accepted": false,
+    "config": {
+      "gene_overrides": {
+        "ema_fast": {
+          "fixed": true
+        }
+      }
+    }
+  },
+  {
+    "name": "explicit_default_outside_narrow_range",
+    "accepted": false,
+    "config": {
+      "gene_overrides": {
+        "rsi_period": {
+          "min": 20,
+          "default": 14
+        }
+      }
+    }
+  }
+]
