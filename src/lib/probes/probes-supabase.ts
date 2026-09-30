@@ -137,6 +137,7 @@ async function _enrichColonyRuns(
       state_persisted: typeof record.state_persisted === "boolean" ? record.state_persisted : undefined,
       open_positions: typeof record.open_positions === "number" && Number.isSafeInteger(record.open_positions) && record.open_positions >= 0 ? record.open_positions : undefined,
       requires_reconciliation: typeof record.requires_reconciliation === "boolean" ? record.requires_reconciliation : undefined,
+      valuation_available: typeof record.valuation_available === "boolean" ? record.valuation_available : undefined,
     };
     return {
       run_id: c.id,

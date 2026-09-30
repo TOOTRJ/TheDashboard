@@ -25,10 +25,11 @@ from .evolution import NUMERIC_GENES, mutate, population_diversity
 from .genome import Genome, random_genome
 from .funding import FundingError, can_fund, funding_tolerance, sum_cashflows, valid_cash
 from .names import generate_probe_name
-from .probe import Probe
+from .market_validation import MarketValueError, nonnegative_value, positive_price, position_value
+from .probe import Probe, ProbeStepError
 from .strategies.base import EvolutionResult, EvolutionStrategy
 from .types import EventType, ProbeEvent, ProbeState, FitnessSnapshot
-from ..market.feed import MarketFeed
+from ..market.feed import MarketFeed, MarketTick
 
 logger = logging.getLogger(__name__)
 
@@ -155,6 +156,32 @@ class GenesisController:
     def status(self) -> dict:
         live = self.live_probes
         open_positions = sum(len(probe.open_positions) for probe in self.probes.values())
+        # Failure reporting must survive the same malformed ledger that stopped
+        # execution. Unknown valuation is not zero, principal, or stale equity.
+        reserve = active = total = None
+        try:
+            reserve = nonnegative_value(self.reserve_capital)
+        except MarketValueError:
+            pass
+        try:
+            values = []
+            for probe in self.probes.values():
+                values.append(nonnegative_value(probe.capital))
+                for asset, trade in probe.open_positions.items():
+                    price = positive_price(self._latest_prices.get(asset))
+                    entry = positive_price(trade.entry_price)
+                    amount = nonnegative_value(trade.amount)
+                    values.append(position_value(amount, entry, price))
+            active = nonnegative_value(math.fsum(values))
+            if reserve is not None:
+                total = nonnegative_value(reserve + active)
+        except (MarketValueError, OverflowError):
+            active = total = None
+        try:
+            diversity = nonnegative_value(
+                population_diversity([p.genome for p in live]) if len(live) >= 2 else 1.0)
+        except (ValueError, TypeError, OverflowError, AttributeError):
+            diversity = None
         return {
             "status": self._lifecycle_status,
             "failure_code": self.failure_code,
@@ -172,14 +199,12 @@ class GenesisController:
             "live_probes": len(live),
             "dead_probes": len(self.dead_probes),
             "total_probes": len(self.probes) + len(self.dead_probes),
-            "reserve_capital": round(self.reserve_capital, 2),
-            "active_capital": round(self.active_capital, 2),
-            "total_capital": round(self.reserve_capital + self.active_capital, 2),
+            "reserve_capital": round(reserve, 2) if reserve is not None else None,
+            "active_capital": round(active, 2) if active is not None else None,
+            "total_capital": round(total, 2) if total is not None else None,
+            "valuation_available": total is not None,
             "circuit_breaker": self.circuit_breaker_active,
-            "diversity": round(
-                population_diversity([p.genome for p in live]) if len(live) >= 2 else 1.0,
-                4,
-            ),
+            "diversity": round(diversity, 4) if diversity is not None else None,
             "started_at": self.started_at.isoformat() if self.started_at else None,
             "uptime_secs": (
                 (datetime.now(timezone.utc) - self.started_at).total_seconds()
@@ -192,6 +217,10 @@ class GenesisController:
         }
 
     # ── Startup ──────────────────────────────────────────────────────────
+
+    @property
+    def lifecycle_status(self) -> str:
+        return self._lifecycle_status
 
     def set_lifecycle(self, status: str) -> None:
         self._lifecycle_status = status
@@ -217,10 +246,10 @@ class GenesisController:
         # History availability/freshness policy is a separate data-quality gate.
         assets = sorted({asset for probe in self.live_probes for asset in probe.genome.assets})
         ticks = await self.market_feed.get_ticks(assets)
-        if not assets or any(asset not in ticks or not math.isfinite(ticks[asset].price)
-                             or ticks[asset].price <= 0 for asset in assets):
-            raise RuntimeError("Initial market prices unavailable")
-        self._latest_prices = {asset: ticks[asset].price for asset in assets}
+        valid_ticks, errors = self._validate_ticks(assets, ticks)
+        if not assets or errors:
+            raise MarketValueError()
+        self._latest_prices = {asset: tick.price for asset, tick in valid_ticks.items()}
 
         # Initialize the strategy with live probes
         self.strategy.initialize(list(self.probes.values()), self.colony_config)
@@ -362,22 +391,11 @@ class GenesisController:
 
     def _liquidation_plan(self, probe: Probe) -> tuple[float, dict[str, float]]:
         """Project exactly the arithmetic/prices used by Probe._close_position."""
-        if not valid_cash(probe.capital):
-            raise FundingError()
-        projected = probe.capital
-        prices = {}
-        for asset, trade in probe.open_positions.items():
-            # Never fall back to an old buffer or fabricate a zero-price refund.
-            price = self._latest_prices.get(asset)
-            if (not valid_cash(price) or price <= 0 or
-                    not valid_cash(trade.entry_price) or trade.entry_price <= 0 or
-                    not valid_cash(trade.amount)):
-                raise FundingError()
-            prices[asset] = price
-            projected += trade.amount + trade.amount * ((price - trade.entry_price) / trade.entry_price)
-            if not valid_cash(projected):
-                raise FundingError()
-        return projected, prices
+        prices = {asset: self._latest_prices.get(asset) for asset in probe.open_positions}
+        try:
+            return probe.validate_liquidation(prices), prices
+        except MarketValueError:
+            raise FundingError() from None
 
     def _preflight_replacement(self, result: EvolutionResult, *, self_reproducing: bool = False
                                ) -> tuple[list[Genome], dict[str, tuple[Probe, dict[str, float]]], list[float]]:
@@ -487,10 +505,8 @@ class GenesisController:
         if prices is None:
             _, prices = self._liquidation_plan(probe)
         # Prices were validated for every retiring parent before any mutation.
-        for asset in list(probe.open_positions.keys()):
-            evt = probe._close_position(asset, prices[asset], "EVOLUTION")
-            if evt:
-                await self._emit(evt)
+        for evt in probe.close_all_positions(prices, "EVOLUTION"):
+            await self._emit(evt)
 
         # State transition depends on current state
         if probe.state == ProbeState.TRADING:
@@ -631,6 +647,29 @@ class GenesisController:
 
         logger.info("[Genesis] Tick loop stopped.")
 
+    @staticmethod
+    def _validate_ticks(assets: list[str], ticks) -> tuple[dict[str, MarketTick], list[Exception]]:
+        """Normalize requested observations without ever reusing a missing mark.
+
+        Timestamps currently describe adapter receipt/simulation time. Checking
+        their numeric shape is not a claim of source-price or candle freshness.
+        """
+        valid = {}
+        errors = []
+        if not isinstance(ticks, dict):
+            return valid, [MarketValueError()]
+        for asset in assets:
+            tick = ticks.get(asset)
+            try:
+                if not isinstance(tick, MarketTick) or tick.asset != asset:
+                    raise MarketValueError()
+                valid[asset] = MarketTick(
+                    asset, positive_price(tick.price), nonnegative_value(tick.volume),
+                    nonnegative_value(tick.timestamp))
+            except MarketValueError as error:
+                errors.append(error)
+        return valid, errors
+
     async def _tick_all(self) -> None:
         if self.circuit_breaker_active:
             raise RuntimeError("Circuit breaker stopped execution")
@@ -643,18 +682,45 @@ class GenesisController:
         self.tick_count += 1
 
         # Fetch prices and push to all probes
-        all_assets = list({a for p in live for a in p.genome.assets})
+        all_assets = sorted({a for p in live for a in [*p.genome.assets, *p.open_positions]})
+        # On a failed refresh, status must not present the previous batch as a
+        # current valuation or use it to close/recycle a missing asset.
+        self._latest_prices = {}
         ticks = await self.market_feed.get_ticks(all_assets)
+        ticks, failures = self._validate_ticks(all_assets, ticks)
+        self._latest_prices = {asset: tick.price for asset, tick in ticks.items()}
 
-        # Store latest prices for use during probe retirement
-        for asset, tick in ticks.items():
-            self._latest_prices[asset] = tick.price
-
+        risk_assets: dict[str, set[str]] = {}
         for probe in live:
-            for asset in probe.genome.assets:
-                if asset in ticks:
-                    tick = ticks[asset]
+            eligible = risk_assets[probe.probe_id] = set()
+            for asset in dict.fromkeys([*probe.genome.assets, *probe.open_positions]):
+                tick = ticks.get(asset)
+                if tick is None:
+                    continue
+                try:
+                    if asset not in probe._price_buffer or asset not in probe._volume_buffer:
+                        raise MarketValueError()
                     probe.on_price_update(asset, tick.price, tick.volume)
+                    eligible.add(asset)
+                except Exception as error:
+                    failures.append(error)
+
+        # All probes get a bounded risk pass before any signal, reproduction,
+        # reporting, or persistence failure can interrupt the decision phase.
+        risk_events = []
+        for probe in live:
+            try:
+                risk_events.extend(probe.risk_tick(assets=risk_assets[probe.probe_id]))
+            except ProbeStepError as error:
+                risk_events.extend(error.events)
+                failures.append(error.cause)
+            except Exception as error:
+                failures.append(error)
+        for event in risk_events:
+            # Persistence failures are never swallowed or retried as probe bugs.
+            await self._emit(event)
+        if failures:
+            raise failures[0]
 
         # Broadcast prices every 5 ticks
         if self.tick_count % 5 == 0:
@@ -674,7 +740,14 @@ class GenesisController:
         self_reproducing: list[Probe] = []
 
         for probe in live:
-            events = probe.tick()
+            try:
+                events = probe.tick(check_risk=False)
+            except ProbeStepError as error:
+                for event in error.events:
+                    await self._emit(event)
+                # Accounts and positions remain owned for reconciliation. Do
+                # not breed/reclaim capital after an incomplete decision phase.
+                raise error.cause
             for evt in events:
                 await self._emit(evt)
                 if evt.event_type == EventType.PROBE_DYING:

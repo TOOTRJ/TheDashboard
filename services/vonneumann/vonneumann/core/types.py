@@ -7,6 +7,8 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Optional
 
+from .market_validation import trade_return
+
 
 class ProbeState(str, Enum):
     BORN = "BORN"
@@ -52,9 +54,7 @@ class TradeRecord:
     closed_at: Optional[datetime] = None
 
     def return_pct(self) -> float:
-        if self.entry_price and self.exit_price and self.entry_price > 0:
-            return (self.exit_price - self.entry_price) / self.entry_price
-        return 0.0
+        return trade_return(self.entry_price, self.exit_price)
 
 
 @dataclass

@@ -9,6 +9,7 @@ from typing import Optional, Callable, Awaitable
 from .colony_config import ColonyConfig
 from .genesis import GenesisController
 from .funding import FundingError
+from .market_validation import MarketValueError
 from .types import ProbeEvent
 from ..db.repository import PersistenceError
 from ..market.feed import MarketFeed
@@ -27,6 +28,7 @@ FAILURE_MESSAGES = {
     "execution_failed": "Colony execution failed and has stopped. Reconciliation may be required.",
     "cleanup_failed": "Colony resource cleanup failed. Execution has stopped.",
     "feed_unavailable": "Required market data is unavailable. Colony execution has stopped.",
+    "invalid_market_value": "A market observation or trade calculation was invalid. Execution has stopped; retained positions may require reconciliation.",
     "funding_insufficient": "The colony cannot fully fund its next candidate population. Execution has stopped.",
     "funding_capacity": "The replacement population exceeds the configured capacity. Execution has stopped.",
     "funding_invalid_plan": "The population replacement plan or capital ledger is invalid. Execution has stopped.",
@@ -65,6 +67,8 @@ def _failure_code(error: Exception, default: str) -> str:
         return "persistence_failed"
     if isinstance(error, MarketFeedError):
         return "feed_unavailable"
+    if isinstance(error, MarketValueError):
+        return "invalid_market_value"
     if isinstance(error, FundingError):
         return error.code if error.code in FAILURE_MESSAGES else "funding_invalid_plan"
     if isinstance(error, ColonyLifecycleError) and not error.conflict:
@@ -86,6 +90,10 @@ class _StartingColony:
 
     def set_lifecycle(self, status: str) -> None:
         self.lifecycle = status
+
+    @property
+    def lifecycle_status(self) -> str:
+        return self.lifecycle
 
     def status(self) -> dict:
         return {"colony_id": self.colony_id, "run_id": self.run_id,
@@ -178,7 +186,7 @@ class ColonyManager:
     async def _supervise(self, colony_id: str) -> None:
         try:
             await self._colonies[colony_id].run()
-            if self._colonies[colony_id].status()["status"] in {"running", "paused"}:
+            if self._colonies[colony_id].lifecycle_status in {"running", "paused"}:
                 raise RuntimeError("Execution ended unexpectedly")
         except asyncio.CancelledError:
             raise
@@ -188,7 +196,7 @@ class ColonyManager:
             # cancel this supervisor and accidentally label uncertain state stopped.
             self._pending_failures[colony_id] = code
             async with self._locks[colony_id]:
-                if self._colonies[colony_id].status()["status"] != "failed":
+                if self._colonies[colony_id].lifecycle_status != "failed":
                     await self._fail(colony_id, code)
         finally:
             if self._tasks.get(colony_id) is asyncio.current_task():
@@ -245,7 +253,7 @@ class ColonyManager:
 
     def _require_state(self, colony_id: str, states: set[str]):
         colony = self._colonies[colony_id]
-        if colony.status()["status"] not in states:
+        if colony.lifecycle_status not in states:
             raise ColonyLifecycleError("invalid_state", conflict=True)
         return colony
 
@@ -259,7 +267,7 @@ class ColonyManager:
     async def _stop_colony(self, colony_id: str) -> None:
         async with self._locks.setdefault(colony_id, asyncio.Lock()):
             colony = self._require_state(colony_id, {"running", "paused", "stopped"})
-            if colony.status()["status"] == "stopped":
+            if colony.lifecycle_status == "stopped":
                 return
             try:
                 # Finish the current event batch before cancelling the sleeping loop.
@@ -332,12 +340,12 @@ class ColonyManager:
         return None
 
     def active_count(self) -> int:
-        return sum(colony.status()["status"] in {"starting", "running", "paused"}
+        return sum(colony.lifecycle_status in {"starting", "running", "paused"}
                    for colony in self._colonies.values())
 
     async def shutdown(self) -> None:
         for colony_id, colony in list(self._colonies.items()):
-            if colony.status()["status"] in {"running", "paused"}:
+            if colony.lifecycle_status in {"running", "paused"}:
                 try:
                     await self.stop_colony(colony_id)
                 except ColonyLifecycleError:

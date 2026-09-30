@@ -87,6 +87,10 @@ class FakeController:
         return {"colony_id": self.colony_id, "run_id": self.run_id,
                 "user_id": self.user_id, "status": self.lifecycle}
 
+    @property
+    def lifecycle_status(self):
+        return self.lifecycle
+
     def set_lifecycle(self, status):
         self.lifecycle = status
 

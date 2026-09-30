@@ -138,7 +138,7 @@ async def _start_colony(req: StartRequest, user: VerifiedUser) -> dict:
     async def persist_status(status: dict) -> None:
         await repo.execute_async("update_colony_status", colony_id, status["status"], details={
             name: status.get(name) for name in ("failure_code", "failure_message", "state_persisted",
-                                               "open_positions", "requires_reconciliation")
+                                               "open_positions", "requires_reconciliation", "valuation_available")
         })
 
     async def publish_status(status: dict) -> None:
