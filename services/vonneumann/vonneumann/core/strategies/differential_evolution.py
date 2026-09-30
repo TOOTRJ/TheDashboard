@@ -23,6 +23,7 @@ NUMERIC_GENES = GENE_REGISTRY.numeric_gene_names()
 
 
 class DifferentialEvolutionStrategy(EvolutionStrategy):
+    supports_cohorts = True
     name = "differential_evolution"
     label = "Differential Evolution"
     description = "DE/rand/1/bin -- differential mutation with binomial crossover."

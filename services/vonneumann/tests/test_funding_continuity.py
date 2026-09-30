@@ -6,6 +6,7 @@ returns cannot conceal capital shrinkage caused by population replacement.
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
 import copy
 import math
 import random
@@ -122,12 +123,22 @@ class FundingContinuityTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase)
         controller._latest_prices[ASSET] = exit_price
         self.assertEqual(probe.capital, 50.0)
 
+    async def complete_cash_window(self, controller):
+        # This accounting-only feed deliberately has no indicators or trades.
+        # Supply an explicit all-cash cohort window; separate controller tests
+        # exercise real candle readiness and time scheduling.
+        started = controller._event_time().timestamp()
+        controller._cohort.start(started)
+        ended = started + controller._cohort.horizon_seconds
+        controller._event_time = lambda: datetime.fromtimestamp(ended, timezone.utc)
+        await controller._evaluate_reproduction()
+
     async def assert_sixty_replacements(self, strategy):
         controller = await self.controller(strategy, capital=600.0)
         self.assertEqual(controller.capital_split, 0.45)
         for cycle in range(1, 61):
             previous_ids = set(controller.probes)
-            await controller._evaluate_reproduction()
+            await self.complete_cash_window(controller)
             with self.subTest(strategy=strategy.name, cycle=cycle):
                 self.assertEqual(len(controller.live_probes), 6)
                 self.assertTrue(previous_ids.isdisjoint(controller.probes))
@@ -152,7 +163,7 @@ class FundingContinuityTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase)
     async def test_real_cma_es_preserves_full_population_for_sixty_cycles(self):
         await self.assert_sixty_replacements(CMAEvolutionStrategy())
 
-    async def test_real_ga_partial_replacement_uses_reserve_for_equal_budgets(self):
+    async def test_real_ga_cohort_replacement_preserves_equal_budgets_without_growth(self):
         controller = await self.controller(GeneticAlgorithmStrategy(), population=10,
                                            max_probes=13, capital=1_300.0)
         for probe in controller.live_probes:
@@ -160,15 +171,18 @@ class FundingContinuityTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase)
             for _ in range(3):
                 self.assertIsNotNone(probe._open_position(ASSET, 100.0, {}))
                 self.assertIsNotNone(probe._close_position(ASSET, 100.0, "TEST"))
+        # The fixture changed sizing before making its known zero-return fills;
+        # bind that exact phenotype before starting a comparison.
+        controller._bind_evaluation()
         original_ids = set(controller.probes)
-        await controller._evaluate_reproduction()
-        self.assertEqual(len(controller.dead_probes), 3)
-        self.assertEqual(len(controller.live_probes), 13)
-        self.assertEqual(len(set(controller.probes) & original_ids), 7)
-        self.assertEqual(sum(p.genome.generation == 1 for p in controller.live_probes), 6)
+        await self.complete_cash_window(controller)
+        self.assertEqual(len(controller.dead_probes), 10)
+        self.assertEqual(len(controller.live_probes), 10)
+        self.assertFalse(set(controller.probes) & original_ids)
+        self.assertEqual(sum(p.genome.generation == 1 for p in controller.live_probes), 10)
         self.assertTrue(all(p.initial_capital == 100.0 for p in controller.live_probes))
-        self.assertAlmostEqual(controller.reserve_capital, 0.0)
-        self.assertAlmostEqual(controller.active_capital, 1_300.0)
+        self.assertAlmostEqual(controller.reserve_capital, 300.0)
+        self.assertAlmostEqual(controller.active_capital, 1_000.0)
 
     async def test_no_retire_children_are_fully_funded_from_reserve(self):
         controller = await self.controller(population=2, max_probes=4, capital=400.0)

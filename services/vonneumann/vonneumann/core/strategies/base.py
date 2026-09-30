@@ -34,6 +34,14 @@ class EvolutionResult:
 class EvolutionStrategy(ABC):
     """Base class for all evolutionary algorithm strategies."""
 
+    supports_cohorts = False
+
+    def bind_candidates(self, probes: list[Probe]) -> None:
+        """Bind newly spawned accounts to the preceding ordered ask batch."""
+
+    def abort_cohort(self) -> None:
+        """Discard an interrupted batch without admitting partial evaluations."""
+
     @property
     @abstractmethod
     def name(self) -> str:

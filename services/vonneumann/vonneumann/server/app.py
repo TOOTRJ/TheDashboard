@@ -141,7 +141,7 @@ async def _start_colony(req: StartRequest, user: VerifiedUser) -> dict:
                                                "open_positions", "requires_reconciliation", "valuation_available",
                                                "clock_basis", "market_time", "market_elapsed_secs", "simulation_spec", "quote_policy",
                                                "candle_policy", "metrics_policy", "fitness_policy",
-                                               "circuit_breaker", "risk_control")
+                                               "circuit_breaker", "risk_control", "evaluation_policy", "cohort", "last_evaluation")
         })
 
     async def publish_status(status: dict) -> None:

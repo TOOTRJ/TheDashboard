@@ -1,4 +1,4 @@
-import type { RiskControl, WsMessage } from "./types";
+import type { EvaluationCohort, EvaluationPolicy, RiskControl, WsMessage } from "./types";
 
 export interface WorkerEndpoints {
   apiUrl: string | null;
@@ -81,6 +81,50 @@ export function parseRiskControl(value: unknown): RiskControl | undefined {
   };
 }
 
+/** Legacy or unknown evaluation policies must never acquire the current meaning. */
+export function parseEvaluationPolicy(value: unknown): EvaluationPolicy | undefined {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
+  const record = value as Record<string, unknown>;
+  if (record.version !== "common-market-window-v1" || record.horizon_unit !== "market_minutes" ||
+      record.warmup !== "all_candidates_ready" || record.interruptions !== "abort_without_tell") return undefined;
+  return { version: record.version, horizon_unit: record.horizon_unit,
+    warmup: record.warmup, interruptions: record.interruptions };
+}
+
+export function parseEvaluationCohort(value: unknown): EvaluationCohort | undefined {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
+  const record = value as Record<string, unknown>;
+  const phase = record.phase;
+  if (phase !== "warming" && phase !== "evaluating" && phase !== "completed" && phase !== "aborted") return undefined;
+  if (typeof record.iteration_id !== "string" || !/^[a-zA-Z0-9:_-]{1,128}$/.test(record.iteration_id) ||
+      typeof record.member_count !== "number" || !Number.isSafeInteger(record.member_count) || record.member_count < 1 ||
+      typeof record.completed_count !== "number" || !Number.isSafeInteger(record.completed_count) ||
+      record.completed_count < 0 || record.completed_count > record.member_count) return undefined;
+  const validTime = (item: unknown): item is number => typeof item === "number" && Number.isFinite(item) && item >= 0 && item <= 8_640_000_000_000;
+  const emptyWindow = record.started_at === null && record.ends_at === null;
+  const validWindow = validTime(record.started_at) && validTime(record.ends_at) && record.ends_at > record.started_at;
+  if ((!emptyWindow && !validWindow) || (phase === "warming" && (!emptyWindow || record.completed_count !== 0)) ||
+      ((phase === "evaluating" || phase === "completed") && !validWindow) ||
+      (phase === "completed" && record.completed_count !== record.member_count)) return undefined;
+  const reasons = ["paused", "stopped", "risk_halted", "failed", "worker_stopped"];
+  return {
+    phase, iteration_id: record.iteration_id, member_count: record.member_count, completed_count: record.completed_count,
+    started_at: validTime(record.started_at) ? record.started_at : null,
+    ends_at: validTime(record.ends_at) ? record.ends_at : null,
+    abort_reason: record.abort_reason === null ? null :
+      typeof record.abort_reason === "string" && reasons.includes(record.abort_reason) ? record.abort_reason : "unknown",
+  };
+}
+
+export function formatEvaluationAbort(reason: unknown): string {
+  if (reason === "paused") return "The colony was paused.";
+  if (reason === "stopped") return "The colony was stopped.";
+  if (reason === "risk_halted") return "The circuit breaker halted the evaluation.";
+  if (reason === "failed") return "The colony encountered a failure.";
+  if (reason === "worker_stopped") return "The worker stopped the evaluation.";
+  return "The evaluation was interrupted.";
+}
+
 function formatWorkerConflict(body: unknown): string {
   const fallback = "The colony cannot perform this action in its current state. Refresh its status and try again.";
   if (!body || typeof body !== "object" || !("detail" in body) || !body.detail ||
@@ -105,8 +149,8 @@ export const START_LIMITS = {
   seed_capital: { min: 10, max: 1_000_000_000, integer: false, label: "Capital per probe" },
   tick_interval_ms: { min: 100, max: 60_000, integer: true, label: "Tick interval (ms)" },
   mutation_rate: { min: 0, max: 0.5, integer: false, label: "Mutation rate" },
-  reproduction_interval: { min: 1, max: 1_000_000, integer: true, label: "Reproduction interval" },
-  max_lifespan_ticks: { min: 0, max: 10_000_000, integer: true, label: "Maximum lifespan" },
+  reproduction_interval: { min: 1, max: 1_000_000, integer: true, label: "Evaluation window (market minutes)" },
+  max_lifespan_ticks: { min: 0, max: 10_000_000, integer: true, label: "Maximum candidate age (market minutes after warmup)" },
 } as const;
 
 const VALIDATION_FIELDS: Record<string, string> = {

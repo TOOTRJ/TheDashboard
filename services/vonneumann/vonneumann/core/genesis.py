@@ -32,6 +32,7 @@ from .names import generate_probe_name
 from .market_validation import MarketValueError, nonnegative_value, positive_price, position_value
 from .probe import Probe, ProbeStepError
 from .risk_control import RiskRecoveryError
+from .evaluation import EvaluationCohort, EVALUATION_POLICY
 from .strategies.base import EvolutionResult, EvolutionStrategy
 from .types import EventType, ProbeEvent, ProbeState, FitnessSnapshot
 from ..market.feed import MarketFeed, MarketFeedError, MarketTick, QuoteEvidence
@@ -67,6 +68,7 @@ class GenesisController:
     ):
         self.market_feed = market_feed
         self.strategy = strategy
+        self._uses_cohorts = bool(getattr(strategy, "supports_cohorts", False))
         self.user_id = user_id
         self.mode = mode
 
@@ -158,6 +160,10 @@ class GenesisController:
 
         # Snapshot interval
         self.snapshot_interval = 25
+        self._cohort: Optional[EvaluationCohort] = None
+        self._cohort_seeds: list[Genome] = []
+        self._evaluation_iteration = 0
+        self._last_evaluation: Optional[dict] = None
 
         # Reproduction interval (from colony config or default 100)
         self.reproduction_interval = self.colony_config.reproduction_interval
@@ -238,6 +244,9 @@ class GenesisController:
             "active_capital": round(active, 2) if active is not None else None,
             "total_capital": round(total, 2) if total is not None else None,
             "valuation_available": total is not None,
+            "evaluation_policy": dict(EVALUATION_POLICY) if self._uses_cohorts else None,
+            "cohort": self._cohort.to_dict() if self._cohort else None,
+            "last_evaluation": deepcopy(self._last_evaluation),
             "circuit_breaker": self.circuit_breaker_active,
             "risk_control": deepcopy(self._risk_control),
             "diversity": round(diversity, 4) if diversity is not None else None,
@@ -273,6 +282,8 @@ class GenesisController:
         return self._lifecycle_status
 
     def set_lifecycle(self, status: str) -> None:
+        if status in {"paused", "risk_halted", "stopped", "failed"}:
+            self._abort_evaluation(status)
         self._lifecycle_status = status
         self._running = status in {"running", "paused", "risk_halted"}
         self._paused = status == "paused"
@@ -314,6 +325,8 @@ class GenesisController:
 
         # Initialize the strategy with live probes
         self.strategy.initialize(list(self.probes.values()), self.colony_config)
+        if self._uses_cohorts:
+            self._bind_evaluation()
 
         self._initial_total_capital = self.active_capital + self.reserve_capital
         self._observe_account_risk()
@@ -337,6 +350,7 @@ class GenesisController:
 
     async def cleanup(self) -> None:
         """Release feed resources without erasing probe/position state."""
+        self._abort_evaluation("worker_stopped")
         self._running = False
         if not self._feed_closed and hasattr(self.market_feed, "close"):
             await self.market_feed.close()
@@ -521,10 +535,10 @@ class GenesisController:
                 # A validated, serialized batch must never silently lose births.
                 # Do not roll back uncertain persistence or redistribute cash.
                 raise FundingError()
-            if genome.parent_ids and genome.parent_ids[0] in retired:
-                parent = retired[genome.parent_ids[0]][0]
-                if hasattr(self.strategy, "remap_probe_id"):
-                    self.strategy.remap_probe_id(parent.probe_id, new_probe.probe_id)
+            if genome.parent_ids and hasattr(self.strategy, "remap_probe_id"):
+                # An early terminal candidate still owns its optimizer slot
+                # even though its trading account has already been reclaimed.
+                self.strategy.remap_probe_id(genome.parent_ids[0], new_probe.probe_id)
         for probe, _ in retired.values():
             await self._maybe_emit_generation_stats(probe.genome.generation)
 
@@ -587,18 +601,103 @@ class GenesisController:
 
     # ── Lifecycle: Reproduction (strategy-delegated) ─────────────────────
 
+    def _bind_evaluation(self) -> None:
+        members = list(self.live_probes)
+        self.strategy.bind_candidates(members)
+        self._evaluation_iteration += 1
+        self._cohort = EvaluationCohort(
+            f"{self.run_id}:{self._evaluation_iteration}", members,
+            float(self.reproduction_interval * 60))
+        self._cohort_seeds = [deepcopy(p.genome) for p in members]
+
+    def _abort_evaluation(self, reason: str) -> None:
+        cohort = getattr(self, "_cohort", None)
+        if cohort is not None and cohort.phase not in {"aborted", "completed"}:
+            cohort.abort(reason, self._event_time().timestamp())
+            self.strategy.abort_cohort()
+            self._last_evaluation = cohort.to_dict()
+
+    async def _publish_evaluation(self) -> None:
+        await self._save_risk_status(self.status())
+        await self._emit(ProbeEvent(event_type=EventType.SIMULATION_STATUS,
+                                   probe_id="genesis", timestamp=self._event_time(), data=self.status()))
+
+    async def _restart_evaluation(self) -> None:
+        # Interrupted fitness/holdings cannot become a new comparable window.
+        # Fully preflight fresh candidate accounts before closing any survivor.
+        genomes = deepcopy(self._cohort_seeds)
+        for genome in genomes:
+            genome.generation = self.current_generation + 1
+            genome.parent_ids = []
+        await self._apply_replacement(EvolutionResult(genomes, list(self.probes)))
+        self.strategy.initialize(list(self.live_probes), self.colony_config)
+        self._bind_evaluation()
+        await self._publish_evaluation()
+
+    async def _advance_evaluation(self) -> bool:
+        """Return whether ordinary decisions may execute in this market frame."""
+        if not self._uses_cohorts:
+            return True
+        if self.circuit_breaker_active or self._cohort is None:
+            return False
+        if self._cohort.phase == "aborted":
+            await self._restart_evaluation()
+            return False
+        now = self._event_time().timestamp()
+        if self._cohort.phase == "warming":
+            if all(p.evaluation_ready(now) for p in self.live_probes):
+                self._cohort.start(now)
+                for probe in self.live_probes:
+                    probe.reset_signal_boundary(now)
+                await self._publish_evaluation()
+            return False
+        if self._cohort.due(now):
+            await self._evaluate_reproduction()
+            return False
+        return self._cohort.phase == "evaluating"
+
     async def _evaluate_reproduction(self) -> None:
         """Delegate evolution to the strategy. Called every reproduction_interval ticks."""
         if self.circuit_breaker_active:
             return
         self._require_current_quotes()
+        if self._uses_cohorts:
+            cohort = self._cohort
+            now = self._event_time().timestamp()
+            if cohort is None or not cohort.due(now):
+                return
+            evaluated = cohort.complete(list(self.live_probes), now)
+            self._last_evaluation = cohort.to_dict()
+            await self._publish_evaluation()
+            self._require_current_quotes()
+            result = self.strategy.evolve(list(evaluated), [], self.colony_config)
+            if not set(result.retire_ids).issubset(cohort.member_ids):
+                raise ValueError("Optimizer returned unknown candidate IDs")
+            # Every next comparison uses fresh equal-budget accounts. This
+            # bounded bridge also resets unevolved survivors on the new window.
+            size = len(cohort.member_ids)
+            children = list(result.offspring[:size])
+            parents = {str(i): result.parent_map.get(str(i), children[i].parent_ids)
+                       for i in range(len(children))}
+            carry = [p for p in evaluated if p.probe_id not in result.retire_ids] or list(evaluated)
+            for candidate in carry:
+                if len(children) >= size:
+                    break
+                child = candidate.genome
+                child.generation = self.current_generation + 1
+                parents[str(len(children))] = [candidate.probe_id]
+                children.append(child)
+            if len(children) != size:
+                raise ValueError("Optimizer returned an incomplete cohort")
+            await self._apply_replacement(EvolutionResult(children, list(self.probes), parents, result.metadata))
+            self._bind_evaluation()
+            await self._publish_evaluation()
+            return
         live = [p for p in self.probes.values()
                 if p.state in (ProbeState.OBSERVING, ProbeState.TRADING)]
         if len(live) < 2:
             return
-
         result = self.strategy.evolve(live, self.dead_probes, self.colony_config)
-
         await self._apply_replacement(result)
         await self._check_diversity()
 
@@ -613,7 +712,7 @@ class GenesisController:
         return count
 
     async def _inject_candidates(self, requested: int) -> None:
-        if self.circuit_breaker_active:
+        if self.circuit_breaker_active or self._uses_cohorts:
             return
         count = self._available_births(requested)
         if not count:
@@ -634,18 +733,19 @@ class GenesisController:
         if (probe.state != ProbeState.DEAD or probe.open_positions or
                 not valid_cash(probe.capital) or not valid_cash(self.reserve_capital)):
             raise FundingError()
+        if self._cohort is not None and self._cohort.phase == "evaluating":
+            self._cohort.record_terminal(probe, probe.death_reason or "death", self._event_time().timestamp())
         self.reserve_capital = sum_cashflows((self.reserve_capital, probe.capital))
-
         probe_gen = probe.genome.generation
         self._generation_dead_counts[probe_gen] = self._generation_dead_counts.get(probe_gen, 0) + 1
         self.dead_probes.append(probe)
         del self.probes[probe.probe_id]
 
         await self._maybe_emit_generation_stats(probe_gen)
-        if len(self.live_probes) < max(1, self.gen0_count // 2):
+        if not self._uses_cohorts and len(self.live_probes) < max(1, self.gen0_count // 2):
             await self._inject_candidates(1)
         # Other DEAD probes in this tick's batch may still own recoverable cash.
-        if not self.probes and not self.circuit_breaker_active:
+        if not self.probes and not self.circuit_breaker_active and not self._uses_cohorts:
             raise FundingError("population_extinct")
 
     async def _handle_self_reproduce(self, probe: Probe) -> None:
@@ -654,7 +754,7 @@ class GenesisController:
         Probe has already closed positions and persisted reproduction intent.
         On refusal retain that REPRODUCING parent for reconciliation.
         """
-        if (self.circuit_breaker_active or self.probes.get(probe.probe_id) is not probe
+        if (self.circuit_breaker_active or self._uses_cohorts or self.probes.get(probe.probe_id) is not probe
                 or probe.state != ProbeState.REPRODUCING):
             return
         self._require_current_quotes()
@@ -751,7 +851,7 @@ class GenesisController:
     async def _tick_all(self) -> None:
         live = [p for p in self.probes.values()
                 if p.state in (ProbeState.OBSERVING, ProbeState.TRADING)]
-        if not live:
+        if not live and (self.circuit_breaker_active or not self._uses_cohorts):
             if self.circuit_breaker_active:
                 # All positions may have closed and capital returned to reserve.
                 # Retain the explicit halt; never silently refill this population.
@@ -766,6 +866,8 @@ class GenesisController:
 
         # Fetch prices and push to all probes
         all_assets = sorted({a for p in live for a in [*p.genome.assets, *p.open_positions]})
+        if self._uses_cohorts:
+            all_assets = sorted(set(all_assets) | set(self._candle_assets))
         # On a failed refresh, status must not present the previous batch as a
         # current valuation or use it to close/recycle a missing asset.
         self._latest_prices = {}
@@ -866,6 +968,10 @@ class GenesisController:
         if not self.circuit_breaker_active:
             await self._refresh_candles()
 
+        decisions_allowed = await self._advance_evaluation()
+        # Replacement invalidates the earlier list of owned candidates.
+        live = list(self.live_probes)
+
         # Broadcast prices every 5 ticks
         if self.tick_count % 5 == 0:
             price_data = {
@@ -889,13 +995,18 @@ class GenesisController:
             self._require_current_quotes()
             try:
                 max_life = self.colony_config.max_lifespan_ticks
-                if (max_life and self.tick_count - probe.birth_tick >= max_life
-                        and not probe._should_die()):
+                age = self.tick_count - probe.birth_tick
+                if self._uses_cohorts:
+                    started = self._cohort.started_at if self._cohort else None
+                    age = None if started is None else (self._event_time().timestamp() - started) / 60
+                if max_life and age is not None and age >= max_life and not probe._should_die():
                     # A profitable candidate cannot breed or fill a pending
                     # entry on the same tick its hard lifespan limit expires.
                     events = probe._trigger_die("max_lifespan")
                 else:
-                    events = probe.tick(check_risk=False, allow_new_risk=not self.circuit_breaker_active)
+                    events = probe.tick(check_risk=False,
+                                        allow_new_risk=not self.circuit_breaker_active and decisions_allowed,
+                                        allow_reproduction=not self._uses_cohorts)
             except ProbeStepError as error:
                 for event in error.events:
                     await self._emit(event)
@@ -918,10 +1029,11 @@ class GenesisController:
             await self._handle_self_reproduce(probe)
 
         # Strategy-driven reproduction at intervals
-        if not self.circuit_breaker_active and self.tick_count % self.reproduction_interval == 0:
+        if (not self._uses_cohorts and not self.circuit_breaker_active and
+                self.tick_count % self.reproduction_interval == 0):
             await self._evaluate_reproduction()
 
-        if (not self.circuit_breaker_active and
+        if (not self._uses_cohorts and not self.circuit_breaker_active and
                 not any(p.state in (ProbeState.OBSERVING, ProbeState.TRADING) for p in self.probes.values())):
             raise FundingError("population_extinct")
 

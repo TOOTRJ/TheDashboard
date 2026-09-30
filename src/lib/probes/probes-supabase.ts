@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/client";
 import type { Probe, Trade, FitnessSnapshot, GenerationStats, ColonyRun } from "./types";
-import { parseRiskControl } from "./transport";
+import { parseEvaluationCohort, parseEvaluationPolicy, parseRiskControl } from "./transport";
 
 function supabase() {
   return createClient();
@@ -133,6 +133,7 @@ async function _enrichColonyRuns(
     const agg = probeAgg.get(c.id);
     const saved = c.config && typeof c.config === "object" && "runtime" in c.config ? c.config.runtime : null;
     const record = saved && typeof saved === "object" && !Array.isArray(saved) ? saved as Record<string, unknown> : {};
+    const evaluationPolicy = parseEvaluationPolicy(record.evaluation_policy);
     const runtime: ColonyRun["runtime"] = {
       failure_code: typeof record.failure_code === "string" ? record.failure_code : null,
       state_persisted: typeof record.state_persisted === "boolean" ? record.state_persisted : undefined,
@@ -144,6 +145,8 @@ async function _enrichColonyRuns(
       market_elapsed_secs: typeof record.market_elapsed_secs === "number" && Number.isFinite(record.market_elapsed_secs) && record.market_elapsed_secs >= 0 ? record.market_elapsed_secs : undefined,
       circuit_breaker: typeof record.circuit_breaker === "boolean" ? record.circuit_breaker : undefined,
       risk_control: parseRiskControl(record.risk_control),
+      evaluation_policy: evaluationPolicy,
+      cohort: evaluationPolicy ? parseEvaluationCohort(record.cohort) : undefined,
     };
     return {
       run_id: c.id,
