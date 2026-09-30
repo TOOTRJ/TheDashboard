@@ -13,7 +13,7 @@ import { VN_ENDPOINTS } from "@/lib/probes/constants";
 import {
   belongsToSelectedColony, colonyPath, createSelectionScope,
   requestWorker, WorkerRequestError,
-  formatColonyFailure,
+  formatColonyFailure, isRiskTripId, parseRiskControl,
 } from "@/lib/probes/transport";
 import { validateStartConfig, type StartConfig } from "@/lib/probes/colony-config";
 import type {
@@ -48,6 +48,7 @@ function AuthenticatedProbesPage({ userId, accessToken }: { userId: string; acce
   const [simMode, setSimMode] = React.useState("simulation");
   const [systemStatus, setSystemStatus] = React.useState<SystemStatus | null>(null);
   const [startingToken, setStartingToken] = React.useState<string | null>(null);
+  const [controlPending, setControlPending] = React.useState(false);
   const starting = startingToken === accessToken;
   const [prices, setPrices] = React.useState<Record<string, PriceTick>>({});
   const [activeColonies, setActiveColonies] = React.useState<ColonyInfo[]>([]);
@@ -255,35 +256,49 @@ function AuthenticatedProbesPage({ userId, accessToken }: { userId: string; acce
     }
   };
 
-  const handleControl = async (action: "stop" | "pause" | "resume") => {
+  const handleControl = async (action: "stop" | "pause" | "resume" | "recover") => {
     if (controlling.current) return;
     const ticket = scope.begin("control");
     if (!ticket.colonyId) return;
+    const tripId = parseRiskControl(systemStatus?.risk_control)?.trip_id;
+    if (action === "recover" && (ticket.colonyId !== selectedColonyId ||
+        systemStatus?.status !== "risk_halted" || errors.status || !isRiskTripId(tripId))) {
+      reportError("control", "Refresh the worker's risk-halted status before requesting recovery.");
+      return;
+    }
     controlling.current = true;
+    setControlPending(true);
     try {
-      await requestWorker(VN_ENDPOINTS, accessToken, colonyPath(ticket.colonyId, action), { method: "POST" });
+      await requestWorker(VN_ENDPOINTS, accessToken, colonyPath(ticket.colonyId, action), {
+        method: "POST", ...(action === "recover" ? { body: { trip_id: tripId } } : {}),
+      });
       if (!scope.isCurrent(ticket)) return;
       reportError("control", null);
       // Confirm the worker's resulting state, including failed persistence/reconciliation.
-      void refreshStatus();
       void refreshSelected();
       void refreshColonyList();
+      await refreshStatus();
     } catch (error) {
       if (scope.isCurrent(ticket)) {
         reportError("control", error instanceof WorkerRequestError ? error.message : "The action could not be confirmed. Refresh colony status before retrying.");
-        void refreshStatus();
+        await refreshStatus();
       }
     } finally {
       controlling.current = false;
+      setControlPending(false);
     }
   };
 
   const selectedHistory = colonyRuns.find((run) => run.run_id === selectedColonyId);
   const savedTerminal = selectedHistory?.status === "failed" || selectedHistory?.status === "stopped";
-  const showSavedStatus = (!systemStatus || !!errors.status) && savedTerminal;
+  const savedRiskHalt = selectedHistory?.status === "risk_halted";
+  const showSavedStatus = (!systemStatus || !!errors.status) && (savedTerminal || savedRiskHalt);
   const displayedStatus = showSavedStatus ? selectedHistory.status! : simStatus;
   const displayedMode = showSavedStatus ? selectedHistory.mode : simMode;
   const diagnostics = showSavedStatus || !systemStatus ? selectedHistory?.runtime : systemStatus;
+  const riskControl = parseRiskControl(diagnostics?.risk_control);
+  const confirmedRiskHalt = !showSavedStatus && !errors.status && systemStatus?.status === "risk_halted";
+  const recoveryAvailable = confirmedRiskHalt && isRiskTripId(riskControl?.trip_id);
   const marketTimestamp = diagnostics?.clock_basis === "synthetic_market" && typeof diagnostics.market_time === "string"
     ? Date.parse(diagnostics.market_time) : NaN;
   const syntheticMarketTime = Number.isFinite(marketTimestamp)
@@ -301,7 +316,21 @@ function AuthenticatedProbesPage({ userId, accessToken }: { userId: string; acce
         </div>
       )}
       {loading && <p role="status" className="text-sm text-muted-foreground">Loading colony data…</p>}
-      {showSavedStatus && <p className="text-sm text-muted-foreground">Showing the saved terminal status. Current worker status is unavailable.</p>}
+      {showSavedStatus && <p className="text-sm text-muted-foreground">{savedTerminal ? "Showing the saved terminal status." : "Showing the saved risk-halted status."} Current worker status is unavailable.</p>}
+      {displayedStatus === "risk_halted" && (
+        <div role="alert" className="rounded-lg border border-[#ffff00]/40 bg-[#ffff00]/5 p-3 text-sm space-y-1">
+          <p className="font-medium text-[#ffff00]">Risk halted</p>
+          <p>{confirmedRiskHalt
+            ? "New entries and evolution are blocked. The worker continues checking fresh quotes for stop-loss, take-profit, and drawdown exits."
+            : "The last reported state was risk halted. Current worker status is unavailable, so ongoing position monitoring cannot be confirmed."}</p>
+          {riskControl && <p>
+            Account loss limit: {(riskControl.threshold_fraction * 100).toFixed(1)}% of the starting account balance, including reserve.
+            {riskControl.trip_loss_fraction !== null && ` Loss when triggered: ${(riskControl.trip_loss_fraction * 100).toFixed(1)}%.`}
+          </p>}
+          <p>Recovery requires fresh quotes, valid candle history, and account loss below the original limit. It does not reset the starting balance or erase previous losses.</p>
+          {confirmedRiskHalt && !recoveryAvailable && <p>Refresh worker status to obtain the current halt details before requesting recovery.</p>}
+        </div>
+      )}
       {syntheticMarketTime && (
         <p className="text-xs text-muted-foreground">
           Last reported synthetic market time: <span className="font-mono">{syntheticMarketTime}</span>.
@@ -326,6 +355,8 @@ function AuthenticatedProbesPage({ userId, accessToken }: { userId: string; acce
         mode={displayedMode}
         starting={starting}
         startError={errors.launch}
+        recoveryAvailable={recoveryAvailable}
+        controlPending={controlPending}
         colonyRuns={colonyRuns}
         activeRunId={selectedColonyId}
         prices={prices}
@@ -333,6 +364,7 @@ function AuthenticatedProbesPage({ userId, accessToken }: { userId: string; acce
         onStop={() => handleControl("stop")}
         onPause={() => handleControl("pause")}
         onResume={() => handleControl("resume")}
+        onRecover={() => handleControl("recover")}
         onSelectRun={selectColony}
       />
     </div>
@@ -351,7 +383,7 @@ function PageHeader({
   const [elapsed, setElapsed] = React.useState("");
 
   React.useEffect(() => {
-    if (!startedAt || !["running", "paused", "starting"].includes(simStatus)) {
+    if (!startedAt || !["running", "paused", "risk_halted", "starting"].includes(simStatus)) {
       setElapsed("");
       return;
     }
@@ -372,7 +404,7 @@ function PageHeader({
     return () => clearInterval(id);
   }, [startedAt, simStatus]);
 
-  const isActive = ["running", "paused", "starting"].includes(simStatus);
+  const isActive = ["running", "paused", "risk_halted", "starting"].includes(simStatus);
 
   return (
     <div className="flex items-start justify-between gap-4">

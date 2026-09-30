@@ -1,4 +1,4 @@
-import type { WsMessage } from "./types";
+import type { RiskControl, WsMessage } from "./types";
 
 export interface WorkerEndpoints {
   apiUrl: string | null;
@@ -46,6 +46,55 @@ export class WorkerRequestError extends Error {
     this.name = "WorkerRequestError";
     this.status = status;
   }
+}
+
+export function isRiskTripId(value: unknown): value is string {
+  return typeof value === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
+}
+
+/** Keep only the known risk policy and public diagnostics from saved or worker data. */
+export function parseRiskControl(value: unknown): RiskControl | undefined {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
+  const record = value as Record<string, unknown>;
+  if (record.policy !== "initial-account-loss-v1" ||
+      typeof record.threshold_fraction !== "number" || !Number.isFinite(record.threshold_fraction) ||
+      record.threshold_fraction <= 0 || record.threshold_fraction > 1 ||
+      typeof record.recovery_count !== "number" || !Number.isSafeInteger(record.recovery_count) || record.recovery_count < 0) return undefined;
+  const amount = (item: unknown): number | null => typeof item === "number" && Number.isFinite(item) ? item : null;
+  const loss = (item: unknown): number | null => typeof item === "number" && Number.isFinite(item) && item >= 0 ? item : null;
+  const timestamp = (item: unknown): string | null => typeof item === "string" &&
+    /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/.test(item) &&
+    Number.isFinite(Date.parse(item)) ? item : null;
+  return {
+    policy: record.policy,
+    threshold_fraction: record.threshold_fraction,
+    baseline_equity: amount(record.baseline_equity),
+    observed_equity: amount(record.observed_equity),
+    observed_loss_fraction: loss(record.observed_loss_fraction),
+    observed_at: timestamp(record.observed_at),
+    trip_id: isRiskTripId(record.trip_id) ? record.trip_id : null,
+    tripped_at: timestamp(record.tripped_at),
+    trip_equity: amount(record.trip_equity),
+    trip_loss_fraction: loss(record.trip_loss_fraction),
+    last_recovered_at: timestamp(record.last_recovered_at),
+    recovery_count: record.recovery_count,
+  };
+}
+
+function formatWorkerConflict(body: unknown): string {
+  const fallback = "The colony cannot perform this action in its current state. Refresh its status and try again.";
+  if (!body || typeof body !== "object" || !("detail" in body) || !body.detail ||
+      typeof body.detail !== "object" || !("code" in body.detail)) return fallback;
+  const messages: Record<string, string> = {
+    risk_not_halted: "This colony is no longer risk halted. Refresh its status before taking another action.",
+    risk_trip_changed: "The circuit breaker tripped again. Review the latest halt before requesting recovery.",
+    risk_loss_unrecovered: "Account loss is still at or above the original limit. The colony remains risk halted; its starting balance and loss limit will not reset.",
+    risk_quotes_unavailable: "Recovery needs fresh quotes for the complete account. The colony remains risk halted; retry after market data recovers.",
+    risk_history_unavailable: "Recovery needs current, valid candle history. The colony remains risk halted; review the market-data source before retrying.",
+    risk_no_candidates: "No eligible candidates remain. This colony cannot recover; stop it and review its history before starting another run.",
+  };
+  const code = body.detail.code;
+  return typeof code === "string" && Object.hasOwn(messages, code) ? messages[code] : fallback;
 }
 
 /** Shared UI limits mirror server/models.py; server validation remains authoritative. */
@@ -114,7 +163,7 @@ export function formatWorkerValidation(body: unknown): string {
   return messages.length ? [...new Set(messages)].join(" ") : fallback;
 }
 
-export function colonyPath(colonyId: string, action?: "pause" | "resume" | "stop"): string {
+export function colonyPath(colonyId: string, action?: "pause" | "resume" | "stop" | "recover"): string {
   if (!colonyId.trim()) throw new Error("Select a colony first.");
   return `/api/v1/colonies/${encodeURIComponent(colonyId)}${action ? `/${action}` : ""}`;
 }
@@ -148,9 +197,12 @@ export async function requestWorker<T>(
       const body: unknown = await response.json().catch(() => null);
       throw new WorkerRequestError(422, formatWorkerValidation(body));
     }
+    if (response.status === 409) {
+      const body: unknown = await response.json().catch(() => null);
+      throw new WorkerRequestError(409, formatWorkerConflict(body));
+    }
     const message = response.status === 401 ? "Your session has expired. Sign in again." :
       response.status === 404 ? "This colony is no longer available." :
-      response.status === 409 ? "The colony cannot perform this action in its current state. Refresh its status and try again." :
       response.status === 503 ? "The worker could not complete the operation. Refresh colony status before retrying; do not assume it started or stopped." :
       `Worker request failed (${response.status}).`;
     // Never echo response bodies that might contain credentials or private data.

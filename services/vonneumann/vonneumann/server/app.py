@@ -28,7 +28,7 @@ from ..core.types import ProbeEvent, EventType
 from ..db.repository import VonNeumannRepository, EventPersister, PersistenceError
 from .auth import VerifiedUser, require_user, verify_access_token
 from .websocket import ws_manager
-from .models import StartRequest, build_colony_config as _build_colony_config
+from .models import RecoverRequest, StartRequest, build_colony_config as _build_colony_config
 
 logger = logging.getLogger(__name__)
 
@@ -95,7 +95,7 @@ def _make_dual_handler(
 @app.exception_handler(RequestValidationError)
 async def invalid_request(_request, error: RequestValidationError):
     # Do not reflect arbitrary body values, unknown field names, or exception ctx.
-    known_fields = set(StartRequest.model_fields) | {
+    known_fields = set(StartRequest.model_fields) | set(RecoverRequest.model_fields) | {
         "body", "colony_config", "gene_overrides", "enabled_genes", "available_assets",
         "max_lifespan_ticks", "reproduction_interval", "min", "max", "default", "fixed",
     } | set(GENE_REGISTRY.numeric_gene_names())
@@ -140,7 +140,8 @@ async def _start_colony(req: StartRequest, user: VerifiedUser) -> dict:
             name: status.get(name) for name in ("failure_code", "failure_message", "state_persisted",
                                                "open_positions", "requires_reconciliation", "valuation_available",
                                                "clock_basis", "market_time", "market_elapsed_secs", "simulation_spec", "quote_policy",
-                                               "candle_policy", "metrics_policy", "fitness_policy")
+                                               "candle_policy", "metrics_policy", "fitness_policy",
+                                               "circuit_breaker", "risk_control")
         })
 
     async def publish_status(status: dict) -> None:
@@ -271,6 +272,17 @@ async def resume_colony(colony_id: str, user: VerifiedUser = Depends(require_use
     except ColonyLifecycleError as error:
         raise _lifecycle_http_error(error, colony_id) from None
     return {"status": "resumed", "colony_id": colony_id}
+
+
+@app.post("/api/v1/colonies/{colony_id}/recover")
+async def recover_colony(colony_id: str, req: RecoverRequest,
+                         user: VerifiedUser = Depends(require_user)):
+    _owned_colony(colony_id, user)
+    try:
+        await colony_manager.recover_colony(colony_id, req.trip_id)
+    except ColonyLifecycleError as error:
+        raise _lifecycle_http_error(error, colony_id) from None
+    return {"status": "recovered", "colony_id": colony_id}
 
 
 # ── Backward-compatible simulation endpoints ────────────────────────────────

@@ -109,6 +109,7 @@ class Probe:
         self._candle_history: Optional[CandleHistory] = None
         self._candle_cursors: dict[str, float] = {}
         self._pending_intents: dict[str, _SignalIntent] = {}
+        self._signals_after: float = 0.0
         if candle_history is not None:
             self.attach_candle_history(candle_history)
 
@@ -601,12 +602,27 @@ class Probe:
         if tick.asset in self.genome.assets or tick.asset in self.open_positions:
             self._quote_observations[tick.asset] = (stamp, receipt)
 
-    def _execute_pending_intents(self) -> list[ProbeEvent]:
+    def discard_entry_intents(self) -> None:
+        """Cancel unfilled new risk without discarding already eligible exits."""
+        self._pending_intents = {
+            asset: intent for asset, intent in self._pending_intents.items()
+            if intent.action != "entry"
+        }
+
+    def reset_signal_boundary(self, timestamp: float) -> None:
+        """Recovery cannot replay a signal from before/during a risk halt."""
+        self._pending_intents.clear()
+        self._signals_after = nonnegative_value(timestamp)
+
+    def _execute_pending_intents(self, *, allow_new_risk: bool = True) -> list[ProbeEvent]:
         events = []
         timeframe_seconds = self.genome.int_genes()["timeframe_minutes"] * 60
         now = self._now().timestamp()
         try:
             for asset, intent in list(self._pending_intents.items()):
+                if intent.action == "entry" and not allow_new_risk:
+                    self._pending_intents.pop(asset, None)
+                    continue
                 observation = self._quote_observations.get(asset)
                 if now > intent.candle_end + timeframe_seconds:
                     self._pending_intents.pop(asset, None)
@@ -649,6 +665,8 @@ class Probe:
                 continue
             self._candle_cursors[asset] = end
             self._pending_intents.pop(asset, None)
+            if end <= self._signals_after:
+                continue
             # Catch-up history advances the cursor without replaying missed
             # decisions. A newly attached empty history can see its first bar.
             if previous is not None and end - previous > timeframe_seconds:
@@ -710,7 +728,7 @@ class Probe:
             raise ProbeStepError(events, first_error) from first_error
         return events
 
-    def tick(self, *, check_risk: bool = True) -> list[ProbeEvent]:
+    def tick(self, *, check_risk: bool = True, allow_new_risk: bool = True) -> list[ProbeEvent]:
         """
         Run quote-based risk/lifecycle work and newly completed candle decisions.
         A new signal can execute only on a causally later quote, never its close.
@@ -733,18 +751,19 @@ class Probe:
             if self._should_die():
                 events.extend(self._trigger_die("drawdown"))
                 return events
-            if self._should_reproduce():
+            if allow_new_risk and self._should_reproduce():
                 events.extend(self._trigger_reproduce())
                 return events
             # Execute prior-cycle signals first. At a one-minute simulation
             # step the next observation coincides with the next candle end;
             # exact expiry remains eligible before that new bar supersedes it.
-            events.extend(self._execute_pending_intents())
-            self._discover_candle_signals()
+            events.extend(self._execute_pending_intents(allow_new_risk=allow_new_risk))
+            if allow_new_risk:
+                self._discover_candle_signals()
 
             if self._should_die():
                 events.extend(self._trigger_die("drawdown"))
-            elif self._should_reproduce():
+            elif allow_new_risk and self._should_reproduce():
                 events.extend(self._trigger_reproduce())
         except ProbeStepError as exc:
             raise ProbeStepError([*events, *exc.events], exc.cause) from exc

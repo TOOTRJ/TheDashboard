@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/client";
 import type { Probe, Trade, FitnessSnapshot, GenerationStats, ColonyRun } from "./types";
+import { parseRiskControl } from "./transport";
 
 function supabase() {
   return createClient();
@@ -131,7 +132,7 @@ async function _enrichColonyRuns(
   return colonies.map((c) => {
     const agg = probeAgg.get(c.id);
     const saved = c.config && typeof c.config === "object" && "runtime" in c.config ? c.config.runtime : null;
-    const record = saved && typeof saved === "object" ? saved as Record<string, unknown> : {};
+    const record = saved && typeof saved === "object" && !Array.isArray(saved) ? saved as Record<string, unknown> : {};
     const runtime: ColonyRun["runtime"] = {
       failure_code: typeof record.failure_code === "string" ? record.failure_code : null,
       state_persisted: typeof record.state_persisted === "boolean" ? record.state_persisted : undefined,
@@ -141,6 +142,8 @@ async function _enrichColonyRuns(
       clock_basis: record.clock_basis === "synthetic_market" || record.clock_basis === "wall" ? record.clock_basis : undefined,
       market_time: typeof record.market_time === "string" && Number.isFinite(Date.parse(record.market_time)) ? record.market_time : undefined,
       market_elapsed_secs: typeof record.market_elapsed_secs === "number" && Number.isFinite(record.market_elapsed_secs) && record.market_elapsed_secs >= 0 ? record.market_elapsed_secs : undefined,
+      circuit_breaker: typeof record.circuit_breaker === "boolean" ? record.circuit_breaker : undefined,
+      risk_control: parseRiskControl(record.risk_control),
     };
     return {
       run_id: c.id,
@@ -150,7 +153,7 @@ async function _enrichColonyRuns(
       ended_at: c.stopped_at,
       probe_count: agg?.count ?? 0,
       best_fitness: agg?.best ?? 0,
-      status: ["starting", "running", "paused", "stopped", "failed"].includes(c.status ?? "") ? c.status : undefined,
+      status: ["starting", "running", "paused", "risk_halted", "stopped", "failed"].includes(c.status ?? "") ? c.status : undefined,
       runtime,
     } as ColonyRun;
   });

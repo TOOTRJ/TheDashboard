@@ -247,7 +247,7 @@ class VonNeumannRepository:
 
     @staticmethod
     def _validate_status(status: str) -> None:
-        if status not in {"starting", "running", "paused", "stopped", "failed"}:
+        if status not in {"starting", "running", "paused", "risk_halted", "stopped", "failed"}:
             raise ValueError("Unsupported colony status")
 
     @staticmethod

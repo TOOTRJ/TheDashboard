@@ -15,7 +15,7 @@ from tests.security_support import (
 with deny_network():
     from fastapi import HTTPException
     from fastapi.testclient import TestClient
-    from vonneumann.core.colony_manager import ColonyManager
+    from vonneumann.core.colony_manager import ColonyManager, ColonyLifecycleError
     from vonneumann.server import auth
     app_module = importlib.import_module("vonneumann.server.app")
 
@@ -62,6 +62,7 @@ class HTTPAuthenticationTests(HTTPTestBase):
                                  ("post", f"/api/v1/colonies/{A1}/pause"),
                                  ("post", f"/api/v1/colonies/{A1}/resume"),
                                  ("post", f"/api/v1/colonies/{A1}/stop"),
+                                 ("post", f"/api/v1/colonies/{A1}/recover"),
                                  ("post", "/api/v1/colonies/"),
                                  ("post", "/api/v1/simulation/start"),
                                  ("post", "/api/v1/simulation/pause"),
@@ -155,6 +156,50 @@ class HTTPOwnershipTests(HTTPTestBase):
                         response = self.client.post(f"/api/v1/colonies/{colony_id}/{action}")
                         self.assertEqual(response.status_code, 404)
         self.assert_no_controls()
+
+    def test_recovery_checks_owner_before_control_for_both_users(self):
+        with patch.object(self.manager, 'recover_colony', new=AsyncMock()) as recover:
+            for user, own, other in ((USER_A, A1, B1), (USER_B, B1, A1)):
+                self.user_id = user
+                for colony_id in (other, MISSING):
+                    response = self.client.post(f'/api/v1/colonies/{colony_id}/recover',
+                                                json={'trip_id': A2})
+                    self.assertEqual(response.status_code, 404)
+                    recover.assert_not_awaited()
+                response = self.client.post(f'/api/v1/colonies/{own}/recover', json={'trip_id': A2})
+                self.assertEqual(response.status_code, 200, response.text)
+                self.assertEqual(response.json(), {'status': 'recovered', 'colony_id': own})
+                recover.assert_awaited_once_with(own, A2)
+                recover.reset_mock()
+
+    def test_recovery_requires_strict_uuid_shape_and_rejects_extras_without_echoing(self):
+        with patch.object(self.manager, 'recover_colony', new=AsyncMock()) as recover:
+            for payload in ({}, {'trip_id': None}, {'trip_id': 123}, {'trip_id': True},
+                            {'trip_id': 'PRIVATE_TOKEN'}, {'trip_id': A1.replace('-', '')},
+                            {'trip_id': f' {A1}'}, {'trip_id': A1 + '\n'},
+                            {'trip_id': A1, 'private-field': 'PRIVATE_TOKEN'}):
+                with self.subTest(payload=payload):
+                    response = self.client.post(f'/api/v1/colonies/{A1}/recover', json=payload)
+                    self.assertEqual(response.status_code, 422, response.text)
+                    self.assertNotIn('PRIVATE_TOKEN', response.text)
+                    self.assertNotIn('private-field', response.text)
+                    self.assertNotIn('"input"', response.text)
+            recover.assert_not_awaited()
+            trip_id = 'abcdefab-abcd-abcd-abcd-abcdefabcdef'
+            response = self.client.post(f'/api/v1/colonies/{A1}/recover', json={'trip_id': trip_id.upper()})
+            self.assertEqual(response.status_code, 200)
+            recover.assert_awaited_once_with(A1, trip_id)
+
+    def test_recovery_refusal_and_persistence_failure_have_safe_http_statuses(self):
+        for code, conflict, expected in (('risk_trip_changed', True, 409),
+                                         ('risk_loss_unrecovered', True, 409),
+                                         ('persistence_failed', False, 503)):
+            with self.subTest(code=code), patch.object(self.manager, 'recover_colony',
+                    new=AsyncMock(side_effect=ColonyLifecycleError(code, conflict=conflict))):
+                response = self.client.post(f'/api/v1/colonies/{A1}/recover', json={'trip_id': A2})
+                self.assertEqual(response.status_code, expected)
+                self.assertEqual(response.json()['detail']['code'], code)
+                self.assertEqual(response.json()['detail']['colony_id'], A1)
 
     def test_controls_target_each_owned_colony_explicitly(self):
         for user, colony_ids in ((USER_A, (A1, A2)), (USER_B, (B1,))):

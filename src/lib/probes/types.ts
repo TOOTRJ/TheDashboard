@@ -17,7 +17,22 @@ export type TradeExitReason =
   | "TERMINAL_LOSS";
 
 // "unknown" is a UI state while no authoritative worker status is available.
-export type SimulationStatus = "running" | "paused" | "stopped" | "starting" | "failed" | "unknown";
+export type SimulationStatus = "running" | "paused" | "risk_halted" | "stopped" | "starting" | "failed" | "unknown";
+
+export interface RiskControl {
+  policy: "initial-account-loss-v1";
+  threshold_fraction: number;
+  baseline_equity: number | null;
+  observed_equity: number | null;
+  observed_loss_fraction: number | null;
+  observed_at: string | null;
+  trip_id: string | null;
+  tripped_at: string | null;
+  trip_equity: number | null;
+  trip_loss_fraction: number | null;
+  last_recovered_at: string | null;
+  recovery_count: number;
+}
 
 export interface Genome {
   rsi_period: number;
@@ -153,7 +168,7 @@ export interface ColonyRun {
   probe_count: number;
   best_fitness: number;
   status?: Exclude<SimulationStatus, "unknown">;
-  runtime?: Pick<SystemStatus, "failure_code" | "state_persisted" | "open_positions" | "requires_reconciliation" | "valuation_available" | "clock_basis" | "market_time" | "market_elapsed_secs">;
+  runtime?: Partial<Pick<SystemStatus, "failure_code" | "state_persisted" | "open_positions" | "requires_reconciliation" | "valuation_available" | "clock_basis" | "market_time" | "market_elapsed_secs" | "circuit_breaker" | "risk_control">>;
 }
 
 export interface PriceTick {
@@ -179,6 +194,7 @@ export interface SystemStatus {
   total_capital: number | null;
   valuation_available?: boolean;
   circuit_breaker: boolean;
+  risk_control?: RiskControl;
   diversity: number | null;
   started_at: string | null;
   uptime_secs: number;
@@ -211,6 +227,8 @@ export interface ColonyInfo {
   state_persisted?: boolean;
   open_positions?: number;
   requires_reconciliation?: boolean;
+  circuit_breaker?: boolean;
+  risk_control?: RiskControl;
 }
 
 export interface StrategyInfo {
