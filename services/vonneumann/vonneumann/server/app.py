@@ -143,7 +143,7 @@ async def _start_colony(req: StartRequest, user: VerifiedUser) -> dict:
             name: status.get(name) for name in ("failure_code", "failure_message", "state_persisted",
                                                "open_positions", "requires_reconciliation", "valuation_available",
                                                "clock_basis", "market_time", "market_elapsed_secs", "simulation_spec", "quote_policy",
-                                               "candle_policy", "metrics_policy", "fitness_policy",
+                                               "candle_policy", "metrics_policy", "fitness_policy", "lifecycle_policy",
                                                "circuit_breaker", "risk_control", "evaluation_policy", "cohort", "last_evaluation", "search_spec")
         })
 

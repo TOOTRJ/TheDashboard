@@ -31,7 +31,7 @@ export function GenerationTimeline({ stats }: Props) {
               </p>
               <div className="space-y-1 text-[10px]">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Probes</span>
+                  <span className="text-muted-foreground">Alive / total</span>
                   <span className="font-mono">
                     {gen.alive_probes}/{gen.total_probes}
                   </span>

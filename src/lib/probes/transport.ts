@@ -1,4 +1,4 @@
-import type { EvaluationCohort, EvaluationPolicy, RiskControl, SearchSpec, WsMessage } from "./types";
+import type { EvaluationCohort, EvaluationPolicy, RiskControl, LifecyclePolicy, SearchSpec, WsMessage } from "./types";
 
 export function isSearchSeed(value: unknown): value is string {
   return typeof value === "string" && /^(0|[1-9][0-9]{0,19})$/.test(value) &&
@@ -15,6 +15,27 @@ export function parseSearchSpec(value: unknown): SearchSpec | undefined {
       data.optimizer_state_checkpointed !== false) return undefined;
   return { version: data.version, stream_policy: data.stream_policy, seed: data.seed,
     epoch: data.epoch, algorithm: data.algorithm, optimizer_state_checkpointed: false };
+}
+
+/** Accept only the versioned reporting semantics; never infer them for legacy rows. */
+export function parseLifecyclePolicy(value: unknown): LifecyclePolicy | undefined {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
+  const data = value as Record<string, unknown>;
+  const semantics = {
+    version: "acknowledged-terminal-sealed-generations-v1",
+    terminal_event: "probe_dead",
+    generation_completion: "sealed_births_all_terminal_acknowledged",
+    generation_semantics: "birth_epoch_not_ancestry_depth",
+    generation_diversity: "rms_pairwise_global_normalized_numeric_v1",
+    generation_diversity_assets: "excluded",
+    reproduced_count: "distinct_sources_with_acknowledged_offspring_before_completion",
+  } as const;
+  if (Object.entries(semantics).some(([key, expected]) => data[key] !== expected)) return undefined;
+  const limits = [data.closed_trade_retention, data.dead_probe_retention, data.generation_history_retention];
+  if (limits.some(value => typeof value !== "number" || !Number.isSafeInteger(value) || value < 1)) return undefined;
+  return { ...semantics, closed_trade_retention: data.closed_trade_retention as number,
+    dead_probe_retention: data.dead_probe_retention as number,
+    generation_history_retention: data.generation_history_retention as number };
 }
 
 export interface WorkerEndpoints {

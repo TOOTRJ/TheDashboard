@@ -30,6 +30,9 @@ class PersistenceClockTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase):
             "exit_reason": "TAKE_PROFIT", "genome": {"parent_ids": []},
             "initial_capital": 100.0, "current_capital": 100.0,
             "peak_capital": 100.0, "generation": 0, "tick": 1,
+            "state": "DEAD", "death_reason": "max_lifespan",
+            "total_trades": 0, "winning_trades": 0, "total_pnl": 0.0,
+            "fitness_score": 0.0, "max_drawdown_pct": 0.0,
         }
         data.update(changes)
         return ProbeEvent(event_type, "fixed-probe-id", data, timestamp=timestamp)
@@ -40,8 +43,7 @@ class PersistenceClockTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase):
             (EventType.PROBE_BORN, "vn_probes", "born_at"),
             (EventType.TRADE_OPENED, "vn_trades", "opened_at"),
             (EventType.TRADE_CLOSED, "vn_trades", "closed_at"),
-            (EventType.PROBE_DYING, "vn_probes", "died_at"),
-            (EventType.PROBE_REPRODUCING, "vn_probes", "died_at"),
+            (EventType.PROBE_DEAD, "vn_probes", "died_at"),
             (EventType.FITNESS_SNAPSHOT, "vn_fitness_snapshots", "captured_at"),
             (EventType.GENERATION_COMPLETE, "vn_generation_stats", "ended_at"),
         ):
@@ -51,10 +53,21 @@ class PersistenceClockTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(row["table"], table)
                 self.assertEqual(row["fields"][field], "1970-01-01T00:00:00+00:00")
 
+    async def test_transition_intent_never_writes_a_terminal_timestamp(self):
+        timestamp = datetime.fromtimestamp(0, timezone.utc)
+        for event_type, state in ((EventType.PROBE_DYING, "DYING"),
+                                   (EventType.PROBE_REPRODUCING, "REPRODUCING")):
+            await self.persister.handle(self.event(event_type, timestamp))
+            fields = self.db.calls[-1]["fields"]
+            self.assertEqual(fields["state"], state)
+            self.assertNotIn("died_at", fields)
+            self.assertNotIn("death_reason", fields)
+
     async def test_payload_dates_cannot_replace_the_authoritative_event_clock(self):
         timestamp = datetime(2020, 1, 1, 0, 1, 2, 345678, tzinfo=timezone.utc)
         for event_type, field in (
             (EventType.PROBE_BORN, "born_at"),
+            (EventType.PROBE_DEAD, "died_at"),
             (EventType.TRADE_OPENED, "opened_at"),
             (EventType.TRADE_CLOSED, "closed_at"),
             (EventType.FITNESS_SNAPSHOT, "captured_at"),

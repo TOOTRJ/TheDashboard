@@ -2,6 +2,7 @@
 
 import { Activity, Dna, DollarSign, TrendingUp, Zap } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { parseLifecyclePolicy } from "@/lib/probes/transport";
 import type { Probe, SystemStatus } from "@/lib/probes/types";
 
 interface Props {
@@ -26,6 +27,11 @@ export function ProbesOverview({ probes, systemStatus, valuationAvailable }: Pro
     ? Math.max(...probes.map((p) => p.generation))
     : 0;
 
+  const reportedCount = (value: number | undefined) => typeof value === "number" && Number.isSafeInteger(value) && value >= 0 ? value : undefined;
+  const liveCount = reportedCount(systemStatus?.live_probes);
+  const deadCount = reportedCount(systemStatus?.dead_probes);
+  const lifetimeCounts = Boolean(parseLifecyclePolicy(systemStatus?.lifecycle_policy));
+
   // API usage metrics
   const apiCalls = systemStatus?.jup_api_calls ?? 0;
   const uptimeSecs = systemStatus?.uptime_secs ?? 0;
@@ -36,8 +42,10 @@ export function ProbesOverview({ probes, systemStatus, valuationAvailable }: Pro
   const cards = [
     {
       label: "Active Probes",
-      value: live.length.toString(),
-      sub: `${probes.length - live.length} dead`,
+      value: (liveCount ?? live.length).toString(),
+      sub: liveCount !== undefined && deadCount !== undefined
+        ? `${deadCount} dead${lifetimeCounts ? " lifetime" : ""} · last reported`
+        : `${probes.length - live.length} dead · loaded rows only`,
       icon: Activity,
       color: "#39ff14",
     },

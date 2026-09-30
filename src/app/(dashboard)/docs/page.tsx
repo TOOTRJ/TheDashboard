@@ -405,7 +405,7 @@ export default function DocsPage() {
         {/* ───────── VON NEUMANN PROBES ───────── */}
         <H2 id="probes">Von Neumann Probes</H2>
         <P>
-          The Probes page is a real-time dashboard for running, monitoring, and analyzing autonomous evolutionary trading agents. Each &ldquo;probe&rdquo; is an independent trading entity with a genetic blueprint (genome) that defines its signal computation parameters, risk management rules, and lifecycle thresholds. Probes trade Solana DEX pairs, and the colony evolves over time through selection, reproduction, and mutation.
+          The Probes page is a real-time dashboard for running, monitoring, and analyzing autonomous evolutionary trading agents. Each &ldquo;probe&rdquo; is an independent trading entity with a genetic blueprint (genome) that defines its signal computation parameters, risk management rules, and lifecycle thresholds. Simulation uses synthetic data; paper mode observes Solana prices without signing transactions. Candidates evolve through evaluated selection and variation. Live trading is rejected.
         </P>
         <P>
           The system is powered by a Python FastAPI service (the Von Neumann service) that runs the tick loop, manages the probe lifecycle, and broadcasts events over WebSocket. The frontend receives events in real time and also polls Supabase for persistence.
@@ -416,14 +416,14 @@ export default function DocsPage() {
           When you open the Probes page, the top section shows the simulation control bar and a set of summary metric cards.
         </P>
         <H4 id="probes-metric-cards">Metric Cards</H4>
-        <P>Five metric cards display the colony&rsquo;s vital signs at a glance:</P>
+        <P>Four summary cards, plus an optional API-usage card, display the colony&rsquo;s reported state:</P>
         <Table
           headers={["Card", "Value", "Secondary"]}
           rows={[
-            ["Active Probes", "Count of live (non-DEAD) probes", "Count of dead probes"],
+            ["Active Probes", "Count of live (non-DEAD) probes", "Last reported dead count, or explicitly labeled loaded-row count"],
             ["Generation", "Current generation number", "Current tick count"],
-            ["Best Fitness", "Highest fitness score in the colony (3 decimals)", "Population diversity metric"],
-            ["Colony Capital", "Total capital across all live probes", "Reserve capital available"],
+            ["Best Fitness", "Highest fitness among loaded active candidates (3 decimals)", "Population diversity metric"],
+            ["Colony Capital", "Last valid total account equity, including reserve and owned positions", "Unavailable when current valuation cannot be confirmed"],
             ["JUP API Calls", "Total API calls to Jupiter (paper mode)", "Calls/min and projected 24h rate"],
           ]}
         />
@@ -444,8 +444,8 @@ export default function DocsPage() {
           headers={["Strategy", "Description"]}
           rows={[
             ["Genetic Algorithm", "Classic GA with tournament selection, uniform crossover, and Gaussian mutation."],
-            ["Differential Evolution", "DE/rand/1/bin -- differential mutation with binomial crossover."],
-            ["Particle Swarm Optimization", "PSO with inertia weight, cognitive and social components."],
+            ["Differential Evolution", "Paired current-window target/trial DE; even funded account count, at least eight."],
+            ["Window-reset Swarm", "Normalized PSO variant with inertia and current-window social evidence."],
             ["CMA-ES", "Covariance Matrix Adaptation Evolution Strategy."],
           ]}
         />
@@ -463,14 +463,14 @@ export default function DocsPage() {
         />
 
         <H4 id="probes-config-presets">Presets</H4>
-        <P>Four colony configuration presets provide starting points:</P>
+        <P>Eight colony presets provide starting points. Examples:</P>
         <Table
           headers={["Preset", "Behavior"]}
           rows={[
-            ["Default", "All 15 genes evolve freely across their full range. All 8 assets available."],
+            ["Default", "All 15 genes evolve freely across their full range. All configured assets available."],
             ["RSI Focus", "EMA and volume genes are fixed; only RSI + risk + lifecycle genes evolve."],
             ["Conservative Risk", "Tighter risk gene bounds (smaller positions, tighter stops). Max 1 open position."],
-            ["Wide Exploration", "Lower reproduction benchmarks (3-8% ROI, $2-$8 profit), reproduction every 50 ticks instead of 100."],
+            ["Wide Exploration", "50-market-minute evaluation windows after readiness instead of 100; lower profit thresholds apply only to legacy self-reproduction."],
           ]}
         />
 
@@ -509,11 +509,12 @@ export default function DocsPage() {
             ["Initial Probes", "10", "Number of Gen-0 probes spawned at start"],
             ["Max Capital", "$10,000", "Total capital pool for the colony"],
             ["Capital Per Probe", "$100", "Seed capital given to each new probe"],
-            ["Tick Interval", "1000ms", "Milliseconds between market ticks"],
+            ["Tick Interval", "1000ms", "Wall-clock pacing; does not change synthetic market time"],
             ["Mutation Rate", "0.20", "Probability of mutating each gene (GA)"],
-            ["Reproduction Interval", "100", "Ticks between evolution steps"],
-            ["Max Lifespan", "none", "Force-kill probes after N ticks (optional)"],
-            ["Max Probes", "50", "Population cap"],
+            ["Evaluation Window", "100 market minutes", "Common candidate window after every candidate is ready"],
+            ["Maximum Candidate Age", "none", "Market minutes after group readiness; early results remain in the group"],
+            ["Max Probes", "50", "Funded evaluation account cap"],
+            ["Search Seed", "0", "Exact integer text for reproducible search; independent of market seed"],
           ]}
         />
 
@@ -527,6 +528,7 @@ export default function DocsPage() {
             ["Stopped", "\"New Colony\" button opens the config dialog"],
             ["Running", "Pause and Stop buttons. Shows mode badge, strategy badge, generation, tick, and live probe count."],
             ["Paused", "Resume and Stop buttons"],
+            ["Risk halted", "Explicit Recover with a confirmed current trip, or Stop; protection continues only while the worker is reachable"],
           ]}
         />
         <P>
@@ -583,16 +585,14 @@ export default function DocsPage() {
         </ul>
 
         <H3 id="probes-genealogy-tab">Genealogy Tab</H3>
-        <P>
-          The Genealogy tab renders a recursive parent-child tree showing probe lineage. Each node displays the probe name (truncated), a generation badge, and the fitness score. Nodes are color-coded by state. Connecting lines show parent-child relationships. Clicking any node opens the Probe Detail dialog.
-        </P>
+        <P>Candidates appear by birth generation with every recorded source link: clone parent, crossover parents, DE contributors, swarm particle/social sources or CMA distribution sources. Missing sources are labeled outside loaded history. Numerical ancestry does not mean sexual reproduction. The list avoids recursive expansion of a multi-parent graph.</P>
 
         <H3 id="probes-probe-detail">Probe Detail Dialog</H3>
         <P>
           A modal dialog with full details about a single probe.
         </P>
         <H4 id="probes-detail-header">Header</H4>
-        <P>Probe name (cyan), state badge, generation badge, and parent ID (first 8 characters).</P>
+        <P>Probe name (cyan), state badge, birth-generation badge, and every recorded source ID. An open detail view follows new lifecycle updates.</P>
         <H4 id="probes-detail-timeline">Lifecycle Timeline</H4>
         <P>A visual bar showing born timestamp, died timestamp (if dead), lifespan duration, and death reason. Living probes show a pulsing green dot.</P>
         <H4 id="probes-detail-metrics">Metrics Grid</H4>
@@ -613,7 +613,7 @@ export default function DocsPage() {
         </P>
         <H4 id="probes-detail-trades">Trade History</H4>
         <P>
-          A scrollable table of all trades the probe has executed, showing: asset pair, open time, entry price, exit price, P&L (color-coded), and exit reason (TAKE_PROFIT, STOP_LOSS, SIGNAL_EXIT, PROBE_DYING, REPRODUCING).
+          A scrollable table of loaded persisted trades for the probe, showing: asset pair, open time, entry price, exit price, P&L (color-coded), and exit reason (TAKE_PROFIT, STOP_LOSS, SIGNAL_EXIT, PROBE_DYING, REPRODUCING).
         </P>
 
         <H3 id="probes-price-feed">Live Price Feed</H3>
@@ -633,9 +633,10 @@ export default function DocsPage() {
           rows={[
             ["probe_born", "Adds a new probe to the grid"],
             ["probe_update", "Updates metrics for an existing probe"],
-            ["probe_dying / probe_reproducing", "Marks a probe as DEAD with reason"],
+            ["probe_dying / probe_reproducing", "Records transition intent; not final death"],
+            ["probe_dead", "Applies final terminal balance, metrics, time and reason"],
             ["simulation_status", "Updates system status, generation, tick, active colonies list"],
-            ["generation_complete", "Appends generation stats for the evolution chart"],
+            ["generation_complete", "Upserts acknowledged generation stats for the evolution chart"],
             ["price_update", "Updates the live price feed ticker"],
           ]}
         />
@@ -644,7 +645,7 @@ export default function DocsPage() {
         </P>
 
         <H3 id="probes-data-persistence">Data Persistence</H3>
-        <P>Four Supabase tables store all probe data, scoped per user via Row Level Security:</P>
+        <P>Five Supabase tables store all probe data, scoped per user via Row Level Security:</P>
         <Table
           headers={["Table", "Purpose"]}
           rows={[
@@ -656,7 +657,10 @@ export default function DocsPage() {
           ]}
         />
         <P>
-          The frontend polls Supabase every 5 seconds as a fallback complement to WebSocket updates. Historical colony runs are browsable via the Colony Selector.
+          The frontend polls Supabase every 5 seconds as a fallback complement to WebSocket updates. Historical colony runs are browsable via the Colony Selector; loaded rows can be a subset of stored history. Generation numbers describe birth epochs, not ancestry depth. Completion requires sealed births and acknowledged terminal records for all members. New generation diversity excludes assets and uses the saved RMS numeric policy.
+        </P>
+        <P>
+          Worker memory retains the latest 256 closed trades per probe, 500 dead probes and 100 generation-completion markers. Lifetime trade/death totals and online generation aggregates survive cache eviction; persisted historical rows are not deleted by these limits. Ancestry records every actual source, including numerical contributors. Older records created before explicit terminal acknowledgements are not automatically repaired. Saved history is not an executable recovery checkpoint.
         </P>
 
         {/* ───────── PYTHON SERVICE ───────── */}
@@ -700,18 +704,8 @@ export default function DocsPage() {
         </P>
 
         <H3 id="service-gene-registry">Gene Registry</H3>
-        <P>
-          The gene registry (<Code>GENE_REGISTRY</Code>) is the single source of truth for all evolvable parameters. Every gene has a name, label, group (Signal/Risk/Lifecycle), hard bounds (min/max), default value, type (FLOAT or INT), and a description. Three constraint functions run during validation:
-        </P>
-        <Table
-          headers={["Constraint", "Rule", "Correction"]}
-          rows={[
-            ["EMA Fast", "ema_fast must be < ema_slow", "Set to max(3, ema_slow * 0.5)"],
-            ["RSI Oversold", "rsi_oversold must be < rsi_overbought - 5", "Set to max(20, overbought - 15)"],
-            ["Stop Loss", "stop_loss_pct must be < take_profit_pct", "Set to max(0.01, take_profit * 0.4)"],
-          ]}
-        />
-        <P>Validation runs in two phases: first clamp all values to hard bounds, then run constraint functions in registration order and re-clamp.</P>
+        <P>Every gene has hard bounds, a type and a default. Configured ranges must fit those bounds. Fixed values, disabled defaults and equal-bound ranges are locked. Integer values are rounded half up before checking fast EMA &lt; slow EMA and stop loss &lt; take profit. Only active values can move to repair a relationship; incompatible locked controls are rejected before a run starts.</P>
+        <P>The same deterministic validation applies to initialization and every evolutionary operator. Assets are unique supported pairs and their count matches the validated num_assets gene. Validation does not draw random values. Mutation noise uses the configured active range.</P>
 
         <H4 id="service-gene-table">Complete Gene Table</H4>
         <Table
@@ -723,10 +717,10 @@ export default function DocsPage() {
             ["ema_fast", "Signal", "INT", "3", "20", "9"],
             ["ema_slow", "Signal", "INT", "10", "60", "21"],
             ["volume_threshold", "Signal", "FLOAT", "1.0", "3.0", "1.4"],
-            ["position_size_pct", "Risk", "FLOAT", "0.05", "0.30", "0.15"],
+            ["position_size_pct", "Risk", "FLOAT", "0.05", "0.90", "0.75"],
             ["stop_loss_pct", "Risk", "FLOAT", "0.01", "0.10", "0.03"],
             ["take_profit_pct", "Risk", "FLOAT", "0.03", "0.20", "0.07"],
-            ["max_open_positions", "Risk", "INT", "1", "4", "2"],
+            ["max_open_positions", "Risk", "INT", "1", "4", "1"],
             ["timeframe_minutes", "Lifecycle", "INT", "5", "60", "15"],
             ["benchmark_target_pct", "Lifecycle", "FLOAT", "0.03", "0.15", "0.08"],
             ["reproduce_target_dollars", "Lifecycle", "FLOAT", "2.0", "50.0", "10.0"],
@@ -736,26 +730,14 @@ export default function DocsPage() {
         />
 
         <H3 id="service-probe-lifecycle">Probe Lifecycle</H3>
-        <P>Every probe follows a strict state machine:</P>
-        <CodeBlock>{`BORN ─> FUNDED ─> OBSERVING ─> TRADING ─> REPRODUCING ─> DEAD
-                                  │                  │
-                                  └──> DYING ─────────> DEAD`}</CodeBlock>
-        <P>
-          <Code>BORN</Code>: Probe created with a genome. <Code>FUNDED</Code>: Capital allocated from reserve. <Code>OBSERVING</Code>: Collecting price data, waiting for entry signals. <Code>TRADING</Code>: Has at least one open position. <Code>REPRODUCING</Code>: Fitness target met, positions closed, offspring being created. <Code>DYING</Code>: Drawdown threshold exceeded, positions being closed. <Code>DEAD</Code>: Terminal state, archived.
-        </P>
-        <P>
-          A probe can die from OBSERVING (never traded) or from TRADING. Reproduction is only possible from TRADING state. Probes can also be force-killed by max lifespan enforcement or the evolution strategy&rsquo;s retirement logic.
-        </P>
+        <P>Candidates begin BORN, receive funding, then observe shared completed-candle history. TRADING means a candidate has entered its trading lifecycle; it can temporarily hold no positions. REPRODUCING and DYING are transition intentions, not confirmed terminal records. Only an acknowledged probe_dead event completes retirement with final capital, metrics, timestamp and reason.</P>
+        <P>Built-in optimizers evaluate the entire common-window group, including candidates that never traded. Selected sources are distinguished from culled candidates. Profit-triggered reproduction applies to legacy/custom strategies; risk, age and explicit optimizer retirement have distinct reasons.</P>
 
         <H3 id="service-signal-computation">Signal Computation</H3>
-        <P>
-          Each probe computes its own trading signals using its genome parameters. Signal evaluation (entry/exit) is gated by the probe&rsquo;s <Code>timeframe_minutes</Code> gene &mdash; signals are only checked every <Code>timeframe_minutes</Code> ticks. Stop loss and take profit are still checked every tick for risk management. A probe with <Code>timeframe_minutes=5</Code> evaluates signals every 5 ticks, while one with <Code>timeframe_minutes=60</Code> is much more deliberate.
-        </P>
+        <P>Signals use completed timestamped candles aggregated to each genome&rsquo;s timeframe, independent of polling speed. A shared history covers the configured asset universe, including newly selected assets. Entries wait until every candidate has valid RSI, EMA and volume inputs. Decisions execute only on a subsequent eligible quote; quote marks do not become indicator candles. Protective stops and take profit still run on each valid quote.</P>
 
         <H4 id="service-signal-rsi">RSI (Relative Strength Index)</H4>
-        <P>
-          Standard Wilder&rsquo;s RSI over <Code>rsi_period</Code> candles. Requires at least <Code>rsi_period + 1</Code> price observations. Computes average gains and losses, then: <Code>RSI = 100 - (100 / (1 + avg_gain / avg_loss))</Code>.
-        </P>
+        <P>The implemented RSI uses rolling average gains and losses over rsi_period completed-candle differences, requiring period + 1 closes. It is not Wilder&rsquo;s recursive smoothing. An entirely flat window is neutral at 50. The chosen convention is explicit so benchmarks can compare the same indicator.</P>
 
         <H4 id="service-signal-ema">EMA (Exponential Moving Average)</H4>
         <P>
@@ -765,7 +747,7 @@ export default function DocsPage() {
         <H4 id="service-signal-entry">Entry Signal</H4>
         <P>All three conditions must be true simultaneously:</P>
         <ol className="list-decimal list-inside text-sm text-white/70 space-y-1 mb-3 ml-4">
-          <li><strong>RSI Oversold:</strong> <Code>RSI &lt; rsi_oversold</Code> (asset is undervalued)</li>
+          <li><strong>RSI Oversold:</strong> <Code>RSI &lt; rsi_oversold</Code> (below the configured threshold)</li>
           <li><strong>EMA Bullish Cross:</strong> <Code>ema_fast &gt; ema_slow</Code> (upward momentum)</li>
           <li><strong>Volume Confirmation:</strong> current volume &gt; <Code>volume_threshold</Code> &times; 20-candle average volume</li>
         </ol>
@@ -773,7 +755,7 @@ export default function DocsPage() {
         <H4 id="service-signal-exit">Exit Signal</H4>
         <P>Either condition triggers a signal exit:</P>
         <ol className="list-decimal list-inside text-sm text-white/70 space-y-1 mb-3 ml-4">
-          <li><Code>RSI &gt; rsi_overbought</Code> (asset is overvalued), OR</li>
+          <li><Code>RSI &gt; rsi_overbought</Code> (above the configured threshold), OR</li>
           <li><Code>ema_fast &lt; ema_slow</Code> (bearish crossover)</li>
         </ol>
 
@@ -783,53 +765,32 @@ export default function DocsPage() {
         </P>
 
         <H4 id="service-signal-lifecycle">Lifecycle Triggers</H4>
-        <P>
-          After processing all asset signals each tick, the probe checks two lifecycle conditions:
-        </P>
-        <ul className="list-disc list-inside text-sm text-white/70 space-y-1 mb-3 ml-4">
-          <li><strong>Reproduce:</strong> <Code>roi &ge; benchmark_target_pct</Code> OR <Code>profit &ge; reproduce_target_dollars</Code> (probe has earned enough to spawn offspring via either percentage or absolute dollar threshold)</li>
-          <li><strong>Die:</strong> <Code>max_drawdown &ge; death_drawdown_pct</Code> (probe has lost too much from peak)</li>
-        </ul>
-
+        <P>Drawdown and configured age limits can terminate a candidate early. Its final cash and score stay in its original evaluation slot until the common deadline. Built-in solvers do not let profit-triggered self-reproduction or diversity injection change the active comparison group. Profit thresholds remain legacy controls for custom strategies.</P>
         <H3 id="service-tick-loop">Tick Loop</H3>
-        <P>The GenesisController runs a continuous tick loop. Each tick executes these steps in order:</P>
-        <ol className="list-decimal list-inside text-sm text-white/70 space-y-1 mb-3 ml-4">
-          <li>Check circuit breaker (exit if active)</li>
-          <li>Fetch market prices from the feed for all assets across live probes</li>
-          <li>Push price/volume data to each probe via <Code>on_price_update()</Code></li>
-          <li>Broadcast prices to WebSocket clients (every 5 ticks)</li>
-          <li>Call <Code>probe.tick()</Code> on each live probe, collecting events</li>
-          <li>Process death events (reclaim capital, auto-spawn if population low)</li>
-          <li>Enforce max lifespan (force-kill probes exceeding the limit)</li>
-          <li>Run evolution step (every <Code>reproduction_interval</Code> ticks)</li>
-          <li>Broadcast simulation status (every 5 ticks) and probe updates (every 10 ticks)</li>
-          <li>Capture fitness snapshots (every 25 ticks)</li>
-          <li>Check circuit breaker threshold</li>
-        </ol>
+        <P>The controller obtains fresh quotes for the configured universe, applies protective position management, checks whole-account loss and updates completed-candle history. It then advances warmup or the common evaluation deadline, permits entries only when the group is ready and risk is unlocked, and publishes acknowledged state. Early deaths do not shrink the group passed to an optimizer. Invalid/stale observations cannot fabricate a score or a liquidation price.</P>
+        <P>A risk halt blocks entries and new candidates while protective management continues on valid data. Explicit recovery requires current marks and the matching saved trip; ordinary resume does not clear the halt. Pause, halt, stop or failure aborts the unfinished group without an optimizer update. Recovery/resume starts fresh funded accounts and an optimizer epoch.</P>
 
         <H3 id="service-capital-management">Capital Management</H3>
         <P>Capital flows through a reserve pool:</P>
         <ul className="list-disc list-inside text-sm text-white/70 space-y-1 mb-3 ml-4">
           <li><strong>Reserve Capital:</strong> Starts at <Code>max_capital</Code> ($10,000 default). Each probe spawned deducts <Code>seed_capital</Code> ($100) from reserve.</li>
           <li><strong>Active Capital:</strong> Cash plus marked open positions still owned by registered probes, including records awaiting reconciliation after a failure. Probes gain/lose capital through trading.</li>
-          <li><strong>On Death:</strong> Dead probe&rsquo;s remaining capital returns to reserve.</li>
+          <li><strong>On Death:</strong> After the explicit terminal write succeeds, remaining cash is transferred atomically from the owned candidate to reserve. A failed write or accounting step preserves ownership for reconciliation.</li>
           <li><strong>On Reproduction:</strong> Each offspring receives the configured <Code>seed_capital</Code> evaluation budget. The complete replacement must fit the population limit and be funded by reserve plus retirement proceeds before any parent is retired. Profits and losses flow to reserve. An unaffordable or invalid replacement stops execution for review; candidates are never silently omitted or underfunded.</li>
-          <li><strong>Circuit Breaker:</strong> If total capital drops by 30% from initial, all trading halts immediately.</li>
+          <li><strong>Circuit Breaker:</strong> The configured whole-account loss threshold blocks entries and new candidates while protective management continues on fresh data. Explicit recovery is required.</li>
         </ul>
 
         <H3 id="service-market-feeds">Market Feeds</H3>
         <P>
-          All market feeds implement the <Code>MarketFeed</Code> abstract class with two methods: <Code>get_tick(asset)</Code> and <Code>get_ticks(assets)</Code>.
+          All market feeds implement the <Code>MarketFeed</Code> abstract class with quote methods <Code>get_tick(asset)</Code> and <Code>get_ticks(assets)</Code>, plus <Code>get_candles</Code> for completed history.
         </P>
 
-        <H4 id="service-feed-sim">Simulation Feed (GBM)</H4>
-        <P>
-          Generates synthetic prices using Geometric Brownian Motion. Each tick applies: <Code>price *= (1 + drift + volatility * N(0,1))</Code> where drift defaults to 0.0001 (slight upward bias) and volatility to 0.02 (2% standard deviation per tick). Volume is generated as <Code>base_volume * max(0.1, 1 + N(0, 0.5))</Code>. Each colony gets its own independent SimulationFeed instance, so prices diverge across colonies.
-        </P>
+        <H4 id="service-feed-sim">Simulation Feed</H4>
+        <P>Synthetic prices use a seeded positive geometric model with an explicit one-minute default market step. Separate private streams for each asset make the market path independent of optimizer draws, requested asset order and wall-clock playback. Equal market seeds and model settings produce the same path across colonies. Synthetic volume and endpoint candles are uncalibrated; they are useful for mechanics tests, not evidence of profitability.</P>
 
         <H4 id="service-feed-jupiter">Jupiter Feed</H4>
         <P>
-          Fetches live prices from the Jupiter DEX aggregator on Solana. Used in paper trading mode. Tracks API call count for rate monitoring.
+          Paper mode uses Jupiter quotes, RPC source-time validation, and Birdeye completed candle history. These provider credentials and quotas must be configured and verified before a hosted paper run. The API counter is diagnostic and does not estimate total provider cost.
         </P>
 
         <H3 id="service-api">REST API</H3>
@@ -848,7 +809,8 @@ export default function DocsPage() {
             ["GET", "/api/v1/colonies/{id}", "Get an owned colony's status"],
             ["POST", "/api/v1/colonies/{id}/stop", "Stop a colony"],
             ["POST", "/api/v1/colonies/{id}/pause", "Pause a colony"],
-            ["POST", "/api/v1/colonies/{id}/resume", "Resume a colony"],
+            ["POST", "/api/v1/colonies/{id}/resume", "Resume a paused colony"],
+            ["POST", "/api/v1/colonies/{id}/recover", "Recover a confirmed risk halt with its trip ID and fresh marks"],
             ["POST", "/api/v1/simulation/start", "Start colony (backward compat)"],
             ["POST", "/api/v1/simulation/stop", "Retired; returns 410, use /colonies/{id}/stop"],
             ["POST", "/api/v1/simulation/pause", "Retired; returns 410, use /colonies/{id}/pause"],
@@ -858,7 +820,7 @@ export default function DocsPage() {
         />
 
         <P>
-          Colony states are <Code>starting</Code>, <Code>running</Code>, <Code>paused</Code>, <Code>stopped</Code>, and <Code>failed</Code>. Invalid launch settings return 422 before creating a colony; live trading is rejected. Preparation and persistence failures return 503 with a safe error code and colony ID. An invalid control transition returns 409. A successful launch means the initial population and strategy were prepared; it does not establish trading profitability or readiness for real funds.
+          Colony states are <Code>starting</Code>, <Code>running</Code>, <Code>paused</Code>, <Code>risk_halted</Code>, <Code>stopped</Code>, and <Code>failed</Code>. Invalid launch settings return 422 before creating a colony; live trading is rejected. Preparation and persistence failures return 503 with a safe error code and colony ID. An invalid control transition returns 409. A successful launch means the initial population and strategy were prepared; it does not establish trading profitability or readiness for real funds.
         </P>
         <P>
           Stopped and failed colonies retain paper-position records for reconciliation. The status reports whether failure information was saved and whether reconciliation is required. A control request may finish after the caller disconnects, so refresh the colony status before retrying an uncertain result. Failed reads show an error and preserve the last successful result; missing worker status is shown as unavailable.
@@ -870,160 +832,50 @@ export default function DocsPage() {
           The system supports four evolutionary algorithm strategies, selectable per colony. All strategies implement the <Code>EvolutionStrategy</Code> abstract base class and are auto-discovered at startup. New strategies can be added by dropping a single Python file into <Code>core/strategies/</Code> with zero registration boilerplate.
         </P>
 
-        <H3 id="evo-strategy-pattern">Strategy Pattern</H3>
-        <P>
-          Every strategy must implement four methods:
-        </P>
-        <Table
-          headers={["Method", "Purpose"]}
-          rows={[
-            ["name (property)", "Unique snake_case identifier (e.g. 'genetic_algorithm')"],
-            ["label (property)", "Human-readable name for the UI"],
-            ["initialize(probes, config)", "Called once after Gen-0 spawns. Set up internal state (velocities, distributions)."],
-            ["evolve(probes, dead, config) -> EvolutionResult", "Called every reproduction_interval ticks. Returns genomes to spawn and probe IDs to retire."],
-          ]}
-        />
-        <P>
-          The <Code>EvolutionResult</Code> contains: <Code>offspring</Code> (list of new Genomes), <Code>retire_ids</Code> (probe IDs to archive), <Code>parent_map</Code> (maps offspring index to parent probe IDs for genealogy), and <Code>metadata</Code> (strategy-specific stats).
-        </P>
-        <P>
-          Strategies never touch capital or probe lifecycle state. They produce a declarative result; genesis handles all the orchestration (closing positions, transferring price buffers, reclaiming capital, spawning offspring).
-        </P>
-
+        <H3 id="evo-strategy-pattern">Evaluation Contract</H3>
+        <P>Every built-in optimizer evaluates a fixed group over a common market-minute window, starting only after all candidates have current indicator inputs. Candidate identities and actual phenotypes remain bound to that group. Missing, duplicate, changed, partial or nonfinite evidence is rejected. Each next group receives the same configured account budgets after capacity and funding preflight. Current result summaries are diagnostic; durable executable restart checkpoints remain a separate requirement.</P>
         <H3 id="evo-fitness">Fitness Scoring</H3>
-        <P>
-          The composite fitness function used for selection across all strategies:
-        </P>
-        <CodeBlock title="Fitness Formula">{`fitness = ROI
-       + (Sharpe * 0.3)
-       - (MaxDrawdown * 2.0)
-       - ActivityPenalty
-       + WinBonus
-
-Where:
-  ActivityPenalty = max(0, (10 - num_trades) * 0.01)  // penalize inactivity
-  WinBonus       = (win_rate - 0.5) * 0.1             // reward >50% win rate
-
-If num_trades < 3:  fitness = ROI - 0.5  (harsh penalty for insufficient data)`}</CodeBlock>
-        <P>
-          Sharpe Ratio is computed as sample-standard-deviation Sharpe over per-trade returns: <Code>(mean_return - risk_free) / std_dev</Code>. Returns 0 if fewer than 2 trades.
-        </P>
-
+        <CodeBlock title="Provisional fitness">{`fitness = portfolio ROI - 2 * observed historical maximum drawdown`}</CodeBlock>
+        <P>Portfolio equity includes cash and marked open positions. Historical drawdown does not disappear after recovery. This is a provisional ranking heuristic with an uncalibrated drawdown weight. Sharpe is a separate nullable diagnostic from fixed-time portfolio-equity returns, not per-trade returns, and is excluded from selection. Missing/insufficient/zero-variance evidence is reported instead of an invented ratio.</P>
         <H3 id="evo-ga">Genetic Algorithm</H3>
-        <P>The default strategy. Classic GA with these operators:</P>
-
         <H4 id="evo-ga-selection">Selection</H4>
-        <P>
-          Fitness-ranked selection: filter probes with &ge;3 trades and non-negative ROI, sort by fitness descending, take the top 30%. All selected parents reproduce with a mate chosen via tournament selection.
-        </P>
-
-        <H4 id="evo-ga-tournament">Tournament Selection (Mate)</H4>
-        <P>
-          For each reproducing parent, a mate is chosen via tournament selection: sample 3 random probes from the population (excluding the parent), return the one with highest fitness.
-        </P>
-
+        <P>A complete group produces exactly the configured number of children, including populations of two. Negative scores and zero-trade windows remain valid mechanical evidence. There is no top-30% or three-trade parent gate.</P>
+        <H4 id="evo-ga-tournament">Tournament Selection</H4>
+        <P>Parents are chosen from the completed group by tournaments of up to three. A mate comes from the same group excluding the chosen parent. An untested candidate cannot be treated as a proven winner.</P>
         <H4 id="evo-ga-crossover">Uniform Crossover</H4>
-        <P>
-          For each evolvable gene: 50/50 coin flip assigns the value from parent A or parent B. Fixed/disabled genes always take parent A&rsquo;s value. Asset lists are merged from both parents, then sampled down to <Code>num_assets</Code>.
-        </P>
-
+        <P>Active genes can inherit either parent&rsquo;s value. Fixed and disabled controls remain locked. Ordered asset preferences are merged and the actual phenotype is validated.</P>
         <H4 id="evo-ga-mutation">Gaussian Mutation</H4>
-        <P>
-          For each evolvable gene: with probability <Code>mutation_rate</Code> (default 0.20), add Gaussian noise scaled to <Code>mutation_strength * gene_range</Code> (default 0.15 * (max - min)). Asset mutation: 30% chance to swap one asset for a random different one from the available pool.
-        </P>
-
+        <P>Active coordinates receive configured-range Gaussian perturbations at the requested rate. Asset swaps are separate categorical operations. Validation preserves fixed controls and integer relationships.</P>
         <H4 id="evo-ga-reproduction">Reproduction Flow</H4>
-        <P>
-          70% chance of sexual reproduction (crossover + mutation) and 30% chance of asexual (clone + mutation at 1.5&times; rate). Each parent produces <Code>child_count</Code> offspring (default 2). Children inherit generation = parent.generation + 1.
-        </P>
-
-        <Callout type="info">
-          Default parameters: mutation_rate=0.20, mutation_strength=0.15, top_pct=0.30, child_count=2, min_trades=3.
-        </Callout>
-
+        <P>Variation chooses crossover plus mutation or cloning plus mutation, filling exactly one next group. Only actual crossover records a mate; clone/fallback ancestry records its actual source. Numerical optimizer sources are not described as sexual mates.</P>
         <H3 id="evo-de">Differential Evolution</H3>
-        <P>
-          DE/rand/1/bin strategy. Operates on the worst half of the population each evolution step.
-        </P>
+        <P>DE/rand/1/bin compares each trial with a funded target clone over the same current market window. The configured account count is even and at least eight: four or more target slots and an equal number of trials. Bootstrap selects incumbents from an initial random evaluated group.</P>
+        <H4 id="evo-de-trial">Trial and Selection</H4>
+        <CodeBlock title="Paired DE">{`donor = a + 0.8 * (b - c)
+trial = binomial_crossover(target, donor, probability=0.9)
+force at least one ACTIVE donor coordinate
+project trial into the configured valid phenotype
 
-        <H4 id="evo-de-trial">Trial Vector Formula</H4>
-        <CodeBlock title="DE/rand/1/bin">{`For each target (worst 50% of population):
-  Select 3 random distinct probes a, b, c from the rest
-
-  For each gene i:
-    mutant_i = a_i + F * (b_i - c_i)
-
-  Binomial crossover with target:
-    j_rand = random integer in [0, num_genes)
-    For each gene i:
-      if random() < CR  OR  i == j_rand:
-        trial_i = mutant_i
-      else:
-        trial_i = target_i
-
-Parameters: F = 0.8 (scaling factor), CR = 0.9 (crossover probability)
-Minimum population: 4 probes`}</CodeBlock>
-        <P>
-          The worst half of the population is retired and replaced with trial vectors. Fixed/non-evolvable genes always keep the target&rsquo;s value.
-        </P>
-
-        <H3 id="evo-pso">Particle Swarm Optimization</H3>
-        <P>
-          Each probe is treated as a particle moving through gene-space. Velocities update based on personal best, global best, and inertia.
-        </P>
-
-        <H4 id="evo-pso-velocity">Velocity Update Formula</H4>
-        <CodeBlock title="PSO Velocity Update">{`For each probe (particle):
-  For each evolvable gene:
-    v_new = w * v_old
-          + c1 * r1 * (personal_best - current)
-          + c2 * r2 * (global_best  - current)
-
-    position_new = position_old + v_new
-
-Parameters:
-  w  = 0.7  (inertia weight)
-  c1 = 1.5  (cognitive coefficient — personal best attraction)
-  c2 = 1.5  (social coefficient — global best attraction)
-  r1, r2 = independent random() in [0, 1]`}</CodeBlock>
-        <P>
-          PSO retires and respawns the entire population each evolution step. Price buffers are transferred from parent to offspring to avoid signal warmup delays. Velocity state is remapped from the old probe ID to the new one via <Code>remap_probe_id()</Code>.
-        </P>
-
+Evaluate target and trial on the SAME market window.
+Keep trial only if trial.fitness > target.fitness; ties keep target.
+Freeze all winners before sampling the next donors.`}</CodeBlock>
+        <P>Historical target scores do not compete with current trials. Losing trials do not become next-generation donors. Source metadata identifies target, base and positive/negative difference contributors.</P>
+        <H3 id="evo-pso">Window-reset Swarm (PSO variant)</H3>
+        <P>The swarm uses normalized active coordinates. Best scores reset on every new market window because old and new regimes are different objectives. With one observation per particle per window, current position is its personal best and cognitive attraction is zero. This is an explicit variant, not textbook cumulative-memory PSO.</P>
+        <H4 id="evo-pso-velocity">Movement</H4>
+        <CodeBlock title="Window-reset social movement">{`proposal = current + 0.7 * velocity
+                   + 1.5 * random_vector * (current_window_best - current)
+child = decode_and_validate(clip_to_unit_interval(proposal))
+next_velocity = encode(child) - current`}</CodeBlock>
+        <P>Initial private momentum avoids an all-zero first move. Actual repaired displacement is retained, with one particle state per fresh evaluation account. Fixed dimensions are omitted; integer projection can still cause stagnation and needs further benchmarking.</P>
         <H3 id="evo-cmaes">CMA-ES</H3>
-        <P>
-          Covariance Matrix Adaptation Evolution Strategy. Uses the <Code>cmaes</Code> Python package with an ask-and-tell interface. Best suited for continuous optimization in parameter spaces under 100 dimensions (the system has 15 genes).
-        </P>
-
+        <P>The installed cmaes package operates over effective active unit coordinates with initial sigma 0.3 and bounds [0,1]. Integer/coupled constraints are applied through the shared phenotype validator; asset identities use explicit inheritance and resize.</P>
         <H4 id="evo-cmaes-flow">Ask-Tell Flow</H4>
-        <CodeBlock title="CMA-ES Ask-Tell">{`Initialize:
-  mean   = centroid of Gen-0 population
-  sigma  = 0.3 * mean(gene_ranges)
-  bounds = [(min, max) for each evolvable gene]
-  optimizer = CMA(mean, sigma, bounds, population_size)
-
-Each evolution step (after first):
-  1. TELL: Feed current population fitness to optimizer
-     solutions = [(params_array, -fitness) for each probe]
-     optimizer.tell(solutions)          # CMA-ES minimizes, so negate
-
-  2. ASK: Sample new candidate solutions
-     For each position in population:
-       params = optimizer.ask()         # Returns numpy array
-       Build Genome from params, fill non-evolvable genes from best probe
-       Validate genome against bounds
-
-  3. Retire all current probes, spawn new ones
-
-First evolution step skips TELL (Gen-0 probes were random, not from ask()).`}</CodeBlock>
-
-        <H3 id="evo-diversity">Diversity Management</H3>
-        <P>
-          Population diversity is measured as the average pairwise normalized Euclidean distance in gene space, plus a Jaccard distance term for asset overlap. The diversity metric ranges from 0.0 (identical) to ~1.0 (maximally diverse).
-        </P>
-        <P>
-          When diversity drops below the threshold (default 0.10), diversity injection creates new genomes. The default mechanism prefers strongly-mutated copies of the best recently-dead probe (mutation rate 0.30, strength 0.25). If no dead probes exist, random Gen-0 genomes are created. Strategies can override this with their own diversity mechanism.
-        </P>
+        <P>The random bootstrap defines an initial normalized mean. Each later asked array is copied and bound to its actual candidate phenotype and account ID. A complete group tells the optimizer those original arrays with negated fitness; repaired genomes are never reconstructed as ask vectors. Early deaths retain their slots. Interrupted groups are discarded without tell. Zero active dimensions yields a full clone group.</P>
+        <H3 id="evo-diversity">Diversity and Reproducibility</H3>
+        <P>Current-population diversity uses mean pairwise normalized gene/asset distance; it is not a percentage and can exceed one. New records with lifecycle policy acknowledged-terminal-sealed-generations-v1 use RMS pairwise numeric distance over global registry ranges, excluding categorical assets and calculated independently of recent-history retention. Older records without this policy retain their original semantics. The two statistics describe different things.</P>
+        <P>Search seeds are exact decimal strings, independent of the synthetic market seed. Each controller and optimizer owns private versioned streams. Matching seed, configuration, software and input data reproduce search from the beginning; this does not restore a stopped process&rsquo;s executable state. UUIDs and display names are not part of the economic replay comparison.</P>
+        <Callout type="warning">Passing numerical and accounting tests does not establish trading quality. Realistic fees, slippage, immutable datasets, multiple-testing controls, durable recovery and hosted worker acceptance are still required before a paper evaluation or live design.</Callout>
 
         <H3 id="evo-multi-colony">Multi-Colony System</H3>
         <P>
@@ -1032,12 +884,12 @@ First evolution step skips TELL (Gen-0 probes were random, not from ask()).`}</C
         <ul className="list-disc list-inside text-sm text-white/70 space-y-1 mb-3 ml-4">
           <li>Evolution strategy instance (with its own internal state)</li>
           <li>GenesisController (tick loop, population, capital pool)</li>
-          <li>Market feed (independent price paths in simulation mode)</li>
+          <li>Private market feed (identical paths for identical market seed/settings)</li>
           <li>Database persistence (isolated by colony_id/run_id)</li>
           <li>Event handler (WebSocket messages tagged with colony_id)</li>
         </ul>
         <P>
-          Colonies run as independent <Code>asyncio.Task</Code> instances. No threads or multiprocessing — the workload is I/O-bound (market feeds, DB writes, WebSocket broadcasts). The frontend filters WebSocket events by the selected colony and can switch between active colonies in real time.
+          Colonies run as independent <Code>asyncio.Task</Code> instances. Blocking database writes are dispatched through asyncio.to_thread while market and WebSocket work is asynchronous; optimizer computation still needs resource budgeting. The frontend filters WebSocket events by the selected colony and can switch between active colonies in real time.
         </P>
 
         {/* ───────── TRADE LOG ───────── */}

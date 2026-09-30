@@ -9,12 +9,13 @@ import { ProbesDashboard } from "@/components/probes/ProbesDashboard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { fetchProbes, fetchGenerationStats, fetchColonyRuns } from "@/lib/probes/probes-supabase";
 import { useProbesWebSocket } from "@/lib/probes/websocket";
+import { applyProbeEvent, probeFromBirth } from "@/lib/probes/lifecycle";
 import { VN_ENDPOINTS } from "@/lib/probes/constants";
 import {
   belongsToSelectedColony, colonyPath, createSelectionScope,
   requestWorker, WorkerRequestError,
   formatColonyFailure, isRiskTripId, parseRiskControl,
-  formatEvaluationAbort, parseEvaluationCohort, parseEvaluationPolicy, parseSearchSpec,
+  formatEvaluationAbort, parseEvaluationCohort, parseEvaluationPolicy, parseSearchSpec, parseLifecyclePolicy,
 } from "@/lib/probes/transport";
 import { validateStartConfig, type StartConfig } from "@/lib/probes/colony-config";
 import type {
@@ -87,27 +88,29 @@ function AuthenticatedProbesPage({ userId, accessToken }: { userId: string; acce
   const handleWsMessage = React.useCallback((msg: WsMessage) => {
     // No event, including a status or death event, may modify a different colony.
     if (!belongsToSelectedColony(msg, scope.current())) return;
+    // A read started before a structural event must not undo acknowledged
+    // lifecycle/history changes. Frequent metric updates leave polling intact.
+    if (["probe_born", "probe_dying", "probe_reproducing", "probe_dead", "generation_complete"].includes(msg.type)) {
+      scope.begin("data");
+      setLoading(false);
+    }
     switch (msg.type) {
       case "probe_born":
-      case "probe_update": {
+      case "probe_update":
+      case "probe_dying":
+      case "probe_reproducing":
+      case "probe_dead": {
         const d = msg.data;
         setProbes((prev) => {
           const idx = prev.findIndex((p) => p.id === d.probe_id);
           if (idx >= 0) {
             const updated = [...prev];
-            updated[idx] = { ...updated[idx], ...mapWsToProbe(d) };
+            updated[idx] = applyProbeEvent(updated[idx], msg.type, d, msg.timestamp);
             return updated;
           }
-          return msg.type === "probe_born" ? [...prev, mapWsToProbe(d) as Probe] : prev;
+          const born = msg.type === "probe_born" ? probeFromBirth(d, msg.timestamp) : null;
+          return born ? [...prev, born] : prev;
         });
-        break;
-      }
-      case "probe_dying":
-      case "probe_reproducing": {
-        const d = msg.data;
-        setProbes((prev) => prev.map((p) => p.id === d.probe_id
-          ? { ...p, state: "DEAD" as const, death_reason: (d.reason as string) || msg.type }
-          : p));
         break;
       }
       case "simulation_status": {
@@ -122,7 +125,7 @@ function AuthenticatedProbesPage({ userId, accessToken }: { userId: string; acce
       }
       case "generation_complete": {
         const data = msg.data as unknown as GenerationStats;
-        setGenStats((prev) => prev.some((s) => s.generation === data.generation) ? prev : [...prev, data]);
+        setGenStats((prev) => [...prev.filter((s) => s.generation !== data.generation), data].sort((a, b) => a.generation - b.generation));
         break;
       }
       case "price_update": {
@@ -298,6 +301,7 @@ function AuthenticatedProbesPage({ userId, accessToken }: { userId: string; acce
   const displayedMode = showSavedStatus ? selectedHistory.mode : simMode;
   const diagnostics = showSavedStatus || !systemStatus ? selectedHistory?.runtime : systemStatus;
   const searchSpec = parseSearchSpec((!systemStatus || errors.status ? selectedHistory?.runtime : systemStatus)?.search_spec);
+  const lifecyclePolicy = parseLifecyclePolicy((!systemStatus || errors.status ? selectedHistory?.runtime : systemStatus)?.lifecycle_policy);
   const riskControl = parseRiskControl(diagnostics?.risk_control);
   const confirmedRiskHalt = !showSavedStatus && !errors.status && systemStatus?.status === "risk_halted";
   const recoveryAvailable = confirmedRiskHalt && isRiskTripId(riskControl?.trip_id);
@@ -375,6 +379,7 @@ function AuthenticatedProbesPage({ userId, accessToken }: { userId: string; acce
         key={`${userId}:${selectedColonyId ?? "none"}`}
         probes={probes}
         generationStats={genStats}
+        lifecyclePolicy={lifecyclePolicy}
         systemStatus={systemStatus}
         valuationAvailable={diagnostics?.valuation_available}
         strategy={systemStatus?.strategy}
@@ -460,9 +465,8 @@ function PageHeader({
             )}
           </div>
           <p className="text-xs text-muted-foreground max-w-xl leading-relaxed">
-            Self-replicating evolutionary trading colony. Probes evolve through
-            genetic crossover and mutation — profitable ones reproduce, losing ones
-            die.
+            Evolutionary trading research colony. Candidates share a market evaluation
+            window, then the selected algorithm creates a new funded group.
           </p>
           <Link
             href="/docs#probes"
@@ -489,32 +493,4 @@ function PageHeader({
       )}
     </div>
   );
-}
-
-function mapWsToProbe(d: Record<string, unknown>): Partial<Probe> {
-  return {
-    id: d.probe_id as string,
-    probe_name: (d.probe_name as string) || "",
-    state: (d.state as Probe["state"]) || "OBSERVING",
-    generation: (d.generation as number) || 0,
-    genome: d.genome as Probe["genome"],
-    initial_capital: (d.initial_capital as number) || 0,
-    current_capital: (d.current_capital as number) || 0,
-    peak_capital: (d.peak_capital as number) || 0,
-    total_trades: (d.total_trades as number) || 0,
-    winning_trades: (d.winning_trades as number) || 0,
-    total_pnl: (d.total_pnl as number) || 0,
-    max_drawdown: ((d.max_drawdown_pct as number) || 0) / 100,
-    sharpe_ratio: typeof d.sharpe_ratio === "number" && Number.isFinite(d.sharpe_ratio) ? d.sharpe_ratio : null,
-    metrics: d.metrics && typeof d.metrics === "object" && !Array.isArray(d.metrics)
-      ? d.metrics as Probe["metrics"] : null,
-    fitness_score: (d.fitness_score as number) || 0,
-    born_at: (d.born_at as string) || new Date().toISOString(),
-    died_at: (d.died_at as string) || null,
-    death_reason: (d.death_reason as string) || null,
-    mode: (d.mode as string) || "simulation",
-    parent_id: null,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  };
 }

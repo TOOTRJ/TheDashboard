@@ -385,7 +385,8 @@ class PriceArithmeticTests(OfflineTestMixin, unittest.TestCase):
                 self.assertEqual(len(probe.closed_trades), 2)
                 self.assertEqual(probe.state, final_state)
                 self.assertEqual([event.event_type for event in events],
-                                 [EventType.TRADE_CLOSED, EventType.TRADE_CLOSED, final_event])
+                                 [EventType.TRADE_CLOSED, EventType.TRADE_CLOSED, final_event]
+                                 + ([EventType.PROBE_DEAD] if action == "death" else []))
 
 
 if __name__ == "__main__":

@@ -18,7 +18,7 @@ import math
 import time
 import uuid
 from copy import deepcopy
-from dataclasses import replace
+from dataclasses import dataclass, field, replace
 from datetime import datetime
 from typing import Optional, Callable, Awaitable
 
@@ -27,6 +27,7 @@ from .colony_config import ColonyConfig
 from .evolution import FITNESS_POLICY, NUMERIC_GENES, mutate, population_diversity
 from .equity_metrics import EQUITY_METRICS_POLICY
 from .genome import Genome, random_genome
+from .gene_registry import GENE_REGISTRY
 from .search_random import SearchRandomStreams
 from .funding import FundingError, can_fund, funding_tolerance, sum_cashflows, valid_cash
 from .names import generate_probe_name
@@ -41,6 +42,98 @@ from ..market.candles import CandleHistory, CANDLE_POLICY
 from ..market.quote_freshness import MAX_SOURCE_AGE_SECONDS, QUOTE_POLICY, quote_source_age, validate_quote
 
 logger = logging.getLogger(__name__)
+
+DEAD_PROBE_RETENTION = 500
+GENERATION_HISTORY_RETENTION = 100
+LIFECYCLE_POLICY = {
+    "version": "acknowledged-terminal-sealed-generations-v1",
+    "terminal_event": "probe_dead",
+    "generation_completion": "sealed_births_all_terminal_acknowledged",
+    "generation_semantics": "birth_epoch_not_ancestry_depth",
+    "generation_diversity": "rms_pairwise_global_normalized_numeric_v1",
+    "generation_diversity_assets": "excluded",
+    "reproduced_count": "distinct_sources_with_acknowledged_offspring_before_completion",
+    "closed_trade_retention": 256,
+    "dead_probe_retention": DEAD_PROBE_RETENTION,
+    "generation_history_retention": GENERATION_HISTORY_RETENTION,
+}
+
+
+@dataclass
+class _GenerationAggregate:
+    """Constant-size lifetime statistics; never retain old probe objects.
+
+    Numeric diversity uses Welford moments: mean pairwise squared distance is
+    2 * sum(M2) / (n - 1). This is exact online algebra, not a retained sample.
+    It intentionally differs from live population mean distance with assets.
+    """
+
+    started_at: datetime
+    count: int = 0
+    unacknowledged_births: int = 0
+    terminal_count: int = 0
+    reproduced: int = 0
+    sealed: bool = False
+    means: list[float] = field(default_factory=lambda: [0.0] * len(NUMERIC_GENES))
+    m2: list[float] = field(default_factory=lambda: [0.0] * len(NUMERIC_GENES))
+    fitness_sum: float = 0.0
+    best_fitness: float = -math.inf
+    worst_fitness: float = math.inf
+    roi_sum: float = 0.0
+    best_roi: float = -math.inf
+    capital_sum: float = 0.0
+    trade_count: int = 0
+    win_rate_sum: float = 0.0
+    traded_candidates: int = 0
+
+    def born(self, probe: Probe) -> None:
+        values = []
+        for name in NUMERIC_GENES:
+            definition = GENE_REGISTRY.get(name)
+            value = (getattr(probe.genome, name) - definition.min) / (definition.max - definition.min or 1.0)
+            if not math.isfinite(value):
+                raise ValueError("Generation genes must be finite")
+            values.append(value)
+        self.started_at = min(self.started_at, probe.born_at)
+        self.count += 1
+        self.unacknowledged_births += 1
+        for index, value in enumerate(values):
+            delta = value - self.means[index]
+            self.means[index] += delta / self.count
+            self.m2[index] += delta * (value - self.means[index])
+
+    def terminal(self, probe: Probe) -> None:
+        fitness, roi, capital = probe.fitness, probe.roi, probe.capital
+        self.terminal_count += 1
+        self.fitness_sum = math.fsum((self.fitness_sum, fitness))
+        self.best_fitness = max(self.best_fitness, fitness)
+        self.worst_fitness = min(self.worst_fitness, fitness)
+        self.roi_sum = math.fsum((self.roi_sum, roi))
+        self.best_roi = max(self.best_roi, roi)
+        self.capital_sum = math.fsum((self.capital_sum, capital))
+        self.trade_count += probe.num_trades
+        if probe.num_trades:
+            self.traded_candidates += 1
+            self.win_rate_sum = math.fsum((self.win_rate_sum, probe.win_rate))
+
+    def summary(self, generation: int, ended_at: datetime) -> dict:
+        n = self.count
+        diversity = math.sqrt(max(0.0, 2.0 * math.fsum(self.m2) / (n - 1))) if n > 1 else 0.0
+        return {
+            "generation": generation, "started_at": self.started_at.isoformat(),
+            "ended_at": ended_at.isoformat(), "total_probes": n,
+            "alive_probes": 0, "dead_probes": self.terminal_count,
+            "reproduced_count": self.reproduced,
+            "best_fitness": round(self.best_fitness, 4),
+            "avg_fitness": round(self.fitness_sum / n, 4),
+            "worst_fitness": round(self.worst_fitness, 4),
+            "total_capital": round(self.capital_sum, 2),
+            "avg_capital": round(self.capital_sum / n, 2),
+            "total_trades": self.trade_count,
+            "avg_win_rate": round(self.win_rate_sum / self.traded_candidates, 4) if self.traded_candidates else 0.0,
+            "best_roi": round(self.best_roi, 4), "avg_roi": round(self.roi_sum / n, 4),
+            "genome_diversity": round(diversity, 4),
+        }
 
 
 class GenesisController:
@@ -128,6 +221,7 @@ class GenesisController:
         self.run_id = colony_id  # Alias for backward compatibility
         self.probes: dict[str, Probe] = {}
         self.dead_probes: list[Probe] = []
+        self._archived_probe_count = 0
         self.current_generation = 0
         self.tick_count = 0
         self._running = False
@@ -163,6 +257,9 @@ class GenesisController:
         self._generation_dead_counts: dict[int, int] = {}
         self._generation_reproduced: dict[int, int] = {}
         self._emitted_generation_stats: set[int] = set()
+        self._generation_aggregates: dict[int, _GenerationAggregate] = {}
+        self._birth_generation_floor = 0
+        self._cohort_parent_generations: dict[str, tuple[int, bool]] = {}
 
         # Snapshot interval
         self.snapshot_interval = 25
@@ -247,8 +344,8 @@ class GenesisController:
             "generation": self.current_generation,
             "tick": self.tick_count,
             "live_probes": len(live),
-            "dead_probes": len(self.dead_probes),
-            "total_probes": len(self.probes) + len(self.dead_probes),
+            "dead_probes": self._archived_probe_count,
+            "total_probes": len(self.probes) + self._archived_probe_count,
             "reserve_capital": round(reserve, 2) if reserve is not None else None,
             "active_capital": round(active, 2) if active is not None else None,
             "total_capital": round(total, 2) if total is not None else None,
@@ -269,6 +366,7 @@ class GenesisController:
             "candle_policy": deepcopy(CANDLE_POLICY),
             "metrics_policy": dict(EQUITY_METRICS_POLICY),
             "fitness_policy": dict(FITNESS_POLICY),
+            "lifecycle_policy": dict(LIFECYCLE_POLICY),
             "market_time": self._event_time().isoformat() if self._uses_simulation_clock else None,
             "market_elapsed_secs": (
                 (self._event_time() - self._market_started_at).total_seconds()
@@ -387,6 +485,8 @@ class GenesisController:
                            _planned_reserve: Optional[float] = None) -> Optional[Probe]:
         if self.circuit_breaker_active:
             return None
+        if genome.generation < self._birth_generation_floor:
+            raise FundingError("generation_sealed")
         if not valid_cash(capital) or not valid_cash(self.reserve_capital):
             raise FundingError()
         if len(self.probes) >= self.max_probes:
@@ -423,6 +523,8 @@ class GenesisController:
 
         gen = genome.generation
         self._generation_probe_counts[gen] = self._generation_probe_counts.get(gen, 0) + 1
+        aggregate = self._generation_aggregates.setdefault(gen, _GenerationAggregate(probe.born_at))
+        aggregate.born(probe)
         if gen > self.current_generation:
             self.current_generation = gen
 
@@ -437,6 +539,7 @@ class GenesisController:
             probe_id=probe.probe_id,
             data=probe.summary(),
         ))
+        aggregate.unacknowledged_births -= 1
         return probe
 
     # ── Probe retirement (strategy-driven) ───────────────────────────────
@@ -506,7 +609,8 @@ class GenesisController:
         # genome or another child's genome through an aliased object.
         children = []
         allowed_assets = set(self.colony_config.get_effective_assets())
-        known_parents = set(self.probes) | {p.probe_id for p in self.dead_probes}
+        known_parents = (set(self.probes) | {p.probe_id for p in self.dead_probes}
+                         | set(self._cohort_parent_generations))
         if any(key not in {str(i) for i in range(len(result.offspring))}
                for key in result.parent_map):
             raise FundingError()
@@ -514,14 +618,15 @@ class GenesisController:
             if (not isinstance(genome, Genome) or
                     any(not valid_cash(getattr(genome, gene)) for gene in NUMERIC_GENES) or
                     not isinstance(genome.generation, int) or isinstance(genome.generation, bool) or
-                    genome.generation < 0 or not isinstance(genome.assets, list) or
+                    genome.generation < self._birth_generation_floor or not isinstance(genome.assets, list) or
                     not genome.assets or not all(isinstance(a, str) for a in genome.assets) or
                     len(set(genome.assets)) != len(genome.assets) or
                     not set(genome.assets).issubset(allowed_assets)):
                 raise FundingError()
             parents = result.parent_map.get(str(i), genome.parent_ids)
             if (not isinstance(parents, list) or
-                    not all(isinstance(pid, str) and pid in known_parents for pid in parents)):
+                    not all(isinstance(pid, str) and pid in known_parents for pid in parents) or
+                    len(set(parents)) != len(parents)):
                 raise FundingError()
             child = deepcopy(genome)
             child.parent_ids = list(parents)
@@ -533,24 +638,41 @@ class GenesisController:
             return
         self._require_current_quotes()
         children, retired, balances = self._preflight_replacement(result, self_reproducing=self_reproducing)
+        selected_ids = {pid for genome in children for pid in genome.parent_ids}
+        parent_refs = {probe.probe_id: probe for probe in [*self.dead_probes, *self.probes.values()]}
         reclaimed_flows = [self.reserve_capital]
         for probe, prices in retired.values():
-            reclaimed_flows.append(await self._retire_probe(probe, prices=prices))
+            reason = "evolution_selected" if probe.probe_id in selected_ids else "evolution_culled"
+            reclaimed_flows.append(await self._retire_probe(probe, reason=reason, prices=prices))
             self.reserve_capital = sum_cashflows(reclaimed_flows)
         for genome, balance in zip(children, balances):
-            # Retirement/birth persistence can take longer than a quote's life.
             self._require_current_quotes()
             new_probe = await self._spawn_probe(genome, self.seed_capital, _planned_reserve=balance)
             if new_probe is None:
-                # A validated, serialized batch must never silently lose births.
-                # Do not roll back uncertain persistence or redistribute cash.
                 raise FundingError()
+            # Count actual acknowledged births, not intended reproduction. A
+            # partial failed batch keeps its lineage but cannot seal generations.
+            for parent_id in genome.parent_ids:
+                parent = parent_refs.get(parent_id)
+                pinned = self._cohort_parent_generations.get(parent_id)
+                generation = parent.genome.generation if parent else pinned[0] if pinned else None
+                recorded = getattr(parent, "_has_persisted_offspring", False) if parent else pinned[1] if pinned else True
+                aggregate = self._generation_aggregates.get(generation)
+                if aggregate is not None and not recorded:
+                    aggregate.reproduced += 1
+                    self._generation_reproduced[generation] = aggregate.reproduced
+                    if parent is not None:
+                        parent._has_persisted_offspring = True
+                    if pinned is not None:
+                        self._cohort_parent_generations[parent_id] = (generation, True)
             if genome.parent_ids and hasattr(self.strategy, "remap_probe_id"):
-                # An early terminal candidate still owns its optimizer slot
-                # even though its trading account has already been reclaimed.
                 self.strategy.remap_probe_id(genome.parent_ids[0], new_probe.probe_id)
-        for probe, _ in retired.values():
-            await self._maybe_emit_generation_stats(probe.genome.generation)
+        if children:
+            self._birth_generation_floor = max(self._birth_generation_floor, max(g.generation for g in children))
+        for generation, aggregate in list(self._generation_aggregates.items()):
+            if generation < self._birth_generation_floor:
+                aggregate.sealed = True
+            await self._maybe_emit_generation_stats(generation)
 
     async def _retire_probe(self, probe: Probe, reason: str = "evolution", *,
                             prices: Optional[dict[str, float]] = None) -> float:
@@ -572,47 +694,63 @@ class GenesisController:
         for evt in probe.close_all_positions(prices, "EVOLUTION"):
             await self._emit(evt)
 
-        # State transition depends on current state
-        if probe.state == ProbeState.TRADING:
+        # Selection is a reason for retirement, not proof that a child birth
+        # already succeeded. Culls never emit a reproduction intent.
+        selected = reason == "evolution_selected"
+        if probe.state == ProbeState.TRADING and selected:
             probe._transition(ProbeState.REPRODUCING)
-            await self._emit(ProbeEvent(
-                timestamp=self._event_time(),
-                event_type=EventType.PROBE_REPRODUCING,
-                probe_id=probe.probe_id,
-                data=probe.summary(),
-            ))
-            probe._transition(ProbeState.DEAD)
-        elif probe.state == ProbeState.OBSERVING:
+            await self._emit(ProbeEvent(EventType.PROBE_REPRODUCING, probe.probe_id,
+                                       probe.summary(), timestamp=self._event_time()))
+        elif probe.state in {ProbeState.TRADING, ProbeState.OBSERVING}:
             probe._transition(ProbeState.DYING)
-            probe.died_at = self._event_time()
-            probe.death_reason = reason
-            await self._emit(ProbeEvent(
-                timestamp=probe.died_at,
-                event_type=EventType.PROBE_DYING,
-                probe_id=probe.probe_id,
-                data={"reason": reason, **probe.summary()},
-            ))
-            probe._transition(ProbeState.DEAD)
-        else:
-            probe.state = ProbeState.DEAD
-
+            await self._emit(ProbeEvent(EventType.PROBE_DYING, probe.probe_id,
+                                       {"reason": reason, **probe.summary()}, timestamp=self._event_time()))
+        if probe.state not in {ProbeState.REPRODUCING, ProbeState.DYING}:
+            raise FundingError()
+        probe._transition(ProbeState.DEAD)
+        probe.died_at = self._event_time()
+        probe.death_reason = reason
+        await self._emit(ProbeEvent(EventType.PROBE_DEAD, probe.probe_id,
+                                   probe.summary(), timestamp=probe.died_at))
+        # Ownership is retained in self.probes until the explicit terminal write
+        # has been acknowledged. Failures cannot reclaim or archive this cash.
         reclaimed = probe.capital
         if not valid_cash(reclaimed):
             raise FundingError()
-        self.reserve_capital = sum_cashflows((self.reserve_capital, reclaimed))
-
-        gen = probe.genome.generation
-        self._generation_reproduced[gen] = self._generation_reproduced.get(gen, 0) + 1
-        self.dead_probes.append(probe)
-        if probe.probe_id in self.probes:
-            del self.probes[probe.probe_id]
-
+        self._archive_probe(probe)
         return reclaimed
+
+    def _archive_probe(self, probe: Probe) -> None:
+        if self.probes.get(probe.probe_id) is not probe:
+            return
+        generation = probe.genome.generation
+        aggregate = self._generation_aggregates.get(generation)
+        if aggregate is None:
+            raise FundingError("generation_missing")
+        # Stage every fallible calculation before either ledger owns reclaimed
+        # cash. Bad aggregate arithmetic must not double-credit the account.
+        staged = deepcopy(aggregate)
+        staged.terminal(probe)
+        if any(isinstance(value, (int, float)) and not math.isfinite(value)
+               for value in vars(staged).values()):
+            raise FundingError("generation_metrics_invalid")
+        reserve = sum_cashflows((self.reserve_capital, probe.capital))
+        if not valid_cash(reserve):
+            raise FundingError()
+        self._generation_aggregates[generation] = staged
+        self.reserve_capital = reserve
+        self._generation_dead_counts[generation] = staged.terminal_count
+        self._archived_probe_count += 1
+        self.dead_probes.append(probe)
+        if len(self.dead_probes) > DEAD_PROBE_RETENTION:
+            del self.dead_probes[:-DEAD_PROBE_RETENTION]
+        del self.probes[probe.probe_id]
 
     # ── Lifecycle: Reproduction (strategy-delegated) ─────────────────────
 
     def _bind_evaluation(self) -> None:
         members = list(self.live_probes)
+        self._cohort_parent_generations = {p.probe_id: (p.genome.generation, False) for p in members}
         self.strategy.bind_candidates(members)
         self._evaluation_iteration += 1
         self._cohort = EvaluationCohort(
@@ -745,11 +883,8 @@ class GenesisController:
             raise FundingError()
         if self._cohort is not None and self._cohort.phase == "evaluating":
             self._cohort.record_terminal(probe, probe.death_reason or "death", self._event_time().timestamp())
-        self.reserve_capital = sum_cashflows((self.reserve_capital, probe.capital))
         probe_gen = probe.genome.generation
-        self._generation_dead_counts[probe_gen] = self._generation_dead_counts.get(probe_gen, 0) + 1
-        self.dead_probes.append(probe)
-        del self.probes[probe.probe_id]
+        self._archive_probe(probe)
 
         await self._maybe_emit_generation_stats(probe_gen)
         if not self._uses_cohorts and len(self.live_probes) < max(1, self.gen0_count // 2):
@@ -773,7 +908,7 @@ class GenesisController:
             child = Genome(
                 **{g: getattr(probe.genome, g) for g in NUMERIC_GENES},
                 assets=list(probe.genome.assets),
-                generation=probe.genome.generation + 1,
+                generation=max(probe.genome.generation + 1, self._birth_generation_floor),
                 parent_ids=[probe.probe_id],
             )
             children.append(mutate(child, mutation_rate=self.mutation_rate, colony_config=self.colony_config,
@@ -1028,7 +1163,7 @@ class GenesisController:
                 raise error.cause
             for evt in events:
                 await self._emit(evt)
-                if evt.event_type == EventType.PROBE_DYING:
+                if evt.event_type == EventType.PROBE_DEAD:
                     dying.append(probe)
                 elif evt.event_type == EventType.PROBE_REPRODUCING:
                     self_reproducing.append(probe)
@@ -1252,62 +1387,23 @@ class GenesisController:
     # ── Generation stats ─────────────────────────────────────────────────
 
     async def _maybe_emit_generation_stats(self, generation: int) -> None:
-        if generation in self._emitted_generation_stats:
+        aggregate = self._generation_aggregates.get(generation)
+        if (aggregate is None or not aggregate.sealed or aggregate.unacknowledged_births or
+                not aggregate.count or aggregate.terminal_count != aggregate.count):
             return
-        live_at_gen = [
-            p for p in self.probes.values()
-            if p.genome.generation == generation and p.state != ProbeState.DEAD
-        ]
-        if live_at_gen:
-            return
-
-        all_gen_probes = [
-            p for p in list(self.probes.values()) + self.dead_probes
-            if p.genome.generation == generation
-        ]
-        if not all_gen_probes:
-            return
-
-        total = len(all_gen_probes)
-        alive = sum(1 for p in all_gen_probes if p.state != ProbeState.DEAD)
-        dead = total - alive
-        reproduced = self._generation_reproduced.get(generation, 0)
-
-        fitness_scores = [p.fitness for p in all_gen_probes]
-        rois = [p.roi for p in all_gen_probes]
-        capitals = [p.capital for p in all_gen_probes]
-        win_rates = [p.win_rate for p in all_gen_probes if p.num_trades > 0]
-        diversity = population_diversity([p.genome for p in all_gen_probes]) if len(all_gen_probes) >= 2 else 1.0
-
-        stats = {
-            "generation": generation,
-            "started_at": min(p.born_at for p in all_gen_probes).isoformat(),
-            "ended_at": self._event_time().isoformat(),
-            "total_probes": total,
-            "alive_probes": alive,
-            "dead_probes": dead,
-            "reproduced_count": reproduced,
-            "best_fitness": round(max(fitness_scores), 4) if fitness_scores else 0,
-            "avg_fitness": round(sum(fitness_scores) / len(fitness_scores), 4) if fitness_scores else 0,
-            "worst_fitness": round(min(fitness_scores), 4) if fitness_scores else 0,
-            "total_capital": round(sum(capitals), 2),
-            "avg_capital": round(sum(capitals) / len(capitals), 2) if capitals else 0,
-            "total_trades": sum(p.num_trades for p in all_gen_probes),
-            "avg_win_rate": round(sum(win_rates) / len(win_rates), 4) if win_rates else 0,
-            "best_roi": round(max(rois), 4) if rois else 0,
-            "avg_roi": round(sum(rois) / len(rois), 4) if rois else 0,
-            "genome_diversity": round(diversity, 4),
-        }
-
+        ended_at = self._event_time()
+        stats = aggregate.summary(generation, ended_at)
+        await self._emit(ProbeEvent(EventType.GENERATION_COMPLETE, "genesis", stats, timestamp=ended_at))
+        # A failed write leaves the sealed aggregate available for reconciliation
+        # and an explicit retry; completion is never acknowledged in advance.
+        del self._generation_aggregates[generation]
+        self._generation_probe_counts.pop(generation, None)
+        self._generation_dead_counts.pop(generation, None)
+        self._generation_reproduced.pop(generation, None)
         self._emitted_generation_stats.add(generation)
-        logger.info(f"[Genesis] Generation {generation} complete: {total} probes, best={stats['best_fitness']}")
-
-        await self._emit(ProbeEvent(
-            timestamp=self._event_time(),
-            event_type=EventType.GENERATION_COMPLETE,
-            probe_id="genesis",
-            data=stats,
-        ))
+        if len(self._emitted_generation_stats) > GENERATION_HISTORY_RETENTION:
+            self._emitted_generation_stats.remove(min(self._emitted_generation_stats))
+        logger.info(f"[Genesis] Generation {generation} complete: {aggregate.count} probes")
 
     # ── Event emission ───────────────────────────────────────────────────
 
@@ -1327,5 +1423,5 @@ class GenesisController:
         logger.info(
             f"[Genesis] Tick={self.tick_count} | {len(live)} live | "
             f"Avg ROI={avg_roi*100:.1f}% | Avg Fitness={avg_fitness:.3f} | "
-            f"Dead={len(self.dead_probes)} | Reserve=${self.reserve_capital:.0f}"
+            f"Dead={self._archived_probe_count} | Reserve=${self.reserve_capital:.0f}"
         )

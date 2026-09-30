@@ -272,7 +272,7 @@ class ProbeCandleTests(OfflineTestMixin, unittest.TestCase):
         self.quote(probe, asset=JUP, price=100)
         events = probe.tick()
         self.assertEqual([event.event_type for event in events],
-                         [EventType.TRADE_CLOSED, EventType.PROBE_DYING])
+                         [EventType.TRADE_CLOSED, EventType.PROBE_DYING, EventType.PROBE_DEAD])
         self.assertEqual(events[0].data["exit_reason"], "STOP_LOSS")
         self.assertEqual(probe.closed_trades, [held])
         self.assertEqual(probe.open_positions, {})
@@ -287,7 +287,7 @@ class ProbeCandleTests(OfflineTestMixin, unittest.TestCase):
              patch.object(probe, "_should_reproduce", return_value=True):
             events = probe.tick()
         self.assertEqual([event.event_type for event in events],
-                         [EventType.TRADE_CLOSED, EventType.PROBE_DYING])
+                         [EventType.TRADE_CLOSED, EventType.PROBE_DYING, EventType.PROBE_DEAD])
         self.assertEqual(probe.closed_trades, [held])
         self.assertEqual(probe.state, ProbeState.DEAD)
 
