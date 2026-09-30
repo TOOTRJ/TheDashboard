@@ -103,12 +103,13 @@ class VonNeumannRepository:
             "initial_capital": probe_data.get("initial_capital", 0),
             "current_capital": probe_data.get("current_capital", 0),
             "peak_capital": probe_data.get("peak_capital", 0),
-            "total_trades": 0,
-            "winning_trades": 0,
-            "total_pnl": 0,
-            "max_drawdown": 0,
-            "sharpe_ratio": 0,
-            "fitness_score": 0,
+            "total_trades": probe_data.get("total_trades", 0),
+            "winning_trades": probe_data.get("winning_trades", 0),
+            "total_pnl": probe_data.get("total_pnl", 0),
+            "max_drawdown": probe_data.get("max_drawdown_pct", 0) / 100.0,
+            "sharpe_ratio": probe_data.get("sharpe_ratio"),
+            "fitness_score": probe_data.get("fitness_score", 0),
+            "metrics": deepcopy(probe_data.get("metrics")),
             "mode": probe_data.get("mode", "simulation"),
         }
         # Only set born_at if explicitly provided (otherwise DB default kicks in)
@@ -131,11 +132,16 @@ class VonNeumannRepository:
             "total_trades": probe_data.get("total_trades"),
             "winning_trades": probe_data.get("winning_trades"),
             "total_pnl": probe_data.get("total_pnl"),
-            "max_drawdown": probe_data.get("max_drawdown_pct", 0) / 100.0,
-            "sharpe_ratio": probe_data.get("sharpe_ratio"),
             "fitness_score": probe_data.get("fitness_score"),
         }
         fields = {k: v for k, v in fields.items() if v is not None}
+        if probe_data.get("max_drawdown_pct") is not None:
+            fields["max_drawdown"] = probe_data["max_drawdown_pct"] / 100.0
+        # Explicit unknown diagnostics must clear a previously available value;
+        # omitting a field in a partial update must preserve the stored value.
+        for name in ("sharpe_ratio", "metrics"):
+            if name in probe_data:
+                fields[name] = deepcopy(probe_data[name])
         if fields:
             self.update_probe(probe_data["probe_id"], fields)
 
@@ -186,6 +192,7 @@ class VonNeumannRepository:
             "trade_count": snapshot.trade_count,
             "current_capital": snapshot.current_capital,
             "captured_at": snapshot.captured_at.isoformat(),
+            "metrics": deepcopy(snapshot.metrics),
         }
         self._write("insert_fitness_snapshot", lambda:
             self.db.table("vn_fitness_snapshots").insert(row).execute())
@@ -293,6 +300,13 @@ class EventPersister:
                 "initial_capital": data.get("initial_capital", 0),
                 "current_capital": data.get("current_capital", 0),
                 "peak_capital": data.get("peak_capital", 0),
+                "total_trades": data.get("total_trades", 0),
+                "winning_trades": data.get("winning_trades", 0),
+                "total_pnl": data.get("total_pnl", 0),
+                "max_drawdown_pct": data.get("max_drawdown_pct", 0),
+                "sharpe_ratio": data.get("sharpe_ratio"),
+                "fitness_score": data.get("fitness_score", 0),
+                "metrics": deepcopy(data.get("metrics")),
                 "born_at": timestamp.isoformat(),
                 "mode": self.mode,
             })
@@ -334,12 +348,14 @@ class EventPersister:
                 "death_reason": reason,
                 "died_at": timestamp.isoformat(),
                 "current_capital": data.get("current_capital", 0),
+                "peak_capital": data.get("peak_capital", 0),
                 "total_trades": data.get("total_trades", 0),
                 "winning_trades": data.get("winning_trades", 0),
                 "total_pnl": data.get("total_pnl", 0),
                 "fitness_score": data.get("fitness_score", 0),
-                "sharpe_ratio": data.get("sharpe_ratio", 0),
+                "sharpe_ratio": data.get("sharpe_ratio"),
                 "max_drawdown": (data.get("max_drawdown_pct", 0) or 0) / 100.0,
+                "metrics": deepcopy(data.get("metrics")),
             })
 
         elif etype == EventType.FITNESS_SNAPSHOT:
@@ -349,12 +365,13 @@ class EventPersister:
                 tick=data.get("tick", 0),
                 fitness_score=data.get("fitness_score", 0),
                 roi=data.get("roi", 0),
-                sharpe_ratio=data.get("sharpe_ratio", 0),
+                sharpe_ratio=data.get("sharpe_ratio"),
                 max_drawdown=data.get("max_drawdown", 0),
                 win_rate=data.get("win_rate", 0),
                 trade_count=data.get("trade_count", 0),
                 current_capital=data.get("current_capital", 0),
                 captured_at=timestamp,
+                metrics=deepcopy(data.get("metrics")),
             )
             await self.repo.execute_async("insert_fitness_snapshot", snapshot)
 

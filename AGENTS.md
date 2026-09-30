@@ -25,7 +25,7 @@ The ignored `.vercel/project.json` pins the verified IDs locally. Reinspect reso
 
 Installed Vercel CLI 60.0.0 `link` can refresh `.env.local` OIDC data and perform a configuration migration. Do not use it as an assumed metadata-only operation. Avoid environment pulls that overwrite local files. Capture environment API responses in memory and output only approved metadata/comparison results. `env ls --json` can return encrypted envelopes, so a returned value string is not proof of plaintext or a credential mismatch.
 
-For Supabase CLI, use this repository's explicit `--workdir` and the verified project reference where supported. Preserve the shared CLI login. The Supabase connector observed during preflight pointed to a different project; do not use its data or mutation tools unless a fresh identity check proves it now targets `fxpxsciltakyypunglzr`.
+For Supabase CLI, use this repository's explicit `--workdir` and the verified project reference where supported. Preserve the shared CLI login. Run linked database CLI commands sequentially: overlapping commands can refresh the same project temporary-login role and cause authentication retries. Do not resolve this by changing shared credentials or stopping another agent's process. The Supabase connector observed during preflight pointed to a different project; do not use its data or mutation tools unless a fresh identity check proves it now targets `fxpxsciltakyypunglzr`.
 
 ## Local isolation and implementation
 

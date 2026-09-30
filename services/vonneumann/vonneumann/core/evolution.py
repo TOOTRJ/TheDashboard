@@ -14,6 +14,8 @@ from typing import Optional, TYPE_CHECKING
 
 from .gene_registry import GENE_REGISTRY
 from .genome import Genome, AVAILABLE_ASSETS, random_genome
+from .market_validation import finite_number, nonnegative_value
+from .equity_metrics import calculate_sharpe as compute_sharpe
 
 if TYPE_CHECKING:
     from .colony_config import ColonyConfig
@@ -27,38 +29,22 @@ NUMERIC_GENES = GENE_REGISTRY.numeric_gene_names()
 # ══════════════════════════════════════════════════════════════════════════════
 
 
-def compute_fitness(
-    roi: float,
-    sharpe: float,
-    max_drawdown: float,
-    num_trades: int,
-    win_rate: float,
-) -> float:
+FITNESS_POLICY = {
+    "version": "equity-roi-historical-dd-v1",
+    "formula": "portfolio_roi - 2 * observed_historical_max_drawdown",
+    "drawdown_weight": 2.0,
+    "status": "provisional_heuristic",
+    "sharpe_in_fitness": False,
+}
+
+
+def compute_fitness(roi: float, max_drawdown: float) -> float:
+    """Finite local ranking heuristic, pending horizon/cost validation.
+
+    Trade splitting, activity, and an unstable diagnostic ratio must not create
+    breeding rewards. The inherited drawdown weight is not a calibrated optimum.
     """
-    Composite fitness: ROI + (Sharpe*0.3) - (DD*2.0) - activity_penalty + win_bonus.
-    This is now used for SELECTION, not just reporting.
-    """
-    if num_trades < 3:
-        return roi - 0.5
-
-    roi_score = roi
-    sharpe_score = sharpe * 0.3
-    drawdown_penalty = max_drawdown * 2.0
-    activity_penalty = max(0, (10 - num_trades) * 0.01)
-    win_bonus = (win_rate - 0.5) * 0.1
-
-    return round(
-        roi_score + sharpe_score - drawdown_penalty - activity_penalty + win_bonus, 6
-    )
-
-
-def compute_sharpe(returns: list[float], risk_free: float = 0.0) -> float:
-    if len(returns) < 2:
-        return 0.0
-    mean = sum(returns) / len(returns)
-    variance = sum((r - mean) ** 2 for r in returns) / (len(returns) - 1)
-    std = math.sqrt(variance) if variance > 0 else 1e-9
-    return (mean - risk_free) / std
+    return finite_number(finite_number(roi) - 2.0 * nonnegative_value(max_drawdown))
 
 
 # ══════════════════════════════════════════════════════════════════════════════

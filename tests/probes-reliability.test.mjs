@@ -387,3 +387,51 @@ test("persisted failed status and reconciliation survive worker unavailability, 
   assert.equal(running.dashboard().simStatus, "unknown");
   running.cleanup();
 });
+
+test("probe details distinguish unavailable equity diagnostics from zero and legacy definitions", () => {
+  const jsx = (type, props, key) => ({ type, props, key });
+  const { ProbeDetail } = loadModule("../src/components/probes/ProbeDetail.tsx", {
+    "react/jsx-runtime": { jsx, jsxs: jsx, Fragment: "Fragment" },
+    "lucide-react": { Clock: "Clock", Skull: "Skull", Sparkles: "Sparkles" },
+    "@/components/ui/badge": { Badge: "Badge" },
+    "@/components/ui/button": { Button: "Button" },
+    "@/components/ui/card": { Card: "Card", CardContent: "CardContent", CardHeader: "CardHeader" },
+    "@/components/ui/dialog": { Dialog: "Dialog", DialogContent: "DialogContent", DialogHeader: "DialogHeader", DialogTitle: "DialogTitle" },
+    "@/lib/probes/constants": { STATE_COLORS: { TRADING: "#fff" }, STATE_LABELS: { TRADING: "Trading" } },
+    "@/lib/probes/gene-registry": { GENE_DEFINITIONS: [] },
+    "./GenomeRadar": { GenomeRadar: "GenomeRadar" }, "./TradeLog": { TradeLog: "TradeLog" },
+  });
+  const probe = { id: "probe", state: "TRADING", born_at: "2024-01-01", total_trades: 0,
+    fitness_score: -.2, current_capital: 100, total_pnl: 0, max_drawdown: .2, genome: {}, sharpe_ratio: null };
+  const render = (changes) => JSON.stringify(ProbeDetail({ probe: { ...probe, ...changes }, open: true, onClose() {} }));
+  const legacy = render({ sharpe_ratio: 1.25 });
+  assert.match(legacy, /Sharpe \(run policy\)/);
+  assert.match(legacy, /legacy definitions/);
+  assert.ok(!legacy.includes("Historical max drawdown"));
+  assert.ok(!legacy.includes("Equity Sharpe (diagnostic)"));
+  const metrics = { fitness_version: "equity-roi-historical-dd-v1", current_drawdown: 0 };
+  const missing = render({ metrics });
+  assert.match(missing, /Unavailable/);
+  assert.match(missing, /Historical max drawdown/);
+  assert.match(missing, /Current drawdown: 0.0%/);
+  assert.match(missing, /minute equity returns without annualization; it does not affect the score/);
+  for (const sharpe_ratio of [null, undefined, Infinity, NaN]) assert.match(render({ metrics, sharpe_ratio }), /Unavailable/);
+  assert.ok(!render({ metrics, sharpe_ratio: 0 }).includes("Unavailable"));
+  assert.ok(!render({ metrics: { fitness_version: "unrecognized-policy" }, sharpe_ratio: 0 }).includes("Historical max drawdown"));
+});
+
+test("actual page preserves nullable Sharpe and policy metadata from probe events", async () => {
+  const h = pageHarness(); await h.pump();
+  for (const sharpe_ratio of [null, undefined, NaN, Infinity, 0, 1.23456789123]) {
+    const metrics = { fitness_version: "equity-roi-historical-dd-v1", status: "insufficient_samples", sharpe_ratio };
+    h.event({ type: "probe_update", colony_id: "A", data: { probe_id: "probe", sharpe_ratio, metrics } });
+    await h.pump();
+    const saved = h.dashboard().probes.find((probe) => probe.id === "probe");
+    assert.equal(saved.sharpe_ratio, typeof sharpe_ratio === "number" && Number.isFinite(sharpe_ratio) ? sharpe_ratio : null);
+    assert.equal(saved.metrics.fitness_version, metrics.fitness_version);
+  }
+  h.event({ type: "probe_update", colony_id: "A", data: { probe_id: "probe", metrics: [] } });
+  await h.pump();
+  assert.equal(h.dashboard().probes.find((probe) => probe.id === "probe").metrics, null);
+  h.cleanup();
+});

@@ -24,7 +24,8 @@ from typing import Optional, Callable, Awaitable
 
 from .clock import timestamp_datetime, utc_now
 from .colony_config import ColonyConfig
-from .evolution import NUMERIC_GENES, mutate, population_diversity
+from .evolution import FITNESS_POLICY, NUMERIC_GENES, mutate, population_diversity
+from .equity_metrics import EQUITY_METRICS_POLICY
 from .genome import Genome, random_genome
 from .funding import FundingError, can_fund, funding_tolerance, sum_cashflows, valid_cash
 from .names import generate_probe_name
@@ -34,7 +35,7 @@ from .strategies.base import EvolutionResult, EvolutionStrategy
 from .types import EventType, ProbeEvent, ProbeState, FitnessSnapshot
 from ..market.feed import MarketFeed, MarketFeedError, MarketTick, QuoteEvidence
 from ..market.candles import CandleHistory, CANDLE_POLICY
-from ..market.quote_freshness import QUOTE_POLICY, quote_source_age, validate_quote
+from ..market.quote_freshness import MAX_SOURCE_AGE_SECONDS, QUOTE_POLICY, quote_source_age, validate_quote
 
 logger = logging.getLogger(__name__)
 
@@ -234,6 +235,8 @@ class GenesisController:
             "clock_basis": "synthetic_market" if self._uses_simulation_clock else "wall",
             "quote_policy": dict(QUOTE_POLICY) if self.mode == "paper" else None,
             "candle_policy": deepcopy(CANDLE_POLICY),
+            "metrics_policy": dict(EQUITY_METRICS_POLICY),
+            "fitness_policy": dict(FITNESS_POLICY),
             "market_time": self._event_time().isoformat() if self._uses_simulation_clock else None,
             "market_elapsed_secs": (
                 (self._event_time() - self._market_started_at).total_seconds()
@@ -776,6 +779,32 @@ class GenesisController:
                     eligible.add(asset)
                 except MarketFeedError as error:
                     failures.append(error)
+            # Freeze the entire valued portfolio before closes/entries change
+            # its holdings. A partial quote batch can still reduce individual
+            # risks, but cannot contribute a full portfolio return observation.
+            try:
+                if set(probe.open_positions).issubset(eligible):
+                    observed_at = self._event_time().timestamp()
+                    remaining_age = MAX_SOURCE_AGE_SECONDS
+                    if self.mode == "paper":
+                        for asset in probe.open_positions:
+                            try:
+                                asset_remaining = MAX_SOURCE_AGE_SECONDS - quote_source_age(ticks[asset])
+                                if asset_remaining < 0:
+                                    raise MarketFeedError("price_stale")
+                                remaining_age = min(remaining_age, asset_remaining)
+                            except MarketFeedError as error:
+                                # Eligibility can expire between its first check
+                                # and this valuation. Preserve fresh sibling risk
+                                # checks without knowingly closing an expired mark.
+                                eligible.discard(asset)
+                                failures.append(error)
+                    if set(probe.open_positions).issubset(eligible):
+                        probe.observe_equity(assets=eligible, observed_at=observed_at,
+                                             valid_until=observed_at + remaining_age)
+            except Exception as error:
+                # Metric errors must not interrupt the all-probe risk pass.
+                failures.append(error)
             try:
                 risk_events.extend(probe.risk_tick(assets=eligible))
             except ProbeStepError as error:
@@ -923,6 +952,7 @@ class GenesisController:
                 win_rate=probe.win_rate,
                 trade_count=probe.num_trades,
                 current_capital=probe.capital,
+                metrics=probe.metrics(),
                 captured_at=self._event_time(),
             )
             await self._emit(ProbeEvent(
@@ -932,13 +962,14 @@ class GenesisController:
                 data={
                     "generation": snapshot.generation,
                     "tick": snapshot.tick,
-                    "fitness_score": round(snapshot.fitness_score, 4),
-                    "roi": round(snapshot.roi, 4),
-                    "sharpe_ratio": round(snapshot.sharpe_ratio, 4),
-                    "max_drawdown": round(snapshot.max_drawdown, 4),
-                    "win_rate": round(snapshot.win_rate, 4),
+                    "fitness_score": snapshot.fitness_score,
+                    "roi": snapshot.roi,
+                    "sharpe_ratio": snapshot.sharpe_ratio,
+                    "max_drawdown": snapshot.max_drawdown,
+                    "win_rate": snapshot.win_rate,
                     "trade_count": snapshot.trade_count,
-                    "current_capital": round(snapshot.current_capital, 4),
+                    "current_capital": snapshot.current_capital,
+                    "metrics": snapshot.metrics,
                 },
             ))
 

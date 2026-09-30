@@ -108,3 +108,20 @@ after new writes; that would lose lineage. Do not restore the old exit check aft
 new reasons have been stored; it may fail validation or require destructive data
 rewriting. Any destructive rollback requires a separate reviewed data plan and
 user decision. No restore of another project or shared account changes is allowed.
+
+
+## Equity metrics follow-up — 20260930020000
+
+Target remains only **The Dashboard / fxpxsciltakyypunglzr / cqfnnaunmupdyobkyqfo**. The initial identity check in this batch also verified the authorized GitHub repository and Vercel project/team. The linked CLI dry run identifies exactly `20260930020000_vonneumann_equity_metrics.sql`; no historical migration is replayed.
+
+Both metric-table changes run in one PostgreSQL DO statement: add nullable JSONB metadata and remove Sharpe's NOT NULL constraint. A five-second lock timeout is set inside the DO statement, avoiding the prior standalone SET LOCAL warning. This is a lock-wait limit, not a claim of a thirty-second total migration deadline. The management query connection reports a two-minute statement timeout; the migration CLI uses a separate connection and that setting must not be assumed identical. The changes are metadata-only and build no index or data backfill. [DO contract](https://www.postgresql.org/docs/17/sql-do.html), [timeout semantics](https://www.postgresql.org/docs/17/runtime-config-client.html).
+
+Before application, a transaction on temporary copies of the two live definitions rehearses both ALTERs, verifies the local lock-timeout setting, and injects a later duplicate-column error in a nested subtransaction to prove earlier DDL is rolled back. The entire rehearsal ends with ROLLBACK. This validates the self-contained PostgreSQL operation on copied schema, not an end-to-end failure of the CLI's history-writing batch or a live lock-contention test. Catalog definitions, indexes, policies, RLS and triggers are captured before/after; only the four intended column differences and one ledger entry should change. After application, run `supabase/tests/equity_metrics.sql` on temporary copies and a zero-row authenticated PostgREST read for both metadata columns. No public/auth application records are test fixtures.
+
+Apply using the verified link and explicit repository workdir, without include-all/seed/roles or another database URL. Stop on an unexpected pending version or schema drift. Check actual catalog and ledger state before any retry; never repair history merely to silence an error.
+
+**Rollback:** retain the additive metadata and nullable columns. After any new NULL Sharpe rows exist, the old frontend's unconditional `.toFixed()` is not compatible; keep the null-safe detail view during worker rollback. Do not restore NOT NULL or convert unknown metrics to zero. The previous dashboard deployment is only a rollback candidate while no incompatible NULL data exists. The worker remains unhosted and no runs are started during this release.
+
+Execution evidence is recorded in configuration report section 17 and the release PR after verification.
+
+**Applied and verified:** migration version `20260930020000` is present, the thirteen-version ledger is current, and no migration remains pending. Exactly the two metadata additions and two nullability relaxations occurred. Catalog security/other definitions are unchanged; copied-schema contract and zero-row API schema visibility checks pass. No application rows were used. Keep all applied files unchanged. Linked CLI checks must run sequentially because the temporary database login can be refreshed by another command for this project.

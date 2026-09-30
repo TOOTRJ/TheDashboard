@@ -371,7 +371,7 @@ class MarketFailureIsolationTests(OfflineTestMixin, unittest.IsolatedAsyncioTest
         self.assertEqual(len(bad.closed_trades), 1)
         self.assertEqual(self.events, [])
 
-    async def test_replacement_preflights_projected_sharpe_overflow_for_every_parent(self):
+    async def test_historical_trade_return_cannot_overflow_portfolio_fitness(self):
         controller, _feed, (first, later) = await self.controller()
         first_position = self.open_position(first)
         later_position = self.open_position(later)
@@ -380,29 +380,24 @@ class MarketFailureIsolationTests(OfflineTestMixin, unittest.IsolatedAsyncioTest
             pair=ASSET, side="BUY", entry_price=1e-200, exit_price=1.0,
             amount=1e-200, pnl=1.0, pnl_pct=1e200,
         ))
-        # One finite return has no Sharpe variance yet. The proposed zero-return
-        # close adds a second sample whose squared deviation would overflow.
+        # Closed-trade percentages are no longer portfolio-return samples.
+        # A large historical percentage cannot block a valid liquidation.
         self.assertTrue(math.isfinite(later.closed_trades[0].return_pct()))
         self.assertTrue(math.isfinite(later.fitness))
         plan = EvolutionResult(
             offspring=[Genome.from_dict(probe.genome.to_dict()) for probe in controller.live_probes],
             retire_ids=list(controller.probes),
         )
-        before_ids, before_reserve = set(controller.probes), controller.reserve_capital
         with patch.object(controller.strategy, "evolve", return_value=plan):
-            with self.assertRaises(FundingError) as raised:
-                await controller._evaluate_reproduction()
-        self.assertEqual(raised.exception.code, "funding_invalid_plan")
-        self.assertEqual(set(controller.probes), before_ids)
-        self.assertEqual(controller.reserve_capital, before_reserve)
-        self.assertEqual(controller.dead_probes, [])
+            await controller._evaluate_reproduction()
+        self.assertIn(first, controller.dead_probes)
+        self.assertIn(later, controller.dead_probes)
         for probe, position in ((first, first_position), (later, later_position)):
-            self.assertEqual(probe.capital, 50.0)
-            self.assertEqual(probe.open_positions, {ASSET: position})
-            self.assertIsNone(position.exit_price)
-        self.assertEqual(first.closed_trades, [])
-        self.assertEqual(len(later.closed_trades), 1)
-        self.assertEqual(self.events, [])
+            self.assertEqual(probe.open_positions, {})
+            self.assertEqual(position.exit_price, 100.0)
+            self.assertIsNone(probe.sharpe)
+            self.assertEqual(probe.fitness, 0.0)
+
 
 
 if __name__ == "__main__":
