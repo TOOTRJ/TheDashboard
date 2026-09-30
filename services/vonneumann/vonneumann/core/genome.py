@@ -4,7 +4,7 @@ Probe genome — the evolvable parameters that define trading behavior.
 Gene definitions live in gene_registry.py. This module provides:
   - Genome dataclass (stores gene values)
   - random_genome() (creates Gen-0 genomes, optionally with ColonyConfig)
-  - validate() (clamps bounds + runs constraints via registry)
+  - validate() (projects the actual phenotype into configured domains)
 
 Backward-compat exports: GENE_BOUNDS, NUMERIC_GENES, AVAILABLE_ASSETS
 """
@@ -15,7 +15,7 @@ import random
 from dataclasses import dataclass, field, asdict
 from typing import Any, Optional, TYPE_CHECKING
 
-from .gene_registry import GENE_REGISTRY
+from .gene_registry import GENE_REGISTRY, GeneType, finite_gene
 
 if TYPE_CHECKING:
     from .colony_config import ColonyConfig
@@ -70,38 +70,39 @@ class Genome:
     parent_ids: list[str] = field(default_factory=list)
 
     def int_genes(self) -> dict[str, int]:
-        """Return genes that should be integers during trading."""
-        return {
-            "rsi_period": max(2, int(round(self.rsi_period))),
-            "ema_fast": max(2, int(round(self.ema_fast))),
-            "ema_slow": max(3, int(round(self.ema_slow))),
-            "max_open_positions": max(1, int(round(self.max_open_positions))),
-            "timeframe_minutes": max(1, int(round(self.timeframe_minutes))),
-            "num_assets": max(1, min(len(AVAILABLE_ASSETS), int(round(self.num_assets)))),
-        }
+        """Read the integer phenotype; validated genomes need no hidden rounding."""
+        result = {}
+        for gene in GENE_REGISTRY.all_genes():
+            if gene.gene_type != GeneType.INT:
+                continue
+            value = finite_gene(getattr(self, gene.name))
+            if not value.is_integer():
+                raise ValueError("Integer phenotype must be validated before trading")
+            result[gene.name] = int(value)
+        if result["ema_fast"] >= result["ema_slow"]:
+            raise ValueError("EMA fast must be below EMA slow in the integer phenotype")
+        return result
 
     def validate(self, colony_config: Optional[ColonyConfig] = None) -> Genome:
-        """Clamp all genes to bounds and run registry constraints. Returns self."""
-        # Build a dict snapshot of numeric genes
-        genome_dict = {name: getattr(self, name) for name in NUMERIC_GENES}
-
-        # Run registry validation (clamp + constraints)
-        corrected = GENE_REGISTRY.validate_genome(genome_dict)
-
-        # Apply corrected values back
-        for name, val in corrected.items():
-            setattr(self, name, val)
-
-        # Sync asset list to num_assets gene
-        effective_assets = AVAILABLE_ASSETS
-        if colony_config:
-            effective_assets = colony_config.get_effective_assets()
-
-        n = self.int_genes()["num_assets"]
-        n = min(n, len(effective_assets))
-        if len(self.assets) != n or not all(a in effective_assets for a in self.assets):
-            self.assets = random.sample(effective_assets, n)
-
+        """Apply configured controls and relationships without consuming randomness."""
+        effective_assets = colony_config.get_effective_assets() if colony_config else list(AVAILABLE_ASSETS)
+        domains = (colony_config.resolve_gene_domains() if colony_config else
+                   GENE_REGISTRY.resolve_domains(asset_count=len(effective_assets)))
+        corrected = GENE_REGISTRY.validate_genome(
+            {name: getattr(self, name) for name in NUMERIC_GENES}, domains)
+        if not isinstance(self.assets, list) or any(not isinstance(asset, str) for asset in self.assets):
+            raise ValueError("Genome assets must be a list of trading pairs")
+        n = int(corrected["num_assets"])
+        # Preserve valid preferences, removing duplicates and deterministic filling.
+        assets = list(dict.fromkeys(asset for asset in self.assets if asset in effective_assets))[:n]
+        assets.extend(asset for asset in effective_assets if asset not in assets)
+        assets = assets[:n]
+        if len(assets) != n:
+            raise ValueError("Genome asset count is not feasible")
+        # Commit only after every gene and asset constraint has validated.
+        for name, value in corrected.items():
+            setattr(self, name, value)
+        self.assets = assets
         return self
 
     def to_dict(self) -> dict[str, Any]:
@@ -123,39 +124,17 @@ def random_genome(
     Generate a random genome for Gen-0 probes.
     If colony_config is provided, respects gene overrides and available assets.
     """
-    effective_assets = AVAILABLE_ASSETS
-    if colony_config:
-        effective_assets = colony_config.get_effective_assets()
-
-    n_assets = random.randint(1, min(3, len(effective_assets)))
-    assets = random.sample(effective_assets, n_assets)
-
+    effective_assets = colony_config.get_effective_assets() if colony_config else list(AVAILABLE_ASSETS)
+    domains = (colony_config.resolve_gene_domains() if colony_config else
+               GENE_REGISTRY.resolve_domains(asset_count=len(effective_assets)))
     gene_values: dict[str, float] = {}
-    for gene_def in GENE_REGISTRY.all_genes():
-        if colony_config:
-            lo, hi, default = colony_config.get_effective_range(gene_def.name)
-            # Check if gene is fixed
-            override = colony_config.gene_overrides.get(gene_def.name)
-            if override and override.fixed is not None:
-                gene_values[gene_def.name] = max(gene_def.min, min(gene_def.max, override.fixed))
-                continue
+    for name, domain in domains.items():
+        if not domain.evolvable:
+            gene_values[name] = float(domain.default)
+        elif domain.integer:
+            gene_values[name] = float(random.randint(int(domain.minimum), int(domain.maximum)))
         else:
-            lo, hi = gene_def.min, gene_def.max
-
-        # Special handling for timeframe
-        if gene_def.name == "timeframe_minutes":
-            choices = [v for v in [5.0, 15.0, 30.0, 60.0] if lo <= v <= hi]
-            gene_values[gene_def.name] = random.choice(choices) if choices else lo
-        else:
-            gene_values[gene_def.name] = random.uniform(lo, hi)
-
-    # Override num_assets to match actual asset count
-    gene_values["num_assets"] = float(n_assets)
-
-    g = Genome(
-        **gene_values,
-        assets=assets,
-        generation=generation,
-        parent_ids=parent_ids or [],
-    )
-    return g.validate(colony_config)
+            gene_values[name] = random.uniform(domain.minimum, domain.maximum)
+    assets = random.sample(effective_assets, int(gene_values["num_assets"]))
+    return Genome(**gene_values, assets=assets, generation=generation,
+                  parent_ids=list(parent_ids) if parent_ids else []).validate(colony_config)

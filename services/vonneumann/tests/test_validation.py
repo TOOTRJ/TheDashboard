@@ -101,7 +101,6 @@ class ConfigurationValidationTests(OfflineTestMixin, unittest.TestCase):
             {"ema_fast": {"fixed": 9.5}}, {"ema_fast": {"min": 10, "default": 9}},
             {"ema_fast": {"max": 8, "fixed": 9}},
             {"ema_fast": {"min": 15}, "ema_slow": {"max": 15}},
-            {"ema_fast": {"fixed": 15}},
             {"stop_loss_pct": {"fixed": .05}, "take_profit_pct": {"fixed": .04}},
         ]
         for override in overrides:
@@ -156,3 +155,9 @@ class ConfigurationValidationTests(OfflineTestMixin, unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class FeasibleFixedControlsTests(unittest.TestCase):
+    def test_active_partner_can_preserve_a_fixed_ema(self):
+        request = StartRequest(colony_config={"gene_overrides": {"ema_fast": {"fixed": 15}}})
+        self.assertEqual(build_colony_config(request).get_effective_range("ema_fast"), (15, 15, 15))

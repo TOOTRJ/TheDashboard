@@ -1,8 +1,8 @@
 """
 Colony Configuration — controls how a simulation run is initialized and evolved.
 
-gene_overrides:  Narrow starting ranges or fix genes to specific values
-enabled_genes:   Only these genes participate in mutation/crossover (None = all)
+gene_overrides:  Bound genes throughout their lifetime or fix them to values
+enabled_genes:   Only these genes evolve; others use defaults (None = all)
 available_assets: Restrict the asset pool (None = all AVAILABLE_ASSETS)
 max_lifespan_ticks: Maximum candidate market minutes after warmup (None = no limit)
 reproduction_interval: Common evaluation window in market minutes after all candidates warm
@@ -35,6 +35,8 @@ class GeneOverride:
 
     @classmethod
     def from_dict(cls, d: dict) -> GeneOverride:
+        if not isinstance(d, dict) or set(d) - {"min", "max", "default", "fixed"}:
+            raise ValueError("Invalid gene override")
         return cls(
             min=d.get("min"),
             max=d.get("max"),
@@ -53,49 +55,32 @@ class ColonyConfig:
     reproduction_interval: int = 100  # Common evaluation window in market minutes after all candidates warm
     mutation_rate: Optional[float] = None  # None = use strategy default
 
+    def resolve_gene_domains(self):
+        """The same validated active domains are used by every factory/operator."""
+        if not isinstance(self.gene_overrides, dict) or any(
+                not isinstance(value, GeneOverride) for value in self.gene_overrides.values()):
+            raise ValueError("Invalid gene overrides")
+        return GENE_REGISTRY.resolve_domains(
+            {name: override.to_dict() for name, override in self.gene_overrides.items()},
+            self.enabled_genes, len(self.get_effective_assets()))
+
     def is_gene_evolvable(self, gene_name: str) -> bool:
-        """Returns False if gene is fixed or not in enabled_genes."""
-        override = self.gene_overrides.get(gene_name)
-        if override and override.fixed is not None:
-            return False
-        if self.enabled_genes is not None and gene_name not in self.enabled_genes:
-            return False
-        return True
+        return self.resolve_gene_domains()[gene_name].evolvable
 
     def get_effective_range(self, gene_name: str) -> tuple[float, float, float]:
-        """
-        Get (min, max, default) for a gene, respecting overrides.
-        Overrides are clamped within hard registry bounds.
-        """
-        gene_def = GENE_REGISTRY.get(gene_name)
-        override = self.gene_overrides.get(gene_name)
-
-        if override and override.fixed is not None:
-            val = max(gene_def.min, min(gene_def.max, override.fixed))
-            return (val, val, val)
-
-        lo = gene_def.min
-        hi = gene_def.max
-        default = gene_def.default
-
-        if override:
-            if override.min is not None:
-                lo = max(gene_def.min, override.min)
-            if override.max is not None:
-                hi = min(gene_def.max, override.max)
-            if override.default is not None:
-                default = max(lo, min(hi, override.default))
-
-        # Ensure lo <= hi
-        if lo > hi:
-            lo, hi = hi, lo
-
-        return (lo, hi, max(lo, min(hi, default)))
+        """Configured domain, including fixed/disabled values and asset capacity."""
+        domain = self.resolve_gene_domains()[gene_name]
+        return domain.minimum, domain.maximum, domain.default
 
     def get_effective_assets(self) -> list[str]:
-        if self.available_assets:
-            return [a for a in self.available_assets if a in AVAILABLE_ASSETS]
-        return list(AVAILABLE_ASSETS)
+        if self.available_assets is None:
+            return list(AVAILABLE_ASSETS)
+        assets = self.available_assets
+        if (not isinstance(assets, list) or not assets or
+                any(not isinstance(asset, str) or asset not in AVAILABLE_ASSETS for asset in assets) or
+                len(assets) != len(set(assets))):
+            raise ValueError("Assets must be unique supported assets")
+        return list(assets)
 
     def to_dict(self) -> dict:
         d: dict[str, Any] = {
@@ -111,10 +96,9 @@ class ColonyConfig:
 
     @classmethod
     def from_dict(cls, d: dict) -> ColonyConfig:
-        overrides = {}
-        for k, v in d.get("gene_overrides", {}).items():
-            if isinstance(v, dict):
-                overrides[k] = GeneOverride.from_dict(v)
+        if not isinstance(d, dict) or not isinstance(d.get("gene_overrides", {}), dict):
+            raise ValueError("Invalid colony gene configuration")
+        overrides = {name: GeneOverride.from_dict(value) for name, value in d.get("gene_overrides", {}).items()}
         return cls(
             gene_overrides=overrides,
             enabled_genes=d.get("enabled_genes"),

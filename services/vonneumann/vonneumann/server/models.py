@@ -7,7 +7,7 @@ from typing import Literal, Optional
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from ..core.colony_config import ColonyConfig, GeneOverride, PRESET_CONFIGS
-from ..core.gene_registry import GENE_REGISTRY, GeneType
+from ..core.gene_registry import GENE_REGISTRY
 from ..core.genome import AVAILABLE_ASSETS
 from ..core.strategies import list_strategies
 
@@ -122,35 +122,5 @@ def build_colony_config(req: StartRequest) -> ColonyConfig:
 
 
 def validate_colony_config(config: ColonyConfig) -> None:
-    """Reject impossible requests before the engine can silently clamp them."""
-    for name, override in config.gene_overrides.items():
-        gene = GENE_REGISTRY.get(name)
-        values = [value for value in (override.min, override.max, override.default, override.fixed)
-                  if value is not None]
-        if any(value < gene.min or value > gene.max for value in values):
-            raise ValueError("Gene overrides must stay within registry bounds")
-        if gene.gene_type == GeneType.INT and any(value != int(value) for value in values):
-            raise ValueError("Integer gene overrides must be whole numbers")
-        lo = override.min if override.min is not None else gene.min
-        hi = override.max if override.max is not None else gene.max
-        if lo > hi:
-            raise ValueError("Gene minimum must not exceed its maximum")
-        if any(value is not None and not lo <= value <= hi
-               for value in (override.default, override.fixed)):
-            raise ValueError("Gene fixed and default values must fit the configured range")
-
-    for lower, upper in (("ema_fast", "ema_slow"), ("stop_loss_pct", "take_profit_pct")):
-        lo, _, _ = config.get_effective_range(lower)
-        upper_lo, upper_hi, _ = config.get_effective_range(upper)
-        if lo >= upper_hi:
-            raise ValueError("EMA and risk ranges must permit fast < slow and stop loss < take profit")
-        fixed = config.gene_overrides.get(lower)
-        if fixed is not None and fixed.fixed is not None and fixed.fixed >= upper_lo:
-            raise ValueError("Fixed EMA and stop loss values must remain valid across the other gene's range")
-
-    assets = config.get_effective_assets()
-    count_override = config.gene_overrides.get("num_assets")
-    if count_override is not None:
-        lo, hi, _ = config.get_effective_range("num_assets")
-        if lo > len(assets) or (count_override.fixed is not None and hi > len(assets)):
-            raise ValueError("Asset count must fit the available asset pool")
+    """Use the same domain feasibility checks as construction and all operators."""
+    config.resolve_gene_domains()
