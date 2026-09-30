@@ -1,50 +1,67 @@
-"""WebSocket connection manager for real-time event broadcasting."""
+"""Authenticated, user-scoped WebSocket event delivery."""
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
+import time
 from typing import Any
 
 from fastapi import WebSocket
 
+from .auth import VerifiedUser
+
 logger = logging.getLogger(__name__)
+WS_SEND_TIMEOUT_SECONDS = 5.0
 
 
 class ConnectionManager:
-    """Manages WebSocket connections and broadcasts messages to all clients."""
+    """Only authenticated connections may be registered for an owner's events."""
 
-    def __init__(self):
-        self._connections: list[WebSocket] = []
+    def __init__(self) -> None:
+        self._connections: dict[WebSocket, VerifiedUser] = {}
 
-    async def connect(self, websocket: WebSocket) -> None:
-        await websocket.accept()
-        self._connections.append(websocket)
-        logger.info(f"[WS] Client connected. Total: {len(self._connections)}")
+    def register(self, websocket: WebSocket, user: VerifiedUser) -> None:
+        self._connections[websocket] = user
+        logger.info("[WS] Authenticated client connected. Total: %s", self.client_count)
 
     def disconnect(self, websocket: WebSocket) -> None:
-        if websocket in self._connections:
-            self._connections.remove(websocket)
-        logger.info(f"[WS] Client disconnected. Total: {len(self._connections)}")
+        self._connections.pop(websocket, None)
 
-    async def broadcast(self, message: dict[str, Any]) -> None:
-        """Send a message to all connected clients."""
-        if not self._connections:
-            return
+    async def broadcast_to_user(self, user_id: str, message: dict[str, Any]) -> None:
+        """The caller supplies the trusted colony owner, never a client message."""
         data = json.dumps(message)
-        dead: list[WebSocket] = []
-        for ws in self._connections:
+
+        async def send(websocket: WebSocket, user: VerifiedUser) -> None:
             try:
-                await ws.send_text(data)
+                if user.expires_at <= time.time():
+                    self.disconnect(websocket)
+                    await asyncio.wait_for(
+                        websocket.close(code=4401), timeout=WS_SEND_TIMEOUT_SECONDS
+                    )
+                    return
+                await asyncio.wait_for(
+                    websocket.send_text(data), timeout=WS_SEND_TIMEOUT_SECONDS
+                )
             except Exception:
-                dead.append(ws)
-        for ws in dead:
-            self.disconnect(ws)
+                self.disconnect(websocket)
+                try:
+                    await asyncio.wait_for(
+                        websocket.close(code=1013), timeout=WS_SEND_TIMEOUT_SECONDS
+                    )
+                except Exception:
+                    pass
+
+        await asyncio.gather(*(
+            send(websocket, user)
+            for websocket, user in list(self._connections.items())
+            if user.id == user_id
+        ))
 
     @property
     def client_count(self) -> int:
         return len(self._connections)
 
 
-# Singleton instance
 ws_manager = ConnectionManager()

@@ -49,6 +49,7 @@ class Probe:
         self.death_reason: Optional[str] = None
 
         self.birth_tick: int = 0  # Set by Genesis on spawn
+        self._tick_count: int = 0  # Internal tick counter for timeframe gating
         self.open_positions: dict[str, TradeRecord] = {}
         self.closed_trades: list[TradeRecord] = []
 
@@ -68,16 +69,40 @@ class Probe:
     # ── Properties ───────────────────────────────────────────────────────
 
     @property
+    def open_position_value(self) -> float:
+        """Mark-to-market USDC value of all open positions at latest price."""
+        total = 0.0
+        for asset, trade in self.open_positions.items():
+            if trade.entry_price <= 0 or trade.amount <= 0:
+                continue
+            prices = self._price_buffer.get(asset, [])
+            if not prices:
+                total += trade.amount
+                continue
+            current_price = prices[-1]
+            total += trade.amount * (current_price / trade.entry_price)
+        return total
+
+    @property
+    def total_value(self) -> float:
+        """Total portfolio value: free USDC + mark-to-market open positions."""
+        return self.capital + self.open_position_value
+
+    @property
     def roi(self) -> float:
         if self.initial_capital == 0:
             return 0.0
-        return (self.capital - self.initial_capital) / self.initial_capital
+        return (self.total_value - self.initial_capital) / self.initial_capital
+
+    @property
+    def profit(self) -> float:
+        return self.total_value - self.initial_capital
 
     @property
     def max_drawdown(self) -> float:
         if self.peak_capital == 0:
             return 0.0
-        return (self.peak_capital - self.capital) / self.peak_capital
+        return max(0.0, (self.peak_capital - self.total_value) / self.peak_capital)
 
     @property
     def num_trades(self) -> int:
@@ -120,6 +145,8 @@ class Probe:
             "state": self.state.value,
             "generation": self.genome.generation,
             "current_capital": round(self.capital, 4),
+            "open_position_value": round(self.open_position_value, 4),
+            "total_value": round(self.total_value, 4),
             "initial_capital": round(self.initial_capital, 4),
             "peak_capital": round(self.peak_capital, 4),
             "roi_pct": round(self.roi * 100, 2),
@@ -300,7 +327,7 @@ class Probe:
         trade.pnl = trade.amount * trade.pnl_pct
 
         self.capital += trade.amount + trade.pnl
-        self.peak_capital = max(self.peak_capital, self.capital)
+        self.peak_capital = max(self.peak_capital, self.total_value)
         self.closed_trades.append(trade)
 
         logger.info(
@@ -339,7 +366,9 @@ class Probe:
     # ── Lifecycle checks ─────────────────────────────────────────────────
 
     def _should_reproduce(self) -> bool:
-        return self.roi >= self.genome.benchmark_target_pct
+        roi_met = self.roi >= self.genome.benchmark_target_pct
+        dollar_met = self.profit >= self.genome.reproduce_target_dollars
+        return roi_met or dollar_met
 
     def _should_die(self) -> bool:
         return self.max_drawdown >= self.genome.death_drawdown_pct
@@ -369,16 +398,27 @@ class Probe:
         if self.state not in (ProbeState.OBSERVING, ProbeState.TRADING):
             return events
 
+        # Track peak total value (including unrealized gains) for drawdown calc.
+        self.peak_capital = max(self.peak_capital, self.total_value)
+
+        self._tick_count += 1
+        timeframe = self.genome.int_genes()["timeframe_minutes"]
+        evaluate_signals = (self._tick_count % timeframe == 0)
+
         for asset in self.genome.assets:
             prices = self._price_buffer.get(asset, [])
             if len(prices) < 2:
                 continue
             current_price = prices[-1]
 
-            # Check SL/TP on open positions
+            # Check SL/TP every tick (risk management never skips)
             evt = self._check_stop_loss_take_profit(asset, current_price)
             if evt:
                 events.append(evt)
+
+            # Entry/exit signals only on the probe's timeframe interval
+            if not evaluate_signals:
+                continue
 
             # Entry logic
             if asset not in self.open_positions:
@@ -408,7 +448,7 @@ class Probe:
         events: list[ProbeEvent] = []
         logger.info(
             f"[Probe {self.probe_id[:8]}] REPRODUCING! ROI={self.roi*100:.1f}% "
-            f"Fitness={self.fitness:.3f}"
+            f"Profit=${self.profit:.2f} Fitness={self.fitness:.3f}"
         )
         # Close all open positions
         for asset in list(self.open_positions.keys()):

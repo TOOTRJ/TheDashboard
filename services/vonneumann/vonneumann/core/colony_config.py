@@ -136,7 +136,7 @@ PRESET_CONFIGS: dict[str, ColonyConfig] = {
         enabled_genes=[
             "rsi_period", "rsi_oversold", "rsi_overbought",
             "stop_loss_pct", "take_profit_pct", "position_size_pct",
-            "benchmark_target_pct", "death_drawdown_pct",
+            "benchmark_target_pct", "reproduce_target_dollars", "death_drawdown_pct",
         ],
         gene_overrides={
             "volume_threshold": GeneOverride(fixed=1.5),
@@ -157,6 +157,52 @@ PRESET_CONFIGS: dict[str, ColonyConfig] = {
     "wide_exploration": ColonyConfig(
         gene_overrides={
             "benchmark_target_pct": GeneOverride(min=0.03, max=0.08),
+            "reproduce_target_dollars": GeneOverride(min=2.0, max=8.0),
+        },
+        reproduction_interval=50,
+    ),
+
+    "high_risk": ColonyConfig(
+        gene_overrides={
+            "position_size_pct": GeneOverride(min=0.70, max=0.90),
+            "stop_loss_pct": GeneOverride(min=0.05, max=0.10),
+            "take_profit_pct": GeneOverride(min=0.10, max=0.20),
+            "max_open_positions": GeneOverride(fixed=4.0),
+            "benchmark_target_pct": GeneOverride(min=0.03, max=0.06),
+            "reproduce_target_dollars": GeneOverride(min=2.0, max=5.0),
+            "death_drawdown_pct": GeneOverride(min=0.25, max=0.35),
+        },
+        reproduction_interval=75,
+    ),
+
+    "fast_evolution": ColonyConfig(
+        gene_overrides={
+            "benchmark_target_pct": GeneOverride(min=0.03, max=0.05),
+            "reproduce_target_dollars": GeneOverride(min=2.0, max=5.0),
+            "timeframe_minutes": GeneOverride(min=5, max=15),
+        },
+        reproduction_interval=25,
+        max_lifespan_ticks=200,
+        mutation_rate=0.35,
+    ),
+
+    "slow_evolution": ColonyConfig(
+        gene_overrides={
+            "benchmark_target_pct": GeneOverride(min=0.08, max=0.15),
+            "reproduce_target_dollars": GeneOverride(min=15.0, max=50.0),
+            "timeframe_minutes": GeneOverride(min=30, max=60),
+        },
+        reproduction_interval=200,
+        mutation_rate=0.10,
+    ),
+
+    "scalper": ColonyConfig(
+        gene_overrides={
+            "position_size_pct": GeneOverride(min=0.10, max=0.25),
+            "stop_loss_pct": GeneOverride(min=0.01, max=0.03),
+            "take_profit_pct": GeneOverride(min=0.03, max=0.06),
+            "timeframe_minutes": GeneOverride(fixed=5.0),
+            "max_open_positions": GeneOverride(min=2, max=4),
         },
         reproduction_interval=50,
     ),

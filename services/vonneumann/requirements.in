@@ -1,0 +1,12 @@
+# Direct runtime dependencies. Recompile requirements.txt under CPython 3.12.
+# See ../../DEPENDENCY-REVIEW.md for reproducible, isolated lock/audit commands.
+aiohttp==3.14.3
+supabase==2.31.0
+fastapi==0.142.1
+uvicorn[standard]==0.54.0
+# Supabase realtime 2.31.0 requires websockets >=11,<16.
+websockets==15.0.1
+pydantic==2.13.5
+numpy==2.5.3
+cmaes==0.13.1
+python-dotenv==1.2.3

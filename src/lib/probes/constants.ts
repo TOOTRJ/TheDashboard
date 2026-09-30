@@ -1,4 +1,5 @@
 import type { ProbeState } from "./types";
+import { resolveWorkerEndpoints } from "./transport";
 
 // Re-export gene definitions from the registry (single source of truth)
 export { GENE_BOUNDS, GENE_LABELS, GENE_DEFINITIONS, ALL_ASSETS } from "./gene-registry";
@@ -23,12 +24,11 @@ export const STATE_LABELS: Record<ProbeState, string> = {
   DEAD: "Dead",
 };
 
-export const VN_API_URL =
-  process.env.NEXT_PUBLIC_VN_API_URL || "http://localhost:8765";
-export const VN_WS_URL =
-  process.env.NEXT_PUBLIC_VN_WS_URL || "ws://localhost:8765/ws";
-export const VN_API_KEY =
-  process.env.VN_API_KEY || "vn-dev-key-8be90a19744ac928";
+export const VN_ENDPOINTS = resolveWorkerEndpoints({
+  environment: process.env.NODE_ENV,
+  apiUrl: process.env.NEXT_PUBLIC_VN_API_URL,
+  wsUrl: process.env.NEXT_PUBLIC_VN_WS_URL,
+});
 
 export const STRATEGY_LABELS: Record<string, string> = {
   genetic_algorithm: "Genetic Algorithm",

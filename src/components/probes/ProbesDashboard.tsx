@@ -32,10 +32,11 @@ interface Props {
   strategy?: string;
   activeColonies: ColonyInfo[];
   starting: boolean;
+  startError?: string | null;
   colonyRuns: ColonyRun[];
   activeRunId: string | null;
   prices: Record<string, PriceTick>;
-  onStart: (config: StartConfig) => void;
+  onStart: (config: StartConfig) => Promise<boolean>;
   onStop: () => void;
   onPause: () => void;
   onResume: () => void;
@@ -52,6 +53,7 @@ export function ProbesDashboard({
   strategy,
   activeColonies,
   starting,
+  startError,
   colonyRuns,
   activeRunId,
   prices,
@@ -86,6 +88,7 @@ export function ProbesDashboard({
             strategy={strategy}
             activeColonies={activeColonies}
             starting={starting}
+            startError={startError}
             onStart={onStart}
             onStop={onStop}
             onPause={onPause}

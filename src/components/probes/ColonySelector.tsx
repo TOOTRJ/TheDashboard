@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/sheet";
 import type { ColonyRun, ColonyInfo } from "@/lib/probes/types";
 import { STRATEGY_LABELS } from "@/lib/probes/constants";
+import { formatColonyFailure } from "@/lib/probes/transport";
 
 interface Props {
   runs: ColonyRun[];
@@ -81,7 +82,7 @@ export function ColonySelector({ runs, activeRunId, activeColonies, onSelectRun 
           {activeColonies.length > 0 && (
             <>
               <span className="text-[10px] font-bold uppercase tracking-widest text-[#39ff14]">
-                Active
+                Worker colonies
               </span>
               {activeColonies.map((col) => (
                 <button
@@ -116,7 +117,7 @@ export function ColonySelector({ runs, activeRunId, activeColonies, onSelectRun 
                         variant="outline"
                         className="text-[9px] px-1 py-0 border-[#39ff14]/40 text-[#39ff14] bg-[#39ff14]/10"
                       >
-                        LIVE
+                        {col.status.toUpperCase()}
                       </Badge>
                     </div>
                   </div>
@@ -193,6 +194,9 @@ export function ColonySelector({ runs, activeRunId, activeColonies, onSelectRun 
                     )}
                   </div>
                 </div>
+                {run.status && <p className="text-[10px] uppercase text-muted-foreground">Saved status: {run.status}</p>}
+                {run.status === "failed" && <p className="text-[10px] text-destructive">{formatColonyFailure(run.runtime?.failure_code)}</p>}
+                {run.runtime?.requires_reconciliation && <p className="text-[10px] text-destructive">Paper positions or saved trade records require reconciliation.{(run.runtime.open_positions ?? 0) > 0 && ` ${run.runtime.open_positions} paper positions remain open.`}</p>}
                 <div className="text-[10px] text-muted-foreground mb-1">
                   {new Date(run.started_at).toLocaleString([], {
                     month: "short", day: "numeric", hour: "2-digit", minute: "2-digit",

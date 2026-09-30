@@ -457,7 +457,7 @@ export default function DocsPage() {
         <Table
           headers={["Mode", "Description"]}
           rows={[
-            ["Simulation", "Fully synthetic prices via Geometric Brownian Motion. No external API calls. Fast iteration."],
+            ["Simulation", "Synthetic market prices via Geometric Brownian Motion. Authentication and persistence still require the configured services."],
             ["Paper Trade", "Live prices from Jupiter DEX aggregator on Solana. Real market conditions, no real capital."],
           ]}
         />
@@ -467,16 +467,16 @@ export default function DocsPage() {
         <Table
           headers={["Preset", "Behavior"]}
           rows={[
-            ["Default", "All 14 genes evolve freely across their full range. All 8 assets available."],
+            ["Default", "All 15 genes evolve freely across their full range. All 8 assets available."],
             ["RSI Focus", "EMA and volume genes are fixed; only RSI + risk + lifecycle genes evolve."],
             ["Conservative Risk", "Tighter risk gene bounds (smaller positions, tighter stops). Max 1 open position."],
-            ["Wide Exploration", "Lower reproduction benchmark (3-8% ROI), reproduction every 50 ticks instead of 100."],
+            ["Wide Exploration", "Lower reproduction benchmarks (3-8% ROI, $2-$8 profit), reproduction every 50 ticks instead of 100."],
           ]}
         />
 
         <H4 id="probes-config-genes">Gene Controls</H4>
         <P>
-          Each of the 14 genes can be individually configured. Genes are organized into three groups: Signal, Risk, and Lifecycle. For each gene you can:
+          Each of the 15 genes can be individually configured. Genes are organized into three groups: Signal, Risk, and Lifecycle. For each gene you can:
         </P>
         <ul className="list-disc list-inside text-sm text-white/70 space-y-1 mb-3 ml-4">
           <li>Enable or disable it from mutation/crossover (checkbox)</li>
@@ -623,7 +623,7 @@ export default function DocsPage() {
 
         <H3 id="probes-websocket">Real-Time WebSocket</H3>
         <P>
-          The page maintains a persistent WebSocket connection to the Python service at <Code>ws://localhost:8765/ws</Code> (configurable via <Code>NEXT_PUBLIC_VN_WS_URL</Code>). The connection auto-reconnects with exponential backoff (1.5x multiplier, 15s cap).
+          The page connects to the Python service using <Code>NEXT_PUBLIC_VN_WS_URL</Code>. Production requires an explicit secure WSS endpoint; development can use <Code>ws://localhost:8765/ws</Code>. The connection authenticates with the current Supabase session before receiving events, reconnects with bounded exponential backoff, and closes when the session changes or expires.
         </P>
         <P>
           Every WebSocket message includes a <Code>colony_id</Code> field so the frontend can filter events per colony when multiple colonies are running. Message types handled:
@@ -640,7 +640,7 @@ export default function DocsPage() {
           ]}
         />
         <P>
-          Commands can be sent over the WebSocket: <Code>{`{"type":"command","data":{"action":"stop","colony_id":"..."}}`}</Code>
+          The WebSocket is read-only and carries events belonging to the signed-in user. Pause, resume, and stop use authenticated REST requests with an explicit colony ID. The selected colony is checked before its events update the display.
         </P>
 
         <H3 id="probes-data-persistence">Data Persistence</H3>
@@ -729,6 +729,7 @@ export default function DocsPage() {
             ["max_open_positions", "Risk", "INT", "1", "4", "2"],
             ["timeframe_minutes", "Lifecycle", "INT", "5", "60", "15"],
             ["benchmark_target_pct", "Lifecycle", "FLOAT", "0.03", "0.15", "0.08"],
+            ["reproduce_target_dollars", "Lifecycle", "FLOAT", "2.0", "50.0", "10.0"],
             ["death_drawdown_pct", "Lifecycle", "FLOAT", "0.10", "0.35", "0.20"],
             ["num_assets", "Lifecycle", "INT", "1", "3", "2"],
           ]}
@@ -747,7 +748,9 @@ export default function DocsPage() {
         </P>
 
         <H3 id="service-signal-computation">Signal Computation</H3>
-        <P>Each probe computes its own trading signals using its genome parameters:</P>
+        <P>
+          Each probe computes its own trading signals using its genome parameters. Signal evaluation (entry/exit) is gated by the probe&rsquo;s <Code>timeframe_minutes</Code> gene &mdash; signals are only checked every <Code>timeframe_minutes</Code> ticks. Stop loss and take profit are still checked every tick for risk management. A probe with <Code>timeframe_minutes=5</Code> evaluates signals every 5 ticks, while one with <Code>timeframe_minutes=60</Code> is much more deliberate.
+        </P>
 
         <H4 id="service-signal-rsi">RSI (Relative Strength Index)</H4>
         <P>
@@ -784,7 +787,7 @@ export default function DocsPage() {
           After processing all asset signals each tick, the probe checks two lifecycle conditions:
         </P>
         <ul className="list-disc list-inside text-sm text-white/70 space-y-1 mb-3 ml-4">
-          <li><strong>Reproduce:</strong> <Code>roi &ge; benchmark_target_pct</Code> (probe has earned enough to spawn offspring)</li>
+          <li><strong>Reproduce:</strong> <Code>roi &ge; benchmark_target_pct</Code> OR <Code>profit &ge; reproduce_target_dollars</Code> (probe has earned enough to spawn offspring via either percentage or absolute dollar threshold)</li>
           <li><strong>Die:</strong> <Code>max_drawdown &ge; death_drawdown_pct</Code> (probe has lost too much from peak)</li>
         </ul>
 
@@ -808,9 +811,9 @@ export default function DocsPage() {
         <P>Capital flows through a reserve pool:</P>
         <ul className="list-disc list-inside text-sm text-white/70 space-y-1 mb-3 ml-4">
           <li><strong>Reserve Capital:</strong> Starts at <Code>max_capital</Code> ($10,000 default). Each probe spawned deducts <Code>seed_capital</Code> ($100) from reserve.</li>
-          <li><strong>Active Capital:</strong> Sum of all live probe capitals. Probes gain/lose capital through trading.</li>
+          <li><strong>Active Capital:</strong> Cash plus marked open positions still owned by registered probes, including records awaiting reconciliation after a failure. Probes gain/lose capital through trading.</li>
           <li><strong>On Death:</strong> Dead probe&rsquo;s remaining capital returns to reserve.</li>
-          <li><strong>On Reproduction:</strong> Retired probe&rsquo;s capital returns to reserve. Offspring are funded at <Code>(reclaimed * capital_split) / num_offspring</Code>. Default <Code>capital_split = 0.45</Code>.</li>
+          <li><strong>On Reproduction:</strong> Each offspring receives the configured <Code>seed_capital</Code> evaluation budget. The complete replacement must fit the population limit and be funded by reserve plus retirement proceeds before any parent is retired. Profits and losses flow to reserve. An unaffordable or invalid replacement stops execution for review; candidates are never silently omitted or underfunded.</li>
           <li><strong>Circuit Breaker:</strong> If total capital drops by 30% from initial, all trading halts immediately.</li>
         </ul>
 
@@ -831,28 +834,35 @@ export default function DocsPage() {
 
         <H3 id="service-api">REST API</H3>
         <P>
-          The FastAPI server runs on port 8765 by default. All endpoints except health and strategies require an API key via the <Code>x-api-key</Code> header.
+          The FastAPI server runs on port 8765 by default. Colony endpoints require the signed-in user&rsquo;s Supabase access token in the <Code>Authorization: Bearer</Code> header. The service verifies the token and checks colony ownership. Health, strategies, and the gene registry are public metadata; shared browser API keys are not used.
         </P>
         <Table
           headers={["Method", "Endpoint", "Description"]}
           rows={[
-            ["GET", "/api/v1/health", "Service status + WS client count + active colony count"],
-            ["GET", "/api/v1/status", "Latest colony status (backward compat)"],
+            ["GET", "/api/v1/health", "Basic service liveness"],
+            ["GET", "/api/v1/status", "Latest owned colony (compatibility); prefer an explicit colony ID"],
             ["GET", "/api/v1/strategies", "List all available evolution strategies"],
             ["GET", "/api/v1/gene-registry", "Gene definitions, assets, and preset configs"],
-            ["POST", "/api/v1/colonies/", "Create and start a new colony"],
-            ["GET", "/api/v1/colonies/", "List all active colonies"],
-            ["GET", "/api/v1/colonies/{id}", "Get specific colony status"],
+            ["POST", "/api/v1/colonies/", "Validate, persist, and prepare a new colony before confirming startup"],
+            ["GET", "/api/v1/colonies/", "List the authenticated user's in-memory colonies, including retained terminal states"],
+            ["GET", "/api/v1/colonies/{id}", "Get an owned colony's status"],
             ["POST", "/api/v1/colonies/{id}/stop", "Stop a colony"],
             ["POST", "/api/v1/colonies/{id}/pause", "Pause a colony"],
             ["POST", "/api/v1/colonies/{id}/resume", "Resume a colony"],
             ["POST", "/api/v1/simulation/start", "Start colony (backward compat)"],
-            ["POST", "/api/v1/simulation/stop", "Stop latest colony (backward compat)"],
-            ["POST", "/api/v1/simulation/pause", "Pause latest colony"],
-            ["POST", "/api/v1/simulation/resume", "Resume latest colony"],
-            ["WS", "/ws", "WebSocket for real-time event streaming"],
+            ["POST", "/api/v1/simulation/stop", "Retired; returns 410, use /colonies/{id}/stop"],
+            ["POST", "/api/v1/simulation/pause", "Retired; returns 410, use /colonies/{id}/pause"],
+            ["POST", "/api/v1/simulation/resume", "Retired; returns 410, use /colonies/{id}/resume"],
+            ["WS", "/ws", "Authenticate first, then receive only the user's events"],
           ]}
         />
+
+        <P>
+          Colony states are <Code>starting</Code>, <Code>running</Code>, <Code>paused</Code>, <Code>stopped</Code>, and <Code>failed</Code>. Invalid launch settings return 422 before creating a colony; live trading is rejected. Preparation and persistence failures return 503 with a safe error code and colony ID. An invalid control transition returns 409. A successful launch means the initial population and strategy were prepared; it does not establish trading profitability or readiness for real funds.
+        </P>
+        <P>
+          Stopped and failed colonies retain paper-position records for reconciliation. The status reports whether failure information was saved and whether reconciliation is required. A control request may finish after the caller disconnects, so refresh the colony status before retrying an uncertain result. Failed reads show an error and preserve the last successful result; missing worker status is shown as unavailable.
+        </P>
 
         {/* ───────── EVOLUTIONARY ALGORITHMS ───────── */}
         <H2 id="evolution">Evolutionary Algorithms</H2>
@@ -904,7 +914,7 @@ If num_trades < 3:  fitness = ROI - 0.5  (harsh penalty for insufficient data)`}
 
         <H4 id="evo-ga-selection">Selection</H4>
         <P>
-          Fitness-ranked selection: filter probes with &ge;3 trades and non-negative ROI, sort by fitness descending, take the top 30%. Each selected parent must also meet its genome&rsquo;s <Code>benchmark_target_pct</Code> ROI threshold to actually reproduce.
+          Fitness-ranked selection: filter probes with &ge;3 trades and non-negative ROI, sort by fitness descending, take the top 30%. All selected parents reproduce with a mate chosen via tournament selection.
         </P>
 
         <H4 id="evo-ga-tournament">Tournament Selection (Mate)</H4>
@@ -982,7 +992,7 @@ Parameters:
 
         <H3 id="evo-cmaes">CMA-ES</H3>
         <P>
-          Covariance Matrix Adaptation Evolution Strategy. Uses the <Code>cmaes</Code> Python package with an ask-and-tell interface. Best suited for continuous optimization in parameter spaces under 100 dimensions (the system has 14 genes).
+          Covariance Matrix Adaptation Evolution Strategy. Uses the <Code>cmaes</Code> Python package with an ask-and-tell interface. Best suited for continuous optimization in parameter spaces under 100 dimensions (the system has 15 genes).
         </P>
 
         <H4 id="evo-cmaes-flow">Ask-Tell Flow</H4>

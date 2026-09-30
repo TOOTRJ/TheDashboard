@@ -88,17 +88,34 @@ def mutate(
             current = getattr(genome, gene_name)
             setattr(genome, gene_name, current + noise)
 
-    # Asset mutation: 30% chance to swap one asset
+    # Asset mutation (in-place swap, ~30% rate)
+    genome.assets = mutate_assets(genome.assets, colony_config, swap_rate=0.30)
+
+    return genome.validate(colony_config)
+
+
+def mutate_assets(
+    assets: list[str],
+    colony_config: Optional[ColonyConfig] = None,
+    swap_rate: float = 0.15,
+) -> list[str]:
+    """Return a copy of `assets` with a small chance of swapping one entry.
+
+    Lightweight helper used by strategies that don't go through the full
+    `mutate()` pipeline (DE, PSO, CMA-ES) but still want their offspring to
+    explore the asset space.
+    """
+    if not assets or random.random() >= swap_rate:
+        return list(assets)
     effective_assets = (
         colony_config.get_effective_assets() if colony_config else AVAILABLE_ASSETS
     )
-    if random.random() < 0.30 and genome.assets:
-        idx = random.randrange(len(genome.assets))
-        candidates = [a for a in effective_assets if a not in genome.assets]
-        if candidates:
-            genome.assets[idx] = random.choice(candidates)
-
-    return genome.validate(colony_config)
+    candidates = [a for a in effective_assets if a not in assets]
+    if not candidates:
+        return list(assets)
+    result = list(assets)
+    result[random.randrange(len(result))] = random.choice(candidates)
+    return result
 
 
 # ══════════════════════════════════════════════════════════════════════════════

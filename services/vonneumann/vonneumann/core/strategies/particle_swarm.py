@@ -11,6 +11,7 @@ from __future__ import annotations
 import random
 from typing import TYPE_CHECKING
 
+from ..evolution import mutate_assets
 from ..gene_registry import GENE_REGISTRY
 from ..genome import Genome
 from .base import EvolutionResult, EvolutionStrategy
@@ -91,7 +92,9 @@ class ParticleSwarmStrategy(EvolutionStrategy):
             new_genome = Genome.from_dict(
                 {**new_genes, "generation": probe.genome.generation + 1}
             )
-            new_genome.assets = list(probe.genome.assets)
+            new_genome.assets = mutate_assets(
+                probe.genome.assets, colony_config, swap_rate=0.10
+            )
             new_genome.validate(colony_config)
 
             # Store velocity under same key — genesis calls remap_probe_id after spawning

@@ -17,6 +17,7 @@ try:
 except ImportError:
     cmaes_lib = None  # type: ignore[assignment]
 
+from ..evolution import mutate_assets
 from ..gene_registry import GENE_REGISTRY
 from ..genome import Genome
 from .base import EvolutionResult, EvolutionStrategy
@@ -107,7 +108,9 @@ class CMAEvolutionStrategy(EvolutionStrategy):
                     genome_dict[name] = getattr(best.genome, name)
             genome_dict["generation"] = best.genome.generation + 1
             new_genome = Genome.from_dict(genome_dict)
-            new_genome.assets = list(best.genome.assets)
+            new_genome.assets = mutate_assets(
+                best.genome.assets, colony_config, swap_rate=0.10
+            )
             new_genome.validate(colony_config)
             offspring.append(new_genome)
 

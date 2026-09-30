@@ -10,6 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { fetchProbeTrades } from "@/lib/probes/probes-supabase";
 import type { Trade } from "@/lib/probes/types";
 
@@ -18,8 +19,14 @@ interface Props {
 }
 
 export function TradeLog({ probeId }: Props) {
+  return <ProbeTradeLog key={probeId} probeId={probeId} />;
+}
+
+function ProbeTradeLog({ probeId }: Props) {
   const [trades, setTrades] = React.useState<Trade[]>([]);
   const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState(false);
+  const [attempt, setAttempt] = React.useState(0);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -28,22 +35,22 @@ export function TradeLog({ probeId }: Props) {
       .then((data) => {
         if (!cancelled) {
           setTrades(data);
+          setError(false);
           setLoading(false);
         }
       })
-      .catch((err) => {
-        console.error("TradeLog fetch error:", err);
+      .catch(() => {
         if (!cancelled) {
-          setTrades([]);
+          setError(true);
           setLoading(false);
         }
       });
     return () => {
       cancelled = true;
     };
-  }, [probeId]);
+  }, [probeId, attempt]);
 
-  if (loading) {
+  if (loading && trades.length === 0) {
     return (
       <p className="text-xs text-muted-foreground py-4 text-center">
         Loading trades...
@@ -51,7 +58,7 @@ export function TradeLog({ probeId }: Props) {
     );
   }
 
-  if (trades.length === 0) {
+  if (trades.length === 0 && !error) {
     return (
       <p className="text-xs text-muted-foreground py-4 text-center">
         No trades recorded yet.
@@ -60,6 +67,14 @@ export function TradeLog({ probeId }: Props) {
   }
 
   return (
+    <>
+    {error && (
+      <div role="alert" className="mb-2 text-xs text-destructive">
+        Trade history is unavailable.{trades.length > 0 && " Showing the last successful result."}
+        <Button variant="outline" size="sm" className="ml-2" disabled={loading} onClick={() => setAttempt((n) => n + 1)}>Retry</Button>
+      </div>
+    )}
+    {trades.length > 0 && (
     <div className="rounded-lg border border-[#00fff5]/10 overflow-hidden max-h-64 overflow-y-auto">
       <Table>
         <TableHeader>
@@ -147,5 +162,7 @@ export function TradeLog({ probeId }: Props) {
         </TableBody>
       </Table>
     </div>
+    )}
+    </>
   );
 }

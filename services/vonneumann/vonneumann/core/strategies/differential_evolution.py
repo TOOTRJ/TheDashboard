@@ -10,6 +10,7 @@ from __future__ import annotations
 import random
 from typing import TYPE_CHECKING
 
+from ..evolution import mutate_assets
 from ..gene_registry import GENE_REGISTRY
 from ..genome import Genome
 from .base import EvolutionResult, EvolutionStrategy
@@ -96,6 +97,6 @@ def _de_trial(
 
     new_genes["generation"] = target.generation + 1
     genome = Genome.from_dict(new_genes)
-    genome.assets = list(target.assets)
+    genome.assets = mutate_assets(target.assets, colony_config, swap_rate=0.15)
     genome.validate(colony_config)
     return genome

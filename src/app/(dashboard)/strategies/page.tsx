@@ -131,6 +131,15 @@ function StrategyCard({
   );
 }
 
+function SortIcon({ field, sortKey, sortDir }: {
+  field: keyof StrategyResult;
+  sortKey: keyof StrategyResult;
+  sortDir: "asc" | "desc";
+}) {
+  if (field !== sortKey) return null;
+  return sortDir === "desc" ? <ChevronDown className="h-3 w-3" /> : <ChevronUp className="h-3 w-3" />;
+}
+
 function ResultsTable({ 
   results, 
   onViewDetails 
@@ -159,11 +168,6 @@ function ResultsTable({
     }
   };
   
-  const SortIcon = ({ field }: { field: keyof StrategyResult }) => {
-    if (field !== sortKey) return null;
-    return sortDir === "desc" ? <ChevronDown className="h-3 w-3" /> : <ChevronUp className="h-3 w-3" />;
-  };
-  
   return (
     <div className="rounded-lg border border-[#00fff5]/10 overflow-hidden">
       <Table>
@@ -172,32 +176,32 @@ function ResultsTable({
             <TableHead className="text-xs uppercase tracking-wider text-muted-foreground">Strategy</TableHead>
             <TableHead className="text-xs uppercase tracking-wider text-muted-foreground">
               <Button variant="ghost" size="sm" className="px-0 h-auto" onClick={() => handleSort("totalTrades")}>
-                Trades <SortIcon field="totalTrades" />
+                Trades <SortIcon field="totalTrades" sortKey={sortKey} sortDir={sortDir} />
               </Button>
             </TableHead>
             <TableHead className="text-xs uppercase tracking-wider text-muted-foreground">
               <Button variant="ghost" size="sm" className="px-0 h-auto" onClick={() => handleSort("winRate")}>
-                Win Rate <SortIcon field="winRate" />
+                Win Rate <SortIcon field="winRate" sortKey={sortKey} sortDir={sortDir} />
               </Button>
             </TableHead>
             <TableHead className="text-xs uppercase tracking-wider text-muted-foreground">
               <Button variant="ghost" size="sm" className="px-0 h-auto" onClick={() => handleSort("totalPnlPercent")}>
-                P&L % <SortIcon field="totalPnlPercent" />
+                P&L % <SortIcon field="totalPnlPercent" sortKey={sortKey} sortDir={sortDir} />
               </Button>
             </TableHead>
             <TableHead className="text-xs uppercase tracking-wider text-muted-foreground">
               <Button variant="ghost" size="sm" className="px-0 h-auto" onClick={() => handleSort("profitFactor")}>
-                Profit Factor <SortIcon field="profitFactor" />
+                Profit Factor <SortIcon field="profitFactor" sortKey={sortKey} sortDir={sortDir} />
               </Button>
             </TableHead>
             <TableHead className="text-xs uppercase tracking-wider text-muted-foreground">
               <Button variant="ghost" size="sm" className="px-0 h-auto" onClick={() => handleSort("maxDrawdown")}>
-                Max DD <SortIcon field="maxDrawdown" />
+                Max DD <SortIcon field="maxDrawdown" sortKey={sortKey} sortDir={sortDir} />
               </Button>
             </TableHead>
             <TableHead className="text-xs uppercase tracking-wider text-muted-foreground">
               <Button variant="ghost" size="sm" className="px-0 h-auto" onClick={() => handleSort("sharpeRatio")}>
-                Sharpe <SortIcon field="sharpeRatio" />
+                Sharpe <SortIcon field="sharpeRatio" sortKey={sortKey} sortDir={sortDir} />
               </Button>
             </TableHead>
             <TableHead className="text-xs uppercase tracking-wider text-muted-foreground">Status</TableHead>
