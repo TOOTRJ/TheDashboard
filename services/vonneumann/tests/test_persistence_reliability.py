@@ -77,6 +77,25 @@ class PersistenceTests(OfflineTestMixin, unittest.TestCase):
                 self.repo.update_colony_status(A1, "failed", {"failure_code": "failure"})
         self.assertEqual(self.repo._colony_config, {"seed_capital": 100})
 
+    def test_risk_halt_persists_owned_evidence_without_stopping_or_rebasing_account(self):
+        self.repo.insert_colony(A1, 'genetic_algorithm', {'max_capital': 100}, 'simulation')
+        risk = {'policy': 'initial-account-loss-v1', 'baseline_equity': 100,
+                'threshold_fraction': .3, 'trip_id': A1, 'trip_equity': 70,
+                'trip_loss_fraction': .3, 'recovery_count': 0}
+        self.repo.update_colony_status(A1, 'risk_halted', {
+            'circuit_breaker': True, 'risk_control': risk, 'state_persisted': False})
+        halted = self.db.calls[-1]
+        self.assertEqual(halted['fields']['status'], 'risk_halted')
+        self.assertNotIn('stopped_at', halted['fields'])
+        self.assertEqual(halted['fields']['config']['max_capital'], 100)
+        self.assertEqual(halted['fields']['config']['runtime']['risk_control'], risk)
+        self.assertTrue(halted['fields']['config']['runtime']['state_persisted'])
+        self.assertIn(('id', A1), halted['filters'])
+        self.assertIn(('user_id', USER_A), halted['filters'])
+        # A later caller mutation cannot alter committed/cached trigger evidence.
+        risk['baseline_equity'] = 70
+        self.assertEqual(self.repo._colony_config['runtime']['risk_control']['baseline_equity'], 100)
+
     def test_invalid_lifecycle_state_is_rejected_before_io(self):
         with self.assertRaises(ValueError):
             self.repo.update_colony_status(A1, "pretend-running")
@@ -141,6 +160,14 @@ class AsyncPersistenceTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase):
         repo = SimpleNamespace(execute_async=AsyncMock())
         await EventPersister(repo).handle(ProbeEvent(EventType.SIMULATION_STATUS, "genesis", {
             "status": "stopped", "run_id": A1,
+        }))
+        repo.execute_async.assert_not_awaited()
+
+    async def test_risk_notification_does_not_duplicate_durable_lifecycle_write(self):
+        repo = SimpleNamespace(execute_async=AsyncMock())
+        await EventPersister(repo).handle(ProbeEvent(EventType.CIRCUIT_BREAKER, 'genesis', {
+            'action': 'tripped', 'status': 'risk_halted', 'circuit_breaker': True,
+            'risk_control': {'trip_id': A1, 'baseline_equity': 100},
         }))
         repo.execute_async.assert_not_awaited()
 

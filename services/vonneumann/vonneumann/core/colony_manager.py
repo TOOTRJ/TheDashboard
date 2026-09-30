@@ -10,6 +10,7 @@ from .colony_config import ColonyConfig
 from .genesis import GenesisController
 from .funding import FundingError
 from .market_validation import MarketValueError
+from .risk_control import RiskRecoveryError, RISK_RECOVERY_MESSAGES
 from .types import ProbeEvent
 from ..db.repository import PersistenceError
 from ..market.feed import MarketFeed, MarketFeedError
@@ -62,7 +63,7 @@ class ColonyLifecycleError(RuntimeError):
     def __init__(self, code: str, *, conflict: bool = False):
         self.code = code
         self.conflict = conflict
-        super().__init__("Colony is not in a state that permits this action" if conflict
+        super().__init__(RISK_RECOVERY_MESSAGES.get(code, "Colony is not in a state that permits this action") if conflict
                          else FAILURE_MESSAGES.get(code, FAILURE_MESSAGES["execution_failed"]))
 
 
@@ -174,7 +175,7 @@ class ColonyManager:
                 mode=mode, max_probes=max_probes, gen0_count=gen0_count,
                 seed_capital=seed_capital, max_capital=max_capital,
                 tick_interval_ms=tick_interval_ms, mutation_rate=mutation_rate,
-                colony_config=colony_config, on_event=on_event,
+                colony_config=colony_config, on_event=on_event, persist_risk_status=persist_status,
             )
             genesis.state_persisted = True  # The starting row already exists.
             self._colonies[colony_id] = genesis
@@ -201,7 +202,7 @@ class ColonyManager:
     async def _supervise(self, colony_id: str) -> None:
         try:
             await self._colonies[colony_id].run()
-            if self._colonies[colony_id].lifecycle_status in {"running", "paused"}:
+            if self._colonies[colony_id].lifecycle_status in {"running", "paused", "risk_halted"}:
                 raise RuntimeError("Execution ended unexpectedly")
         except asyncio.CancelledError:
             raise
@@ -281,7 +282,7 @@ class ColonyManager:
 
     async def _stop_colony(self, colony_id: str) -> None:
         async with self._locks.setdefault(colony_id, asyncio.Lock()):
-            colony = self._require_state(colony_id, {"running", "paused", "stopped"})
+            colony = self._require_state(colony_id, {"running", "paused", "risk_halted", "stopped"})
             if colony.lifecycle_status == "stopped":
                 return
             try:
@@ -307,7 +308,36 @@ class ColonyManager:
             try:
                 await asyncio.wait_for(colony.wait_for_tick(), timeout=QUIESCE_TIMEOUT_SECONDS)
                 self._check_pending_failure(colony_id)
+                # The in-flight tick may have tripped while this control waited.
+                # Keep its risk loop active rather than overwriting the durable halt.
+                if colony.lifecycle_status != "running":
+                    if colony.lifecycle_status == "risk_halted":
+                        colony.resume()
+                    raise ColonyLifecycleError("invalid_state", conflict=True)
                 await self._transition(colony_id, "paused")
+            except Exception as error:
+                if isinstance(error, ColonyLifecycleError) and error.conflict:
+                    raise
+                code = _failure_code(error, "execution_failed")
+                await self._fail(colony_id, code)
+                raise ColonyLifecycleError(code) from None
+
+    async def recover_colony(self, colony_id: str, trip_id: str) -> None:
+        await complete_operation(self._recover_colony(colony_id, trip_id))
+
+    async def _recover_colony(self, colony_id: str, trip_id: str) -> None:
+        async with self._locks.setdefault(colony_id, asyncio.Lock()):
+            colony = self._colonies[colony_id]
+            if colony.lifecycle_status != "risk_halted":
+                raise ColonyLifecycleError("risk_not_halted", conflict=True)
+            try:
+                self._check_pending_failure(colony_id)
+                # The controller owns tick serialization, valuation validation,
+                # durable acknowledgement and publication of this transition.
+                await asyncio.wait_for(colony.recover_circuit_breaker(trip_id),
+                                       timeout=QUIESCE_TIMEOUT_SECONDS)
+            except RiskRecoveryError as error:
+                raise ColonyLifecycleError(error.code, conflict=True) from None
             except Exception as error:
                 code = _failure_code(error, "execution_failed")
                 await self._fail(colony_id, code)
@@ -355,12 +385,12 @@ class ColonyManager:
         return None
 
     def active_count(self) -> int:
-        return sum(colony.lifecycle_status in {"starting", "running", "paused"}
+        return sum(colony.lifecycle_status in {"starting", "running", "paused", "risk_halted"}
                    for colony in self._colonies.values())
 
     async def shutdown(self) -> None:
         for colony_id, colony in list(self._colonies.items()):
-            if colony.lifecycle_status in {"running", "paused"}:
+            if colony.lifecycle_status in {"running", "paused", "risk_halted"}:
                 try:
                     await self.stop_colony(colony_id)
                 except ColonyLifecycleError:

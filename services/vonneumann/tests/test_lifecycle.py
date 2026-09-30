@@ -7,7 +7,7 @@ import time
 import unittest
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
-from tests.security_support import A1, USER_A, USER_B, OfflineTestMixin, deny_network
+from tests.security_support import A1, A2, USER_A, USER_B, OfflineTestMixin, deny_network
 with deny_network():
     from fastapi import HTTPException
     from vonneumann.core.colony_config import ColonyConfig
@@ -15,6 +15,7 @@ with deny_network():
     from vonneumann.core.genesis import GenesisController
     from vonneumann.core.funding import FundingError
     from vonneumann.core.market_validation import MarketValueError
+    from vonneumann.core.risk_control import RiskRecoveryError, RISK_RECOVERY_MESSAGES
     from vonneumann.core.types import EventType, ProbeEvent, TradeRecord
     from vonneumann.db.repository import PersistenceError
     from vonneumann.market.feed import MarketFeedError, MarketTick, QuoteEvidence
@@ -200,6 +201,178 @@ class LifecycleTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase):
             with self.assertRaises(ColonyLifecycleError) as error: await control(A1)
             self.assertTrue(error.exception.conflict)
         self.assertIsNotNone(self.manager.get_owned_colony(A1, USER_A))
+
+    async def test_halted_colony_is_active_and_can_stop_but_not_pause_or_resume(self):
+        await self.create()
+        colony = self.manager.get_colony(A1)
+        colony.circuit_breaker_active = True
+        colony.set_lifecycle('risk_halted')
+        self.assertEqual(self.manager.active_count(), 1)
+        for control in (self.manager.pause_colony, self.manager.resume_colony):
+            with self.assertRaises(ColonyLifecycleError) as error:
+                await control(A1)
+            self.assertTrue(error.exception.conflict)
+        self.assertEqual(self.feed.closed, 0)
+        self.assertTrue(colony.circuit_breaker_active)
+        await self.manager.stop_colony(A1)
+        self.assertEqual(colony.lifecycle_status, 'stopped')
+        self.assertTrue(colony.circuit_breaker_active)
+        self.assertEqual(self.feed.closed, 1)
+        self.assertEqual(self.manager.active_count(), 0)
+
+    async def test_pause_racing_trip_keeps_halt_monitored_and_does_not_fail(self):
+        entered, release = asyncio.Event(), asyncio.Event()
+        async def tick():
+            entered.set()
+            await release.wait()
+            colony = self.manager.get_colony(A1)
+            colony.circuit_breaker_active = True
+            colony.set_lifecycle('risk_halted')
+            await self.persist(colony.status())
+        self.tick.side_effect = tick
+        await self.create()
+        await entered.wait()
+        task = asyncio.create_task(self.manager.pause_colony(A1))
+        colony = self.manager.get_colony(A1)
+        while not colony._paused:
+            await asyncio.sleep(0)
+        release.set()
+        with self.assertRaises(ColonyLifecycleError) as error:
+            await task
+        self.assertTrue(error.exception.conflict)
+        self.assertEqual(colony.lifecycle_status, 'risk_halted')
+        self.assertFalse(colony._paused)
+        self.assertTrue(colony._running)
+        self.assertEqual(self.feed.closed, 0)
+        self.assertEqual([s['status'] for s in self.persisted], ['running', 'risk_halted'])
+
+    async def test_stop_racing_trip_stops_after_halt_without_deadlock(self):
+        entered, release = asyncio.Event(), asyncio.Event()
+        async def tick():
+            entered.set()
+            await release.wait()
+            colony = self.manager.get_colony(A1)
+            colony.circuit_breaker_active = True
+            colony.set_lifecycle('risk_halted')
+            await self.persist(colony.status())
+        self.tick.side_effect = tick
+        await self.create()
+        await entered.wait()
+        task = asyncio.create_task(self.manager.stop_colony(A1))
+        while not self.manager._locks[A1].locked():
+            await asyncio.sleep(0)
+        release.set()
+        await asyncio.wait_for(task, 1)
+        self.assertEqual(self.manager.get_colony(A1).lifecycle_status, 'stopped')
+        self.assertEqual([s['status'] for s in self.persisted], ['running', 'risk_halted', 'stopped'])
+        self.assertEqual(self.feed.closed, 1)
+
+    async def test_recovery_conflicts_keep_halt_and_feed_running(self):
+        await self.create()
+        colony = self.manager.get_colony(A1)
+        colony.circuit_breaker_active = True
+        colony.set_lifecycle('risk_halted')
+        for code in RISK_RECOVERY_MESSAGES:
+            with self.subTest(code=code), patch.object(
+                    colony, 'recover_circuit_breaker', new=AsyncMock(side_effect=RiskRecoveryError(code))):
+                with self.assertRaises(ColonyLifecycleError) as error:
+                    await self.manager.recover_colony(A1, A1)
+                self.assertEqual(error.exception.code, code)
+                self.assertTrue(error.exception.conflict)
+                self.assertEqual(colony.lifecycle_status, 'risk_halted')
+                self.assertTrue(colony.circuit_breaker_active)
+                self.assertEqual(self.feed.closed, 0)
+        self.assertEqual(len(self.persisted), 1)
+
+    async def test_recovery_of_running_colony_conflicts_before_engine(self):
+        await self.create()
+        colony = self.manager.get_colony(A1)
+        with patch.object(colony, 'recover_circuit_breaker', new=AsyncMock()) as recover:
+            with self.assertRaises(ColonyLifecycleError) as error:
+                await self.manager.recover_colony(A1, A1)
+            self.assertEqual(error.exception.code, 'risk_not_halted')
+            self.assertTrue(error.exception.conflict)
+            recover.assert_not_awaited()
+
+    async def test_recovery_persistence_failure_fails_closed_with_latch_retained(self):
+        await self.create()
+        colony = self.manager.get_colony(A1)
+        colony.circuit_breaker_active = True
+        colony.set_lifecycle('risk_halted')
+        with patch.object(colony, 'recover_circuit_breaker',
+                          new=AsyncMock(side_effect=PersistenceError('update_colony_status'))):
+            with self.assertRaises(ColonyLifecycleError) as error:
+                await self.manager.recover_colony(A1, A1)
+            self.assertEqual(error.exception.code, 'persistence_failed')
+            self.assertFalse(error.exception.conflict)
+        status = await self.failed()
+        self.assertTrue(status['circuit_breaker'])
+        self.assertTrue(self.persisted[-1]['circuit_breaker'])
+
+    async def test_recovery_timeout_fails_closed_without_abandoning_owned_positions(self):
+        await self.create()
+        colony = self.manager.get_colony(A1)
+        colony.circuit_breaker_active = True
+        colony.set_lifecycle('risk_halted')
+        cancelled = asyncio.Event()
+        async def blocked(_):
+            try:
+                await asyncio.Event().wait()
+            finally:
+                cancelled.set()
+        with patch.object(colony, 'recover_circuit_breaker', new=blocked), \
+                patch.object(manager_module, 'QUIESCE_TIMEOUT_SECONDS', .01):
+            with self.assertRaises(ColonyLifecycleError) as error:
+                await self.manager.recover_colony(A1, A1)
+        self.assertEqual(error.exception.code, 'execution_failed')
+        self.assertTrue(cancelled.is_set())
+        status = await self.failed()
+        self.assertTrue(status['circuit_breaker'])
+        self.assertTrue(status['requires_reconciliation'])
+
+    async def test_cancelled_recovery_finishes_and_serializes_with_stop(self):
+        await self.create()
+        colony = self.manager.get_colony(A1)
+        colony.circuit_breaker_active = True
+        colony.set_lifecycle('risk_halted')
+        entered, release = asyncio.Event(), asyncio.Event()
+        async def recover(trip_id):
+            self.assertEqual(trip_id, A2)
+            entered.set()
+            await release.wait()
+            colony.circuit_breaker_active = False
+            colony.set_lifecycle('running')
+            await self.persist(colony.status())
+        with patch.object(colony, 'recover_circuit_breaker', new=AsyncMock(side_effect=recover)):
+            task = asyncio.create_task(self.manager.recover_colony(A1, A2))
+            await entered.wait()
+            task.cancel()
+            await asyncio.sleep(0)
+            task.cancel()
+            stopped = asyncio.create_task(self.manager.stop_colony(A1))
+            await asyncio.sleep(0)
+            self.assertFalse(stopped.done())
+            self.assertEqual(self.feed.closed, 0)
+            release.set()
+            with self.assertRaises(asyncio.CancelledError):
+                await task
+            await asyncio.wait_for(stopped, 1)
+        self.assertEqual(colony.lifecycle_status, 'stopped')
+        self.assertEqual([s['status'] for s in self.persisted], ['running', 'running', 'stopped'])
+
+    async def test_halted_loop_unexpected_exit_is_supervised(self):
+        async def exit_loop(colony):
+            colony.set_lifecycle('risk_halted')
+        with patch.object(GenesisController, 'run', new=exit_loop):
+            await self.create()
+            self.assertEqual((await self.failed())['failure_code'], 'execution_failed')
+
+    async def test_shutdown_stops_halted_colony(self):
+        await self.create()
+        self.manager.get_colony(A1).set_lifecycle('risk_halted')
+        await self.manager.shutdown()
+        self.assertEqual(self.manager.get_colony(A1).lifecycle_status, 'stopped')
+        self.assertEqual(self.feed.closed, 1)
     async def test_stop_preserves_open_positions_and_closes_feed(self):
         await self.create()
         controller = self.manager.get_colony(A1)
@@ -289,6 +462,22 @@ class LifecycleTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase):
             result = await app_module._start_colony(StartRequest(gen0_count=2), VerifiedUser(USER_A, int(time.time()) + 3600))
         self.assertEqual(result['status'], 'started')
         self.assertEqual(order, ['insert_colony', 'insert_probe', 'insert_probe', 'update_colony_status'])
+
+    async def test_http_lifecycle_callback_persists_risk_evidence_without_unknown_fields(self):
+        repo = SimpleNamespace(execute_async=AsyncMock())
+        self.mock_app(repo)
+        with patch.object(self.manager, 'create_colony', new=AsyncMock()) as create:
+            await app_module._start_colony(StartRequest(), VerifiedUser(USER_A, int(time.time()) + 3600))
+        risk = {'policy': 'initial-account-loss-v1', 'trip_id': A1, 'baseline_equity': 100.0}
+        callback = create.await_args.kwargs['persist_status']
+        await callback({'status': 'risk_halted', 'circuit_breaker': True,
+                        'risk_control': risk, 'private_extra': 'not-persisted'})
+        call = repo.execute_async.await_args
+        self.assertEqual(call.args[0], 'update_colony_status')
+        self.assertEqual(call.args[2], 'risk_halted')
+        self.assertEqual(call.kwargs['details']['risk_control'], risk)
+        self.assertTrue(call.kwargs['details']['circuit_breaker'])
+        self.assertNotIn('private_extra', call.kwargs['details'])
     async def test_http_initial_write_failure_starts_nothing(self):
         self.mock_app(SimpleNamespace(execute_async=AsyncMock(side_effect=PersistenceError('insert_colony'))))
         with self.assertRaises(HTTPException) as error:

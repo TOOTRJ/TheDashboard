@@ -34,6 +34,8 @@ interface Props {
   activeColonies: ColonyInfo[];
   starting: boolean;
   startError?: string | null;
+  recoveryAvailable: boolean;
+  controlPending: boolean;
   colonyRuns: ColonyRun[];
   activeRunId: string | null;
   prices: Record<string, PriceTick>;
@@ -41,6 +43,7 @@ interface Props {
   onStop: () => void;
   onPause: () => void;
   onResume: () => void;
+  onRecover: () => void;
   onSelectRun: (runId: string) => void;
 }
 
@@ -56,6 +59,8 @@ export function ProbesDashboard({
   activeColonies,
   starting,
   startError,
+  recoveryAvailable,
+  controlPending,
   colonyRuns,
   activeRunId,
   prices,
@@ -63,6 +68,7 @@ export function ProbesDashboard({
   onStop,
   onPause,
   onResume,
+  onRecover,
   onSelectRun,
 }: Props) {
   const [selectedProbe, setSelectedProbe] = React.useState<Probe | null>(null);
@@ -91,10 +97,13 @@ export function ProbesDashboard({
             activeColonies={activeColonies}
             starting={starting}
             startError={startError}
+            recoveryAvailable={recoveryAvailable}
+            controlPending={controlPending}
             onStart={onStart}
             onStop={onStop}
             onPause={onPause}
             onResume={onResume}
+            onRecover={onRecover}
           />
         </div>
         <ColonySelector

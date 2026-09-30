@@ -40,7 +40,9 @@ function databaseHarness(responses) {
       return query;
     },
   };
-  return { calls, api: loadModule("../src/lib/probes/probes-supabase.ts", { "@/lib/supabase/client": { createClient: () => client } }) };
+  return { calls, api: loadModule("../src/lib/probes/probes-supabase.ts", {
+    "@/lib/supabase/client": { createClient: () => client }, "./transport": transport,
+  }) };
 }
 
 test("database errors are never converted to empty probe, generation, trade, or fitness results", async () => {
@@ -252,9 +254,13 @@ function pageHarness(initial = {}) {
   const worker = async (_endpoints, token, path, options = {}) => {
     requests.push({ token, path, options });
     if (control.workerFails || (options.method === "POST" && control.launchFails)) throw new transport.WorkerRequestError(503, "Worker unavailable; check status before retrying.");
-    if (options.method === "POST") return { colony_id: "NEW" };
+    if (options.method === "POST") {
+      if (control.postGate) await control.postGate;
+      return { colony_id: "NEW" };
+    }
     if (path === "/api/v1/colonies/") return live();
-    return { status: "running", mode: "paper", started_at: "2026-01-01", state_persisted: true };
+    return { status: control.workerStatus ?? "running", mode: "paper", started_at: "2026-01-01", state_persisted: true,
+      ...(control.workerRuntime ?? {}) };
   };
   const modules = {
     react, "react/jsx-runtime": { jsx: (type, props, key) => ({ type, props, key }), jsxs: (type, props, key) => ({ type, props, key }) },
@@ -434,4 +440,224 @@ test("actual page preserves nullable Sharpe and policy metadata from probe event
   await h.pump();
   assert.equal(h.dashboard().probes.find((probe) => probe.id === "probe").metrics, null);
   h.cleanup();
+});
+
+const riskTrip = "11111111-1111-4111-8111-111111111111";
+const riskDetails = () => ({
+  policy: "initial-account-loss-v1", threshold_fraction: 0.3, baseline_equity: 100,
+  observed_equity: 70, observed_loss_fraction: 0.3, observed_at: "2026-09-30T10:00:00+00:00",
+  trip_id: riskTrip, tripped_at: "2026-09-30T10:00:00+00:00", trip_equity: 70,
+  trip_loss_fraction: 0.3, last_recovered_at: null, recovery_count: 0,
+});
+
+test("saved risk halts preserve only validated public diagnostics", async () => {
+  const h = databaseHarness([
+    { data: [{ id: "A", mode: "paper", status: "risk_halted", config: { private: "secret", runtime: {
+      circuit_breaker: true, risk_control: { ...riskDetails(), private: "secret" },
+    } } }], error: null },
+    { data: [], error: null },
+  ]);
+  const [run] = await h.api.fetchColonyRuns();
+  assert.equal(run.status, "risk_halted");
+  assert.equal(run.runtime.circuit_breaker, true);
+  assert.deepEqual(plain(run.runtime.risk_control), riskDetails());
+  assert.ok(!JSON.stringify(run).includes("secret"));
+  const bad = databaseHarness([
+    { data: [{ id: "A", mode: "paper", config: { runtime: {
+      circuit_breaker: "true", risk_control: { ...riskDetails(), policy: "private-policy" },
+    } } }], error: null }, { data: [], error: null },
+  ]);
+  const [invalid] = await bad.api.fetchColonyRuns();
+  assert.equal(invalid.runtime.circuit_breaker, undefined);
+  assert.equal(invalid.runtime.risk_control, undefined);
+});
+
+test("risk diagnostics reject invalid policies, counters, fractions, timestamps and trip identifiers", () => {
+  for (const patch of [
+    { policy: "unknown" }, { threshold_fraction: 0 }, { threshold_fraction: 1.01 },
+    { threshold_fraction: NaN }, { threshold_fraction: "0.3" }, { threshold_fraction: Infinity },
+    { recovery_count: -1 }, { recovery_count: 0.5 }, { recovery_count: "0" },
+  ]) assert.equal(transport.parseRiskControl({ ...riskDetails(), ...patch }), undefined);
+  for (const input of [null, undefined, [], true, "private-token"]) assert.equal(transport.parseRiskControl(input), undefined);
+  const invalid = transport.parseRiskControl({ ...riskDetails(),
+    baseline_equity: Infinity, observed_equity: "100", observed_loss_fraction: -0.1,
+    observed_at: "2026-09-30", trip_id: "private-token", tripped_at: "2026-99-99T10:00:00Z",
+    trip_equity: NaN, trip_loss_fraction: "0.3", last_recovered_at: true,
+  });
+  for (const key of ["baseline_equity", "observed_equity", "observed_loss_fraction", "observed_at", "trip_id",
+    "tripped_at", "trip_equity", "trip_loss_fraction", "last_recovered_at"]) assert.equal(invalid[key], null, key);
+  assert.equal(transport.parseRiskControl({ ...riskDetails(), threshold_fraction: 1 }).threshold_fraction, 1);
+  assert.equal(transport.parseRiskControl({ ...riskDetails(), observed_loss_fraction: 0 }).observed_loss_fraction, 0);
+});
+
+test("risk recovery uses selected colony, current bearer and JSON trip identity", async () => {
+  const endpoints = transport.resolveWorkerEndpoints({ environment: "production", apiUrl: "https://worker.example", wsUrl: "wss://worker.example/ws" });
+  await transport.requestWorker(endpoints, "current-session", transport.colonyPath("colony/A", "recover"), {
+    method: "POST", body: { trip_id: riskTrip },
+  }, async (url, options) => {
+    assert.equal(url, "https://worker.example/api/v1/colonies/colony%2FA/recover");
+    assert.equal(options.headers.Authorization, "Bearer current-session");
+    assert.equal(options.headers["Content-Type"], "application/json");
+    assert.deepEqual(JSON.parse(options.body), { trip_id: riskTrip });
+    assert.equal(options.redirect, "error");
+    return Response.json({ status: "running" });
+  });
+});
+
+test("recovery conflicts expose known local explanations without raw error data", async () => {
+  const endpoints = transport.resolveWorkerEndpoints({ environment: "production", apiUrl: "https://worker.example", wsUrl: "wss://worker.example/ws" });
+  const cases = {
+    risk_not_halted: /no longer risk halted/, risk_trip_changed: /tripped again/,
+    risk_loss_unrecovered: /original limit/, risk_quotes_unavailable: /fresh quotes/,
+    risk_history_unavailable: /valid candle history/, risk_no_candidates: /No eligible candidates/,
+    "private-token": /cannot perform this action/,
+  };
+  for (const [code, expected] of Object.entries(cases)) {
+    await assert.rejects(transport.requestWorker(endpoints, "session", transport.colonyPath("A", "recover"), {},
+      async () => Response.json({ detail: { code, message: "private-token", arbitrary: "secret" } }, { status: 409 })),
+    (error) => {
+      assert.equal(error.status, 409);
+      assert.match(error.message, expected);
+      assert.ok(!error.message.includes("private-token"));
+      assert.ok(!error.message.includes("secret"));
+      return true;
+    });
+  }
+  await assert.rejects(transport.requestWorker(endpoints, "session", transport.colonyPath("A", "recover"), {},
+    async () => new Response("private-token", { status: 409 })), /cannot perform this action/);
+});
+
+test("actual page displays confirmed risk monitoring and binds recovery to the latest halt", async () => {
+  const h = pageHarness();
+  try {
+    await h.pump();
+    h.event({ type: "simulation_status", colony_id: "A", data: {
+      status: "risk_halted", circuit_breaker: true, mode: "paper", risk_control: riskDetails(),
+    } });
+    await h.pump();
+    assert.equal(h.dashboard().simStatus, "risk_halted");
+    assert.equal(h.dashboard().recoveryAvailable, true);
+    assert.match(h.text(), /New entries and evolution are blocked/);
+    assert.match(h.text(), /continues checking fresh quotes/);
+    assert.match(h.text(), /including reserve/);
+    assert.match(h.text(), /does not reset the starting balance/);
+    h.control.workerStatus = "risk_halted";
+    h.control.workerRuntime = { circuit_breaker: true, risk_control: riskDetails() };
+    await h.dashboard().onRecover();
+    await h.pump();
+    const posts = h.requests.filter((request) => request.options.method === "POST");
+    assert.equal(posts.length, 1);
+    assert.equal(posts[0].path, "/api/v1/colonies/A/recover");
+    assert.deepEqual(plain(posts[0].options.body), { trip_id: riskTrip });
+    assert.equal(h.dashboard().simStatus, "risk_halted", "successful control alone must not fabricate running");
+    h.event({ type: "simulation_status", colony_id: "A", data: {
+      status: "running", circuit_breaker: false, mode: "paper",
+      risk_control: { ...riskDetails(), recovery_count: 1 },
+    } });
+    await h.pump();
+    assert.equal(h.dashboard().simStatus, "running");
+    assert.equal(h.dashboard().recoveryAvailable, false);
+    assert.ok(!h.text().includes("continues checking fresh quotes"));
+  } finally { h.cleanup(); }
+});
+
+test("saved risk halt and outage retain history without claiming active monitoring or enabling recovery", async () => {
+  const h = pageHarness({ workerFails: true, savedStatus: "risk_halted", savedRuntime: {
+    circuit_breaker: true, risk_control: riskDetails(),
+  } });
+  try {
+    await h.pump();
+    assert.equal(h.dashboard().simStatus, "risk_halted");
+    assert.equal(h.dashboard().recoveryAvailable, false);
+    assert.match(h.text(), /saved risk-halted status/);
+    assert.match(h.text(), /ongoing position monitoring cannot be confirmed/);
+    assert.ok(!h.text().includes("continues checking fresh quotes"));
+    await h.dashboard().onRecover();
+    assert.equal(h.requests.filter((request) => request.options.method === "POST").length, 0);
+  } finally { h.cleanup(); }
+});
+
+test("last confirmed risk halt stops claiming monitoring after worker status fails", async () => {
+  const h = pageHarness({ workerStatus: "risk_halted", workerRuntime: {
+    circuit_breaker: true, risk_control: riskDetails(),
+  } });
+  try {
+    await h.pump();
+    assert.equal(h.dashboard().recoveryAvailable, true);
+    h.control.workerFails = true;
+    h.tick(); await h.pump();
+    assert.equal(h.dashboard().simStatus, "risk_halted");
+    assert.equal(h.dashboard().recoveryAvailable, false);
+    assert.match(h.text(), /ongoing position monitoring cannot be confirmed/);
+    assert.ok(!h.text().includes("continues checking fresh quotes"));
+  } finally { h.cleanup(); }
+});
+
+test("recovery without a valid current trip never sends a request", async () => {
+  for (const risk_control of [undefined, { ...riskDetails(), trip_id: null }, { ...riskDetails(), trip_id: "stale-secret" }]) {
+    const h = pageHarness({ workerStatus: "risk_halted", workerRuntime: { circuit_breaker: true, risk_control } });
+    try {
+      await h.pump();
+      assert.equal(h.dashboard().recoveryAvailable, false);
+      await h.dashboard().onRecover();
+      assert.equal(h.requests.filter((request) => request.options.method === "POST").length, 0);
+    } finally { h.cleanup(); }
+  }
+});
+
+test("repeated recovery clicks issue one control and keep the halt while confirmation is pending", async () => {
+  let release;
+  const postGate = new Promise((resolve) => { release = resolve; });
+  const h = pageHarness({ workerStatus: "risk_halted", workerRuntime: {
+    circuit_breaker: true, risk_control: riskDetails(),
+  }, postGate });
+  try {
+    await h.pump();
+    const first = h.dashboard().onRecover();
+    const second = h.dashboard().onRecover();
+    await h.pump();
+    assert.equal(h.requests.filter((request) => request.options.method === "POST").length, 1);
+    assert.equal(h.dashboard().controlPending, true);
+    assert.equal(h.dashboard().simStatus, "risk_halted");
+    release();
+    await Promise.all([first, second]);
+    await h.pump();
+    assert.equal(h.dashboard().controlPending, false);
+    assert.equal(h.dashboard().simStatus, "risk_halted");
+  } finally { release(); h.cleanup(); }
+});
+
+test("risk-halted controls remain stoppable and offer explicit recovery instead of normal resume or launch", () => {
+  const jsx = (type, props, key) => ({ type, props, key });
+  const { SimulationControls } = loadModule("../src/components/probes/SimulationControls.tsx", {
+    react: { useState: () => [false, () => {}] }, "react/jsx-runtime": { jsx, jsxs: jsx, Fragment: "Fragment" },
+    "lucide-react": { Loader2: "Loader2", Pause: "Pause", Play: "Play", Square: "Square", Settings2: "Settings2" },
+    "@/components/ui/button": { Button: "Button" }, "@/components/ui/badge": { Badge: "Badge" },
+    "./ConnectionStatus": { ConnectionStatus: "ConnectionStatus" }, "./ColonyConfigDialog": { ColonyConfigDialog: "ColonyConfigDialog" },
+    "@/lib/probes/constants": { STRATEGY_LABELS: {} },
+  });
+  function findButtons(node, found = []) {
+    if (!node || typeof node !== "object") return found;
+    if (node.type === "Button") found.push(node);
+    for (const child of [node.props?.children].flat(Infinity)) findButtons(child, found);
+    return found;
+  }
+  const onRecover = () => {}, onStop = () => {};
+  const props = { status: "risk_halted", connected: true, generation: 1, tick: 5, liveProbes: 2,
+    mode: "paper", starting: false, recoveryAvailable: true, controlPending: false,
+    onStart() {}, onStop, onPause() {}, onResume() {}, onRecover };
+  const controls = SimulationControls(props);
+  const buttons = findButtons(controls);
+  assert.equal(buttons.length, 2);
+  assert.equal(buttons[0].props.onClick, onRecover);
+  assert.equal(buttons[0].props.disabled, false);
+  assert.equal(buttons[1].props.onClick, onStop);
+  assert.equal(buttons[1].props.disabled, false);
+  const text = JSON.stringify(controls);
+  assert.match(text, /Risk halted/);
+  assert.ok(!text.includes("New Colony"));
+  assert.ok(!text.includes('"Resume"'));
+  assert.ok(!text.includes('"Pause"'));
+  assert.equal(findButtons(SimulationControls({ ...props, recoveryAvailable: false }))[0].props.disabled, true);
+  assert.ok(findButtons(SimulationControls({ ...props, controlPending: true })).every((button) => button.props.disabled));
 });

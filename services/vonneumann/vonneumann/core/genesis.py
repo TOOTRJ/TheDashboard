@@ -31,6 +31,7 @@ from .funding import FundingError, can_fund, funding_tolerance, sum_cashflows, v
 from .names import generate_probe_name
 from .market_validation import MarketValueError, nonnegative_value, positive_price, position_value
 from .probe import Probe, ProbeStepError
+from .risk_control import RiskRecoveryError
 from .strategies.base import EvolutionResult, EvolutionStrategy
 from .types import EventType, ProbeEvent, ProbeState, FitnessSnapshot
 from ..market.feed import MarketFeed, MarketFeedError, MarketTick, QuoteEvidence
@@ -62,6 +63,7 @@ class GenesisController:
         circuit_breaker_drop_pct: float = 0.30,
         colony_config: Optional[ColonyConfig] = None,
         on_event: Optional[Callable[[ProbeEvent], Awaitable[None]]] = None,
+        persist_risk_status: Optional[Callable[[dict], Awaitable[None]]] = None,
     ):
         self.market_feed = market_feed
         self.strategy = strategy
@@ -99,8 +101,19 @@ class GenesisController:
         self._wall_started_monotonic: Optional[float] = None
 
         # Safety
-        self.circuit_breaker_drop_pct = circuit_breaker_drop_pct
+        threshold = nonnegative_value(circuit_breaker_drop_pct)
+        if not 0 < threshold <= 1:
+            raise ValueError("Circuit-breaker loss fraction must be above zero and at most one")
+        self.circuit_breaker_drop_pct = threshold
         self.circuit_breaker_active = False
+        self._persist_risk_status = persist_risk_status
+        self._risk_control = {
+            "policy": "initial-account-loss-v1", "threshold_fraction": threshold,
+            "baseline_equity": None, "observed_equity": None,
+            "observed_loss_fraction": None, "observed_at": None,
+            "trip_id": None, "tripped_at": None, "trip_equity": None,
+            "trip_loss_fraction": None, "last_recovered_at": None, "recovery_count": 0,
+        }
 
         # State
         self.colony_id = colony_id
@@ -226,6 +239,7 @@ class GenesisController:
             "total_capital": round(total, 2) if total is not None else None,
             "valuation_available": total is not None,
             "circuit_breaker": self.circuit_breaker_active,
+            "risk_control": deepcopy(self._risk_control),
             "diversity": round(diversity, 4) if diversity is not None else None,
             "started_at": self.started_at.isoformat() if self.started_at else None,
             "uptime_secs": (
@@ -260,7 +274,7 @@ class GenesisController:
 
     def set_lifecycle(self, status: str) -> None:
         self._lifecycle_status = status
-        self._running = status in {"running", "paused"}
+        self._running = status in {"running", "paused", "risk_halted"}
         self._paused = status == "paused"
 
     async def prepare(self) -> None:
@@ -302,6 +316,7 @@ class GenesisController:
         self.strategy.initialize(list(self.probes.values()), self.colony_config)
 
         self._initial_total_capital = self.active_capital + self.reserve_capital
+        self._observe_account_risk()
 
     async def run(self) -> None:
         """Run only after the manager has durably marked preparation complete."""
@@ -346,6 +361,8 @@ class GenesisController:
 
     async def _spawn_probe(self, genome: Genome, capital: float, *,
                            _planned_reserve: Optional[float] = None) -> Optional[Probe]:
+        if self.circuit_breaker_active:
+            return None
         if not valid_cash(capital) or not valid_cash(self.reserve_capital):
             raise FundingError()
         if len(self.probes) >= self.max_probes:
@@ -488,6 +505,8 @@ class GenesisController:
         return children, retired, balances
 
     async def _apply_replacement(self, result: EvolutionResult, *, self_reproducing: bool = False) -> None:
+        if self.circuit_breaker_active:
+            return
         self._require_current_quotes()
         children, retired, balances = self._preflight_replacement(result, self_reproducing=self_reproducing)
         reclaimed_flows = [self.reserve_capital]
@@ -570,6 +589,8 @@ class GenesisController:
 
     async def _evaluate_reproduction(self) -> None:
         """Delegate evolution to the strategy. Called every reproduction_interval ticks."""
+        if self.circuit_breaker_active:
+            return
         self._require_current_quotes()
         live = [p for p in self.probes.values()
                 if p.state in (ProbeState.OBSERVING, ProbeState.TRADING)]
@@ -592,6 +613,8 @@ class GenesisController:
         return count
 
     async def _inject_candidates(self, requested: int) -> None:
+        if self.circuit_breaker_active:
+            return
         count = self._available_births(requested)
         if not count:
             return
@@ -622,7 +645,7 @@ class GenesisController:
         if len(self.live_probes) < max(1, self.gen0_count // 2):
             await self._inject_candidates(1)
         # Other DEAD probes in this tick's batch may still own recoverable cash.
-        if not self.probes:
+        if not self.probes and not self.circuit_breaker_active:
             raise FundingError("population_extinct")
 
     async def _handle_self_reproduce(self, probe: Probe) -> None:
@@ -631,7 +654,8 @@ class GenesisController:
         Probe has already closed positions and persisted reproduction intent.
         On refusal retain that REPRODUCING parent for reconciliation.
         """
-        if self.probes.get(probe.probe_id) is not probe or probe.state != ProbeState.REPRODUCING:
+        if (self.circuit_breaker_active or self.probes.get(probe.probe_id) is not probe
+                or probe.state != ProbeState.REPRODUCING):
             return
         self._require_current_quotes()
         children = []
@@ -725,12 +749,17 @@ class GenesisController:
         return valid, errors
 
     async def _tick_all(self) -> None:
-        if self.circuit_breaker_active:
-            raise RuntimeError("Circuit breaker stopped execution")
-
         live = [p for p in self.probes.values()
                 if p.state in (ProbeState.OBSERVING, ProbeState.TRADING)]
         if not live:
+            if self.circuit_breaker_active:
+                # All positions may have closed and capital returned to reserve.
+                # Retain the explicit halt; never silently refill this population.
+                self._observe_account_risk()
+                await self._emit(ProbeEvent(event_type=EventType.SIMULATION_STATUS,
+                                            probe_id="genesis", data=self.status(),
+                                            timestamp=self._event_time()))
+                return
             raise FundingError("population_extinct")
 
         self.tick_count += 1
@@ -812,15 +841,30 @@ class GenesisController:
                 failures.append(error.cause)
             except Exception as error:
                 failures.append(error)
+        # Latch from a complete fresh valuation before any awaited write can
+        # fail, and before any queued entry or population allocation can run.
+        tripped = False
+        if not failures:
+            try:
+                tripped = self._check_circuit_breaker()
+            except Exception as error:
+                # A held quote can expire during this final valuation. Keep
+                # every protective close already applied in the risk pass,
+                # then stop before decisions or any population allocation.
+                failures.append(error)
         for event in risk_events:
             # Persistence failures are never swallowed or retried as probe bugs.
             await self._emit(event)
         if failures:
             raise failures[0]
+        if tripped:
+            await self._save_risk_status(self.status())
+            await self._publish_risk_change("tripped")
 
         # A candle outage/revision stops decisions only after fresh quote risk
         # checks have completed. Revalidate quotes after this awaited request.
-        await self._refresh_candles()
+        if not self.circuit_breaker_active:
+            await self._refresh_candles()
 
         # Broadcast prices every 5 ticks
         if self.tick_count % 5 == 0:
@@ -844,7 +888,14 @@ class GenesisController:
             # Event writes and broadcasts above may have aged every quote.
             self._require_current_quotes()
             try:
-                events = probe.tick(check_risk=False)
+                max_life = self.colony_config.max_lifespan_ticks
+                if (max_life and self.tick_count - probe.birth_tick >= max_life
+                        and not probe._should_die()):
+                    # A profitable candidate cannot breed or fill a pending
+                    # entry on the same tick its hard lifespan limit expires.
+                    events = probe._trigger_die("max_lifespan")
+                else:
+                    events = probe.tick(check_risk=False, allow_new_risk=not self.circuit_breaker_active)
             except ProbeStepError as error:
                 for event in error.events:
                     await self._emit(event)
@@ -866,24 +917,12 @@ class GenesisController:
         for probe in self_reproducing:
             await self._handle_self_reproduce(probe)
 
-        # Max lifespan enforcement
-        max_life = self.colony_config.max_lifespan_ticks
-        if max_life:
-            for probe in list(self.probes.values()):
-                if probe.state in (ProbeState.OBSERVING, ProbeState.TRADING):
-                    age = self.tick_count - probe.birth_tick
-                    if age >= max_life:
-                        self._require_current_quotes()
-                        events = probe._trigger_die("max_lifespan")
-                        for evt in events:
-                            await self._emit(evt)
-                        await self._handle_die(probe)
-
         # Strategy-driven reproduction at intervals
-        if self.tick_count % self.reproduction_interval == 0:
+        if not self.circuit_breaker_active and self.tick_count % self.reproduction_interval == 0:
             await self._evaluate_reproduction()
 
-        if not any(p.state in (ProbeState.OBSERVING, ProbeState.TRADING) for p in self.probes.values()):
+        if (not self.circuit_breaker_active and
+                not any(p.state in (ProbeState.OBSERVING, ProbeState.TRADING) for p in self.probes.values())):
             raise FundingError("population_extinct")
 
         # Batched probe updates every 10 ticks, system status every 5
@@ -907,24 +946,136 @@ class GenesisController:
         if self.tick_count % self.snapshot_interval == 0:
             await self._capture_fitness_snapshots()
 
-        # Circuit breaker
-        self._check_circuit_breaker()
-
         # Log status
         if self.tick_count % 50 == 0:
             self._log_status()
 
     # ── Circuit breaker ──────────────────────────────────────────────────
 
-    def _check_circuit_breaker(self) -> None:
-        self._require_current_quotes()
-        total = self.active_capital + self.reserve_capital
+    def _account_equity(self) -> float:
+        """Reserve plus every still-owned account, with fresh held-asset marks.
+
+        Cumulative recycled funding (`total_deployed`) is never a loss baseline.
+        Cash does not need a quote; every open holding does.
+        """
+        values = [nonnegative_value(self.reserve_capital)]
+        for probe in self.probes.values():
+            values.append(nonnegative_value(probe.capital))
+            for asset, trade in probe.open_positions.items():
+                price = self._mark_price(asset)
+                # The exact accepted controller mark must also be the probe's
+                # mark used by protective exits and subsequent decisions.
+                if probe._marks.get(asset) != price:
+                    raise MarketValueError()
+                values.append(position_value(nonnegative_value(trade.amount),
+                                             positive_price(trade.entry_price), price))
+        return nonnegative_value(math.fsum(values))
+
+    def _observe_account_risk(self) -> Optional[tuple[float, float]]:
         if self._initial_total_capital <= 0:
-            return
-        drop = (self._initial_total_capital - total) / self._initial_total_capital
-        if drop >= self.circuit_breaker_drop_pct and not self.circuit_breaker_active:
-            logger.critical(f"[Genesis] CIRCUIT BREAKER! Capital dropped {drop*100:.1f}%")
-            self.circuit_breaker_active = True
+            return None
+        baseline = positive_price(self._initial_total_capital)
+        total = self._account_equity()
+        loss = max(0.0, 1.0 - total / baseline)
+        self._risk_control.update(baseline_equity=baseline, observed_equity=total,
+                                  observed_loss_fraction=loss,
+                                  observed_at=self._event_time().isoformat())
+        return total, loss
+
+    def _check_circuit_breaker(self) -> bool:
+        observation = self._observe_account_risk()
+        if observation is None or self.circuit_breaker_active:
+            return False
+        total, loss = observation
+        # Compare equity against the boundary directly: subtracting two nearly
+        # equal normalized floats can put an exact threshold on the wrong side.
+        if total > self._initial_total_capital * (1.0 - self.circuit_breaker_drop_pct):
+            return False
+        self.circuit_breaker_active = True
+        self.set_lifecycle("risk_halted")
+        self.state_persisted = False
+        self._risk_control.update(trip_id=str(uuid.uuid4()), tripped_at=self._event_time().isoformat(),
+                                  trip_equity=total, trip_loss_fraction=loss)
+        for probe in self.probes.values():
+            probe.discard_entry_intents()
+        logger.warning("[Genesis] Account-loss circuit breaker halted new risk")
+        return True
+
+    async def _save_risk_status(self, status: dict) -> None:
+        self.state_persisted = False
+        if self._persist_risk_status is not None:
+            await self._persist_risk_status({**status, "state_persisted": False})
+            self.state_persisted = True
+
+    async def _publish_risk_change(self, action: str) -> None:
+        await self._emit(ProbeEvent(event_type=EventType.CIRCUIT_BREAKER,
+                                   probe_id="genesis", timestamp=self._event_time(),
+                                   data={"action": action, "circuit_breaker": self.circuit_breaker_active,
+                                         "risk_control": deepcopy(self._risk_control)}))
+        await self._emit(ProbeEvent(event_type=EventType.SIMULATION_STATUS,
+                                   probe_id="genesis", timestamp=self._event_time(), data=self.status()))
+
+    def _validate_risk_recovery(self) -> None:
+        if not self.live_probes:
+            raise RiskRecoveryError("risk_no_candidates")
+        try:
+            # Recovery also requires all candidate quotes, since ordinary
+            # decisions resume on the next independently validated quote batch.
+            self._require_current_quotes()
+            if self.mode == "paper":
+                self._require_fresh_assets({asset for p in self.live_probes
+                                            for asset in [*p.genome.assets, *p.open_positions]})
+            observation = self._observe_account_risk()
+        except (MarketFeedError, MarketValueError, OverflowError):
+            raise RiskRecoveryError("risk_quotes_unavailable") from None
+        if observation is None or observation[0] <= self._initial_total_capital * (1.0 - self.circuit_breaker_drop_pct):
+            raise RiskRecoveryError("risk_loss_unrecovered")
+
+    async def recover_circuit_breaker(self, trip_id: str) -> None:
+        """Explicit acknowledgement, never a loss-baseline reset or retry loop."""
+        async with self._tick_lock:
+            if not self.circuit_breaker_active or self.lifecycle_status != "risk_halted":
+                raise RiskRecoveryError("risk_not_halted")
+            if trip_id != self._risk_control["trip_id"]:
+                raise RiskRecoveryError("risk_trip_changed")
+            self._validate_risk_recovery()
+            # Bring decisions up to date while entries remain latched. A data
+            # problem here rejects recovery, preserving protective monitoring.
+            try:
+                await self._refresh_candles(warmup=True)
+            except MarketFeedError:
+                raise RiskRecoveryError("risk_history_unavailable") from None
+            self._validate_risk_recovery()
+            recovered_at = self._event_time()
+            proposal = {**self._risk_control,
+                        "recovery_count": self._risk_control["recovery_count"] + 1,
+                        "last_recovered_at": recovered_at.isoformat()}
+            await self._save_risk_status({**self.status(), "status": "running",
+                                         "circuit_breaker": False, "risk_control": proposal})
+            try:
+                self._validate_risk_recovery()
+            except RiskRecoveryError:
+                # A slow acknowledged write may outlive the quotes. Compensate
+                # its prospective status without ever releasing the live latch.
+                await self._save_risk_status(self.status())
+                raise
+            for probe in self.probes.values():
+                probe.reset_signal_boundary(self._event_time().timestamp())
+            self._risk_control = {**proposal,
+                                  **{key: self._risk_control[key] for key in
+                                     ("observed_equity", "observed_loss_fraction", "observed_at")}}
+            self.circuit_breaker_active = False
+            self.set_lifecycle("running")
+            try:
+                await self._publish_risk_change("recovered")
+            except BaseException:
+                # The manager awaits this operation in a bounded child task.
+                # Stop its queued tick before releasing our lock on failure or
+                # cancellation; supervision will persist the terminal failure.
+                # Preserve the recovery that storage already acknowledged.
+                self._running = False
+                self._paused = True
+                raise
 
     # ── Diversity ────────────────────────────────────────────────────────
 

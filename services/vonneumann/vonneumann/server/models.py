@@ -16,6 +16,16 @@ class StrictModel(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True, allow_inf_nan=False)
 
 
+class RecoverRequest(StrictModel):
+    trip_id: str = Field(min_length=36, max_length=36,
+                         pattern=r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+
+    @field_validator("trip_id")
+    @classmethod
+    def canonical_trip_id(cls, value: str) -> str:
+        return value.lower()
+
+
 class GeneOverrideModel(StrictModel):
     min: Optional[float] = None
     max: Optional[float] = None

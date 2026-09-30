@@ -115,9 +115,13 @@ export function ColonySelector({ runs, activeRunId, activeColonies, onSelectRun 
                       </Badge>
                       <Badge
                         variant="outline"
-                        className="text-[9px] px-1 py-0 border-[#39ff14]/40 text-[#39ff14] bg-[#39ff14]/10"
+                        className={`text-[9px] px-1 py-0 ${col.status === "risk_halted"
+                          ? "border-[#ffff00]/40 text-[#ffff00] bg-[#ffff00]/10"
+                          : col.status === "failed"
+                            ? "border-destructive/40 text-destructive bg-destructive/10"
+                            : "border-[#39ff14]/40 text-[#39ff14] bg-[#39ff14]/10"}`}
                       >
-                        {col.status.toUpperCase()}
+                        {col.status === "risk_halted" ? "RISK HALTED" : col.status.toUpperCase()}
                       </Badge>
                     </div>
                   </div>
@@ -194,7 +198,7 @@ export function ColonySelector({ runs, activeRunId, activeColonies, onSelectRun 
                     )}
                   </div>
                 </div>
-                {run.status && <p className="text-[10px] uppercase text-muted-foreground">Saved status: {run.status}</p>}
+                {run.status && <p className={`text-[10px] uppercase ${run.status === "risk_halted" ? "text-[#ffff00]" : "text-muted-foreground"}`}>Saved status: {run.status === "risk_halted" ? "risk halted" : run.status}</p>}
                 {run.status === "failed" && <p className="text-[10px] text-destructive">{formatColonyFailure(run.runtime?.failure_code)}</p>}
                 {run.runtime?.requires_reconciliation && <p className="text-[10px] text-destructive">Paper positions or saved trade records require reconciliation.{(run.runtime.open_positions ?? 0) > 0 && ` ${run.runtime.open_positions} paper positions remain open.`}</p>}
                 <div className="text-[10px] text-muted-foreground mb-1">

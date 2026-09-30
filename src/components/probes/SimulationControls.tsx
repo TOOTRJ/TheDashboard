@@ -21,10 +21,13 @@ interface Props {
   activeColonies?: ColonyInfo[];
   starting: boolean;
   startError?: string | null;
+  recoveryAvailable: boolean;
+  controlPending: boolean;
   onStart: (config: StartConfig) => Promise<boolean>;
   onStop: () => void;
   onPause: () => void;
   onResume: () => void;
+  onRecover: () => void;
 }
 
 export function SimulationControls({
@@ -38,10 +41,13 @@ export function SimulationControls({
   activeColonies,
   starting,
   startError,
+  recoveryAvailable,
+  controlPending,
   onStart,
   onStop,
   onPause,
   onResume,
+  onRecover,
 }: Props) {
   const [configOpen, setConfigOpen] = React.useState(false);
 
@@ -49,7 +55,7 @@ export function SimulationControls({
     <>
       <div className="flex flex-wrap items-center gap-3 rounded-lg border border-[#00fff5]/20 bg-card/80 px-4 py-3 backdrop-blur-sm">
         <div className="flex items-center gap-2">
-          {!["running", "paused", "starting"].includes(status) ? (
+          {!["running", "paused", "risk_halted", "starting"].includes(status) ? (
             <Button
               size="sm"
               onClick={() => setConfigOpen(true)}
@@ -69,6 +75,7 @@ export function SimulationControls({
                 <Button
                   size="sm"
                   onClick={onPause}
+                  disabled={controlPending}
                   className="h-8 border border-[#ffff00]/30 bg-[#ffff00]/10 text-[#ffff00] hover:bg-[#ffff00]/20 text-xs"
                 >
                   <Pause className="mr-1.5 h-3.5 w-3.5" />
@@ -78,16 +85,27 @@ export function SimulationControls({
                 <Button
                   size="sm"
                   onClick={onResume}
+                  disabled={controlPending}
                   className="h-8 border border-[#39ff14]/30 bg-[#39ff14]/10 text-[#39ff14] hover:bg-[#39ff14]/20 text-xs"
                 >
                   <Play className="mr-1.5 h-3.5 w-3.5" />
                   Resume
                 </Button>
+              ) : status === "risk_halted" ? (
+                <Button
+                  size="sm"
+                  onClick={onRecover}
+                  disabled={!recoveryAvailable || controlPending}
+                  className="h-8 border border-[#ffff00]/30 bg-[#ffff00]/10 text-[#ffff00] hover:bg-[#ffff00]/20 text-xs"
+                >
+                  <Play className="mr-1.5 h-3.5 w-3.5" />
+                  Recover
+                </Button>
               ) : null}
               <Button
                 size="sm"
                 onClick={onStop}
-                disabled={status === "starting"}
+                disabled={status === "starting" || controlPending}
                 className="h-8 border border-[#ff3366]/30 bg-[#ff3366]/10 text-[#ff3366] hover:bg-[#ff3366]/20 text-xs"
               >
                 <Square className="mr-1.5 h-3.5 w-3.5" />
@@ -100,10 +118,10 @@ export function SimulationControls({
         <div className="h-6 w-px bg-[#00fff5]/20" />
 
         <Badge variant="outline" className="text-[10px] uppercase">
-          {status === "unknown" ? "Status unavailable" : status}
+          {status === "unknown" ? "Status unavailable" : status === "risk_halted" ? "Risk halted" : status}
         </Badge>
 
-        {["running", "paused", "starting"].includes(status) && (
+        {["running", "paused", "risk_halted", "starting"].includes(status) && (
           <Badge
             variant="outline"
             className="text-[10px] px-1.5 py-0"
@@ -117,7 +135,7 @@ export function SimulationControls({
           </Badge>
         )}
 
-        {["running", "paused", "starting"].includes(status) && strategy && (
+        {["running", "paused", "risk_halted", "starting"].includes(status) && strategy && (
           <Badge variant="outline" className="ml-2 text-xs">
             {STRATEGY_LABELS[strategy] ?? strategy}
           </Badge>
