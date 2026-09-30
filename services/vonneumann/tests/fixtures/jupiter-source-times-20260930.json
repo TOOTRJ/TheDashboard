@@ -1,0 +1,62 @@
+{
+  "description": "Sanitized public Jupiter Price V3 and Solana mainnet block-time sample, 2026-09-30. HTTP 200 does not imply fresh source data. No secrets or account identifiers.",
+  "received_at": 1790754294.5066361,
+  "records": [
+    {
+      "asset": "SOL/USDC",
+      "source_slot": 451900943,
+      "usd_price": 118.77267437231613,
+      "source_timestamp": 1790754292,
+      "source_age_at_receipt_seconds": 2.507
+    },
+    {
+      "asset": "JUP/USDC",
+      "source_slot": 451900941,
+      "usd_price": 0.32596085590065704,
+      "source_timestamp": 1790754292,
+      "source_age_at_receipt_seconds": 2.507
+    },
+    {
+      "asset": "BONK/USDC",
+      "source_slot": 451900943,
+      "usd_price": 3.82080642081144e-06,
+      "source_timestamp": 1790754292,
+      "source_age_at_receipt_seconds": 2.507
+    },
+    {
+      "asset": "WIF/USDC",
+      "source_slot": 451900933,
+      "usd_price": 0.24689539146223724,
+      "source_timestamp": 1790754290,
+      "source_age_at_receipt_seconds": 4.507
+    },
+    {
+      "asset": "JTO/USDC",
+      "source_slot": 451900943,
+      "usd_price": 0.5596106095072284,
+      "source_timestamp": 1790754292,
+      "source_age_at_receipt_seconds": 2.507
+    },
+    {
+      "asset": "PYTH/USDC",
+      "source_slot": 451900525,
+      "usd_price": 0.07772460777582564,
+      "source_timestamp": 1790754182,
+      "source_age_at_receipt_seconds": 112.507
+    },
+    {
+      "asset": "ORCA/USDC",
+      "source_slot": 451900860,
+      "usd_price": 1.5735043904663617,
+      "source_timestamp": 1790754271,
+      "source_age_at_receipt_seconds": 23.507
+    },
+    {
+      "asset": "RAY/USDC",
+      "source_slot": 451900920,
+      "usd_price": 1.8908889909571749,
+      "source_timestamp": 1790754287,
+      "source_age_at_receipt_seconds": 7.507
+    }
+  ]
+}

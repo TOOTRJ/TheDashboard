@@ -12,8 +12,7 @@ from .funding import FundingError
 from .market_validation import MarketValueError
 from .types import ProbeEvent
 from ..db.repository import PersistenceError
-from ..market.feed import MarketFeed
-from ..market.jupiter_feed import MarketFeedError
+from ..market.feed import MarketFeed, MarketFeedError
 
 logger = logging.getLogger(__name__)
 STARTUP_TIMEOUT_SECONDS = 30.0
@@ -28,6 +27,9 @@ FAILURE_MESSAGES = {
     "execution_failed": "Colony execution failed and has stopped. Reconciliation may be required.",
     "cleanup_failed": "Colony resource cleanup failed. Execution has stopped.",
     "feed_unavailable": "Required market data is unavailable. Colony execution has stopped.",
+    "feed_configuration": "Paper mode requires a configured HTTPS Solana mainnet RPC for source-time validation.",
+    "feed_stale": "A required market quote is stale. Execution has stopped; retained positions require reconciliation.",
+    "feed_source_invalid": "A required quote has missing, invalid, or regressing source-time evidence. Execution has stopped.",
     "invalid_market_value": "A market observation or trade calculation was invalid. Execution has stopped; retained positions may require reconciliation.",
     "funding_insufficient": "The colony cannot fully fund its next candidate population. Execution has stopped.",
     "funding_capacity": "The replacement population exceeds the configured capacity. Execution has stopped.",
@@ -66,6 +68,12 @@ def _failure_code(error: Exception, default: str) -> str:
     if isinstance(error, PersistenceError):
         return "persistence_failed"
     if isinstance(error, MarketFeedError):
+        if error.code in {"rpc_configuration", "rpc_wrong_network"}:
+            return "feed_configuration"
+        if error.code == "price_stale":
+            return "feed_stale"
+        if error.code in {"source_time_unavailable", "source_time_invalid", "source_slot_regressed"}:
+            return "feed_source_invalid"
         return "feed_unavailable"
     if isinstance(error, MarketValueError):
         return "invalid_market_value"

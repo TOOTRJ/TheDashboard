@@ -2,7 +2,7 @@
 Live market feed using the Jupiter API.
 
 Uses Jupiter Price API v3 for Solana token prices, batching requested assets.
-Provider failures stop execution; only validated, locally fresh batches are cached.
+Provider failures stop execution; only source-validated complete batches are cached.
 
 Jupiter is also the swap provider for live trading (Phase 6), so using it
 for prices keeps the entire pipeline on one provider.
@@ -21,7 +21,9 @@ from typing import Optional
 
 import aiohttp
 
-from .feed import MarketFeed, MarketTick
+from .feed import MarketFeed, MarketFeedError, MarketTick, QuoteEvidence
+from .quote_freshness import quote_source_age, source_slot, validate_quote
+from .solana_time import SolanaTimeResolver
 
 logger = logging.getLogger(__name__)
 
@@ -47,14 +49,6 @@ MINT_TO_ASSET: dict[str, str] = {v: k for k, v in TOKEN_MINTS.items()}
 USDC_MINT = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
 
 
-class MarketFeedError(RuntimeError):
-    """Safe public failure text; raw provider exceptions are never logged here."""
-
-    def __init__(self, code: str):
-        self.code = code
-        super().__init__("Market data refresh failed. Execution requires valid provider data.")
-
-
 def _number(value, *, positive: bool) -> float:
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise ValueError("Invalid market value")
@@ -71,10 +65,16 @@ class JupiterFeed(MarketFeed):
     Tick rates must respect the configured provider account's actual quota.
     """
 
-    def __init__(self, api_key: str = ""):
+    def __init__(self, api_key: str = "", *, rpc_url: str | None = None):
         self._api_key = api_key or JUP_API_KEY
         if not self._api_key:
             raise ValueError("JUP_API_KEY is required for paper trading mode")
+
+        self._source_time = SolanaTimeResolver(
+            os.environ.get("VN_SOLANA_RPC_URL", "") if rpc_url is None else rpc_url
+        )
+        self._source_slots: dict[str, int] = {}
+        self._price_lock = asyncio.Lock()
 
         self._jup_headers = {
             "x-api-key": self._api_key,
@@ -93,7 +93,7 @@ class JupiterFeed(MarketFeed):
             "Accept": "application/json",
         } if self._birdeye_key else {}
 
-        # Cache: asset -> (timestamp, MarketTick)
+        # Cache: asset -> (monotonic receipt time, source-validated MarketTick)
         self._cache: dict[str, tuple[float, MarketTick]] = {}
         self._cache_ttl = 0.8  # seconds — slightly under 1s tick
 
@@ -122,55 +122,115 @@ class JupiterFeed(MarketFeed):
     # ── Price API ────────────────────────────────────────────────────────
 
     async def _fetch_all_prices(self, assets: Optional[list[str]] = None) -> dict[str, MarketTick]:
-        """Fetch one complete requested batch; a failed refresh never serves expired cache."""
+        """Bound the complete price/source lookup; never refresh a source timestamp.
+
+        A failed batch carries only currently validated siblings for a final risk
+        pass. Neither its quote cache nor its slot watermarks are committed.
+        """
         requested = list(dict.fromkeys(TOKEN_MINTS if assets is None else assets))
         if any(asset not in TOKEN_MINTS for asset in requested):
             raise MarketFeedError("unsupported_asset")
         if not requested:
             return {}
-        now = time.time()
-        if all(asset in self._cache and 0 <= now - self._cache[asset][0] < self._cache_ttl
-               for asset in requested):
-            return {asset: self._cache[asset][1] for asset in requested}
-
         try:
-            session = await self._get_session()
-            self.api_call_count += 1
-            async with session.get(
-                f"{JUPITER_API_URL}/price/v3",
-                params={"ids": ",".join(TOKEN_MINTS[asset] for asset in requested)},
-                headers=self._jup_headers,
-                allow_redirects=False,
-            ) as resp:
-                if resp.status != 200:
-                    raise MarketFeedError("price_rate_limited" if resp.status == 429 else "price_unavailable")
-                data = await resp.json()
-                if not isinstance(data, dict):
-                    raise MarketFeedError("price_invalid")
-                # Validate the complete batch before committing any cache entry.
-                prices = {}
-                for asset in requested:
-                    info = data.get(TOKEN_MINTS[asset])
-                    if not isinstance(info, dict):
-                        raise MarketFeedError("price_missing")
-                    prices[asset] = _number(info.get("usdPrice"), positive=True)
-                received_at = time.time()
-                result: dict[str, MarketTick] = {}
-                for asset, price in prices.items():
-                    result[asset] = MarketTick(
-                        asset=asset,
-                        price=price,
-                        volume=self._volume_cache.get(asset, 0.0),
-                        timestamp=received_at,
-                    )
-                self._cache.update({asset: (received_at, tick) for asset, tick in result.items()})
-                return result
+            async with asyncio.timeout(5) as deadline:
+                async with self._price_lock:
+                    return await self._fetch_prices_locked(requested, deadline=deadline.when())
         except MarketFeedError:
             raise
         except (ValueError, TypeError, OverflowError):
             raise MarketFeedError("price_invalid") from None
         except Exception:
             raise MarketFeedError("price_unavailable") from None
+
+    async def _fetch_prices_locked(self, requested: list[str], *, deadline: float) -> dict[str, MarketTick]:
+        mono, wall = time.monotonic(), time.time()
+        cached = {}
+        for asset in requested:
+            entry = self._cache.get(asset)
+            if entry is None or not 0 <= mono - entry[0] < self._cache_ttl:
+                break
+            try:
+                validate_quote(entry[1], previous_slot=self._source_slots.get(asset),
+                               wall_now=wall, monotonic_now=mono)
+            except MarketFeedError:
+                break
+            cached[asset] = entry[1]
+        if len(cached) == len(requested):
+            return cached
+
+        session = await self._get_session()
+        self.api_call_count += 1
+        async with session.get(
+            f"{JUPITER_API_URL}/price/v3",
+            params={"ids": ",".join(TOKEN_MINTS[asset] for asset in requested)},
+            headers=self._jup_headers,
+            allow_redirects=False,
+        ) as resp:
+            if resp.status != 200:
+                raise MarketFeedError("price_rate_limited" if resp.status == 429 else "price_unavailable")
+            data = await resp.json()
+            # Record receipt before RPC work. RPC latency consumes freshness.
+            received_at, received_mono = time.time(), time.monotonic()
+            if not isinstance(data, dict):
+                raise MarketFeedError("price_invalid")
+
+        candidates, errors = {}, {}
+        for asset in requested:
+            info = data.get(TOKEN_MINTS[asset])
+            if not isinstance(info, dict):
+                errors[asset] = MarketFeedError("price_missing")
+                continue
+            try:
+                price = _number(info.get("usdPrice"), positive=True)
+                slot = source_slot(info.get("blockId"))
+                candidates[asset] = (price, slot)
+            except MarketFeedError as error:
+                errors[asset] = error
+            except (ValueError, TypeError, OverflowError):
+                errors[asset] = MarketFeedError("price_invalid")
+
+        times, time_errors = await self._source_time.resolve(
+            session, [slot for _, slot in candidates.values()], deadline=deadline)
+        result = {}
+        # One final shared time boundary prevents earlier-resolved slots from
+        # appearing fresh after a slow sibling lookup.
+        wall, mono = time.time(), time.monotonic()
+        for asset, (price, slot) in candidates.items():
+            if slot in time_errors:
+                errors[asset] = time_errors[slot]
+                continue
+            try:
+                stamp = times[slot]
+                age_floor = max(0.0, received_at - stamp)
+                previous = self._cache.get(asset)
+                if previous is not None:
+                    previous_tick = previous[1]
+                    if (previous_tick.evidence.source_slot == slot
+                            and previous_tick.timestamp != stamp):
+                        raise MarketFeedError("source_time_invalid")
+                    previous_age = quote_source_age(
+                        previous_tick, wall_now=received_at, monotonic_now=received_mono)
+                    age_floor = max(age_floor, previous_age - (stamp - previous_tick.timestamp))
+                tick = MarketTick(
+                    asset=asset, price=price,
+                    volume=_number(self._volume_cache.get(asset, 0.0), positive=False), timestamp=stamp,
+                    evidence=QuoteEvidence(slot, received_at, received_mono,
+                                           source_age_at_receipt=age_floor),
+                )
+                validate_quote(tick, previous_slot=self._source_slots.get(asset),
+                               wall_now=wall, monotonic_now=mono)
+                result[asset] = tick
+            except MarketFeedError as error:
+                errors[asset] = error
+            except (ValueError, TypeError, OverflowError):
+                errors[asset] = MarketFeedError("price_invalid")
+        if errors:
+            first = next(errors[asset] for asset in requested if asset in errors)
+            raise MarketFeedError(first.code, valid_ticks=result)
+        self._cache.update({asset: (received_mono, tick) for asset, tick in result.items()})
+        self._source_slots.update({asset: tick.evidence.source_slot for asset, tick in result.items()})
+        return result
 
     async def get_tick(self, asset: str) -> MarketTick:
         """Get a validated price or an explicit provider failure, never a zero fallback."""
