@@ -138,7 +138,7 @@ export interface ColonyRun {
   probe_count: number;
   best_fitness: number;
   status?: Exclude<SimulationStatus, "unknown">;
-  runtime?: Pick<SystemStatus, "failure_code" | "state_persisted" | "open_positions" | "requires_reconciliation" | "valuation_available">;
+  runtime?: Pick<SystemStatus, "failure_code" | "state_persisted" | "open_positions" | "requires_reconciliation" | "valuation_available" | "clock_basis" | "market_time" | "market_elapsed_secs">;
 }
 
 export interface PriceTick {
@@ -167,6 +167,9 @@ export interface SystemStatus {
   diversity: number | null;
   started_at: string | null;
   uptime_secs: number;
+  clock_basis?: "synthetic_market" | "wall";
+  market_time?: string | null;
+  market_elapsed_secs?: number | null;
   failure_code?: string | null;
   failure_message?: string | null;
   state_persisted?: boolean;

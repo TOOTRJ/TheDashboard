@@ -115,6 +115,23 @@ test("saved valuation availability accepts only explicit booleans", async () => 
   }
 });
 
+test("saved history preserves explicit valid market-clock metadata without relabeling legacy simulations", async () => {
+  const make = (runtime) => databaseHarness([
+    { data: [{ id: "A", mode: "simulation", config: { runtime } }], error: null },
+    { data: [], error: null },
+  ]);
+  const validClock = { clock_basis: "synthetic_market", market_time: "2024-01-01T00:02:00+00:00", market_elapsed_secs: 120 };
+  const [run] = await make(validClock).api.fetchColonyRuns();
+  for (const [key, value] of Object.entries(validClock)) assert.equal(run.runtime[key], value);
+  for (const runtime of [{}, { clock_basis: "simulation", market_time: "invalid-date", market_elapsed_secs: -1 },
+    { clock_basis: true, market_time: 123, market_elapsed_secs: Infinity }]) {
+    const [bad] = await make(runtime).api.fetchColonyRuns();
+    assert.equal(bad.runtime.clock_basis, undefined);
+    assert.equal(bad.runtime.market_time, undefined);
+    assert.equal(bad.runtime.market_elapsed_secs, undefined);
+  }
+});
+
 test("overview uses reported marked total, guards nullable metrics, and never replaces unknown valuation with cached probe cash", () => {
   const jsx = (type, props, key) => ({ type, props, key });
   const { ProbesOverview } = loadModule("../src/components/probes/ProbesOverview.tsx", {
@@ -223,7 +240,7 @@ function pageHarness(initial = {}) {
     useCallback: (callback, deps) => memo(() => callback, deps),
     useEffect: effect, useLayoutEffect: effect,
   };
-  const history = () => [{ run_id: "A", mode: "paper", started_at: "2026-01-01", probe_count: control.revision, best_fitness: 1,
+  const history = () => [{ run_id: "A", mode: control.savedMode ?? "paper", started_at: "2026-01-01", probe_count: control.revision, best_fitness: 1,
     status: control.savedStatus, runtime: control.savedRuntime }];
   const live = () => [{ colony_id: "A", mode: "paper", status: "running", live_probes: control.revision }];
   const dbRead = async (value) => { if (control.databaseFails) throw new Error("private-database-error"); return value; };
@@ -279,6 +296,24 @@ function pageHarness(initial = {}) {
     cleanup() { for (const hook of hooks) hook?.cleanup?.(); },
   };
 }
+
+test("actual page explains the saved synthetic clock when the worker is unavailable and leaves legacy dates unclassified", async () => {
+  for (const savedRuntime of [undefined,
+    { clock_basis: "synthetic_market", market_time: "invalid-date" },
+    { clock_basis: "synthetic_market", market_time: "2024-01-01T00:02:00+00:00" }]) {
+    const h = pageHarness({ workerFails: true, savedStatus: "stopped", savedMode: "simulation", savedRuntime });
+    try {
+      await h.pump();
+      if (savedRuntime?.market_time === "2024-01-01T00:02:00+00:00") {
+        assert.match(h.text(), /Last reported synthetic market time/);
+        assert.match(h.text(), /2024-01-01 00:02:00 UTC/);
+        assert.match(h.text(), /Prices are generated/);
+      } else {
+        assert.ok(!h.text().includes("Last reported synthetic market time"));
+      }
+    } finally { h.cleanup(); }
+  }
+});
 
 test("actual page retains last successful DB data, history, live list and status during outage, then recovers on retry", async () => {
   const h = pageHarness(); await h.pump();

@@ -138,6 +138,9 @@ async function _enrichColonyRuns(
       open_positions: typeof record.open_positions === "number" && Number.isSafeInteger(record.open_positions) && record.open_positions >= 0 ? record.open_positions : undefined,
       requires_reconciliation: typeof record.requires_reconciliation === "boolean" ? record.requires_reconciliation : undefined,
       valuation_available: typeof record.valuation_available === "boolean" ? record.valuation_available : undefined,
+      clock_basis: record.clock_basis === "synthetic_market" || record.clock_basis === "wall" ? record.clock_basis : undefined,
+      market_time: typeof record.market_time === "string" && Number.isFinite(Date.parse(record.market_time)) ? record.market_time : undefined,
+      market_elapsed_secs: typeof record.market_elapsed_secs === "number" && Number.isFinite(record.market_elapsed_secs) && record.market_elapsed_secs >= 0 ? record.market_elapsed_secs : undefined,
     };
     return {
       run_id: c.id,

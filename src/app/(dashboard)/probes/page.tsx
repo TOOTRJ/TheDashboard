@@ -284,6 +284,10 @@ function AuthenticatedProbesPage({ userId, accessToken }: { userId: string; acce
   const displayedStatus = showSavedStatus ? selectedHistory.status! : simStatus;
   const displayedMode = showSavedStatus ? selectedHistory.mode : simMode;
   const diagnostics = showSavedStatus || !systemStatus ? selectedHistory?.runtime : systemStatus;
+  const marketTimestamp = diagnostics?.clock_basis === "synthetic_market" && typeof diagnostics.market_time === "string"
+    ? Date.parse(diagnostics.market_time) : NaN;
+  const syntheticMarketTime = Number.isFinite(marketTimestamp)
+    ? new Date(marketTimestamp).toISOString().replace("T", " ").replace(".000Z", "Z").replace("Z", " UTC") : null;
   const errorMessages = [...new Set([VN_ENDPOINTS.error, ...Object.values(errors), connection.error].filter(Boolean))];
   return (
     <div className="space-y-6">
@@ -298,6 +302,13 @@ function AuthenticatedProbesPage({ userId, accessToken }: { userId: string; acce
       )}
       {loading && <p role="status" className="text-sm text-muted-foreground">Loading colony data…</p>}
       {showSavedStatus && <p className="text-sm text-muted-foreground">Showing the saved terminal status. Current worker status is unavailable.</p>}
+      {syntheticMarketTime && (
+        <p className="text-xs text-muted-foreground">
+          Last reported synthetic market time: <span className="font-mono">{syntheticMarketTime}</span>.
+          {" "}Prices are generated. Playback speed changes service pacing;
+          trade and probe timestamps use this modeled clock.
+        </p>
+      )}
       {displayedStatus === "failed" && <p role="alert" className="text-sm text-destructive">{formatColonyFailure(diagnostics?.failure_code)}</p>}
       {diagnostics?.state_persisted === false && <p role="alert" className="text-sm text-destructive">Colony state could not be saved. Displayed results may not survive a worker restart.</p>}
       {diagnostics?.valuation_available === false && <p role="alert" className="text-sm text-destructive">Current colony valuation is unavailable. Previously recorded probe balances are not a current market valuation.</p>}
