@@ -41,10 +41,10 @@ function ChartTooltip({
   payload,
 }: {
   active?: boolean;
-  payload?: Array<{ payload: Record<string, number> }>;
+  payload?: ReadonlyArray<{ payload?: GoalProjectionPoint }>;
 }) {
-  if (!active || !payload?.length) return null;
-  const row = payload[0].payload;
+  const row = payload?.[0]?.payload;
+  if (!active || !row) return null;
   return (
     <div
       className="rounded-lg border border-[#39ff14]/25 px-3 py-2 text-xs shadow-lg"
@@ -186,7 +186,7 @@ export function NesteggGoalChart({
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(57, 255, 20, 0.08)" vertical={false} />
                 <XAxis dataKey="year" type="number" domain={["dataMin", "dataMax"]} tickLine={false} axisLine={false} tick={{ fill: NEON.muted, fontSize: 10 }} />
                 <YAxis tickLine={false} axisLine={false} tick={{ fill: NEON.muted, fontSize: 10 }} tickFormatter={(v) => v >= 1_000_000 ? `$${(v / 1_000_000).toFixed(1)}M` : `$${(v / 1000).toFixed(0)}k`} />
-                <Tooltip content={(props) => <ChartTooltip active={props.active} payload={props.payload as Array<{ payload: Record<string, number> }>} />} />
+                <Tooltip content={(props) => <ChartTooltip active={props.active} payload={props.payload} />} />
                 <Legend wrapperStyle={{ fontSize: 11 }} formatter={(value) => <span className="text-muted-foreground uppercase tracking-wider">{value}</span>} />
                 <Line type="monotone" dataKey="goalPath" name="Goal pace" stroke={NEON.green} strokeWidth={2.5} dot={false} style={{ filter: `drop-shadow(0 0 8px ${NEON.green})` }} />
                 <Line type="monotone" dataKey="currentPath" name="Current pace" stroke={NEON.cyan} strokeWidth={2} dot={false} style={{ filter: `drop-shadow(0 0 6px ${NEON.cyan})` }} />

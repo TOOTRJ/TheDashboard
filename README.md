@@ -6,7 +6,9 @@ The **Nestegg** feature at `/nestegg` is documented in **[README-NESTEGG.md](./R
 
 ## Getting Started
 
-First, run the development server:
+Use **Node.js 24 LTS** (matching this project’s Vercel runtime), then install the locked dependencies with `npm ci`. The Supabase JavaScript SDK requires Node.js 22 or newer; this project targets Node 24 through `package.json`. Keep runtime selection local to this project when other agents are working on the same computer.
+
+Then run the development server:
 
 ```bash
 npm run dev
