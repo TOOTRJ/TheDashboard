@@ -197,7 +197,9 @@ class GenomeContractTests(unittest.TestCase):
         strategy.initialize(probes, config)
         for velocity in strategy._velocities.values():
             velocity.update({name: 100 for name in velocity})
-        for child in strategy.evolve(probes, [], config).offspring:
+        cohort = EvaluationCohort("phenotype-test", probes, 60)
+        cohort.start(0)
+        for child in strategy.evolve(list(cohort.complete(probes, 60)), [], config).offspring:
             self.assert_valid(child, config)
 
     def test_cma_ask_projects_controls_and_retains_unmodified_optimizer_vectors(self):

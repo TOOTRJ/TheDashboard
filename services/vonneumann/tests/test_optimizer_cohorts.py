@@ -148,9 +148,9 @@ class RecordingCMA:
         if self.fail_ask:
             raise RuntimeError('optimizer-failed')
         self.ask_count += 1
-        # Values below the registered rsi_period minimum are changed by genome
-        # validation, making reconstructed-vector regressions observable.
-        return np.full(self.dimension, 1.125 + self.ask_count / 10)
+        # Unit asks decode to integer phenotypes; reconstructing from those
+        # repaired phenotypes cannot substitute for the original ask arrays.
+        return np.full(self.dimension, 0.125 + (self.ask_count % 7) / 10)
 
     def tell(self, solutions):
         self.tells.append([(vector.copy(), score) for vector, score in solutions])
@@ -176,7 +176,8 @@ class CMACohortTests(OfflineTestMixin, unittest.TestCase):
         following = self.ask_next()
         self.assertEqual(self.optimizer.tells, [])
         raw = [vector.copy() for vector in self.strategy._pending_vectors]
-        self.assertTrue(all(probe.genome.rsi_period != vector[0] for probe, vector in zip(following, raw)))
+        self.assertTrue(all(not np.array_equal(self.strategy._codec.encode(probe.genome), vector)
+                            for probe, vector in zip(following, raw)))
         self.strategy.bind_candidates(following)
         cohort = EvaluationCohort('cohort-asked', following, 60)
         cohort.start(1000)

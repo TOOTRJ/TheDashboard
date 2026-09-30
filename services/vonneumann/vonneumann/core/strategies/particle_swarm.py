@@ -1,9 +1,9 @@
-"""
-Particle Swarm Optimization strategy.
+"""Normalized social swarm with best scores reset at every market window.
 
-Each particle (probe) updates its genome based on personal best,
-global best, and its velocity vector. Every evolution step retires
-all probes and spawns new ones at updated positions.
+Each candidate has one observation in a common evaluation window. Therefore
+its within-window personal best is its current phenotype and the cognitive
+term is zero. Inertia and current-window social attraction move the swarm;
+old market-regime scores are diagnostics, never current selection evidence.
 """
 
 from __future__ import annotations
@@ -11,51 +11,73 @@ from __future__ import annotations
 import random
 from typing import TYPE_CHECKING
 
-from ..evolution import mutate_assets
-from ..gene_registry import GENE_REGISTRY
+import numpy as np
+
 from ..genome import Genome
+from ..parameter_codec import ParameterCodec, PARAMETER_POLICY
 from .base import EvolutionResult, EvolutionStrategy
+from .cohort_contract import SelectionCohort
 
 if TYPE_CHECKING:
     from ..colony_config import ColonyConfig
     from ..probe import Probe
 
-NUMERIC_GENES = GENE_REGISTRY.numeric_gene_names()
+
+SWARM_POLICY = {
+    "version": "window-reset-social-v1",
+    "best_scores": "current_common_window_only",
+    "cognitive_attraction": "zero_with_one_observation_per_window",
+    "initial_velocity": "uniform_unit_minus_0_1_plus_0_1",
+    "velocity": "repaired_normalized_displacement",
+}
 
 
 class ParticleSwarmStrategy(EvolutionStrategy):
     supports_cohorts = True
     name = "particle_swarm"
-    label = "Particle Swarm Optimization"
-    description = "PSO with inertia weight, cognitive and social components."
+    label = "Window-reset Swarm (PSO variant)"
+    description = "Normalized window-reset social swarm with inertia and current-window scores."
 
     def __init__(self) -> None:
-        self.w = 0.7  # Inertia weight
-        self.c1 = 1.5  # Cognitive coefficient (personal best attraction)
-        self.c2 = 1.5  # Social coefficient (global best attraction)
+        super().__init__()
+        self.w = 0.7
+        self.c2 = 1.5
+        if not hasattr(self, "_rng"):
+            self._rng = random.Random()
+        self._cohort = SelectionCohort()
+        self._codec: ParameterCodec | None = None
         self._velocities: dict[str, dict[str, float]] = {}
-        self._personal_best: dict[str, tuple[dict, float]] = {}
+        self._personal_best: dict[str, tuple[dict, float | None]] = {}
         self._global_best: tuple[dict, float] | None = None
 
     def initialize(self, probes: list[Probe], colony_config: ColonyConfig) -> None:
-        """Initialize velocities and personal bests keyed by real probe IDs."""
         self.abort_cohort()
+        codec = ParameterCodec(colony_config)
         for probe in probes:
-            self._velocities[probe.probe_id] = {name: 0.0 for name in NUMERIC_GENES}
-            self._personal_best[probe.probe_id] = (
-                probe.genome.to_dict(),
-                probe.fitness,
-            )
+            codec.encode(probe.genome)
+        self._cohort.initialize(probes)
+        self._codec = codec
+        for probe in probes:
+            self._velocities[probe.probe_id] = {
+                name: self._rng.uniform(-0.1, 0.1) for name in codec.names
+            }
+            # A fresh account has no completed-window score yet.
+            self._personal_best[probe.probe_id] = (probe.genome.to_dict(), None)
 
     def abort_cohort(self) -> None:
+        self._cohort.abort()
+        self._codec = None
         self._velocities.clear()
         self._personal_best.clear()
         self._global_best = None
 
     def bind_candidates(self, probes: list[Probe]) -> None:
         members = {probe.probe_id for probe in probes}
-        self._velocities = {pid: value for pid, value in self._velocities.items() if pid in members}
-        self._personal_best = {pid: value for pid, value in self._personal_best.items() if pid in members}
+        if members != set(self._velocities):
+            raise ValueError("Swarm velocities must map exactly to the new candidate accounts")
+        self._cohort.bind(probes)
+        self._personal_best = {probe.probe_id: (probe.genome.to_dict(), None) for probe in probes}
+        self._global_best = None
 
     def evolve(
         self,
@@ -63,74 +85,61 @@ class ParticleSwarmStrategy(EvolutionStrategy):
         dead_probes: list[Probe],
         colony_config: ColonyConfig,
     ) -> EvolutionResult:
-        # Update personal and global bests
-        for p in probes:
-            pid = p.probe_id
-            if pid not in self._personal_best or p.fitness > self._personal_best[pid][1]:
-                self._personal_best[pid] = (p.genome.to_dict(), p.fitness)
-            if self._global_best is None or p.fitness > self._global_best[1]:
-                self._global_best = (p.genome.to_dict(), p.fitness)
-
+        if self._codec is None:
+            raise ValueError("Swarm requires an initialized parameter codec")
+        self._codec.check_configuration(colony_config)
+        ordered = self._cohort.results(probes)
+        # Validate every phenotype before consuming randomness or updating state.
+        positions = {probe.probe_id: self._codec.encode(probe.genome) for probe in ordered}
+        best = max(ordered, key=lambda probe: probe.fitness)
+        global_position = positions[best.probe_id]
+        next_velocities: dict[str, dict[str, float]] = {}
         offspring: list[Genome] = []
-        retire_ids: list[str] = []
         parent_map: dict[str, list[str]] = {}
-
-        for probe in probes:
+        parent_roles: dict[str, dict] = {}
+        for probe in ordered:
             pid = probe.probe_id
-            if pid not in self._velocities:
-                self._velocities[pid] = {name: 0.0 for name in NUMERIC_GENES}
+            current = positions[pid]
+            velocity = np.array([self._velocities[pid][name] for name in self._codec.names])
+            random_social = np.array([self._rng.random() for _ in self._codec.names])
+            social = self.c2 * random_social * (global_position - current)
+            proposal = current + self.w * velocity + social
+            child = self._codec.decode(proposal, probe.genome, clip=True)
+            social_source = best if best.probe_id != pid and np.any(social != 0) else None
+            sources = [probe, social_source] if social_source is not None else [probe]
+            child.generation = max(source.genome.generation for source in sources) + 1
+            parent_map[str(len(offspring))] = [source.probe_id for source in sources]
+            parent_roles[str(len(offspring))] = {
+                "particle_source_id": pid,
+                "social_source_id": social_source.probe_id if social_source is not None else None,
+            }
+            child.parent_ids = []
+            realized = self._codec.encode(child) - current
+            next_velocities[pid] = {name: float(value) for name, value in zip(self._codec.names, realized)}
+            offspring.append(child)
 
-            velocity = self._velocities[pid]
-            pb = self._personal_best[pid][0]
-            gb = self._global_best[0]
-            current = probe.genome.to_dict()
-
-            new_genes: dict[str, float] = {}
-            new_velocity: dict[str, float] = {}
-            for gene in NUMERIC_GENES:
-                if not colony_config.is_gene_evolvable(gene):
-                    new_genes[gene] = current[gene]
-                    new_velocity[gene] = 0.0
-                    continue
-                r1, r2 = random.random(), random.random()
-                v = (
-                    self.w * velocity[gene]
-                    + self.c1 * r1 * (pb[gene] - current[gene])
-                    + self.c2 * r2 * (gb[gene] - current[gene])
-                )
-                new_velocity[gene] = v
-                new_genes[gene] = current[gene] + v
-
-            new_genome = Genome.from_dict(
-                {**new_genes, "generation": probe.genome.generation + 1}
-            )
-            new_genome.assets = mutate_assets(
-                probe.genome.assets, colony_config, swap_rate=0.10
-            )
-            new_genome.validate(colony_config)
-
-            # Store velocity under same key — genesis calls remap_probe_id after spawning
-            self._velocities[pid] = new_velocity
-
-            idx = str(len(offspring))
-            parent_map[idx] = [pid]
-            offspring.append(new_genome)
-            retire_ids.append(pid)
-
+        self._cohort.propose(offspring, ordered)
+        self._velocities = next_velocities
+        self._personal_best = {probe.probe_id: (probe.genome.to_dict(), probe.fitness) for probe in ordered}
+        self._global_best = (best.genome.to_dict(), best.fitness)
         return EvolutionResult(
             offspring=offspring,
-            retire_ids=retire_ids,
+            retire_ids=[probe.probe_id for probe in ordered],
             parent_map=parent_map,
             metadata={
-                "global_best_fitness": self._global_best[1]
-                if self._global_best
-                else 0
+                "lineage_policy": "numeric_particle_and_social_sources",
+                "parent_roles": parent_roles,
+                "global_best_fitness": best.fitness,
+                "best_score_iteration_id": best.iteration_id,
+                "parameter_policy": dict(PARAMETER_POLICY),
+                "swarm_policy": dict(SWARM_POLICY),
+                "active_dimensions": self._codec.dimensions,
             },
         )
 
     def remap_probe_id(self, old_id: str, new_id: str) -> None:
-        """Transfer velocity and personal-best state from old probe to new."""
-        if old_id in self._velocities:
-            self._velocities[new_id] = self._velocities.pop(old_id)
-        if old_id in self._personal_best:
-            self._personal_best[new_id] = self._personal_best.pop(old_id)
+        """Transfer particle momentum to its fresh evaluation account."""
+        if old_id not in self._velocities or new_id in self._velocities:
+            raise ValueError("Swarm particle remapping must be one-to-one")
+        self._velocities[new_id] = self._velocities.pop(old_id)
+        self._personal_best[new_id] = self._personal_best.pop(old_id)
