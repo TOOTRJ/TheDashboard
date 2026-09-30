@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/client";
 import type { Probe, Trade, FitnessSnapshot, GenerationStats, ColonyRun } from "./types";
-import { parseSearchSpec, parseEvaluationCohort, parseEvaluationPolicy, parseRiskControl } from "./transport";
+import { parseLifecyclePolicy, parseSearchSpec, parseEvaluationCohort, parseEvaluationPolicy, parseRiskControl } from "./transport";
 
 function supabase() {
   return createClient();
@@ -145,6 +145,7 @@ async function _enrichColonyRuns(
       market_time: typeof record.market_time === "string" && Number.isFinite(Date.parse(record.market_time)) ? record.market_time : undefined,
       market_elapsed_secs: typeof record.market_elapsed_secs === "number" && Number.isFinite(record.market_elapsed_secs) && record.market_elapsed_secs >= 0 ? record.market_elapsed_secs : undefined,
       circuit_breaker: typeof record.circuit_breaker === "boolean" ? record.circuit_breaker : undefined,
+      lifecycle_policy: parseLifecyclePolicy(record.lifecycle_policy),
       risk_control: parseRiskControl(record.risk_control),
       evaluation_policy: evaluationPolicy,
       cohort: evaluationPolicy ? parseEvaluationCohort(record.cohort) : undefined,

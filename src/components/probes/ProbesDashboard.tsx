@@ -4,6 +4,7 @@ import * as React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type {
   Probe,
+  LifecyclePolicy,
   GenerationStats,
   SystemStatus,
   SimulationStatus,
@@ -25,6 +26,7 @@ import { PriceFeed } from "./PriceFeed";
 interface Props {
   probes: Probe[];
   generationStats: GenerationStats[];
+  lifecyclePolicy?: LifecyclePolicy;
   systemStatus: SystemStatus | null;
   valuationAvailable?: boolean;
   connected: boolean;
@@ -50,6 +52,7 @@ interface Props {
 export function ProbesDashboard({
   probes,
   generationStats,
+  lifecyclePolicy,
   systemStatus,
   valuationAvailable,
   connected,
@@ -145,6 +148,11 @@ export function ProbesDashboard({
         </TabsContent>
 
         <TabsContent value="evolution" className="space-y-4">
+          <p className="text-xs text-muted-foreground">
+            {lifecyclePolicy
+              ? "Generations group candidate births, not ancestry depth. A summary requires closed membership and confirmed terminal records for every candidate. Generation diversity is RMS numeric distance; live population diversity uses a different measure."
+              : "The reporting policy is unavailable for this run. Historical generation statistics may use earlier definitions."}
+          </p>
           <FitnessChart stats={generationStats} />
           <GenerationTimeline stats={generationStats} />
         </TabsContent>
@@ -155,7 +163,7 @@ export function ProbesDashboard({
       </Tabs>
 
       <ProbeDetail
-        probe={selectedProbe}
+        probe={probes.find((probe) => probe.id === selectedProbe?.id) ?? selectedProbe}
         open={detailOpen}
         onClose={() => setDetailOpen(false)}
       />

@@ -2,7 +2,8 @@
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { STATE_COLORS } from "@/lib/probes/constants";
+import { STATE_COLORS, STATE_LABELS } from "@/lib/probes/constants";
+import { probeParentIds } from "@/lib/probes/lifecycle";
 import type { Probe } from "@/lib/probes/types";
 
 interface Props {
@@ -10,120 +11,45 @@ interface Props {
   onSelectProbe: (probe: Probe) => void;
 }
 
-interface TreeNode {
-  probe: Probe;
-  children: TreeNode[];
-}
-
-function buildTree(probes: Probe[]): TreeNode[] {
-  const map = new Map<string, TreeNode>();
-  for (const p of probes) {
-    map.set(p.id, { probe: p, children: [] });
-  }
-  const roots: TreeNode[] = [];
-  for (const node of map.values()) {
-    if (node.probe.parent_id && map.has(node.probe.parent_id)) {
-      map.get(node.probe.parent_id)!.children.push(node);
-    } else {
-      roots.push(node);
-    }
-  }
-  return roots;
-}
-
-function TreeNodeView({
-  node,
-  depth,
-  onSelect,
-}: {
-  node: TreeNode;
-  depth: number;
-  onSelect: (p: Probe) => void;
-}) {
-  const p = node.probe;
-  const color = STATE_COLORS[p.state];
-
-  return (
-    <div style={{ paddingLeft: depth > 0 ? 24 : 0 }}>
-      <div className="flex items-center gap-2 py-1 group">
-        {depth > 0 && (
-          <div className="flex items-center">
-            <div className="w-4 h-px bg-[#00fff5]/20" />
-            <div className="w-1.5 h-1.5 rounded-full bg-[#00fff5]/40" />
-          </div>
-        )}
-        <button
-          onClick={() => onSelect(p)}
-          className="flex items-center gap-2 rounded-md px-2 py-1 text-xs hover:bg-[#00fff5]/10 transition-colors"
-        >
-          <div
-            className="h-2 w-2 rounded-full"
-            style={{ backgroundColor: color }}
-          />
-          <span className="font-medium truncate max-w-[120px]">
-            {p.probe_name}
-          </span>
-          <Badge
-            variant="outline"
-            className="text-[9px] px-1 py-0"
-            style={{
-              borderColor: `${color}40`,
-              color,
-            }}
-          >
-            G{p.generation}
-          </Badge>
-          <span className="font-mono text-[10px] text-muted-foreground">
-            F:{p.fitness_score.toFixed(2)}
-          </span>
-        </button>
-      </div>
-      {node.children.map((child) => (
-        <TreeNodeView
-          key={child.probe.id}
-          node={child}
-          depth={depth + 1}
-          onSelect={onSelect}
-        />
-      ))}
-    </div>
-  );
-}
-
 export function GenealogyTree({ probes, onSelectProbe }: Props) {
-  const tree = buildTree(probes);
-
-  if (probes.length === 0) {
-    return (
-      <Card className="border-[#bf00ff]/20 bg-card/80 backdrop-blur-sm">
-        <CardContent className="py-12 text-center">
-          <p className="text-sm text-muted-foreground">
-            No probes yet. Start a simulation to see the genealogy tree.
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
-
+  const byId = new Map(probes.map((probe) => [probe.id, probe]));
+  const ordered = [...probes].sort((a, b) => a.generation - b.generation || a.born_at.localeCompare(b.born_at) || a.id.localeCompare(b.id));
   return (
     <Card className="border-[#bf00ff]/20 bg-card/80 backdrop-blur-sm">
       <CardHeader className="pb-2">
-        <h3 className="text-sm font-semibold uppercase tracking-wider text-[#bf00ff]">
-          Probe Genealogy
-        </h3>
+        <h3 className="text-sm font-semibold uppercase tracking-wider text-[#bf00ff]">Probe Genealogy</h3>
         <p className="text-xs text-muted-foreground">
-          Parent-child lineage tree. Click any probe for details.
+          Candidates grouped by birth generation. Source links include cloning, crossover and numerical optimizer contributors.
         </p>
       </CardHeader>
       <CardContent className="max-h-[400px] overflow-y-auto">
-        {tree.map((root) => (
-          <TreeNodeView
-            key={root.probe.id}
-            node={root}
-            depth={0}
-            onSelect={onSelectProbe}
-          />
-        ))}
+        {ordered.length === 0 ? (
+          <p className="py-8 text-center text-sm text-muted-foreground">No saved candidates for this colony.</p>
+        ) : ordered.map((probe) => {
+          const parents = probeParentIds(probe);
+          return (
+            <div key={probe.id} className="border-b border-muted/20 py-2 text-xs">
+              <button onClick={() => onSelectProbe(probe)} className="flex items-center gap-2 rounded px-2 py-1 hover:bg-[#00fff5]/10">
+                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: STATE_COLORS[probe.state] }} aria-hidden="true" />
+                <span className="sr-only">{STATE_LABELS[probe.state]}</span>
+                <span className="font-medium">{probe.probe_name}</span>
+                <Badge variant="outline" className="px-1 py-0 text-[9px]">G{probe.generation}</Badge>
+                <span className="font-mono text-muted-foreground">F:{probe.fitness_score.toFixed(2)}</span>
+              </button>
+              <div className="ml-6 flex flex-wrap items-center gap-1 text-[10px] text-muted-foreground">
+                <span>{parents.length ? "Sources:" : "No recorded sources"}</span>
+                {parents.map((id) => {
+                  const parent = byId.get(id);
+                  return parent ? (
+                    <button key={id} onClick={() => onSelectProbe(parent)} className="rounded border border-[#00fff5]/20 px-1.5 py-0.5 hover:text-[#00fff5]">
+                      {parent.probe_name}
+                    </button>
+                  ) : <span key={id} title={id} className="rounded border border-muted/20 px-1.5 py-0.5">{id.slice(0, 8)} · outside loaded history</span>;
+                })}
+              </div>
+            </div>
+          );
+        })}
       </CardContent>
     </Card>
   );

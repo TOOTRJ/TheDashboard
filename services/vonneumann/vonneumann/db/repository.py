@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import math
 from copy import deepcopy
 from datetime import datetime, timezone
 from typing import Callable
@@ -289,12 +290,16 @@ class EventPersister:
 
         if etype == EventType.PROBE_BORN:
             parent_ids = data.get("genome", {}).get("parent_ids", []) or []
+            if (not isinstance(parent_ids, list) or
+                    any(not isinstance(pid, str) or not pid for pid in parent_ids) or
+                    len(set(parent_ids)) != len(parent_ids)):
+                raise ValueError("Probe lineage must contain unique parent identities")
             await self.repo.execute_async("insert_probe", {
                 "probe_id": event.probe_id,
                 "probe_name": data.get("probe_name", ""),
                 "generation": data.get("generation", 0),
                 "parent_id": parent_ids[0] if parent_ids else None,
-                "parent_ids": parent_ids,
+                "parent_ids": list(parent_ids),
                 "state": data.get("state", "OBSERVING"),
                 "genome": data.get("genome", {}),
                 "initial_capital": data.get("initial_capital", 0),
@@ -341,22 +346,34 @@ class EventPersister:
         elif etype == EventType.PROBE_UPDATE:
             await self.repo.execute_async("update_probe_metrics", data)
 
-        elif etype in (EventType.PROBE_DYING, EventType.PROBE_REPRODUCING):
-            reason = data.get("death_reason") or data.get("reason", etype.value)
-            await self.repo.execute_async("update_probe", event.probe_id, {
-                "state": "DEAD",
-                "death_reason": reason,
-                "died_at": timestamp.isoformat(),
-                "current_capital": data.get("current_capital", 0),
-                "peak_capital": data.get("peak_capital", 0),
-                "total_trades": data.get("total_trades", 0),
-                "winning_trades": data.get("winning_trades", 0),
-                "total_pnl": data.get("total_pnl", 0),
-                "fitness_score": data.get("fitness_score", 0),
-                "sharpe_ratio": data.get("sharpe_ratio"),
-                "max_drawdown": (data.get("max_drawdown_pct", 0) or 0) / 100.0,
-                "metrics": deepcopy(data.get("metrics")),
-            })
+        elif etype in (EventType.PROBE_DYING, EventType.PROBE_REPRODUCING, EventType.PROBE_DEAD):
+            fields = {"state": {
+                EventType.PROBE_DYING: "DYING", EventType.PROBE_REPRODUCING: "REPRODUCING",
+                EventType.PROBE_DEAD: "DEAD",
+            }[etype]}
+            # Partial transition messages preserve known metrics; absent values
+            # are never fabricated as zero. Only explicit death commits terminal
+            # state/time after the complete liquidation and retirement path.
+            numeric_fields = ("current_capital", "peak_capital", "total_trades",
+                              "winning_trades", "total_pnl", "fitness_score", "max_drawdown_pct")
+            terminal = etype == EventType.PROBE_DEAD
+            for name in numeric_fields:
+                if terminal or name in data:
+                    value = data.get(name)
+                    if (isinstance(value, bool) or not isinstance(value, (int, float)) or
+                            not math.isfinite(value)):
+                        raise ValueError("Lifecycle metrics must be complete finite numbers")
+                    fields["max_drawdown" if name == "max_drawdown_pct" else name] = (
+                        value / 100.0 if name == "max_drawdown_pct" else value)
+            for name in ("sharpe_ratio", "metrics"):
+                if name in data:
+                    fields[name] = deepcopy(data[name])
+            if terminal:
+                reason = data.get("death_reason")
+                if data.get("state") != "DEAD" or not isinstance(reason, str) or not reason:
+                    raise ValueError("A terminal event requires final state and death reason")
+                fields.update(death_reason=reason, died_at=timestamp.isoformat())
+            await self.repo.execute_async("update_probe", event.probe_id, fields)
 
         elif etype == EventType.FITNESS_SNAPSHOT:
             snapshot = FitnessSnapshot(

@@ -42,6 +42,10 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+# Full fills remain in the durable trade ledger. These objects are a recent
+# inspection cache; lifetime counts and realized PnL survive every eviction.
+CLOSED_TRADE_RETENTION = 256
+
 
 @dataclass(frozen=True)
 class _ClosePlan:
@@ -102,6 +106,9 @@ class Probe:
         self._tick_count: int = 0  # Lifecycle count; never an indicator timeframe
         self.open_positions: dict[str, TradeRecord] = {}
         self.closed_trades: list[TradeRecord] = []
+        self._evicted_trade_count = 0
+        self._evicted_winning_trades = 0
+        self._evicted_trade_pnl = 0.0
 
         # Execution marks and completed indicator history have separate roles.
         self._marks: dict[str, float] = {}
@@ -194,20 +201,39 @@ class Probe:
 
     @property
     def num_trades(self) -> int:
-        return len(self.closed_trades)
+        self._trim_closed_trades()
+        return self._evicted_trade_count + len(self.closed_trades)
 
     @property
     def win_rate(self) -> float:
-        wins = sum(1 for t in self.closed_trades if (t.pnl or 0) > 0)
-        return wins / self.num_trades if self.num_trades > 0 else 0.0
+        count = self.num_trades
+        return self.winning_trades / count if count else 0.0
 
     @property
     def winning_trades(self) -> int:
-        return sum(1 for t in self.closed_trades if (t.pnl or 0) > 0)
+        self._trim_closed_trades()
+        return self._evicted_winning_trades + sum(1 for t in self.closed_trades if (t.pnl or 0) > 0)
 
     @property
     def total_pnl(self) -> float:
-        return sum(t.pnl or 0 for t in self.closed_trades)
+        self._trim_closed_trades()
+        return math.fsum([self._evicted_trade_pnl, *(t.pnl or 0 for t in self.closed_trades)])
+
+    def _trim_closed_trades(self) -> None:
+        excess = len(self.closed_trades) - CLOSED_TRADE_RETENTION
+        if excess <= 0:
+            return
+        evicted = self.closed_trades[:excess]
+        # Validate before changing counters: retention cannot hide malformed
+        # history from liquidation preflight, including direct fixture appends.
+        for trade in evicted:
+            trade_return(trade.entry_price, trade.exit_price)
+            finite_number(trade.pnl or 0)
+        pnl = finite_number(math.fsum([self._evicted_trade_pnl, *(t.pnl or 0 for t in evicted)]))
+        self._evicted_trade_count += excess
+        self._evicted_winning_trades += sum(1 for trade in evicted if (trade.pnl or 0) > 0)
+        self._evicted_trade_pnl = pnl
+        del self.closed_trades[:excess]
 
     @property
     def fitness(self) -> float:
@@ -541,6 +567,7 @@ class Probe:
         self.peak_capital = plan.peak_capital
         self._max_drawdown = plan.max_drawdown
         self.closed_trades.append(trade)
+        self._trim_closed_trades()
         self._pending_intents.pop(plan.asset, None)
         logger.info(
             f"[Probe {self.probe_id[:8]}] CLOSE {plan.asset} @ ${plan.exit_price:.4f} "
@@ -869,4 +896,10 @@ class Probe:
         )
 
         self._transition(ProbeState.DEAD)
+        events.append(ProbeEvent(
+            event_type=EventType.PROBE_DEAD,
+            probe_id=self.probe_id,
+            timestamp=died_at,
+            data={"reason": reason, **data, "state": ProbeState.DEAD.value},
+        ))
         return events

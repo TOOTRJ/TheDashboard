@@ -34,6 +34,19 @@ export interface RiskControl {
   recovery_count: number;
 }
 
+export interface LifecyclePolicy {
+  version: "acknowledged-terminal-sealed-generations-v1";
+  terminal_event: "probe_dead";
+  generation_completion: "sealed_births_all_terminal_acknowledged";
+  generation_semantics: "birth_epoch_not_ancestry_depth";
+  generation_diversity: "rms_pairwise_global_normalized_numeric_v1";
+  generation_diversity_assets: "excluded";
+  reproduced_count: "distinct_sources_with_acknowledged_offspring_before_completion";
+  closed_trade_retention: number;
+  dead_probe_retention: number;
+  generation_history_retention: number;
+}
+
 export interface SearchSpec {
   version: "search-spec-v1";
   seed: string;
@@ -99,6 +112,7 @@ export interface Probe {
   probe_name: string;
   generation: number;
   parent_id: string | null;
+  parent_ids?: string[];
   state: ProbeState;
   genome: Genome;
   initial_capital: number;
@@ -194,7 +208,7 @@ export interface ColonyRun {
   probe_count: number;
   best_fitness: number;
   status?: Exclude<SimulationStatus, "unknown">;
-  runtime?: Partial<Pick<SystemStatus, "failure_code" | "state_persisted" | "open_positions" | "requires_reconciliation" | "valuation_available" | "clock_basis" | "market_time" | "market_elapsed_secs" | "circuit_breaker" | "risk_control" | "evaluation_policy" | "cohort" | "search_spec">>;
+  runtime?: Partial<Pick<SystemStatus, "failure_code" | "state_persisted" | "open_positions" | "requires_reconciliation" | "valuation_available" | "clock_basis" | "market_time" | "market_elapsed_secs" | "circuit_breaker" | "risk_control" | "evaluation_policy" | "cohort" | "search_spec" | "lifecycle_policy">>;
 }
 
 export interface PriceTick {
@@ -222,6 +236,7 @@ export interface SystemStatus {
   circuit_breaker: boolean;
   risk_control?: RiskControl;
   search_spec?: SearchSpec;
+  lifecycle_policy?: LifecyclePolicy;
   evaluation_policy?: EvaluationPolicy;
   cohort?: EvaluationCohort;
   diversity: number | null;
@@ -259,6 +274,7 @@ export interface ColonyInfo {
   circuit_breaker?: boolean;
   risk_control?: RiskControl;
   search_spec?: SearchSpec;
+  lifecycle_policy?: LifecyclePolicy;
   evaluation_policy?: EvaluationPolicy;
   cohort?: EvaluationCohort;
 }

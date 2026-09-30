@@ -20,6 +20,7 @@ function loadModule(path, modules, globals = {}) {
   });
   return exports;
 }
+const lifecycle = loadModule("../src/lib/probes/lifecycle.ts", {});
 const configs = loadModule("../src/lib/probes/colony-config.ts", { "./gene-registry": registry, "./transport": transport });
 const valid = () => configs.buildDefaultStartConfig();
 const plain = (value) => JSON.parse(JSON.stringify(value));
@@ -144,6 +145,7 @@ test("overview uses reported marked total, guards nullable metrics, and never re
   const { ProbesOverview } = loadModule("../src/components/probes/ProbesOverview.tsx", {
     "react/jsx-runtime": { jsx, jsxs: jsx },
     "lucide-react": { Activity: "Activity", Dna: "Dna", DollarSign: "DollarSign", TrendingUp: "TrendingUp", Zap: "Zap" },
+    "@/lib/probes/transport": transport,
     "@/components/ui/card": { Card: "Card", CardContent: "CardContent" },
   });
   const probes = [{ state: "TRADING", current_capital: 999, fitness_score: 1, generation: 0 }];
@@ -275,6 +277,7 @@ function pageHarness(initial = {}) {
     },
     "@/lib/probes/websocket": { useProbesWebSocket: (_token, _user, callback) => { websocketMessage = callback; return { connected: true, error: null }; } },
     "@/lib/probes/constants": { VN_ENDPOINTS: { apiUrl: "https://offline.invalid", wsUrl: "wss://offline.invalid", error: null } },
+    "@/lib/probes/lifecycle": lifecycle,
     "@/lib/probes/transport": { ...transport, requestWorker: worker },
     "@/lib/probes/colony-config": configs,
   };
@@ -412,6 +415,7 @@ test("probe details distinguish unavailable equity diagnostics from zero and leg
     "@/components/ui/card": { Card: "Card", CardContent: "CardContent", CardHeader: "CardHeader" },
     "@/components/ui/dialog": { Dialog: "Dialog", DialogContent: "DialogContent", DialogHeader: "DialogHeader", DialogTitle: "DialogTitle" },
     "@/lib/probes/constants": { STATE_COLORS: { TRADING: "#fff" }, STATE_LABELS: { TRADING: "Trading" } },
+    "@/lib/probes/lifecycle": lifecycle,
     "@/lib/probes/gene-registry": { GENE_DEFINITIONS: [] },
     "./GenomeRadar": { GenomeRadar: "GenomeRadar" }, "./TradeLog": { TradeLog: "TradeLog" },
   });
@@ -436,7 +440,7 @@ test("probe details distinguish unavailable equity diagnostics from zero and leg
 
 test("actual page preserves nullable Sharpe and policy metadata from probe events", async () => {
   const h = pageHarness(); await h.pump();
-  for (const sharpe_ratio of [null, undefined, NaN, Infinity, 0, 1.23456789123]) {
+  for (const sharpe_ratio of [null, undefined, NaN, Infinity, 0, 1.23456789123, NaN]) {
     const metrics = { fitness_version: "equity-roi-historical-dd-v1", status: "insufficient_samples", sharpe_ratio };
     h.event({ type: "probe_update", colony_id: "A", data: { probe_id: "probe", sharpe_ratio, metrics } });
     await h.pump();
@@ -850,4 +854,31 @@ test("saved search metadata is versioned and does not imply checkpoint restorati
   for (const edits of [{ seed: 1 }, { epoch: -1 }, { epoch: 1.5 }, { version: "other" }, { stream_policy: "other" }, { algorithm: "other" }, { optimizer_state_checkpointed: true }]) {
     assert.equal(transport.parseSearchSpec({ ...value, ...edits }), undefined);
   }
+});
+
+const lifecyclePolicy = {
+  version: "acknowledged-terminal-sealed-generations-v1",
+  terminal_event: "probe_dead",
+  generation_completion: "sealed_births_all_terminal_acknowledged",
+  generation_semantics: "birth_epoch_not_ancestry_depth",
+  generation_diversity: "rms_pairwise_global_normalized_numeric_v1",
+  generation_diversity_assets: "excluded",
+  reproduced_count: "distinct_sources_with_acknowledged_offspring_before_completion",
+  closed_trade_retention: 256, dead_probe_retention: 500, generation_history_retention: 100,
+};
+
+test("saved lifecycle policy requires exact semantics and bounded integer limits without leaking configuration", async () => {
+  assert.deepEqual(transport.parseLifecyclePolicy({ ...lifecyclePolicy, secret: "private" }), lifecyclePolicy);
+  for (const value of [undefined, null, {}, { ...lifecyclePolicy, version: "legacy" }, { ...lifecyclePolicy, generation_diversity_assets: "included" },
+    { ...lifecyclePolicy, dead_probe_retention: 0 }, { ...lifecyclePolicy, closed_trade_retention: Infinity },
+    { ...lifecyclePolicy, generation_history_retention: "100" }, { ...lifecyclePolicy, generation_history_retention: 1.2 }]) {
+    assert.equal(transport.parseLifecyclePolicy(value), undefined);
+  }
+  const h = databaseHarness([
+    { data: [{ id: "A", mode: "simulation", config: { runtime: { lifecycle_policy: { ...lifecyclePolicy, secret: "private" } } } }], error: null },
+    { data: [], error: null },
+  ]);
+  const [run] = await h.api.fetchColonyRuns();
+  assert.deepEqual(plain(run.runtime.lifecycle_policy), lifecyclePolicy);
+  assert.ok(!JSON.stringify(run).includes("private"));
 });

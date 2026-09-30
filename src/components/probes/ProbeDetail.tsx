@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { STATE_COLORS, STATE_LABELS } from "@/lib/probes/constants";
 import { GENE_DEFINITIONS } from "@/lib/probes/gene-registry";
+import { probeParentIds } from "@/lib/probes/lifecycle";
 import type { Probe } from "@/lib/probes/types";
 import { GenomeRadar } from "./GenomeRadar";
 import { TradeLog } from "./TradeLog";
@@ -25,6 +26,12 @@ interface Props {
 export function ProbeDetail({ probe, open, onClose }: Props) {
   if (!probe) return null;
   const stateColor = STATE_COLORS[probe.state];
+  const parentIds = probeParentIds(probe);
+  const isDead = probe.state === "DEAD";
+  const hasDeathTime = isDead && probe.died_at !== null && Number.isFinite(Date.parse(probe.died_at));
+  const pendingLabel = probe.state === "DYING" ? "Awaiting terminal confirmation"
+    : probe.state === "REPRODUCING" ? "Awaiting replacement confirmation"
+      : isDead ? "Terminal record · death time unavailable" : "Alive";
   const equityMetrics = probe.metrics?.fitness_version === "equity-roi-historical-dd-v1";
   const sharpe = typeof probe.sharpe_ratio === "number" && Number.isFinite(probe.sharpe_ratio)
     ? probe.sharpe_ratio.toFixed(2) : "Unavailable";
@@ -54,9 +61,9 @@ export function ProbeDetail({ probe, open, onClose }: Props) {
                 <span className="text-[10px] text-muted-foreground font-mono">
                   Gen {probe.generation}
                 </span>
-                {probe.parent_id && (
-                  <span className="text-[10px] text-muted-foreground">
-                    Parent: {probe.parent_id.slice(0, 8)}
+                {parentIds.length > 0 && (
+                  <span className="text-[10px] text-muted-foreground" title={parentIds.join(", ")}>
+                    Sources: {parentIds.map(id => id.slice(0, 8)).join(", ")}
                   </span>
                 )}
               </div>
@@ -75,14 +82,14 @@ export function ProbeDetail({ probe, open, onClose }: Props) {
               })}
             </span>
           </div>
-          {probe.died_at ? (
+          {hasDeathTime ? (
             <>
               <div className="h-3 w-px bg-[#00fff5]/20" />
               <div className="flex items-center gap-1.5 text-muted-foreground">
                 <Skull className="h-3 w-3 text-[#ff3366]" />
                 <span>Died</span>
                 <span className="font-mono text-foreground">
-                  {new Date(probe.died_at).toLocaleString([], {
+                  {new Date(probe.died_at!).toLocaleString([], {
                     month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit",
                   })}
                 </span>
@@ -93,7 +100,8 @@ export function ProbeDetail({ probe, open, onClose }: Props) {
                 <span>Lifespan</span>
                 <span className="font-mono text-foreground">
                   {(() => {
-                    const ms = new Date(probe.died_at).getTime() - new Date(probe.born_at).getTime();
+                    const ms = new Date(probe.died_at!).getTime() - new Date(probe.born_at).getTime();
+                    if (!Number.isFinite(ms) || ms < 0) return "Unavailable";
                     const secs = Math.floor(ms / 1000);
                     const m = Math.floor(secs / 60);
                     const s = secs % 60;
@@ -114,8 +122,8 @@ export function ProbeDetail({ probe, open, onClose }: Props) {
             <>
               <div className="h-3 w-px bg-[#00fff5]/20" />
               <div className="flex items-center gap-1.5">
-                <div className="h-1.5 w-1.5 rounded-full bg-[#39ff14] animate-pulse" />
-                <span className="text-[#39ff14] font-medium">Alive</span>
+                <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: stateColor }} aria-hidden="true" />
+                <span className="font-medium" style={{ color: stateColor }}>{pendingLabel}</span>
               </div>
             </>
           )}
