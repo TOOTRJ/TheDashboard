@@ -40,6 +40,19 @@ export interface Genome {
   parent_ids: string[];
 }
 
+export interface ProbeMetrics {
+  policy_version?: string;
+  fitness_version?: string;
+  status?: string;
+  sharpe_ratio?: number | null;
+  return_count?: number;
+  missing_periods?: number;
+  last_sample_endpoint?: number | null;
+  last_sample_observed_at?: number | null;
+  window_start_endpoint?: number | null;
+  current_drawdown?: number;
+}
+
 export interface Probe {
   id: string;
   probe_name: string;
@@ -54,7 +67,8 @@ export interface Probe {
   winning_trades: number;
   total_pnl: number;
   max_drawdown: number;
-  sharpe_ratio: number;
+  sharpe_ratio: number | null;
+  metrics?: ProbeMetrics | null;
   fitness_score: number;
   born_at: string;
   died_at: string | null;
@@ -93,7 +107,8 @@ export interface FitnessSnapshot {
   tick: number;
   fitness_score: number;
   roi: number;
-  sharpe_ratio: number;
+  sharpe_ratio: number | null;
+  metrics?: ProbeMetrics | null;
   max_drawdown: number;
   win_rate: number;
   trade_count: number;

@@ -167,6 +167,40 @@ class SourceTimeControllerTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCa
         self.assertEqual(healthy.closed_trades, [healthy_trade])
         self.assert_no_new_exposure_or_evolution({stale.probe_id, healthy.probe_id}, controller)
 
+    async def test_equity_age_recheck_excludes_expired_stop_but_keeps_fresh_sibling(self):
+        controller, feed, (probe, _) = await self.controller()
+        stale_trade = self.open_position(probe, OTHER_ASSET)
+        fresh_trade = self.open_position(probe, ASSET)
+        history = probe._equity_history
+        self.clock.advance(31)
+        feed.response = feed.prices(80, slot=101)
+        feed.response[OTHER_ASSET] = feed.prices(80, age=29.5, slot=101)[OTHER_ASSET]
+        advanced = False
+
+        def observation_time():
+            nonlocal advanced
+            if not advanced:
+                # Both quotes passed initial eligibility. The held quote now
+                # expires before the full-portfolio observation is frozen.
+                self.clock.advance(1)
+                advanced = True
+            return datetime.fromtimestamp(self.clock.wall, timezone.utc)
+
+        with patch.object(controller, "_event_time", side_effect=observation_time):
+            with self.assertRaises(MarketFeedError) as raised:
+                await controller._tick_all()
+        self.assertEqual(raised.exception.code, "price_stale")
+        self.assertEqual(probe.open_positions, {OTHER_ASSET: stale_trade})
+        self.assertIsNone(stale_trade.exit_price)
+        self.assertEqual(probe.closed_trades, [fresh_trade])
+        self.assertEqual(fresh_trade.exit_price, 80)
+        self.assertIs(probe._equity_history, history)
+        self.assertEqual(probe.peak_capital, 100)
+        self.assertEqual(probe.max_drawdown, 0)
+        self.assertEqual([event.data["trade_id"] for event in self.events
+                          if event.event_type == EventType.TRADE_CLOSED], [fresh_trade.trade_id])
+        self.assert_no_new_exposure_or_evolution(set(controller.probes), controller)
+
     async def test_paper_ticks_without_source_evidence_cannot_trade(self):
         controller, feed, probes = await self.controller()
         feed.response = {asset: replace(tick, evidence=None)

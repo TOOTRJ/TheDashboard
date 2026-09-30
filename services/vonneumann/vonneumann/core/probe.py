@@ -21,7 +21,8 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Callable, Optional
 
 from .clock import clock_datetime, utc_now
-from .evolution import compute_fitness, compute_sharpe
+from .evolution import FITNESS_POLICY, compute_fitness
+from .equity_metrics import EquityHistory, MAX_OBSERVATION_CARRY_SECONDS
 from .genome import Genome
 from .market_validation import (
     MarketValueError,
@@ -51,6 +52,7 @@ class _ClosePlan:
     pnl: float
     capital: float
     peak_capital: float
+    max_drawdown: float
     reason: str
     closed_at: datetime
     event: ProbeEvent
@@ -87,6 +89,9 @@ class Probe:
         self.initial_capital = positive_price(initial_capital)
         self.capital = self.initial_capital
         self.peak_capital = self.initial_capital
+        self._max_drawdown = 0.0
+        self._equity_history = EquityHistory()
+        self._valuation_assets: set[str] | None = None
 
         self.state = ProbeState.BORN
         self.born_at = self._now()
@@ -143,10 +148,48 @@ class Probe:
         return self.total_value - self.initial_capital
 
     @property
-    def max_drawdown(self) -> float:
+    def current_drawdown(self) -> float:
         if self.peak_capital == 0:
             return 0.0
         return max(0.0, (self.peak_capital - self.total_value) / self.peak_capital)
+
+    @property
+    def max_drawdown(self) -> float:
+        """Worst observed loss from a prior peak; recovery cannot erase it."""
+        return self._max_drawdown
+
+    def _observe_drawdown(self) -> float:
+        value = self._marked_value(self.capital, self.open_positions)
+        peak = max(positive_price(self.peak_capital), value)
+        worst = max(nonnegative_value(self._max_drawdown), max(0.0, 1.0 - value / peak))
+        self.peak_capital, self._max_drawdown = peak, worst
+        return value
+
+    def observe_equity(self, *, assets: set[str], observed_at: float,
+                       valid_until: float) -> bool:
+        """Record one complete, explicitly fresh portfolio observation.
+
+        Incomplete risk passes must not turn retained sibling marks into an
+        equity sample. The immutable history also keeps liquidation preflight pure.
+        """
+        if not set(self.open_positions).issubset(assets):
+            return False
+        value = self._observe_drawdown()
+        history = self._equity_history
+        born_at = self.born_at.timestamp()
+        if history.last_observation is None and born_at <= observed_at:
+            # The funded, all-cash portfolio at birth is a known observation.
+            # Preserve the first modeled minute's return instead of silently
+            # using the first advanced frame as the performance baseline.
+            history = history.observe(self.initial_capital, born_at,
+                                      born_at + MAX_OBSERVATION_CARRY_SECONDS)
+        self._equity_history = history.observe(value, observed_at, valid_until)
+        return True
+
+    def metrics(self) -> dict:
+        return {**self._equity_history.diagnostic(),
+                "fitness_version": FITNESS_POLICY["version"],
+                "current_drawdown": self.current_drawdown}
 
     @property
     def num_trades(self) -> int:
@@ -167,20 +210,14 @@ class Probe:
 
     @property
     def fitness(self) -> float:
-        returns = [t.return_pct() for t in self.closed_trades]
-        sharpe = compute_sharpe(returns)
         return compute_fitness(
             roi=self.roi,
-            sharpe=sharpe,
             max_drawdown=self.max_drawdown,
-            num_trades=self.num_trades,
-            win_rate=self.win_rate,
         )
 
     @property
-    def sharpe(self) -> float:
-        returns = [t.return_pct() for t in self.closed_trades]
-        return compute_sharpe(returns)
+    def sharpe(self) -> float | None:
+        return self._equity_history.diagnostic()["sharpe_ratio"]
 
     def summary(self) -> dict:
         return {
@@ -188,19 +225,21 @@ class Probe:
             "probe_name": self.probe_name,
             "state": self.state.value,
             "generation": self.genome.generation,
-            "current_capital": round(self.capital, 4),
-            "open_position_value": round(self.open_position_value, 4),
-            "total_value": round(self.total_value, 4),
-            "initial_capital": round(self.initial_capital, 4),
-            "peak_capital": round(self.peak_capital, 4),
-            "roi_pct": round(self.roi * 100, 2),
-            "max_drawdown_pct": round(self.max_drawdown * 100, 2),
+            "current_capital": self.capital,
+            "open_position_value": self.open_position_value,
+            "total_value": self.total_value,
+            "initial_capital": self.initial_capital,
+            "peak_capital": self.peak_capital,
+            "roi_pct": self.roi * 100,
+            "max_drawdown_pct": self.max_drawdown * 100,
+            "current_drawdown_pct": self.current_drawdown * 100,
             "total_trades": self.num_trades,
             "winning_trades": self.winning_trades,
-            "total_pnl": round(self.total_pnl, 4),
-            "win_rate_pct": round(self.win_rate * 100, 2),
-            "fitness_score": round(self.fitness, 4),
-            "sharpe_ratio": round(self.sharpe, 4),
+            "total_pnl": self.total_pnl,
+            "win_rate_pct": self.win_rate * 100,
+            "fitness_score": self.fitness,
+            "sharpe_ratio": self.sharpe,
+            "metrics": self.metrics(),
             "open_positions": len(self.open_positions),
             "assets": self.genome.assets,
             "genome": self.genome.to_dict(),
@@ -422,6 +461,7 @@ class Probe:
         """Validate a whole cashflow before touching any trade or ledger field."""
         capital = nonnegative_value(self.capital)
         peak = nonnegative_value(self.peak_capital)
+        worst = nonnegative_value(self._max_drawdown)
         remaining = dict(self.open_positions)
         plans = []
         for asset, (raw_price, reason, terminal_loss) in requests.items():
@@ -444,6 +484,9 @@ class Probe:
             capital = nonnegative_value(capital + proceeds)
             percent = finite_number(return_pct * 100)
             try:
+                if (marks is None and self._valuation_assets is not None
+                        and not set(remaining).issubset(self._valuation_assets)):
+                    raise MarketValueError()
                 value = self._marked_value(capital, remaining, marks)
             except MarketValueError:
                 if marks is not None:
@@ -453,6 +496,7 @@ class Probe:
                 # until the remaining portfolio has a valid valuation.
             else:
                 peak = max(peak, value)
+                worst = max(worst, max(0.0, 1.0 - value / peak)) if peak > 0 else worst
             closed_at = self._now()
             event = ProbeEvent(
                 event_type=EventType.TRADE_CLOSED,
@@ -469,7 +513,7 @@ class Probe:
                 },
             )
             plans.append(_ClosePlan(asset, trade, price, return_pct, pnl, capital,
-                                    peak, reason, closed_at, event))
+                                    peak, worst, reason, closed_at, event))
         return plans
 
     def _apply_close_plan(self, plan: _ClosePlan) -> ProbeEvent:
@@ -481,6 +525,7 @@ class Probe:
         trade.pnl = plan.pnl
         self.capital = plan.capital
         self.peak_capital = plan.peak_capital
+        self._max_drawdown = plan.max_drawdown
         self.closed_trades.append(trade)
         self._pending_intents.pop(plan.asset, None)
         logger.info(
@@ -532,7 +577,7 @@ class Probe:
         return roi_met or dollar_met
 
     def _should_die(self) -> bool:
-        return self.max_drawdown >= self.genome.death_drawdown_pct
+        return self.current_drawdown >= self.genome.death_drawdown_pct
 
     # ── Price feed input ─────────────────────────────────────────────────
 
@@ -640,17 +685,27 @@ class Probe:
         if self.state not in (ProbeState.OBSERVING, ProbeState.TRADING):
             return events
         first_error = None
-        for asset in list(self.open_positions):
-            if assets is not None and asset not in assets:
-                continue
-            try:
-                price = positive_price(self._marks.get(asset))
-                event = self._check_stop_loss_take_profit(asset, price)
-                if event is not None:
-                    events.append(event)
-            except Exception as exc:
-                if first_error is None:
+        previous_assets = self._valuation_assets
+        self._valuation_assets = assets
+        try:
+            if assets is None or set(self.open_positions).issubset(assets):
+                try:
+                    self._observe_drawdown()
+                except Exception as exc:
                     first_error = exc
+            for asset in list(self.open_positions):
+                if assets is not None and asset not in assets:
+                    continue
+                try:
+                    price = positive_price(self._marks.get(asset))
+                    event = self._check_stop_loss_take_profit(asset, price)
+                    if event is not None:
+                        events.append(event)
+                except Exception as exc:
+                    if first_error is None:
+                        first_error = exc
+        finally:
+            self._valuation_assets = previous_assets
         if first_error is not None:
             raise ProbeStepError(events, first_error) from first_error
         return events
@@ -670,8 +725,7 @@ class Probe:
                 events.extend(self.risk_tick())
             # Decisions require a valid current portfolio value. Reporting's
             # historical missing-mark fallback remains a separate contract.
-            value = self._marked_value(self.capital, self.open_positions)
-            self.peak_capital = max(nonnegative_value(self.peak_capital), value)
+            self._observe_drawdown()
 
             self._tick_count += 1
             # Fresh quote risk can already have reached a terminal threshold.
@@ -719,6 +773,10 @@ class Probe:
         # after the portfolio has already been liquidated. Scheduled evolution
         # uses this same check for every parent before retiring the first one.
         positive_price(self.initial_capital)
+        for trade in self.closed_trades:
+            # Preserve ledger integrity checks without treating trade returns
+            # as portfolio samples or feeding their variance into fitness.
+            trade_return(trade.entry_price, trade.exit_price)
         projected = copy(self)
         projected.open_positions = {}
         projected.closed_trades = self.closed_trades + [
@@ -729,6 +787,7 @@ class Probe:
         if plans:
             projected.capital = plans[-1].capital
             projected.peak_capital = plans[-1].peak_capital
+            projected._max_drawdown = plans[-1].max_drawdown
         if new_state is not None:
             projected.state = new_state
         if new_state == ProbeState.DYING:

@@ -444,7 +444,9 @@ function mapWsToProbe(d: Record<string, unknown>): Partial<Probe> {
     winning_trades: (d.winning_trades as number) || 0,
     total_pnl: (d.total_pnl as number) || 0,
     max_drawdown: ((d.max_drawdown_pct as number) || 0) / 100,
-    sharpe_ratio: (d.sharpe_ratio as number) || 0,
+    sharpe_ratio: typeof d.sharpe_ratio === "number" && Number.isFinite(d.sharpe_ratio) ? d.sharpe_ratio : null,
+    metrics: d.metrics && typeof d.metrics === "object" && !Array.isArray(d.metrics)
+      ? d.metrics as Probe["metrics"] : null,
     fitness_score: (d.fitness_score as number) || 0,
     born_at: (d.born_at as string) || new Date().toISOString(),
     died_at: (d.died_at as string) || null,

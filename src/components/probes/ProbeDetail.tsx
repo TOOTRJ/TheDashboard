@@ -25,6 +25,10 @@ interface Props {
 export function ProbeDetail({ probe, open, onClose }: Props) {
   if (!probe) return null;
   const stateColor = STATE_COLORS[probe.state];
+  const equityMetrics = probe.metrics?.fitness_version === "equity-roi-historical-dd-v1";
+  const sharpe = typeof probe.sharpe_ratio === "number" && Number.isFinite(probe.sharpe_ratio)
+    ? probe.sharpe_ratio.toFixed(2) : "Unavailable";
+  const currentDrawdown = probe.metrics?.current_drawdown;
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
@@ -124,8 +128,8 @@ export function ProbeDetail({ probe, open, onClose }: Props) {
             { label: "Capital", value: `$${probe.current_capital.toFixed(0)}`, color: "#39ff14" },
             { label: "P&L", value: `${probe.total_pnl >= 0 ? "+" : ""}$${probe.total_pnl.toFixed(2)}`, color: probe.total_pnl >= 0 ? "#39ff14" : "#ff3366" },
             { label: "Win Rate", value: probe.total_trades > 0 ? `${((probe.winning_trades / probe.total_trades) * 100).toFixed(0)}%` : "—", color: "#bf00ff" },
-            { label: "Sharpe", value: probe.sharpe_ratio.toFixed(2), color: "#ff00ff" },
-            { label: "Max DD", value: `${(probe.max_drawdown * 100).toFixed(1)}%`, color: "#ff3366" },
+            { label: equityMetrics ? "Equity Sharpe (diagnostic)" : "Sharpe (run policy)", value: sharpe, color: "#ff00ff" },
+            { label: equityMetrics ? "Historical max drawdown" : "Drawdown (run policy)", value: `${(probe.max_drawdown * 100).toFixed(1)}%`, color: "#ff3366" },
           ].map((m) => (
             <div
               key={m.label}
@@ -140,6 +144,21 @@ export function ProbeDetail({ probe, open, onClose }: Props) {
             </div>
           ))}
         </div>
+        <p className="mt-2 text-[11px] text-muted-foreground">
+          {equityMetrics ? (
+            <>Fitness uses return on initial equity minus twice historical maximum drawdown. Sharpe uses minute equity returns without annualization; it does not affect the score.
+              {typeof probe.metrics?.return_count === "number"
+                ? ` Returns in the current sample: ${probe.metrics.return_count}.` : ""}
+              {typeof probe.metrics?.missing_periods === "number"
+                ? ` Missing minute endpoints: ${probe.metrics.missing_periods}.` : ""}
+              {" Sample size alone does not establish statistical reliability."}
+              {typeof currentDrawdown === "number" && Number.isFinite(currentDrawdown)
+                ? ` Current drawdown: ${(currentDrawdown * 100).toFixed(1)}%.` : ""}
+            </>
+          ) : (
+            <>This record does not identify the current equity metric policy. Its stored values may use legacy definitions; compare scores only when their calculation policies match.</>
+          )}
+        </p>
 
         {/* Genome radar */}
         <Card className="border-[#00fff5]/10 bg-card/50 mt-4">

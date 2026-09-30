@@ -64,12 +64,13 @@ class FitnessSnapshot:
     tick: int
     fitness_score: float
     roi: float
-    sharpe_ratio: float
+    sharpe_ratio: Optional[float]
     max_drawdown: float
     win_rate: float
     trade_count: int
     current_capital: float
     captured_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    metrics: Optional[dict] = None
 
 
 class EventType(str, Enum):
