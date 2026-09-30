@@ -33,13 +33,13 @@ export const VN_ENDPOINTS = resolveWorkerEndpoints({
 export const STRATEGY_LABELS: Record<string, string> = {
   genetic_algorithm: "Genetic Algorithm",
   differential_evolution: "Differential Evolution",
-  particle_swarm: "Particle Swarm Optimization",
+  particle_swarm: "Window-reset Swarm (PSO variant)",
   cma_es: "CMA-ES",
 };
 
 export const STRATEGY_DESCRIPTIONS: Record<string, string> = {
   genetic_algorithm: "Classic GA with tournament selection, uniform crossover, and Gaussian mutation.",
-  differential_evolution: "DE/rand/1/bin -- differential mutation with binomial crossover.",
-  particle_swarm: "PSO with inertia weight, cognitive and social components.",
-  cma_es: "Covariance Matrix Adaptation Evolution Strategy.",
+  differential_evolution: "Paired DE/rand/1/bin: targets and trials compete over the same market window.",
+  particle_swarm: "Normalized social swarm with inertia and best scores reset each market window.",
+  cma_es: "CMA-ES over normalized active genes with exact sampled-candidate evaluation.",
 };

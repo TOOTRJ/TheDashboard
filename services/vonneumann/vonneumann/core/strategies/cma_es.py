@@ -19,10 +19,10 @@ try:
 except ImportError:
     cmaes_lib = None  # type: ignore[assignment]
 
-from ..evolution import mutate_assets
 from ..gene_registry import GENE_REGISTRY
 from ..genome import Genome
 from ..evaluation import EvaluatedCandidate
+from ..parameter_codec import ParameterCodec, PARAMETER_POLICY
 from .base import EvolutionResult, EvolutionStrategy
 
 if TYPE_CHECKING:
@@ -42,7 +42,9 @@ class CMAEvolutionStrategy(EvolutionStrategy):
     )
 
     def __init__(self) -> None:
+        super().__init__()
         self._optimizer = None
+        self._codec: ParameterCodec | None = None
         self._gene_names: list[str] = []
         self._first_generation: bool = True
         self._pending_vectors: list[np.ndarray] | None = None
@@ -54,11 +56,12 @@ class CMAEvolutionStrategy(EvolutionStrategy):
     @staticmethod
     def _phenotype(genome: Genome) -> dict:
         return {**{name: getattr(genome, name) for name in NUMERIC_GENES},
-                "assets": list(genome.assets)}
+                "assets": list(genome.assets), "generation": genome.generation}
 
     def abort_cohort(self) -> None:
         """A partial market window cannot update the search distribution."""
         self._optimizer = None
+        self._codec = None
         self._gene_names = []
         self._first_generation = True
         self._pending_vectors = self._pending_genomes = None
@@ -82,7 +85,7 @@ class CMAEvolutionStrategy(EvolutionStrategy):
                     any(self._phenotype(probe.genome) != self._phenotype(genome)
                         for probe, genome in zip(probes, self._pending_genomes))):
                 raise ValueError("CMA candidates do not match their ordered ask batch")
-        elif self._optimizer is not None and self._bound_ids and (
+        elif self._bound_ids and (
                 ids != self._bound_ids or phenotypes != self._bound_genomes):
             raise ValueError("CMA bootstrap membership cannot be replaced before evaluation")
         self._bound_ids, self._bound_genomes = ids, phenotypes
@@ -124,33 +127,21 @@ class CMAEvolutionStrategy(EvolutionStrategy):
                 "cmaes package is required for CMA-ES strategy. "
                 "Install with: pip install cmaes"
             )
-        self._gene_names = [
-            g for g in NUMERIC_GENES if colony_config.is_gene_evolvable(g)
-        ]
+        self._codec = ParameterCodec(colony_config)
+        self._gene_names = list(self._codec.names)
         if not probes:
             return
+        encoded = [self._codec.encode(probe.genome) for probe in probes]
         if not self._gene_names:
             self.bind_candidates(probes)
             return
 
-        genomes = [p.genome for p in probes]
-
-        mean = np.array(
-            [np.mean([getattr(g, name) for g in genomes]) for name in self._gene_names]
-        )
-        bounds = np.array(
-            [
-                list(colony_config.get_effective_range(name)[:2])
-                for name in self._gene_names
-            ]
-        )
-        sigma = float(np.mean(bounds[:, 1] - bounds[:, 0]) * 0.3)
-
+        mean = np.mean(encoded, axis=0)
         self._optimizer = cmaes_lib.CMA(
             mean=mean,
-            sigma=sigma,
-            bounds=bounds,
-            population_size=len(genomes),
+            sigma=0.3,
+            bounds=self._codec.bounds,
+            population_size=len(probes),
         )
         self.bind_candidates(probes)
 
@@ -160,9 +151,26 @@ class CMAEvolutionStrategy(EvolutionStrategy):
         dead_probes: list[Probe],
         colony_config: ColonyConfig,
     ) -> EvolutionResult:
+        if self._codec is None:
+            raise ValueError("CMA requires an initialized parameter codec")
+        self._codec.check_configuration(colony_config)
         by_id = self._validate_results(probes)
         if self._optimizer is None:
-            return EvolutionResult(offspring=[], retire_ids=[])
+            # Fixed phenotypes still receive fresh complete evaluation accounts.
+            ordered = [by_id[pid] for pid in self._bound_ids]
+            offspring = [self._codec.decode([], probe.genome) for probe in ordered]
+            for genome in offspring:
+                genome.generation += 1
+                genome.parent_ids = []
+            retire_ids = list(self._bound_ids)
+            self._bound_ids = ()
+            self._pending_vectors = [np.empty(0) for _ in offspring]
+            self._pending_genomes = deepcopy(offspring)
+            self._awaiting_bind = True
+            return EvolutionResult(offspring=offspring, retire_ids=retire_ids,
+                                   parent_map={str(i): [p.probe_id] for i, p in enumerate(ordered)},
+                                   metadata={"parameter_policy": dict(PARAMETER_POLICY),
+                                             "active_dimensions": 0})
 
         # Consume the bound batch before changing optimizer state. If an ask or
         # tell fails the controller fails closed rather than repeating a tell.
@@ -182,34 +190,31 @@ class CMAEvolutionStrategy(EvolutionStrategy):
         # Ask: sample new candidate solutions
         offspring: list[Genome] = []
         vectors: list[np.ndarray] = []
-        best = max(probes, key=lambda p: p.fitness)
+        ordered = [by_id[pid] for pid in ids]
+        best = max(ordered, key=lambda p: p.fitness)
         for _ in range(self._optimizer.population_size):
             params = self._optimizer.ask().copy()
             vectors.append(params)
-            genome_dict: dict = {}
-            for i, name in enumerate(self._gene_names):
-                genome_dict[name] = float(params[i])
-            # Fill non-evolvable genes from the best current probe
-            for name in NUMERIC_GENES:
-                if name not in genome_dict:
-                    genome_dict[name] = getattr(best.genome, name)
-            genome_dict["generation"] = best.genome.generation + 1
-            new_genome = Genome.from_dict(genome_dict)
-            new_genome.assets = mutate_assets(
-                best.genome.assets, colony_config, swap_rate=0.10
-            )
-            new_genome.validate(colony_config)
+            new_genome = self._codec.decode(params, best.genome)
+            new_genome.generation = max(probe.genome.generation for probe in ordered) + 1
+            new_genome.parent_ids = []
             offspring.append(new_genome)
 
         self._pending_vectors = vectors
         self._pending_genomes = deepcopy(offspring)
 
-        retire_ids = [p.probe_id for p in probes]
+        retire_ids = list(ids)
 
         return EvolutionResult(
             offspring=offspring,
             retire_ids=retire_ids,
+            parent_map={str(index): list(ids) for index in range(len(offspring))},
             metadata={
+                "lineage_policy": "numeric_distribution_and_asset_template",
+                "distribution_source_ids": list(ids),
+                "asset_template_source_id": best.probe_id,
+                "parameter_policy": dict(PARAMETER_POLICY),
+                "active_dimensions": self._codec.dimensions,
                 "cma_generation": self._optimizer.generation
                 if hasattr(self._optimizer, "generation")
                 else 0
