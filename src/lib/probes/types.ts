@@ -12,7 +12,9 @@ export type TradeExitReason =
   | "STOP_LOSS"
   | "SIGNAL_EXIT"
   | "PROBE_DYING"
-  | "REPRODUCING";
+  | "REPRODUCING"
+  | "EVOLUTION"
+  | "TERMINAL_LOSS";
 
 // "unknown" is a UI state while no authoritative worker status is available.
 export type SimulationStatus = "running" | "paused" | "stopped" | "starting" | "failed" | "unknown";
