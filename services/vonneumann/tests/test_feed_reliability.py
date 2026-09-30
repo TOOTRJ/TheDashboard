@@ -69,12 +69,9 @@ class Session:
 
 
 class FeedReliabilityTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase):
-    def make_feed(self, *responses, volume=False):
+    def make_feed(self, *responses):
         feed = module.JupiterFeed(api_key=SECRET, rpc_url=RPC_URL)
         feed._session = Session(*responses)
-        if volume:
-            feed._birdeye_key = SECRET
-            feed._birdeye_headers = {"X-API-KEY": SECRET}
         return feed
 
     def stale_cache(self, feed):
@@ -174,54 +171,53 @@ class FeedReliabilityTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase):
             await feed.get_tick(SOL)
         self.assertEqual(feed._cache, old)
 
-    async def test_configured_volume_http_transport_and_payload_failures_surface(self):
-        cases = [Response(status=code) for code in (401, 429, 500, 302)]
-        cases += [aiohttp.ClientConnectionError(SECRET), asyncio.TimeoutError(SECRET),
-                  Response(error=ValueError(SECRET)), Response([]),
-                  Response({"success": False, "message": SECRET}),
-                  Response({"data": {"items": "invalid"}})]
-        for response in cases:
-            with self.subTest(kind=type(response).__name__):
-                feed = self.make_feed(response, volume=True)
-                feed._volume_cache[SOL] = 7
-                await self.assert_safe_failure(feed.refresh_volumes([SOL]))
-                self.assertEqual(feed._volume_cache, {SOL: 7})
-                self.assertEqual(feed._last_volume_refresh, 0)
+    async def test_price_quotes_have_no_invented_or_repeated_candle_volume(self):
+        feed = self.make_feed(Response(prices(**{SOL: 120})))
+        tick = await feed.get_tick(SOL)
+        self.assertEqual(tick.volume, 0)
+        self.assertFalse(hasattr(feed, "refresh_volumes"))
+        self.assertFalse(hasattr(feed, "_volume_cache"))
+        self.assertFalse(hasattr(feed, "backfill_probe"))
 
-    async def test_volume_requires_finite_nonnegative_numeric_value(self):
-        for value in (None, False, "7", -1, float("nan"), float("inf")):
-            with self.subTest(value_type=type(value).__name__):
-                body = {"data": {"items": [{"v": value}]}}
-                await self.assert_safe_failure(self.make_feed(Response(body), volume=True).refresh_volumes([SOL]))
-
-    async def test_volume_batch_commits_atomically_and_throttles_only_after_success(self):
-        body = {"data": {"items": [{"v": 0}]}}
-        feed = self.make_feed(Response(body), Response(status=503), Response(body), volume=True)
-        feed._volume_cache[SOL] = 5
-        with patch.object(module.asyncio, "sleep", new=AsyncMock()):
-            await self.assert_safe_failure(feed.refresh_volumes([SOL, JUP]))
-            self.assertEqual(feed._volume_cache, {SOL: 5})
-            await feed.refresh_volumes([SOL])
-            self.assertEqual(feed._volume_cache, {SOL: 0})
-            self.assertGreater(feed._last_volume_refresh, 0)
-            await feed.refresh_volumes([SOL])
-        self.assertEqual(len(feed._session.calls), 3)
-        self.assertTrue(all(options["allow_redirects"] is False for _, options in feed._session.calls))
-
-    async def test_missing_optional_volume_key_and_empty_history_policy_are_preserved(self):
+    async def test_candle_access_delegates_without_using_jupiter_http_session_or_counter(self):
         feed = self.make_feed()
-        await feed.refresh_volumes([SOL])
-        self.assertEqual(await feed.backfill(SOL), [])
+        candles = [object()]
+        feed._candles.get_candles = AsyncMock(return_value=candles)
+        self.assertIs(await feed.get_candles([SOL], warmup=True), candles)
+        feed._candles.get_candles.assert_awaited_once_with([SOL], warmup=True)
         self.assertEqual(feed._session.calls, [])
-        feed = self.make_feed(Response({"data": {"items": []}}), volume=True)
-        with patch.object(module.asyncio, "sleep", new=AsyncMock()):
-            await feed.refresh_volumes([SOL])
-        self.assertEqual(feed._volume_cache, {})
+        self.assertEqual(feed.api_call_count, 0)
 
-    async def test_optional_history_and_quote_logs_do_not_echo_provider_exception(self):
-        feed = self.make_feed(Response(error=ValueError(SECRET)), Response(error=ValueError(SECRET)), volume=True)
+    async def test_missing_birdeye_configuration_fails_on_candle_access_only(self):
+        feed = module.JupiterFeed(api_key=SECRET, rpc_url=RPC_URL, birdeye_api_key="")
+        feed._session = Session(Response(prices(**{SOL: 120})))
+        self.assertEqual((await feed.get_tick(SOL)).price, 120)
+        error = await self.assert_safe_failure(feed.get_candles([SOL], warmup=True))
+        self.assertEqual(error.code, "candles_configuration")
+        self.assertIsNone(feed._candles._session)
+
+    async def test_birdeye_key_override_and_close_both_sessions(self):
+        feed = module.JupiterFeed(api_key=SECRET, rpc_url=RPC_URL, birdeye_api_key="explicit-candle-key")
+        self.assertEqual(feed._candles._api_key, "explicit-candle-key")
+        self.assertEqual(feed._candles._token_mints, module.TOKEN_MINTS)
+        feed._session = Session()
+        candle_session = Session()
+        feed._candles._session = candle_session
+        await feed.close()
+        self.assertTrue(feed._session.closed)
+        self.assertTrue(candle_session.closed)
+
+    async def test_close_candle_session_even_if_quote_session_close_fails(self):
+        feed = self.make_feed()
+        feed._session.close = AsyncMock(side_effect=RuntimeError("test close failure"))
+        feed._candles.close = AsyncMock()
+        with self.assertRaises(RuntimeError):
+            await feed.close()
+        feed._candles.close.assert_awaited_once()
+
+    async def test_optional_swap_quote_logs_do_not_echo_provider_exception(self):
+        feed = self.make_feed(Response(error=ValueError(SECRET)))
         with self.assertLogs(module.logger, level="WARNING") as captured:
-            self.assertEqual(await feed.backfill(SOL), [])
             self.assertIsNone(await feed.get_swap_quote("fake-input", "fake-output", 100))
         self.assertNotIn(SECRET, " ".join(captured.output))
         self.assertTrue(all(options["allow_redirects"] is False for _, options in feed._session.calls))

@@ -33,6 +33,7 @@ from .probe import Probe, ProbeStepError
 from .strategies.base import EvolutionResult, EvolutionStrategy
 from .types import EventType, ProbeEvent, ProbeState, FitnessSnapshot
 from ..market.feed import MarketFeed, MarketFeedError, MarketTick, QuoteEvidence
+from ..market.candles import CandleHistory, CANDLE_POLICY
 from ..market.quote_freshness import QUOTE_POLICY, quote_source_age, validate_quote
 
 logger = logging.getLogger(__name__)
@@ -130,9 +131,10 @@ class GenesisController:
         self._source_quotes: dict[str, MarketTick] = {}
         self._market_ready = False
 
-        # Optional background volume-refresh task (for paper/live modes where
-        # the feed supports periodic OHLCV volume refresh from a secondary source).
-        self._volume_task: Optional[asyncio.Task] = None
+        # Every candidate reads the same run-anchored series, including assets
+        # first selected by a later generation. Quotes never seed indicators.
+        self._candle_assets = sorted(self.colony_config.get_effective_assets())
+        self.candle_history = CandleHistory(self._candle_assets)
 
         # Generation tracking
         self._generation_probe_counts: dict[int, int] = {}
@@ -231,6 +233,7 @@ class GenesisController:
             ),
             "clock_basis": "synthetic_market" if self._uses_simulation_clock else "wall",
             "quote_policy": dict(QUOTE_POLICY) if self.mode == "paper" else None,
+            "candle_policy": deepcopy(CANDLE_POLICY),
             "market_time": self._event_time().isoformat() if self._uses_simulation_clock else None,
             "market_elapsed_secs": (
                 (self._event_time() - self._market_started_at).total_seconds()
@@ -269,12 +272,12 @@ class GenesisController:
         if len(self.live_probes) != self.gen0_count:
             raise RuntimeError("Initial population is incomplete")
 
-        # Backfill price history for paper mode
+        # Paper history is independent of the quote clock and warmed once for
+        # the whole configured universe. The subsequent quote is current.
         if self.mode == "paper":
-            await self._backfill_probes()
+            await self._refresh_candles(warmup=True)
 
-        # A successful start must have a usable feed for every selected asset.
-        # History availability/freshness policy is a separate data-quality gate.
+        # After history warmup, require a current quote for every selected asset.
         assets = sorted({asset for probe in self.live_probes for asset in probe.genome.assets})
         ticks = await self.market_feed.get_ticks(assets)
         valid_ticks, errors = self._validate_ticks(assets, ticks)
@@ -283,6 +286,14 @@ class GenesisController:
         self._latest_ticks = valid_ticks
         self._latest_prices = {asset: tick.price for asset, tick in valid_ticks.items()}
         self._market_ready = True
+        if self.mode == "simulation":
+            # Preserve the first atomic synthetic frame without a second step.
+            await self._refresh_candles(warmup=True)
+        for probe in self.live_probes:
+            probe.attach_candle_history(self.candle_history)
+            for asset in probe.genome.assets:
+                probe.on_quote(valid_ticks[asset])
+        self._require_current_quotes()
 
         # Initialize the strategy with live probes
         self.strategy.initialize(list(self.probes.values()), self.colony_config)
@@ -291,42 +302,13 @@ class GenesisController:
 
     async def run(self) -> None:
         """Run only after the manager has durably marked preparation complete."""
-        # Start background volume refresher if the feed supports it.
-        if hasattr(self.market_feed, "refresh_volumes"):
-            self._volume_task = asyncio.create_task(self._volume_refresh_loop())
-
         await self._tick_loop()
 
-    async def _volume_refresh_loop(self) -> None:
-        """Background task: periodically refresh volume data from secondary source."""
-        while self._running:
-            assets = sorted({asset for probe in self.live_probes for asset in probe.genome.assets})
-            await self.market_feed.refresh_volumes(assets)
-            await asyncio.sleep(30)
-
-    async def _backfill_probes(self) -> None:
-        if not hasattr(self.market_feed, 'backfill_probe'):
-            return
-        # Group probes by timeframe to minimize API calls
-        timeframe_groups: dict[int, list[str]] = {}
-        for probe in self.live_probes:
-            tf = probe.genome.int_genes()["timeframe_minutes"]
-            for asset in probe.genome.assets:
-                timeframe_groups.setdefault(tf, [])
-                if asset not in timeframe_groups[tf]:
-                    timeframe_groups[tf].append(asset)
-
-        all_history: dict[int, dict] = {}
-        for tf, assets in timeframe_groups.items():
-            logger.info(f"[Genesis] Backfilling {len(assets)} assets at {tf}m timeframe...")
-            all_history[tf] = await self.market_feed.backfill_probe(assets, timeframe_minutes=tf, limit=100)
-
-        for probe in self.live_probes:
-            tf = probe.genome.int_genes()["timeframe_minutes"]
-            history = all_history.get(tf, {})
-            for asset in probe.genome.assets:
-                for candle in history.get(asset, []):
-                    probe.on_price_update(asset, candle["price"], candle["volume"])
+    async def _refresh_candles(self, *, warmup: bool = False) -> None:
+        if not hasattr(self.market_feed, "get_candles"):
+            raise MarketFeedError("candles_unavailable")
+        candles = await self.market_feed.get_candles(self._candle_assets, warmup=warmup)
+        self.candle_history.ingest(candles, available_at=self._event_time().timestamp())
 
     async def stop(self) -> None:
         self._running = False
@@ -338,13 +320,6 @@ class GenesisController:
     async def cleanup(self) -> None:
         """Release feed resources without erasing probe/position state."""
         self._running = False
-        if self._volume_task:
-            if not self._volume_task.done():
-                self._volume_task.cancel()
-            try:
-                await self._volume_task
-            except (asyncio.CancelledError, Exception):
-                pass
         if not self._feed_closed and hasattr(self.market_feed, "close"):
             await self.market_feed.close()
             self._feed_closed = True
@@ -358,13 +333,7 @@ class GenesisController:
     async def wait_for_tick(self) -> None:
         """Allow a tick already in progress to finish before persisting a pause."""
         async with self._tick_lock:
-            self._check_volume_task()
-
-    def _check_volume_task(self) -> None:
-        if self._volume_task and self._volume_task.done():
-            if self._volume_task.cancelled():
-                raise RuntimeError("Volume refresh stopped unexpectedly")
-            self._volume_task.result()
+            pass
 
     async def quiesce(self) -> None:
         self._paused = True
@@ -395,7 +364,11 @@ class GenesisController:
             mode=self.mode,
             probe_name=generate_probe_name(genome.generation),
             clock=self._event_time,
+            candle_history=self.candle_history,
         )
+        for asset in genome.assets:
+            if asset in self._latest_ticks:
+                probe.on_quote(self._latest_ticks[asset])
         probe.birth_tick = self.tick_count
         probe.set_funded()
         probe.set_observing()
@@ -528,7 +501,6 @@ class GenesisController:
                 raise FundingError()
             if genome.parent_ids and genome.parent_ids[0] in retired:
                 parent = retired[genome.parent_ids[0]][0]
-                self._transfer_price_buffers(parent, new_probe)
                 if hasattr(self.strategy, "remap_probe_id"):
                     self.strategy.remap_probe_id(parent.probe_id, new_probe.probe_id)
         for probe, _ in retired.values():
@@ -590,15 +562,6 @@ class GenesisController:
             del self.probes[probe.probe_id]
 
         return reclaimed
-
-    @staticmethod
-    def _transfer_price_buffers(source: Probe, target: Probe) -> None:
-        """Copy price/volume buffers from a retired probe to its offspring."""
-        for asset in source.genome.assets:
-            if asset in source._price_buffer:
-                target._price_buffer[asset] = list(source._price_buffer[asset])
-            if asset in source._volume_buffer:
-                target._volume_buffer[asset] = list(source._volume_buffer[asset])
 
     # ── Lifecycle: Reproduction (strategy-delegated) ─────────────────────
 
@@ -686,8 +649,6 @@ class GenesisController:
     async def _tick_loop(self) -> None:
         interval = self.tick_interval_ms / 1000.0
         while self._running:
-            # Background failures must reach the same terminal supervisor.
-            self._check_volume_task()
             if self._paused:
                 await asyncio.sleep(0.1)
                 continue
@@ -799,9 +760,7 @@ class GenesisController:
                 if tick is None:
                     continue
                 try:
-                    if asset not in probe._price_buffer or asset not in probe._volume_buffer:
-                        raise MarketValueError()
-                    probe.on_price_update(asset, tick.price, tick.volume)
+                    probe.on_quote(tick)
                     eligible.add(asset)
                 except Exception as error:
                     failures.append(error)
@@ -829,6 +788,10 @@ class GenesisController:
             await self._emit(event)
         if failures:
             raise failures[0]
+
+        # A candle outage/revision stops decisions only after fresh quote risk
+        # checks have completed. Revalidate quotes after this awaited request.
+        await self._refresh_candles()
 
         # Broadcast prices every 5 ticks
         if self.tick_count % 5 == 0:

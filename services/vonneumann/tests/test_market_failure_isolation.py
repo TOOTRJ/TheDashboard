@@ -21,6 +21,7 @@ with deny_network():
     from vonneumann.core.types import EventType, ProbeState, TradeRecord
     from vonneumann.db.repository import PersistenceError
     from vonneumann.market.feed import MarketTick
+    from vonneumann.market.candles import MinuteCandle
 
 
 ASSET = "SOL/USDC"
@@ -46,6 +47,9 @@ class MutableFeed:
     def prices(price=100.0):
         return {asset: MarketTick(asset, price, 1_000.0, time.time())
                 for asset in (ASSET, OTHER_ASSET)}
+
+    async def get_candles(self, assets, *, warmup=False):
+        return []  # This quote/accounting fixture deliberately has no signal history.
 
     async def get_ticks(self, assets):
         return self.response
@@ -96,6 +100,11 @@ class MarketFailureIsolationTests(OfflineTestMixin, unittest.IsolatedAsyncioTest
         controller, feed, (bad, healthy) = await self.controller()
         trade = self.open_position(healthy)
         feed.response = feed.prices(80.0)
+        end = int(time.time()) // 60 * 60
+        controller.candle_history.ingest([
+            MinuteCandle(asset, end - 60, 100, 100, 100, 100, 1000, "test")
+            for asset in (ASSET, OTHER_ASSET)
+        ], available_at=time.time())
         failure = RuntimeError("simulated signal calculation failure")
         with patch.object(bad, "_has_entry_signal", side_effect=failure), \
              patch.object(healthy, "tick", wraps=healthy.tick) as healthy_decisions:
@@ -155,7 +164,7 @@ class MarketFailureIsolationTests(OfflineTestMixin, unittest.IsolatedAsyncioTest
         priced_trade = self.open_position(healthy)
         missing.on_price_update(OTHER_ASSET, 80.0, 1_000.0)
         controller._latest_prices[OTHER_ASSET] = 80.0
-        old_buffer = list(missing._price_buffer[OTHER_ASSET])
+        old_buffer = missing._marks.get(OTHER_ASSET)
         feed.response = {ASSET: MarketTick(ASSET, 80.0, 1_000.0, time.time())}
         with patch.object(missing, "tick", wraps=missing.tick) as decisions:
             with self.assertRaises(MarketValueError):
@@ -164,7 +173,7 @@ class MarketFailureIsolationTests(OfflineTestMixin, unittest.IsolatedAsyncioTest
         self.assertEqual(missing.open_positions, {OTHER_ASSET: unpriced_trade})
         self.assertEqual(missing.closed_trades, [])
         self.assertEqual(missing.capital, 50.0)
-        self.assertEqual(missing._price_buffer[OTHER_ASSET], old_buffer)
+        self.assertEqual(missing._marks.get(OTHER_ASSET), old_buffer)
         self.assertEqual(healthy.closed_trades, [priced_trade])
         self.assertEqual([event.data["trade_id"] for event in self.closed_events()],
                          [priced_trade.trade_id])
@@ -191,12 +200,12 @@ class MarketFailureIsolationTests(OfflineTestMixin, unittest.IsolatedAsyncioTest
                 controller, feed, probes = await self.controller()
                 feed.response = feed.prices(80.0)
                 feed.response[ASSET] = bad_tick
-                buffers = [list(probe._price_buffer[ASSET]) for probe in probes]
-                volume_buffers = [list(probe._volume_buffer[ASSET]) for probe in probes]
+                buffers = [probe._marks.get(ASSET) for probe in probes]
+                histories = [controller.candle_history.latest(ASSET, 1) for probe in probes]
                 with self.assertRaises(MarketValueError):
                     await controller._tick_all()
-                self.assertEqual([probe._price_buffer[ASSET] for probe in probes], buffers)
-                self.assertEqual([probe._volume_buffer[ASSET] for probe in probes], volume_buffers)
+                self.assertEqual([probe._marks.get(ASSET) for probe in probes], buffers)
+                self.assertEqual([controller.candle_history.latest(ASSET, 1) for probe in probes], histories)
                 self.assertNotIn(ASSET, controller._latest_prices)
                 self.assertEqual(controller._latest_prices[OTHER_ASSET], 80.0)
                 self.assertFalse(any(event.event_type == EventType.TRADE_OPENED
@@ -259,12 +268,24 @@ class MarketFailureIsolationTests(OfflineTestMixin, unittest.IsolatedAsyncioTest
         feed.response = feed.prices(100.0)
         failure = MarketValueError()
 
-        def entry_signal(asset):
+        end = int(time.time()) // 60 * 60
+        controller.candle_history.ingest([
+            MinuteCandle(asset, end - 60, 100, 100, 100, 100, 1000, "test")
+            for asset in (ASSET, OTHER_ASSET)
+        ], available_at=time.time())
+        for tick in feed.response.values():
+            bad.on_quote(tick)
+        with patch.object(bad, "_has_entry_signal", return_value=(True, {})):
+            self.assertEqual(bad.tick(), [])  # Both signals queue without filling.
+        original_open = bad._open_position
+        def open_or_fail(asset, price, signals):
             if asset == OTHER_ASSET:
                 raise failure
-            return True, {}
-
-        with patch.object(bad, "_has_entry_signal", side_effect=entry_signal), \
+            return original_open(asset, price, signals)
+        stamp = time.time() + 0.1  # A later modeled quote, without sleeping.
+        feed.response = {asset: MarketTick(asset, 100, 1000, stamp)
+                         for asset in (ASSET, OTHER_ASSET)}
+        with patch.object(bad, "_open_position", side_effect=open_or_fail), \
              patch.object(healthy, "tick", wraps=healthy.tick) as healthy_decisions:
             with self.assertRaises(MarketValueError) as raised:
                 await controller._tick_all()
@@ -284,8 +305,8 @@ class MarketFailureIsolationTests(OfflineTestMixin, unittest.IsolatedAsyncioTest
                          for asset in (ASSET, OTHER_ASSET)}
         await controller._tick_all()
         self.assertEqual(controller.tick_count, 1)
-        self.assertTrue(all(probe._price_buffer[ASSET][-1] == 100.0 for probe in probes))
-        self.assertTrue(all(probe._volume_buffer[ASSET][-1] == 0.0 for probe in probes))
+        self.assertTrue(all(probe._marks[ASSET] == 100.0 for probe in probes))
+        self.assertIsNone(controller.candle_history.latest(ASSET, 1))
 
     async def test_failure_status_remains_json_safe_when_portfolio_valuation_is_invalid(self):
         for corruption in ("entry", "cash", "mark", "reserve"):

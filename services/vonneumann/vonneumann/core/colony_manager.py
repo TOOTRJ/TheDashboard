@@ -30,6 +30,8 @@ FAILURE_MESSAGES = {
     "feed_configuration": "Paper mode requires a configured HTTPS Solana mainnet RPC for source-time validation.",
     "feed_stale": "A required market quote is stale. Execution has stopped; retained positions require reconciliation.",
     "feed_source_invalid": "A required quote has missing, invalid, or regressing source-time evidence. Execution has stopped.",
+    "candle_configuration": "Completed candles require the worker's Birdeye key in paper mode or aligned one-minute simulation steps.",
+    "candle_history_invalid": "Completed candle history is missing, incomplete, revised, or invalid. Execution has stopped; review retained positions and the data source.",
     "invalid_market_value": "A market observation or trade calculation was invalid. Execution has stopped; retained positions may require reconciliation.",
     "funding_insufficient": "The colony cannot fully fund its next candidate population. Execution has stopped.",
     "funding_capacity": "The replacement population exceeds the configured capacity. Execution has stopped.",
@@ -68,6 +70,11 @@ def _failure_code(error: Exception, default: str) -> str:
     if isinstance(error, PersistenceError):
         return "persistence_failed"
     if isinstance(error, MarketFeedError):
+        if error.code in {"candles_configuration", "candle_clock_configuration"}:
+            return "candle_configuration"
+        if error.code.startswith(("candle_", "candles_")) and error.code not in {
+                "candles_unavailable", "candles_rate_limited"}:
+            return "candle_history_invalid"
         if error.code in {"rpc_configuration", "rpc_wrong_network"}:
             return "feed_configuration"
         if error.code == "price_stale":

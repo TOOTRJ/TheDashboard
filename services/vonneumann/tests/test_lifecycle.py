@@ -34,9 +34,9 @@ class FakeFeed:
         stamp, monotonic = time.time(), time.monotonic()
         return {a: MarketTick(a, 100 + self.reads * .01, 10, stamp,
                              QuoteEvidence(self.reads, stamp, monotonic)) for a in assets}
-    async def backfill_probe(self, assets, **kwargs):
+    async def get_candles(self, assets, **kwargs):
         self.history_reads += 1
-        return {a: [] for a in assets}
+        return []
     async def close(self):
         self.closed += 1
 
@@ -145,12 +145,13 @@ class LifecycleTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.persisted[-1]['failure_code'], 'feed_configuration')
         self.assertEqual(self.events, [])
         self.tick.assert_not_awaited()
-    async def test_background_volume_failure_is_supervised_for_selected_assets_only(self):
-        refresh = AsyncMock(side_effect=MarketFeedError('volume_unavailable'))
-        self.feed.refresh_volumes = refresh
-        await self.create(colony_config=ColonyConfig(available_assets=['SOL/USDC']))
+    async def test_candle_failure_is_supervised_for_configured_assets_only(self):
+        refresh = AsyncMock(side_effect=MarketFeedError('candles_unavailable'))
+        self.feed.get_candles = refresh
+        with self.assertRaises(ColonyLifecycleError):
+            await self.create(colony_config=ColonyConfig(available_assets=['SOL/USDC']))
         self.assertEqual((await self.failed())['failure_code'], 'feed_unavailable')
-        refresh.assert_awaited_once_with(['SOL/USDC'])
+        refresh.assert_awaited_once_with(['SOL/USDC'], warmup=True)
     async def test_unavailable_status_storage_is_truthfully_reported(self):
         async def fail(_): raise PersistenceError('update_colony_status')
         with self.assertRaises(ColonyLifecycleError): await self.create(persist_status=fail)

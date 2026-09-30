@@ -32,6 +32,9 @@ ASSET = "SOL/USDC"
 
 
 class ConstantFeed:
+    async def get_candles(self, assets, *, warmup=False):
+        return []  # This quote/accounting fixture deliberately has no signal history.
+
     async def get_ticks(self, assets):
         return {asset: MarketTick(asset, 100.0, 1_000.0, 0.0) for asset in assets}
 
@@ -233,7 +236,6 @@ class FundingContinuityTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase)
                 parent = controller.live_probes[0]
                 self.open_position(controller, parent, exit_price=100.0)
                 controller._latest_prices[ASSET] = price
-                parent._price_buffer[ASSET] = []
                 self.plan(controller, retire=controller.probes, count=6)
                 await self.assert_rejected_without_retirement(controller, "funding_invalid_plan")
 

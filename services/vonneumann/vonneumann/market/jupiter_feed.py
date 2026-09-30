@@ -7,7 +7,7 @@ Provider failures stop execution; only source-validated complete batches are cac
 Jupiter is also the swap provider for live trading (Phase 6), so using it
 for prices keeps the entire pipeline on one provider.
 
-Backfill uses Birdeye OHLCV since Jupiter doesn't have a candle history endpoint.
+Completed indicator candles use the separate Birdeye V3 history adapter.
 """
 
 from __future__ import annotations
@@ -21,6 +21,8 @@ from typing import Optional
 
 import aiohttp
 
+from .birdeye_candles import BirdeyeCandles
+from .candles import MinuteCandle
 from .feed import MarketFeed, MarketFeedError, MarketTick, QuoteEvidence
 from .quote_freshness import quote_source_age, source_slot, validate_quote
 from .solana_time import SolanaTimeResolver
@@ -65,7 +67,8 @@ class JupiterFeed(MarketFeed):
     Tick rates must respect the configured provider account's actual quota.
     """
 
-    def __init__(self, api_key: str = "", *, rpc_url: str | None = None):
+    def __init__(self, api_key: str = "", *, rpc_url: str | None = None,
+                 birdeye_api_key: str | None = None):
         self._api_key = api_key or JUP_API_KEY
         if not self._api_key:
             raise ValueError("JUP_API_KEY is required for paper trading mode")
@@ -84,26 +87,14 @@ class JupiterFeed(MarketFeed):
         # API call counter (exposed to Genesis for tracking)
         self.api_call_count: int = 0
 
-        # Birdeye headers for OHLCV backfill
-        self._birdeye_key = BIRDEYE_API_KEY
-        self._birdeye_headers = {
-            "X-API-KEY": self._birdeye_key,
-            "x-chain": "solana",
-            "User-Agent": "VonNeumann/1.0",
-            "Accept": "application/json",
-        } if self._birdeye_key else {}
+        # Configuration is enforced on candle access so quote-only callers can
+        # still validate Jupiter/RPC independently. This owns a separate session.
+        self._candles = BirdeyeCandles(
+            BIRDEYE_API_KEY if birdeye_api_key is None else birdeye_api_key, TOKEN_MINTS)
 
         # Cache: asset -> (monotonic receipt time, source-validated MarketTick)
         self._cache: dict[str, tuple[float, MarketTick]] = {}
         self._cache_ttl = 0.8  # seconds — slightly under 1s tick
-
-        # Volume cache — Jupiter price API doesn't include volume, so we
-        # refresh from Birdeye OHLCV on a slow schedule and merge the last
-        # known volume into each tick. Without this, the `volume_threshold`
-        # signal gene is silently neutralized after ~20 live ticks.
-        self._volume_cache: dict[str, float] = {}
-        self._last_volume_refresh: float = 0.0
-        self._volume_refresh_interval: float = 60.0  # seconds
 
         self._session: Optional[aiohttp.ClientSession] = None
 
@@ -116,8 +107,11 @@ class JupiterFeed(MarketFeed):
         return self._session
 
     async def close(self) -> None:
-        if self._session and not self._session.closed:
-            await self._session.close()
+        try:
+            if self._session and not self._session.closed:
+                await self._session.close()
+        finally:
+            await self._candles.close()
 
     # ── Price API ────────────────────────────────────────────────────────
 
@@ -214,7 +208,9 @@ class JupiterFeed(MarketFeed):
                     age_floor = max(age_floor, previous_age - (stamp - previous_tick.timestamp))
                 tick = MarketTick(
                     asset=asset, price=price,
-                    volume=_number(self._volume_cache.get(asset, 0.0), positive=False), timestamp=stamp,
+                    # Jupiter does not supply volume. Indicator volume comes only
+                    # from completed source candles, never repeated quote polls.
+                    volume=0.0, timestamp=stamp,
                     evidence=QuoteEvidence(slot, received_at, received_mono,
                                            source_age_at_receipt=age_floor),
                 )
@@ -240,133 +236,9 @@ class JupiterFeed(MarketFeed):
         """Get prices for multiple assets — single API call."""
         return await self._fetch_all_prices(assets)
 
-    # ── Volume refresh (via Birdeye) ─────────────────────────────────────
-    # Jupiter's price API doesn't return volume. We keep a small per-asset
-    # cache that we refresh from Birdeye 1-minute OHLCV on a slow schedule
-    # so the `volume_threshold` signal gene has real data to work with.
-
-    async def refresh_volumes(self, assets: Optional[list[str]] = None) -> None:
-        """Refresh cached volumes from Birdeye. Rate-limited internally — safe to call every tick."""
-        if not self._birdeye_key:
-            return
-
-        now = time.time()
-        if now - self._last_volume_refresh < self._volume_refresh_interval:
-            return
-        target_assets = list(dict.fromkeys(TOKEN_MINTS if assets is None else assets))
-        if any(asset not in TOKEN_MINTS for asset in target_assets):
-            raise MarketFeedError("unsupported_asset")
-        pending = {}
-        try:
-            session = await self._get_session()
-            for asset in target_assets:
-                async with session.get(
-                    "https://public-api.birdeye.so/defi/ohlcv",
-                    params={
-                        "address": TOKEN_MINTS[asset],
-                        "type": "1m",
-                        "time_from": int(now) - 180,
-                        "time_to": int(now),
-                    },
-                    headers=self._birdeye_headers,
-                    allow_redirects=False,
-                ) as resp:
-                    if resp.status != 200:
-                        raise MarketFeedError("volume_unavailable")
-                    data = await resp.json()
-                    if not isinstance(data, dict) or data.get("success") is False:
-                        raise MarketFeedError("volume_invalid")
-                    body = data.get("data")
-                    items = body.get("items") if isinstance(body, dict) else None
-                    if not isinstance(items, list):
-                        raise MarketFeedError("volume_invalid")
-                    if items:
-                        if not isinstance(items[-1], dict):
-                            raise MarketFeedError("volume_invalid")
-                        pending[asset] = _number(items[-1].get("v"), positive=False)
-                    # Empty history remains optional; candle freshness policy is separate.
-                await asyncio.sleep(0.75)  # Birdeye rate limit
-            self._volume_cache.update(pending)
-            self._last_volume_refresh = now
-        except MarketFeedError:
-            raise
-        except (ValueError, TypeError, OverflowError):
-            raise MarketFeedError("volume_invalid") from None
-        except Exception:
-            raise MarketFeedError("volume_unavailable") from None
-
-    # ── OHLCV Backfill (via Birdeye) ─────────────────────────────────────
-    # Jupiter doesn't have a candle history endpoint, so we use Birdeye
-    # for the initial backfill to warm up probe RSI/EMA buffers.
-
-    async def backfill(
-        self,
-        asset: str,
-        timeframe_minutes: int = 15,
-        limit: int = 100,
-    ) -> list[dict]:
-        """Fetch OHLCV history from Birdeye for signal warmup."""
-        if not self._birdeye_key:
-            logger.warning("[Jupiter] No BIRDEYE_API_KEY — skipping backfill")
-            return []
-
-        mint = TOKEN_MINTS.get(asset)
-        if not mint:
-            return []
-
-        session = await self._get_session()
-        interval_map = {1: "1m", 3: "3m", 5: "5m", 15: "15m", 30: "30m", 60: "1H"}
-        interval = interval_map.get(timeframe_minutes, "15m")
-
-        now = int(time.time())
-        time_from = now - (limit * timeframe_minutes * 60)
-
-        try:
-            async with session.get(
-                "https://public-api.birdeye.so/defi/ohlcv",
-                params={
-                    "address": mint,
-                    "type": interval,
-                    "time_from": time_from,
-                    "time_to": now,
-                },
-                headers=self._birdeye_headers,
-                allow_redirects=False,
-            ) as resp:
-                if resp.status != 200:
-                    logger.warning(f"[Jupiter] Birdeye OHLCV HTTP {resp.status} for {asset}")
-                    return []
-
-                data = await resp.json()
-                items = data.get("data", {}).get("items", [])
-
-                candles = [
-                    {
-                        "price": float(c["c"]),
-                        "volume": float(c["v"]),
-                        "timestamp": c.get("unixTime", 0),
-                    }
-                    for c in items
-                ]
-                logger.info(f"[Jupiter] Backfilled {len(candles)} candles for {asset}")
-                return candles
-
-        except Exception:
-            logger.warning("[Jupiter] Optional history unavailable")
-            return []
-
-    async def backfill_probe(
-        self,
-        assets: list[str],
-        timeframe_minutes: int = 15,
-        limit: int = 100,
-    ) -> dict[str, list[dict]]:
-        """Backfill multiple assets with rate-limited Birdeye calls."""
-        result: dict[str, list[dict]] = {}
-        for asset in assets:
-            result[asset] = await self.backfill(asset, timeframe_minutes, limit)
-            await asyncio.sleep(0.75)  # Birdeye rate limit
-        return result
+    async def get_candles(self, assets: list[str], *, warmup: bool = False) -> list[MinuteCandle]:
+        """Fetch completed source minutes for the shared indicator history."""
+        return await self._candles.get_candles(assets, warmup=warmup)
 
     # ── Swap Quoting (for future live trading) ───────────────────────────
 

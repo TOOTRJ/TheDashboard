@@ -95,7 +95,7 @@ class EngineClockTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase):
             sleeps.append(seconds)
 
         # Force a known signal policy so this test isolates clock/plumbing from
-        # the still-open completed-candle/indicator acceptance work.
+        # indicator thresholds; actual candle boundaries and delayed fills remain real.
         with patch.object(controller, "_tick_all", side_effect=tick_and_stop), \
              patch("vonneumann.core.genesis.asyncio.sleep", side_effect=record_pacing), \
              patch.object(Probe, "_has_entry_signal", return_value=(True, {})), \

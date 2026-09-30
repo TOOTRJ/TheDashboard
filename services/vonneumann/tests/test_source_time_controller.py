@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import replace
+from datetime import datetime, timezone
 import unittest
 from unittest.mock import patch
 
@@ -15,6 +16,7 @@ with deny_network():
     from vonneumann.core.strategies.base import EvolutionResult, EvolutionStrategy
     from vonneumann.core.types import EventType, ProbeState
     from vonneumann.market.feed import MarketFeedError, MarketTick, QuoteEvidence
+    from vonneumann.market.candles import MinuteCandle
 
 
 ASSET = "SOL/USDC"
@@ -59,6 +61,9 @@ class MutableSourceFeed:
                                  QuoteEvidence(slot, self.clock.wall, self.clock.mono))
                 for asset in (ASSET, OTHER_ASSET)}
 
+    async def get_candles(self, assets, *, warmup=False):
+        return []  # This quote/accounting fixture deliberately has no signal history.
+
     async def get_ticks(self, assets):
         if self.failure is not None:
             raise self.failure
@@ -71,6 +76,7 @@ class SourceTimeControllerTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCa
         self.clock = ControlledClock()
         self.offline_stack.enter_context(patch("vonneumann.market.quote_freshness.time", self.clock))
         self.events = []
+        self.offline_stack.enter_context(patch("vonneumann.core.probe.time", self.clock))
 
     @staticmethod
     def genome(**kwargs):
@@ -99,6 +105,7 @@ class SourceTimeControllerTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCa
         with patch("vonneumann.core.genesis.random_genome", side_effect=self.genome):
             await controller.prepare()
         for probe in controller.live_probes:
+            probe._clock = lambda: datetime.fromtimestamp(self.clock.wall, timezone.utc)
             for asset in probe.genome.assets:
                 probe.on_price_update(asset, 100.0, 1_000.0)
         self.events.clear()
@@ -129,7 +136,7 @@ class SourceTimeControllerTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCa
         stale_trade = self.open_position(stale, OTHER_ASSET)
         healthy_trade = self.open_position(healthy)
         original_ids = set(controller.probes)
-        old_buffer = list(stale._price_buffer[OTHER_ASSET])
+        old_buffer = stale._marks.get(OTHER_ASSET)
         feed.response = feed.prices(80)
         feed.response[OTHER_ASSET] = feed.prices(80, age=31)[OTHER_ASSET]
         controller.reproduction_interval = 1
@@ -138,7 +145,7 @@ class SourceTimeControllerTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCa
                 await controller._tick_all()
             evolve.assert_not_called()
         self.assertEqual(stale.open_positions, {OTHER_ASSET: stale_trade})
-        self.assertEqual(stale._price_buffer[OTHER_ASSET], old_buffer)
+        self.assertEqual(stale._marks.get(OTHER_ASSET), old_buffer)
         self.assertEqual(healthy.closed_trades, [healthy_trade])
         self.assertEqual(healthy.capital, 90)
         self.assertNotIn(OTHER_ASSET, controller._latest_prices)
@@ -176,12 +183,12 @@ class SourceTimeControllerTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCa
         feed.response = feed.prices(101, slot=100)
         await controller._tick_all()
         self.assertEqual(controller._latest_prices[ASSET], 101)
-        buffers = [list(probe._price_buffer[ASSET]) for probe in probes]
+        buffers = [probe._marks.get(ASSET) for probe in probes]
         feed.response = feed.prices(80, slot=99)
         with self.assertRaises(MarketFeedError):
             await controller._tick_all()
         self.assertEqual(controller._latest_prices, {})
-        self.assertEqual([probe._price_buffer[ASSET] for probe in probes], buffers)
+        self.assertEqual([probe._marks.get(ASSET) for probe in probes], buffers)
 
     async def test_paused_status_loses_valuation_when_the_mark_ages_out(self):
         controller, _feed, (probe, _) = await self.controller()
@@ -228,7 +235,18 @@ class SourceTimeControllerTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCa
         self.assertEqual(controller.dead_probes, [])
 
     async def test_completed_entry_is_retained_but_delay_blocks_next_probe_and_evolution(self):
-        controller, _feed, (first, later) = await self.controller()
+        controller, feed, (first, later) = await self.controller()
+        end = int(self.clock.wall) // 60 * 60
+        controller.candle_history.ingest([
+            MinuteCandle(asset, end - 60, 100, 100, 100, 100, 1000, "test")
+            for asset in (ASSET, OTHER_ASSET)
+        ], available_at=self.clock.wall)
+        for tick in feed.response.values():
+            first.on_quote(tick)
+        with patch.object(first, "_has_entry_signal", return_value=(True, {})):
+            self.assertEqual(first.tick(), [])
+        self.clock.advance(1)
+        feed.response = feed.prices(slot=101)
         controller.reproduction_interval = 1
         self.expire_after(controller, EventType.TRADE_OPENED)
         with patch.object(first, "_has_entry_signal", return_value=(True, {})), \
@@ -286,7 +304,7 @@ class SourceTimeControllerTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCa
                 }
                 await controller._tick_all()
                 self.assertEqual(controller._latest_prices[ASSET], 100)
-                previous_buffers = [list(probe._price_buffer[ASSET]) for probe in probes]
+                previous_buffers = [probe._marks.get(ASSET) for probe in probes]
                 # A second refresh offers the same source time with new receipt
                 # metadata. Even another higher slot cannot erase its true age.
                 self.clock.mono += 11
@@ -300,7 +318,7 @@ class SourceTimeControllerTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCa
                     await controller._tick_all()
                 self.assertEqual(raised.exception.code, "price_stale")
                 self.assertEqual(controller._latest_prices, {})
-                self.assertEqual([probe._price_buffer[ASSET] for probe in probes], previous_buffers)
+                self.assertEqual([probe._marks.get(ASSET) for probe in probes], previous_buffers)
                 self.assertFalse(any(e.event_type == EventType.TRADE_OPENED for e in self.events))
 
     async def test_new_source_replaces_expired_anchor_without_inheriting_old_age(self):
@@ -319,11 +337,11 @@ class SourceTimeControllerTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCa
 
     async def test_same_slot_cannot_change_source_timestamp_to_claim_freshness(self):
         controller, feed, probes = await self.controller()
-        previous_buffers = [list(probe._price_buffer[ASSET]) for probe in probes]
+        previous_buffers = [probe._marks.get(ASSET) for probe in probes]
         self.clock.advance(1)
         feed.response = feed.prices(101, slot=100)
         with self.assertRaises(MarketFeedError) as raised:
             await controller._tick_all()
         self.assertEqual(raised.exception.code, "source_time_invalid")
         self.assertEqual(controller._latest_prices, {})
-        self.assertEqual([probe._price_buffer[ASSET] for probe in probes], previous_buffers)
+        self.assertEqual([probe._marks.get(ASSET) for probe in probes], previous_buffers)
