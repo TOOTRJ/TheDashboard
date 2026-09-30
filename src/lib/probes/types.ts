@@ -34,6 +34,15 @@ export interface RiskControl {
   recovery_count: number;
 }
 
+export interface SearchSpec {
+  version: "search-spec-v1";
+  seed: string;
+  algorithm: string;
+  epoch: number;
+  stream_policy: "sha256-namespaced-search-v1";
+  optimizer_state_checkpointed: false;
+}
+
 export interface EvaluationPolicy {
   version: "common-market-window-v1";
   horizon_unit: "market_minutes";
@@ -185,7 +194,7 @@ export interface ColonyRun {
   probe_count: number;
   best_fitness: number;
   status?: Exclude<SimulationStatus, "unknown">;
-  runtime?: Partial<Pick<SystemStatus, "failure_code" | "state_persisted" | "open_positions" | "requires_reconciliation" | "valuation_available" | "clock_basis" | "market_time" | "market_elapsed_secs" | "circuit_breaker" | "risk_control" | "evaluation_policy" | "cohort">>;
+  runtime?: Partial<Pick<SystemStatus, "failure_code" | "state_persisted" | "open_positions" | "requires_reconciliation" | "valuation_available" | "clock_basis" | "market_time" | "market_elapsed_secs" | "circuit_breaker" | "risk_control" | "evaluation_policy" | "cohort" | "search_spec">>;
 }
 
 export interface PriceTick {
@@ -212,6 +221,7 @@ export interface SystemStatus {
   valuation_available?: boolean;
   circuit_breaker: boolean;
   risk_control?: RiskControl;
+  search_spec?: SearchSpec;
   evaluation_policy?: EvaluationPolicy;
   cohort?: EvaluationCohort;
   diversity: number | null;
@@ -248,6 +258,7 @@ export interface ColonyInfo {
   requires_reconciliation?: boolean;
   circuit_breaker?: boolean;
   risk_control?: RiskControl;
+  search_spec?: SearchSpec;
   evaluation_policy?: EvaluationPolicy;
   cohort?: EvaluationCohort;
 }

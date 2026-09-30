@@ -27,6 +27,7 @@ from .colony_config import ColonyConfig
 from .evolution import FITNESS_POLICY, NUMERIC_GENES, mutate, population_diversity
 from .equity_metrics import EQUITY_METRICS_POLICY
 from .genome import Genome, random_genome
+from .search_random import SearchRandomStreams
 from .funding import FundingError, can_fund, funding_tolerance, sum_cashflows, valid_cash
 from .names import generate_probe_name
 from .market_validation import MarketValueError, nonnegative_value, positive_price, position_value
@@ -65,9 +66,14 @@ class GenesisController:
         colony_config: Optional[ColonyConfig] = None,
         on_event: Optional[Callable[[ProbeEvent], Awaitable[None]]] = None,
         persist_risk_status: Optional[Callable[[dict], Awaitable[None]]] = None,
+        search_seed: str = "0",
     ):
         self.market_feed = market_feed
         self.strategy = strategy
+        self._search_streams = SearchRandomStreams(search_seed, strategy.name)
+        self._search_epoch = 0
+        self._mutation_event = 0
+        self.strategy.configure_search(self._search_streams, self._search_epoch)
         self._uses_cohorts = bool(getattr(strategy, "supports_cohorts", False))
         self.user_id = user_id
         self.mode = mode
@@ -234,6 +240,9 @@ class GenesisController:
             "run_id": self.run_id,
             "colony_id": self.colony_id,
             "strategy": self.strategy.name,
+            "search_spec": {**self._search_streams.spec(self._search_epoch),
+                "simulation_spec": (self.market_feed.simulation_spec
+                    if self._uses_simulation_clock and hasattr(self.market_feed, "simulation_spec") else None)},
             "mode": self.mode,
             "generation": self.current_generation,
             "tick": self.tick_count,
@@ -294,8 +303,9 @@ class GenesisController:
         self._wall_started_monotonic = time.monotonic()
         logger.info(f"[Genesis] Starting in {self.mode} mode. Seeding {self.gen0_count} Gen-0 probes.")
 
-        genomes = [random_genome(generation=0, colony_config=self.colony_config)
-                   for _ in range(self.gen0_count)]
+        genomes = [random_genome(generation=0, colony_config=self.colony_config,
+                   rng=self._search_streams.rng('gen0', self._search_epoch, index))
+                   for index in range(self.gen0_count)]
         await self._apply_replacement(EvolutionResult(genomes, []))
         if len(self.live_probes) != self.gen0_count:
             raise RuntimeError("Initial population is incomplete")
@@ -630,6 +640,9 @@ class GenesisController:
             genome.generation = self.current_generation + 1
             genome.parent_ids = []
         await self._apply_replacement(EvolutionResult(genomes, list(self.probes)))
+        self._search_epoch += 1
+        self._mutation_event = 0
+        self.strategy.configure_search(self._search_streams, self._search_epoch)
         self.strategy.initialize(list(self.live_probes), self.colony_config)
         self._bind_evaluation()
         await self._publish_evaluation()
@@ -714,7 +727,10 @@ class GenesisController:
         new_genomes = self.strategy.inject_diversity(
             [p.genome for p in self.live_probes], self.dead_probes, self.colony_config,
             current_generation=self.current_generation, count=count,
+            rng=self._search_streams.rng('mutation', self._search_epoch,
+                                         'diversity', self._mutation_event),
         )
+        self._mutation_event += 1
         if not isinstance(new_genomes, list) or len(new_genomes) > count:
             raise FundingError()
         await self._apply_replacement(EvolutionResult(new_genomes, []))
@@ -753,14 +769,17 @@ class GenesisController:
             return
         self._require_current_quotes()
         children = []
-        for _ in range(self.child_count):
+        for child_index in range(self.child_count):
             child = Genome(
                 **{g: getattr(probe.genome, g) for g in NUMERIC_GENES},
                 assets=list(probe.genome.assets),
                 generation=probe.genome.generation + 1,
                 parent_ids=[probe.probe_id],
             )
-            children.append(mutate(child, mutation_rate=self.mutation_rate, colony_config=self.colony_config))
+            children.append(mutate(child, mutation_rate=self.mutation_rate, colony_config=self.colony_config,
+                rng=self._search_streams.rng('mutation', self._search_epoch,
+                                             'self-reproduction', self._mutation_event, child_index)))
+        self._mutation_event += 1
         await self._apply_replacement(
             EvolutionResult(children, [probe.probe_id]), self_reproducing=True,
         )

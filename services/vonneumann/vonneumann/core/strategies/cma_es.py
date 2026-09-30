@@ -142,6 +142,7 @@ class CMAEvolutionStrategy(EvolutionStrategy):
             sigma=0.3,
             bounds=self._codec.bounds,
             population_size=len(probes),
+            seed=self.cma_seed(),
         )
         self.bind_candidates(probes)
 

@@ -7,6 +7,7 @@ from typing import Literal, Optional
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from ..core.colony_config import ColonyConfig, GeneOverride, PRESET_CONFIGS
+from ..core.search_random import validate_search_seed
 from ..core.gene_registry import GENE_REGISTRY
 from ..core.genome import AVAILABLE_ASSETS
 from ..core.strategies import list_strategies
@@ -65,6 +66,7 @@ class ColonyConfigModel(StrictModel):
 
 
 class StartRequest(StrictModel):
+    search_seed: str = Field(default="0", max_length=20)
     mode: Literal["simulation", "paper"] = "simulation"
     strategy: str = Field(default="genetic_algorithm", min_length=1, max_length=64)
     preset: Optional[str] = Field(default=None, max_length=64)
@@ -75,6 +77,11 @@ class StartRequest(StrictModel):
     gen0_count: int = Field(default=10, ge=2, le=50)
     tick_interval_ms: int = Field(default=1000, ge=100, le=60_000)
     mutation_rate: Optional[float] = Field(default=None, ge=0, le=0.5)
+
+    @field_validator("search_seed", mode="before")
+    @classmethod
+    def canonical_search_seed(cls, value):
+        return validate_search_seed(value)
 
     @field_validator("strategy")
     @classmethod

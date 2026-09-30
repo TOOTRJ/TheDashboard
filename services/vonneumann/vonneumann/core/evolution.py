@@ -13,6 +13,7 @@ import random
 from typing import Optional, TYPE_CHECKING
 
 from .gene_registry import GENE_REGISTRY
+from .search_random import private_rng
 from .genome import Genome, AVAILABLE_ASSETS, random_genome
 from .market_validation import finite_number, nonnegative_value
 from .equity_metrics import calculate_sharpe as compute_sharpe
@@ -57,26 +58,28 @@ def mutate(
     mutation_rate: float = 0.20,
     mutation_strength: float = 0.15,
     colony_config: Optional[ColonyConfig] = None,
+    *, rng: random.Random | None = None,
 ) -> Genome:
     """
     Gaussian mutation. Only mutates evolvable genes.
     Fixed/disabled genes are untouched.
     """
+    rng = private_rng(rng)
     domains = colony_config.resolve_gene_domains() if colony_config else GENE_REGISTRY.resolve_domains()
     for gene_name in NUMERIC_GENES:
         evolvable = domains[gene_name].evolvable
         if not evolvable:
             continue
 
-        if random.random() < mutation_rate:
+        if rng.random() < mutation_rate:
             domain = domains[gene_name]
             gene_range = domain.maximum - domain.minimum
-            noise = random.gauss(0, mutation_strength * gene_range)
+            noise = rng.gauss(0, mutation_strength * gene_range)
             current = getattr(genome, gene_name)
             setattr(genome, gene_name, current + noise)
 
     # Asset mutation (in-place swap, ~30% rate)
-    genome.assets = mutate_assets(genome.assets, colony_config, swap_rate=0.30)
+    genome.assets = mutate_assets(genome.assets, colony_config, swap_rate=0.30, rng=rng)
 
     return genome.validate(colony_config)
 
@@ -85,6 +88,7 @@ def mutate_assets(
     assets: list[str],
     colony_config: Optional[ColonyConfig] = None,
     swap_rate: float = 0.15,
+    *, rng: random.Random | None = None,
 ) -> list[str]:
     """Return a copy of `assets` with a small chance of swapping one entry.
 
@@ -92,7 +96,8 @@ def mutate_assets(
     `mutate()` pipeline (DE, PSO, CMA-ES) but still want their offspring to
     explore the asset space.
     """
-    if not assets or random.random() >= swap_rate:
+    rng = private_rng(rng)
+    if not assets or rng.random() >= swap_rate:
         return list(assets)
     effective_assets = (
         colony_config.get_effective_assets() if colony_config else AVAILABLE_ASSETS
@@ -101,7 +106,7 @@ def mutate_assets(
     if not candidates:
         return list(assets)
     result = list(assets)
-    result[random.randrange(len(result))] = random.choice(candidates)
+    result[rng.randrange(len(result))] = rng.choice(candidates)
     return result
 
 
@@ -146,12 +151,14 @@ def inject_diversity_genomes(
     dead_probes: Optional[list] = None,
     colony_config: Optional[ColonyConfig] = None,
     count: int = 2,
+    *, rng: random.Random | None = None,
 ) -> list[Genome]:
     """
     Create `count` diversity-injection genomes.
     Prefers strongly-mutated copies of the best dead probe.
     Falls back to random Gen-0 genomes.
     """
+    rng = private_rng(rng)
     injected: list[Genome] = []
     for _ in range(count):
         if dead_probes:
@@ -166,13 +173,13 @@ def inject_diversity_genomes(
                 child,
                 mutation_rate=0.30,
                 mutation_strength=0.25,
-                colony_config=colony_config,
+                colony_config=colony_config, rng=rng,
             )
             injected.append(child)
         else:
             injected.append(
                 random_genome(
-                    generation=current_generation, colony_config=colony_config
+                    generation=current_generation, colony_config=colony_config, rng=rng
                 )
             )
     return injected
@@ -185,6 +192,7 @@ def inject_diversity(
     inject_count: int = 2,
     dead_probes: Optional[list] = None,
     colony_config: Optional[ColonyConfig] = None,
+    *, rng: random.Random | None = None,
 ) -> list[Genome]:
     """Deprecated: use inject_diversity_genomes() instead.
     Kept for backward compatibility during transition."""
@@ -192,5 +200,5 @@ def inject_diversity(
     if diversity >= diversity_threshold:
         return []
     return inject_diversity_genomes(
-        population, current_generation, dead_probes, colony_config, inject_count
+        population, current_generation, dead_probes, colony_config, inject_count, rng=rng
     )

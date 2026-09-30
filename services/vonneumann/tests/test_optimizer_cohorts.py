@@ -136,7 +136,7 @@ class CohortLedgerTests(OfflineTestMixin, unittest.TestCase):
 
 
 class RecordingCMA:
-    def __init__(self, *, mean, sigma, bounds, population_size):
+    def __init__(self, *, mean, sigma, bounds, population_size, seed=None):
         self.population_size = population_size
         self.generation = 0
         self.ask_count = 0

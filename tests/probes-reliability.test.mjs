@@ -824,3 +824,30 @@ test("DE launch requires complete funded target/trial pairs", () => {
     assert.deepEqual(plain(configs.validateStartConfig(config)), []);
   }
 });
+
+
+test("search seed validation preserves uint64 text and rejects coercion", () => {
+  for (const seed of ["0", "42", "9007199254740993", "18446744073709551615"]) {
+    const config = { ...valid(), search_seed: seed };
+    assert.deepEqual(plain(configs.validateStartConfig(config)), []);
+    assert.equal(JSON.parse(JSON.stringify(config)).search_seed, seed);
+  }
+  for (const seed of [0, true, null, "", "01", "+1", "-1", " 1", "1 ", "1e3", "1.5", "１２", "18446744073709551616"]) {
+    assert.ok(configs.validateStartConfig({ ...valid(), search_seed: seed }).some(issue => issue.field === "search_seed"));
+  }
+  const { search_seed, ...legacy } = valid();
+  assert.equal(search_seed, "0");
+  assert.deepEqual(plain(configs.validateStartConfig(legacy)), []);
+});
+
+test("saved search metadata is versioned and does not imply checkpoint restoration", () => {
+  const value = { version: "search-spec-v1", stream_policy: "sha256-namespaced-search-v1", seed: "9007199254740993", algorithm: "cma_es", epoch: 2, optimizer_state_checkpointed: false, private_state: "omitted" };
+  const parsed = transport.parseSearchSpec(value);
+  assert.equal(parsed.seed, value.seed);
+  assert.equal(parsed.epoch, 2);
+  assert.equal(parsed.optimizer_state_checkpointed, false);
+  assert.equal("private_state" in parsed, false);
+  for (const edits of [{ seed: 1 }, { epoch: -1 }, { epoch: 1.5 }, { version: "other" }, { stream_policy: "other" }, { algorithm: "other" }, { optimizer_state_checkpointed: true }]) {
+    assert.equal(transport.parseSearchSpec({ ...value, ...edits }), undefined);
+  }
+});

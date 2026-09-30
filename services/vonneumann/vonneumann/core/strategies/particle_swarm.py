@@ -8,7 +8,6 @@ old market-regime scores are diagnostics, never current selection evidence.
 
 from __future__ import annotations
 
-import random
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -42,8 +41,6 @@ class ParticleSwarmStrategy(EvolutionStrategy):
         super().__init__()
         self.w = 0.7
         self.c2 = 1.5
-        if not hasattr(self, "_rng"):
-            self._rng = random.Random()
         self._cohort = SelectionCohort()
         self._codec: ParameterCodec | None = None
         self._velocities: dict[str, dict[str, float]] = {}

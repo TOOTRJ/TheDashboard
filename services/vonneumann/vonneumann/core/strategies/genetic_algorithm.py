@@ -6,12 +6,12 @@ Extracted from the original monolithic evolution.py.
 
 from __future__ import annotations
 
-import random
 from copy import deepcopy
 from typing import Optional, TYPE_CHECKING
 
 from ..evolution import NUMERIC_GENES, mutate
 from ..genome import AVAILABLE_ASSETS, Genome
+from ..search_random import private_rng
 from .base import EvolutionResult, EvolutionStrategy
 from .cohort_contract import SelectionCohort, preserve_fixed_controls
 
@@ -29,6 +29,7 @@ class GeneticAlgorithmStrategy(EvolutionStrategy):
     )
 
     def __init__(self) -> None:
+        super().__init__()
         self.mutation_rate = 0.20
         self.mutation_strength = 0.15
         self._cohort = SelectionCohort()
@@ -60,10 +61,10 @@ class GeneticAlgorithmStrategy(EvolutionStrategy):
         # A complete no-trade or losing window is still valid evidence. Select
         # only from this exact completed cohort and keep a bounded population.
         while len(offspring) < len(eligible):
-            parent = tournament_select(eligible, k=3)
+            parent = tournament_select(eligible, k=3, rng=self._rng)
             mate_pool = [p for p in eligible if p.probe_id != parent.probe_id]
-            mate = tournament_select(mate_pool, k=3)
-            sexual = mate is not None and random.random() > 0.3
+            mate = tournament_select(mate_pool, k=3, rng=self._rng)
+            sexual = mate is not None and self._rng.random() > 0.3
 
             child_operations = []
             children = reproduce(
@@ -73,6 +74,9 @@ class GeneticAlgorithmStrategy(EvolutionStrategy):
                 self.mutation_rate,
                 colony_config,
                 operations=child_operations,
+                rng=self._rng,
+                mutation_rngs=[self.mutation_rng(i) for i in range(len(offspring),
+                    min(len(offspring) + 2, len(eligible)))],
             )
 
             for child, operation in zip(children, child_operations):
@@ -87,6 +91,7 @@ class GeneticAlgorithmStrategy(EvolutionStrategy):
                                    "parent_ids": list(parent_ids)})
 
         self._cohort.propose(offspring, eligible)
+        self._mutation_event += 1
         return EvolutionResult(
             offspring=offspring,
             retire_ids=[p.probe_id for p in eligible],
@@ -102,11 +107,11 @@ class GeneticAlgorithmStrategy(EvolutionStrategy):
 # ══════════════════════════════════════════════════════════════════════════════
 
 
-def tournament_select(probes: list[Probe], k: int = 3) -> Optional[Probe]:
+def tournament_select(probes: list[Probe], k: int = 3, *, rng=None) -> Optional[Probe]:
     """Tournament selection: pick k random probes, return the fittest."""
     if not probes:
         return None
-    tournament = random.sample(probes, min(k, len(probes)))
+    tournament = private_rng(rng).sample(probes, min(k, len(probes)))
     return max(tournament, key=lambda p: p.fitness)
 
 
@@ -115,9 +120,10 @@ def crossover(
     parent_b: Genome,
     generation: int,
     colony_config: Optional[ColonyConfig] = None,
-    *, repair_flags: Optional[list[bool]] = None,
+    *, repair_flags: Optional[list[bool]] = None, rng=None,
 ) -> tuple[Genome, Genome]:
     """Uniform crossover with asset merging."""
+    rng = private_rng(rng)
     child_a_genes: dict[str, float] = {}
     child_b_genes: dict[str, float] = {}
 
@@ -126,7 +132,7 @@ def crossover(
         b_val = getattr(parent_b, gene)
         evolvable = colony_config.is_gene_evolvable(gene) if colony_config else True
 
-        if evolvable and random.random() > 0.5:
+        if evolvable and rng.random() > 0.5:
             child_a_genes[gene] = a_val
             child_b_genes[gene] = b_val
         else:
@@ -144,7 +150,7 @@ def crossover(
 
     def pick_assets(n_gene: float) -> list[str]:
         n = max(1, min(len(parent_assets), int(round(n_gene))))
-        return random.sample(parent_assets, min(n, len(parent_assets)))
+        return rng.sample(parent_assets, min(n, len(parent_assets)))
 
     child_a = Genome(
         **child_a_genes,
@@ -175,7 +181,7 @@ def reproduce(
     num_children: int = 2,
     mutation_rate: float = 0.20,
     colony_config: Optional[ColonyConfig] = None,
-    *, operations: Optional[list[str]] = None,
+    *, operations: Optional[list[str]] = None, rng=None, mutation_rngs=None,
 ) -> list[Genome]:
     """Produce children via sexual (crossover+mutate) or asexual (clone+mutate).
 
@@ -186,6 +192,7 @@ def reproduce(
     avoid wasting work.
     """
     generation = max(parent.generation, mate.generation if mate else parent.generation) + 1
+    rng = private_rng(rng)
     children: list[Genome] = []
 
     if colony_config is not None and not any(colony_config.is_gene_evolvable(g) for g in NUMERIC_GENES):
@@ -198,7 +205,8 @@ def reproduce(
         return children
 
     def finish(child, rate, crossed=False, reverted=False):
-        mutated = mutate(child, rate, colony_config=colony_config)
+        mutation_rng = mutation_rngs[len(children)] if mutation_rngs is not None else rng
+        mutated = mutate(child, rate, colony_config=colony_config, rng=mutation_rng)
         result = preserve_fixed_controls(mutated, parent, colony_config)
         repaired = reverted or result is not mutated
         if operations is not None:
@@ -209,7 +217,8 @@ def reproduce(
     while len(children) < num_children:
         if mate is not None:
             repair_flags = []
-            child_a, child_b = crossover(parent, mate, generation, colony_config, repair_flags=repair_flags)
+            child_a, child_b = crossover(parent, mate, generation, colony_config,
+                                         repair_flags=repair_flags, rng=rng)
             children.append(finish(child_a, mutation_rate, crossed=True, reverted=repair_flags[0]))
             if len(children) < num_children:
                 children.append(finish(child_b, mutation_rate, crossed=True, reverted=repair_flags[1]))

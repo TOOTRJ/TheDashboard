@@ -14,7 +14,7 @@ import {
   belongsToSelectedColony, colonyPath, createSelectionScope,
   requestWorker, WorkerRequestError,
   formatColonyFailure, isRiskTripId, parseRiskControl,
-  formatEvaluationAbort, parseEvaluationCohort, parseEvaluationPolicy,
+  formatEvaluationAbort, parseEvaluationCohort, parseEvaluationPolicy, parseSearchSpec,
 } from "@/lib/probes/transport";
 import { validateStartConfig, type StartConfig } from "@/lib/probes/colony-config";
 import type {
@@ -297,6 +297,7 @@ function AuthenticatedProbesPage({ userId, accessToken }: { userId: string; acce
   const displayedStatus = showSavedStatus ? selectedHistory.status! : simStatus;
   const displayedMode = showSavedStatus ? selectedHistory.mode : simMode;
   const diagnostics = showSavedStatus || !systemStatus ? selectedHistory?.runtime : systemStatus;
+  const searchSpec = parseSearchSpec((!systemStatus || errors.status ? selectedHistory?.runtime : systemStatus)?.search_spec);
   const riskControl = parseRiskControl(diagnostics?.risk_control);
   const confirmedRiskHalt = !showSavedStatus && !errors.status && systemStatus?.status === "risk_halted";
   const recoveryAvailable = confirmedRiskHalt && isRiskTripId(riskControl?.trip_id);
@@ -343,6 +344,12 @@ function AuthenticatedProbesPage({ userId, accessToken }: { userId: string; acce
           Last reported synthetic market time: <span className="font-mono">{syntheticMarketTime}</span>.
           {" "}Prices are generated. Playback speed changes service pacing;
           trade and probe timestamps use this modeled clock.
+        </p>
+      )}
+      {searchSpec && (
+        <p className="text-xs text-muted-foreground">
+          Recorded search seed: <span className="font-mono">{searchSpec.seed}</span>, epoch {searchSpec.epoch}.
+          Replay requires the same configuration, input data and software. Saved seed metadata does not restore optimizer state after a worker restart.
         </p>
       )}
       {cohort && (

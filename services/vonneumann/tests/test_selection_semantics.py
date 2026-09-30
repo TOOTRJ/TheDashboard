@@ -70,7 +70,7 @@ class SelectionTests(OfflineTestMixin, unittest.TestCase):
 
     def test_ga_tournament_prefers_best_negative_score_and_asexual_lineage_is_one_parent(self):
         strategy, probes = self.setup_strategy(GeneticAlgorithmStrategy, 3, [-5., -1., -3.])
-        with patch('vonneumann.core.strategies.genetic_algorithm.random.random', return_value=0):
+        with patch.object(strategy._rng, 'random', return_value=0):
             result = strategy.evolve(completed(probes), [], self.config)
         self.assertEqual(list(result.parent_map.values()), [['initial-1']] * 3)
         self.assertTrue(all(phenotype(g) == phenotype(probes[1].genome) for g in result.offspring))
@@ -78,7 +78,7 @@ class SelectionTests(OfflineTestMixin, unittest.TestCase):
 
     def test_ga_crossover_lineage_names_both_actual_parents(self):
         strategy, probes = self.setup_strategy(GeneticAlgorithmStrategy)
-        with patch('vonneumann.core.strategies.genetic_algorithm.random.random', return_value=.99):
+        with patch.object(strategy._rng, 'random', return_value=.99):
             result = strategy.evolve(completed(probes), [], self.config)
         self.assertTrue(all(set(ids) == {'initial-0', 'initial-1'} for ids in result.parent_map.values()))
         self.assertTrue(all(x['operation'] == 'crossover_mutation' for x in result.metadata['offspring']))
@@ -91,8 +91,9 @@ class SelectionTests(OfflineTestMixin, unittest.TestCase):
         first, second, third = AVAILABLE_ASSETS[:3]
         a = Genome(assets=[first, second], num_assets=2)
         b = Genome(assets=[second, third], num_assets=2)
-        with patch('vonneumann.core.strategies.genetic_algorithm.random.sample', side_effect=sample):
-            crossover(a, b, 1)
+        rng = random.Random(0)
+        with patch.object(rng, 'sample', side_effect=sample):
+            crossover(a, b, 1, rng=rng)
         self.assertEqual(seen[:2], [[first, second, third]] * 2)
 
     def test_de_rejects_insufficient_or_odd_actual_account_capacity(self):
@@ -254,10 +255,8 @@ class SelectionTests(OfflineTestMixin, unittest.TestCase):
                 strategy.evolve(completed(following, 'restarted', 1120), [], self.config)
 
     def test_de_known_quadratic_objective_retains_best_and_converges_without_trading_network(self):
-        state = random.getstate()
-        self.addCleanup(random.setstate, state)
-        random.seed(107)
         strategy, probes = self.setup_strategy(DifferentialEvolutionStrategy, count=20)
+        strategy._rng.seed(107)
         strategy.F = .5
         errors = []
         for generation in range(30):

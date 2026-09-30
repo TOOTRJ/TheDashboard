@@ -1,4 +1,21 @@
-import type { EvaluationCohort, EvaluationPolicy, RiskControl, WsMessage } from "./types";
+import type { EvaluationCohort, EvaluationPolicy, RiskControl, SearchSpec, WsMessage } from "./types";
+
+export function isSearchSeed(value: unknown): value is string {
+  return typeof value === "string" && /^(0|[1-9][0-9]{0,19})$/.test(value) &&
+    BigInt(value) <= BigInt("18446744073709551615");
+}
+
+/** Saved metadata is historical evidence, not an executable checkpoint. */
+export function parseSearchSpec(value: unknown): SearchSpec | undefined {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
+  const data = value as Record<string, unknown>;
+  if (data.version !== "search-spec-v1" || data.stream_policy !== "sha256-namespaced-search-v1" ||
+      !isSearchSeed(data.seed) || typeof data.epoch !== "number" || !Number.isSafeInteger(data.epoch) || data.epoch < 0 ||
+      typeof data.algorithm !== "string" || !["genetic_algorithm", "differential_evolution", "particle_swarm", "cma_es"].includes(data.algorithm) ||
+      data.optimizer_state_checkpointed !== false) return undefined;
+  return { version: data.version, stream_policy: data.stream_policy, seed: data.seed,
+    epoch: data.epoch, algorithm: data.algorithm, optimizer_state_checkpointed: false };
+}
 
 export interface WorkerEndpoints {
   apiUrl: string | null;
@@ -154,7 +171,7 @@ export const START_LIMITS = {
 } as const;
 
 const VALIDATION_FIELDS: Record<string, string> = {
-  mode: "Trading mode", strategy: "Strategy", preset: "Preset", colony_config: "Colony configuration",
+  search_seed: "Search seed", mode: "Trading mode", strategy: "Strategy", preset: "Preset", colony_config: "Colony configuration",
   gene_overrides: "Gene overrides", enabled_genes: "Enabled genes", available_assets: "Trading pairs",
   rsi_period: "RSI period", rsi_oversold: "RSI oversold", rsi_overbought: "RSI overbought",
   ema_fast: "EMA fast", ema_slow: "EMA slow", volume_threshold: "Volume threshold",

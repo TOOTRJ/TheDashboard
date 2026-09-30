@@ -20,6 +20,7 @@ from fastapi.responses import JSONResponse
 
 from ..config import VN_ALLOWED_ORIGINS
 from ..core.colony_config import PRESET_CONFIGS
+from ..core.search_random import SearchRandomStreams
 from ..core.colony_manager import ColonyManager, ColonyLifecycleError, complete_operation
 from ..core.gene_registry import GENE_REGISTRY
 from ..core.genome import AVAILABLE_ASSETS
@@ -123,6 +124,8 @@ async def _start_colony(req: StartRequest, user: VerifiedUser) -> dict:
     resolved_colony_config.pop("mutation_rate", None)  # The request exposes this once, at top level.
     resolved_request = {**req.model_dump(), "mutation_rate": colony_config.mutation_rate,
                         "colony_config": resolved_colony_config}
+    search_spec = SearchRandomStreams(req.search_seed, req.strategy).spec()
+    persisted_config = {**resolved_request, "search_spec": search_spec}
 
     try:
         repo = VonNeumannRepository(user.id, run_id=colony_id)
@@ -141,7 +144,7 @@ async def _start_colony(req: StartRequest, user: VerifiedUser) -> dict:
                                                "open_positions", "requires_reconciliation", "valuation_available",
                                                "clock_basis", "market_time", "market_elapsed_secs", "simulation_spec", "quote_policy",
                                                "candle_policy", "metrics_policy", "fitness_policy",
-                                               "circuit_breaker", "risk_control", "evaluation_policy", "cohort", "last_evaluation")
+                                               "circuit_breaker", "risk_control", "evaluation_policy", "cohort", "last_evaluation", "search_spec")
         })
 
     async def publish_status(status: dict) -> None:
@@ -154,7 +157,7 @@ async def _start_colony(req: StartRequest, user: VerifiedUser) -> dict:
     # Retain the insert independently of a disconnected request. If cancellation
     # arrives after it commits, record failed rather than leaving an orphan start.
     insert = asyncio.create_task(repo.execute_async(
-        "insert_colony", colony_id, req.strategy, resolved_request, mode, status="starting"))
+        "insert_colony", colony_id, req.strategy, persisted_config, mode, status="starting"))
     try:
         await complete_operation(insert)
     except asyncio.CancelledError:
@@ -182,12 +185,13 @@ async def _start_colony(req: StartRequest, user: VerifiedUser) -> dict:
             seed_capital=req.seed_capital, max_capital=req.max_capital,
             tick_interval_ms=req.tick_interval_ms, mutation_rate=colony_config.mutation_rate,
             persist_status=persist_status, on_status=publish_status,
+            search_seed=req.search_seed,
         )
     except ColonyLifecycleError as error:
         raise _lifecycle_http_error(error, colony_id) from None
 
     return {"status": "started", "run_id": colony_id, "colony_id": colony_id,
-            "strategy": req.strategy, "config": resolved_request}
+            "strategy": req.strategy, "config": resolved_request, "search_spec": search_spec}
 
 
 # ── REST Endpoints ───────────────────────────────────────────────────────────
