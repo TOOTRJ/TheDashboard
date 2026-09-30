@@ -264,9 +264,21 @@ class EventPersister:
         self.repo = repo
         self.mode = mode
 
+    @staticmethod
+    def _event_timestamp(event: ProbeEvent) -> datetime:
+        """Preserve the event's market clock, never replace it with write time."""
+        timestamp = event.timestamp
+        try:
+            if not isinstance(timestamp, datetime) or timestamp.utcoffset() is None:
+                raise ValueError()
+            return timestamp.astimezone(timezone.utc)
+        except (TypeError, ValueError, OverflowError):
+            raise ValueError("Event timestamp must be a valid timezone-aware datetime") from None
+
     async def handle(self, event: ProbeEvent) -> None:
         etype = event.event_type
         data = event.data
+        timestamp = self._event_timestamp(event)
 
         if etype == EventType.PROBE_BORN:
             parent_ids = data.get("genome", {}).get("parent_ids", []) or []
@@ -281,6 +293,7 @@ class EventPersister:
                 "initial_capital": data.get("initial_capital", 0),
                 "current_capital": data.get("current_capital", 0),
                 "peak_capital": data.get("peak_capital", 0),
+                "born_at": timestamp.isoformat(),
                 "mode": self.mode,
             })
 
@@ -298,6 +311,7 @@ class EventPersister:
                 signal_volume_ratio=data.get("volume_ratio"),
                 stop_loss_price=data.get("stop_loss_price"),
                 take_profit_price=data.get("take_profit_price"),
+                opened_at=timestamp,
             )
             await self.repo.execute_async("insert_trade", trade, mode=self.mode)
 
@@ -307,7 +321,7 @@ class EventPersister:
                 "pnl": data.get("pnl"),
                 "pnl_pct": data.get("pnl_pct"),
                 "exit_reason": data.get("exit_reason"),
-                "closed_at": event.timestamp.isoformat(),
+                "closed_at": timestamp.isoformat(),
             })
 
         elif etype == EventType.PROBE_UPDATE:
@@ -318,7 +332,7 @@ class EventPersister:
             await self.repo.execute_async("update_probe", event.probe_id, {
                 "state": "DEAD",
                 "death_reason": reason,
-                "died_at": event.timestamp.isoformat(),
+                "died_at": timestamp.isoformat(),
                 "current_capital": data.get("current_capital", 0),
                 "total_trades": data.get("total_trades", 0),
                 "winning_trades": data.get("winning_trades", 0),
@@ -340,11 +354,14 @@ class EventPersister:
                 win_rate=data.get("win_rate", 0),
                 trade_count=data.get("trade_count", 0),
                 current_capital=data.get("current_capital", 0),
+                captured_at=timestamp,
             )
             await self.repo.execute_async("insert_fitness_snapshot", snapshot)
 
         elif etype == EventType.GENERATION_COMPLETE:
-            await self.repo.execute_async("upsert_generation_stats", data)
+            await self.repo.execute_async("upsert_generation_stats", {
+                **data, "ended_at": timestamp.isoformat(),
+            })
 
         # ColonyManager persists lifecycle transitions before announcing them.
         # Status notifications must not issue a second, potentially stale write.

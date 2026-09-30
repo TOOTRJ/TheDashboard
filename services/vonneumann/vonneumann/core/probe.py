@@ -16,9 +16,10 @@ import math
 import uuid
 from copy import copy
 from dataclasses import dataclass, replace
-from datetime import datetime, timezone
-from typing import Optional
+from datetime import datetime
+from typing import Callable, Optional
 
+from .clock import clock_datetime, utc_now
 from .evolution import compute_fitness, compute_sharpe
 from .genome import Genome
 from .market_validation import (
@@ -59,7 +60,9 @@ class Probe:
         mode: str = "simulation",
         probe_id: Optional[str] = None,
         probe_name: Optional[str] = None,
+        clock: Optional[Callable[[], datetime]] = None,
     ):
+        self._clock = clock or utc_now
         self.probe_id = probe_id or str(uuid.uuid4())
         self.probe_name = probe_name or f"Probe-G{genome.generation}-{self.probe_id[:4]}"
         self.genome = genome
@@ -70,7 +73,7 @@ class Probe:
         self.peak_capital = self.initial_capital
 
         self.state = ProbeState.BORN
-        self.born_at = datetime.now(timezone.utc)
+        self.born_at = self._now()
         self.died_at: Optional[datetime] = None
         self.death_reason: Optional[str] = None
 
@@ -93,6 +96,9 @@ class Probe:
         )
 
     # ── Properties ───────────────────────────────────────────────────────
+
+    def _now(self) -> datetime:
+        return clock_datetime(self._clock())
 
     @property
     def open_position_value(self) -> float:
@@ -321,6 +327,7 @@ class Probe:
         take_profit = nonnegative_value(self.genome.take_profit_pct)
         sl_price = positive_price(current_price * (1 - stop_loss))
         tp_price = positive_price(current_price * (1 + take_profit))
+        opened_at = self._now()
 
         trade = TradeRecord(
             trade_id=str(uuid.uuid4()),
@@ -335,6 +342,7 @@ class Probe:
             signal_volume_ratio=signals.get("volume_ratio"),
             stop_loss_price=sl_price,
             take_profit_price=tp_price,
+            opened_at=opened_at,
         )
 
         self.open_positions[asset] = trade
@@ -348,6 +356,7 @@ class Probe:
         return ProbeEvent(
             event_type=EventType.TRADE_OPENED,
             probe_id=self.probe_id,
+            timestamp=opened_at,
             data={
                 "trade_id": trade.trade_id,
                 "pair": asset,
@@ -417,10 +426,11 @@ class Probe:
                 # until the remaining portfolio has a valid valuation.
             else:
                 peak = max(peak, value)
-            closed_at = datetime.now(timezone.utc)
+            closed_at = self._now()
             event = ProbeEvent(
                 event_type=EventType.TRADE_CLOSED,
                 probe_id=self.probe_id,
+                timestamp=closed_at,
                 data={
                     "trade_id": trade.trade_id,
                     "pair": asset,
@@ -624,7 +634,7 @@ class Probe:
         if new_state is not None:
             projected.state = new_state
         if new_state == ProbeState.DYING:
-            projected.died_at = datetime.now(timezone.utc)
+            projected.died_at = self._now()
             projected.death_reason = death_reason
         try:
             data = projected.summary()
@@ -637,12 +647,14 @@ class Probe:
 
     def _trigger_reproduce(self) -> list[ProbeEvent]:
         plans, data, _ = self._lifecycle_plan(ProbeState.REPRODUCING, "REPRODUCING")
+        event_time = self._now()
         events = [self._apply_close_plan(plan) for plan in plans]
         self._transition(ProbeState.REPRODUCING)
         events.append(
             ProbeEvent(
                 event_type=EventType.PROBE_REPRODUCING,
                 probe_id=self.probe_id,
+                timestamp=event_time,
                 data=data,
             )
         )
@@ -662,6 +674,7 @@ class Probe:
             ProbeEvent(
                 event_type=EventType.PROBE_DYING,
                 probe_id=self.probe_id,
+                timestamp=died_at,
                 data={"reason": reason, **data},
             )
         )

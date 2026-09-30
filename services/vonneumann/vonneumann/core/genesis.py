@@ -15,11 +15,13 @@ from __future__ import annotations
 import asyncio
 import logging
 import math
+import time
 import uuid
 from copy import deepcopy
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Optional, Callable, Awaitable
 
+from .clock import timestamp_datetime, utc_now
 from .colony_config import ColonyConfig
 from .evolution import NUMERIC_GENES, mutate, population_diversity
 from .genome import Genome, random_genome
@@ -83,8 +85,14 @@ class GenesisController:
         # Colony config (gene overrides, enabled genes, etc.)
         self.colony_config = colony_config or ColonyConfig()
 
-        # Timing
+        # Wall-clock pacing is separate from the simulation's modeled time.
+        # Production SimulationFeed supplies current_timestamp. External/custom
+        # feeds without that capability retain real event time, never an inferred
+        # source-price timestamp.
         self.tick_interval_ms = tick_interval_ms
+        self._uses_simulation_clock = mode == "simulation" and hasattr(market_feed, "current_timestamp")
+        self._market_started_at = self._event_time() if self._uses_simulation_clock else None
+        self._wall_started_monotonic: Optional[float] = None
 
         # Safety
         self.circuit_breaker_drop_pct = circuit_breaker_drop_pct
@@ -137,6 +145,11 @@ class GenesisController:
             f"max_probes={max_probes} max_capital=${max_capital} gen0={gen0_count} "
             f"repro_interval={self.reproduction_interval}"
         )
+
+    def _event_time(self) -> datetime:
+        if self._uses_simulation_clock:
+            return timestamp_datetime(self.market_feed.current_timestamp)
+        return utc_now()
 
     # ── Properties ───────────────────────────────────────────────────────
 
@@ -207,8 +220,18 @@ class GenesisController:
             "diversity": round(diversity, 4) if diversity is not None else None,
             "started_at": self.started_at.isoformat() if self.started_at else None,
             "uptime_secs": (
-                (datetime.now(timezone.utc) - self.started_at).total_seconds()
-                if self.started_at else 0
+                max(0.0, time.monotonic() - self._wall_started_monotonic)
+                if self._wall_started_monotonic is not None else 0
+            ),
+            "clock_basis": "synthetic_market" if self._uses_simulation_clock else "wall",
+            "market_time": self._event_time().isoformat() if self._uses_simulation_clock else None,
+            "market_elapsed_secs": (
+                (self._event_time() - self._market_started_at).total_seconds()
+                if self._market_started_at is not None else None
+            ),
+            "simulation_spec": (
+                self.market_feed.simulation_spec
+                if self._uses_simulation_clock and hasattr(self.market_feed, "simulation_spec") else None
             ),
             "jup_api_calls": (
                 self.market_feed.api_call_count
@@ -229,7 +252,8 @@ class GenesisController:
 
     async def prepare(self) -> None:
         """Seed and persist the population before a supervised loop may start."""
-        self.started_at = datetime.now(timezone.utc)
+        self.started_at = utc_now()
+        self._wall_started_monotonic = time.monotonic()
         logger.info(f"[Genesis] Starting in {self.mode} mode. Seeding {self.gen0_count} Gen-0 probes.")
 
         genomes = [random_genome(generation=0, colony_config=self.colony_config)
@@ -361,6 +385,7 @@ class GenesisController:
             initial_capital=capital,
             mode=self.mode,
             probe_name=generate_probe_name(genome.generation),
+            clock=self._event_time,
         )
         probe.birth_tick = self.tick_count
         probe.set_funded()
@@ -381,6 +406,7 @@ class GenesisController:
         )
 
         await self._emit(ProbeEvent(
+            timestamp=probe.born_at,
             event_type=EventType.PROBE_BORN,
             probe_id=probe.probe_id,
             data=probe.summary(),
@@ -512,6 +538,7 @@ class GenesisController:
         if probe.state == ProbeState.TRADING:
             probe._transition(ProbeState.REPRODUCING)
             await self._emit(ProbeEvent(
+                timestamp=self._event_time(),
                 event_type=EventType.PROBE_REPRODUCING,
                 probe_id=probe.probe_id,
                 data=probe.summary(),
@@ -519,9 +546,10 @@ class GenesisController:
             probe._transition(ProbeState.DEAD)
         elif probe.state == ProbeState.OBSERVING:
             probe._transition(ProbeState.DYING)
-            probe.died_at = datetime.now(timezone.utc)
+            probe.died_at = self._event_time()
             probe.death_reason = reason
             await self._emit(ProbeEvent(
+                timestamp=probe.died_at,
                 event_type=EventType.PROBE_DYING,
                 probe_id=probe.probe_id,
                 data={"reason": reason, **probe.summary()},
@@ -730,6 +758,7 @@ class GenesisController:
             }
             if price_data:
                 await self._emit(ProbeEvent(
+                    timestamp=self._event_time(),
                     event_type=EventType.PRICE_UPDATE,
                     probe_id="genesis",
                     data={"prices": price_data, "tick": self.tick_count},
@@ -785,6 +814,7 @@ class GenesisController:
         # Batched probe updates every 10 ticks, system status every 5
         if self.tick_count % 5 == 0:
             await self._emit(ProbeEvent(
+                timestamp=self._event_time(),
                 event_type=EventType.SIMULATION_STATUS,
                 probe_id="genesis",
                 data=self.status(),
@@ -792,6 +822,7 @@ class GenesisController:
         if self.tick_count % 10 == 0:
             for p in self.live_probes:
                 await self._emit(ProbeEvent(
+                    timestamp=self._event_time(),
                     event_type=EventType.PROBE_UPDATE,
                     probe_id=p.probe_id,
                     data=p.summary(),
@@ -844,8 +875,10 @@ class GenesisController:
                 win_rate=probe.win_rate,
                 trade_count=probe.num_trades,
                 current_capital=probe.capital,
+                captured_at=self._event_time(),
             )
             await self._emit(ProbeEvent(
+                timestamp=snapshot.captured_at,
                 event_type=EventType.FITNESS_SNAPSHOT,
                 probe_id=probe.probe_id,
                 data={
@@ -893,6 +926,8 @@ class GenesisController:
 
         stats = {
             "generation": generation,
+            "started_at": min(p.born_at for p in all_gen_probes).isoformat(),
+            "ended_at": self._event_time().isoformat(),
             "total_probes": total,
             "alive_probes": alive,
             "dead_probes": dead,
@@ -913,6 +948,7 @@ class GenesisController:
         logger.info(f"[Genesis] Generation {generation} complete: {total} probes, best={stats['best_fitness']}")
 
         await self._emit(ProbeEvent(
+            timestamp=self._event_time(),
             event_type=EventType.GENERATION_COMPLETE,
             probe_id="genesis",
             data=stats,
