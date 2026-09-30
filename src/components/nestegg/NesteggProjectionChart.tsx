@@ -34,6 +34,8 @@ type CompareRow = {
   aggressive: number;
 };
 
+type ChartRow = CompareRow | MonteCarloBandPoint | Pick<ProjectionPoint, "age" | "balance">;
+
 type Props = {
   singleSeries: ProjectionPoint[];
   compareMode: boolean;
@@ -55,12 +57,12 @@ function ChartTooltip({
   bandMode,
 }: {
   active?: boolean;
-  payload?: Array<{ payload: Record<string, number> }>;
+  payload?: ReadonlyArray<{ payload?: ChartRow }>;
   compareMode: boolean;
   bandMode: boolean;
 }) {
-  if (!active || !payload?.length) return null;
-  const row = payload[0].payload;
+  const row = payload?.[0]?.payload;
+  if (!active || !row) return null;
   return (
     <div
       className="rounded-lg border border-[#00fff5]/25 px-3 py-2 text-xs shadow-lg"
@@ -69,7 +71,7 @@ function ChartTooltip({
       }}
     >
       <p className="font-mono text-[#00fff5] mb-1">Age {row.age}</p>
-      {compareMode ? (
+      {compareMode && "base" in row ? (
         <ul className="space-y-0.5 font-mono text-[11px]">
           <li className="text-[#00fff5]">Base: {formatCurrency(row.base)}</li>
           <li className="text-[#ffff00]">
@@ -79,17 +81,17 @@ function ChartTooltip({
             Aggressive: {formatCurrency(row.aggressive)}
           </li>
         </ul>
-      ) : bandMode ? (
+      ) : bandMode && "p50" in row ? (
         <ul className="space-y-0.5 font-mono text-[11px] text-muted-foreground">
           <li className="text-[#39ff14]">Median: {formatCurrency(row.p50)}</li>
           <li>90th pct: {formatCurrency(row.p90)}</li>
           <li>10th pct: {formatCurrency(row.p10)}</li>
         </ul>
-      ) : (
+      ) : "balance" in row ? (
         <p className="font-mono text-foreground">
-          {formatCurrency(row.balance as number)}
+          {formatCurrency(row.balance)}
         </p>
-      )}
+      ) : null}
     </div>
   );
 }
@@ -107,7 +109,7 @@ export function NesteggProjectionChart({
 }: Props) {
   const bandMode = Boolean(!compareMode && monteCarloBands && monteCarloBands.length > 0);
 
-  const data = compareMode
+  const data: ChartRow[] = compareMode
     ? compareData
     : bandMode
       ? monteCarloBands!
@@ -193,7 +195,7 @@ export function NesteggProjectionChart({
               content={(props) => (
                 <ChartTooltip
                   active={props.active}
-                  payload={props.payload as Array<{ payload: Record<string, number> }>}
+                  payload={props.payload}
                   compareMode={compareMode}
                   bandMode={bandMode}
                 />
