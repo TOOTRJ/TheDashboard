@@ -4,8 +4,8 @@ Colony Configuration — controls how a simulation run is initialized and evolve
 gene_overrides:  Narrow starting ranges or fix genes to specific values
 enabled_genes:   Only these genes participate in mutation/crossover (None = all)
 available_assets: Restrict the asset pool (None = all AVAILABLE_ASSETS)
-max_lifespan_ticks: Kill probes after N ticks (None = no limit)
-reproduction_interval: Evaluate fitness-ranked reproduction every N ticks
+max_lifespan_ticks: Maximum candidate market minutes after warmup (None = no limit)
+reproduction_interval: Common evaluation window in market minutes after all candidates warm
 """
 
 from __future__ import annotations
@@ -50,7 +50,7 @@ class ColonyConfig:
     enabled_genes: Optional[list[str]] = None  # None = all genes evolve
     available_assets: Optional[list[str]] = None  # None = all assets
     max_lifespan_ticks: Optional[int] = None
-    reproduction_interval: int = 100  # Evaluate fitness-ranked reproduction every N ticks
+    reproduction_interval: int = 100  # Common evaluation window in market minutes after all candidates warm
     mutation_rate: Optional[float] = None  # None = use strategy default
 
     def is_gene_evolvable(self, gene_name: str) -> bool:

@@ -20,6 +20,7 @@ if TYPE_CHECKING:
 
 
 class GeneticAlgorithmStrategy(EvolutionStrategy):
+    supports_cohorts = True
     name = "genetic_algorithm"
     label = "Genetic Algorithm"
     description = (

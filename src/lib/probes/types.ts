@@ -34,6 +34,23 @@ export interface RiskControl {
   recovery_count: number;
 }
 
+export interface EvaluationPolicy {
+  version: "common-market-window-v1";
+  horizon_unit: "market_minutes";
+  warmup: "all_candidates_ready";
+  interruptions: "abort_without_tell";
+}
+
+export interface EvaluationCohort {
+  phase: "warming" | "evaluating" | "completed" | "aborted";
+  iteration_id: string;
+  member_count: number;
+  completed_count: number;
+  started_at: number | null;
+  ends_at: number | null;
+  abort_reason: string | null;
+}
+
 export interface Genome {
   rsi_period: number;
   rsi_oversold: number;
@@ -168,7 +185,7 @@ export interface ColonyRun {
   probe_count: number;
   best_fitness: number;
   status?: Exclude<SimulationStatus, "unknown">;
-  runtime?: Partial<Pick<SystemStatus, "failure_code" | "state_persisted" | "open_positions" | "requires_reconciliation" | "valuation_available" | "clock_basis" | "market_time" | "market_elapsed_secs" | "circuit_breaker" | "risk_control">>;
+  runtime?: Partial<Pick<SystemStatus, "failure_code" | "state_persisted" | "open_positions" | "requires_reconciliation" | "valuation_available" | "clock_basis" | "market_time" | "market_elapsed_secs" | "circuit_breaker" | "risk_control" | "evaluation_policy" | "cohort">>;
 }
 
 export interface PriceTick {
@@ -195,6 +212,8 @@ export interface SystemStatus {
   valuation_available?: boolean;
   circuit_breaker: boolean;
   risk_control?: RiskControl;
+  evaluation_policy?: EvaluationPolicy;
+  cohort?: EvaluationCohort;
   diversity: number | null;
   started_at: string | null;
   uptime_secs: number;
@@ -229,6 +248,8 @@ export interface ColonyInfo {
   requires_reconciliation?: boolean;
   circuit_breaker?: boolean;
   risk_control?: RiskControl;
+  evaluation_policy?: EvaluationPolicy;
+  cohort?: EvaluationCohort;
 }
 
 export interface StrategyInfo {

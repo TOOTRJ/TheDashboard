@@ -14,6 +14,7 @@ import {
   belongsToSelectedColony, colonyPath, createSelectionScope,
   requestWorker, WorkerRequestError,
   formatColonyFailure, isRiskTripId, parseRiskControl,
+  formatEvaluationAbort, parseEvaluationCohort, parseEvaluationPolicy,
 } from "@/lib/probes/transport";
 import { validateStartConfig, type StartConfig } from "@/lib/probes/colony-config";
 import type {
@@ -299,6 +300,12 @@ function AuthenticatedProbesPage({ userId, accessToken }: { userId: string; acce
   const riskControl = parseRiskControl(diagnostics?.risk_control);
   const confirmedRiskHalt = !showSavedStatus && !errors.status && systemStatus?.status === "risk_halted";
   const recoveryAvailable = confirmedRiskHalt && isRiskTripId(riskControl?.trip_id);
+  const savedEvaluation = (!systemStatus || !!errors.status) &&
+    !!parseEvaluationPolicy(selectedHistory?.runtime?.evaluation_policy);
+  const evaluationDiagnostics = savedEvaluation ? selectedHistory?.runtime : systemStatus;
+  const evaluationPolicy = parseEvaluationPolicy(evaluationDiagnostics?.evaluation_policy);
+  const cohort = evaluationPolicy ? parseEvaluationCohort(evaluationDiagnostics?.cohort) : undefined;
+  const evaluationHistorical = savedEvaluation || !systemStatus || !!errors.status;
   const marketTimestamp = diagnostics?.clock_basis === "synthetic_market" && typeof diagnostics.market_time === "string"
     ? Date.parse(diagnostics.market_time) : NaN;
   const syntheticMarketTime = Number.isFinite(marketTimestamp)
@@ -337,6 +344,21 @@ function AuthenticatedProbesPage({ userId, accessToken }: { userId: string; acce
           {" "}Prices are generated. Playback speed changes service pacing;
           trade and probe timestamps use this modeled clock.
         </p>
+      )}
+      {cohort && (
+        <div role={cohort.phase === "aborted" ? "alert" : "status"} className="rounded-lg border border-[#00fff5]/20 bg-card/80 p-3 text-sm space-y-1">
+          <p className="font-medium">{evaluationHistorical ? "Recorded" : "Last reported"} evaluation phase: {cohort.phase === "warming" ? "Warming up" : cohort.phase === "evaluating" ? "Evaluating" : cohort.phase === "completed" ? "Completed" : "Aborted"}</p>
+          {evaluationHistorical && <p>Current worker status is unavailable. These are historical evaluation details.</p>}
+          {cohort.phase === "warming" && <p>The evaluation window starts only after every candidate&apos;s indicators are ready. Candidates are not ranked during warmup.</p>}
+          {cohort.phase === "evaluating" && <p>All candidates share the same market-time evaluation window. An early terminal candidate stays in this cohort until the common deadline.</p>}
+          {cohort.phase === "completed" && <p>The common evaluation window is complete and every candidate has a terminal result.</p>}
+          {cohort.phase === "aborted" && <p>{formatEvaluationAbort(cohort.abort_reason)} This window is excluded from optimizer updates.</p>}
+          <p>Recorded terminal results: {cohort.completed_count} of {cohort.member_count} candidates.</p>
+          {cohort.started_at !== null && cohort.ends_at !== null && <p className="text-xs text-muted-foreground">
+            Market window: {new Date(cohort.started_at * 1000).toISOString()} to {new Date(cohort.ends_at * 1000).toISOString()}.
+          </p>}
+          <p className="text-xs text-muted-foreground">Self-reproduction and diversity injection wait for cohort boundaries. A completed window does not establish strategy quality.</p>
+        </div>
       )}
       {displayedStatus === "failed" && <p role="alert" className="text-sm text-destructive">{formatColonyFailure(diagnostics?.failure_code)}</p>}
       {diagnostics?.state_persisted === false && <p role="alert" className="text-sm text-destructive">Colony state could not be saved. Displayed results may not survive a worker restart.</p>}

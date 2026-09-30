@@ -308,7 +308,7 @@ export function ColonyConfigDialog({ open, onClose, onStart, starting, startErro
           <span className="text-muted-foreground/40">|</span>
           <span><span className="text-[#ffff00] font-mono">{presetSummary.locked}</span> locked</span>
           <span className="text-muted-foreground/40">|</span>
-          <span>repro every <span className="text-[#bf00ff] font-mono">{presetSummary.repro}</span> ticks</span>
+          <span>evaluation window <span className="text-[#bf00ff] font-mono">{presetSummary.repro}</span> market minutes</span>
           {config.mutation_rate !== 0.20 && (
             <>
               <span className="text-muted-foreground/40">|</span>
@@ -435,7 +435,7 @@ export function ColonyConfigDialog({ open, onClose, onStart, starting, startErro
                     {/* Inline hint for reproduction genes */}
                     {group === "lifecycle" && (
                       <p className="text-[9px] italic text-muted-foreground/60 ml-4 mt-0.5">
-                        Reproduce At % and Reproduce At $ are OR&apos;d &mdash; either threshold triggers reproduction.
+                        Self-reproduction and diversity injection wait for cohort boundaries. Profit thresholds do not interrupt the shared evaluation window.
                       </p>
                     )}
                   </div>
@@ -546,7 +546,7 @@ export function ColonyConfigDialog({ open, onClose, onStart, starting, startErro
             </div>
             <div className="space-y-1">
               <Label className="text-[9px] uppercase tracking-wider text-muted-foreground">
-                Repro Interval (ticks)
+                Evaluation window (market minutes)
               </Label>
               <Input
                 type="number" min={START_LIMITS.reproduction_interval.min} max={START_LIMITS.reproduction_interval.max} step={1}
@@ -560,7 +560,7 @@ export function ColonyConfigDialog({ open, onClose, onStart, starting, startErro
             </div>
             <div className="space-y-1">
               <Label className="text-[9px] uppercase tracking-wider text-muted-foreground">
-                Max Lifespan (ticks, 0=no limit)
+                Maximum candidate age (market minutes after warmup)
               </Label>
               <Input
                 type="number" min={START_LIMITS.max_lifespan_ticks.min} max={START_LIMITS.max_lifespan_ticks.max} step={1}
@@ -574,6 +574,7 @@ export function ColonyConfigDialog({ open, onClose, onStart, starting, startErro
                 }}
                 className="h-7 text-xs font-mono border-[#00fff5]/20 bg-transparent"
               />
+              <p className="text-[9px] text-muted-foreground">0 means no age limit. Age starts when every candidate is ready.</p>
             </div>
             <div className="space-y-1">
               <Label className="text-[9px] uppercase tracking-wider text-muted-foreground">

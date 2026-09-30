@@ -24,6 +24,7 @@ NUMERIC_GENES = GENE_REGISTRY.numeric_gene_names()
 
 
 class ParticleSwarmStrategy(EvolutionStrategy):
+    supports_cohorts = True
     name = "particle_swarm"
     label = "Particle Swarm Optimization"
     description = "PSO with inertia weight, cognitive and social components."
@@ -38,12 +39,23 @@ class ParticleSwarmStrategy(EvolutionStrategy):
 
     def initialize(self, probes: list[Probe], colony_config: ColonyConfig) -> None:
         """Initialize velocities and personal bests keyed by real probe IDs."""
+        self.abort_cohort()
         for probe in probes:
             self._velocities[probe.probe_id] = {name: 0.0 for name in NUMERIC_GENES}
             self._personal_best[probe.probe_id] = (
                 probe.genome.to_dict(),
                 probe.fitness,
             )
+
+    def abort_cohort(self) -> None:
+        self._velocities.clear()
+        self._personal_best.clear()
+        self._global_best = None
+
+    def bind_candidates(self, probes: list[Probe]) -> None:
+        members = {probe.probe_id for probe in probes}
+        self._velocities = {pid: value for pid, value in self._velocities.items() if pid in members}
+        self._personal_best = {pid: value for pid, value in self._personal_best.items() if pid in members}
 
     def evolve(
         self,

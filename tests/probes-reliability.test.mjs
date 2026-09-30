@@ -301,6 +301,14 @@ function pageHarness(initial = {}) {
     dashboard: () => find(output, "Dashboard").props,
     alerts: () => JSON.stringify(output).match(/unavailable|retained|failed/g) ?? [],
     text: () => JSON.stringify(output),
+    visibleText: () => {
+      const read = (node) => {
+        if (typeof node === "string" || typeof node === "number") return String(node);
+        if (Array.isArray(node)) return node.map(read).join(" ");
+        return node && typeof node === "object" ? read(node.props?.children) : "";
+      };
+      return read(output).replace(/\s+/g, " ").trim();
+    },
     async pump() { for (let i = 0; i < 8; i++) { await new Promise((resolve) => setImmediate(resolve)); if (dirty) render(); } },
     tick() { for (const timer of [...intervals.values()]) timer.callback(); },
     event: (message) => websocketMessage(message),
@@ -660,4 +668,146 @@ test("risk-halted controls remain stoppable and offer explicit recovery instead 
   assert.ok(!text.includes('"Pause"'));
   assert.equal(findButtons(SimulationControls({ ...props, recoveryAvailable: false }))[0].props.disabled, true);
   assert.ok(findButtons(SimulationControls({ ...props, controlPending: true })).every((button) => button.props.disabled));
+});
+
+const evaluationPolicy = () => ({ version: "common-market-window-v1", horizon_unit: "market_minutes",
+  warmup: "all_candidates_ready", interruptions: "abort_without_tell" });
+const evaluationCohort = (phase = "warming") => ({
+  phase, iteration_id: "colony-A:iteration-1", member_count: 3, completed_count: phase === "completed" ? 3 : 0,
+  started_at: phase === "warming" ? null : 1_704_067_200,
+  ends_at: phase === "warming" ? null : 1_704_073_200, abort_reason: null,
+});
+
+test("saved evaluation metadata recognizes only the common-window policy and strips private ledger contents", async () => {
+  for (const policy of [evaluationPolicy(), undefined, { ...evaluationPolicy(), version: "old-policy" }]) {
+    const h = databaseHarness([
+      { data: [{ id: "A", mode: "simulation", config: { private: "secret", runtime: {
+        evaluation_policy: policy && { ...policy, private: "secret" }, cohort: { ...evaluationCohort(),
+          member_ids: ["private-members"], evaluations: [{ private: "secret" }], private: "secret" },
+      } } }], error: null }, { data: [], error: null },
+    ]);
+    const [run] = await h.api.fetchColonyRuns();
+    if (policy?.version === "common-market-window-v1") {
+      assert.deepEqual(plain(run.runtime.evaluation_policy), evaluationPolicy());
+      assert.deepEqual(plain(run.runtime.cohort), evaluationCohort());
+    } else {
+      assert.equal(run.runtime.evaluation_policy, undefined);
+      assert.equal(run.runtime.cohort, undefined);
+    }
+    assert.ok(!JSON.stringify(run).includes("secret"));
+    assert.ok(!JSON.stringify(run).includes("private-members"));
+  }
+});
+
+test("cohort parsing rejects invalid counts, times, phases and policy semantics", () => {
+  for (const patch of [{ phase: "running" }, { iteration_id: "" }, { iteration_id: "x".repeat(129) },
+    { member_count: 0 }, { member_count: 1.5 }, { completed_count: -1 }, { completed_count: 4 },
+    { completed_count: "0" }, { started_at: NaN }, { ends_at: Infinity }, { started_at: -1 },
+    { started_at: 1_704_073_200 }, { ends_at: 1_704_067_200 }, { ends_at: 8_640_000_000_001 }]) {
+    assert.equal(transport.parseEvaluationCohort({ ...evaluationCohort("evaluating"), ...patch }), undefined);
+  }
+  assert.equal(transport.parseEvaluationCohort({ ...evaluationCohort(), completed_count: 1 }), undefined);
+  assert.equal(transport.parseEvaluationCohort({ ...evaluationCohort("completed"), completed_count: 2 }), undefined);
+  assert.equal(transport.parseEvaluationCohort({ ...evaluationCohort("evaluating"), started_at: null, ends_at: null }), undefined);
+  assert.equal(transport.parseEvaluationCohort({ ...evaluationCohort("aborted"), abort_reason: "private-stacktrace" }).abort_reason, "unknown");
+  assert.equal(transport.parseEvaluationCohort({ ...evaluationCohort(), phase: "aborted", abort_reason: "paused" }).abort_reason, "paused");
+  for (const patch of [{ version: "unknown" }, { horizon_unit: "ticks" }, { warmup: "none" }, { interruptions: "score_partial" }]) {
+    assert.equal(transport.parseEvaluationPolicy({ ...evaluationPolicy(), ...patch }), undefined);
+  }
+  for (const value of [null, undefined, [], "private"]) {
+    assert.equal(transport.parseEvaluationCohort(value), undefined);
+    assert.equal(transport.parseEvaluationPolicy(value), undefined);
+  }
+});
+
+test("actual page explains warmup, shared windows, completed cohorts and aborted optimizer updates", async () => {
+  const h = pageHarness();
+  try {
+    await h.pump();
+    for (const [phase, expected] of [["warming", /Candidates are not ranked during warmup/],
+      ["evaluating", /All candidates share the same market-time evaluation window/],
+      ["completed", /every candidate has a terminal result/], ["aborted", /excluded from optimizer updates/]]) {
+      h.event({ type: "simulation_status", colony_id: "A", data: {
+        status: "running", mode: "simulation", evaluation_policy: evaluationPolicy(),
+        cohort: { ...evaluationCohort(phase), abort_reason: phase === "aborted" ? "private-stacktrace" : null },
+      } });
+      await h.pump();
+      assert.match(h.visibleText(), expected);
+      assert.match(h.visibleText(), /Self-reproduction and diversity injection wait for cohort boundaries/);
+      assert.match(h.visibleText(), /does not establish strategy quality/);
+      assert.ok(!h.visibleText().includes("private-stacktrace"));
+      if (phase !== "warming") assert.match(h.visibleText(), /2024-01-01T00:00:00.000Z/);
+    }
+  } finally { h.cleanup(); }
+});
+
+test("saved and retained evaluation progress is clearly historical during worker outage", async () => {
+  for (const source of ["saved", "retained"]) {
+    const runtime = { evaluation_policy: evaluationPolicy(), cohort: evaluationCohort("evaluating") };
+    const h = pageHarness(source === "saved"
+      ? { workerFails: true, savedStatus: "running", savedRuntime: runtime }
+      : { workerRuntime: runtime });
+    try {
+      await h.pump();
+      if (source === "retained") {
+        h.control.workerFails = true; h.tick(); await h.pump();
+      }
+      assert.match(h.visibleText(), /Recorded evaluation phase/);
+      assert.match(h.visibleText(), /historical evaluation details/);
+      assert.ok(!h.visibleText().includes("Last reported evaluation phase"));
+      if (source === "saved") assert.equal(h.dashboard().simStatus, "unknown", "saved running is not live authority");
+    } finally { h.cleanup(); }
+  }
+});
+
+test("unknown evaluation policies and malformed cohorts are not presented as valid experiments", async () => {
+  for (const metadata of [{ cohort: evaluationCohort() },
+    { evaluation_policy: { ...evaluationPolicy(), version: "other" }, cohort: evaluationCohort() },
+    { evaluation_policy: evaluationPolicy(), cohort: { ...evaluationCohort(), member_count: -1 } }]) {
+    const h = pageHarness({ workerRuntime: metadata });
+    try {
+      await h.pump();
+      assert.ok(!h.visibleText().includes("evaluation phase"));
+      assert.ok(!h.visibleText().includes("Candidates are not ranked during warmup"));
+    } finally { h.cleanup(); }
+  }
+  for (const [reason, expected] of [["paused", /paused/], ["stopped", /stopped/], ["risk_halted", /circuit breaker/],
+    ["failed", /failure/], ["worker_stopped", /worker stopped/], ["private", /interrupted/]]) {
+    assert.match(transport.formatEvaluationAbort(reason), expected);
+    assert.ok(!transport.formatEvaluationAbort(reason).includes("private"));
+  }
+});
+
+test("launch labels and validation explain modeled evaluation minutes without changing serialized fields", () => {
+  const jsx = (type, props, key) => ({ type, props, key });
+  let stateIndex = 0;
+  const components = (names) => Object.fromEntries(names.map((name) => [name, name]));
+  const { ColonyConfigDialog } = loadModule("../src/components/probes/ColonyConfigDialog.tsx", {
+    react: { useState(value) { return [stateIndex++ === 2 ? true : typeof value === "function" ? value() : value, () => {}]; },
+      useEffect() {}, useMemo(fn) { return fn(); } },
+    "react/jsx-runtime": { jsx, jsxs: jsx },
+    "lucide-react": components(["FlaskConical", "Zap", "Settings2", "Dna", "Shield", "Timer", "Lock", "Unlock"]),
+    "@/components/ui/button": components(["Button"]), "@/components/ui/checkbox": components(["Checkbox"]),
+    "@/components/ui/input": components(["Input"]), "@/components/ui/label": components(["Label"]),
+    "@/components/ui/dialog": components(["Dialog", "DialogContent", "DialogHeader", "DialogTitle", "DialogDescription"]),
+    "@/components/ui/select": components(["Select", "SelectContent", "SelectItem", "SelectTrigger", "SelectValue"]),
+    "@/components/ui/switch": components(["Switch"]), "@/components/ui/slider": components(["Slider"]),
+    "@/components/ui/tooltip": components(["Tooltip", "TooltipContent", "TooltipProvider", "TooltipTrigger"]),
+    "@/lib/probes/gene-registry": registry, "@/lib/probes/colony-config": configs,
+    "@/lib/probes/transport": transport,
+    "@/lib/probes/constants": { STRATEGY_LABELS: { genetic_algorithm: "Genetic Algorithm" }, STRATEGY_DESCRIPTIONS: {}, VN_ENDPOINTS: { error: null } },
+  });
+  const result = JSON.stringify(ColonyConfigDialog({ open: true, onClose() {}, onStart() {}, starting: false }));
+  assert.match(result, /Evaluation window \(market minutes\)/);
+  assert.match(result, /Maximum candidate age \(market minutes after warmup\)/);
+  assert.match(result, /0 means no age limit/);
+  assert.match(result, /Self-reproduction and diversity injection wait for cohort boundaries/);
+  assert.ok(!result.includes("Repro Interval (ticks)"));
+  assert.ok(!result.includes("Max Lifespan (ticks"));
+  const config = valid();
+  config.colony_config.reproduction_interval = 0;
+  config.colony_config.max_lifespan_ticks = -1;
+  const errors = configs.validateStartConfig(config);
+  assert.match(errors.find((issue) => issue.field === "reproduction_interval").message, /Evaluation window \(market minutes\)/);
+  assert.match(errors.find((issue) => issue.field === "max_lifespan_ticks").message, /Maximum candidate age \(market minutes after warmup\)/);
 });

@@ -313,6 +313,19 @@ class Probe:
             return None
         return self._candle_history.latest(asset, self.genome.int_genes()["timeframe_minutes"])
 
+    def evaluation_ready(self, at: float) -> bool:
+        """All configured assets need complete current indicator inputs."""
+        ints = self.genome.int_genes()
+        for asset in self.genome.assets:
+            snapshot = self._latest_candle(asset)
+            if snapshot is None or not 0 <= at - snapshot.end <= ints["timeframe_minutes"] * 60:
+                return False
+            if (len(snapshot.closes) < ints["rsi_period"] + 1 or
+                    ints["ema_fast"] not in snapshot.emas or ints["ema_slow"] not in snapshot.emas or
+                    len(snapshot.volumes) < 21 or not any(snapshot.volumes[-21:-1])):
+                return False
+        return bool(self.genome.assets)
+
     def attach_candle_history(self, history: CandleHistory) -> None:
         """Share canonical history without placing orders from pre-birth bars."""
         cursors = {}
@@ -728,7 +741,7 @@ class Probe:
             raise ProbeStepError(events, first_error) from first_error
         return events
 
-    def tick(self, *, check_risk: bool = True, allow_new_risk: bool = True) -> list[ProbeEvent]:
+    def tick(self, *, check_risk: bool = True, allow_new_risk: bool = True, allow_reproduction: bool = True) -> list[ProbeEvent]:
         """
         Run quote-based risk/lifecycle work and newly completed candle decisions.
         A new signal can execute only on a causally later quote, never its close.
@@ -751,7 +764,7 @@ class Probe:
             if self._should_die():
                 events.extend(self._trigger_die("drawdown"))
                 return events
-            if allow_new_risk and self._should_reproduce():
+            if allow_new_risk and allow_reproduction and self._should_reproduce():
                 events.extend(self._trigger_reproduce())
                 return events
             # Execute prior-cycle signals first. At a one-minute simulation
@@ -763,7 +776,7 @@ class Probe:
 
             if self._should_die():
                 events.extend(self._trigger_die("drawdown"))
-            elif allow_new_risk and self._should_reproduce():
+            elif allow_new_risk and allow_reproduction and self._should_reproduce():
                 events.extend(self._trigger_reproduce())
         except ProbeStepError as exc:
             raise ProbeStepError([*events, *exc.events], exc.cause) from exc
