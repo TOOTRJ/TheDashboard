@@ -26,6 +26,7 @@ interface Props {
   probes: Probe[];
   generationStats: GenerationStats[];
   systemStatus: SystemStatus | null;
+  valuationAvailable?: boolean;
   connected: boolean;
   simStatus: SimulationStatus;
   mode: string;
@@ -47,6 +48,7 @@ export function ProbesDashboard({
   probes,
   generationStats,
   systemStatus,
+  valuationAvailable,
   connected,
   simStatus,
   mode,
@@ -105,7 +107,7 @@ export function ProbesDashboard({
 
       <PriceFeed prices={prices} />
 
-      <ProbesOverview probes={probes} systemStatus={systemStatus} />
+      <ProbesOverview probes={probes} systemStatus={systemStatus} valuationAvailable={valuationAvailable} />
 
       <Tabs defaultValue="colony" className="space-y-4">
         <TabsList className="bg-card/50 border border-[#00fff5]/20">

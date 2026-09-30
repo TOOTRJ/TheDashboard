@@ -7,14 +7,21 @@ import type { Probe, SystemStatus } from "@/lib/probes/types";
 interface Props {
   probes: Probe[];
   systemStatus: SystemStatus | null;
+  valuationAvailable?: boolean;
 }
 
-export function ProbesOverview({ probes, systemStatus }: Props) {
+export function ProbesOverview({ probes, systemStatus, valuationAvailable }: Props) {
   const live = probes.filter((p) => p.state !== "DEAD");
   const bestFitness = live.length > 0
     ? Math.max(...live.map((p) => p.fitness_score))
     : 0;
-  const totalCapital = live.reduce((s, p) => s + p.current_capital, 0);
+  const totalCapital = systemStatus?.total_capital;
+  const hasValuation = valuationAvailable !== false && systemStatus?.valuation_available !== false &&
+    typeof totalCapital === "number" && Number.isFinite(totalCapital);
+  const reserve = systemStatus?.reserve_capital;
+  const reserveText = typeof reserve === "number" && Number.isFinite(reserve)
+    ? `$${reserve.toLocaleString("en-US", { maximumFractionDigits: 0 })}` : "unavailable";
+  const diversity = systemStatus?.diversity;
   const maxGen = probes.length > 0
     ? Math.max(...probes.map((p) => p.generation))
     : 0;
@@ -43,19 +50,19 @@ export function ProbesOverview({ probes, systemStatus }: Props) {
     },
     {
       label: "Best Fitness",
-      value: bestFitness.toFixed(3),
+      value: Number.isFinite(bestFitness) ? bestFitness.toFixed(3) : "Unavailable",
       sub: systemStatus
-        ? `Diversity: ${systemStatus.diversity.toFixed(3)}`
+        ? `Diversity: ${typeof diversity === "number" && Number.isFinite(diversity) ? diversity.toFixed(3) : "unavailable"}`
         : undefined,
       icon: TrendingUp,
       color: "#ff00ff",
     },
     {
       label: "Colony Capital",
-      value: `$${totalCapital.toLocaleString("en-US", { maximumFractionDigits: 0 })}`,
-      sub: systemStatus
-        ? `Reserve: $${systemStatus.reserve_capital.toLocaleString("en-US", { maximumFractionDigits: 0 })}`
-        : undefined,
+      value: hasValuation ? `$${totalCapital.toLocaleString("en-US", { maximumFractionDigits: 0 })}` : "Unavailable",
+      sub: hasValuation
+        ? `Last reported total · Reserve: ${reserveText}`
+        : "Current market valuation is unavailable",
       icon: DollarSign,
       color: "#ffff00",
     },

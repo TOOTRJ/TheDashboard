@@ -136,7 +136,7 @@ export interface ColonyRun {
   probe_count: number;
   best_fitness: number;
   status?: Exclude<SimulationStatus, "unknown">;
-  runtime?: Pick<SystemStatus, "failure_code" | "state_persisted" | "open_positions" | "requires_reconciliation">;
+  runtime?: Pick<SystemStatus, "failure_code" | "state_persisted" | "open_positions" | "requires_reconciliation" | "valuation_available">;
 }
 
 export interface PriceTick {
@@ -157,11 +157,12 @@ export interface SystemStatus {
   live_probes: number;
   dead_probes: number;
   total_probes: number;
-  reserve_capital: number;
-  active_capital: number;
-  total_capital: number;
+  reserve_capital: number | null;
+  active_capital: number | null;
+  total_capital: number | null;
+  valuation_available?: boolean;
   circuit_breaker: boolean;
-  diversity: number;
+  diversity: number | null;
   started_at: string | null;
   uptime_secs: number;
   failure_code?: string | null;
@@ -180,8 +181,9 @@ export interface ColonyInfo {
   tick: number;
   live_probes: number;
   dead_probes: number;
-  total_capital: number;
-  diversity: number;
+  total_capital: number | null;
+  valuation_available?: boolean;
+  diversity: number | null;
   started_at: string;
   uptime_secs: number;
   failure_code?: string | null;

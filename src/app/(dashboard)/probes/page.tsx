@@ -300,12 +300,14 @@ function AuthenticatedProbesPage({ userId, accessToken }: { userId: string; acce
       {showSavedStatus && <p className="text-sm text-muted-foreground">Showing the saved terminal status. Current worker status is unavailable.</p>}
       {displayedStatus === "failed" && <p role="alert" className="text-sm text-destructive">{formatColonyFailure(diagnostics?.failure_code)}</p>}
       {diagnostics?.state_persisted === false && <p role="alert" className="text-sm text-destructive">Colony state could not be saved. Displayed results may not survive a worker restart.</p>}
+      {diagnostics?.valuation_available === false && <p role="alert" className="text-sm text-destructive">Current colony valuation is unavailable. Previously recorded probe balances are not a current market valuation.</p>}
       {diagnostics?.requires_reconciliation && <p role="alert" className="text-sm text-destructive">Paper positions or saved trade records require reconciliation.{(diagnostics.open_positions ?? 0) > 0 && ` ${diagnostics.open_positions} paper positions remain open.`}</p>}
       <ProbesDashboard
         key={`${userId}:${selectedColonyId ?? "none"}`}
         probes={probes}
         generationStats={genStats}
         systemStatus={systemStatus}
+        valuationAvailable={diagnostics?.valuation_available}
         strategy={systemStatus?.strategy}
         activeColonies={activeColonies}
         connected={connection.connected}

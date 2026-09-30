@@ -2,6 +2,7 @@
 from __future__ import annotations
 import asyncio
 import importlib
+import json
 import time
 import unittest
 from types import SimpleNamespace
@@ -13,6 +14,7 @@ with deny_network():
     from vonneumann.core.colony_manager import ColonyManager, ColonyLifecycleError
     from vonneumann.core.genesis import GenesisController
     from vonneumann.core.funding import FundingError
+    from vonneumann.core.market_validation import MarketValueError
     from vonneumann.core.types import EventType, ProbeEvent, TradeRecord
     from vonneumann.db.repository import PersistenceError
     from vonneumann.market.feed import MarketTick
@@ -296,5 +298,34 @@ class LifecycleTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase):
         self.assertEqual(writes[-1][1][1], 'failed')
         self.assertEqual(self.manager.get_colony(cid).status()['status'], 'failed')
         self.assertEqual(self.feed.reads, 0)
+
+    async def test_market_failure_with_corrupt_valuation_still_persists_safe_terminal_state(self):
+        async def fail_after_corruption():
+            colony = self.manager.get_colony(A1)
+            probe = colony.live_probes[0]
+            asset = probe.genome.assets[0]
+            probe.open_positions[asset] = TradeRecord(
+                trade_id='corrupt-mark-trade', probe_id=probe.probe_id,
+                pair=asset, side='BUY', entry_price=100.0, amount=5.0,
+            )
+            colony._latest_prices[asset] = float('nan')
+            raise MarketValueError()
+
+        self.tick.side_effect = fail_after_corruption
+        await self.create()
+        status = await self.failed()
+        self.assertEqual(status['failure_code'], 'invalid_market_value')
+        self.assertTrue(status['state_persisted'])
+        self.assertFalse(status['valuation_available'])
+        self.assertIsNone(status['active_capital'])
+        self.assertIsNone(status['total_capital'])
+        self.assertTrue(status['requires_reconciliation'])
+        self.assertEqual(status['open_positions'], 1)
+        self.assertEqual(self.persisted[-1]['status'], 'failed')
+        self.assertEqual(self.persisted[-1]['failure_code'], 'invalid_market_value')
+        self.assertEqual(self.published[-1]['failure_code'], 'invalid_market_value')
+        json.dumps(status, allow_nan=False)
+        json.dumps(self.persisted[-1], allow_nan=False)
+        self.assertEqual(len(self.manager.list_colonies(USER_A)), 1)
 
 if __name__ == '__main__': unittest.main()

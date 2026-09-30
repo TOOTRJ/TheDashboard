@@ -82,7 +82,7 @@ test("colony history preserves persisted terminal diagnostics without exposing r
   const h = databaseHarness([
     { data: [{ id: "A", mode: "paper", status: "failed", config: { private: "secret", runtime: {
       failure_code: "persistence_failed", failure_message: "private-server-message", state_persisted: true,
-      open_positions: 2, requires_reconciliation: true,
+      open_positions: 2, requires_reconciliation: true, valuation_available: false,
     } } }], error: null },
     { data: [], error: null },
   ]);
@@ -90,16 +90,55 @@ test("colony history preserves persisted terminal diagnostics without exposing r
   assert.equal(run.status, "failed");
   assert.equal(run.runtime.open_positions, 2);
   assert.equal(run.runtime.requires_reconciliation, true);
+  assert.equal(run.runtime.valuation_available, false);
   assert.equal(run.runtime.failure_code, "persistence_failed");
   assert.ok(!JSON.stringify(run).includes("private-server-message"));
   assert.ok(!JSON.stringify(run).includes("secret"));
   assert.match(transport.formatColonyFailure(run.runtime.failure_code), /Saving colony state failed/);
   assert.match(transport.formatColonyFailure("feed_unavailable"), /Current market data is unavailable/);
+  assert.match(transport.formatColonyFailure("invalid_market_value"), /market observation or position value is invalid/);
   assert.match(transport.formatColonyFailure("funding_insufficient"), /cannot fully fund/);
   assert.match(transport.formatColonyFailure("funding_capacity"), /exceeds the configured capacity/);
   assert.match(transport.formatColonyFailure("funding_invalid_plan"), /capital ledger is invalid/);
   assert.match(transport.formatColonyFailure("population_extinct"), /No active candidates remain/);
   assert.ok(!transport.formatColonyFailure("private-server-message").includes("private-server-message"));
+});
+
+test("saved valuation availability accepts only explicit booleans", async () => {
+  for (const value of [true, false, null, "false", 0]) {
+    const h = databaseHarness([
+      { data: [{ id: "A", mode: "paper", config: { runtime: { valuation_available: value } } }], error: null },
+      { data: [], error: null },
+    ]);
+    const [run] = await h.api.fetchColonyRuns();
+    assert.equal(run.runtime.valuation_available, typeof value === "boolean" ? value : undefined);
+  }
+});
+
+test("overview uses reported marked total, guards nullable metrics, and never replaces unknown valuation with cached probe cash", () => {
+  const jsx = (type, props, key) => ({ type, props, key });
+  const { ProbesOverview } = loadModule("../src/components/probes/ProbesOverview.tsx", {
+    "react/jsx-runtime": { jsx, jsxs: jsx },
+    "lucide-react": { Activity: "Activity", Dna: "Dna", DollarSign: "DollarSign", TrendingUp: "TrendingUp", Zap: "Zap" },
+    "@/components/ui/card": { Card: "Card", CardContent: "CardContent" },
+  });
+  const probes = [{ state: "TRADING", current_capital: 999, fitness_score: 1, generation: 0 }];
+  const status = { total_capital: 250, reserve_capital: 50, diversity: 0.2, valuation_available: true };
+  const render = (systemStatus, valuationAvailable) => JSON.stringify(ProbesOverview({ probes, systemStatus, valuationAvailable }));
+  assert.match(render(status), /\$250/);
+  assert.match(render(status), /Last reported total/);
+  assert.ok(!render(status).includes("$999"));
+  assert.match(render({ ...status, total_capital: 0 }), /\$0/);
+  for (const systemStatus of [null, { total_capital: null, reserve_capital: null, diversity: null },
+    { ...status, total_capital: NaN, diversity: Infinity }, { ...status, valuation_available: false }]) {
+    const output = render(systemStatus);
+    assert.match(output, /Current market valuation is unavailable/);
+    assert.ok(!output.includes("$999"));
+    assert.ok(!output.includes("NaN"));
+    assert.ok(!output.includes("Infinity"));
+  }
+  assert.match(render(status, false), /Current market valuation is unavailable/);
+  assert.ok(!render(status, false).includes("$250"));
 });
 
 test("all built-in presets validate with the same worker limits", () => {
@@ -293,13 +332,15 @@ test("worker failure events remain explicit and terminal rather than masqueradin
 
 test("persisted failed status and reconciliation survive worker unavailability, but stored running is not live authority", async () => {
   const failed = pageHarness({ workerFails: true, savedStatus: "failed", savedRuntime: {
-    failure_code: "persistence_failed", state_persisted: true, requires_reconciliation: true, open_positions: 2,
+    failure_code: "persistence_failed", state_persisted: true, requires_reconciliation: true, open_positions: 2, valuation_available: false,
   } });
   await failed.pump();
   assert.equal(failed.dashboard().simStatus, "failed");
   assert.match(failed.text(), /saved terminal status/);
   assert.match(failed.text(), /Saving colony state failed/);
   assert.match(failed.text(), /Paper positions or saved trade records require reconciliation/);
+  assert.match(failed.text(), /Current colony valuation is unavailable/);
+  assert.equal(failed.dashboard().valuationAvailable, false);
   failed.cleanup();
   const running = pageHarness({ workerFails: true, savedStatus: "running" });
   await running.pump();
