@@ -6,9 +6,11 @@ Every write is tagged with a run_id to isolate simulation sessions.
 
 from __future__ import annotations
 
+import asyncio
 import logging
+from copy import deepcopy
 from datetime import datetime, timezone
-from typing import Optional
+from typing import Callable
 
 from .connection import get_supabase
 from ..core.types import ProbeEvent, EventType, TradeRecord, FitnessSnapshot
@@ -16,13 +18,73 @@ from ..core.types import ProbeEvent, EventType, TradeRecord, FitnessSnapshot
 logger = logging.getLogger(__name__)
 
 
+class PersistenceError(RuntimeError):
+    """A write was not acknowledged; provider messages must stay private."""
+
+    code = "persistence_failed"
+
+    def __init__(self, operation: str):
+        self.operation = operation
+        super().__init__("Colony data could not be saved. Check database readiness before retrying.")
+
+
 class VonNeumannRepository:
     """All database operations for the Von Neumann system."""
 
     def __init__(self, user_id: str, run_id: str):
+        if not user_id or not run_id:
+            raise ValueError("Repository requires an authenticated owner and colony ID")
         self.user_id = user_id
         self.run_id = run_id
-        self.db = get_supabase()
+        self._write_lock: asyncio.Lock | None = None
+        self._colony_config: dict = {}
+        try:
+            self.db = get_supabase()
+        except Exception:
+            raise PersistenceError("connect") from None
+
+    async def execute_async(self, operation: str, *args, **kwargs) -> None:
+        """Serialize writes off the event loop and drain an in-flight write on cancellation.
+
+        Final failure status must not race a still-running initialization write.
+        The client has finite transport timeouts. Writes are never retried here.
+        """
+        if operation not in {
+            "insert_probe", "update_probe", "update_probe_metrics", "insert_trade",
+            "close_trade", "insert_fitness_snapshot", "insert_colony",
+            "update_colony_status", "upsert_generation_stats",
+        }:
+            raise ValueError("Unsupported persistence operation")
+        if self._write_lock is None:
+            self._write_lock = asyncio.Lock()
+        async with self._write_lock:
+            task = asyncio.create_task(asyncio.to_thread(getattr(self, operation), *args, **kwargs))
+            try:
+                await asyncio.shield(task)
+            except asyncio.CancelledError:
+                while not task.done():
+                    try:
+                        await asyncio.shield(task)
+                    except asyncio.CancelledError:
+                        continue  # A second shutdown request must not release the write lock.
+                    except Exception:
+                        break
+                if not task.cancelled():
+                    task.exception()  # Retrieve any failure; the caller owns cancellation.
+                raise
+
+    @staticmethod
+    def _write(operation: str, action: Callable) -> None:
+        try:
+            result = action()
+            # PostgREST writes use its default representation response. An empty
+            # update means no row matched, not a successfully persisted state.
+            rows = getattr(result, "data", None)
+            if not isinstance(rows, list) or not rows:
+                raise PersistenceError(operation)
+        except Exception:
+            logger.error("[DB] %s was not acknowledged", operation)
+            raise PersistenceError(operation) from None
 
     # ── Probes ───────────────────────────────────────────────────────────
 
@@ -52,16 +114,14 @@ class VonNeumannRepository:
         # Only set born_at if explicitly provided (otherwise DB default kicks in)
         if probe_data.get("born_at"):
             row["born_at"] = probe_data["born_at"]
-        try:
-            self.db.table("vn_probes").insert(row).execute()
-        except Exception as e:
-            logger.error(f"[DB] insert_probe failed: {e}")
+        self._write("insert_probe", lambda: self.db.table("vn_probes").insert(row).execute())
 
     def update_probe(self, probe_id: str, fields: dict) -> None:
-        try:
-            self.db.table("vn_probes").update(fields).eq("id", probe_id).execute()
-        except Exception as e:
-            logger.error(f"[DB] update_probe failed: {e}")
+        self._validate_update_fields(fields)
+        self._write("update_probe", lambda:
+            (self.db.table("vn_probes").update(fields)
+             .eq("id", probe_id).eq("user_id", self.user_id)
+             .eq("run_id", self.run_id).execute()))
 
     def update_probe_metrics(self, probe_data: dict) -> None:
         fields = {
@@ -100,16 +160,14 @@ class VonNeumannRepository:
             "opened_at": trade.opened_at.isoformat(),
             "mode": mode,
         }
-        try:
-            self.db.table("vn_trades").insert(row).execute()
-        except Exception as e:
-            logger.error(f"[DB] insert_trade failed: {e}")
+        self._write("insert_trade", lambda: self.db.table("vn_trades").insert(row).execute())
 
     def close_trade(self, trade_id: str, fields: dict) -> None:
-        try:
-            self.db.table("vn_trades").update(fields).eq("id", trade_id).execute()
-        except Exception as e:
-            logger.error(f"[DB] close_trade failed: {e}")
+        self._validate_update_fields(fields)
+        self._write("close_trade", lambda:
+            (self.db.table("vn_trades").update(fields)
+             .eq("id", trade_id).eq("user_id", self.user_id)
+             .eq("run_id", self.run_id).execute()))
 
     # ── Fitness snapshots ────────────────────────────────────────────────
 
@@ -129,48 +187,71 @@ class VonNeumannRepository:
             "current_capital": snapshot.current_capital,
             "captured_at": snapshot.captured_at.isoformat(),
         }
-        try:
-            self.db.table("vn_fitness_snapshots").insert(row).execute()
-        except Exception as e:
-            logger.error(f"[DB] insert_fitness_snapshot failed: {e}")
+        self._write("insert_fitness_snapshot", lambda:
+            self.db.table("vn_fitness_snapshots").insert(row).execute())
 
     # ── Colonies ──────────────────────────────────────────────────────────
 
-    def insert_colony(self, colony_id: str, strategy: str, config: dict, mode: str) -> None:
-        try:
+    def insert_colony(self, colony_id: str, strategy: str, config: dict, mode: str,
+                      status: str = "running") -> None:
+        self._validate_colony_id(colony_id)
+        self._validate_status(status)
+        snapshot = deepcopy(config)
+        self._write("insert_colony", lambda:
             self.db.table("vn_colonies").insert({
                 "id": colony_id,
                 "user_id": self.user_id,
                 "strategy": strategy,
-                "config": config,
+                "config": snapshot,
                 "mode": mode,
-            }).execute()
-        except Exception as e:
-            logger.error(f"[DB] insert_colony failed: {e}")
+                "status": status,
+            }).execute())
+        self._colony_config = snapshot
 
-    def update_colony_status(self, colony_id: str, status: str) -> None:
+    def update_colony_status(self, colony_id: str, status: str, details: dict | None = None) -> None:
+        self._validate_colony_id(colony_id)
+        self._validate_status(status)
         fields: dict = {"status": status, "updated_at": datetime.now(timezone.utc).isoformat()}
-        if status == "stopped":
+        snapshot = deepcopy(self._colony_config)
+        if details is not None:
+            # Runtime diagnostics live in the existing JSON config column. No
+            # schema addition or loss of the original request config is needed.
+            snapshot["runtime"] = {**deepcopy(details), "state_persisted": True}
+            fields["config"] = snapshot
+        if status in {"stopped", "failed"}:
             fields["stopped_at"] = datetime.now(timezone.utc).isoformat()
-        try:
-            self.db.table("vn_colonies").update(fields).eq("id", colony_id).execute()
-        except Exception as e:
-            logger.error(f"[DB] update_colony_status failed: {e}")
+        self._write("update_colony_status", lambda:
+            (self.db.table("vn_colonies").update(fields)
+             .eq("id", self.run_id).eq("user_id", self.user_id).execute()))
+        self._colony_config = snapshot
 
     # ── Generation stats ─────────────────────────────────────────────────
 
     def upsert_generation_stats(self, stats: dict) -> None:
         row = {
+            **stats,
             "user_id": self.user_id,
             "run_id": self.run_id,
-            **stats,
         }
-        try:
+        self._write("upsert_generation_stats", lambda:
             self.db.table("vn_generation_stats").upsert(
                 row, on_conflict="user_id,run_id,generation"
-            ).execute()
-        except Exception as e:
-            logger.error(f"[DB] upsert_generation_stats failed: {e}")
+            ).execute())
+
+    @staticmethod
+    def _validate_status(status: str) -> None:
+        if status not in {"starting", "running", "paused", "stopped", "failed"}:
+            raise ValueError("Unsupported colony status")
+
+    @staticmethod
+    def _validate_update_fields(fields: dict) -> None:
+        """Service-role writes must never reassign record identity or ownership."""
+        if {"id", "user_id", "run_id"}.intersection(fields):
+            raise ValueError("Record identity and ownership cannot be updated")
+
+    def _validate_colony_id(self, colony_id: str) -> None:
+        if colony_id != self.run_id:
+            raise ValueError("Colony does not match this repository's run")
 
 
 class EventPersister:
@@ -189,7 +270,7 @@ class EventPersister:
 
         if etype == EventType.PROBE_BORN:
             parent_ids = data.get("genome", {}).get("parent_ids", []) or []
-            self.repo.insert_probe({
+            await self.repo.execute_async("insert_probe", {
                 "probe_id": event.probe_id,
                 "probe_name": data.get("probe_name", ""),
                 "generation": data.get("generation", 0),
@@ -218,10 +299,10 @@ class EventPersister:
                 stop_loss_price=data.get("stop_loss_price"),
                 take_profit_price=data.get("take_profit_price"),
             )
-            self.repo.insert_trade(trade, mode=self.mode)
+            await self.repo.execute_async("insert_trade", trade, mode=self.mode)
 
         elif etype == EventType.TRADE_CLOSED:
-            self.repo.close_trade(data["trade_id"], {
+            await self.repo.execute_async("close_trade", data["trade_id"], {
                 "exit_price": data.get("exit_price"),
                 "pnl": data.get("pnl"),
                 "pnl_pct": data.get("pnl_pct"),
@@ -230,11 +311,11 @@ class EventPersister:
             })
 
         elif etype == EventType.PROBE_UPDATE:
-            self.repo.update_probe_metrics(data)
+            await self.repo.execute_async("update_probe_metrics", data)
 
         elif etype in (EventType.PROBE_DYING, EventType.PROBE_REPRODUCING):
             reason = data.get("death_reason") or data.get("reason", etype.value)
-            self.repo.update_probe(event.probe_id, {
+            await self.repo.execute_async("update_probe", event.probe_id, {
                 "state": "DEAD",
                 "death_reason": reason,
                 "died_at": event.timestamp.isoformat(),
@@ -260,13 +341,10 @@ class EventPersister:
                 trade_count=data.get("trade_count", 0),
                 current_capital=data.get("current_capital", 0),
             )
-            self.repo.insert_fitness_snapshot(snapshot)
+            await self.repo.execute_async("insert_fitness_snapshot", snapshot)
 
         elif etype == EventType.GENERATION_COMPLETE:
-            self.repo.upsert_generation_stats(data)
+            await self.repo.execute_async("upsert_generation_stats", data)
 
-        elif etype == EventType.SIMULATION_STATUS:
-            if data.get("status") == "stopped":
-                run_id = data.get("run_id") or data.get("colony_id")
-                if run_id:
-                    self.repo.update_colony_status(run_id, "stopped")
+        # ColonyManager persists lifecycle transitions before announcing them.
+        # Status notifications must not issue a second, potentially stale write.

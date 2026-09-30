@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import math
 import uuid
 from datetime import datetime, timezone
 from typing import Optional, Callable, Awaitable
@@ -93,6 +94,12 @@ class GenesisController:
         self.tick_count = 0
         self._running = False
         self._paused = False
+        self._lifecycle_status = "starting"
+        self.failure_code: Optional[str] = None
+        self.failure_message: Optional[str] = None
+        self.state_persisted = False
+        self._feed_closed = False
+        self._tick_lock = asyncio.Lock()
         self.started_at: Optional[datetime] = None
 
         # Event callback
@@ -139,9 +146,15 @@ class GenesisController:
 
     def status(self) -> dict:
         live = self.live_probes
+        open_positions = sum(len(probe.open_positions) for probe in self.probes.values())
         return {
-            "status": "running" if self._running and not self._paused else
-                      "paused" if self._paused else "stopped",
+            "status": self._lifecycle_status,
+            "failure_code": self.failure_code,
+            "failure_message": self.failure_message,
+            "state_persisted": self.state_persisted,
+            "open_positions": open_positions,
+            "requires_reconciliation": (open_positions > 0 and self._lifecycle_status == "stopped") or
+                                       (bool(self.probes) and self._lifecycle_status == "failed"),
             "run_id": self.run_id,
             "colony_id": self.colony_id,
             "strategy": self.strategy.name,
@@ -172,31 +185,43 @@ class GenesisController:
 
     # ── Startup ──────────────────────────────────────────────────────────
 
-    async def start(self) -> None:
+    def set_lifecycle(self, status: str) -> None:
+        self._lifecycle_status = status
+        self._running = status in {"running", "paused"}
+        self._paused = status == "paused"
+
+    async def prepare(self) -> None:
+        """Seed and persist the population before a supervised loop may start."""
         self.started_at = datetime.now(timezone.utc)
-        self._running = True
-        self._paused = False
         logger.info(f"[Genesis] Starting in {self.mode} mode. Seeding {self.gen0_count} Gen-0 probes.")
 
         for _ in range(self.gen0_count):
             genome = random_genome(generation=0, colony_config=self.colony_config)
-            await self._spawn_probe(genome, self.seed_capital)
+            if await self._spawn_probe(genome, self.seed_capital) is None:
+                raise RuntimeError("Initial population could not be fully funded")
+        if len(self.live_probes) != self.gen0_count:
+            raise RuntimeError("Initial population is incomplete")
 
         # Backfill price history for paper mode
         if self.mode == "paper":
             await self._backfill_probes()
+
+        # A successful start must have a usable feed for every selected asset.
+        # History availability/freshness policy is a separate data-quality gate.
+        assets = sorted({asset for probe in self.live_probes for asset in probe.genome.assets})
+        ticks = await self.market_feed.get_ticks(assets)
+        if not assets or any(asset not in ticks or not math.isfinite(ticks[asset].price)
+                             or ticks[asset].price <= 0 for asset in assets):
+            raise RuntimeError("Initial market prices unavailable")
+        self._latest_prices = {asset: ticks[asset].price for asset in assets}
 
         # Initialize the strategy with live probes
         self.strategy.initialize(list(self.probes.values()), self.colony_config)
 
         self._initial_total_capital = self.active_capital + self.reserve_capital
 
-        await self._emit(ProbeEvent(
-            event_type=EventType.SIMULATION_STATUS,
-            probe_id="genesis",
-            data=self.status(),
-        ))
-
+    async def run(self) -> None:
+        """Run only after the manager has durably marked preparation complete."""
         # Start background volume refresher if the feed supports it.
         if hasattr(self.market_feed, "refresh_volumes"):
             self._volume_task = asyncio.create_task(self._volume_refresh_loop())
@@ -206,10 +231,8 @@ class GenesisController:
     async def _volume_refresh_loop(self) -> None:
         """Background task: periodically refresh volume data from secondary source."""
         while self._running:
-            try:
-                await self.market_feed.refresh_volumes()
-            except Exception as e:
-                logger.debug(f"[Genesis] Volume refresh error: {e}")
+            assets = sorted({asset for probe in self.live_probes for asset in probe.genome.assets})
+            await self.market_feed.refresh_volumes(assets)
             await asyncio.sleep(30)
 
     async def _backfill_probes(self) -> None:
@@ -238,24 +261,45 @@ class GenesisController:
 
     async def stop(self) -> None:
         self._running = False
-        if self._volume_task and not self._volume_task.done():
-            self._volume_task.cancel()
+        self._paused = False
+        await self.cleanup()
+        # Positions stay attached for reconciliation; stopping cannot fabricate a fill.
+        logger.info("[Genesis] Stopped; retained position records for reconciliation.")
+
+    async def cleanup(self) -> None:
+        """Release feed resources without erasing probe/position state."""
+        self._running = False
+        if self._volume_task:
+            if not self._volume_task.done():
+                self._volume_task.cancel()
             try:
                 await self._volume_task
             except (asyncio.CancelledError, Exception):
                 pass
-        logger.info("[Genesis] Stopping.")
-        await self._emit(ProbeEvent(
-            event_type=EventType.SIMULATION_STATUS,
-            probe_id="genesis",
-            data={**self.status(), "status": "stopped"},
-        ))
+        if not self._feed_closed and hasattr(self.market_feed, "close"):
+            await self.market_feed.close()
+            self._feed_closed = True
 
     def pause(self) -> None:
         self._paused = True
 
     def resume(self) -> None:
         self._paused = False
+
+    async def wait_for_tick(self) -> None:
+        """Allow a tick already in progress to finish before persisting a pause."""
+        async with self._tick_lock:
+            self._check_volume_task()
+
+    def _check_volume_task(self) -> None:
+        if self._volume_task and self._volume_task.done():
+            if self._volume_task.cancelled():
+                raise RuntimeError("Volume refresh stopped unexpectedly")
+            self._volume_task.result()
+
+    async def quiesce(self) -> None:
+        self._paused = True
+        await self.wait_for_tick()
 
     # ── Probe spawning ───────────────────────────────────────────────────
 
@@ -493,28 +537,26 @@ class GenesisController:
     async def _tick_loop(self) -> None:
         interval = self.tick_interval_ms / 1000.0
         while self._running:
+            # Background failures must reach the same terminal supervisor.
+            self._check_volume_task()
             if self._paused:
                 await asyncio.sleep(0.1)
                 continue
-            try:
-                await self._tick_all()
-                await asyncio.sleep(interval)
-            except asyncio.CancelledError:
-                break
-            except Exception as e:
-                logger.error(f"[Genesis] Tick error: {e}", exc_info=True)
-                await asyncio.sleep(1)
+            async with self._tick_lock:
+                if not self._paused and self._running:
+                    await self._tick_all()
+            await asyncio.sleep(interval)
 
         logger.info("[Genesis] Tick loop stopped.")
 
     async def _tick_all(self) -> None:
         if self.circuit_breaker_active:
-            return
+            raise RuntimeError("Circuit breaker stopped execution")
 
         live = [p for p in self.probes.values()
                 if p.state in (ProbeState.OBSERVING, ProbeState.TRADING)]
         if not live:
-            return
+            raise RuntimeError("No active probes remain")
 
         self.tick_count += 1
 
@@ -728,10 +770,8 @@ class GenesisController:
 
     async def _emit(self, event: ProbeEvent) -> None:
         if self._on_event:
-            try:
-                await self._on_event(event)
-            except Exception as e:
-                logger.error(f"[Genesis] Event handler error: {e}")
+            # In-memory mutations cannot continue after their durable write failed.
+            await self._on_event(event)
 
     # ── Reporting ────────────────────────────────────────────────────────
 

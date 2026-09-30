@@ -4,395 +4,323 @@ import * as React from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { BookOpen, Dna } from "lucide-react";
-
 import { useAuth } from "@/components/auth/AuthProvider";
 import { ProbesDashboard } from "@/components/probes/ProbesDashboard";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  fetchProbes,
-  fetchGenerationStats,
-  fetchLatestRunId,
-  fetchColonyRuns,
-} from "@/lib/probes/probes-supabase";
+import { fetchProbes, fetchGenerationStats, fetchColonyRuns } from "@/lib/probes/probes-supabase";
 import { useProbesWebSocket } from "@/lib/probes/websocket";
-import { VN_API_URL, VN_API_KEY } from "@/lib/probes/constants";
-import type { StartConfig } from "@/lib/probes/colony-config";
+import { VN_ENDPOINTS } from "@/lib/probes/constants";
+import {
+  belongsToSelectedColony, colonyPath, createSelectionScope,
+  requestWorker, WorkerRequestError,
+  formatColonyFailure,
+} from "@/lib/probes/transport";
+import { validateStartConfig, type StartConfig } from "@/lib/probes/colony-config";
 import type {
-  Probe,
-  GenerationStats,
-  SimulationStatus,
-  SystemStatus,
-  ColonyRun,
-  ColonyInfo,
-  PriceTick,
-  WsMessage,
+  Probe, GenerationStats, SimulationStatus, SystemStatus,
+  ColonyRun, ColonyInfo, PriceTick, WsMessage,
 } from "@/lib/probes/types";
 
 export default function ProbesPage() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, session, loading } = useAuth();
+  if (loading) return <Skeleton className="h-64 w-full bg-[#00fff5]/10" />;
+  if (!user || !session) {
+    return (
+      <div className="space-y-6">
+        <PageHeader simStatus="stopped" mode="simulation" startedAt={null} />
+        <p className="rounded-lg border border-[#00fff5]/20 bg-card/80 p-12 text-center text-sm text-muted-foreground">
+          Sign in to access the Von Neumann probe colony.
+        </p>
+      </div>
+    );
+  }
+  // An account change unmounts all private state, pending work and subscriptions.
+  return <AuthenticatedProbesPage key={user.id} userId={user.id} accessToken={session.access_token} />;
+}
 
+function AuthenticatedProbesPage({ userId, accessToken }: { userId: string; accessToken: string }) {
+  const [scope] = React.useState(createSelectionScope);
   const [probes, setProbes] = React.useState<Probe[]>([]);
   const [genStats, setGenStats] = React.useState<GenerationStats[]>([]);
   const [colonyRuns, setColonyRuns] = React.useState<ColonyRun[]>([]);
   const [loading, setLoading] = React.useState(true);
-  const [simStatus, setSimStatus] = React.useState<SimulationStatus>("stopped");
-  const [simMode, setSimMode] = React.useState<string>("simulation");
-  const [runId, setRunId] = React.useState<string | null>(null);
+  const [simStatus, setSimStatus] = React.useState<SimulationStatus>("unknown");
+  const [simMode, setSimMode] = React.useState("simulation");
   const [systemStatus, setSystemStatus] = React.useState<SystemStatus | null>(null);
-  const [starting, setStarting] = React.useState(false);
+  const [startingToken, setStartingToken] = React.useState<string | null>(null);
+  const starting = startingToken === accessToken;
   const [prices, setPrices] = React.useState<Record<string, PriceTick>>({});
   const [activeColonies, setActiveColonies] = React.useState<ColonyInfo[]>([]);
   const [selectedColonyId, setSelectedColonyId] = React.useState<string | null>(null);
-  // Track previous prices for computing change %
+  const [errors, setErrors] = React.useState<Record<string, string | null>>({});
+  const reportError = React.useCallback((source: string, error: string | null) => {
+    setErrors((previous) => ({ ...previous, [source]: error }));
+  }, []);
   const prevPrices = React.useRef<Record<string, number>>({});
+  const creating = React.useRef(false);
+  const controlling = React.useRef(false);
 
-  // WS callback — fires for every message, no drops from batching
+  React.useLayoutEffect(() => {
+    scope.activate();
+    return () => scope.dispose();
+  }, [scope, accessToken]);
+
+  const selectColony = React.useCallback((id: string) => {
+    if (scope.current() === id) return;
+    scope.select(id);
+    setSelectedColonyId(id);
+    setProbes([]);
+    setGenStats([]);
+    setPrices({});
+    prevPrices.current = {};
+    setSystemStatus(null);
+    setSimStatus("unknown");
+    setSimMode("simulation");
+    reportError("status", null);
+    reportError("data", null);
+    setStartingToken(null);
+    setLoading(true);
+  }, [scope, reportError]);
+
   const handleWsMessage = React.useCallback((msg: WsMessage) => {
-    const colonyId = msg.colony_id;
-
+    // No event, including a status or death event, may modify a different colony.
+    if (!belongsToSelectedColony(msg, scope.current())) return;
     switch (msg.type) {
       case "probe_born":
       case "probe_update": {
-        const d = msg.data as Record<string, unknown>;
-        const probeId = d.probe_id as string;
+        const d = msg.data;
         setProbes((prev) => {
-          const idx = prev.findIndex((p) => p.id === probeId);
+          const idx = prev.findIndex((p) => p.id === d.probe_id);
           if (idx >= 0) {
             const updated = [...prev];
             updated[idx] = { ...updated[idx], ...mapWsToProbe(d) };
             return updated;
           }
-          if (msg.type === "probe_born") {
-            return [...prev, mapWsToProbe(d) as Probe];
-          }
-          return prev;
+          return msg.type === "probe_born" ? [...prev, mapWsToProbe(d) as Probe] : prev;
         });
         break;
       }
       case "probe_dying":
       case "probe_reproducing": {
-        const d = msg.data as Record<string, unknown>;
-        const probeId = d.probe_id as string;
-        setProbes((prev) =>
-          prev.map((p) =>
-            p.id === probeId
-              ? { ...p, state: "DEAD" as const, death_reason: (d.reason as string) || msg.type }
-              : p,
-          ),
-        );
+        const d = msg.data;
+        setProbes((prev) => prev.map((p) => p.id === d.probe_id
+          ? { ...p, state: "DEAD" as const, death_reason: (d.reason as string) || msg.type }
+          : p));
         break;
       }
       case "simulation_status": {
-        const d = msg.data as unknown as SystemStatus & { run_id?: string };
-        setSystemStatus(d);
-        setSimStatus(d.status);
-        setSimMode(d.mode || "simulation");
-        if (d.run_id) setRunId(d.run_id);
-        setActiveColonies((prev) => {
-          const filtered = prev.filter((c) => c.colony_id !== colonyId);
-          if (d.status !== "stopped" && colonyId) {
-            const raw = d as unknown as Record<string, unknown>;
-            filtered.push({
-              colony_id: colonyId,
-              strategy: (raw.strategy as string) || "genetic_algorithm",
-              mode: (raw.mode as string) || "simulation",
-              status: d.status,
-              generation: (raw.generation as number) || 0,
-              tick: (raw.tick as number) || 0,
-              live_probes: (raw.live_probes as number) || 0,
-              dead_probes: (raw.dead_probes as number) || 0,
-              total_capital: (raw.total_capital as number) || 0,
-              diversity: (raw.diversity as number) || 0,
-              started_at: (raw.started_at as string) || "",
-              uptime_secs: (raw.uptime_secs as number) || 0,
-            });
-          }
-          return filtered;
-        });
+        const data = msg.data as unknown as SystemStatus;
+        // A later REST status response must not undo this newer event.
+        scope.begin("status");
+        setSystemStatus(data);
+        setSimStatus(data.status);
+        setSimMode(data.mode || "simulation");
+        reportError("status", null);
         break;
       }
-      default:
-        break;
-    }
-
-    // Filter out events for other colonies when a specific colony is selected
-    if (selectedColonyId && colonyId && colonyId !== selectedColonyId) return;
-
-    switch (msg.type) {
       case "generation_complete": {
-        const d = msg.data as unknown as GenerationStats;
-        setGenStats((prev) => {
-          const exists = prev.some((s) => s.generation === d.generation);
-          return exists ? prev : [...prev, d];
-        });
+        const data = msg.data as unknown as GenerationStats;
+        setGenStats((prev) => prev.some((s) => s.generation === data.generation) ? prev : [...prev, data]);
         break;
       }
       case "price_update": {
-        const d = msg.data as {
-          prices: Record<string, { price: number; volume: number }>;
-          tick: number;
-        };
-        if (d.prices) {
-          setPrices((prev) => {
-            const next: Record<string, PriceTick> = { ...prev };
-            for (const [asset, info] of Object.entries(d.prices)) {
-              const prevPrice = prevPrices.current[asset] || info.price;
-              const change =
-                prevPrice > 0
-                  ? ((info.price - prevPrice) / prevPrice) * 100
-                  : 0;
-              next[asset] = { asset, price: info.price, change };
-              prevPrices.current[asset] = info.price;
-            }
-            return next;
-          });
+        const data = msg.data as { prices?: Record<string, { price: number }> };
+        if (!data.prices) break;
+        const changes: Record<string, PriceTick> = {};
+        for (const [asset, info] of Object.entries(data.prices)) {
+          const before = prevPrices.current[asset] ?? info.price;
+          changes[asset] = { asset, price: info.price, change: before > 0 ? ((info.price - before) / before) * 100 : 0 };
+          prevPrices.current[asset] = info.price;
         }
+        setPrices((prev) => ({ ...prev, ...changes }));
         break;
       }
     }
-  }, [selectedColonyId]);
+  }, [scope, reportError]);
 
-  const { connected } = useProbesWebSocket(handleWsMessage);
+  const connection = useProbesWebSocket(accessToken, userId, handleWsMessage);
 
-  // ── Helpers ────────────────────────────────────────────────────────────
-
-  const apiCall = async (path: string, method = "POST", body?: unknown) => {
-    const res = await fetch(`${VN_API_URL}${path}`, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": VN_API_KEY,
-      },
-      body: body ? JSON.stringify(body) : undefined,
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({ detail: "Request failed" }));
-      throw new Error(err.detail || "Request failed");
+  const refreshColonyList = React.useCallback(async () => {
+    const ticket = scope.begin("list");
+    const [history, live] = await Promise.allSettled([
+      fetchColonyRuns(),
+      requestWorker<ColonyInfo[]>(VN_ENDPOINTS, accessToken, "/api/v1/colonies/"),
+    ]);
+    if (!scope.isCurrent(ticket)) return;
+    const runs = history.status === "fulfilled" ? history.value : [];
+    const colonies = live.status === "fulfilled" && Array.isArray(live.value) ? live.value : [];
+    if (history.status === "fulfilled") {
+      setColonyRuns(runs);
+      reportError("history", null);
+    } else {
+      reportError("history", "Colony history is unavailable. The last successful result is retained.");
     }
-    return res.json();
-  };
+    if (live.status === "fulfilled" && Array.isArray(live.value)) {
+      setActiveColonies(colonies);
+      reportError("live", null);
+    } else {
+      reportError("live", "The current colony list is unavailable. The last successful result is retained.");
+    }
+    if (scope.current() === null) {
+      const id = colonies.at(-1)?.colony_id ?? runs[0]?.run_id;
+      if (id) selectColony(id);
+      else setLoading(false);
+    }
+  }, [accessToken, scope, selectColony, reportError]);
 
-  const refreshFromSupabase = React.useCallback(
-    async (rid?: string | null) => {
-      if (!user) return;
-      const activeRunId = rid ?? runId;
-      const [probeRows, statsRows] = await Promise.all([
-        fetchProbes(activeRunId ?? undefined),
-        fetchGenerationStats(activeRunId ?? undefined),
-      ]);
-      setProbes(probeRows);
-      setGenStats(statsRows);
-    },
-    [user, runId],
-  );
+  React.useEffect(() => {
+    void refreshColonyList();
+    const timer = setInterval(() => void refreshColonyList(), 10_000);
+    return () => clearInterval(timer);
+  }, [refreshColonyList]);
 
-  const refreshColonyRuns = React.useCallback(async () => {
-    if (!user) return;
-    const runs = await fetchColonyRuns();
-    setColonyRuns(runs);
-  }, [user]);
-
-  // ── Check service status on mount ─────────────────────────────────────
-
-  const checkServiceStatus = React.useCallback(async () => {
+  const refreshSelected = React.useCallback(async (signal?: AbortSignal) => {
+    const id = scope.current();
+    if (!id) return;
+    const ticket = scope.begin("data");
     try {
-      const data = await apiCall("/api/v1/status", "GET");
-      const status = data.status as SimulationStatus;
-      if (status === "running" || status === "paused") {
-        setSimStatus(status);
-        setSimMode((data.mode as string) || "simulation");
-        setSystemStatus(data as unknown as SystemStatus);
-        if (data.run_id) {
-          setRunId(data.run_id as string);
-          return data.run_id as string;
-        }
-      } else {
-        setSimStatus("stopped");
-      }
+      // Never query without the selected run ID: that would combine all colonies.
+      const [rows, stats] = await Promise.all([fetchProbes(id), fetchGenerationStats(id)]);
+      if (signal?.aborted || !scope.isCurrent(ticket)) return;
+      setProbes(rows);
+      setGenStats(stats);
+      reportError("data", null);
     } catch {
-      setSimStatus("stopped");
-    }
-    return null;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // ── Initial load ──────────────────────────────────────────────────────
-
-  React.useEffect(() => {
-    if (authLoading || !user) return;
-    let cancelled = false;
-    (async () => {
-      const [activeRunId] = await Promise.all([
-        checkServiceStatus(),
-        refreshColonyRuns(),
-      ]);
-      const effectiveRunId = activeRunId || (await fetchLatestRunId());
-      if (effectiveRunId && !cancelled) setRunId(effectiveRunId);
-      await refreshFromSupabase(effectiveRunId);
-      if (!cancelled) setLoading(false);
-    })();
-    return () => { cancelled = true; };
-  }, [user, authLoading, checkServiceStatus, refreshFromSupabase, refreshColonyRuns]);
-
-  // ── Fetch active colonies periodically ────────────────────────────────
-
-  React.useEffect(() => {
-    const fetchActive = async () => {
-      try {
-        const data = await apiCall("/api/v1/colonies/", "GET");
-        if (Array.isArray(data)) setActiveColonies(data);
-      } catch { /* backend offline */ }
-    };
-    fetchActive();
-    const interval = setInterval(fetchActive, 10_000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // ── Periodic Supabase refresh while sim is active ─────────────────────
-
-  React.useEffect(() => {
-    if (!user || simStatus === "stopped" || !runId) return;
-    const interval = setInterval(() => refreshFromSupabase(runId), 5_000);
-    return () => clearInterval(interval);
-  }, [user, simStatus, runId, refreshFromSupabase]);
-
-  // ── Simulation controls ───────────────────────────────────────────────
-
-  const handleStart = async (startConfig: StartConfig) => {
-    if (!user) return;
-    setStarting(true);
-    try {
-      setProbes([]);
-      setGenStats([]);
-      setPrices({});
-      prevPrices.current = {};
-
-      const result = await apiCall("/api/v1/simulation/start", "POST", {
-        user_id: user.id,
-        mode: startConfig.mode,
-        strategy: startConfig.strategy,
-        preset: startConfig.preset,
-        colony_config: startConfig.colony_config,
-        gen0_count: startConfig.gen0_count,
-        max_capital: startConfig.max_capital,
-        seed_capital: startConfig.seed_capital,
-        tick_interval_ms: startConfig.tick_interval_ms,
-        mutation_rate: startConfig.mutation_rate,
-        max_probes: startConfig.max_probes,
-      });
-
-      const newRunId = result.run_id as string;
-      setRunId(newRunId);
-      setSelectedColonyId(newRunId);
-      setSimStatus("running");
-      setSimMode(startConfig.mode);
-      await refreshColonyRuns();
-
-      const desc = startConfig.mode === "paper"
-        ? "Paper trading with live Jupiter prices..."
-        : "Spawning probes with simulated prices...";
-      toast.success("Colony launched", { description: desc });
-    } catch (e) {
-      toast.error("Failed to start simulation", {
-        description: e instanceof Error ? e.message : "Connection error",
-      });
+      if (!signal?.aborted && scope.isCurrent(ticket)) reportError("data", "Colony data is unavailable. The last successful result is retained.");
     } finally {
-      setStarting(false);
+      if (!signal?.aborted && scope.isCurrent(ticket)) setLoading(false);
     }
-  };
+  }, [scope, reportError]);
 
-  const handleStop = async () => {
+  const refreshStatus = React.useCallback(async (signal?: AbortSignal) => {
+    const id = scope.current();
+    if (!id) return;
+    const ticket = scope.begin("status");
     try {
-      await apiCall("/api/v1/simulation/stop");
-      setSimStatus("stopped");
-      await Promise.all([refreshFromSupabase(runId), refreshColonyRuns()]);
-      toast.success("Simulation stopped");
-    } catch {
-      toast.error("Failed to stop simulation");
+      const data = await requestWorker<SystemStatus>(VN_ENDPOINTS, accessToken, colonyPath(id), { signal });
+      if (signal?.aborted || !scope.isCurrent(ticket)) return;
+      setSystemStatus(data);
+      setSimStatus(data.status);
+      setSimMode(data.mode || "simulation");
+      reportError("status", null);
+    } catch (error) {
+      if (signal?.aborted || !scope.isCurrent(ticket)) return;
+      reportError("status", error instanceof WorkerRequestError && error.status === 404
+        ? "This colony is unavailable from the worker. Saved history may still be available."
+        : "Current colony status is unavailable. The last confirmed status is retained.");
     }
-  };
+  }, [accessToken, scope, reportError]);
 
-  const handlePause = async () => {
-    try {
-      await apiCall("/api/v1/simulation/pause");
-      setSimStatus("paused");
-    } catch {
-      toast.error("Failed to pause simulation");
+  React.useEffect(() => {
+    if (!selectedColonyId) return;
+    const abort = new AbortController();
+    const refresh = () => { void refreshSelected(abort.signal); void refreshStatus(abort.signal); };
+    refresh();
+    const timer = setInterval(refresh, 5_000);
+    return () => { abort.abort(); clearInterval(timer); };
+  }, [selectedColonyId, refreshSelected, refreshStatus]);
+
+  const handleStart = async (config: StartConfig): Promise<boolean> => {
+    if (creating.current) return false;
+    const issues = validateStartConfig(config);
+    if (issues.length > 0) {
+      reportError("launch", issues.map((issue) => issue.message).join(" "));
+      return false;
     }
-  };
-
-  const handleResume = async () => {
+    reportError("launch", null);
+    creating.current = true;
+    const ticket = scope.begin("create");
+    setStartingToken(accessToken);
     try {
-      await apiCall("/api/v1/simulation/resume");
+      const result = await requestWorker<{ colony_id: string }>(VN_ENDPOINTS, accessToken, "/api/v1/colonies/", {
+        method: "POST", body: config,
+      });
+      if (!scope.isCurrent(ticket)) return false;
+      selectColony(result.colony_id);
       setSimStatus("running");
-    } catch {
-      toast.error("Failed to resume simulation");
+      setSimMode(config.mode);
+      void refreshColonyList();
+      toast.success("Colony launched");
+      return true;
+    } catch (error) {
+      if (scope.isCurrent(ticket)) {
+        const message = error instanceof WorkerRequestError ? error.message : "Could not confirm colony startup. Refresh the colony list before retrying.";
+        reportError("launch", message);
+        void refreshColonyList();
+      }
+      return false;
+    } finally {
+      creating.current = false;
+      if (scope.isCurrent(ticket)) setStartingToken(null);
     }
   };
 
-  const handleSelectRun = async (selectedRunId: string) => {
-    setRunId(selectedRunId);
-    setPrices({});
-    prevPrices.current = {};
-    await refreshFromSupabase(selectedRunId);
+  const handleControl = async (action: "stop" | "pause" | "resume") => {
+    if (controlling.current) return;
+    const ticket = scope.begin("control");
+    if (!ticket.colonyId) return;
+    controlling.current = true;
+    try {
+      await requestWorker(VN_ENDPOINTS, accessToken, colonyPath(ticket.colonyId, action), { method: "POST" });
+      if (!scope.isCurrent(ticket)) return;
+      reportError("control", null);
+      // Confirm the worker's resulting state, including failed persistence/reconciliation.
+      void refreshStatus();
+      void refreshSelected();
+      void refreshColonyList();
+    } catch (error) {
+      if (scope.isCurrent(ticket)) {
+        reportError("control", error instanceof WorkerRequestError ? error.message : "The action could not be confirmed. Refresh colony status before retrying.");
+        void refreshStatus();
+      }
+    } finally {
+      controlling.current = false;
+    }
   };
 
-  // ── Render ────────────────────────────────────────────────────────────
-
-  if (authLoading || loading) {
-    return (
-      <div className="space-y-6">
-        <PageHeader simStatus="stopped" mode="simulation" startedAt={null} />
-        <div className="space-y-3">
-          <Skeleton className="h-14 w-full bg-[#00fff5]/10" />
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {[0, 1, 2, 3].map((i) => (
-              <Skeleton key={i} className="h-20 bg-[#00fff5]/10" />
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return (
-      <div className="space-y-6">
-        <PageHeader simStatus="stopped" mode="simulation" startedAt={null} />
-        <div className="rounded-lg border border-[#00fff5]/20 bg-card/80 p-12 text-center backdrop-blur-sm">
-          <p className="text-sm text-muted-foreground">
-            Sign in to access the Von Neumann probe colony.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
+  const selectedHistory = colonyRuns.find((run) => run.run_id === selectedColonyId);
+  const savedTerminal = selectedHistory?.status === "failed" || selectedHistory?.status === "stopped";
+  const showSavedStatus = (!systemStatus || !!errors.status) && savedTerminal;
+  const displayedStatus = showSavedStatus ? selectedHistory.status! : simStatus;
+  const displayedMode = showSavedStatus ? selectedHistory.mode : simMode;
+  const diagnostics = showSavedStatus || !systemStatus ? selectedHistory?.runtime : systemStatus;
+  const errorMessages = [...new Set([VN_ENDPOINTS.error, ...Object.values(errors), connection.error].filter(Boolean))];
   return (
     <div className="space-y-6">
-      <PageHeader
-        simStatus={simStatus}
-        mode={simMode}
-        startedAt={systemStatus?.started_at ?? null}
-      />
+      <PageHeader simStatus={displayedStatus} mode={displayedMode} startedAt={systemStatus?.started_at ?? null} />
+      {errorMessages.length > 0 && (
+        <div role="alert" className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm space-y-1">
+          {errorMessages.map((message) => <p key={message}>{message}</p>)}
+          <button type="button" className="underline" onClick={() => {
+            void refreshColonyList(); void refreshSelected(); void refreshStatus();
+          }}>Retry data and status</button>
+        </div>
+      )}
+      {loading && <p role="status" className="text-sm text-muted-foreground">Loading colony data…</p>}
+      {showSavedStatus && <p className="text-sm text-muted-foreground">Showing the saved terminal status. Current worker status is unavailable.</p>}
+      {displayedStatus === "failed" && <p role="alert" className="text-sm text-destructive">{formatColonyFailure(diagnostics?.failure_code)}</p>}
+      {diagnostics?.state_persisted === false && <p role="alert" className="text-sm text-destructive">Colony state could not be saved. Displayed results may not survive a worker restart.</p>}
+      {diagnostics?.requires_reconciliation && <p role="alert" className="text-sm text-destructive">Paper positions or saved trade records require reconciliation.{(diagnostics.open_positions ?? 0) > 0 && ` ${diagnostics.open_positions} paper positions remain open.`}</p>}
       <ProbesDashboard
+        key={`${userId}:${selectedColonyId ?? "none"}`}
         probes={probes}
         generationStats={genStats}
         systemStatus={systemStatus}
         strategy={systemStatus?.strategy}
         activeColonies={activeColonies}
-        connected={connected}
-        simStatus={simStatus}
-        mode={simMode}
+        connected={connection.connected}
+        simStatus={displayedStatus}
+        mode={displayedMode}
         starting={starting}
+        startError={errors.launch}
         colonyRuns={colonyRuns}
-        activeRunId={runId}
+        activeRunId={selectedColonyId}
         prices={prices}
         onStart={handleStart}
-        onStop={handleStop}
-        onPause={handlePause}
-        onResume={handleResume}
-        onSelectRun={handleSelectRun}
+        onStop={() => handleControl("stop")}
+        onPause={() => handleControl("pause")}
+        onResume={() => handleControl("resume")}
+        onSelectRun={selectColony}
       />
     </div>
   );
@@ -410,7 +338,7 @@ function PageHeader({
   const [elapsed, setElapsed] = React.useState("");
 
   React.useEffect(() => {
-    if (!startedAt || simStatus === "stopped") {
+    if (!startedAt || !["running", "paused", "starting"].includes(simStatus)) {
       setElapsed("");
       return;
     }
@@ -431,7 +359,7 @@ function PageHeader({
     return () => clearInterval(id);
   }, [startedAt, simStatus]);
 
-  const isActive = simStatus !== "stopped";
+  const isActive = ["running", "paused", "starting"].includes(simStatus);
 
   return (
     <div className="flex items-start justify-between gap-4">

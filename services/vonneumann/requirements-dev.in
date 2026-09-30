@@ -1,0 +1,3 @@
+# Runtime pins plus an explicit TestClient dependency; unittest is in stdlib.
+-r requirements.in
+httpx==0.28.1

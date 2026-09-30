@@ -1,9 +1,8 @@
 """
 Live market feed using the Jupiter API.
 
-Uses Jupiter Price API v3 for real-time Solana token prices.
-Key advantage: fetches ALL token prices in a single API call (up to 50 mints).
-This makes 1-second tick intervals feasible even with many assets.
+Uses Jupiter Price API v3 for Solana token prices, batching requested assets.
+Provider failures stop execution; only validated, locally fresh batches are cached.
 
 Jupiter is also the swap provider for live trading (Phase 6), so using it
 for prices keeps the entire pipeline on one provider.
@@ -15,6 +14,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import math
 import os
 import time
 from typing import Optional
@@ -47,11 +47,28 @@ MINT_TO_ASSET: dict[str, str] = {v: k for k, v in TOKEN_MINTS.items()}
 USDC_MINT = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
 
 
+class MarketFeedError(RuntimeError):
+    """Safe public failure text; raw provider exceptions are never logged here."""
+
+    def __init__(self, code: str):
+        self.code = code
+        super().__init__("Market data refresh failed. Execution requires valid provider data.")
+
+
+def _number(value, *, positive: bool) -> float:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise ValueError("Invalid market value")
+    value = float(value)
+    if not math.isfinite(value) or (value <= 0 if positive else value < 0):
+        raise ValueError("Invalid market value")
+    return value
+
+
 class JupiterFeed(MarketFeed):
     """
     Live market feed using Jupiter Price API v3.
-    Fetches all token prices in ONE request per tick.
-    Developer plan: 10 RPS — supports 1-second ticks easily.
+    Fetches requested token prices in one request per tick.
+    Tick rates must respect the configured provider account's actual quota.
     """
 
     def __init__(self, api_key: str = ""):
@@ -94,6 +111,7 @@ class JupiterFeed(MarketFeed):
         if self._session is None or self._session.closed:
             self._session = aiohttp.ClientSession(
                 timeout=aiohttp.ClientTimeout(total=5),
+                trust_env=False,
             )
         return self._session
 
@@ -103,80 +121,64 @@ class JupiterFeed(MarketFeed):
 
     # ── Price API ────────────────────────────────────────────────────────
 
-    async def _fetch_all_prices(self) -> dict[str, MarketTick]:
-        """Fetch all token prices in a single Jupiter API call."""
+    async def _fetch_all_prices(self, assets: Optional[list[str]] = None) -> dict[str, MarketTick]:
+        """Fetch one complete requested batch; a failed refresh never serves expired cache."""
+        requested = list(dict.fromkeys(TOKEN_MINTS if assets is None else assets))
+        if any(asset not in TOKEN_MINTS for asset in requested):
+            raise MarketFeedError("unsupported_asset")
+        if not requested:
+            return {}
         now = time.time()
-
-        # Check if entire cache is still fresh
-        if self._cache:
-            oldest = min(t for t, _ in self._cache.values())
-            if now - oldest < self._cache_ttl:
-                return {asset: tick for asset, (_, tick) in self._cache.items()}
-
-        mints = ",".join(TOKEN_MINTS.values())
-        session = await self._get_session()
-        self.api_call_count += 1
+        if all(asset in self._cache and 0 <= now - self._cache[asset][0] < self._cache_ttl
+               for asset in requested):
+            return {asset: self._cache[asset][1] for asset in requested}
 
         try:
+            session = await self._get_session()
+            self.api_call_count += 1
             async with session.get(
                 f"{JUPITER_API_URL}/price/v3",
-                params={"ids": mints},
+                params={"ids": ",".join(TOKEN_MINTS[asset] for asset in requested)},
                 headers=self._jup_headers,
+                allow_redirects=False,
             ) as resp:
-                if resp.status == 429:
-                    logger.warning("[Jupiter] Rate limited — using cached prices")
-                    return {a: t for a, (_, t) in self._cache.items()}
-
                 if resp.status != 200:
-                    logger.warning(f"[Jupiter] Price API HTTP {resp.status}")
-                    return {a: t for a, (_, t) in self._cache.items()}
-
+                    raise MarketFeedError("price_rate_limited" if resp.status == 429 else "price_unavailable")
                 data = await resp.json()
-
+                if not isinstance(data, dict):
+                    raise MarketFeedError("price_invalid")
+                # Validate the complete batch before committing any cache entry.
+                prices = {}
+                for asset in requested:
+                    info = data.get(TOKEN_MINTS[asset])
+                    if not isinstance(info, dict):
+                        raise MarketFeedError("price_missing")
+                    prices[asset] = _number(info.get("usdPrice"), positive=True)
+                received_at = time.time()
                 result: dict[str, MarketTick] = {}
-                for mint_addr, price_info in data.items():
-                    asset = MINT_TO_ASSET.get(mint_addr)
-                    if not asset or price_info is None:
-                        continue
-
-                    price = float(price_info.get("usdPrice", 0))
-                    if price <= 0:
-                        continue
-
-                    tick = MarketTick(
+                for asset, price in prices.items():
+                    result[asset] = MarketTick(
                         asset=asset,
                         price=price,
                         volume=self._volume_cache.get(asset, 0.0),
-                        timestamp=now,
+                        timestamp=received_at,
                     )
-                    result[asset] = tick
-                    self._cache[asset] = (now, tick)
-
+                self._cache.update({asset: (received_at, tick) for asset, tick in result.items()})
                 return result
-
-        except Exception as e:
-            logger.error(f"[Jupiter] Price fetch error: {e}")
-            return {a: t for a, (_, t) in self._cache.items()}
+        except MarketFeedError:
+            raise
+        except (ValueError, TypeError, OverflowError):
+            raise MarketFeedError("price_invalid") from None
+        except Exception:
+            raise MarketFeedError("price_unavailable") from None
 
     async def get_tick(self, asset: str) -> MarketTick:
-        """Get price for a single asset (fetches all, returns one)."""
-        now = time.time()
-        if asset in self._cache:
-            cached_time, cached_tick = self._cache[asset]
-            if now - cached_time < self._cache_ttl:
-                return cached_tick
-
-        all_prices = await self._fetch_all_prices()
-        if asset in all_prices:
-            return all_prices[asset]
-
-        # Fallback
-        return MarketTick(asset=asset, price=0, volume=0, timestamp=now)
+        """Get a validated price or an explicit provider failure, never a zero fallback."""
+        return (await self._fetch_all_prices([asset]))[asset]
 
     async def get_ticks(self, assets: list[str]) -> dict[str, MarketTick]:
         """Get prices for multiple assets — single API call."""
-        all_prices = await self._fetch_all_prices()
-        return {a: all_prices[a] for a in assets if a in all_prices}
+        return await self._fetch_all_prices(assets)
 
     # ── Volume refresh (via Birdeye) ─────────────────────────────────────
     # Jupiter's price API doesn't return volume. We keep a small per-asset
@@ -191,35 +193,47 @@ class JupiterFeed(MarketFeed):
         now = time.time()
         if now - self._last_volume_refresh < self._volume_refresh_interval:
             return
-        self._last_volume_refresh = now
-
-        target_assets = assets or list(TOKEN_MINTS.keys())
-        session = await self._get_session()
-
-        for asset in target_assets:
-            mint = TOKEN_MINTS.get(asset)
-            if not mint:
-                continue
-            try:
+        target_assets = list(dict.fromkeys(TOKEN_MINTS if assets is None else assets))
+        if any(asset not in TOKEN_MINTS for asset in target_assets):
+            raise MarketFeedError("unsupported_asset")
+        pending = {}
+        try:
+            session = await self._get_session()
+            for asset in target_assets:
                 async with session.get(
                     "https://public-api.birdeye.so/defi/ohlcv",
                     params={
-                        "address": mint,
+                        "address": TOKEN_MINTS[asset],
                         "type": "1m",
                         "time_from": int(now) - 180,
                         "time_to": int(now),
                     },
                     headers=self._birdeye_headers,
+                    allow_redirects=False,
                 ) as resp:
                     if resp.status != 200:
-                        continue
+                        raise MarketFeedError("volume_unavailable")
                     data = await resp.json()
-                    items = data.get("data", {}).get("items", [])
+                    if not isinstance(data, dict) or data.get("success") is False:
+                        raise MarketFeedError("volume_invalid")
+                    body = data.get("data")
+                    items = body.get("items") if isinstance(body, dict) else None
+                    if not isinstance(items, list):
+                        raise MarketFeedError("volume_invalid")
                     if items:
-                        self._volume_cache[asset] = float(items[-1].get("v", 0) or 0)
-            except Exception as e:
-                logger.debug(f"[Jupiter] Volume refresh error for {asset}: {e}")
-            await asyncio.sleep(0.75)  # Birdeye rate limit
+                        if not isinstance(items[-1], dict):
+                            raise MarketFeedError("volume_invalid")
+                        pending[asset] = _number(items[-1].get("v"), positive=False)
+                    # Empty history remains optional; candle freshness policy is separate.
+                await asyncio.sleep(0.75)  # Birdeye rate limit
+            self._volume_cache.update(pending)
+            self._last_volume_refresh = now
+        except MarketFeedError:
+            raise
+        except (ValueError, TypeError, OverflowError):
+            raise MarketFeedError("volume_invalid") from None
+        except Exception:
+            raise MarketFeedError("volume_unavailable") from None
 
     # ── OHLCV Backfill (via Birdeye) ─────────────────────────────────────
     # Jupiter doesn't have a candle history endpoint, so we use Birdeye
@@ -257,6 +271,7 @@ class JupiterFeed(MarketFeed):
                     "time_to": now,
                 },
                 headers=self._birdeye_headers,
+                allow_redirects=False,
             ) as resp:
                 if resp.status != 200:
                     logger.warning(f"[Jupiter] Birdeye OHLCV HTTP {resp.status} for {asset}")
@@ -276,8 +291,8 @@ class JupiterFeed(MarketFeed):
                 logger.info(f"[Jupiter] Backfilled {len(candles)} candles for {asset}")
                 return candles
 
-        except Exception as e:
-            logger.error(f"[Jupiter] Backfill error for {asset}: {e}")
+        except Exception:
+            logger.warning("[Jupiter] Optional history unavailable")
             return []
 
     async def backfill_probe(
@@ -318,12 +333,13 @@ class JupiterFeed(MarketFeed):
                     "slippageBps": str(slippage_bps),
                 },
                 headers=self._jup_headers,
+                allow_redirects=False,
             ) as resp:
                 if resp.status != 200:
                     logger.warning(f"[Jupiter] Quote API HTTP {resp.status}")
                     return None
                 return await resp.json()
 
-        except Exception as e:
-            logger.error(f"[Jupiter] Quote error: {e}")
+        except Exception:
+            logger.warning("[Jupiter] Quote unavailable")
             return None

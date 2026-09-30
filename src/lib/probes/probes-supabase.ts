@@ -5,26 +5,27 @@ function supabase() {
   return createClient();
 }
 
-/**
- * Fetch probes for a specific simulation run.
- * If no runId provided, returns the most recent run's probes.
- */
-export async function fetchProbes(runId?: string): Promise<Probe[]> {
-  let query = supabase()
+export class ProbeDataError extends Error {
+  constructor(operation: string) {
+    super(`Could not load ${operation}. Retry when the database is available.`);
+    this.name = "ProbeDataError";
+  }
+}
+
+function requireRun(runId: string) {
+  if (!runId?.trim()) throw new ProbeDataError("colony data without a selected colony");
+}
+
+/** Fetch a specific colony; a failed query is never reported as an empty colony. */
+export async function fetchProbes(runId: string): Promise<Probe[]> {
+  requireRun(runId);
+  const { data, error } = await supabase()
     .from("vn_probes")
     .select("*")
-    .order("fitness_score", { ascending: false });
-
-  if (runId) {
-    query = query.eq("run_id", runId);
-  }
-
-  const { data, error } = await query;
-  if (error) {
-    console.error("fetchProbes error:", error);
-    return [];
-  }
-  return (data ?? []) as Probe[];
+    .order("fitness_score", { ascending: false })
+    .eq("run_id", runId);
+  if (error || !Array.isArray(data)) throw new ProbeDataError("probes");
+  return data as Probe[];
 }
 
 /**
@@ -36,7 +37,8 @@ export async function fetchLatestRunId(): Promise<string | null> {
     .select("run_id")
     .order("created_at", { ascending: false })
     .limit(1);
-  if (error || !data || data.length === 0) return null;
+  if (error || !Array.isArray(data)) throw new ProbeDataError("latest colony");
+  if (data.length === 0) return null;
   return (data[0] as { run_id: string | null }).run_id;
 }
 
@@ -45,9 +47,9 @@ export async function fetchProbe(id: string): Promise<Probe | null> {
     .from("vn_probes")
     .select("*")
     .eq("id", id)
-    .single();
-  if (error) return null;
-  return data as Probe;
+    .maybeSingle();
+  if (error) throw new ProbeDataError("probe details");
+  return data as Probe | null;
 }
 
 export async function fetchProbeTrades(probeId: string): Promise<Trade[]> {
@@ -56,29 +58,19 @@ export async function fetchProbeTrades(probeId: string): Promise<Trade[]> {
     .select("*")
     .eq("probe_id", probeId)
     .order("opened_at", { ascending: false });
-  if (error) {
-    console.error("fetchProbeTrades error:", error);
-    return [];
-  }
-  return (data ?? []) as Trade[];
+  if (error || !Array.isArray(data)) throw new ProbeDataError("trade history");
+  return data as Trade[];
 }
 
-export async function fetchGenerationStats(runId?: string): Promise<GenerationStats[]> {
-  let query = supabase()
+export async function fetchGenerationStats(runId: string): Promise<GenerationStats[]> {
+  requireRun(runId);
+  const { data, error } = await supabase()
     .from("vn_generation_stats")
     .select("*")
-    .order("generation", { ascending: true });
-
-  if (runId) {
-    query = query.eq("run_id", runId);
-  }
-
-  const { data, error } = await query;
-  if (error) {
-    console.error("fetchGenerationStats error:", error);
-    return [];
-  }
-  return (data ?? []) as GenerationStats[];
+    .order("generation", { ascending: true })
+    .eq("run_id", runId);
+  if (error || !Array.isArray(data)) throw new ProbeDataError("generation statistics");
+  return data as GenerationStats[];
 }
 
 export async function fetchFitnessSnapshots(
@@ -89,11 +81,8 @@ export async function fetchFitnessSnapshots(
     .select("*")
     .eq("probe_id", probeId)
     .order("captured_at", { ascending: true });
-  if (error) {
-    console.error("fetchFitnessSnapshots error:", error);
-    return [];
-  }
-  return (data ?? []) as FitnessSnapshot[];
+  if (error || !Array.isArray(data)) throw new ProbeDataError("fitness history");
+  return data as FitnessSnapshot[];
 }
 
 /**
@@ -105,26 +94,28 @@ export async function fetchColonyRuns(): Promise<ColonyRun[]> {
   // Try the new vn_colonies table first
   const { data: colonies, error: colErr } = await supabase()
     .from("vn_colonies")
-    .select("id, strategy, mode, status, started_at, stopped_at")
+    .select("id, strategy, mode, status, config, started_at, stopped_at")
     .order("created_at", { ascending: false });
 
-  if (!colErr && colonies && colonies.length > 0) {
+  if (colErr || !Array.isArray(colonies)) throw new ProbeDataError("colony history");
+  if (colonies.length > 0) {
     return _enrichColonyRuns(colonies);
   }
 
-  // Fallback: group from vn_probes (pre-migration data)
+  // Successful empty colony table: support history created before colony records existed.
   return _fetchColonyRunsFromProbes();
 }
 
 async function _enrichColonyRuns(
-  colonies: Array<{ id: string; strategy: string; mode: string; started_at: string; stopped_at: string | null }>,
+  colonies: Array<{ id: string; strategy: string; mode: string; status?: string; config?: unknown; started_at: string; stopped_at: string | null }>,
 ): Promise<ColonyRun[]> {
   const colonyIds = colonies.map((c) => c.id);
 
-  const { data: probes } = await supabase()
+  const { data: probes, error } = await supabase()
     .from("vn_probes")
     .select("run_id, fitness_score")
     .in("run_id", colonyIds);
+  if (error || !Array.isArray(probes)) throw new ProbeDataError("colony summary statistics");
 
   const probeAgg = new Map<string, { count: number; best: number }>();
   for (const p of (probes ?? []) as Array<{ run_id: string; fitness_score: number }>) {
@@ -139,6 +130,14 @@ async function _enrichColonyRuns(
 
   return colonies.map((c) => {
     const agg = probeAgg.get(c.id);
+    const saved = c.config && typeof c.config === "object" && "runtime" in c.config ? c.config.runtime : null;
+    const record = saved && typeof saved === "object" ? saved as Record<string, unknown> : {};
+    const runtime: ColonyRun["runtime"] = {
+      failure_code: typeof record.failure_code === "string" ? record.failure_code : null,
+      state_persisted: typeof record.state_persisted === "boolean" ? record.state_persisted : undefined,
+      open_positions: typeof record.open_positions === "number" && Number.isSafeInteger(record.open_positions) && record.open_positions >= 0 ? record.open_positions : undefined,
+      requires_reconciliation: typeof record.requires_reconciliation === "boolean" ? record.requires_reconciliation : undefined,
+    };
     return {
       run_id: c.id,
       mode: c.mode,
@@ -147,6 +146,8 @@ async function _enrichColonyRuns(
       ended_at: c.stopped_at,
       probe_count: agg?.count ?? 0,
       best_fitness: agg?.best ?? 0,
+      status: ["starting", "running", "paused", "stopped", "failed"].includes(c.status ?? "") ? c.status : undefined,
+      runtime,
     } as ColonyRun;
   });
 }
@@ -158,7 +159,7 @@ async function _fetchColonyRunsFromProbes(): Promise<ColonyRun[]> {
     .not("run_id", "is", null)
     .order("created_at", { ascending: false });
 
-  if (error || !data) return [];
+  if (error || !Array.isArray(data)) throw new ProbeDataError("legacy colony history");
 
   const runs = new Map<string, ColonyRun>();
   for (const row of data as Array<{
@@ -189,9 +190,12 @@ async function _fetchColonyRunsFromProbes(): Promise<ColonyRun[]> {
 
 export async function deleteAllProbes(): Promise<boolean> {
   const db = supabase();
-  await db.from("vn_fitness_snapshots").delete().gte("captured_at", "2000-01-01");
-  await db.from("vn_trades").delete().gte("created_at", "2000-01-01");
-  await db.from("vn_generation_stats").delete().gte("started_at", "2000-01-01");
-  await db.from("vn_probes").delete().gte("created_at", "2000-01-01");
+  for (const [table, column] of [
+    ["vn_fitness_snapshots", "captured_at"], ["vn_trades", "created_at"],
+    ["vn_generation_stats", "started_at"], ["vn_probes", "created_at"],
+  ]) {
+    const { error } = await db.from(table).delete().gte(column, "2000-01-01");
+    if (error) throw new Error("Could not finish deleting colony data. Some records may already have been removed.");
+  }
   return true;
 }

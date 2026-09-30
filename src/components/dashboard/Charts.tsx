@@ -48,6 +48,23 @@ function ChartSkeleton() {
   );
 }
 
+function CustomTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ name: string; value: number; color: string }>; label?: string }) {
+  if (active && payload && payload.length) {
+    return (
+      <div className="rounded-lg border border-[#00fff5]/30 bg-card/95 backdrop-blur-xl p-3 shadow-xl shadow-[#00fff5]/10 scale-in">
+        <p className="text-xs text-muted-foreground mb-2 font-mono">{label}</p>
+        {payload.map((entry, index) => (
+          <p key={index} className="text-sm font-mono font-medium flex items-center gap-2" style={{ color: entry.color }}>
+            <span className="h-2 w-2 rounded-full" style={{ backgroundColor: entry.color, boxShadow: `0 0 8px ${entry.color}` }} />
+            {entry.name}: ${entry.value.toLocaleString("en-US")}
+          </p>
+        ))}
+      </div>
+    );
+  }
+  return null;
+}
+
 export function Charts() {
   const { dateRange } = useDashboardFilters();
   const [isLoading, setIsLoading] = React.useState(true);
@@ -67,22 +84,6 @@ export function Charts() {
   const holdingsData = getHoldingsDistribution();
   const volumeData = getVolumeByExchange();
 
-  const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ name: string; value: number; color: string }>; label?: string }) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="rounded-lg border border-[#00fff5]/30 bg-card/95 backdrop-blur-xl p-3 shadow-xl shadow-[#00fff5]/10 scale-in">
-          <p className="text-xs text-muted-foreground mb-2 font-mono">{label}</p>
-          {payload.map((entry, index) => (
-            <p key={index} className="text-sm font-mono font-medium flex items-center gap-2" style={{ color: entry.color }}>
-              <span className="h-2 w-2 rounded-full" style={{ backgroundColor: entry.color, boxShadow: `0 0 8px ${entry.color}` }} />
-              {entry.name}: ${entry.value.toLocaleString("en-US")}
-            </p>
-          ))}
-        </div>
-      );
-    }
-    return null;
-  };
 
   const cardBaseClass = `
     card-hover-glow bg-card/80 backdrop-blur-sm overflow-hidden relative

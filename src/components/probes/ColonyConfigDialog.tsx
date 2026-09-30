@@ -37,20 +37,22 @@ import {
   type StartConfig,
   type ColonyConfig,
   type GeneOverride,
+  validateStartConfig,
 } from "@/lib/probes/colony-config";
 import type { StrategyInfo } from "@/lib/probes/types";
 import {
   STRATEGY_LABELS,
   STRATEGY_DESCRIPTIONS,
-  VN_API_URL,
-  VN_API_KEY,
+  VN_ENDPOINTS,
 } from "@/lib/probes/constants";
+import { START_LIMITS } from "@/lib/probes/transport";
 
 interface Props {
   open: boolean;
   onClose: () => void;
-  onStart: (config: StartConfig) => void;
+  onStart: (config: StartConfig) => Promise<boolean>;
   starting: boolean;
+  startError?: string | null;
 }
 
 const GROUP_ICONS: Record<GeneGroup, React.ElementType> = {
@@ -85,10 +87,11 @@ function formatGeneValue(gene: GeneDefinition, value: number): string {
 
 // ── Component ───────────────────────────────────────────────────────────
 
-export function ColonyConfigDialog({ open, onClose, onStart, starting }: Props) {
+export function ColonyConfigDialog({ open, onClose, onStart, starting, startError }: Props) {
   const [config, setConfig] = React.useState<StartConfig>(buildDefaultStartConfig());
   const [preset, setPreset] = React.useState("default");
   const [showAdvanced, setShowAdvanced] = React.useState(false);
+  const [validationErrors, setValidationErrors] = React.useState<string[]>([]);
 
   // Gene state: enabled + override per gene
   const [geneEnabled, setGeneEnabled] = React.useState<Record<string, boolean>>(
@@ -96,24 +99,29 @@ export function ColonyConfigDialog({ open, onClose, onStart, starting }: Props) 
   );
   const [geneOverrides, setGeneOverrides] = React.useState<Record<string, GeneOverride>>({});
   const [selectedAssets, setSelectedAssets] = React.useState<string[]>([...ALL_ASSETS]);
-  const [strategies, setStrategies] = React.useState<StrategyInfo[]>([]);
+  const [strategies, setStrategies] = React.useState<StrategyInfo[]>(() =>
+    Object.keys(STRATEGY_LABELS).map((name) => ({
+      name,
+      label: STRATEGY_LABELS[name],
+      description: STRATEGY_DESCRIPTIONS[name] ?? "",
+    })),
+  );
 
   // Fetch available strategies on mount
   React.useEffect(() => {
-    fetch(`${VN_API_URL}/api/v1/strategies`, {
-      headers: { "X-API-Key": VN_API_KEY },
+    if (!VN_ENDPOINTS.apiUrl || VN_ENDPOINTS.error) return;
+    const abort = new AbortController();
+    fetch(`${VN_ENDPOINTS.apiUrl}/api/v1/strategies`, {
+      signal: abort.signal,
+      credentials: "omit",
+      redirect: "error",
     })
       .then((r) => (r.ok ? r.json() : Promise.reject(r)))
-      .then((data: StrategyInfo[]) => setStrategies(data))
-      .catch(() => {
-        setStrategies(
-          Object.keys(STRATEGY_LABELS).map((name) => ({
-            name,
-            label: STRATEGY_LABELS[name],
-            description: STRATEGY_DESCRIPTIONS[name] ?? "",
-          })),
-        );
-      });
+      .then((data: StrategyInfo[]) => {
+        if (!abort.signal.aborted && Array.isArray(data)) setStrategies(data);
+      })
+      .catch(() => { /* Keep built-in strategy descriptions when the worker is offline. */ });
+    return () => abort.abort();
   }, []);
 
   // Apply preset
@@ -160,10 +168,8 @@ export function ColonyConfigDialog({ open, onClose, onStart, starting }: Props) 
   const handleStart = () => {
     const overrides: Record<string, GeneOverride> = {};
     for (const g of GENE_DEFINITIONS) {
-      const ov = geneOverrides[g.name];
-      if (ov && (ov.min != null || ov.max != null || ov.fixed != null)) {
-        overrides[g.name] = ov;
-      }
+      // An explicit empty override clears a preset gene that the user unlocked.
+      overrides[g.name] = geneOverrides[g.name] ?? {};
     }
 
     const enabledGenes = GENE_DEFINITIONS
@@ -178,7 +184,10 @@ export function ColonyConfigDialog({ open, onClose, onStart, starting }: Props) 
       reproduction_interval: config.colony_config.reproduction_interval,
     };
 
-    onStart({ ...config, colony_config: colonyConfig, preset });
+    const submission = { ...config, colony_config: colonyConfig, preset };
+    const issues = validateStartConfig(submission);
+    setValidationErrors(issues.map((issue) => issue.message));
+    if (issues.length === 0) void onStart(submission);
   };
 
   const setGeneFixed = (geneName: string, fixed: boolean, value?: number) => {
@@ -485,7 +494,7 @@ export function ColonyConfigDialog({ open, onClose, onStart, starting }: Props) 
                 Initial Probes
               </Label>
               <Input
-                type="number" min={2} max={50}
+                type="number" min={START_LIMITS.gen0_count.min} max={START_LIMITS.gen0_count.max} step={1}
                 value={config.gen0_count}
                 onChange={(e) => setConfig((c) => ({ ...c, gen0_count: Number(e.target.value) }))}
                 className="h-7 text-xs font-mono border-[#00fff5]/20 bg-transparent"
@@ -496,7 +505,7 @@ export function ColonyConfigDialog({ open, onClose, onStart, starting }: Props) 
                 Max Capital ($)
               </Label>
               <Input
-                type="number" min={100} step={1000}
+                type="number" min={START_LIMITS.max_capital.min} max={START_LIMITS.max_capital.max} step={10}
                 value={config.max_capital}
                 onChange={(e) => setConfig((c) => ({ ...c, max_capital: Number(e.target.value) }))}
                 className="h-7 text-xs font-mono border-[#00fff5]/20 bg-transparent"
@@ -507,7 +516,7 @@ export function ColonyConfigDialog({ open, onClose, onStart, starting }: Props) 
                 Capital Per Probe ($)
               </Label>
               <Input
-                type="number" min={10} step={10}
+                type="number" min={START_LIMITS.seed_capital.min} max={START_LIMITS.seed_capital.max} step={10}
                 value={config.seed_capital}
                 onChange={(e) => setConfig((c) => ({ ...c, seed_capital: Number(e.target.value) }))}
                 className="h-7 text-xs font-mono border-[#00fff5]/20 bg-transparent"
@@ -518,7 +527,7 @@ export function ColonyConfigDialog({ open, onClose, onStart, starting }: Props) 
                 Tick Interval (ms)
               </Label>
               <Input
-                type="number" min={100} step={100}
+                type="number" min={START_LIMITS.tick_interval_ms.min} max={START_LIMITS.tick_interval_ms.max} step={1}
                 value={config.tick_interval_ms}
                 onChange={(e) => setConfig((c) => ({ ...c, tick_interval_ms: Number(e.target.value) }))}
                 className="h-7 text-xs font-mono border-[#00fff5]/20 bg-transparent"
@@ -529,7 +538,7 @@ export function ColonyConfigDialog({ open, onClose, onStart, starting }: Props) 
                 Mutation Rate
               </Label>
               <Input
-                type="number" min={0.05} max={0.50} step={0.05}
+                type="number" min={START_LIMITS.mutation_rate.min} max={START_LIMITS.mutation_rate.max} step={0.05}
                 value={config.mutation_rate}
                 onChange={(e) => setConfig((c) => ({ ...c, mutation_rate: Number(e.target.value) }))}
                 className="h-7 text-xs font-mono border-[#00fff5]/20 bg-transparent"
@@ -540,7 +549,7 @@ export function ColonyConfigDialog({ open, onClose, onStart, starting }: Props) 
                 Repro Interval (ticks)
               </Label>
               <Input
-                type="number" min={10} step={10}
+                type="number" min={START_LIMITS.reproduction_interval.min} max={START_LIMITS.reproduction_interval.max} step={1}
                 value={config.colony_config.reproduction_interval}
                 onChange={(e) => setConfig((c) => ({
                   ...c,
@@ -554,13 +563,13 @@ export function ColonyConfigDialog({ open, onClose, onStart, starting }: Props) 
                 Max Lifespan (ticks, 0=no limit)
               </Label>
               <Input
-                type="number" min={0} step={100}
+                type="number" min={START_LIMITS.max_lifespan_ticks.min} max={START_LIMITS.max_lifespan_ticks.max} step={1}
                 value={config.colony_config.max_lifespan_ticks ?? 0}
                 onChange={(e) => {
                   const v = Number(e.target.value);
                   setConfig((c) => ({
                     ...c,
-                    colony_config: { ...c.colony_config, max_lifespan_ticks: v > 0 ? v : null },
+                    colony_config: { ...c.colony_config, max_lifespan_ticks: v === 0 ? null : v },
                   }));
                 }}
                 className="h-7 text-xs font-mono border-[#00fff5]/20 bg-transparent"
@@ -571,7 +580,7 @@ export function ColonyConfigDialog({ open, onClose, onStart, starting }: Props) 
                 Max Probes
               </Label>
               <Input
-                type="number" min={5} max={100}
+                type="number" min={START_LIMITS.max_probes.min} max={START_LIMITS.max_probes.max} step={1}
                 value={config.max_probes}
                 onChange={(e) => setConfig((c) => ({ ...c, max_probes: Number(e.target.value) }))}
                 className="h-7 text-xs font-mono border-[#00fff5]/20 bg-transparent"
@@ -581,9 +590,16 @@ export function ColonyConfigDialog({ open, onClose, onStart, starting }: Props) 
         )}
 
         {/* Launch button */}
+        {(validationErrors.length > 0 || startError) && (
+          <div role="alert" className="space-y-1 text-sm text-destructive">
+            {validationErrors.map((message, index) => <p key={index}>{message}</p>)}
+            {startError && <p>{startError}</p>}
+          </div>
+        )}
+        {VN_ENDPOINTS.error && <p role="alert" className="text-sm text-destructive">{VN_ENDPOINTS.error}</p>}
         <Button
           onClick={handleStart}
-          disabled={starting || selectedAssets.length === 0}
+          disabled={starting || selectedAssets.length === 0 || !!VN_ENDPOINTS.error}
           className="w-full mt-4 h-10 bg-gradient-to-r from-[#00fff5] to-[#ff00ff] text-black font-bold hover:opacity-90"
         >
           {starting ? "Launching..." : "Launch Colony"}

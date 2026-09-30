@@ -20,7 +20,8 @@ interface Props {
   strategy?: string;
   activeColonies?: ColonyInfo[];
   starting: boolean;
-  onStart: (config: StartConfig) => void;
+  startError?: string | null;
+  onStart: (config: StartConfig) => Promise<boolean>;
   onStop: () => void;
   onPause: () => void;
   onResume: () => void;
@@ -36,6 +37,7 @@ export function SimulationControls({
   strategy,
   activeColonies,
   starting,
+  startError,
   onStart,
   onStop,
   onPause,
@@ -47,7 +49,7 @@ export function SimulationControls({
     <>
       <div className="flex flex-wrap items-center gap-3 rounded-lg border border-[#00fff5]/20 bg-card/80 px-4 py-3 backdrop-blur-sm">
         <div className="flex items-center gap-2">
-          {status === "stopped" ? (
+          {!["running", "paused", "starting"].includes(status) ? (
             <Button
               size="sm"
               onClick={() => setConfigOpen(true)}
@@ -72,7 +74,7 @@ export function SimulationControls({
                   <Pause className="mr-1.5 h-3.5 w-3.5" />
                   Pause
                 </Button>
-              ) : (
+              ) : status === "paused" ? (
                 <Button
                   size="sm"
                   onClick={onResume}
@@ -81,10 +83,11 @@ export function SimulationControls({
                   <Play className="mr-1.5 h-3.5 w-3.5" />
                   Resume
                 </Button>
-              )}
+              ) : null}
               <Button
                 size="sm"
                 onClick={onStop}
+                disabled={status === "starting"}
                 className="h-8 border border-[#ff3366]/30 bg-[#ff3366]/10 text-[#ff3366] hover:bg-[#ff3366]/20 text-xs"
               >
                 <Square className="mr-1.5 h-3.5 w-3.5" />
@@ -96,7 +99,11 @@ export function SimulationControls({
 
         <div className="h-6 w-px bg-[#00fff5]/20" />
 
-        {status !== "stopped" && (
+        <Badge variant="outline" className="text-[10px] uppercase">
+          {status === "unknown" ? "Status unavailable" : status}
+        </Badge>
+
+        {["running", "paused", "starting"].includes(status) && (
           <Badge
             variant="outline"
             className="text-[10px] px-1.5 py-0"
@@ -110,7 +117,7 @@ export function SimulationControls({
           </Badge>
         )}
 
-        {status !== "stopped" && strategy && (
+        {["running", "paused", "starting"].includes(status) && strategy && (
           <Badge variant="outline" className="ml-2 text-xs">
             {STRATEGY_LABELS[strategy] ?? strategy}
           </Badge>
@@ -147,11 +154,13 @@ export function SimulationControls({
       <ColonyConfigDialog
         open={configOpen}
         onClose={() => setConfigOpen(false)}
-        onStart={(cfg) => {
-          setConfigOpen(false);
-          onStart(cfg);
+        onStart={async (cfg) => {
+          const launched = await onStart(cfg);
+          if (launched) setConfigOpen(false);
+          return launched;
         }}
         starting={starting}
+        startError={startError}
       />
     </>
   );

@@ -457,7 +457,7 @@ export default function DocsPage() {
         <Table
           headers={["Mode", "Description"]}
           rows={[
-            ["Simulation", "Fully synthetic prices via Geometric Brownian Motion. No external API calls. Fast iteration."],
+            ["Simulation", "Synthetic market prices via Geometric Brownian Motion. Authentication and persistence still require the configured services."],
             ["Paper Trade", "Live prices from Jupiter DEX aggregator on Solana. Real market conditions, no real capital."],
           ]}
         />
@@ -623,7 +623,7 @@ export default function DocsPage() {
 
         <H3 id="probes-websocket">Real-Time WebSocket</H3>
         <P>
-          The page maintains a persistent WebSocket connection to the Python service at <Code>ws://localhost:8765/ws</Code> (configurable via <Code>NEXT_PUBLIC_VN_WS_URL</Code>). The connection auto-reconnects with exponential backoff (1.5x multiplier, 15s cap).
+          The page connects to the Python service using <Code>NEXT_PUBLIC_VN_WS_URL</Code>. Production requires an explicit secure WSS endpoint; development can use <Code>ws://localhost:8765/ws</Code>. The connection authenticates with the current Supabase session before receiving events, reconnects with bounded exponential backoff, and closes when the session changes or expires.
         </P>
         <P>
           Every WebSocket message includes a <Code>colony_id</Code> field so the frontend can filter events per colony when multiple colonies are running. Message types handled:
@@ -640,7 +640,7 @@ export default function DocsPage() {
           ]}
         />
         <P>
-          Commands can be sent over the WebSocket: <Code>{`{"type":"command","data":{"action":"stop","colony_id":"..."}}`}</Code>
+          The WebSocket is read-only and carries events belonging to the signed-in user. Pause, resume, and stop use authenticated REST requests with an explicit colony ID. The selected colony is checked before its events update the display.
         </P>
 
         <H3 id="probes-data-persistence">Data Persistence</H3>
@@ -834,28 +834,35 @@ export default function DocsPage() {
 
         <H3 id="service-api">REST API</H3>
         <P>
-          The FastAPI server runs on port 8765 by default. All endpoints except health and strategies require an API key via the <Code>x-api-key</Code> header.
+          The FastAPI server runs on port 8765 by default. Colony endpoints require the signed-in user&rsquo;s Supabase access token in the <Code>Authorization: Bearer</Code> header. The service verifies the token and checks colony ownership. Health, strategies, and the gene registry are public metadata; shared browser API keys are not used.
         </P>
         <Table
           headers={["Method", "Endpoint", "Description"]}
           rows={[
-            ["GET", "/api/v1/health", "Service status + WS client count + active colony count"],
-            ["GET", "/api/v1/status", "Latest colony status (backward compat)"],
+            ["GET", "/api/v1/health", "Basic service liveness"],
+            ["GET", "/api/v1/status", "Latest owned colony (compatibility); prefer an explicit colony ID"],
             ["GET", "/api/v1/strategies", "List all available evolution strategies"],
             ["GET", "/api/v1/gene-registry", "Gene definitions, assets, and preset configs"],
-            ["POST", "/api/v1/colonies/", "Create and start a new colony"],
-            ["GET", "/api/v1/colonies/", "List all active colonies"],
-            ["GET", "/api/v1/colonies/{id}", "Get specific colony status"],
+            ["POST", "/api/v1/colonies/", "Validate, persist, and prepare a new colony before confirming startup"],
+            ["GET", "/api/v1/colonies/", "List the authenticated user's in-memory colonies, including retained terminal states"],
+            ["GET", "/api/v1/colonies/{id}", "Get an owned colony's status"],
             ["POST", "/api/v1/colonies/{id}/stop", "Stop a colony"],
             ["POST", "/api/v1/colonies/{id}/pause", "Pause a colony"],
             ["POST", "/api/v1/colonies/{id}/resume", "Resume a colony"],
             ["POST", "/api/v1/simulation/start", "Start colony (backward compat)"],
-            ["POST", "/api/v1/simulation/stop", "Stop latest colony (backward compat)"],
-            ["POST", "/api/v1/simulation/pause", "Pause latest colony"],
-            ["POST", "/api/v1/simulation/resume", "Resume latest colony"],
-            ["WS", "/ws", "WebSocket for real-time event streaming"],
+            ["POST", "/api/v1/simulation/stop", "Retired; returns 410, use /colonies/{id}/stop"],
+            ["POST", "/api/v1/simulation/pause", "Retired; returns 410, use /colonies/{id}/pause"],
+            ["POST", "/api/v1/simulation/resume", "Retired; returns 410, use /colonies/{id}/resume"],
+            ["WS", "/ws", "Authenticate first, then receive only the user's events"],
           ]}
         />
+
+        <P>
+          Colony states are <Code>starting</Code>, <Code>running</Code>, <Code>paused</Code>, <Code>stopped</Code>, and <Code>failed</Code>. Invalid launch settings return 422 before creating a colony; live trading is rejected. Preparation and persistence failures return 503 with a safe error code and colony ID. An invalid control transition returns 409. A successful launch means the initial population and strategy were prepared; it does not establish trading profitability or readiness for real funds.
+        </P>
+        <P>
+          Stopped and failed colonies retain paper-position records for reconciliation. The status reports whether failure information was saved and whether reconciliation is required. A control request may finish after the caller disconnects, so refresh the colony status before retrying an uncertain result. Failed reads show an error and preserve the last successful result; missing worker status is shown as unavailable.
+        </P>
 
         {/* ───────── EVOLUTIONARY ALGORITHMS ───────── */}
         <H2 id="evolution">Evolutionary Algorithms</H2>

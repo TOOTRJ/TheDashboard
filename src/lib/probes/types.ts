@@ -14,7 +14,8 @@ export type TradeExitReason =
   | "PROBE_DYING"
   | "REPRODUCING";
 
-export type SimulationStatus = "running" | "paused" | "stopped";
+// "unknown" is a UI state while no authoritative worker status is available.
+export type SimulationStatus = "running" | "paused" | "stopped" | "starting" | "failed" | "unknown";
 
 export interface Genome {
   rsi_period: number;
@@ -134,6 +135,8 @@ export interface ColonyRun {
   ended_at: string | null;
   probe_count: number;
   best_fitness: number;
+  status?: Exclude<SimulationStatus, "unknown">;
+  runtime?: Pick<SystemStatus, "failure_code" | "state_persisted" | "open_positions" | "requires_reconciliation">;
 }
 
 export interface PriceTick {
@@ -161,6 +164,11 @@ export interface SystemStatus {
   diversity: number;
   started_at: string | null;
   uptime_secs: number;
+  failure_code?: string | null;
+  failure_message?: string | null;
+  state_persisted?: boolean;
+  open_positions?: number;
+  requires_reconciliation?: boolean;
 }
 
 export interface ColonyInfo {
@@ -176,6 +184,11 @@ export interface ColonyInfo {
   diversity: number;
   started_at: string;
   uptime_secs: number;
+  failure_code?: string | null;
+  failure_message?: string | null;
+  state_persisted?: boolean;
+  open_positions?: number;
+  requires_reconciliation?: boolean;
 }
 
 export interface StrategyInfo {

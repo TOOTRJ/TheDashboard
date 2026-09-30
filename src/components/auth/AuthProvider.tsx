@@ -9,6 +9,7 @@ import {
   useState,
 } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { createSessionGuard, sessionIdentity } from "@/lib/auth/session-guard";
 import type { User, Session } from "@supabase/supabase-js";
 
 export type Profile = {
@@ -38,49 +39,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const supabase = useMemo(() => createClient(), []);
+  const [guard] = useState(createSessionGuard);
 
   const fetchProfile = useCallback(
-    async (userId: string) => {
+    async (ticket: { revision: number; userId: string | null }) => {
+      if (!ticket.userId || !guard.isCurrent(ticket)) return;
       const { data, error } = await supabase
         .from("profiles")
         .select(
           "id, email, full_name, avatar_url, created_at, updated_at"
         )
-        .eq("id", userId)
+        .eq("id", ticket.userId)
         .maybeSingle();
-
-      if (error) {
-        console.error("profiles fetch:", error.message);
-        setProfile(null);
-        return;
-      }
-
-      setProfile(data as Profile | null);
+      if (!guard.isCurrent(ticket)) return;
+      setProfile(error ? null : data as Profile | null);
     },
-    [supabase]
+    [supabase, guard]
   );
 
   const refreshProfile = useCallback(async () => {
-    if (!user?.id) {
-      setProfile(null);
-      return;
-    }
-    await fetchProfile(user.id);
-  }, [user?.id, fetchProfile]);
+    await fetchProfile(guard.capture());
+  }, [guard, fetchProfile]);
 
   useEffect(() => {
-    let cancelled = false;
-
-    const applySession = async (nextSession: Session | null) => {
-      if (cancelled) return;
+    guard.activate();
+    const bootstrap = guard.capture();
+    const applySession = (event: string, nextSession: Session | null) => {
+      const ticket = guard.accept(event, nextSession?.user.id ?? null, sessionIdentity(nextSession?.access_token));
+      if (!ticket) return;
       setSession(nextSession);
       setUser(nextSession?.user ?? null);
-      if (nextSession?.user) {
-        await fetchProfile(nextSession.user.id);
-      } else {
-        setProfile(null);
-      }
-      if (!cancelled) setLoading(false);
+      setProfile((previous) => previous?.id === ticket.userId ? previous : null);
+      setLoading(false);
+      // The auth callback stays synchronous; profile I/O runs after it returns.
+      if (ticket.userId) queueMicrotask(() => void fetchProfile(ticket).catch(() => {
+        if (guard.isCurrent(ticket)) setProfile(null);
+      }));
     };
 
     const init = async () => {
@@ -88,39 +82,50 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         data: { user: verifiedUser },
       } = await supabase.auth.getUser();
 
-      if (cancelled) return;
+      if (!guard.isCurrent(bootstrap)) return;
 
       if (!verifiedUser) {
-        setUser(null);
-        setSession(null);
-        setProfile(null);
-        setLoading(false);
+        applySession("BOOTSTRAP", null);
         return;
       }
 
       const {
         data: { session: nextSession },
       } = await supabase.auth.getSession();
-      await applySession(nextSession);
+      if (!guard.isCurrent(bootstrap)) return;
+      applySession("BOOTSTRAP", nextSession?.user.id === verifiedUser.id ? nextSession : null);
     };
 
-    void init();
+    void init().catch(() => {
+      if (guard.isCurrent(bootstrap)) applySession("BOOTSTRAP", null);
+    });
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      void applySession(nextSession);
+    } = supabase.auth.onAuthStateChange((event, nextSession) => {
+      applySession(event, nextSession);
     });
 
     return () => {
-      cancelled = true;
+      guard.dispose();
       subscription.unsubscribe();
     };
-  }, [supabase, fetchProfile]);
+  }, [supabase, fetchProfile, guard]);
 
   const signOut = async () => {
+    // Retire local authority before network I/O can delay or fail sign-out.
+    guard.signOut();
+    setSession(null);
+    setUser(null);
     setProfile(null);
-    await supabase.auth.signOut();
+    setLoading(false);
+    try {
+      await supabase.auth.signOut();
+    } finally {
+      // Re-login may create a new session even if the old remote logout failed.
+      // The guard continues rejecting focus/refresh events for the retired session.
+      guard.finishSignOut();
+    }
   };
 
   return (
