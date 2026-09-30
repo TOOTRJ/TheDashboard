@@ -811,9 +811,9 @@ export default function DocsPage() {
         <P>Capital flows through a reserve pool:</P>
         <ul className="list-disc list-inside text-sm text-white/70 space-y-1 mb-3 ml-4">
           <li><strong>Reserve Capital:</strong> Starts at <Code>max_capital</Code> ($10,000 default). Each probe spawned deducts <Code>seed_capital</Code> ($100) from reserve.</li>
-          <li><strong>Active Capital:</strong> Sum of all live probe capitals. Probes gain/lose capital through trading.</li>
+          <li><strong>Active Capital:</strong> Cash plus marked open positions still owned by registered probes, including records awaiting reconciliation after a failure. Probes gain/lose capital through trading.</li>
           <li><strong>On Death:</strong> Dead probe&rsquo;s remaining capital returns to reserve.</li>
-          <li><strong>On Reproduction:</strong> Retired probe&rsquo;s capital returns to reserve. Offspring are funded at <Code>(reclaimed * capital_split) / num_offspring</Code>. Default <Code>capital_split = 0.45</Code>.</li>
+          <li><strong>On Reproduction:</strong> Each offspring receives the configured <Code>seed_capital</Code> evaluation budget. The complete replacement must fit the population limit and be funded by reserve plus retirement proceeds before any parent is retired. Profits and losses flow to reserve. An unaffordable or invalid replacement stops execution for review; candidates are never silently omitted or underfunded.</li>
           <li><strong>Circuit Breaker:</strong> If total capital drops by 30% from initial, all trading halts immediately.</li>
         </ul>
 

@@ -95,6 +95,10 @@ test("colony history preserves persisted terminal diagnostics without exposing r
   assert.ok(!JSON.stringify(run).includes("secret"));
   assert.match(transport.formatColonyFailure(run.runtime.failure_code), /Saving colony state failed/);
   assert.match(transport.formatColonyFailure("feed_unavailable"), /Current market data is unavailable/);
+  assert.match(transport.formatColonyFailure("funding_insufficient"), /cannot fully fund/);
+  assert.match(transport.formatColonyFailure("funding_capacity"), /exceeds the configured capacity/);
+  assert.match(transport.formatColonyFailure("funding_invalid_plan"), /capital ledger is invalid/);
+  assert.match(transport.formatColonyFailure("population_extinct"), /No active candidates remain/);
   assert.ok(!transport.formatColonyFailure("private-server-message").includes("private-server-message"));
 });
 

@@ -80,6 +80,10 @@ export function formatColonyFailure(code: unknown): string {
     persistence_failed: "Saving colony state failed. Execution stopped and reconciliation may be required.",
     execution_failed: "Colony execution failed and stopped. Reconciliation may be required.",
     feed_unavailable: "Current market data is unavailable. Execution stopped; verify the price and volume feeds before starting another run.",
+    funding_insufficient: "The colony cannot fully fund its next candidate population. Execution stopped; review the reserve, realized losses, and candidate budget.",
+    funding_capacity: "The replacement population exceeds the configured capacity. Execution stopped; review the strategy's population growth and probe limit.",
+    funding_invalid_plan: "The population replacement plan or capital ledger is invalid. Execution stopped; review saved records before starting another run.",
+    population_extinct: "No active candidates remain and recovery could not be funded. Execution stopped; review the colony's capital and history.",
     cleanup_failed: "Colony cleanup failed. Execution stopped; review worker diagnostics.",
   };
   return typeof code === "string" && Object.hasOwn(messages, code) ? messages[code] :

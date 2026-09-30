@@ -12,6 +12,7 @@ with deny_network():
     from vonneumann.core.colony_config import ColonyConfig
     from vonneumann.core.colony_manager import ColonyManager, ColonyLifecycleError
     from vonneumann.core.genesis import GenesisController
+    from vonneumann.core.funding import FundingError
     from vonneumann.core.types import EventType, ProbeEvent, TradeRecord
     from vonneumann.db.repository import PersistenceError
     from vonneumann.market.feed import MarketTick
@@ -143,6 +144,24 @@ class LifecycleTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase):
         status = await self.failed()
         self.assertEqual(self.tick.await_count, 1)
         self.assertEqual(status['failure_code'], 'execution_failed')
+        self.assertNotIn('PRIVATE_DETAIL', str(status))
+    async def test_replacement_failure_is_terminal_preserves_owned_funds_and_is_not_retried(self):
+        self.tick.side_effect = FundingError('funding_insufficient')
+        await self.create()
+        status = await self.failed()
+        self.assertEqual(self.tick.await_count, 1)
+        self.assertEqual(status['failure_code'], 'funding_insufficient')
+        self.assertTrue(status['state_persisted'])
+        self.assertTrue(status['requires_reconciliation'])
+        self.assertEqual(status['live_probes'], 2)
+        self.assertEqual(status['total_capital'], 100)
+        self.assertEqual(self.persisted[-1]['failure_code'], 'funding_insufficient')
+        self.assertEqual(self.published[-1]['failure_code'], 'funding_insufficient')
+    async def test_unrecognized_funding_error_is_sanitized(self):
+        self.tick.side_effect = FundingError('PRIVATE_DETAIL')
+        await self.create()
+        status = await self.failed()
+        self.assertEqual(status['failure_code'], 'funding_invalid_plan')
         self.assertNotIn('PRIVATE_DETAIL', str(status))
     async def test_genesis_emit_propagates_persistence_failure(self):
         await self.create()

@@ -8,6 +8,7 @@ from typing import Optional, Callable, Awaitable
 
 from .colony_config import ColonyConfig
 from .genesis import GenesisController
+from .funding import FundingError
 from .types import ProbeEvent
 from ..db.repository import PersistenceError
 from ..market.feed import MarketFeed
@@ -26,6 +27,10 @@ FAILURE_MESSAGES = {
     "execution_failed": "Colony execution failed and has stopped. Reconciliation may be required.",
     "cleanup_failed": "Colony resource cleanup failed. Execution has stopped.",
     "feed_unavailable": "Required market data is unavailable. Colony execution has stopped.",
+    "funding_insufficient": "The colony cannot fully fund its next candidate population. Execution has stopped.",
+    "funding_capacity": "The replacement population exceeds the configured capacity. Execution has stopped.",
+    "funding_invalid_plan": "The population replacement plan or capital ledger is invalid. Execution has stopped.",
+    "population_extinct": "No active candidates remain and recovery could not be funded. Execution has stopped.",
 }
 
 
@@ -60,6 +65,8 @@ def _failure_code(error: Exception, default: str) -> str:
         return "persistence_failed"
     if isinstance(error, MarketFeedError):
         return "feed_unavailable"
+    if isinstance(error, FundingError):
+        return error.code if error.code in FAILURE_MESSAGES else "funding_invalid_plan"
     if isinstance(error, ColonyLifecycleError) and not error.conflict:
         return error.code
     return default
