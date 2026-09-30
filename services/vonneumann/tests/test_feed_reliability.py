@@ -13,15 +13,17 @@ from tests.security_support import OfflineTestMixin, deny_network
 with deny_network():
     import aiohttp
     from vonneumann.market import jupiter_feed as module
-    from vonneumann.market.feed import MarketTick
+    from vonneumann.market.feed import MarketTick, QuoteEvidence
+    from vonneumann.market.solana_time import MAINNET_GENESIS_HASH
 
 
 SOL, JUP = "SOL/USDC", "JUP/USDC"
 SECRET = "fake-provider-secret-do-not-display"
+RPC_URL = "https://rpc.example.test/?api-key=" + SECRET
 
 
 def prices(**values):
-    return {module.TOKEN_MINTS[asset]: {"usdPrice": value} for asset, value in values.items()}
+    return {module.TOKEN_MINTS[asset]: {"usdPrice": value, "blockId": 123456} for asset, value in values.items()}
 
 
 class Response:
@@ -44,6 +46,7 @@ class Session:
     def __init__(self, *responses):
         self.responses = list(responses)
         self.calls = []
+        self.rpc_calls = []
         self.closed = False
 
     def get(self, url, **kwargs):
@@ -55,13 +58,19 @@ class Session:
             raise response
         return response
 
+    def post(self, url, **kwargs):
+        self.rpc_calls.append((url, kwargs))
+        payload = kwargs["json"]
+        result = MAINNET_GENESIS_HASH if payload["method"] == "getGenesisHash" else int(time.time())
+        return Response({"jsonrpc": "2.0", "id": payload["id"], "result": result})
+
     async def close(self):
         self.closed = True
 
 
 class FeedReliabilityTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase):
     def make_feed(self, *responses, volume=False):
-        feed = module.JupiterFeed(api_key=SECRET)
+        feed = module.JupiterFeed(api_key=SECRET, rpc_url=RPC_URL)
         feed._session = Session(*responses)
         if volume:
             feed._birdeye_key = SECRET
@@ -69,8 +78,10 @@ class FeedReliabilityTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase):
         return feed
 
     def stale_cache(self, feed):
-        stamp = time.time() - 30
-        feed._cache[SOL] = (stamp, MarketTick(SOL, 100, 4, stamp))
+        stamp = time.monotonic() - 30
+        wall = time.time() - 30
+        feed._cache[SOL] = (stamp, MarketTick(
+            SOL, 100, 4, wall, QuoteEvidence(123455, wall, stamp)))
         return dict(feed._cache)
 
     async def assert_safe_failure(self, operation):
@@ -147,7 +158,7 @@ class FeedReliabilityTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase):
         self.assertEqual(feed._session.calls, [])
 
     async def test_session_creation_is_bounded_and_does_not_use_proxy_environment(self):
-        feed = module.JupiterFeed(api_key=SECRET)
+        feed = module.JupiterFeed(api_key=SECRET, rpc_url=RPC_URL)
         fake = Session(Response(prices(**{SOL: 99})))
         with patch.object(module.aiohttp, "ClientSession", return_value=fake) as factory:
             await feed.get_tick(SOL)

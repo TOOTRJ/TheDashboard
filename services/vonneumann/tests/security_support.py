@@ -27,6 +27,7 @@ os.environ.update({
     "VN_ALLOWED_ORIGINS": "http://localhost:3000",
     "JUP_API_KEY": "",
     "BIRDEYE_API_KEY": "",
+    "VN_SOLANA_RPC_URL": "",
 })
 
 USER_A = "11111111-1111-4111-8111-111111111111"

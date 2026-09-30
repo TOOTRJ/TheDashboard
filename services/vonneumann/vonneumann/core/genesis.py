@@ -18,6 +18,7 @@ import math
 import time
 import uuid
 from copy import deepcopy
+from dataclasses import replace
 from datetime import datetime
 from typing import Optional, Callable, Awaitable
 
@@ -31,7 +32,8 @@ from .market_validation import MarketValueError, nonnegative_value, positive_pri
 from .probe import Probe, ProbeStepError
 from .strategies.base import EvolutionResult, EvolutionStrategy
 from .types import EventType, ProbeEvent, ProbeState, FitnessSnapshot
-from ..market.feed import MarketFeed, MarketTick
+from ..market.feed import MarketFeed, MarketFeedError, MarketTick, QuoteEvidence
+from ..market.quote_freshness import QUOTE_POLICY, quote_source_age, validate_quote
 
 logger = logging.getLogger(__name__)
 
@@ -123,6 +125,10 @@ class GenesisController:
 
         # Latest prices (updated each tick for use during probe retirement)
         self._latest_prices: dict[str, float] = {}
+        self._latest_ticks: dict[str, MarketTick] = {}
+        self._source_slots: dict[str, int] = {}
+        self._source_quotes: dict[str, MarketTick] = {}
+        self._market_ready = False
 
         # Optional background volume-refresh task (for paper/live modes where
         # the feed supports periodic OHLCV volume refresh from a secondary source).
@@ -181,14 +187,14 @@ class GenesisController:
             for probe in self.probes.values():
                 values.append(nonnegative_value(probe.capital))
                 for asset, trade in probe.open_positions.items():
-                    price = positive_price(self._latest_prices.get(asset))
+                    price = self._mark_price(asset)
                     entry = positive_price(trade.entry_price)
                     amount = nonnegative_value(trade.amount)
                     values.append(position_value(amount, entry, price))
             active = nonnegative_value(math.fsum(values))
             if reserve is not None:
                 total = nonnegative_value(reserve + active)
-        except (MarketValueError, OverflowError):
+        except (MarketValueError, MarketFeedError, OverflowError):
             active = total = None
         try:
             diversity = nonnegative_value(
@@ -224,6 +230,7 @@ class GenesisController:
                 if self._wall_started_monotonic is not None else 0
             ),
             "clock_basis": "synthetic_market" if self._uses_simulation_clock else "wall",
+            "quote_policy": dict(QUOTE_POLICY) if self.mode == "paper" else None,
             "market_time": self._event_time().isoformat() if self._uses_simulation_clock else None,
             "market_elapsed_secs": (
                 (self._event_time() - self._market_started_at).total_seconds()
@@ -272,8 +279,10 @@ class GenesisController:
         ticks = await self.market_feed.get_ticks(assets)
         valid_ticks, errors = self._validate_ticks(assets, ticks)
         if not assets or errors:
-            raise MarketValueError()
+            raise errors[0] if errors else MarketValueError()
+        self._latest_ticks = valid_ticks
         self._latest_prices = {asset: tick.price for asset, tick in valid_ticks.items()}
+        self._market_ready = True
 
         # Initialize the strategy with live probes
         self.strategy.initialize(list(self.probes.values()), self.colony_config)
@@ -417,6 +426,8 @@ class GenesisController:
 
     def _liquidation_plan(self, probe: Probe) -> tuple[float, dict[str, float]]:
         """Project exactly the arithmetic/prices used by Probe._close_position."""
+        if self.mode == "paper":
+            self._require_fresh_assets(probe.open_positions)
         prices = {asset: self._latest_prices.get(asset) for asset in probe.open_positions}
         try:
             return probe.validate_liquidation(prices), prices
@@ -501,12 +512,15 @@ class GenesisController:
         return children, retired, balances
 
     async def _apply_replacement(self, result: EvolutionResult, *, self_reproducing: bool = False) -> None:
+        self._require_current_quotes()
         children, retired, balances = self._preflight_replacement(result, self_reproducing=self_reproducing)
         reclaimed_flows = [self.reserve_capital]
         for probe, prices in retired.values():
             reclaimed_flows.append(await self._retire_probe(probe, prices=prices))
             self.reserve_capital = sum_cashflows(reclaimed_flows)
         for genome, balance in zip(children, balances):
+            # Retirement/birth persistence can take longer than a quote's life.
+            self._require_current_quotes()
             new_probe = await self._spawn_probe(genome, self.seed_capital, _planned_reserve=balance)
             if new_probe is None:
                 # A validated, serialized batch must never silently lose births.
@@ -528,8 +542,14 @@ class GenesisController:
             return 0.0
         if not valid_cash(self.reserve_capital):
             raise FundingError()
+        self._require_current_quotes()
+        if self.mode == "paper":
+            self._require_fresh_assets(probe.open_positions)
         if prices is None:
             _, prices = self._liquidation_plan(probe)
+        elif self.mode == "paper" and any(
+                prices.get(asset) != self._mark_price(asset) for asset in probe.open_positions):
+            raise MarketFeedError("source_time_invalid")
         # Prices were validated for every retiring parent before any mutation.
         for evt in probe.close_all_positions(prices, "EVOLUTION"):
             await self._emit(evt)
@@ -584,6 +604,7 @@ class GenesisController:
 
     async def _evaluate_reproduction(self) -> None:
         """Delegate evolution to the strategy. Called every reproduction_interval ticks."""
+        self._require_current_quotes()
         live = [p for p in self.probes.values()
                 if p.state in (ProbeState.OBSERVING, ProbeState.TRADING)]
         if len(live) < 2:
@@ -620,6 +641,7 @@ class GenesisController:
         # Repeated event delivery must not credit the same account twice.
         if self.probes.get(probe.probe_id) is not probe:
             return
+        self._require_current_quotes()
         if (probe.state != ProbeState.DEAD or probe.open_positions or
                 not valid_cash(probe.capital) or not valid_cash(self.reserve_capital)):
             raise FundingError()
@@ -645,6 +667,7 @@ class GenesisController:
         """
         if self.probes.get(probe.probe_id) is not probe or probe.state != ProbeState.REPRODUCING:
             return
+        self._require_current_quotes()
         children = []
         for _ in range(self.child_count):
             child = Genome(
@@ -675,12 +698,30 @@ class GenesisController:
 
         logger.info("[Genesis] Tick loop stopped.")
 
-    @staticmethod
-    def _validate_ticks(assets: list[str], ticks) -> tuple[dict[str, MarketTick], list[Exception]]:
+    def _mark_price(self, asset: str) -> float:
+        if self.mode == "paper":
+            tick = self._latest_ticks.get(asset)
+            if tick is None:
+                raise MarketFeedError("source_time_unavailable")
+            validate_quote(tick, previous_slot=self._source_slots.get(asset))
+        return positive_price(self._latest_prices.get(asset))
+
+    def _require_fresh_assets(self, assets) -> None:
+        if self.mode == "paper":
+            for asset in assets:
+                self._mark_price(asset)
+
+    def _require_current_quotes(self) -> None:
+        if self.mode == "paper" and self._market_ready:
+            if not self._latest_ticks:
+                raise MarketFeedError("source_time_unavailable")
+            self._require_fresh_assets(self._latest_ticks)
+
+    def _validate_ticks(self, assets: list[str], ticks) -> tuple[dict[str, MarketTick], list[Exception]]:
         """Normalize requested observations without ever reusing a missing mark.
 
-        Timestamps currently describe adapter receipt/simulation time. Checking
-        their numeric shape is not a claim of source-price or candle freshness.
+        Paper quotes require source-time evidence independently of the adapter.
+        Synthetic modeled timestamps retain their separate clock semantics.
         """
         valid = {}
         errors = []
@@ -691,10 +732,31 @@ class GenesisController:
             try:
                 if not isinstance(tick, MarketTick) or tick.asset != asset:
                     raise MarketValueError()
-                valid[asset] = MarketTick(
+                normalized = MarketTick(
                     asset, positive_price(tick.price), nonnegative_value(tick.volume),
-                    nonnegative_value(tick.timestamp))
-            except MarketValueError as error:
+                    nonnegative_value(tick.timestamp), tick.evidence)
+                if self.mode == "paper":
+                    previous = self._source_quotes.get(asset)
+                    if previous is not None and isinstance(normalized.evidence, QuoteEvidence):
+                        if (previous.evidence.source_slot == normalized.evidence.source_slot and
+                                previous.timestamp != normalized.timestamp):
+                            raise MarketFeedError("source_time_invalid")
+                        # A provider refresh cannot reset monotonic source age.
+                        # Carry the anchor across changed slots as well: estimated
+                        # block time may be identical in adjacent slots.
+                        prior_age = quote_source_age(previous,
+                            wall_now=normalized.evidence.received_at,
+                            monotonic_now=normalized.evidence.received_monotonic)
+                        floor = max(0.0, prior_age - (normalized.timestamp - previous.timestamp))
+                        normalized = replace(normalized, evidence=replace(normalized.evidence,
+                            source_age_at_receipt=max(floor, quote_source_age(normalized,
+                                wall_now=normalized.evidence.received_at,
+                                monotonic_now=normalized.evidence.received_monotonic))))
+                    validate_quote(normalized, previous_slot=self._source_slots.get(asset))
+                    self._source_slots[asset] = normalized.evidence.source_slot
+                    self._source_quotes[asset] = normalized
+                valid[asset] = normalized
+            except (MarketValueError, MarketFeedError) as error:
                 errors.append(error)
         return valid, errors
 
@@ -714,8 +776,19 @@ class GenesisController:
         # On a failed refresh, status must not present the previous batch as a
         # current valuation or use it to close/recycle a missing asset.
         self._latest_prices = {}
-        ticks = await self.market_feed.get_ticks(all_assets)
+        self._latest_ticks = {}
+        feed_failure = None
+        try:
+            ticks = await self.market_feed.get_ticks(all_assets)
+        except MarketFeedError as error:
+            # Keep only the newly validated partial batch for a final risk pass.
+            # Never combine it with the previous refresh's marks.
+            feed_failure = error
+            ticks = error.valid_ticks
         ticks, failures = self._validate_ticks(all_assets, ticks)
+        if feed_failure is not None:
+            failures.insert(0, feed_failure)
+        self._latest_ticks = ticks
         self._latest_prices = {asset: tick.price for asset, tick in ticks.items()}
 
         risk_assets: dict[str, set[str]] = {}
@@ -737,8 +810,15 @@ class GenesisController:
         # reporting, or persistence failure can interrupt the decision phase.
         risk_events = []
         for probe in live:
+            eligible = set()
+            for asset in risk_assets[probe.probe_id]:
+                try:
+                    self._require_fresh_assets([asset])
+                    eligible.add(asset)
+                except MarketFeedError as error:
+                    failures.append(error)
             try:
-                risk_events.extend(probe.risk_tick(assets=risk_assets[probe.probe_id]))
+                risk_events.extend(probe.risk_tick(assets=eligible))
             except ProbeStepError as error:
                 risk_events.extend(error.events)
                 failures.append(error.cause)
@@ -769,6 +849,8 @@ class GenesisController:
         self_reproducing: list[Probe] = []
 
         for probe in live:
+            # Event writes and broadcasts above may have aged every quote.
+            self._require_current_quotes()
             try:
                 events = probe.tick(check_risk=False)
             except ProbeStepError as error:
@@ -799,6 +881,7 @@ class GenesisController:
                 if probe.state in (ProbeState.OBSERVING, ProbeState.TRADING):
                     age = self.tick_count - probe.birth_tick
                     if age >= max_life:
+                        self._require_current_quotes()
                         events = probe._trigger_die("max_lifespan")
                         for evt in events:
                             await self._emit(evt)
@@ -842,6 +925,7 @@ class GenesisController:
     # ── Circuit breaker ──────────────────────────────────────────────────
 
     def _check_circuit_breaker(self) -> None:
+        self._require_current_quotes()
         total = self.active_capital + self.reserve_capital
         if self._initial_total_capital <= 0:
             return
@@ -864,6 +948,7 @@ class GenesisController:
 
     async def _capture_fitness_snapshots(self) -> None:
         for probe in self.live_probes:
+            self._require_current_quotes()
             snapshot = FitnessSnapshot(
                 probe_id=probe.probe_id,
                 generation=probe.genome.generation,

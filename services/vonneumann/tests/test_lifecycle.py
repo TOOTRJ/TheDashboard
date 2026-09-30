@@ -17,8 +17,7 @@ with deny_network():
     from vonneumann.core.market_validation import MarketValueError
     from vonneumann.core.types import EventType, ProbeEvent, TradeRecord
     from vonneumann.db.repository import PersistenceError
-    from vonneumann.market.feed import MarketTick
-    from vonneumann.market.jupiter_feed import MarketFeedError
+    from vonneumann.market.feed import MarketFeedError, MarketTick, QuoteEvidence
     from vonneumann.server.auth import VerifiedUser
     from vonneumann.server.models import StartRequest
     manager_module = importlib.import_module('vonneumann.core.colony_manager')
@@ -32,7 +31,9 @@ class FakeFeed:
         self.reads += 1
         if self.gate is not None:
             await self.gate.wait()
-        return {a: MarketTick(a, 100 + self.reads * .01, 10, time.time()) for a in assets}
+        stamp, monotonic = time.time(), time.monotonic()
+        return {a: MarketTick(a, 100 + self.reads * .01, 10, stamp,
+                             QuoteEvidence(self.reads, stamp, monotonic)) for a in assets}
     async def backfill_probe(self, assets, **kwargs):
         self.history_reads += 1
         return {a: [] for a in assets}
@@ -127,6 +128,23 @@ class LifecycleTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase):
             with self.assertRaises(ColonyLifecycleError) as error: await self.create()
         self.assertEqual(error.exception.code, 'feed_unavailable')
         self.assertEqual((await self.failed())['failure_code'], 'feed_unavailable')
+    async def test_stale_paper_source_has_specific_persisted_failure_and_does_not_start(self):
+        with patch.object(self.feed, 'get_ticks', new=AsyncMock(side_effect=MarketFeedError('price_stale'))):
+            with self.assertRaises(ColonyLifecycleError) as error: await self.create(mode='paper')
+        self.assertEqual(error.exception.code, 'feed_stale')
+        status = await self.failed()
+        self.assertEqual(status['failure_code'], 'feed_stale')
+        self.assertEqual(self.persisted[-1]['failure_code'], 'feed_stale')
+        self.assertEqual(status['quote_policy']['max_source_age_seconds'], 30)
+        self.tick.assert_not_awaited()
+    async def test_wrong_rpc_network_fails_before_any_probe_is_created(self):
+        with patch.object(self.manager, '_create_feed', side_effect=MarketFeedError('rpc_wrong_network')):
+            with self.assertRaises(ColonyLifecycleError) as error: await self.create(mode='paper')
+        self.assertEqual(error.exception.code, 'feed_configuration')
+        self.assertEqual(self.manager.get_colony(A1).status()['status'], 'failed')
+        self.assertEqual(self.persisted[-1]['failure_code'], 'feed_configuration')
+        self.assertEqual(self.events, [])
+        self.tick.assert_not_awaited()
     async def test_background_volume_failure_is_supervised_for_selected_assets_only(self):
         refresh = AsyncMock(side_effect=MarketFeedError('volume_unavailable'))
         self.feed.refresh_volumes = refresh

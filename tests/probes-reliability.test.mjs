@@ -96,6 +96,9 @@ test("colony history preserves persisted terminal diagnostics without exposing r
   assert.ok(!JSON.stringify(run).includes("secret"));
   assert.match(transport.formatColonyFailure(run.runtime.failure_code), /Saving colony state failed/);
   assert.match(transport.formatColonyFailure("feed_unavailable"), /Current market data is unavailable/);
+  assert.match(transport.formatColonyFailure("feed_configuration"), /configured HTTPS Solana mainnet RPC/);
+  assert.match(transport.formatColonyFailure("feed_stale"), /quote became stale/);
+  assert.match(transport.formatColonyFailure("feed_source_invalid"), /source time is missing, invalid/);
   assert.match(transport.formatColonyFailure("invalid_market_value"), /market observation or position value is invalid/);
   assert.match(transport.formatColonyFailure("funding_insufficient"), /cannot fully fund/);
   assert.match(transport.formatColonyFailure("funding_capacity"), /exceeds the configured capacity/);
