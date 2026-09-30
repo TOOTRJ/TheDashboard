@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/client";
 import type { Probe, Trade, FitnessSnapshot, GenerationStats, ColonyRun } from "./types";
-import { parseEvaluationCohort, parseEvaluationPolicy, parseRiskControl } from "./transport";
+import { parseSearchSpec, parseEvaluationCohort, parseEvaluationPolicy, parseRiskControl } from "./transport";
 
 function supabase() {
   return createClient();
@@ -135,6 +135,7 @@ async function _enrichColonyRuns(
     const record = saved && typeof saved === "object" && !Array.isArray(saved) ? saved as Record<string, unknown> : {};
     const evaluationPolicy = parseEvaluationPolicy(record.evaluation_policy);
     const runtime: ColonyRun["runtime"] = {
+      search_spec: parseSearchSpec(record.search_spec ?? (c.config && typeof c.config === "object" && "search_spec" in c.config ? c.config.search_spec : undefined)),
       failure_code: typeof record.failure_code === "string" ? record.failure_code : null,
       state_persisted: typeof record.state_persisted === "boolean" ? record.state_persisted : undefined,
       open_positions: typeof record.open_positions === "number" && Number.isSafeInteger(record.open_positions) && record.open_positions >= 0 ? record.open_positions : undefined,

@@ -14,6 +14,8 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
+from ..search_random import SearchRandomStreams
+
 if TYPE_CHECKING:
     from ..colony_config import ColonyConfig
     from ..genome import Genome
@@ -35,6 +37,24 @@ class EvolutionStrategy(ABC):
     """Base class for all evolutionary algorithm strategies."""
 
     supports_cohorts = False
+
+    def __init__(self) -> None:
+        self.configure_search(SearchRandomStreams('0', self.name))
+
+    def configure_search(self, streams: SearchRandomStreams, epoch: int = 0) -> None:
+        """Called before initialization; ownership never depends on UUIDs/time."""
+        if streams.algorithm != self.name:
+            raise ValueError('Search stream algorithm does not match strategy')
+        self._search_streams, self._search_epoch = streams, epoch
+        self._rng = streams.rng('strategy', epoch)
+        self._mutation_event = 0
+
+    def mutation_rng(self, candidate_index: int = 0):
+        return self._search_streams.rng('mutation', self._search_epoch,
+                                        'generation', self._mutation_event, candidate_index)
+
+    def cma_seed(self) -> int:
+        return self._search_streams.derive('strategy', self._search_epoch, 'cma') % 2**32
 
     def bind_candidates(self, probes: list[Probe]) -> None:
         """Bind newly spawned accounts to the preceding ordered ask batch."""
@@ -86,12 +106,14 @@ class EvolutionStrategy(ABC):
         colony_config: ColonyConfig,
         current_generation: int,
         count: int = 2,
+        *, rng=None,
     ) -> list[Genome]:
         """Create diversity-injection genomes. Default: mutated best-of-dead."""
         from ..evolution import inject_diversity_genomes
 
         return inject_diversity_genomes(
-            genomes, current_generation, dead_probes, colony_config, count
+            genomes, current_generation, dead_probes, colony_config, count,
+            rng=rng if rng is not None else self.mutation_rng()
         )
 
     def to_dict(self) -> dict:

@@ -16,6 +16,7 @@ from dataclasses import dataclass, field, asdict
 from typing import Any, Optional, TYPE_CHECKING
 
 from .gene_registry import GENE_REGISTRY, GeneType, finite_gene
+from .search_random import private_rng
 
 if TYPE_CHECKING:
     from .colony_config import ColonyConfig
@@ -119,11 +120,13 @@ def random_genome(
     generation: int = 0,
     parent_ids: list[str] | None = None,
     colony_config: Optional[ColonyConfig] = None,
+    *, rng: random.Random | None = None,
 ) -> Genome:
     """
     Generate a random genome for Gen-0 probes.
     If colony_config is provided, respects gene overrides and available assets.
     """
+    rng = private_rng(rng)
     effective_assets = colony_config.get_effective_assets() if colony_config else list(AVAILABLE_ASSETS)
     domains = (colony_config.resolve_gene_domains() if colony_config else
                GENE_REGISTRY.resolve_domains(asset_count=len(effective_assets)))
@@ -132,9 +135,9 @@ def random_genome(
         if not domain.evolvable:
             gene_values[name] = float(domain.default)
         elif domain.integer:
-            gene_values[name] = float(random.randint(int(domain.minimum), int(domain.maximum)))
+            gene_values[name] = float(rng.randint(int(domain.minimum), int(domain.maximum)))
         else:
-            gene_values[name] = random.uniform(domain.minimum, domain.maximum)
-    assets = random.sample(effective_assets, int(gene_values["num_assets"]))
+            gene_values[name] = rng.uniform(domain.minimum, domain.maximum)
+    assets = rng.sample(effective_assets, int(gene_values["num_assets"]))
     return Genome(**gene_values, assets=assets, generation=generation,
                   parent_ids=list(parent_ids) if parent_ids else []).validate(colony_config)

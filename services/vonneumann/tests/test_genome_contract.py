@@ -181,8 +181,9 @@ class GenomeContractTests(unittest.TestCase):
     def test_mutation_noise_uses_configured_active_range(self):
         config = ColonyConfig(enabled_genes=["position_size_pct"], gene_overrides={"position_size_pct": GeneOverride(min=.1, max=.2)})
         genome = random_genome(colony_config=config)
-        with patch("vonneumann.core.evolution.random.random", return_value=0), patch("vonneumann.core.evolution.random.gauss", return_value=0) as noise:
-            mutate(genome, mutation_rate=1, mutation_strength=.15, colony_config=config)
+        rng = random.Random(0)
+        with patch.object(rng, "random", return_value=0), patch.object(rng, "gauss", return_value=0) as noise:
+            mutate(genome, mutation_rate=1, mutation_strength=.15, colony_config=config, rng=rng)
         noise.assert_called_once()
         self.assertAlmostEqual(noise.call_args.args[1], .015)
 

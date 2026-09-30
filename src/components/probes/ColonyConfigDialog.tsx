@@ -489,6 +489,17 @@ export function ColonyConfigDialog({ open, onClose, onStart, starting, startErro
 
         {showAdvanced && (
           <div className="grid grid-cols-2 gap-3 mt-2 rounded-lg border border-[#00fff5]/10 bg-[#00fff5]/5 p-3">
+            <div className="col-span-2 space-y-1">
+              <Label htmlFor="colony-search-seed" className="text-[9px] uppercase tracking-wider text-muted-foreground">Search Seed</Label>
+              <Input id="colony-search-seed" type="text" inputMode="numeric" maxLength={20}
+                value={config.search_seed ?? "0"} aria-describedby="colony-search-seed-help"
+                onChange={(event) => setConfig((current) => ({ ...current, search_seed: event.target.value }))}
+                className="h-7 text-xs font-mono border-[#00fff5]/20 bg-transparent" />
+              <p id="colony-search-seed-help" className="text-[10px] text-muted-foreground">
+                Reuse the seed, configuration and input data to replay search from the start.
+                Changing this seed changes candidate strategies while keeping the synthetic market path unchanged.
+              </p>
+            </div>
             <div className="space-y-1">
               <Label className="text-[9px] uppercase tracking-wider text-muted-foreground">
                 Initial Probes

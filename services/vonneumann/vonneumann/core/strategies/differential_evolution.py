@@ -8,12 +8,12 @@ incumbent clones and N trials concurrently before selecting paired winners.
 from __future__ import annotations
 
 from copy import deepcopy
-import random
 from typing import TYPE_CHECKING
 
 from ..evolution import mutate_assets
 from ..gene_registry import GENE_REGISTRY
 from ..genome import Genome
+from ..search_random import private_rng
 from .base import EvolutionResult, EvolutionStrategy
 from .cohort_contract import SelectionCohort, preserve_fixed_controls
 
@@ -31,6 +31,7 @@ class DifferentialEvolutionStrategy(EvolutionStrategy):
     description = "DE/rand/1/bin with paired target/trial evaluation on common market windows."
 
     def __init__(self) -> None:
+        super().__init__()
         self.F = 0.8
         self.CR = 0.9
         self.min_pop = 4  # Incumbent slots; each requires two funded accounts.
@@ -95,11 +96,12 @@ class DifferentialEvolutionStrategy(EvolutionStrategy):
             target_clone.generation, target_clone.parent_ids = generation, []
             targets.append(target_clone)
             parent_map[str(slot)] = [target_id]
-            donors = random.sample([p for p in frozen if p[0] != target_id], 3)
+            donors = self._rng.sample([p for p in frozen if p[0] != target_id], 3)
             (a_id, a), (b_id, b), (c_id, c) = donors
             trial_operations = []
             trial = _de_trial(target_genome, a, b, c, self.F, self.CR, colony_config,
-                              operations=trial_operations)
+                              operations=trial_operations, rng=self._rng,
+                              mutation_rng=self.mutation_rng(slot))
             trial.generation = generation
             trials.append(trial)
             trial_index = slot + half
@@ -122,12 +124,15 @@ class DifferentialEvolutionStrategy(EvolutionStrategy):
                     "pair_selections": selections, "next_pairs": roles,
                     "fixed_repair_policy": "revert_to_target_if_fixed_control_changes"}
         self._cohort.propose(offspring, evaluated)
+        self._mutation_event += 1
         return EvolutionResult(offspring, [p.probe_id for p in evaluated], parent_map, metadata)
 
 
 def _de_trial(target: Genome, a: Genome, b: Genome, c: Genome,
-              F: float, CR: float, colony_config: ColonyConfig, *, operations=None) -> Genome:
+              F: float, CR: float, colony_config: ColonyConfig, *, operations=None,
+              rng=None, mutation_rng=None) -> Genome:
     """Mutate/cross only active dimensions, always forcing one active donor."""
+    rng = private_rng(rng)
     active = [name for name in NUMERIC_GENES if colony_config.is_gene_evolvable(name)]
     if not active:
         clone = deepcopy(target)
@@ -136,15 +141,16 @@ def _de_trial(target: Genome, a: Genome, b: Genome, c: Genome,
         if operations is not None:
             operations.append("no_active_clone")
         return clone
-    mandatory = random.choice(active)
+    mandatory = rng.choice(active)
     new_genes = {}
     for name in NUMERIC_GENES:
-        if name in active and (name == mandatory or random.random() < CR):
+        if name in active and (name == mandatory or rng.random() < CR):
             new_genes[name] = getattr(a, name) + F * (getattr(b, name) - getattr(c, name))
         else:
             new_genes[name] = getattr(target, name)
     genome = Genome.from_dict({**new_genes, "generation": target.generation + 1})
-    genome.assets = mutate_assets(target.assets, colony_config, swap_rate=0.15)
+    genome.assets = mutate_assets(target.assets, colony_config, swap_rate=0.15,
+                                  rng=mutation_rng if mutation_rng is not None else rng)
     validated = genome.validate(colony_config)
     repaired = preserve_fixed_controls(validated, target, colony_config)
     if operations is not None:

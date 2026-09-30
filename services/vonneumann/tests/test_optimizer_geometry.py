@@ -232,7 +232,7 @@ class NumericalObjectiveTests(OfflineTestMixin, unittest.TestCase):
         template = Genome().validate(config)
         probes = [candidate(str(i), deepcopy(template)) for i in range(12)]
         real_cma = cmaes_lib.CMA
-        with patch("vonneumann.core.strategies.cma_es.cmaes_lib.CMA", side_effect=lambda **kwargs: real_cma(seed=1729, **kwargs)):
+        with patch("vonneumann.core.strategies.cma_es.cmaes_lib.CMA", side_effect=lambda **kwargs: real_cma(**{**kwargs, "seed": 1729})):
             strategy = CMAEvolutionStrategy()
             strategy.initialize(probes, config)
         self.assertEqual(strategy._optimizer._sigma, .3)
@@ -287,7 +287,7 @@ class NumericalObjectiveTests(OfflineTestMixin, unittest.TestCase):
                     strategy = strategy_type()
                     if isinstance(strategy, ParticleSwarmStrategy):
                         strategy._rng.seed(90)
-                    with patch("vonneumann.core.strategies.cma_es.cmaes_lib.CMA", side_effect=lambda **kwargs: real_cma(seed=17, **kwargs)):
+                    with patch("vonneumann.core.strategies.cma_es.cmaes_lib.CMA", side_effect=lambda **kwargs: real_cma(**{**kwargs, "seed": 17})):
                         strategy.initialize(probes, config)
                     strategy.bind_candidates(probes)
                     for iteration in range(80):

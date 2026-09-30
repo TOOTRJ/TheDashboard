@@ -46,7 +46,8 @@ class LifecycleTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase):
         super().setUp()
         self.manager, self.feed = ColonyManager(), FakeFeed()
         self.events, self.persisted, self.published = [], [], []
-        self.strategy = SimpleNamespace(name='genetic_algorithm', initialize=lambda *_: None)
+        self.strategy = SimpleNamespace(name='genetic_algorithm', initialize=lambda *_: None,
+                                        configure_search=lambda *_: None)
         self.offline_stack.enter_context(patch.object(self.manager, '_create_feed', return_value=self.feed))
         self.offline_stack.enter_context(patch('vonneumann.core.strategies.get_strategy', return_value=self.strategy))
         self.tick = self.offline_stack.enter_context(patch.object(GenesisController, '_tick_all', new=AsyncMock()))

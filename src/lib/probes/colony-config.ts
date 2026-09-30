@@ -4,7 +4,7 @@
  */
 
 import { GENE_DEFINITIONS, ALL_ASSETS } from "./gene-registry";
-import { START_LIMITS } from "./transport";
+import { START_LIMITS, isSearchSeed } from "./transport";
 
 export interface GeneOverride {
   min?: number;
@@ -44,6 +44,7 @@ export function buildDefaultConfig(): ColonyConfig {
 export interface StartConfig {
   mode: "simulation" | "paper";
   strategy: string;
+  search_seed?: string;
   preset?: string;
   colony_config: ColonyConfig;
   gen0_count: number;
@@ -58,6 +59,7 @@ export function buildDefaultStartConfig(): StartConfig {
   return {
     mode: "simulation",
     strategy: "genetic_algorithm",
+    search_seed: "0",
     colony_config: buildDefaultConfig(),
     gen0_count: 10,
     max_capital: 10_000,
@@ -76,8 +78,9 @@ export function validateStartConfig(input: unknown): ConfigIssue[] {
   const add = (field: string, message: string) => issues.push({ field, message });
   const record = (value: unknown): value is Record<string, unknown> => !!value && typeof value === "object" && !Array.isArray(value);
   if (!record(input)) return [{ field: "configuration", message: "Provide a colony configuration." }];
-  const allowed = ["mode", "strategy", "preset", "colony_config", "gen0_count", "max_probes", "max_capital", "seed_capital", "tick_interval_ms", "mutation_rate"];
+  const allowed = ["search_seed", "mode", "strategy", "preset", "colony_config", "gen0_count", "max_probes", "max_capital", "seed_capital", "tick_interval_ms", "mutation_rate"];
   if (Object.keys(input).some((key) => !allowed.includes(key))) add("configuration", "Remove unsupported configuration fields.");
+  if (Object.hasOwn(input, "search_seed") && !isSearchSeed(input.search_seed)) add("search_seed", "Search seed must be whole-number text from 0 to 18446744073709551615, without signs, spaces or leading zeroes.");
   if (input.mode !== "simulation" && input.mode !== "paper") add("mode", "Choose simulation or paper trading.");
   if (!["genetic_algorithm", "differential_evolution", "particle_swarm", "cma_es"].includes(input.strategy as string)) add("strategy", "Choose an available strategy.");
   const preset = input.preset == null ? undefined : PRESETS.find((entry) => entry.name === input.preset);
