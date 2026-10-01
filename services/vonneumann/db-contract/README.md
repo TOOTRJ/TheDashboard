@@ -18,6 +18,14 @@ it never installs tools, downloads images, starts Docker, or connects to a
 configured PostgreSQL/Supabase URL. See [harness isolation](../tests/postgres/README.md).
 Ordinary worker test discovery skips these opt-in tests.
 
+The DB-03A2A Python command layer is now tested against this fixture through an
+allowlisted, fixture-only SQL transport in `tests/postgres/test_command_adapter.py`.
+`db/command_protocol.py` seals command identity/payloads; `db/command_repository.py`
+owns one request and resolves uncertain outcomes without resubmission. Fast
+protocol/repository tests also run in ordinary discovery. Neither module is
+imported by the application runtime or creates a production connection.
+See [implemented boundary and engine incompatibilities](../PERSISTENCE-RECOVERY-PLAN.md#db-03a2a-implemented-local-command-boundary).
+
 ## Contract boundaries
 
 The SQL creates only the disposable `vn_durability` schema. Minimal account,
@@ -149,7 +157,9 @@ review. No global/shared account role is changed by this rehearsal.
    Integrate ENG-05 risk-trip identity, recovery acknowledgment and fresh-source
    evidence before introducing a risk-recovery command. Persist resolved genome
    limits and allowed assets before enforcing complete entry policy in SQL.
-3. **Implement the repository command adapter and uncertainty state.** Allocate
+3. **Integrate the local command adapter with complete staged engine state.**
+   The injected-transport adapter is implemented and rehearsed under DB-03A2A;
+   production transport, state installation and publication remain open. Allocate
    stable IDs before submission, bind canonical payloads, compare committed
    replies, freeze decisions on uncertain outcomes, resolve by the original ID,
    and publish only after commit. Readiness remains unavailable until this flow
