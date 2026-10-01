@@ -6,6 +6,7 @@ import ts from "typescript";
 import * as execution from "../src/lib/probes/execution.ts";
 import * as transport from "../src/lib/probes/transport.ts";
 import * as registry from "../src/lib/probes/gene-registry.ts";
+import * as signalProfiles from "../src/lib/probes/signal-profile.ts";
 
 const plain = value => JSON.parse(JSON.stringify(value));
 const jsx = (type, props, key) => ({ type, props, key });
@@ -210,6 +211,7 @@ test("saved run policy is allowlisted without exposing raw configuration and leg
       then(resolve, reject) { return Promise.resolve(result).then(resolve, reject); },
     }; } };
     const database = compile("../src/lib/probes/probes-supabase.ts", {
+      "./signal-profile": signalProfiles,
       "./execution": execution, "./transport": transport,
       "@/lib/supabase/client": { createClient: () => client },
     });
@@ -311,6 +313,7 @@ test("initial saved policy remains classified before a runtime snapshot while un
       then(resolve, reject) { return Promise.resolve(result).then(resolve, reject); },
     }; } };
     const database = compile("../src/lib/probes/probes-supabase.ts", {
+      "./signal-profile": signalProfiles,
       "./execution": execution, "./transport": transport,
       "@/lib/supabase/client": { createClient: () => client },
     });

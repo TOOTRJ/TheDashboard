@@ -6,6 +6,7 @@
 import { defaultExecutionConfig, parseExecutionConfig, type ExecutionConfig } from "./execution";
 import { GENE_DEFINITIONS, ALL_ASSETS } from "./gene-registry";
 import { START_LIMITS, isSearchSeed } from "./transport";
+import type { StrategyProfile } from "./signal-profile";
 
 export interface GeneOverride {
   min?: number;
@@ -15,6 +16,7 @@ export interface GeneOverride {
 }
 
 export interface ColonyConfig {
+  strategy_profile?: StrategyProfile;
   gene_overrides: Record<string, GeneOverride>;
   enabled_genes: string[] | null;
   available_assets: string[] | null;
@@ -33,6 +35,7 @@ export interface ColonyPreset {
 
 export function buildDefaultConfig(): ColonyConfig {
   return {
+    strategy_profile: "rsi_ema_volume_v1",
     gene_overrides: {},
     enabled_genes: null,
     available_assets: null,
@@ -101,7 +104,17 @@ export function validateStartConfig(input: unknown): ConfigIssue[] {
   if (input.strategy === "differential_evolution" && typeof input.gen0_count === "number" && (input.gen0_count < 8 || input.gen0_count % 2 !== 0)) add("gen0_count", "Differential evolution requires an even number of at least eight funded accounts: one target and one trial per optimizer slot.");
   const config = input.colony_config;
   if (!record(config)) { add("colony_config", "Provide colony gene and lifecycle settings."); return issues; }
-  if (Object.keys(config).some((key) => !["gene_overrides", "enabled_genes", "available_assets", "max_lifespan_ticks", "reproduction_interval"].includes(key))) add("colony_config", "Remove unsupported colony settings.");
+  if (Object.keys(config).some((key) => !["strategy_profile", "gene_overrides", "enabled_genes", "available_assets", "max_lifespan_ticks", "reproduction_interval"].includes(key))) add("colony_config", "Remove unsupported colony settings.");
+  const profile = Object.hasOwn(config, "strategy_profile") ? config.strategy_profile : preset?.config.strategy_profile ?? "rsi_ema_volume_v1";
+  if (profile !== "rsi_ema_volume_v1" && profile !== "ema_baseline_v1") add("strategy_profile", "Choose a supported signal profile.");
+  if (input.preset === "ema_baseline_v1" && profile !== "ema_baseline_v1") add("strategy_profile", "The EMA baseline preset requires the EMA baseline signal profile.");
+  const baseline = profile === "ema_baseline_v1";
+  if (baseline) {
+    const selectedGenes = config.enabled_genes;
+    if (!Array.isArray(selectedGenes) || selectedGenes.length !== 2 || !["ema_fast", "ema_slow"].every((name) => selectedGenes.includes(name))) add("enabled_genes", "The EMA baseline searches only EMA fast and EMA slow; RSI and volume features are disabled.");
+    if (!Array.isArray(config.available_assets) || config.available_assets.length !== 1) add("available_assets", "The EMA baseline requires one fixed supported asset.");
+    if (config.max_lifespan_ticks !== null) add("max_lifespan_ticks", "The EMA baseline uses the common evaluation window without an age limit.");
+  }
   numeric("reproduction_interval", config.reproduction_interval);
   if (config.max_lifespan_ticks !== null) numeric("max_lifespan_ticks", config.max_lifespan_ticks);
   const names = GENE_DEFINITIONS.map((gene) => gene.name);
@@ -149,6 +162,8 @@ export function validateStartConfig(input: unknown): ConfigIssue[] {
     const disabled = Array.isArray(config.enabled_genes) && !config.enabled_genes.includes(gene.name);
     const locked = fixed ? value.fixed as number : disabled ? resolvedDefault : undefined;
     ranges.set(gene.name, { min: locked ?? min, max: locked ?? effectiveMax });
+    if (baseline && !["ema_fast", "ema_slow"].includes(gene.name) && locked === undefined && min !== effectiveMax) add(gene.name, "Non-EMA parameters must be fixed for every candidate in the run.");
+    if (baseline && ["num_assets", "max_open_positions"].includes(gene.name) && (locked ?? resolvedDefault) !== 1) add(gene.name, "The EMA baseline requires one asset and one open position.");
   }
   for (const [lower, upper, label] of [["ema_fast", "ema_slow", "EMA fast must remain below EMA slow"], ["stop_loss_pct", "take_profit_pct", "Stop loss must remain below take profit"]]) {
     const lo = ranges.get(lower), hi = ranges.get(upper);
@@ -163,6 +178,28 @@ export const PRESETS: ColonyPreset[] = [
     label: "Default",
     description: "All genes evolve freely within full ranges.",
     config: buildDefaultConfig(),
+  },
+  {
+    name: "ema_baseline_v1",
+    label: "Two-gene EMA baseline",
+    description: "Recommended research starting point. EMA crossings only; RSI and volume filters off.",
+    config: {
+      strategy_profile: "ema_baseline_v1",
+      gene_overrides: {
+        ema_fast: { min: 3, max: 12, default: 9 },
+        ema_slow: { min: 15, max: 60, default: 21 },
+        position_size_pct: { fixed: 0.25 },
+        stop_loss_pct: { fixed: 0.03 },
+        take_profit_pct: { fixed: 0.07 },
+        max_open_positions: { fixed: 1 },
+        timeframe_minutes: { fixed: 15 },
+        num_assets: { fixed: 1 },
+      },
+      enabled_genes: ["ema_fast", "ema_slow"],
+      available_assets: ["SOL/USDC"],
+      max_lifespan_ticks: null,
+      reproduction_interval: 1440,
+    },
   },
   {
     name: "rsi_focus",

@@ -11,10 +11,12 @@ reproduction_interval: Common evaluation window in market minutes after all cand
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from copy import deepcopy
 from typing import Optional, Any
 
 from .gene_registry import GENE_REGISTRY
 from .genome import AVAILABLE_ASSETS
+from .signal_profile import LEGACY_PROFILE, EMA_BASELINE_PROFILE, EMA_GENES, signal_policy
 
 
 @dataclass
@@ -54,15 +56,38 @@ class ColonyConfig:
     max_lifespan_ticks: Optional[int] = None
     reproduction_interval: int = 100  # Common evaluation window in market minutes after all candidates warm
     mutation_rate: Optional[float] = None  # None = use strategy default
+    strategy_profile: str = LEGACY_PROFILE
 
     def resolve_gene_domains(self):
         """The same validated active domains are used by every factory/operator."""
         if not isinstance(self.gene_overrides, dict) or any(
                 not isinstance(value, GeneOverride) for value in self.gene_overrides.values()):
             raise ValueError("Invalid gene overrides")
-        return GENE_REGISTRY.resolve_domains(
+        signal_policy(self.strategy_profile)  # Reject unknown semantics even on internal paths.
+        domains = GENE_REGISTRY.resolve_domains(
             {name: override.to_dict() for name, override in self.gene_overrides.items()},
             self.enabled_genes, len(self.get_effective_assets()))
+        if self.strategy_profile == EMA_BASELINE_PROFILE:
+            if (self.enabled_genes is None or set(self.enabled_genes) != EMA_GENES
+                    or self.available_assets is None or len(self.available_assets) != 1
+                    or self.max_lifespan_ticks is not None
+                    or isinstance(self.reproduction_interval, bool)
+                    or not isinstance(self.reproduction_interval, int)
+                    or not 1 <= self.reproduction_interval <= 1_000_000
+                    or any(domain.evolvable for name, domain in domains.items() if name not in EMA_GENES)
+                    or domains["num_assets"].default != 1
+                    or domains["max_open_positions"].default != 1):
+                raise ValueError("EMA baseline requires only two EMA genes, one fixed asset, and a common evaluation window without an age limit")
+        return domains
+
+    def assert_profile_genome(self, genome) -> None:
+        """Reject a malformed baseline proposal before any cash/retirement mutation."""
+        if self.strategy_profile == EMA_BASELINE_PROFILE:
+            checked = deepcopy(genome).validate(self)
+            if (checked.assets != genome.assets or any(
+                    getattr(checked, name) != getattr(genome, name)
+                    for name in GENE_REGISTRY.numeric_gene_names())):
+                raise ValueError("Genome violates the fixed EMA baseline experiment")
 
     def is_gene_evolvable(self, gene_name: str) -> bool:
         return self.resolve_gene_domains()[gene_name].evolvable
@@ -85,10 +110,11 @@ class ColonyConfig:
     def to_dict(self) -> dict:
         d: dict[str, Any] = {
             "gene_overrides": {k: v.to_dict() for k, v in self.gene_overrides.items()},
-            "enabled_genes": self.enabled_genes,
-            "available_assets": self.available_assets,
+            "enabled_genes": deepcopy(self.enabled_genes),
+            "available_assets": deepcopy(self.available_assets),
             "max_lifespan_ticks": self.max_lifespan_ticks,
             "reproduction_interval": self.reproduction_interval,
+            "strategy_profile": self.strategy_profile,
         }
         if self.mutation_rate is not None:
             d["mutation_rate"] = self.mutation_rate
@@ -101,11 +127,12 @@ class ColonyConfig:
         overrides = {name: GeneOverride.from_dict(value) for name, value in d.get("gene_overrides", {}).items()}
         return cls(
             gene_overrides=overrides,
-            enabled_genes=d.get("enabled_genes"),
-            available_assets=d.get("available_assets"),
+            enabled_genes=deepcopy(d.get("enabled_genes")),
+            available_assets=deepcopy(d.get("available_assets")),
             max_lifespan_ticks=d.get("max_lifespan_ticks"),
             reproduction_interval=d.get("reproduction_interval", 100),
             mutation_rate=d.get("mutation_rate"),
+            strategy_profile=d.get("strategy_profile", LEGACY_PROFILE),
         )
 
 
@@ -115,6 +142,23 @@ class ColonyConfig:
 
 PRESET_CONFIGS: dict[str, ColonyConfig] = {
     "default": ColonyConfig(),
+
+    "ema_baseline_v1": ColonyConfig(
+        strategy_profile=EMA_BASELINE_PROFILE,
+        enabled_genes=["ema_fast", "ema_slow"],
+        available_assets=["SOL/USDC"],
+        reproduction_interval=1440,
+        gene_overrides={
+            "ema_fast": GeneOverride(min=3, max=12, default=9),
+            "ema_slow": GeneOverride(min=15, max=60, default=21),
+            "position_size_pct": GeneOverride(fixed=.25),
+            "stop_loss_pct": GeneOverride(fixed=.03),
+            "take_profit_pct": GeneOverride(fixed=.07),
+            "max_open_positions": GeneOverride(fixed=1),
+            "timeframe_minutes": GeneOverride(fixed=15),
+            "num_assets": GeneOverride(fixed=1),
+        },
+    ),
 
     "rsi_focus": ColonyConfig(
         enabled_genes=[

@@ -8,7 +8,7 @@ Reviewed 2026-09-30. This setup supports development/research for
 | Component | Local installation | Purpose |
 | --- | --- | --- |
 | Official `integrating-jupiter` skill, metadata version 1.2.0 | `.agents/skills/integrating-jupiter/` | API selection, integration guidance, error handling and linked references |
-| Official `jupiter-swap-migration` skill, metadata version 1.1.0 | `.agents/skills/jupiter-swap-migration/` | Review the existing `/swap/v1/quote` helper before a tested V2 migration |
+| Official `jupiter-swap-migration` skill, metadata version 1.1.0 | `.agents/skills/jupiter-swap-migration/` | Guide the tested quote-only V2 migration and future contract review |
 | Jupiter documentation MCP | `.codex/config.toml`, server `jupiter_docs` | Search published docs and read documentation/OpenAPI specifications |
 
 Both skills come from [Jupiter's official repository](https://github.com/jup-ag/agent-skills/tree/a2211e3f6a7caa03310c7a9a8d816e723b0bdc5f),
@@ -79,6 +79,11 @@ contract. Follow current official documentation and the root `AGENTS.md`:
   Skill examples that return only route amounts do not establish net wallet P&L.
 
 ## Reviewed and deferred
+
+The unused worker swap helper has now migrated to V2 `/order` without `taker`,
+with exact atomic integer inputs, a validated immutable quote, bounded I/O and
+offline contract tests. It exposes no execution path. See the
+[quote adapter contract](services/vonneumann/JUPITER-SWAP-CONTRACT.md).
 
 **Jupiter CLI (`@jup-ag/cli` 0.10.1):** official, but described as early alpha in
 the [CLI documentation](https://developers.jup.ag/docs/ai/cli). Source reviewed at

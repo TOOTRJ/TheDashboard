@@ -11,6 +11,7 @@ from ..core.search_random import validate_search_seed
 from ..core.execution import ExecutionConfig
 from ..core.gene_registry import GENE_REGISTRY
 from ..core.genome import AVAILABLE_ASSETS
+from ..core.signal_profile import EMA_BASELINE_PROFILE
 from ..core.strategies import list_strategies
 
 
@@ -36,6 +37,7 @@ class GeneOverrideModel(StrictModel):
 
 
 class ColonyConfigModel(StrictModel):
+    strategy_profile: Literal["rsi_ema_volume_v1", "ema_baseline_v1"] = "rsi_ema_volume_v1"
     gene_overrides: Optional[dict[str, GeneOverrideModel]] = Field(default=None, max_length=15)
     enabled_genes: Optional[list[str]] = Field(default=None, max_length=15)
     available_assets: Optional[list[str]] = Field(default=None, min_length=1, max_length=8)
@@ -132,13 +134,15 @@ def build_colony_config(req: StartRequest) -> ColonyConfig:
         if custom.gene_overrides is not None:
             for name, override in custom.gene_overrides.items():
                 config.gene_overrides[name] = GeneOverride(**override.model_dump())
-        for name in ("enabled_genes", "available_assets", "max_lifespan_ticks"):
+        for name in ("enabled_genes", "available_assets", "max_lifespan_ticks", "strategy_profile"):
             if name in custom.model_fields_set:
                 setattr(config, name, getattr(custom, name))
         if custom.reproduction_interval is not None:
             config.reproduction_interval = custom.reproduction_interval
     config.mutation_rate = (req.mutation_rate if req.mutation_rate is not None else
                             config.mutation_rate if config.mutation_rate is not None else 0.20)
+    if req.preset == EMA_BASELINE_PROFILE and config.strategy_profile != EMA_BASELINE_PROFILE:
+        raise ValueError("The EMA baseline preset must retain its strategy profile")
     return config
 
 

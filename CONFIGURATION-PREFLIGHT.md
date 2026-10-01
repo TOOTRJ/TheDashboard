@@ -609,3 +609,67 @@ do not authorize their suggested live swap test. No global Codex/Claude, shell,
 wallet or package configuration was changed. See [tool setup](JUPITER-TOOLING.md)
 and [data research](services/vonneumann/JUPITER-DATA-RESEARCH.md) for decisions,
 source links, known ambiguities, verification and next priorities.
+
+## 29. Explicit EMA baseline and quote-only Jupiter V2 (2026-09-30)
+
+BASE-01 adds an opt-in `ema_baseline_v1` profile. Only the two integer EMA periods
+evolve; RSI/volume features are disabled, while asset, candle timeframe,
+position/exposure and risk controls remain fixed within the experiment. Previous
+and current canonical completed-candle EMAs determine true crossings. Every
+candidate requires 61 completed bars, including narrowed/control domains, before
+the common evaluation horizon starts. Existing causal intents, protective exits,
+net liquidation and account risk checks remain in effect. Default/legacy launches
+retain their existing signal semantics. [Baseline contract](services/vonneumann/EMA-BASELINE.md).
+
+The dashboard exposes the opt-in preset, its two ranges, one asset and common
+horizon, with explicit fixed-control/warmup descriptions. Resolved initial,
+runtime and startup-failure metadata carry a versioned signal policy. Saved runs
+without evidence remain unclassified. Review found and repaired shared-preset
+list aliasing and a clear/retype input case that poisoned a hidden default with
+NaN. This section uses existing configuration/runtime JSON, without a migration.
+
+DATA-03A migrates the unused swap helper to V2 `/order` without `taker`. The new
+immutable result validates exact atomic integer amounts, pair, slippage and the
+quote-only schema. It enforces a five-second total deadline, a 256 KiB
+decompressed body limit, redacted local errors, no redirects and one transport
+attempt, including aiohttp's internal reconnect behavior. It is not connected to
+the fill engine and exposes no signing/broadcast path. Receipt clocks/hash do not
+establish source freshness, net wallet accounting or replayable data. Current
+official documentation/OpenAPI informed the
+[bounded adapter contract](services/vonneumann/JUPITER-SWAP-CONTRACT.md).
+
+**Verification:** 644 offline worker tests and 100 frontend tests pass; TypeScript
+and an isolated Next.js 16.3.8 production build pass. Broad lint has zero errors
+and 33 existing warnings. Twenty independent baseline tests cover a 70-digit
+Decimal EMA oracle, full-precision crossings, zero-volume/RSI-disabled behavior,
+fixed warmup, birth/catch-up/receipt causality, protective exits, configuration
+isolation, API/repository metadata and all four real optimizers over four
+populations. Sixteen quote tests cover request/response constraints and HTTP
+failure/retry boundaries. Frontend checks exercise the actual dialog, preset
+switching, rejected invalid inputs, selected-run policy and saved metadata.
+Independent Python and frontend reviews found no remaining blocking issue.
+These are offline mechanics checks, not deployed-worker or performance acceptance.
+
+**Release preflight and rollback:** immediately before publication, identity
+checks matched GitHub `TOOTRJ/TheDashboard` / `1141090963`, Vercel `the-dashboard`
+/ `prj_wFUe9k9USVreOQcmQKNWRAVsx5fH` / `team_8iNNxiNjrOseD4gdSCHkQEzF`, and
+Supabase `The Dashboard` / `fxpxsciltakyypunglzr` / `cqfnnaunmupdyobkyqfo`.
+The prior production deployment `dpl_GhWtvUHUq19njbgh6Qr7UcasEw7w` is READY at
+`4700616b0335ac97ac4f9aff03bc4c8cd10514d8`. Release through a reviewed `codex/`
+branch and PR, verify the preview's exact source commit before merging, then
+verify the production alias's exact merge commit and read-only authentication/API
+smokes. If regression is observed, revert this PR through the same target-checked
+workflow; this section has no schema rollback. Record deployment results in the
+PR. The Python worker remains unhosted; frontend publication alone does not
+deploy its new runtime.
+
+**Remaining priorities:** BASE-02/03 frozen grid and honest controls; DATA-01C
+bounded historical acquisition with availability/fill semantics; FILL-01B
+calibration; and DB-03A/SVC-02 durable interruption, idempotency and fencing before
+hosting. Research EMA initialization sensitivity, out-of-sample/multiple-testing
+methods, provider candle revisions/outlier semantics and account-specific Birdeye
+entitlements/retention in depth. Jupiter retention is already user-confirmed.
+No dataset acquisition, provider quote request, account-setting change, database
+write, wallet operation or worker hosting was part of this section. Existing
+user changes, other projects and the other agent's credentials/configuration were
+preserved.

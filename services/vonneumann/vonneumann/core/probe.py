@@ -25,6 +25,7 @@ from .evolution import FITNESS_POLICY, compute_fitness
 from .equity_metrics import EquityHistory, MAX_OBSERVATION_CARRY_SECONDS
 from .genome import Genome
 from .execution import ExecutionConfig, buy_fill, sell_fill, writeoff_fill, execution_record
+from .signal_profile import LEGACY_PROFILE, EMA_BASELINE_PROFILE, EMA_WARMUP_BARS, signal_policy
 from .market_validation import (
     MarketValueError,
     ProbeStepError,
@@ -86,7 +87,10 @@ class Probe:
         clock: Optional[Callable[[], datetime]] = None,
         candle_history: Optional[CandleHistory] = None,
         execution_config: Optional[ExecutionConfig] = None,
+        strategy_profile: str = LEGACY_PROFILE,
     ):
+        signal_policy(strategy_profile)
+        self.strategy_profile = strategy_profile
         self._clock = clock or utc_now
         self.probe_id = probe_id or str(uuid.uuid4())
         self.probe_name = probe_name or f"Probe-G{genome.generation}-{self.probe_id[:4]}"
@@ -355,6 +359,10 @@ class Probe:
             snapshot = self._latest_candle(asset)
             if snapshot is None or not 0 <= at - snapshot.end <= ints["timeframe_minutes"] * 60:
                 return False
+            if self.strategy_profile == EMA_BASELINE_PROFILE:
+                if self._crossing_values(snapshot) is None:
+                    return False
+                continue
             if (len(snapshot.closes) < ints["rsi_period"] + 1 or
                     ints["ema_fast"] not in snapshot.emas or ints["ema_slow"] not in snapshot.emas or
                     len(snapshot.volumes) < 21 or not any(snapshot.volumes[-21:-1])):
@@ -380,6 +388,15 @@ class Probe:
         snapshot = self._latest_candle(asset)
         if snapshot is None:
             return False, {}
+        if self.strategy_profile == EMA_BASELINE_PROFILE:
+            values = self._crossing_values(snapshot)
+            if values is None:
+                return False, {}
+            previous_fast, previous_slow, fast, slow = values
+            # Preserve full precision; tiny token prices must not round to zero.
+            return previous_fast <= previous_slow and fast > slow, {
+                "ema_fast": fast, "ema_slow": slow,
+            }
         g, ints = self.genome, self.genome.int_genes()
         rsi = self._compute_rsi(snapshot.closes)
         ema_fast = snapshot.emas.get(ints["ema_fast"])
@@ -408,6 +425,12 @@ class Probe:
         snapshot = self._latest_candle(asset)
         if snapshot is None:
             return False
+        if self.strategy_profile == EMA_BASELINE_PROFILE:
+            values = self._crossing_values(snapshot)
+            if values is None:
+                return False
+            previous_fast, previous_slow, fast, slow = values
+            return previous_fast >= previous_slow and fast < slow
         g, ints = self.genome, self.genome.int_genes()
         rsi = self._compute_rsi(snapshot.closes)
         ema_fast = snapshot.emas.get(ints["ema_fast"])
@@ -416,6 +439,19 @@ class Probe:
             return False
         return (rsi > g.rsi_overbought
                 or positive_price(ema_fast) < positive_price(ema_slow))
+
+    def _crossing_values(self, snapshot: CandleSnapshot) -> tuple[float, float, float, float] | None:
+        """Adjacent canonical EMAs after a seed-independent 61-bar warmup."""
+        ints = self.genome.int_genes()
+        if (snapshot.completed_count < EMA_WARMUP_BARS
+                or snapshot.previous_end != snapshot.end - ints["timeframe_minutes"] * 60):
+            return None
+        fast, slow = ints["ema_fast"], ints["ema_slow"]
+        values = (snapshot.previous_emas.get(fast), snapshot.previous_emas.get(slow),
+                  snapshot.emas.get(fast), snapshot.emas.get(slow))
+        if any(value is None for value in values):
+            return None
+        return tuple(positive_price(value) for value in values)
 
     # ── Position management ──────────────────────────────────────────────
 

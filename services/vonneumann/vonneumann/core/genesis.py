@@ -24,6 +24,7 @@ from typing import Optional, Callable, Awaitable
 
 from .clock import timestamp_datetime, utc_now
 from .colony_config import ColonyConfig
+from .signal_profile import EMA_BASELINE_PROFILE, signal_policy
 from .evolution import FITNESS_POLICY, NUMERIC_GENES, mutate, population_diversity
 from .equity_metrics import EQUITY_METRICS_POLICY
 from .genome import Genome, random_genome
@@ -196,6 +197,12 @@ class GenesisController:
 
         # Colony config (gene overrides, enabled genes, etc.)
         self.colony_config = colony_config or ColonyConfig()
+        signal_policy(self.colony_config.strategy_profile)
+        if self.colony_config.strategy_profile == EMA_BASELINE_PROFILE:
+            self.colony_config = deepcopy(self.colony_config)
+            self.colony_config.resolve_gene_domains()
+            if not strategy.supports_cohorts:
+                raise ValueError("EMA baseline requires a common-cohort strategy")
 
         # Wall-clock pacing is separate from the simulation's modeled time.
         # Production SimulationFeed supplies current_timestamp. External/custom
@@ -347,6 +354,8 @@ class GenesisController:
                     if self._uses_simulation_clock and hasattr(self.market_feed, "dataset_spec") else None)},
             "mode": self.mode,
             "execution_policy": self.execution_config.policy(),
+            "strategy_profile": self.colony_config.strategy_profile,
+            "signal_policy": signal_policy(self.colony_config.strategy_profile),
             "generation": self.current_generation,
             "tick": self.tick_count,
             "live_probes": len(live),
@@ -489,6 +498,7 @@ class GenesisController:
 
     async def _spawn_probe(self, genome: Genome, capital: float, *,
                            _planned_reserve: Optional[float] = None) -> Optional[Probe]:
+        self.colony_config.assert_profile_genome(genome)
         if self.circuit_breaker_active:
             return None
         if genome.generation < self._birth_generation_floor:
@@ -516,6 +526,7 @@ class GenesisController:
             clock=self._event_time,
             candle_history=self.candle_history,
             execution_config=self.execution_config,
+            strategy_profile=self.colony_config.strategy_profile,
         )
         for asset in genome.assets:
             if asset in self._latest_ticks:
@@ -637,6 +648,10 @@ class GenesisController:
                 raise FundingError()
             child = deepcopy(genome)
             child.parent_ids = list(parents)
+            try:
+                self.colony_config.assert_profile_genome(child)
+            except ValueError:
+                raise FundingError() from None
             children.append(child)
         return children, retired, balances
 

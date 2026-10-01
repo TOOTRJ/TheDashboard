@@ -192,6 +192,7 @@ export const START_LIMITS = {
 } as const;
 
 const VALIDATION_FIELDS: Record<string, string> = {
+  strategy_profile: "Signal profile",
   execution: "Execution costs", fee_bps: "Fee (bps)", half_spread_bps: "Half-spread (bps)", slippage_bps: "Adverse slippage (bps)",
   search_seed: "Search seed", mode: "Trading mode", strategy: "Strategy", preset: "Preset", colony_config: "Colony configuration",
   gene_overrides: "Gene overrides", enabled_genes: "Enabled genes", available_assets: "Trading pairs",

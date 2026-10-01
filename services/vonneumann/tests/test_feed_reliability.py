@@ -215,9 +215,10 @@ class FeedReliabilityTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase):
             await feed.close()
         feed._candles.close.assert_awaited_once()
 
-    async def test_optional_swap_quote_logs_do_not_echo_provider_exception(self):
-        feed = self.make_feed(Response(error=ValueError(SECRET)))
-        with self.assertLogs(module.logger, level="WARNING") as captured:
-            self.assertIsNone(await feed.get_swap_quote("fake-input", "fake-output", 100))
-        self.assertNotIn(SECRET, " ".join(captured.output))
+    async def test_optional_swap_quote_errors_do_not_echo_provider_exception(self):
+        feed = self.make_feed(RuntimeError(SECRET))
+        with self.assertRaises(module.SwapQuoteError) as captured:
+            await feed.get_swap_quote(module.TOKEN_MINTS[SOL], module.USDC_MINT, 100)
+        self.assertEqual(captured.exception.code, "swap_quote_unavailable")
+        self.assertNotIn(SECRET, "".join(traceback.format_exception(captured.exception)))
         self.assertTrue(all(options["allow_redirects"] is False for _, options in feed._session.calls))

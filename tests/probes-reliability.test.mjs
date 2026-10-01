@@ -6,6 +6,7 @@ import ts from "typescript";
 import * as registry from "../src/lib/probes/gene-registry.ts";
 import * as transport from "../src/lib/probes/transport.ts";
 import * as execution from "../src/lib/probes/execution.ts";
+import * as signalProfiles from "../src/lib/probes/signal-profile.ts";
 
 function loadModule(path, modules, globals = {}) {
   const exports = {};
@@ -43,7 +44,7 @@ function databaseHarness(responses) {
     },
   };
   return { calls, api: loadModule("../src/lib/probes/probes-supabase.ts", {
-    "@/lib/supabase/client": { createClient: () => client }, "./execution": execution, "./transport": transport,
+    "@/lib/supabase/client": { createClient: () => client }, "./execution": execution, "./transport": transport, "./signal-profile": signalProfiles,
   }) };
 }
 
@@ -280,6 +281,7 @@ function pageHarness(initial = {}) {
     "@/lib/probes/websocket": { useProbesWebSocket: (_token, _user, callback) => { websocketMessage = callback; return { connected: true, error: null }; } },
     "@/lib/probes/constants": { VN_ENDPOINTS: { apiUrl: "https://offline.invalid", wsUrl: "wss://offline.invalid", error: null } },
     "@/lib/probes/lifecycle": lifecycle, "@/lib/probes/execution": execution,
+    "@/lib/probes/signal-profile": signalProfiles,
     "@/lib/probes/transport": { ...transport, requestWorker: worker },
     "@/lib/probes/colony-config": configs,
   };
@@ -304,7 +306,7 @@ function pageHarness(initial = {}) {
   }
   return { control, requests,
     dashboard: () => find(output, "Dashboard").props,
-    alerts: () => JSON.stringify(output).match(/unavailable|retained|failed/g) ?? [],
+    alerts: () => JSON.stringify(output).match(/"role":"alert"/g) ?? [],
     text: () => JSON.stringify(output),
     visibleText: () => {
       const read = (node) => {
@@ -883,4 +885,44 @@ test("saved lifecycle policy requires exact semantics and bounded integer limits
   const [run] = await h.api.fetchColonyRuns();
   assert.deepEqual(plain(run.runtime.lifecycle_policy), lifecyclePolicy);
   assert.ok(!JSON.stringify(run).includes("private"));
+});
+
+const baselineSignalPolicy = () => ({ version: "ema-crossover-v1", profile: "ema_baseline_v1",
+  rsi_enabled: false, volume_enabled: false, warmup_completed_bars: 61,
+  entry: "previous_fast_lte_slow_then_fast_gt_slow", exit: "previous_fast_gte_slow_then_fast_lt_slow",
+  execution: "later_eligible_quote" });
+
+test("saved colony signal policies preserve provenance without inferring semantics from a preset", async () => {
+  for (const [config, expected] of [
+    [{ signal_policy: { ...baselineSignalPolicy(), private_detail: "do-not-copy" } }, baselineSignalPolicy()],
+    [{ signal_policy: baselineSignalPolicy(), runtime: {} }, baselineSignalPolicy()],
+    [{ signal_policy: baselineSignalPolicy(), runtime: { signal_policy: null } }, null],
+    [{ signal_policy: baselineSignalPolicy(), runtime: { signal_policy: { version: "future" } } }, null],
+    [{ preset: "ema_baseline_v1", colony_config: { strategy_profile: "ema_baseline_v1" } }, null],
+  ]) {
+    const h = databaseHarness([
+      { data: [{ id: "A", mode: "simulation", config }], error: null },
+      { data: [], error: null },
+    ]);
+    const [run] = await h.api.fetchColonyRuns();
+    assert.deepEqual(plain(run.runtime.signal_policy ?? null), expected);
+    assert.ok(!JSON.stringify(run).includes("do-not-copy"));
+  }
+});
+
+test("actual selected-run page uses known live or saved policy and never guesses missing signal rules", async () => {
+  const cases = [
+    [{ workerRuntime: { signal_policy: baselineSignalPolicy() } }, /Two-gene EMA baseline/],
+    [{ workerFails: true, savedStatus: "stopped", savedRuntime: { signal_policy: baselineSignalPolicy() } }, /Two-gene EMA baseline/],
+    [{ savedRuntime: { signal_policy: baselineSignalPolicy() }, workerRuntime: {} }, /Signal profile unavailable/],
+    [{ savedRuntime: { signal_policy: baselineSignalPolicy() }, workerRuntime: { signal_policy: { ...baselineSignalPolicy(), version: "future" } } }, /Signal profile unavailable/],
+  ];
+  for (const [control, expected] of cases) {
+    const h = pageHarness(control);
+    try {
+      await h.pump();
+      assert.match(h.visibleText(), expected);
+      if (expected.source.includes("unavailable")) assert.ok(!h.visibleText().includes("RSI and volume filters are off"));
+    } finally { h.cleanup(); }
+  }
 });
