@@ -673,3 +673,75 @@ No dataset acquisition, provider quote request, account-setting change, database
 write, wallet operation or worker hosting was part of this section. Existing
 user changes, other projects and the other agent's credentials/configuration were
 preserved.
+
+## 30. Offline EMA grid, controls and replayable result evidence (2026-09-30)
+
+BASE-02A/03A add a standalone synthetic research command, without starting the
+worker or connecting providers/database clients. It evaluates twenty declared
+EMA pairs plus fixed 9/21, cash and passive 25%/100% buy-and-hold controls. Each
+independent account shares data, fixed experiment controls, exact boundaries and
+declared costs. It reuses the real Probe signal/protective-exit code and existing
+fill calculators, without Genesis capital pooling or candidate replacement.
+
+All candidates require 61 completed timeframe bars; every completed minute must
+arrive on its modeled quote frame. Starting boundaries remain cash-only and
+terminal boundaries apply protective risk/drawdown death before costed liquidation,
+without pending order execution. Early deaths retain cash. A training-only
+selection uses versioned net fitness and stable ties, with seeded random-prefix
+budgets/cache usage disclosed. Its complete ledger is hashed before holdout.
+Holdout resets accounts/positions/intents/risk while preserving only causal
+indicator history, and evaluates only selected winners and prespecified controls.
+See the [workflow and contract](services/vonneumann/OFFLINE-RESEARCH.md).
+
+Each candidate has a complete ordered per-frame ledger containing indicator
+evidence, pending intents, fills and intermediate/post-action equity. Independent
+cash/quantity/P&L reconciliation avoids relying on the live probe's trimmed trade
+cache. Result identity binds dataset, configuration, policies, source hashes and
+Python version. The bounded immutable artifact codec checks canonical finite
+JSON, paths, exact files and hashes; exclusive manifest-last publishing never
+overwrites another output. CLI `verify` goes further and reproduces every payload
+field from the bound dataset, rejecting rehashed numerical tampering.
+
+**Verification:** all 684 offline worker tests pass, including 40 new tests
+(15 runner, 16 artifact, 9 command-line). Independent fixtures prove Decimal
+buy-and-hold costs, frame/event equity and drawdown, unchanged training under
+holdout-only edits, warmup/coverage/terminal timing, dead cash and cooperative
+cancellation. Fresh command-line child processes use minimal environments,
+deny network/live-client/environment-loader imports, and reproduce identical
+bytes under different Python hash seeds. Tests cover semantic tampering,
+missing/extra files, symlinks, nonfinite values, size/depth limits, interrupted
+publication and preservation of existing outputs. Independent review found and
+fixed two new evaluator edges: trailing missing candles could appear successful,
+and terminal-only drawdown previously missed the death lifecycle.
+
+A full default-size smoke used 3,795 synthetic one-minute frames, seed 42,
+15-minute candles, 1,440-minute train/holdout windows, and hypothetical
+5/5/10-bps fee/half-spread/slippage. It produced 24 training accounts, five
+deduplicated holdout accounts, 41,789 ledger rows and 42 closed trades in an
+11,362,060-byte payload. A separate command fully reproduced it:
+dataset `0686b0dd5fdbad56cf9ac1b2ccef704375385d615955ea88d8fe2f7f8a9a50e9`,
+result `00e300008cde8c11f78b19049c08c196a70c167338f8e6bb8d3528efb797e020`.
+These figures are mechanics evidence, not historical-performance results.
+
+**Target/release preflight:** matched GitHub `TOOTRJ/TheDashboard` / `1141090963`,
+Vercel `the-dashboard` / `prj_wFUe9k9USVreOQcmQKNWRAVsx5fH` /
+`team_8iNNxiNjrOseD4gdSCHkQEzF`, and Supabase `The Dashboard` /
+`fxpxsciltakyypunglzr` / `cqfnnaunmupdyobkyqfo`. The existing READY production
+deployment is `dpl_C7uaeBB2h81YPBC6rrCJ57ugf33A`, merge
+`e4e35bc3d52fb9ed9eecca4ffb93590a3040fbd5`. Release on `codex/` through a PR,
+verify its exact source preview, then verify the production alias's merge commit
+and read-only authentication/API smokes. Record results in the PR. A reviewed
+revert restores code if needed; no schema rollback is involved. This section
+changes neither frontend runtime nor database schema, and does not host a worker.
+User migration edits, other projects, shared credentials and Claude configuration
+remain excluded from commits and operations.
+
+**Open gates:** BASE-02/03 remain open for historical acceptance and equal-budget
+GA comparison. DATA-01C/FILL-01B must establish provider availability/provenance
+and execution assumptions. Research longer-prehistory sensitivity, sample/regime
+adequacy, correlated trials, holdout reuse and objective selection before
+economic claims. The 10,000-frame fixture cap is not adequate-sample evidence;
+larger datasets need streaming ledgers and measured memory limits. DB-03A/SVC-02
+still gate unattended hosting; this local result bundle is not worker recovery,
+a transactional database event ledger or writer fencing. No provider dataset,
+API key, migration, wallet action or live trading was changed or initiated.
