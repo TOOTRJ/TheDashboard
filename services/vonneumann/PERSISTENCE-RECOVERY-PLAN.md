@@ -1,6 +1,6 @@
 # Safe durability and later worker hosting
 
-Read-only source review, September 30, 2026. This is a future implementation plan. The FILL-01A execution JSON column records accounting detail; it is not an atomic ledger, ownership lease or executable checkpoint.
+Source review and staged implementation plan, September 30, 2026. SVC-02A's local admission/drain precursor is implemented; the database durability contract below remains future work. The FILL-01A execution JSON column records accounting detail; it is not an atomic ledger, ownership lease or executable checkpoint.
 
 ## What is durable today
 
@@ -12,15 +12,16 @@ The cash reserve, exact account transitions, signal cursors, shared indicator st
 
 ## Recommended first durability release
 
-The immediate local precursor is **SVC-02A**: serialize start admission, latch
-draining, track preparation tasks before they become running controllers, and
-bound retained-controller admission. Current shutdown only considers prepared
-controllers; startup, pending acknowledgements and partial feed creation need
-explicit race tests. Preserve unresolved state rather than evicting it. A drain
-deadline must report uncertainty without releasing a still-running persistence
-operation's ownership. Health must distinguish process liveness and local
-admission from durable database readiness. This precursor needs no account or
-hosting setup and does not satisfy the database fencing gate below.
+The local precursor **SVC-02A is implemented**: start admission precedes the
+first write; startup and control tasks remain owned; a permanent controller
+drain flag prevents later tick batches; retained controllers are bounded without
+eviction. One shutdown task/deadline and owned resource-close attempts retain
+pending work and report incomplete cleanup instead of releasing write ownership.
+Lost insert acknowledgements use status-only compensation to preserve config.
+Public liveness and authenticated readiness remain distinct; durable recovery
+is explicitly unavailable. Offline race/lifespan tests cover the acceptance
+boundaries. See [the implemented lifecycle contract](WORKER-LIFECYCLE.md).
+This precursor does not satisfy the database fencing gate below.
 
 Then prepare the fenced command/revision/journal contract against isolated real
 PostgreSQL connections and roles, followed by repository/engine integration as

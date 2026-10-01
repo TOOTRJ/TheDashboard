@@ -22,7 +22,7 @@ from ..config import VN_ALLOWED_ORIGINS
 from ..core.colony_config import PRESET_CONFIGS
 from ..core.search_random import SearchRandomStreams
 from ..core.signal_profile import signal_policy
-from ..core.colony_manager import ColonyManager, ColonyLifecycleError, complete_operation
+from ..core.colony_manager import ColonyManager, ColonyLifecycleError, ColonyAdmissionError, complete_operation
 from ..core.gene_registry import GENE_REGISTRY
 from ..core.genome import AVAILABLE_ASSETS
 from ..core.strategies import list_strategies
@@ -51,8 +51,13 @@ async def lifespan(app: FastAPI):
         datefmt="%H:%M:%S",
     )
     logger.info("[Server] Von Neumann service starting")
-    yield
-    await colony_manager.shutdown()
+    try:
+        yield
+    finally:
+        report = await colony_manager.shutdown()
+        if report["status"] != "complete":
+            logger.error("[Server] Drain incomplete; persistence or resource cleanup requires inspection")
+            raise RuntimeError("Worker drain incomplete; unresolved state is retained")
     logger.info("[Server] Von Neumann service stopped")
 
 
@@ -119,8 +124,20 @@ def _lifecycle_http_error(error: ColonyLifecycleError, colony_id: str) -> HTTPEx
 
 
 async def _start_colony(req: StartRequest, user: VerifiedUser) -> dict:
-    """Shared logic for starting a colony (used by both new and compat endpoints)."""
+    """Reserve the whole start before repository construction or its first write."""
     colony_id = str(uuid.uuid4())
+    try:
+        return await colony_manager.run_start(colony_id, lambda: _start_admitted(colony_id, req, user))
+    except ColonyAdmissionError as error:
+        raise HTTPException(status_code=503, detail={
+            "code": error.code, "operation": "start", "accepted": False,
+        }) from None
+    except ColonyLifecycleError as error:
+        raise _lifecycle_http_error(error, colony_id) from None
+
+
+async def _start_admitted(colony_id: str, req: StartRequest, user: VerifiedUser) -> dict:
+    """Owned by the manager through insert acknowledgement and preparation cleanup."""
     mode = req.mode
     colony_config = _build_colony_config(req)
     resolved_colony_config = colony_config.to_dict()
@@ -185,10 +202,14 @@ async def _start_colony(req: StartRequest, user: VerifiedUser) -> dict:
             strategy_profile=colony_config.strategy_profile))
         raise
     except PersistenceError:
-        raise HTTPException(status_code=503, detail={
-            "code": "persistence_failed", "message": "The colony could not be saved; it was not started.",
-            "colony_id": colony_id, "state_persisted": False,
-        }) from None
+        # Missing acknowledgement is not proof the insert failed. Retain an
+        # owner-visible failure, and never overwrite config from an empty cache.
+        async def persist_uncertain(_status: dict) -> None:
+            await repo.execute_async("update_colony_status", colony_id, "failed")
+        await complete_operation(colony_manager.record_start_failure(
+            colony_id, user.id, mode, req.strategy, persist_uncertain, publish_status,
+            strategy_profile=colony_config.strategy_profile, code="persistence_failed"))
+        raise _lifecycle_http_error(ColonyLifecycleError("persistence_failed"), colony_id) from None
 
     try:
         await colony_manager.create_colony(
@@ -212,7 +233,18 @@ async def _start_colony(req: StartRequest, user: VerifiedUser) -> dict:
 
 @app.get("/api/v1/health")
 async def health():
+    """Process liveness only; deliberately reveals no user or dependency state."""
     return {"status": "ok"}
+
+
+@app.get("/api/v1/readiness")
+async def readiness(user: VerifiedUser = Depends(require_user)):
+    # Local admission is observable, but SVC-02A does not implement DB fencing,
+    # schema verification or restart reconciliation. Never advertise those as ready.
+    return JSONResponse(status_code=503, content={
+        "status": "not_ready", "admission": colony_manager.admission_status(),
+        "durable_recovery": "unavailable",
+    })
 
 
 @app.get("/api/v1/status")

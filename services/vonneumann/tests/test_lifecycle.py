@@ -8,6 +8,7 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 from tests.security_support import A1, A2, USER_A, USER_B, OfflineTestMixin, deny_network
+from tests.test_repository_security import RecordingDB, RecordingQuery
 with deny_network():
     from fastapi import HTTPException
     from vonneumann.core.colony_config import ColonyConfig
@@ -17,7 +18,7 @@ with deny_network():
     from vonneumann.core.market_validation import MarketValueError
     from vonneumann.core.risk_control import RiskRecoveryError, RISK_RECOVERY_MESSAGES
     from vonneumann.core.types import EventType, ProbeEvent, TradeRecord
-    from vonneumann.db.repository import PersistenceError
+    from vonneumann.db.repository import PersistenceError, VonNeumannRepository
     from vonneumann.market.feed import MarketFeedError, MarketTick, QuoteEvidence
     from vonneumann.server.auth import VerifiedUser
     from vonneumann.server.models import StartRequest
@@ -374,6 +375,115 @@ class LifecycleTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase):
         await self.manager.shutdown()
         self.assertEqual(self.manager.get_colony(A1).lifecycle_status, 'stopped')
         self.assertEqual(self.feed.closed, 1)
+
+    async def test_resume_acknowledgement_during_drain_cannot_reopen_execution(self):
+        await self.create()
+        await self.manager.pause_colony(A1)
+        colony = self.manager.get_colony(A1)
+        entered, release = asyncio.Event(), asyncio.Event()
+
+        async def persist(status):
+            if status['status'] == 'running':
+                entered.set()
+                await release.wait()
+            await self.persist(status)
+
+        self.manager._persist[A1] = persist
+        resume = asyncio.create_task(self.manager.resume_colony(A1))
+        await entered.wait()
+        shutdown = asyncio.create_task(self.manager.shutdown())
+        try:
+            await asyncio.sleep(0)
+            self.assertTrue(colony._worker_draining)
+            ticks = self.tick.await_count
+            release.set()
+            with self.assertRaises(ColonyLifecycleError) as error:
+                await resume
+            self.assertEqual(error.exception.code, 'worker_draining')
+            self.assertEqual((await shutdown)['status'], 'complete')
+            self.assertEqual(self.tick.await_count, ticks)
+            self.assertEqual(colony.lifecycle_status, 'failed')
+            self.assertTrue(colony._paused)
+        finally:
+            release.set()
+            await asyncio.gather(resume, shutdown, return_exceptions=True)
+
+    async def test_real_risk_recovery_ack_and_publication_during_drain_cannot_tick(self):
+        await self.create()
+        colony = self.manager.get_colony(A1)
+        colony.circuit_breaker_active = True
+        colony._risk_control['trip_id'] = A2
+        colony.set_lifecycle('risk_halted')
+        entered, release = asyncio.Event(), asyncio.Event()
+        publishing, published = asyncio.Event(), asyncio.Event()
+
+        async def persist(status):
+            if status['status'] == 'running':
+                entered.set()
+                await release.wait()
+            await self.persist(status)
+
+        async def publish(_action):
+            publishing.set()
+            await published.wait()
+
+        colony._persist_risk_status = persist
+        with patch.object(colony, '_publish_risk_change', new=publish):
+            recovery = asyncio.create_task(self.manager.recover_colony(A1, A2))
+            await asyncio.wait_for(entered.wait(), 1)
+            shutdown = asyncio.create_task(self.manager.shutdown())
+            try:
+                await asyncio.sleep(0)
+                ticks = self.tick.await_count
+                release.set()
+                await asyncio.wait_for(publishing.wait(), 1)
+                # Recovery acknowledged running, but the permanent drain latch
+                # keeps queued tick-loop decisions disabled during publication.
+                self.assertEqual(colony.lifecycle_status, 'running')
+                self.assertTrue(colony._paused)
+                colony.resume()
+                colony.set_lifecycle('running')
+                self.assertTrue(colony._paused)
+                await asyncio.sleep(.11)
+                self.assertEqual(self.tick.await_count, ticks)
+                published.set()
+                with self.assertRaises(ColonyLifecycleError) as error:
+                    await recovery
+                self.assertEqual(error.exception.code, 'worker_draining')
+                self.assertEqual((await shutdown)['status'], 'complete')
+                self.assertEqual(colony.lifecycle_status, 'failed')
+                self.assertFalse(colony.circuit_breaker_active)  # ACK evidence is preserved.
+            finally:
+                release.set()
+                published.set()
+                await asyncio.gather(recovery, shutdown, return_exceptions=True)
+
+    async def test_drain_rejects_new_controls_before_controller_mutation(self):
+        await self.create()
+        await self.manager.shutdown()
+        colony = self.manager.get_colony(A1)
+        before = list(self.persisted)
+        for action, args in ((self.manager.pause_colony, (A1,)),
+                             (self.manager.resume_colony, (A1,)),
+                             (self.manager.recover_colony, (A1, A2)),
+                             (self.manager.stop_colony, (A1,))):
+            with self.assertRaises(ColonyLifecycleError) as error:
+                await action(*args)
+            self.assertEqual(error.exception.code, 'worker_draining')
+        self.assertEqual(self.persisted, before)
+        self.assertEqual(colony.lifecycle_status, 'stopped')
+
+    async def test_failed_resource_close_is_retained_and_never_reported_as_complete(self):
+        await self.create()
+        with patch.object(self.feed, 'close', new=AsyncMock(side_effect=RuntimeError('private-close'))) as close:
+            first = await self.manager.shutdown()
+            second = await self.manager.shutdown()
+        self.assertEqual(first, {'status': 'incomplete', 'pending_operations': 0})
+        self.assertEqual(second, first)
+        self.assertEqual(close.await_count, 1)
+        self.assertEqual(self.manager.get_colony(A1).lifecycle_status, 'failed')
+        self.assertTrue(self.manager._cleanup_failures)
+        self.assertNotIn('private-close', str(self.persisted))
     async def test_stop_preserves_open_positions_and_closes_feed(self):
         await self.create()
         controller = self.manager.get_colony(A1)
@@ -486,7 +596,15 @@ class LifecycleTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase):
         self.assertEqual(error.exception.status_code, 503)
         self.assertFalse(error.exception.detail['state_persisted'])
         self.assertEqual(self.feed.reads, 0)
-        self.assertEqual(self.manager._colonies, {})
+        # An unacknowledged insert may have committed. Keep its identity visible
+        # without claiming a saved failure or discarding the reserved history.
+        cid = error.exception.detail['colony_id']
+        status = self.manager.get_colony(cid).status()
+        self.assertEqual(status['status'], 'failed')
+        self.assertEqual(status['failure_code'], 'persistence_failed')
+        self.assertFalse(status['state_persisted'])
+        self.assertTrue(status['requires_reconciliation'])
+        self.assertEqual(self.manager.list_colonies(USER_B), [])
     async def test_cancelled_initial_insert_marks_committed_start_failed(self):
         entered, release, writes = asyncio.Event(), asyncio.Event(), []
         async def operation(name, *args, **kwargs):
@@ -507,6 +625,37 @@ class LifecycleTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase):
         self.assertEqual(writes[-1][1][1], 'failed')
         self.assertEqual(self.manager.get_colony(cid).status()['status'], 'failed')
         self.assertEqual(self.feed.reads, 0)
+
+    async def test_lost_insert_ack_compensates_without_erasing_committed_configuration(self):
+        db, committed = RecordingDB(), {}
+
+        def execute(query):
+            db.calls.append(query.call)
+            if query.call['operation'] == 'insert':
+                committed.update(query.call['fields'])
+                raise RuntimeError('private-lost-reply-after-commit')
+            # A real update patches these fields, retaining the original config.
+            committed.update(query.call['fields'])
+            return SimpleNamespace(data=[committed])
+
+        with patch('vonneumann.db.repository.get_supabase', return_value=db):
+            repo = VonNeumannRepository(USER_A, A1)
+        self.mock_app(repo)
+        with patch.object(app_module.uuid, 'uuid4', return_value=A1), \
+                patch.object(RecordingQuery, 'execute', new=execute):
+            with self.assertRaises(HTTPException) as error:
+                await app_module._start_colony(StartRequest(), VerifiedUser(USER_A, int(time.time()) + 3600))
+        self.assertEqual([c['operation'] for c in db.calls], ['insert', 'update'])
+        self.assertNotIn('config', db.calls[1]['fields'])
+        self.assertEqual(repo._colony_config, {})
+        self.assertEqual(committed['config'], db.calls[0]['fields']['config'])
+        self.assertEqual(committed['config']['search_seed'], '0')
+        self.assertEqual(committed['status'], 'failed')
+        self.assertEqual(error.exception.status_code, 503)
+        self.assertTrue(error.exception.detail['state_persisted'])
+        self.assertNotIn('accepted', error.exception.detail)
+        self.assertEqual(self.feed.reads, 0)
+        self.assertTrue(self.manager.get_colony(A1).state_persisted)
 
     async def test_market_failure_with_corrupt_valuation_still_persists_safe_terminal_state(self):
         async def fail_after_corruption():

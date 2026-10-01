@@ -238,6 +238,7 @@ class GenesisController:
         self.tick_count = 0
         self._running = False
         self._paused = False
+        self._worker_draining = False
         self._lifecycle_status = "starting"
         self.failure_code: Optional[str] = None
         self.failure_message: Optional[str] = None
@@ -408,7 +409,12 @@ class GenesisController:
             self._abort_evaluation(status)
         self._lifecycle_status = status
         self._running = status in {"running", "paused", "risk_halted"}
-        self._paused = status == "paused"
+        self._paused = status == "paused" or self._worker_draining
+
+    def begin_drain(self) -> None:
+        """Monotonic process-local gate; let an accepted batch finish, never start another."""
+        self._worker_draining = True
+        self._paused = True
 
     async def prepare(self) -> None:
         """Seed and persist the population before a supervised loop may start."""
@@ -483,7 +489,8 @@ class GenesisController:
         self._paused = True
 
     def resume(self) -> None:
-        self._paused = False
+        if not self._worker_draining:
+            self._paused = False
 
     async def wait_for_tick(self) -> None:
         """Allow a tick already in progress to finish before persisting a pause."""
@@ -974,7 +981,7 @@ class GenesisController:
                 await asyncio.sleep(0.1)
                 continue
             async with self._tick_lock:
-                if not self._paused and self._running:
+                if not self._paused and self._running and not self._worker_draining:
                     await self._tick_all()
             await asyncio.sleep(interval)
 

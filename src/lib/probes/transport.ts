@@ -179,6 +179,31 @@ function formatWorkerConflict(body: unknown): string {
   return typeof code === "string" && Object.hasOwn(messages, code) ? messages[code] : fallback;
 }
 
+const WORKER_UNAVAILABLE_MESSAGE = "The worker could not complete the operation. Refresh colony status before retrying; do not assume it started or stopped.";
+
+/** Only an exact pre-start rejection can establish that this launch was not admitted. */
+function formatWorkerStartAdmission(body: unknown): string {
+  if (!body || typeof body !== "object" || Array.isArray(body) ||
+      Object.keys(body).length !== 1 || !Object.hasOwn(body, "detail") || !("detail" in body)) {
+    return WORKER_UNAVAILABLE_MESSAGE;
+  }
+  const detail = body.detail;
+  if (!detail || typeof detail !== "object" || Array.isArray(detail) ||
+      Object.keys(detail).length !== 3 ||
+      !["code", "operation", "accepted"].every(key => Object.hasOwn(detail, key)) ||
+      !("code" in detail) || !("operation" in detail) || !("accepted" in detail) ||
+      detail.operation !== "start" || detail.accepted !== false) {
+    return WORKER_UNAVAILABLE_MESSAGE;
+  }
+  if (detail.code === "worker_draining") {
+    return "The worker is shutting down and is not accepting new colonies. This launch was rejected before startup.";
+  }
+  if (detail.code === "worker_capacity") {
+    return "The worker cannot accept another colony right now. This launch was rejected before startup.";
+  }
+  return WORKER_UNAVAILABLE_MESSAGE;
+}
+
 /** Shared UI limits mirror server/models.py; server validation remains authoritative. */
 export const START_LIMITS = {
   gen0_count: { min: 2, max: 50, integer: true, label: "Initial probes" },
@@ -207,6 +232,7 @@ const VALIDATION_FIELDS: Record<string, string> = {
 
 export function formatColonyFailure(code: unknown): string {
   const messages: Record<string, string> = {
+    worker_draining: "Worker shutdown interrupted this colony. Review its retained state before starting another run.",
     startup_failed: "Colony preparation failed. Review configuration and worker readiness before retrying.",
     startup_timeout: "Colony preparation exceeded its deadline.",
     startup_cancelled: "Colony preparation was cancelled.",
@@ -286,9 +312,14 @@ export async function requestWorker<T>(
       const body: unknown = await response.json().catch(() => null);
       throw new WorkerRequestError(409, formatWorkerConflict(body));
     }
+    if (response.status === 503 && options.method === "POST" &&
+        (path === "/api/v1/colonies/" || path === "/api/v1/simulation/start")) {
+      const body: unknown = await response.json().catch(() => null);
+      throw new WorkerRequestError(503, formatWorkerStartAdmission(body));
+    }
     const message = response.status === 401 ? "Your session has expired. Sign in again." :
       response.status === 404 ? "This colony is no longer available." :
-      response.status === 503 ? "The worker could not complete the operation. Refresh colony status before retrying; do not assume it started or stopped." :
+      response.status === 503 ? WORKER_UNAVAILABLE_MESSAGE :
       `Worker request failed (${response.status}).`;
     // Never echo response bodies that might contain credentials or private data.
     throw new WorkerRequestError(response.status, message);

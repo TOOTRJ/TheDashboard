@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import math
 from typing import Optional, Callable, Awaitable
 
 from .colony_config import ColonyConfig
@@ -20,8 +21,11 @@ logger = logging.getLogger(__name__)
 STARTUP_TIMEOUT_SECONDS = 30.0
 CLEANUP_TIMEOUT_SECONDS = 5.0
 QUIESCE_TIMEOUT_SECONDS = 30.0
+SHUTDOWN_TIMEOUT_SECONDS = 40.0
+MAX_RETAINED_COLONIES = 32
 StatusCallback = Callable[[dict], Awaitable[None]]
 FAILURE_MESSAGES = {
+    "worker_draining": "The worker is shutting down. Execution cannot be started or resumed.",
     "startup_failed": "Colony preparation failed. Review configuration and service readiness before retrying.",
     "startup_timeout": "Colony preparation exceeded its deadline.",
     "startup_cancelled": "Colony preparation was cancelled.",
@@ -68,6 +72,15 @@ class ColonyLifecycleError(RuntimeError):
                          else FAILURE_MESSAGES.get(code, FAILURE_MESSAGES["execution_failed"]))
 
 
+class ColonyAdmissionError(RuntimeError):
+    """A start rejected before any repository, feed or startup side effect."""
+    def __init__(self, code: str):
+        if code not in {"worker_draining", "worker_capacity"}:
+            raise ValueError("Invalid admission reason")
+        self.code = code
+        super().__init__("Worker cannot accept a new colony.")
+
+
 def _failure_code(error: Exception, default: str) -> str:
     if isinstance(error, PersistenceError):
         return "persistence_failed"
@@ -102,7 +115,7 @@ class _StartingColony:
         self.mode = mode
         self.strategy_name = strategy
         self.lifecycle = "starting"
-        self.state_persisted = True
+        self.state_persisted = False
         self.failure_code = self.failure_message = None
         self.market_feed = None
         self.strategy_profile = strategy_profile
@@ -121,7 +134,7 @@ class _StartingColony:
                 "status": self.lifecycle, "mode": self.mode, "strategy": self.strategy_name,
                 "state_persisted": self.state_persisted, "failure_code": self.failure_code,
                 "failure_message": self.failure_message, "open_positions": 0,
-                "requires_reconciliation": False, "live_probes": 0, "dead_probes": 0,
+                "requires_reconciliation": self.lifecycle == "failed", "live_probes": 0, "dead_probes": 0,
                 "total_probes": 0, "generation": 0, "tick": 0, "reserve_capital": 0,
                 "active_capital": 0, "total_capital": 0, "circuit_breaker": False,
                 "diversity": 0, "uptime_secs": 0, "started_at": None}
@@ -135,16 +148,92 @@ class _StartingColony:
 class ColonyManager:
     """Keep terminal state visible; never confuse a scheduled task with a ready colony."""
 
-    def __init__(self) -> None:
+    def __init__(self, *, max_retained_colonies: int = MAX_RETAINED_COLONIES) -> None:
+        if type(max_retained_colonies) is not int or not 1 <= max_retained_colonies <= 128:
+            raise ValueError("Retained colony limit must be an integer from 1 through 128")
+        self.max_retained_colonies = max_retained_colonies
         self._colonies: dict[str, GenesisController | _StartingColony] = {}
         self._tasks: dict[str, asyncio.Task] = {}
         self._locks: dict[str, asyncio.Lock] = {}
         self._persist: dict[str, StatusCallback] = {}
         self._publish: dict[str, StatusCallback] = {}
         self._pending_failures: dict[str, str] = {}
+        self._start_tasks: dict[str, asyncio.Task] = {}
+        self._control_tasks: set[asyncio.Task] = set()
+        self._cleanup_tasks: dict[str, asyncio.Task] = {}
+        self._cleanup_failures: set[str] = set()
+        self._drain_tasks: set[asyncio.Task] = set()
+        self._draining = False
+        self._shutdown_task: asyncio.Task | None = None
+        self._shutdown_deadline: float | None = None
+        self._drain_failed = False
+
+    def admission_status(self) -> str:
+        if self._draining:
+            return "closed_draining"
+        if len(set(self._colonies) | set(self._start_tasks)) >= self.max_retained_colonies:
+            return "closed_capacity"
+        return "open"
+
+    async def run_start(self, colony_id: str, operation: Callable[[], Awaitable]):
+        """Reserve and own the whole start before it can perform its first write.
+
+        No await separates checking admission from registering the owned task;
+        this is atomic within this manager's event loop, not a database fence.
+        """
+        admission = self.admission_status()
+        if admission == "closed_draining":
+            raise ColonyAdmissionError("worker_draining")
+        if colony_id in self._colonies or colony_id in self._start_tasks:
+            raise ColonyLifecycleError("colony_exists", conflict=True)
+        if admission == "closed_capacity":
+            raise ColonyAdmissionError("worker_capacity")
+
+        async def accepted():
+            return await operation()
+
+        task = asyncio.create_task(accepted())
+        self._start_tasks[colony_id] = task
+
+        def finished(done):
+            if self._start_tasks.get(colony_id) is done:
+                self._start_tasks.pop(colony_id, None)
+            if not done.cancelled():
+                done.exception()
+        task.add_done_callback(finished)
+        try:
+            return await asyncio.shield(task)
+        except asyncio.CancelledError:
+            # Cancel the owned operation only once. Its accepted database write
+            # and compensating status must finish before the request unwinds.
+            caller_cancelled = bool(asyncio.current_task().cancelling())
+            if not task.done() and not task.cancelling():
+                task.cancel()
+            while not task.done():
+                try:
+                    await asyncio.shield(task)
+                except asyncio.CancelledError:
+                    continue
+                except Exception:
+                    break
+            if not task.cancelled():
+                task.exception()
+            if not caller_cancelled and not asyncio.current_task().cancelling() and self._draining:
+                raise ColonyLifecycleError("worker_draining") from None
+            raise
+
+    async def _control(self, operation):
+        if self._draining:
+            raise ColonyLifecycleError("worker_draining")
+        task = asyncio.create_task(operation())
+        self._control_tasks.add(task)
+        task.add_done_callback(self._control_tasks.discard)
+        return await complete_operation(task)
 
     def _register(self, colony_id, user_id, mode, strategy, persist_status, on_status,
                   strategy_profile=None):
+        if colony_id in self._colonies:
+            raise ColonyLifecycleError("colony_exists", conflict=True)
         self._colonies[colony_id] = _StartingColony(colony_id, user_id, mode, strategy, strategy_profile)
         self._locks[colony_id] = asyncio.Lock()
         if persist_status is not None:
@@ -153,12 +242,18 @@ class ColonyManager:
             self._publish[colony_id] = on_status
 
     async def record_start_failure(self, colony_id, user_id, mode, strategy_name,
-                                   persist_status, on_status, *, strategy_profile=None) -> None:
+                                   persist_status, on_status, *, strategy_profile=None,
+                                   code="startup_cancelled") -> None:
         """Cancellation after an initial insert still leaves a truthful terminal record."""
         self._register(colony_id, user_id, mode, strategy_name, persist_status, on_status, strategy_profile)
-        await self._fail(colony_id, "startup_cancelled")
+        await self._fail(colony_id, code)
 
-    async def create_colony(
+    async def create_colony(self, colony_id: str, **kwargs) -> str:
+        if self._start_tasks.get(colony_id) is asyncio.current_task():
+            return await self._create_colony(colony_id=colony_id, **kwargs)
+        return await self.run_start(colony_id, lambda: self._create_colony(colony_id=colony_id, **kwargs))
+
+    async def _create_colony(
         self, colony_id: str, user_id: str, mode: str, strategy_name: str,
         colony_config: ColonyConfig, on_event: Callable[[ProbeEvent], Awaitable[None]], *,
         max_probes: int = 50, gen0_count: int = 10, seed_capital: float = 100,
@@ -175,6 +270,8 @@ class ColonyManager:
                        colony_config.strategy_profile)
 
         async def prepare() -> None:
+            if self._draining:
+                raise ColonyLifecycleError("worker_draining")
             strategy = get_strategy(strategy_name)
             feed = self._create_feed(mode)
             self._colonies[colony_id].market_feed = feed
@@ -190,7 +287,11 @@ class ColonyManager:
             genesis.state_persisted = True  # The starting row already exists.
             self._colonies[colony_id] = genesis
             await genesis.prepare()
+            if self._draining:
+                raise ColonyLifecycleError("worker_draining")
             await self._transition(colony_id, "running")
+            if self._draining:
+                raise ColonyLifecycleError("worker_draining")
 
         try:
             # Repository cancellation drains a bounded in-flight write first, so a
@@ -229,7 +330,7 @@ class ColonyManager:
                 self._tasks.pop(colony_id, None)
 
     async def _cancel_run(self, colony_id: str) -> None:
-        task = self._tasks.pop(colony_id, None)
+        task = self._tasks.get(colony_id)
         if task is not None and task is not asyncio.current_task():
             if not task.done():
                 task.cancel()
@@ -237,6 +338,28 @@ class ColonyManager:
                 await task
             except asyncio.CancelledError:
                 pass
+            finally:
+                if task.done() and self._tasks.get(colony_id) is task:
+                    self._tasks.pop(colony_id, None)
+
+    async def _cleanup(self, colony_id: str, *, stop=False) -> None:
+        """One owned close attempt; a deadline never abandons or duplicates it."""
+        task = self._cleanup_tasks.get(colony_id)
+        if task is None:
+            colony = self._colonies[colony_id]
+            task = asyncio.create_task(colony.stop() if stop else colony.cleanup())
+            self._cleanup_tasks[colony_id] = task
+
+            def finished(done):
+                if done.cancelled() or done.exception() is not None:
+                    self._cleanup_failures.add(colony_id)
+            task.add_done_callback(finished)
+        done, _ = await asyncio.wait({task}, timeout=CLEANUP_TIMEOUT_SECONDS)
+        if not done:
+            raise TimeoutError("Resource cleanup is still pending")
+        if task.cancelled():
+            raise RuntimeError("Resource cleanup was interrupted")
+        task.result()
 
     async def _transition(self, colony_id: str, status: str) -> None:
         colony = self._colonies[colony_id]
@@ -258,7 +381,7 @@ class ColonyManager:
         colony.state_persisted = False
         await self._cancel_run(colony_id)
         try:
-            await asyncio.wait_for(colony.cleanup(), timeout=CLEANUP_TIMEOUT_SECONDS)
+            await self._cleanup(colony_id)
         except Exception:
             logger.warning("[ColonyManager] Cleanup failed for colony %s", colony_id[:8])
         callback = self._persist.get(colony_id)
@@ -288,7 +411,7 @@ class ColonyManager:
             raise ColonyLifecycleError(self._pending_failures[colony_id])
 
     async def stop_colony(self, colony_id: str) -> None:
-        await complete_operation(self._stop_colony(colony_id))
+        await self._control(lambda: self._stop_colony(colony_id))
 
     async def _stop_colony(self, colony_id: str) -> None:
         async with self._locks.setdefault(colony_id, asyncio.Lock()):
@@ -301,7 +424,7 @@ class ColonyManager:
                 await asyncio.wait_for(colony.quiesce(), timeout=QUIESCE_TIMEOUT_SECONDS)
                 self._check_pending_failure(colony_id)
                 await self._cancel_run(colony_id)
-                await asyncio.wait_for(colony.stop(), timeout=CLEANUP_TIMEOUT_SECONDS)
+                await self._cleanup(colony_id, stop=True)
                 await self._transition(colony_id, "stopped")
             except Exception as error:
                 code = _failure_code(error, "cleanup_failed")
@@ -309,7 +432,7 @@ class ColonyManager:
                 raise ColonyLifecycleError(code) from None
 
     async def pause_colony(self, colony_id: str) -> None:
-        await complete_operation(self._pause_colony(colony_id))
+        await self._control(lambda: self._pause_colony(colony_id))
 
     async def _pause_colony(self, colony_id: str) -> None:
         async with self._locks.setdefault(colony_id, asyncio.Lock()):
@@ -333,7 +456,7 @@ class ColonyManager:
                 raise ColonyLifecycleError(code) from None
 
     async def recover_colony(self, colony_id: str, trip_id: str) -> None:
-        await complete_operation(self._recover_colony(colony_id, trip_id))
+        await self._control(lambda: self._recover_colony(colony_id, trip_id))
 
     async def _recover_colony(self, colony_id: str, trip_id: str) -> None:
         async with self._locks.setdefault(colony_id, asyncio.Lock()):
@@ -346,6 +469,8 @@ class ColonyManager:
                 # durable acknowledgement and publication of this transition.
                 await asyncio.wait_for(colony.recover_circuit_breaker(trip_id),
                                        timeout=QUIESCE_TIMEOUT_SECONDS)
+                if self._draining:
+                    raise ColonyLifecycleError("worker_draining")
             except RiskRecoveryError as error:
                 raise ColonyLifecycleError(error.code, conflict=True) from None
             except Exception as error:
@@ -354,7 +479,7 @@ class ColonyManager:
                 raise ColonyLifecycleError(code) from None
 
     async def resume_colony(self, colony_id: str) -> None:
-        await complete_operation(self._resume_colony(colony_id))
+        await self._control(lambda: self._resume_colony(colony_id))
 
     async def _resume_colony(self, colony_id: str) -> None:
         async with self._locks.setdefault(colony_id, asyncio.Lock()):
@@ -367,6 +492,8 @@ class ColonyManager:
                 if callback is not None:
                     await callback({**colony.status(), "status": "running"})
                     colony.state_persisted = True
+                if self._draining:
+                    raise ColonyLifecycleError("worker_draining")
                 colony.resume()
                 colony.set_lifecycle("running")
                 callback = self._publish.get(colony_id)
@@ -398,13 +525,67 @@ class ColonyManager:
         return sum(colony.lifecycle_status in {"starting", "running", "paused", "risk_halted"}
                    for colony in self._colonies.values())
 
-    async def shutdown(self) -> None:
-        for colony_id, colony in list(self._colonies.items()):
-            if colony.lifecycle_status in {"running", "paused", "risk_halted"}:
-                try:
-                    await self.stop_colony(colony_id)
-                except ColonyLifecycleError:
-                    pass  # Already failed closed and retained for inspection.
+    async def _drain_colony(self, colony_id: str) -> None:
+        # An accepted control may own this lock while its write drains. Examine
+        # lifecycle only after that operation finishes, then stop if needed.
+        async with self._locks.setdefault(colony_id, asyncio.Lock()):
+            active = self._colonies[colony_id].lifecycle_status in {"running", "paused", "risk_halted"}
+        if active:
+            try:
+                await self._stop_colony(colony_id)
+            except ColonyLifecycleError:
+                pass  # Its failure/cleanup evidence remains owned and visible.
+
+    async def _drain(self) -> None:
+        starts = list(self._start_tasks.values())
+        starting_ids = set(self._start_tasks)
+        for task in starts:
+            if not task.done() and not task.cancelling():
+                task.cancel()
+        for cid in self._colonies:
+            if cid not in starting_ids:
+                self._drain_tasks.add(asyncio.create_task(self._drain_colony(cid)))
+        results = await asyncio.gather(*starts, *self._control_tasks, *self._drain_tasks,
+                                       return_exceptions=True)
+        self._drain_failed = any(isinstance(result, Exception) and not isinstance(
+            result, ColonyLifecycleError) for result in results)
+        # Supervisors may already be recording a failed tick; cleanup can finish
+        # after its local deadline. Keep both owned through the global drain.
+        tasks = {*self._tasks.values(), *self._cleanup_tasks.values()}
+        if tasks:
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+            self._drain_failed |= any(isinstance(result, BaseException) for result in results)
+
+    def _drain_report(self) -> dict:
+        tasks = {*self._start_tasks.values(), *self._tasks.values(), *self._control_tasks,
+                 *self._cleanup_tasks.values(), *self._drain_tasks}
+        pending = sum(not task.done() for task in tasks)
+        unsaved = any(not self._colonies[cid].state_persisted for cid in self._persist)
+        incomplete = (pending or self._drain_failed or self._cleanup_failures or unsaved or
+                      self._shutdown_task is None or not self._shutdown_task.done())
+        return {"status": "incomplete" if incomplete else "complete", "pending_operations": pending}
+
+    async def shutdown(self) -> dict:
+        """Close admission immediately; keep one bounded, independently owned drain.
+
+        A timed-out or cancelled caller never cancels the drain or releases an
+        in-flight write lock. Repeated calls observe the original deadline.
+        """
+        if self._shutdown_task is None:
+            self._draining = True
+            for colony in self._colonies.values():
+                if isinstance(colony, GenesisController):
+                    colony.begin_drain()
+            timeout = SHUTDOWN_TIMEOUT_SECONDS
+            if type(timeout) not in (int, float) or not math.isfinite(timeout) or timeout < 0:
+                raise ValueError("Invalid shutdown deadline")
+            self._shutdown_deadline = asyncio.get_running_loop().time() + timeout
+            self._shutdown_task = asyncio.create_task(self._drain())
+        remaining = max(0, self._shutdown_deadline - asyncio.get_running_loop().time())
+        await asyncio.wait({self._shutdown_task}, timeout=remaining)
+        if self._shutdown_task.done() and (self._shutdown_task.cancelled() or self._shutdown_task.exception()):
+            self._drain_failed = True
+        return self._drain_report()
 
     @staticmethod
     def _create_feed(mode: str) -> MarketFeed:
