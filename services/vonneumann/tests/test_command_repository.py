@@ -14,7 +14,9 @@ from unittest.mock import patch
 from uuid import uuid4
 
 from tests.security_support import deny_network
+from vonneumann.core.decimal_execution import DecimalExecutionConfig
 from vonneumann.db.command_protocol import PreparedCommand
+from vonneumann.db.economic_operations import run_configuration
 from vonneumann.db.command_repository import (
     CommandAdmissionError,
     CommandBusy,
@@ -211,6 +213,75 @@ class CommandRepositoryTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(CommandAdmissionError):
             await self.repo.submit(command)
         self.assertEqual(len(self.transport.calls), before)
+
+    async def test_legacy_run_rejects_version_two_before_transport(self):
+        self.assertIsNone(self.repo.command_version)
+        await self.leased()
+        self.assertEqual(self.repo.command_version, 1)
+        operation = {"kind": "lifecycle", "status": "running"}
+        command = self.batch([operation], version=2)
+        before = len(self.transport.calls)
+        with self.assertRaises(CommandAdmissionError):
+            await self.repo.submit(command)
+        self.assertEqual(len(self.transport.calls), before)
+        self.assertIsNone(self.repo.pending)
+        self.assertEqual(self.repo.revision, 1)
+        legacy = self.batch([operation], version=1)
+        self.transport.add(self.reply(legacy))
+        await self.repo.submit(legacy)
+        self.assertEqual(self.repo.command_version, 1)
+        self.assertEqual(self.repo.revision, 2)
+
+    async def test_decimal_run_rejects_legacy_batch_without_changing_binding(self):
+        command = self.creation(config=run_configuration(DecimalExecutionConfig(fee_bps="1")))
+        self.transport.add(self.reply(command))
+        await self.repo.submit(command)
+        self.assertEqual(self.repo.command_version, 2)
+        self.assertFalse(self.repo.lease_valid)
+        self.transport.add(self.heartbeat_reply())
+        await self.repo.heartbeat()
+        operation = {"kind": "lifecycle", "status": "running"}
+        before = len(self.transport.calls)
+        with self.assertRaises(CommandAdmissionError):
+            await self.repo.submit(self.batch([operation], version=1))
+        self.assertEqual(len(self.transport.calls), before)
+        self.assertIsNone(self.repo.pending)
+        exact = self.batch([operation], version=2)
+        self.transport.add(self.reply(exact))
+        await self.repo.submit(exact)
+        self.assertEqual(self.repo.command_version, 2)
+        self.assertEqual(self.repo.revision, 2)
+
+    async def test_resolved_lost_creation_ack_adopts_its_original_version_only(self):
+        config = run_configuration(DecimalExecutionConfig(fee_bps="2"))
+        command = self.creation(config=config)
+        config["durability_contract_version"] = 1
+        await self.make_uncertain(command)
+        self.assertIsNone(self.repo.command_version)
+        self.transport.add(None)
+        self.assertIsNone(await self.repo.resolve_pending())
+        self.assertIsNone(self.repo.command_version)
+        self.assertEqual(self.repo.pending, command)
+        self.transport.add(self.journal(command))
+        receipt = await self.repo.resolve_pending()
+        self.assertEqual(receipt.command, command)
+        self.assertEqual(self.repo.command_version, 2)
+        self.assertFalse(self.repo.lease_valid)
+        self.transport.add(self.heartbeat_reply())
+        await self.repo.heartbeat()
+        before = len(self.transport.calls)
+        with self.assertRaises(CommandAdmissionError):
+            await self.repo.submit(self.batch([{"kind": "lifecycle", "status": "running"}], version=1))
+        self.assertEqual(len(self.transport.calls), before)
+        self.assertEqual(self.repo.command_version, 2)
+
+    async def test_command_version_binding_is_read_only(self):
+        with self.assertRaises((AttributeError, TypeError)):
+            self.repo.command_version = 2
+        await self.created()
+        with self.assertRaises((AttributeError, TypeError)):
+            self.repo.command_version = 2
+        self.assertEqual(self.repo.command_version, 1)
 
     async def test_heartbeat_deadline_uses_request_start_and_margin(self):
         await self.leased(seconds=2)

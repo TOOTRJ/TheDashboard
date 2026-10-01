@@ -117,3 +117,94 @@ favors small on-demand historical snapshots now and bounded quote/receipt record
 later for execution calibration. Separate Birdeye entitlements/retention and any
 future redistribution remain research items; a combined public archive is not
 part of the current work. No provider records were collected for this change.
+
+## Exact durable-policy plans (DB-03A2B, 2026-10-01)
+
+`core/decimal_execution.py` implements a separate policy,
+`usd-reference-decimal-v2`, for the forthcoming durable engine cutover. The
+current worker and offline comparison runner still use the binary64 v1 model
+above. There is no silent reinterpretation of old execution records, floats,
+USDC balances or live token amounts. New plans accept explicit decimal strings.
+
+The existing float model can report a debit of `100.0` while its independently
+serialized notional and fee sum to `100.00000000000000734`. An exact ledger
+correctly rejects that sum against a 100 balance. Version 2 defines the complete
+calculation, rather than altering a fee afterward to make the ledger fit.
+
+| Quantity | Decimal places | Interpretation |
+| --- | --- | --- |
+| Cash, notional, explicit fees | 36 | Hypothetical USD reference units |
+| Prices | 18 | USD reference per hypothetical base unit |
+| Position quantities | 18 | Hypothetical base units, not mint atoms |
+| Fee, half-spread and slippage settings | 6 | Basis points |
+
+These fixed grids are provisional research-policy choices, not exchange or mint
+precision claims. Amounts are bounded by the rehearsal's `10^36` maximum. Inputs
+with excess places, exponent notation, signs, nonfinite values or non-string
+types are rejected; they are not rounded implicitly. Equivalent accepted input
+spellings are normalized when constructing a plan. Serialized evidence is
+canonical and must recompute exactly, including its policy version.
+
+All calculations use scaled integers, independent of ambient `decimal.Context`.
+For cash integer B, reference-price integer P, fee-bps integer F, adverse-impact
+integer I and D = `10000 * 10^6`:
+
+```
+buy price integer = ceil(P * (D + I) / D)
+affordable notional integer = floor(B * D / (D + F))
+quantity integer = floor(affordable notional / buy price integer)
+entry notional integer = quantity integer * buy price integer
+entry fee integer = ceil(entry notional integer * F / D)
+cash debit integer = entry notional integer + entry fee integer
+residual budget integer = B - cash debit integer
+
+sell price integer = floor(P * (D - I) / D)
+exit notional integer = quantity integer * sell price integer
+exit fee integer = ceil(exit notional integer * F / D)
+cash credit integer = exit notional integer - exit fee integer
+```
+
+An 18-place price times an 18-place quantity fits the 36-place cash grid exactly.
+The affordability formula proves debit cannot exceed budget even when fees round
+up. Unspent budget remains cash; it is neither an extra fee nor a write-off. For
+budget 100, price 123.45, fee 30 bps, half-spread 10 bps and slippage 10 bps,
+debit is `99.9999999999999999910943253` and retained budget is
+`0.0000000000000000089056747`. Their sum is exactly 100.
+
+Zero-size lots, an adverse price rounded to zero, and out-of-range results fail
+before any state change. A valid positive-price exit can have zero net credit
+when its minimum-unit proceeds are consumed by the rounded fee; it remains a
+`fill`. Explicit terminal write-off uses a `None` reference price and a separate
+`writeoff` kind with zero proceeds/fee. Signed gross/net P&L are exact decimal
+strings. No rounded finite-decimal net-return value is asserted for a generally
+nonterminating ratio; the future metrics layer must declare that conversion.
+
+Immutable entry/exit plans retain the original entry budget and configuration;
+strict readers recompute every derived field. `debit_cash`, `credit_cash` and
+`transfer_cash` provide pure bounded account calculations. Reference mark value
+also uses the exact grids and does not charge hypothetical exit fees.
+
+`db/economic_operations.py` seals those plans into v2 open/close operations and
+binds the version/configuration through `run_configuration`. The isolated SQL
+contract independently verifies the evidence and matches closes to their stored
+entry. This proves arithmetic consistency, not provider-price truth, liquidity,
+source freshness, permission to trade or real-world execution quality. Full
+engine state installation, source/code identities and migration remain DB-03A2C/D.
+
+Research basis and remaining work:
+
+- [Python Decimal](https://docs.python.org/3.12/library/decimal.html) documents
+  context-dependent arithmetic and exact conversion of binary-float artifacts.
+  The new planner avoids both with explicit integer grids and string inputs.
+- [PostgreSQL numeric](https://www.postgresql.org/docs/17/datatype-numeric.html)
+  distinguishes exact numeric from floating-point types and documents scale
+  coercion. The rehearsal rejects invalid input scale explicitly; it does not
+  rely on a silently rounding `numeric(p,s)` column.
+- [Solana token balances](https://solana.com/docs/rpc/http/gettokenaccountbalance)
+  distinguish integer amount strings, mint decimals and display amounts. Future
+  actual settlement must use mint-specific units, transfer/extension rules,
+  quote-owned amounts and synchronized currency conversion, not these grids.
+- Before promoting this policy, quantify rounding impact over realistic price,
+  position and fee ranges; define exact-source decoding and signal/fitness
+  conversion; preserve versioned historical comparisons. Fixed/network fees,
+  capacity, rejection and latency remain uncalibrated work under FILL-01.

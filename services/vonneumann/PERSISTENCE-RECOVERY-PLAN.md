@@ -1,6 +1,6 @@
 # Safe durability and later worker hosting
 
-Source review and staged implementation plan, updated October 1, 2026. SVC-02A's local admission/drain precursor is implemented. DB-03A1 supplies an isolated executable database contract rehearsal; DB-03A2A adds immutable command preparation and an injected-transport repository tested against that contract. The application write-boundary cutover below remains future work. The FILL-01A execution JSON column records accounting detail; it is not an atomic ledger, ownership lease or executable checkpoint.
+Source review and staged implementation plan, updated October 1, 2026. SVC-02A's local admission/drain precursor is implemented. DB-03A1 supplies an isolated executable database contract rehearsal; DB-03A2A adds immutable command preparation and an injected-transport repository tested against that contract. DB-03A2B adds exact pure economic plans and typed optimizer-source evidence with a v2 SQL rehearsal. The application write-boundary cutover below remains future work. The FILL-01A execution JSON column records accounting detail; it is not an atomic ledger, ownership lease or executable checkpoint.
 
 ## What is durable today
 
@@ -112,20 +112,40 @@ See [Python task ownership/cancellation](https://docs.python.org/3.12/library/as
 
 ## Engine integration findings and next boundaries
 
-Two reproduced incompatibilities must be resolved before wiring these commands:
+Two reproduced incompatibilities now have explicit local v2 contracts; adopting
+them into complete engine state remains required before wiring these commands:
 
 - The current `buy_fill(100, 123.45, fee_bps=30, half_spread_bps=10,
   slippage_bps=10)` reports a float cash debit of `100.0`, but converting its
   notional and fee independently to decimal strings sums to
   `100.00000000000000734`. The exact SQL ledger correctly rejects that debit
-  against a 100 balance. Define a versioned decimal arithmetic, division,
-  residual and rounding policy; do not silently adjust fees or use
-  `Decimal.from_float()` to hide the mismatch. Signals/optimizer calculations
+  against a 100 balance. DB-03A2B's `usd-reference-decimal-v2` uses cash36,
+  price/quantity18 and bps6 integer grids with conservative price/fee rounding
+  and retained budget residuals. Pure plans and independent SQL recomputation
+  agree without converting existing floats or changing v1 history. Signals/optimizer calculations
   can remain floats while authoritative economic arithmetic becomes consistent.
 - CMA-ES currently records every distribution-source member as ancestry, while
-  the rehearsal birth operation allows only two parents. Preserve distribution
-  sources separately from the asset-template source and genetic parent edges.
-  Truncating ancestry would discard the evidence needed to explain selection.
+  v1 rehearsal births allow only two parents; DE can also need four sources.
+  V2 stores an ordered CMA distribution once and references it from child
+  records, with separate template and algorithm-role bindings. The offline
+  converter validates actual result metadata for all four optimizers rather
+  than inferring roles from a flat list. No source truncation or runtime
+  `parent_ids` rewrite occurs. See [the v2 contract](db-contract/README.md).
+
+V2 run configuration binds its command version and exact execution policy.
+The repository rejects version mismatches before transport, and SQL enforces
+the same binding and validates complete entry/exit evidence. All lineage,
+distribution, cash and position changes occupy one command transaction.
+V1 support is retained only as fixture regression compatibility; a later
+production migration must not retain a weaker mutation route around v2.
+
+The 100-member normalized ancestry plan fits the bounded rehearsal payload,
+but full engine replacements can carry many positions and additional metadata.
+DB-03A2C must prove capacity for the complete plan before admitting a run; do
+not split population replacement into partially committed commands. Iteration
+and previous-distribution references remain provenance until complete cohort
+and checkpoint state independently binds them. There is no automatic restart
+restoration or optimizer-weight reconstruction in the lineage converter.
 
 Blindly deep-copying `GenesisController` is unsuitable: immutable candle
 snapshots contain `MappingProxyType` (which fails `deepcopy`), and controllers

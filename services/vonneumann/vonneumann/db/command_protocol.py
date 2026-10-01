@@ -19,6 +19,9 @@ import re
 from typing import Literal
 from uuid import UUID, uuid4
 
+from ..core.decimal_execution import DecimalExecutionConfig, DecimalExecutionError, EntryPlan, ExitPlan
+from ..core.lineage import BirthLineage, DistributionLineage, LineageValidationError
+
 
 MAX_BIGINT = 2**63 - 1
 MAX_CONFIG_BYTES = 65536
@@ -110,25 +113,40 @@ def _keys(value: object, expected: set[str]) -> None:
         raise CommandValidationError("Object keys do not match the command contract")
 
 
-def _operations(value: object) -> None:
-    if type(value) is not list or not 1 <= len(value) <= 256:
-        raise CommandValidationError("A batch requires between 1 and 256 operations")
+def _operations(value: object, version: int) -> None:
+    maximum = 256 if version == 1 else 1024
+    if type(value) is not list or not 1 <= len(value) <= maximum:
+        raise CommandValidationError(f"A batch requires between 1 and {maximum} operations")
     for operation in value:
         if type(operation) is not dict:
             raise CommandValidationError("Each operation must be an object")
         kind = operation.get("kind")
         if kind == "birth":
-            _keys(operation, {"kind", "id", "cash", "parent_ids"})
+            _keys(operation, {"kind", "id", "cash", "parent_ids" if version == 1 else "lineage"})
             entity = canonical_uuid(operation["id"], "account id")
             decimal_amount(operation["cash"], "birth cash", positive=True)
-            parents = operation["parent_ids"]
-            if type(parents) is not list or len(parents) > 2:
-                raise CommandValidationError("Birth requires at most two parent identities")
-            validated = [canonical_uuid(parent, "parent id") for parent in parents]
-            if len(set(validated)) != len(validated) or entity in validated:
-                raise CommandValidationError("Birth parents must be distinct and cannot include the child")
+            if version == 1:
+                parents = operation["parent_ids"]
+                if type(parents) is not list or len(parents) > 2:
+                    raise CommandValidationError("Birth requires at most two parent identities")
+                validated = [canonical_uuid(parent, "parent id") for parent in parents]
+                if len(set(validated)) != len(validated) or entity in validated:
+                    raise CommandValidationError("Birth parents must be distinct and cannot include the child")
+            else:
+                try:
+                    lineage = BirthLineage.from_dict(operation["lineage"])
+                except LineageValidationError:
+                    raise CommandValidationError("Birth lineage is invalid") from None
+                if lineage.child_id != entity:
+                    raise CommandValidationError("Birth lineage is bound to another child")
+        elif kind == "distribution" and version == 2:
+            try:
+                DistributionLineage.from_operation(operation)
+            except LineageValidationError:
+                raise CommandValidationError("Distribution lineage is invalid") from None
         elif kind == "open":
-            _keys(operation, {"kind", "id", "account_id", "asset", "quantity", "notional", "fee"})
+            keys = {"kind", "id", "account_id", "asset", "quantity", "notional", "fee"}
+            _keys(operation, keys | {"execution"} if version == 2 else keys)
             canonical_uuid(operation["id"], "position id")
             canonical_uuid(operation["account_id"], "account id")
             if type(operation["asset"]) is not str or not 1 <= len(operation["asset"]) <= 64:
@@ -136,13 +154,28 @@ def _operations(value: object) -> None:
             decimal_amount(operation["quantity"], "quantity", positive=True)
             decimal_amount(operation["notional"], "notional", positive=True)
             decimal_amount(operation["fee"], "entry fee")
+            if version == 2:
+                try:
+                    entry = EntryPlan.from_dict(operation["execution"])
+                except DecimalExecutionError:
+                    raise CommandValidationError("Entry execution evidence is invalid") from None
+                if any(operation[name] != getattr(entry, name) for name in ("quantity", "notional", "fee")):
+                    raise CommandValidationError("Open values do not match exact entry evidence")
         elif kind == "close":
-            _keys(operation, {"kind", "id", "proceeds", "fee"})
+            keys = {"kind", "id", "proceeds", "fee"}
+            _keys(operation, keys | {"execution"} if version == 2 else keys)
             canonical_uuid(operation["id"], "position id")
             proceeds = decimal_amount(operation["proceeds"], "proceeds")
             fee = decimal_amount(operation["fee"], "exit fee")
             if Decimal(fee) > Decimal(proceeds):
                 raise CommandValidationError("Exit fee cannot exceed proceeds")
+            if version == 2:
+                try:
+                    exit_plan = ExitPlan.from_dict(operation["execution"])
+                except DecimalExecutionError:
+                    raise CommandValidationError("Exit execution evidence is invalid") from None
+                if operation["proceeds"] != exit_plan.notional or operation["fee"] != exit_plan.fee:
+                    raise CommandValidationError("Close values do not match exact exit evidence")
         elif kind == "retire":
             _keys(operation, {"kind", "id"})
             canonical_uuid(operation["id"], "account id")
@@ -207,6 +240,18 @@ class PreparedCommand:
                 raise CommandValidationError("Creation cannot supply a fence or prior revision")
             if type(body["config"]) is not dict or len(_encode(body["config"], postgres_spacing=True)) > MAX_CONFIG_BYTES:
                 raise CommandValidationError("Configuration must be an object within the SQL size limit")
+            version = bounded_integer(body["config"].get("durability_contract_version", 1),
+                                      "durability contract version", maximum=2)
+            if version == 2:
+                execution = body["config"].get("execution")
+                try:
+                    if type(execution) is not dict or "config" not in execution:
+                        raise DecimalExecutionError("Missing exact execution policy")
+                    policy = DecimalExecutionConfig.from_dict(execution["config"]).policy()
+                    if canonical_json(execution) != canonical_json(policy):
+                        raise DecimalExecutionError("Mismatched exact execution policy")
+                except DecimalExecutionError:
+                    raise CommandValidationError("Version 2 creation requires its exact execution policy") from None
             decimal_amount(body["initial_cash"], "initial cash", positive=True)
             bounded_integer(body["lease_seconds"], "lease seconds", maximum=120)
         elif self.kind == "batch":
@@ -217,10 +262,10 @@ class PreparedCommand:
             bounded_integer(body["fence"], "request fence")
             bounded_integer(body["expected_revision"], "request expected revision", maximum=MAX_BIGINT - 1)
             _keys(body["payload"], {"version", "operations"})
-            bounded_integer(body["payload"]["version"], "payload version", maximum=1)
+            version = bounded_integer(body["payload"]["version"], "payload version", maximum=2)
             if len(_encode(body["payload"], postgres_spacing=True)) > MAX_PAYLOAD_BYTES:
                 raise CommandValidationError("Payload exceeds the SQL size limit")
-            _operations(body["payload"]["operations"])
+            _operations(body["payload"]["operations"], version)
         elif self.kind == "interrupt":
             _keys(body, common | {"expected_revision"})
             if self.worker_id is not None or self.fence is not None:
@@ -254,12 +299,12 @@ class PreparedCommand:
     @classmethod
     def batch(cls, owner_id: str, run_id: str, worker_id: str, fence: int,
               expected_revision: int, operations: list[dict],
-              command_id: str | None = None) -> "PreparedCommand":
+              command_id: str | None = None, *, version: int = 1) -> "PreparedCommand":
         command_id = str(uuid4()) if command_id is None else command_id
         body = _json_snapshot({"kind": "batch", "owner_id": owner_id, "run_id": run_id,
                                "worker": worker_id, "command_id": command_id, "fence": fence,
                                "expected_revision": expected_revision,
-                               "payload": {"version": 1, "operations": operations}})
+                               "payload": {"version": version, "operations": operations}})
         return cls("batch", owner_id, run_id, worker_id, command_id, fence, expected_revision, _encode(body))
 
     @classmethod
