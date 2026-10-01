@@ -5,6 +5,8 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { BookOpen, Dna } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { ExecutionPolicyNotice } from "@/components/probes/ExecutionPolicyNotice";
+import { parseExecutionPolicy } from "@/lib/probes/execution";
 import { ProbesDashboard } from "@/components/probes/ProbesDashboard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { fetchProbes, fetchGenerationStats, fetchColonyRuns } from "@/lib/probes/probes-supabase";
@@ -129,12 +131,16 @@ function AuthenticatedProbesPage({ userId, accessToken }: { userId: string; acce
         break;
       }
       case "price_update": {
-        const data = msg.data as { prices?: Record<string, { price: number }> };
+        const data = msg.data as { prices?: Record<string, { price: number; timestamp?: number; account_currency?: string }> };
         if (!data.prices) break;
         const changes: Record<string, PriceTick> = {};
         for (const [asset, info] of Object.entries(data.prices)) {
+          if (!info || typeof info.price !== "number" || !Number.isFinite(info.price) || info.price <= 0) continue;
           const before = prevPrices.current[asset] ?? info.price;
-          changes[asset] = { asset, price: info.price, change: before > 0 ? ((info.price - before) / before) * 100 : 0 };
+          changes[asset] = { asset, price: info.price, change: before > 0 ? ((info.price - before) / before) * 100 : 0,
+            timestamp: typeof info.timestamp === "number" && Number.isFinite(info.timestamp) && Number.isFinite(new Date(info.timestamp * 1000).getTime()) ? info.timestamp : undefined,
+            account_currency: info.account_currency === "USD" ? "USD" : undefined,
+          };
           prevPrices.current[asset] = info.price;
         }
         setPrices((prev) => ({ ...prev, ...changes }));
@@ -301,6 +307,7 @@ function AuthenticatedProbesPage({ userId, accessToken }: { userId: string; acce
   const displayedMode = showSavedStatus ? selectedHistory.mode : simMode;
   const diagnostics = showSavedStatus || !systemStatus ? selectedHistory?.runtime : systemStatus;
   const searchSpec = parseSearchSpec((!systemStatus || errors.status ? selectedHistory?.runtime : systemStatus)?.search_spec);
+  const executionPolicy = parseExecutionPolicy((!systemStatus || errors.status ? selectedHistory?.runtime : systemStatus)?.execution_policy);
   const lifecyclePolicy = parseLifecyclePolicy((!systemStatus || errors.status ? selectedHistory?.runtime : systemStatus)?.lifecycle_policy);
   const riskControl = parseRiskControl(diagnostics?.risk_control);
   const confirmedRiskHalt = !showSavedStatus && !errors.status && systemStatus?.status === "risk_halted";
@@ -343,6 +350,7 @@ function AuthenticatedProbesPage({ userId, accessToken }: { userId: string; acce
           {confirmedRiskHalt && !recoveryAvailable && <p>Refresh worker status to obtain the current halt details before requesting recovery.</p>}
         </div>
       )}
+      {selectedColonyId && <ExecutionPolicyNotice policy={executionPolicy} />}
       {syntheticMarketTime && (
         <p className="text-xs text-muted-foreground">
           Last reported synthetic market time: <span className="font-mono">{syntheticMarketTime}</span>.
@@ -380,6 +388,7 @@ function AuthenticatedProbesPage({ userId, accessToken }: { userId: string; acce
         probes={probes}
         generationStats={genStats}
         lifecyclePolicy={lifecyclePolicy}
+        executionPolicy={executionPolicy}
         systemStatus={systemStatus}
         valuationAvailable={diagnostics?.valuation_available}
         strategy={systemStatus?.strategy}

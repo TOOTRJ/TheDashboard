@@ -1,3 +1,5 @@
+import type { ExecutionPolicy, TradeExecution, ProbeAccounting } from "./execution";
+
 export type ProbeState =
   | "BORN"
   | "FUNDED"
@@ -95,6 +97,9 @@ export interface Genome {
 }
 
 export interface ProbeMetrics {
+  execution_sampling?: "pre_decision";
+  terminal_execution_costs_in_returns?: boolean;
+  accounting?: ProbeAccounting | null;
   policy_version?: string;
   fitness_version?: string;
   status?: string;
@@ -134,6 +139,7 @@ export interface Probe {
 }
 
 export interface Trade {
+  execution?: TradeExecution | null;
   id: string;
   probe_id: string;
   side: "BUY" | "SELL";
@@ -208,11 +214,13 @@ export interface ColonyRun {
   probe_count: number;
   best_fitness: number;
   status?: Exclude<SimulationStatus, "unknown">;
-  runtime?: Partial<Pick<SystemStatus, "failure_code" | "state_persisted" | "open_positions" | "requires_reconciliation" | "valuation_available" | "clock_basis" | "market_time" | "market_elapsed_secs" | "circuit_breaker" | "risk_control" | "evaluation_policy" | "cohort" | "search_spec" | "lifecycle_policy">>;
+  runtime?: Partial<Pick<SystemStatus, "failure_code" | "state_persisted" | "open_positions" | "requires_reconciliation" | "valuation_available" | "clock_basis" | "market_time" | "market_elapsed_secs" | "circuit_breaker" | "risk_control" | "evaluation_policy" | "cohort" | "search_spec" | "lifecycle_policy" | "execution_policy">>;
 }
 
 export interface PriceTick {
   asset: string;
+  timestamp?: number;
+  account_currency?: "USD";
   price: number;
   change?: number;
 }
@@ -237,6 +245,7 @@ export interface SystemStatus {
   risk_control?: RiskControl;
   search_spec?: SearchSpec;
   lifecycle_policy?: LifecyclePolicy;
+  execution_policy?: ExecutionPolicy;
   evaluation_policy?: EvaluationPolicy;
   cohort?: EvaluationCohort;
   diversity: number | null;
@@ -275,6 +284,7 @@ export interface ColonyInfo {
   risk_control?: RiskControl;
   search_spec?: SearchSpec;
   lifecycle_policy?: LifecyclePolicy;
+  execution_policy?: ExecutionPolicy;
   evaluation_policy?: EvaluationPolicy;
   cohort?: EvaluationCohort;
 }

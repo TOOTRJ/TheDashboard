@@ -1,5 +1,7 @@
 "use client";
 
+import { formatReferenceNumber, parseProbeAccounting } from "@/lib/probes/execution";
+
 import { Clock, Skull, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,6 +27,7 @@ interface Props {
 
 export function ProbeDetail({ probe, open, onClose }: Props) {
   if (!probe) return null;
+  const accounting = parseProbeAccounting(probe.metrics?.accounting);
   const stateColor = STATE_COLORS[probe.state];
   const parentIds = probeParentIds(probe);
   const isDead = probe.state === "DEAD";
@@ -133,8 +136,10 @@ export function ProbeDetail({ probe, open, onClose }: Props) {
         <div className="grid grid-cols-3 gap-3 mt-4">
           {[
             { label: "Fitness", value: probe.fitness_score.toFixed(3), color: "#00fff5" },
-            { label: "Capital", value: `$${probe.current_capital.toFixed(0)}`, color: "#39ff14" },
-            { label: "P&L", value: `${probe.total_pnl >= 0 ? "+" : ""}$${probe.total_pnl.toFixed(2)}`, color: probe.total_pnl >= 0 ? "#39ff14" : "#ff3366" },
+            { label: accounting ? "Cash (USD)" : "Recorded cash · unit unverified", value: `${accounting ? "$" : ""}${formatReferenceNumber(accounting?.cash ?? probe.current_capital)}`, color: "#39ff14" },
+            { label: "Recorded equity (USD)", value: accounting?.valuation_available ? `$${formatReferenceNumber(accounting.equity)}` : "Unavailable", color: "#39ff14" },
+            { label: "Equity ROI", value: accounting?.valuation_available && accounting.roi !== null ? `${(accounting.roi * 100).toFixed(2)}%` : "Unavailable", color: "#39ff14" },
+            { label: accounting ? "Realized P&L (USD)" : "Recorded P&L · unit unverified", value: `${probe.total_pnl >= 0 ? "+" : ""}${accounting ? "$" : ""}${formatReferenceNumber(probe.total_pnl)}`, color: probe.total_pnl >= 0 ? "#39ff14" : "#ff3366" },
             { label: "Win Rate", value: probe.total_trades > 0 ? `${((probe.winning_trades / probe.total_trades) * 100).toFixed(0)}%` : "—", color: "#bf00ff" },
             { label: equityMetrics ? "Equity Sharpe (diagnostic)" : "Sharpe (run policy)", value: sharpe, color: "#ff00ff" },
             { label: equityMetrics ? "Historical max drawdown" : "Drawdown (run policy)", value: `${(probe.max_drawdown * 100).toFixed(1)}%`, color: "#ff3366" },
@@ -167,6 +172,10 @@ export function ProbeDetail({ probe, open, onClose }: Props) {
             <>This record does not identify the current equity metric policy. Its stored values may use legacy definitions; compare scores only when their calculation policies match.</>
           )}
         </p>
+
+        {accounting && probe.metrics?.execution_sampling === "pre_decision" && probe.metrics.terminal_execution_costs_in_returns === false && (
+          <p className="mt-2 text-[11px] text-muted-foreground">Return samples precede decisions; final liquidation costs are included in net P&amp;L and ROI but not this return diagnostic.</p>
+        )}
 
         {/* Genome radar */}
         <Card className="border-[#00fff5]/10 bg-card/50 mt-4">

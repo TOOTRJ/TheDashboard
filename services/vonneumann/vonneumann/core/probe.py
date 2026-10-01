@@ -24,6 +24,7 @@ from .clock import clock_datetime, utc_now
 from .evolution import FITNESS_POLICY, compute_fitness
 from .equity_metrics import EquityHistory, MAX_OBSERVATION_CARRY_SECONDS
 from .genome import Genome
+from .execution import ExecutionConfig, buy_fill, sell_fill, writeoff_fill, execution_record
 from .market_validation import (
     MarketValueError,
     ProbeStepError,
@@ -60,6 +61,7 @@ class _ClosePlan:
     reason: str
     closed_at: datetime
     event: ProbeEvent
+    execution: Optional[dict]
 
 
 @dataclass(frozen=True)
@@ -83,12 +85,14 @@ class Probe:
         probe_name: Optional[str] = None,
         clock: Optional[Callable[[], datetime]] = None,
         candle_history: Optional[CandleHistory] = None,
+        execution_config: Optional[ExecutionConfig] = None,
     ):
         self._clock = clock or utc_now
         self.probe_id = probe_id or str(uuid.uuid4())
         self.probe_name = probe_name or f"Probe-G{genome.generation}-{self.probe_id[:4]}"
         self.genome = genome
         self.mode = mode
+        self.execution_config = execution_config or ExecutionConfig()
 
         self.initial_capital = positive_price(initial_capital)
         self.capital = self.initial_capital
@@ -132,17 +136,16 @@ class Probe:
 
     @property
     def open_position_value(self) -> float:
-        """Mark-to-market USDC value of all open positions at latest price."""
+        """Mark holdings in the declared USD reference account at the latest price."""
         total = 0.0
         for asset, trade in self.open_positions.items():
             current_price = positive_price(self._marks.get(asset))
-            total += position_value(nonnegative_value(trade.amount),
-                                    positive_price(trade.entry_price), current_price)
+            total += trade.marked_value(current_price)
         return total
 
     @property
     def total_value(self) -> float:
-        """Total portfolio value: free USDC + mark-to-market open positions."""
+        """Free reference cash plus acquired holdings; entry costs are already paid."""
         return self.capital + self.open_position_value
 
     @property
@@ -197,7 +200,13 @@ class Probe:
     def metrics(self) -> dict:
         return {**self._equity_history.diagnostic(),
                 "fitness_version": FITNESS_POLICY["version"],
-                "current_drawdown": self.current_drawdown}
+                "execution_sampling": "pre_decision",
+                "terminal_execution_costs_in_returns": False,
+                "current_drawdown": self.current_drawdown,
+                "accounting": {"execution_policy": self.execution_config.policy(),
+                    "cash": self.capital, "position_value": self.open_position_value,
+                    "equity": self.total_value, "roi": self.roi,
+                    "valuation_available": True}}
 
     @property
     def num_trades(self) -> int:
@@ -227,7 +236,7 @@ class Probe:
         # Validate before changing counters: retention cannot hide malformed
         # history from liquidation preflight, including direct fixture appends.
         for trade in evicted:
-            trade_return(trade.entry_price, trade.exit_price)
+            trade.return_pct()
             finite_number(trade.pnl or 0)
         pnl = finite_number(math.fsum([self._evicted_trade_pnl, *(t.pnl or 0 for t in evicted)]))
         self._evicted_trade_count += excess
@@ -425,11 +434,13 @@ class Probe:
         fraction = nonnegative_value(self.genome.position_size_pct)
         if fraction > 1:
             raise MarketValueError()
-        size_usdc = nonnegative_value(capital * fraction)
-        capital_after = nonnegative_value(capital - size_usdc)
-        if size_usdc < 0.01:
+        budget = nonnegative_value(capital * fraction)
+        if budget < 0.01:
             return None
 
+        entry = buy_fill(budget, current_price, self.execution_config)
+        capital_after = nonnegative_value(capital - entry.cash_debit)
+        execution = execution_record(self.execution_config, entry)
         stop_loss = nonnegative_value(self.genome.stop_loss_pct)
         take_profit = nonnegative_value(self.genome.take_profit_pct)
         sl_price = positive_price(current_price * (1 - stop_loss))
@@ -441,8 +452,9 @@ class Probe:
             probe_id=self.probe_id,
             pair=asset,
             side="BUY",
-            entry_price=current_price,
-            amount=size_usdc,
+            entry_price=entry.fill_price,
+            amount=entry.cash_debit,
+            execution=execution,
             signal_rsi=signals.get("rsi"),
             signal_ema_fast=signals.get("ema_fast"),
             signal_ema_slow=signals.get("ema_slow"),
@@ -457,7 +469,7 @@ class Probe:
 
         logger.info(
             f"[Probe {self.probe_id[:8]}] OPEN {asset} @ ${current_price:.4f} "
-            f"size=${size_usdc:.2f} SL=${sl_price:.4f} TP=${tp_price:.4f}"
+            f"size=${budget:.2f} SL=${sl_price:.4f} TP=${tp_price:.4f}"
         )
 
         return ProbeEvent(
@@ -467,8 +479,9 @@ class Probe:
             data={
                 "trade_id": trade.trade_id,
                 "pair": asset,
-                "entry_price": current_price,
-                "amount": size_usdc,
+                "entry_price": entry.fill_price,
+                "amount": entry.cash_debit,
+                "execution": execution,
                 "stop_loss_price": sl_price,
                 "take_profit_price": tp_price,
                 **signals,
@@ -490,9 +503,7 @@ class Probe:
         for asset, trade in positions.items():
             price = marks.get(asset) if marks is not None else self._marks.get(asset)
             mark = positive_price(price)
-            entry = positive_price(trade.entry_price)
-            amount = nonnegative_value(trade.amount)
-            marked = position_value(amount, entry, mark)
+            marked = trade.marked_value(mark)
             value = nonnegative_value(value + marked)
         return value
 
@@ -516,11 +527,20 @@ class Probe:
                 price = positive_price(raw_price)
             trade = remaining.pop(asset)
             amount = nonnegative_value(trade.amount)
-            return_pct = trade_return(trade.entry_price, price)
-            # Derive proceeds directly: amount + amount * return can cancel
-            # an ordinary positive exit down to zero after a near-total loss.
-            proceeds = position_value(amount, trade.entry_price, price)
-            pnl = finite_number(proceeds - amount)
+            parts = trade.execution_parts()
+            execution = None
+            if parts is not None:
+                config, entry, previous_exit = parts
+                if previous_exit is not None:
+                    raise MarketValueError()
+                fill = writeoff_fill(entry) if terminal_loss else sell_fill(entry, price, config)
+                execution = execution_record(config, entry, fill)
+                price, proceeds = fill.fill_price, fill.cash_credit
+                return_pct, pnl = fill.net_return, fill.net_pnl
+            else:
+                return_pct = trade_return(trade.entry_price, price)
+                proceeds = position_value(amount, trade.entry_price, price)
+                pnl = finite_number(proceeds - amount)
             capital = nonnegative_value(capital + proceeds)
             percent = finite_number(return_pct * 100)
             try:
@@ -547,13 +567,14 @@ class Probe:
                     "pair": asset,
                     "entry_price": trade.entry_price,
                     "exit_price": price,
-                    "pnl": round(pnl, 4),
-                    "pnl_pct": round(percent, 2),
+                    "pnl": pnl,
+                    "pnl_pct": percent,
+                    "execution": execution,
                     "exit_reason": reason,
                 },
             )
             plans.append(_ClosePlan(asset, trade, price, return_pct, pnl, capital,
-                                    peak, worst, reason, closed_at, event))
+                                    peak, worst, reason, closed_at, event, execution))
         return plans
 
     def _apply_close_plan(self, plan: _ClosePlan) -> ProbeEvent:
@@ -563,6 +584,7 @@ class Probe:
         trade.exit_reason = plan.reason
         trade.pnl_pct = plan.pnl_pct
         trade.pnl = plan.pnl
+        trade.execution = plan.execution
         self.capital = plan.capital
         self.peak_capital = plan.peak_capital
         self._max_drawdown = plan.max_drawdown
@@ -602,7 +624,8 @@ class Probe:
         trade = self.open_positions[asset]
         current_price = positive_price(current_price)
         nonnegative_value(trade.amount)
-        ret = trade_return(trade.entry_price, current_price)
+        # Protective thresholds use reference movement, not fill adjustments.
+        ret = trade_return(trade.reference_entry_price, current_price)
 
         if ret <= -self.genome.stop_loss_pct:
             return self._close_position(asset, current_price, "STOP_LOSS")
@@ -654,7 +677,8 @@ class Probe:
         self._pending_intents.clear()
         self._signals_after = nonnegative_value(timestamp)
 
-    def _execute_pending_intents(self, *, allow_new_risk: bool = True) -> list[ProbeEvent]:
+    def _execute_pending_intents(self, *, allow_new_risk: bool = True,
+                                 risk_check: Optional[Callable[[], bool]] = None) -> list[ProbeEvent]:
         events = []
         timeframe_seconds = self.genome.int_genes()["timeframe_minutes"] * 60
         now = self._now().timestamp()
@@ -688,6 +712,10 @@ class Probe:
                     event = self._close_position(asset, price, "SIGNAL_EXIT")
                 if event is not None:
                     events.append(event)
+                    self._observe_drawdown()
+                    halted = risk_check is not None and risk_check()
+                    if self._should_die() or halted:
+                        allow_new_risk = False
         except Exception as error:
             raise ProbeStepError(events, error) from error
         return events
@@ -768,7 +796,8 @@ class Probe:
             raise ProbeStepError(events, first_error) from first_error
         return events
 
-    def tick(self, *, check_risk: bool = True, allow_new_risk: bool = True, allow_reproduction: bool = True) -> list[ProbeEvent]:
+    def tick(self, *, check_risk: bool = True, allow_new_risk: bool = True, allow_reproduction: bool = True,
+             risk_check: Optional[Callable[[], bool]] = None) -> list[ProbeEvent]:
         """
         Run quote-based risk/lifecycle work and newly completed candle decisions.
         A new signal can execute only on a causally later quote, never its close.
@@ -797,7 +826,9 @@ class Probe:
             # Execute prior-cycle signals first. At a one-minute simulation
             # step the next observation coincides with the next candle end;
             # exact expiry remains eligible before that new bar supersedes it.
-            events.extend(self._execute_pending_intents(allow_new_risk=allow_new_risk))
+            events.extend(self._execute_pending_intents(allow_new_risk=allow_new_risk, risk_check=risk_check))
+            if risk_check is not None and risk_check():
+                allow_new_risk = False
             if allow_new_risk:
                 self._discover_candle_signals()
 
@@ -835,12 +866,12 @@ class Probe:
         for trade in self.closed_trades:
             # Preserve ledger integrity checks without treating trade returns
             # as portfolio samples or feeding their variance into fitness.
-            trade_return(trade.entry_price, trade.exit_price)
+            trade.return_pct()
         projected = copy(self)
         projected.open_positions = {}
         projected.closed_trades = self.closed_trades + [
             replace(plan.trade, exit_price=plan.exit_price, closed_at=plan.closed_at,
-                    exit_reason=plan.reason, pnl_pct=plan.pnl_pct, pnl=plan.pnl)
+                    exit_reason=plan.reason, pnl_pct=plan.pnl_pct, pnl=plan.pnl, execution=plan.execution)
             for plan in plans
         ]
         if plans:

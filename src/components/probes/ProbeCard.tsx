@@ -1,5 +1,6 @@
 "use client";
 
+import { formatReferenceNumber, parseProbeAccounting } from "@/lib/probes/execution";
 import { Badge } from "@/components/ui/badge";
 import { STATE_COLORS, STATE_LABELS } from "@/lib/probes/constants";
 import type { Probe } from "@/lib/probes/types";
@@ -11,6 +12,7 @@ interface Props {
 
 export function ProbeCard({ probe, onClick }: Props) {
   const stateColor = STATE_COLORS[probe.state];
+  const accounting = parseProbeAccounting(probe.metrics?.accounting);
   const isDead = probe.state === "DEAD";
 
   return (
@@ -55,9 +57,9 @@ export function ProbeCard({ probe, onClick }: Props) {
           </p>
         </div>
         <div>
-          <span className="text-muted-foreground">Capital</span>
+          <span className="text-muted-foreground">{accounting ? "Cash (USD)" : "Recorded cash · unit unverified"}</span>
           <p className="font-mono font-medium text-[#39ff14]">
-            ${probe.current_capital.toFixed(0)}
+            {accounting ? "$" : ""}{formatReferenceNumber(accounting?.cash ?? probe.current_capital)}
           </p>
         </div>
         <div>
@@ -74,30 +76,11 @@ export function ProbeCard({ probe, onClick }: Props) {
         </div>
       </div>
 
-      {/* ROI bar */}
-      {probe.total_pnl !== 0 && (
-        <div className="mt-2 flex items-center gap-2">
-          <div className="flex-1 h-1 rounded-full bg-muted/30 overflow-hidden">
-            <div
-              className="h-full rounded-full transition-[width] duration-300"
-              style={{
-                width: `${Math.min(100, Math.max(0, ((probe.current_capital / probe.initial_capital) * 100) - 50 + 50))}%`,
-                backgroundColor:
-                  probe.total_pnl >= 0 ? "#39ff14" : "#ff3366",
-              }}
-            />
-          </div>
-          <span
-            className="text-[10px] font-mono font-medium"
-            style={{
-              color: probe.total_pnl >= 0 ? "#39ff14" : "#ff3366",
-            }}
-          >
-            {probe.total_pnl >= 0 ? "+" : ""}
-            ${probe.total_pnl.toFixed(2)}
-          </span>
-        </div>
-      )}
+      <div className="mt-2 space-y-1 text-[10px] text-muted-foreground">
+        <p>Recorded equity (USD): <span className="font-mono">{accounting?.valuation_available ? `$${formatReferenceNumber(accounting.equity)}` : "Unavailable"}</span></p>
+        <p>Equity ROI: <span className="font-mono">{accounting?.valuation_available && accounting.roi !== null ? `${(accounting.roi * 100).toFixed(2)}%` : "Unavailable"}</span></p>
+        <p>{accounting ? "Realized P&L (USD)" : "Recorded P&L · unit unverified"}: <span className="font-mono">{formatReferenceNumber(probe.total_pnl)}</span></p>
+      </div>
     </div>
   );
 }

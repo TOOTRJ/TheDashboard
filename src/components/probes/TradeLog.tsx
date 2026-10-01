@@ -1,6 +1,8 @@
 "use client";
 
 import * as React from "react";
+import { formatReferenceNumber, parseTradeExecution } from "@/lib/probes/execution";
+import { TradeExecutionDetails } from "./TradeExecutionDetails";
 import {
   Table,
   TableBody,
@@ -75,12 +77,12 @@ function ProbeTradeLog({ probeId }: Props) {
       </div>
     )}
     {trades.length > 0 && (
-    <div className="rounded-lg border border-[#00fff5]/10 overflow-hidden max-h-64 overflow-y-auto">
+    <div className="rounded-lg border border-[#00fff5]/10 max-h-64 overflow-auto">
       <Table>
         <TableHeader>
           <TableRow className="border-b border-[#00fff5]/10 hover:bg-transparent">
             <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground">
-              Pair
+              Asset / accounting
             </TableHead>
             <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground">
               Opened
@@ -92,49 +94,56 @@ function ProbeTradeLog({ probeId }: Props) {
               Exit
             </TableHead>
             <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground">
-              P&L
+              Net P&L / recorded P&L
             </TableHead>
+            <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground">Execution accounting</TableHead>
             <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground">
               Reason
             </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {trades.map((trade) => (
-            <TableRow
+          {trades.map((trade) => {
+            const execution = parseTradeExecution(trade.execution);
+            const pnl = execution ? execution.exit?.net_pnl ?? null : trade.pnl;
+            const unit = execution ? "$" : "";
+            const exitPrice = execution ? execution.exit?.fill_price ?? null : trade.exit_price;
+            const closed = execution ? execution.exit !== null : trade.exit_price != null;
+            return <TableRow
               key={trade.id}
               className="border-b border-[#00fff5]/5 hover:bg-[#00fff5]/5"
             >
-              <TableCell className="text-xs font-medium">{trade.pair}</TableCell>
+              <TableCell className="text-xs font-medium">{trade.pair.split("/")[0]}<span className="block text-[10px] text-muted-foreground">{execution ? "USD reference" : `${trade.pair} · unit unverified`}</span></TableCell>
               <TableCell className="text-[10px] text-muted-foreground whitespace-nowrap">
                 {new Date(trade.opened_at).toLocaleTimeString([], {
                   hour: "2-digit", minute: "2-digit", second: "2-digit",
                 })}
               </TableCell>
               <TableCell className="text-xs font-mono">
-                ${trade.entry_price.toFixed(2)}
+                {unit}{formatReferenceNumber(execution?.entry.fill_price ?? trade.entry_price)}
               </TableCell>
               <TableCell className="text-xs font-mono">
-                {trade.exit_price != null
-                  ? `$${trade.exit_price.toFixed(2)}`
+                {exitPrice != null
+                  ? `${unit}${formatReferenceNumber(exitPrice)}`
                   : "—"}
               </TableCell>
               <TableCell>
-                {trade.pnl != null ? (
+                {pnl != null ? (
                   <span
                     className="text-xs font-mono font-medium"
                     style={{
-                      color: trade.pnl >= 0 ? "#39ff14" : "#ff3366",
+                      color: pnl >= 0 ? "#39ff14" : "#ff3366",
                     }}
                   >
-                    {trade.pnl >= 0 ? "+" : ""}${trade.pnl.toFixed(2)}
+                    {pnl >= 0 ? "+" : ""}{unit}{formatReferenceNumber(pnl)}
                   </span>
                 ) : (
                   <span className="text-xs text-muted-foreground">open</span>
                 )}
               </TableCell>
+              <TableCell><TradeExecutionDetails execution={trade.execution} /></TableCell>
               <TableCell>
-                {trade.exit_reason ? (
+                {closed && trade.exit_reason ? (
                   <Badge
                     variant="outline"
                     className="text-[9px] px-1 py-0"
@@ -157,8 +166,8 @@ function ProbeTradeLog({ probeId }: Props) {
                   </Badge>
                 ) : null}
               </TableCell>
-            </TableRow>
-          ))}
+            </TableRow>;
+          })}
         </TableBody>
       </Table>
     </div>

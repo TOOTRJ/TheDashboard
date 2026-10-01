@@ -160,6 +160,7 @@ class ColonyManager:
         mutation_rate: float = 0.20, persist_status: Optional[StatusCallback] = None,
         on_status: Optional[StatusCallback] = None,
         search_seed: str = "0",
+        execution_config=None,
     ) -> str:
         """The caller must persist the starting row before calling this method."""
         from .strategies import get_strategy
@@ -177,7 +178,7 @@ class ColonyManager:
                 seed_capital=seed_capital, max_capital=max_capital,
                 tick_interval_ms=tick_interval_ms, mutation_rate=mutation_rate,
                 colony_config=colony_config, on_event=on_event, persist_risk_status=persist_status,
-                search_seed=search_seed,
+                search_seed=search_seed, execution_config=execution_config,
             )
             genesis.state_persisted = True  # The starting row already exists.
             self._colonies[colony_id] = genesis

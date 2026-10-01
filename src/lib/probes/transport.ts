@@ -192,6 +192,7 @@ export const START_LIMITS = {
 } as const;
 
 const VALIDATION_FIELDS: Record<string, string> = {
+  execution: "Execution costs", fee_bps: "Fee (bps)", half_spread_bps: "Half-spread (bps)", slippage_bps: "Adverse slippage (bps)",
   search_seed: "Search seed", mode: "Trading mode", strategy: "Strategy", preset: "Preset", colony_config: "Colony configuration",
   gene_overrides: "Gene overrides", enabled_genes: "Enabled genes", available_assets: "Trading pairs",
   rsi_period: "RSI period", rsi_oversold: "RSI oversold", rsi_overbought: "RSI overbought",
@@ -239,6 +240,7 @@ export function formatWorkerValidation(body: unknown): string {
     const last = path.at(-1) as string;
     const limit = START_LIMITS[last as keyof typeof START_LIMITS];
     const label = path.map((part: string) => START_LIMITS[part as keyof typeof START_LIMITS]?.label ?? VALIDATION_FIELDS[part]).join(" / ");
+    if (path[0] === "execution") return [`${label}: use nonnegative finite basis points; fee below 10,000 and half-spread plus slippage below 10,000.`];
     if (limit) return [`${label}: enter ${limit.integer ? "a whole number" : "a finite number"} from ${limit.min} to ${limit.max}.`];
     return [`${label}: review the selected value and related configuration limits.`];
   });

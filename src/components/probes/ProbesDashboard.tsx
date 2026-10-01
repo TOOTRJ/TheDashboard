@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import type { ExecutionPolicy } from "@/lib/probes/execution";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type {
   Probe,
@@ -27,6 +28,7 @@ interface Props {
   probes: Probe[];
   generationStats: GenerationStats[];
   lifecyclePolicy?: LifecyclePolicy;
+  executionPolicy?: ExecutionPolicy;
   systemStatus: SystemStatus | null;
   valuationAvailable?: boolean;
   connected: boolean;
@@ -53,6 +55,7 @@ export function ProbesDashboard({
   probes,
   generationStats,
   lifecyclePolicy,
+  executionPolicy,
   systemStatus,
   valuationAvailable,
   connected,
@@ -117,7 +120,7 @@ export function ProbesDashboard({
         />
       </div>
 
-      <PriceFeed prices={prices} />
+      <PriceFeed prices={prices} mode={mode} policy={executionPolicy} />
 
       <ProbesOverview probes={probes} systemStatus={systemStatus} valuationAvailable={valuationAvailable} />
 

@@ -492,3 +492,81 @@ Birdeye's August 26, 2026 changelog introduced market-cap candles in the same OH
 **Validation:** all 581 offline worker tests, 75 frontend tests and TypeScript pass. The 38 new tests cover canonical bytes and full-range seeds, safe CLI operation without credentials/site packages/network, size/path/FIFO/symlink bounds, exclusive and failed publication, nested immutability, digest tampering and invalid rehashed payloads, timing/identity/units, candle coverage/gaps/revisions, exact warmup delivery, and generator parameter validity. Real controller tests reproduce identical 501-frame trades/indicators despite changed pacing and unrelated randomness, and all four real optimizers preserve common-window account results and offspring. A fully validated provider-shaped generated test bundle is refused by ReplayFeed; no paid provider data is acquired. EOF exposes no fresh fallback marks. Dataset identity survives JSON persistence in the offline repository recorder. Independent review found and fixed incomplete warmup checks, variance overflow admission, and unbounded directory enumeration.
 
 **Release boundary:** read-only target verification matches GitHub TOOTRJ/TheDashboard / 1141090963, Vercel the-dashboard / prj_wFUe9k9USVreOQcmQKNWRAVsx5fH / team_8iNNxiNjrOseD4gdSCHkQEzF, and Supabase The Dashboard / fxpxsciltakyypunglzr / cqfnnaunmupdyobkyqfo (ACTIVE_HEALTHY). Baseline PR #19 merge 3ac7e8e85440788e01713626162beab579363665 is READY as dpl_JBDRog6Kj5yFPxpLBDydi4gw9pXG. This section's PR records exact source, preview, merge, production and read-only smoke evidence. No migration, live provider collection, worker/colony start, shared credential change, wallet action or other-project edit is required. The worker remains unhosted; a dashboard deployment does not execute it.
+
+## 27. USD reference execution accounting (2026-09-30)
+
+**Scope:** FILL-01A integrates a versioned, immutable percentage-cost scenario into
+actual Probe/Genesis operation, persistence and dashboard reporting. The
+[execution contract](services/vonneumann/EXECUTION-CONTRACT.md) defines the math,
+units, timing, limitations and dated primary research. This is hypothetical USD
+reference accounting for simulation/paper observations. It is not USDC settlement,
+a calibrated Solana fill simulator or authorization to submit transactions.
+
+Entries spend an all-in budget with explicit acquired quantity, invested notional,
+fee and adverse spread/slippage adjustments. Holdings are valued by quantity;
+entry fees are excluded from invested principal. Every exit
+uses the same validated calculator. Terminal loss is an explicit write-off without
+an invented exit fee. Trade JSON preserves reference/fill prices and gross/net
+results; event/database P&L is no longer display-rounded. Existing pnl_pct storage
+uses percentage points while the internal return remains a fraction.
+
+Completed cohorts now liquidate before scoring, so final fees reduce fitness/ROI
+and cash. Costs can trip the account breaker before another queued entry, sibling
+probe or replacement birth. Pure preflight and already-applied event preservation
+remain intact. Stop/take-profit triggers use reference movement from entry;
+execution adjustments affect proceeds, so a triggered take-profit need not produce
+a net profit. Cost assumptions are outside the evolvable genes.
+
+The dashboard adds run-level cost controls and a policy notice, a per-trade cost
+breakdown, explicit cash versus recorded equity/ROI, and meaningful tiny-price
+formatting. Known-version records must reconcile before being displayed as
+validated accounting; legacy records remain unclassified. Synthetic/reference
+quotes are no longer unconditionally labeled live. Return diagnostics retain the
+existing immutable pre-decision sampling policy: final liquidation costs can fall
+after the last sample, although net P&L, ROI and fitness include them. Metadata and
+the detail view disclose this; FILL-01B tracks a deeper sampling-policy review.
+
+**Independent verification:** 608 offline worker tests pass, including 13 pure
+calculator tests and 14 integration tests. Independent Decimal fixtures reconcile
+cash/quantity/costs; tests cover invalid numeric/config values, write-offs,
+preflight purity, all exit paths, full-precision persistence, immediate risk
+precedence, and all four real optimizers over four paid-trade generations.
+Original synthetic input and immutable replay produce identical trades, offspring
+and final balances; reserve plus active cash reconciles with recorded net P&L.
+An existing isolated cash-pooling fixture now uses a 60% breaker limit so its 50%
+loss can test pooling rather than the new allocation checkpoint's 30% halt.
+
+**Database plan:** one nullable `vn_trades.execution JSONB` column, no backfill or
+existing-row reinterpretation. Target verification again confirmed GitHub
+TOOTRJ/TheDashboard (1141090963), Vercel the-dashboard
+(prj_wFUe9k9USVreOQcmQKNWRAVsx5fH / team_8iNNxiNjrOseD4gdSCHkQEzF), and Supabase
+The Dashboard (fxpxsciltakyypunglzr / cqfnnaunmupdyobkyqfo). Read-only catalog
+preflight found thirteen applied migrations and no execution column. The linked
+dry run selected only `20260930030000_vonneumann_execution_accounting.sql`.
+A task-owned PostgreSQL 17.6 container with no network/ports exercised the exact
+migration under lock contention (5.05-second timeout with no schema change), then
+successful application, DO-block rollback on injected failure, preservation of
+legacy NULL/security, the copied-schema contract, and three exact Python → JSONB
+→ Python execution round trips including tiny prices and large finite ratios.
+See [migration plan](supabase/MIGRATION-PLAN.md) for release and rollback procedure.
+
+**Research/setup boundaries:** no provider dataset was acquired. Account-specific
+retention, combination, backtesting and redistribution rights remain unresolved;
+the user has been asked for applicable terms or written permission. Zero-cost
+runs are explicitly frictionless mechanics controls, not empirical estimates.
+FILL-01 remains open for calibrated impact/latency/rejection/on-chain fees/token
+precision/FX. The new JSON is not an atomic ledger or restart checkpoint. The
+[next durability plan](services/vonneumann/PERSISTENCE-RECOVERY-PLAN.md) prioritizes
+fenced interruption and transactional idempotency before restoration or hosting.
+The Python worker remains unhosted. Other projects, shared credentials, Claude
+configuration/processes and the user's edited historical migration are preserved.
+
+**Verified migration and frontend checks:** the exact forward migration applied
+successfully to The Dashboard only. The ledger now has fourteen versions and the
+linked dry run reports no pending migration. Before/after comparison found exactly
+one added nullable JSONB column; all captured policies, RLS flags, triggers,
+constraints, indexes and prior column definitions are unchanged. The temporary
+copied-schema contract passes, and the privileged zero-row PostgREST read of
+`vn_trades.execution` returns HTTP 200 with no rows. No application/auth records
+were used as fixtures. All 90 frontend tests, TypeScript and the isolated Next.js
+production build pass; broad lint reports zero errors and 33 existing warnings.

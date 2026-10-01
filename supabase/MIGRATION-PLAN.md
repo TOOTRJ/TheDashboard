@@ -125,3 +125,43 @@ Apply using the verified link and explicit repository workdir, without include-a
 Execution evidence is recorded in configuration report section 17 and the release PR after verification.
 
 **Applied and verified:** migration version `20260930020000` is present, the thirteen-version ledger is current, and no migration remains pending. Exactly the two metadata additions and two nullability relaxations occurred. Catalog security/other definitions are unchanged; copied-schema contract and zero-row API schema visibility checks pass. No application rows were used. Keep all applied files unchanged. Linked CLI checks must run sequentially because the temporary database login can be refreshed by another command for this project.
+
+
+## Execution accounting follow-up — 20260930030000
+
+The only authorized target remains **The Dashboard / fxpxsciltakyypunglzr /
+cqfnnaunmupdyobkyqfo**. Add one nullable JSONB column, `public.vn_trades.execution`,
+without a default or backfill. Existing records retain NULL. No policy, grant,
+trigger, constraint, index, application row or historical migration changes.
+
+Local rehearsal uses a task-owned PostgreSQL 17.6 container with no network or
+published ports, based on the already installed Supabase image digest
+`sha256:965e2dfb5a23a0d6541b6106541e777b303656ebabd4e878746b189d550c0a66`.
+The exact migration failed on a deliberately held table lock after **5.05 seconds**
+and left the schema unchanged. After release, it applied successfully, preserved
+legacy NULL/security metadata, and a subsequent injected DO-block failure rolled
+back its earlier DDL. This proves the DO operation and lock-wait limit locally;
+it does not prove a total CLI deadline or remote CLI/history failure atomicity.
+
+Before remote application, reverify the exact project/name/owner and linked ref,
+compare the five worker tables' catalog/security metadata, and require the dry
+run pending set to contain exactly `20260930030000_vonneumann_execution_accounting.sql`.
+Use sequential `supabase db push --linked` with the explicit repository workdir;
+no include-all/seed/roles, link/login, or alternate database URL. Stop on drift.
+Afterward, verify one new history entry and exactly one new nullable JSONB column,
+with all other captured definitions unchanged. Run the temporary-table
+`supabase/tests/execution_accounting.sql` contract and an authenticated zero-row
+PostgREST read of `vn_trades.execution`. Neither is a production application-row
+fixture or an RLS/end-to-end worker test.
+
+Rollback: retain the additive column and its historical records; roll back the
+application independently if needed. Do not drop stored execution data or invent
+legacy metadata. Worker deployment/recovery and atomic event accounting remain
+separate gates. Actual application evidence is recorded in configuration report
+section 27 after verification.
+
+**Applied and verified:** version `20260930030000` is present among fourteen
+applied versions; no migration remains pending. Exactly the intended nullable
+JSONB column was added. Other catalog/security definitions are unchanged. The
+temporary copied-schema contract and zero-row PostgREST read pass. No production
+application/auth rows were changed. Preserve the applied file unchanged.

@@ -4,6 +4,7 @@ import fs from "node:fs";
 import vm from "node:vm";
 import ts from "typescript";
 import * as transport from "../src/lib/probes/transport.ts";
+import * as execution from "../src/lib/probes/execution.ts";
 
 const read = (path) => fs.readFileSync(new URL(path, import.meta.url), "utf8");
 const plain = (value) => JSON.parse(JSON.stringify(value));
@@ -190,6 +191,7 @@ test("actual page rejects other-colony events before invalidating reads or relea
 });
 
 const uiModules = {
+  "@/lib/probes/execution": execution,
   "react/jsx-runtime": { jsx, jsxs: jsx, Fragment: "Fragment" },
   "lucide-react": components("Clock", "Skull", "Sparkles"),
   "@/components/ui/card": components("Card", "CardHeader", "CardContent"),

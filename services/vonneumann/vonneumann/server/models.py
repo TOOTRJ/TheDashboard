@@ -8,6 +8,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 
 from ..core.colony_config import ColonyConfig, GeneOverride, PRESET_CONFIGS
 from ..core.search_random import validate_search_seed
+from ..core.execution import ExecutionConfig
 from ..core.gene_registry import GENE_REGISTRY
 from ..core.genome import AVAILABLE_ASSETS
 from ..core.strategies import list_strategies
@@ -65,7 +66,20 @@ class ColonyConfigModel(StrictModel):
         return value
 
 
+class ExecutionModel(StrictModel):
+    fee_bps: float = Field(ge=0, lt=10_000)
+    half_spread_bps: float = Field(ge=0, lt=10_000)
+    slippage_bps: float = Field(ge=0, lt=10_000)
+
+    @model_validator(mode="after")
+    def valid_costs(self):
+        ExecutionConfig(**self.model_dump())
+        return self
+
+
 class StartRequest(StrictModel):
+    execution: ExecutionModel = Field(default_factory=lambda: ExecutionModel(
+        fee_bps=0.0, half_spread_bps=0.0, slippage_bps=0.0))
     search_seed: str = Field(default="0", max_length=20)
     mode: Literal["simulation", "paper"] = "simulation"
     strategy: str = Field(default="genetic_algorithm", min_length=1, max_length=64)

@@ -5,6 +5,7 @@ import vm from "node:vm";
 import ts from "typescript";
 import * as registry from "../src/lib/probes/gene-registry.ts";
 import * as transport from "../src/lib/probes/transport.ts";
+import * as execution from "../src/lib/probes/execution.ts";
 
 function loadModule(path, modules, globals = {}) {
   const exports = {};
@@ -21,7 +22,7 @@ function loadModule(path, modules, globals = {}) {
   return exports;
 }
 const lifecycle = loadModule("../src/lib/probes/lifecycle.ts", {});
-const configs = loadModule("../src/lib/probes/colony-config.ts", { "./gene-registry": registry, "./transport": transport });
+const configs = loadModule("../src/lib/probes/colony-config.ts", { "./gene-registry": registry, "./execution": execution, "./transport": transport });
 const valid = () => configs.buildDefaultStartConfig();
 const plain = (value) => JSON.parse(JSON.stringify(value));
 
@@ -42,7 +43,7 @@ function databaseHarness(responses) {
     },
   };
   return { calls, api: loadModule("../src/lib/probes/probes-supabase.ts", {
-    "@/lib/supabase/client": { createClient: () => client }, "./transport": transport,
+    "@/lib/supabase/client": { createClient: () => client }, "./execution": execution, "./transport": transport,
   }) };
 }
 
@@ -145,11 +146,11 @@ test("overview uses reported marked total, guards nullable metrics, and never re
   const { ProbesOverview } = loadModule("../src/components/probes/ProbesOverview.tsx", {
     "react/jsx-runtime": { jsx, jsxs: jsx },
     "lucide-react": { Activity: "Activity", Dna: "Dna", DollarSign: "DollarSign", TrendingUp: "TrendingUp", Zap: "Zap" },
-    "@/lib/probes/transport": transport,
+    "@/lib/probes/transport": transport, "@/lib/probes/execution": execution,
     "@/components/ui/card": { Card: "Card", CardContent: "CardContent" },
   });
   const probes = [{ state: "TRADING", current_capital: 999, fitness_score: 1, generation: 0 }];
-  const status = { total_capital: 250, reserve_capital: 50, diversity: 0.2, valuation_available: true };
+  const status = { execution_policy: { version: "usd-reference-percentage-cost-v1", account_currency: "USD", valuation: "reference_mark", cost_assumptions: "uncalibrated_scenario", config: execution.defaultExecutionConfig() }, total_capital: 250, reserve_capital: 50, diversity: 0.2, valuation_available: true };
   const render = (systemStatus, valuationAvailable) => JSON.stringify(ProbesOverview({ probes, systemStatus, valuationAvailable }));
   assert.match(render(status), /\$250/);
   assert.match(render(status), /Last reported total/);
@@ -270,6 +271,7 @@ function pageHarness(initial = {}) {
     "lucide-react": { BookOpen: "BookOpen", Dna: "Dna" },
     "@/components/auth/AuthProvider": { useAuth: () => ({ user: { id: "user-A" }, session: { access_token: "token-A" }, loading: false }) },
     "@/components/probes/ProbesDashboard": { ProbesDashboard: "Dashboard" },
+    "@/components/probes/ExecutionPolicyNotice": { ExecutionPolicyNotice: "ExecutionPolicyNotice" },
     "@/components/ui/skeleton": { Skeleton: "Skeleton" },
     "@/lib/probes/probes-supabase": {
       fetchColonyRuns: () => dbRead(history()), fetchProbes: (id) => { assert.equal(id, "A"); return dbRead([{ id: "probe", current_capital: control.revision }]); },
@@ -277,7 +279,7 @@ function pageHarness(initial = {}) {
     },
     "@/lib/probes/websocket": { useProbesWebSocket: (_token, _user, callback) => { websocketMessage = callback; return { connected: true, error: null }; } },
     "@/lib/probes/constants": { VN_ENDPOINTS: { apiUrl: "https://offline.invalid", wsUrl: "wss://offline.invalid", error: null } },
-    "@/lib/probes/lifecycle": lifecycle,
+    "@/lib/probes/lifecycle": lifecycle, "@/lib/probes/execution": execution,
     "@/lib/probes/transport": { ...transport, requestWorker: worker },
     "@/lib/probes/colony-config": configs,
   };
@@ -415,7 +417,7 @@ test("probe details distinguish unavailable equity diagnostics from zero and leg
     "@/components/ui/card": { Card: "Card", CardContent: "CardContent", CardHeader: "CardHeader" },
     "@/components/ui/dialog": { Dialog: "Dialog", DialogContent: "DialogContent", DialogHeader: "DialogHeader", DialogTitle: "DialogTitle" },
     "@/lib/probes/constants": { STATE_COLORS: { TRADING: "#fff" }, STATE_LABELS: { TRADING: "Trading" } },
-    "@/lib/probes/lifecycle": lifecycle,
+    "@/lib/probes/lifecycle": lifecycle, "@/lib/probes/execution": execution,
     "@/lib/probes/gene-registry": { GENE_DEFINITIONS: [] },
     "./GenomeRadar": { GenomeRadar: "GenomeRadar" }, "./TradeLog": { TradeLog: "TradeLog" },
   });
@@ -427,7 +429,7 @@ test("probe details distinguish unavailable equity diagnostics from zero and leg
   assert.match(legacy, /legacy definitions/);
   assert.ok(!legacy.includes("Historical max drawdown"));
   assert.ok(!legacy.includes("Equity Sharpe (diagnostic)"));
-  const metrics = { fitness_version: "equity-roi-historical-dd-v1", current_drawdown: 0 };
+  const metrics = { fitness_version: "equity-roi-historical-dd-v1", current_drawdown: 0, accounting: { execution_policy: { version: "usd-reference-percentage-cost-v1", account_currency: "USD", valuation: "reference_mark", cost_assumptions: "uncalibrated_scenario", config: execution.defaultExecutionConfig() }, cash: 100, position_value: 0, equity: 100, roi: 0, valuation_available: true } };
   const missing = render({ metrics });
   assert.match(missing, /Unavailable/);
   assert.match(missing, /Historical max drawdown/);
@@ -798,7 +800,7 @@ test("launch labels and validation explain modeled evaluation minutes without ch
     "@/components/ui/switch": components(["Switch"]), "@/components/ui/slider": components(["Slider"]),
     "@/components/ui/tooltip": components(["Tooltip", "TooltipContent", "TooltipProvider", "TooltipTrigger"]),
     "@/lib/probes/gene-registry": registry, "@/lib/probes/colony-config": configs,
-    "@/lib/probes/transport": transport,
+    "@/lib/probes/transport": transport, "@/lib/probes/execution": execution,
     "@/lib/probes/constants": { STRATEGY_LABELS: { genetic_algorithm: "Genetic Algorithm" }, STRATEGY_DESCRIPTIONS: {}, VN_ENDPOINTS: { error: null } },
   });
   const result = JSON.stringify(ColonyConfigDialog({ open: true, onClose() {}, onStart() {}, starting: false }));
