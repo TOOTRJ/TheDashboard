@@ -823,3 +823,80 @@ actual deployment evidence in the PR. A reviewed revert restores code; no
 schema rollback is involved. Existing migration edits, Claude configuration,
 other projects and shared credentials are excluded. No provider acquisition,
 database write, hosted worker, wallet action or live trading is part of this release.
+
+## 32. Worker admission, tracked startup and truthful draining (2026-09-30)
+
+SVC-02A fixes an initial-insert/shutdown race: a start was invisible to the manager
+until its first write completed, so a late acknowledgement could launch after
+shutdown's snapshot. Both HTTP routes now reserve a manager-owned task before
+repository construction, retaining it through insert acknowledgement, preparation
+and compensation. Direct manager creation shares the same gate; duplicate IDs
+cannot overwrite task/controller/lock state. The default limit is 32 retained
+colonies, including starting/stopped/failed entries, without eviction. Constructor
+overrides are bounded integers 1–128; no new environment setting is required.
+
+Shutdown closes admission before awaiting, tracks accepted controls and sets a
+monotonic Genesis drain flag. Accepted batches can finish, but a pending resume
+or risk-recovery acknowledgement cannot enable another tick batch. One owned
+shutdown task and its original 40-second deadline are reused. Waiting returns
+pending work without cancelling it or freeing database write ownership. Each
+colony has one retained resource-close attempt; local cleanup waits can expire
+without losing that attempt or starting a second close. Failed cleanup or an
+unacknowledged required terminal write prevents a complete report even after
+all tasks finish. Lifespan cleanup runs in `finally` and raises a safe error on
+incomplete drain instead of logging success.
+
+An unacknowledged initial insert is retained as an owner-visible failure. Its
+compensating update changes status without supplying runtime details from an
+empty repository config cache, preserving a potentially committed configuration.
+No insert is retried. Acknowledged compensation and failed compensation have
+different persistence flags; positions/cash are retained without manufactured
+fills, death/reproduction scores or reserve credits.
+
+Public health remains the fixed liveness response. A new authenticated readiness
+route returns HTTP 503 with local admission and durable recovery unavailable,
+without owner IDs, run IDs, counts, limits or provider diagnostics. Only exact
+pre-admission 503 responses identify a launch as rejected before startup. The
+dashboard uses known local messages for those responses; all ambiguous or
+already-accepted failures retain uncertain-outcome guidance and never auto-retry.
+See [the lifecycle contract](services/vonneumann/WORKER-LIFECYCLE.md) for schemas,
+deadlines, primary asyncio/FastAPI references and remaining research.
+
+**Validation:** all **734 offline worker tests** and **103 frontend tests** pass.
+The 31 new worker tests comprise 16 admission/drain cases, ten HTTP/lifespan
+cases and five lifecycle regressions. They cover last-slot races, duplicate
+identities, initial/running acknowledgements crossing drain, cancellation-resistant
+preparation, repeated caller cancellation, real risk-recovery publication while
+draining, slow/failed resource closure, retained positions, and lost insert ACKs
+through the real repository with fake database I/O. Existing repository tests
+still prove write locks remain held through repeated cancellation. Independent
+review additionally cancelled successive shutdown callers while cleanup was
+blocked, confirming one drain/deadline and one startup cancellation. TypeScript
+and the isolated Next production build pass; broad lint has zero errors and
+33 pre-existing warnings. The build uses a temporary copy and fake credentials,
+without local environment files. No live worker, provider or database was used
+by the tests.
+
+**Next gate:** DB-03A must implement and rehearse database-time leases/fencing,
+idempotent journal/revisions, atomic economic boundaries and direct-write bypass
+restrictions against isolated real PostgreSQL before any target migration.
+Process-local drain is not recovery or multi-worker coordination. A host can
+still terminate pending work; no checkpoint restores it. Measure memory at the
+retained bound, shutdown/acknowledgement tails, transport timeouts and deployment
+grace periods before hosting. Shared paper polling/quota scheduling and historical
+data/production-solver acceptance remain open. Do not clear retained uncertainty
+by advising an unreviewed restart or increase limits to mask capacity issues.
+
+**Release targets and rollback:** reverified GitHub `TOOTRJ/TheDashboard` /
+`1141090963`; Vercel `the-dashboard` / `prj_wFUe9k9USVreOQcmQKNWRAVsx5fH` /
+team `team_8iNNxiNjrOseD4gdSCHkQEzF`; Supabase `The Dashboard` /
+`fxpxsciltakyypunglzr` / organization `cqfnnaunmupdyobkyqfo`, ACTIVE_HEALTHY.
+Existing READY production is `dpl_5Roe5Xfwfpp5uz13NdfxXa1Wrcro`, commit
+`f58381f0f02ea89f295e4b0d207c76b25bc45e10`. Publish a `codex/` PR, verify its
+exact source preview before merging, then verify production's merge SHA and
+the four read-only login/authentication/zero-row API smokes. Record actual
+deployment evidence in the PR. A reviewed revert restores code; no schema or
+environment rollback is involved. The frontend formatter is deployable through
+Vercel; Python source remains unhosted. Supabase schema/data/credentials, user
+migration edits, Claude configuration, shared tooling and other projects are
+unchanged. Live signing, funding, swaps and trading remain outside this release.

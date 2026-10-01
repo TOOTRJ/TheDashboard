@@ -111,6 +111,7 @@ test("colony history preserves persisted terminal diagnostics without exposing r
   assert.match(transport.formatColonyFailure("funding_capacity"), /exceeds the configured capacity/);
   assert.match(transport.formatColonyFailure("funding_invalid_plan"), /capital ledger is invalid/);
   assert.match(transport.formatColonyFailure("population_extinct"), /No active candidates remain/);
+  assert.match(transport.formatColonyFailure("worker_draining"), /Worker shutdown interrupted this colony/);
   assert.ok(!transport.formatColonyFailure("private-server-message").includes("private-server-message"));
 });
 

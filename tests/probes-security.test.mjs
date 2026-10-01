@@ -58,6 +58,96 @@ test("worker failures expose safe actionable messages instead of private respons
   }
 });
 
+test("explicit start admission rejections use local messages and never retry", async () => {
+  const messages = {
+    worker_draining: "The worker is shutting down and is not accepting new colonies. This launch was rejected before startup.",
+    worker_capacity: "The worker cannot accept another colony right now. This launch was rejected before startup.",
+  };
+  for (const path of ["/api/v1/colonies/", "/api/v1/simulation/start"]) {
+    for (const [code, message] of Object.entries(messages)) {
+      let calls = 0;
+      await assert.rejects(requestWorker(endpoints, "session", path, { method: "POST", body: {} }, async () => {
+        calls++;
+        return Response.json({ detail: { code, operation: "start", accepted: false } }, {
+          status: 503, headers: { "Retry-After": "0" },
+        });
+      }), error => error instanceof WorkerRequestError && error.status === 503 && error.message === message);
+      assert.equal(calls, 1);
+    }
+  }
+});
+
+test("unknown, malformed or ambiguous start failures retain the uncertain-operation warning", async () => {
+  const detail = { code: "worker_capacity", operation: "start", accepted: false };
+  const bodies = [
+    null, [], "private-token", {}, { detail: null }, { detail: [] },
+    { detail: { code: "worker_capacity" } },
+    { detail: { ...detail, code: "persistence_failed" } },
+    { detail: { ...detail, code: "private-token" } },
+    { detail: { ...detail, code: "constructor" } },
+    { detail: { ...detail, code: null } },
+    { detail: { ...detail, operation: "stop" } },
+    { detail: { ...detail, accepted: true } },
+    { detail: { ...detail, accepted: "false" } },
+    { detail: { ...detail, accepted: 0 } },
+    { detail: { ...detail, message: "private-token" } },
+    { detail: { ...detail, colony_id: "private-colony" } },
+    { detail: { ...detail, state_persisted: false } },
+    { detail, message: "private-token" },
+  ];
+  for (const body of bodies) {
+    let calls = 0;
+    await assert.rejects(requestWorker(endpoints, "session", "/api/v1/colonies/", { method: "POST" }, async () => {
+      calls++;
+      return Response.json(body, { status: 503 });
+    }), error => {
+      assert.equal(error.status, 503);
+      assert.match(error.message, /do not assume it started or stopped/);
+      assert.doesNotMatch(error.message, /private-|rejected before startup/);
+      return true;
+    });
+    assert.equal(calls, 1);
+  }
+  for (const raw of ["private-token", '{"detail":']) {
+    await assert.rejects(requestWorker(endpoints, "session", "/api/v1/simulation/start", { method: "POST" },
+      async () => new Response(raw, { status: 503 })), error => {
+      assert.match(error.message, /do not assume it started or stopped/);
+      assert.doesNotMatch(error.message, /private-token/);
+      return true;
+    });
+  }
+});
+
+test("admission response markers cannot relabel another operation or status as an unstarted launch", async () => {
+  const body = { detail: { code: "worker_draining", operation: "start", accepted: false } };
+  for (const [path, options] of [
+    ["/api/v1/colonies/", {}],
+    ["/api/v1/colonies/", { method: "GET" }],
+    ["/api/v1/simulation/start", { method: "GET" }],
+    ["/api/v1/colonies", { method: "POST" }],
+    ["/api/v1/simulation/start/", { method: "POST" }],
+    [colonyPath("A", "stop"), { method: "POST" }],
+    [colonyPath("A", "resume"), { method: "POST" }],
+    [colonyPath("A", "recover"), { method: "POST" }],
+  ]) {
+    await assert.rejects(requestWorker(endpoints, "session", path, options,
+      async () => Response.json(body, { status: 503 })), error => {
+      assert.equal(error.status, 503);
+      assert.match(error.message, /do not assume it started or stopped/);
+      assert.doesNotMatch(error.message, /rejected before startup/);
+      return true;
+    });
+  }
+  for (const status of [401, 404, 409, 422, 500]) {
+    await assert.rejects(requestWorker(endpoints, "session", "/api/v1/colonies/", { method: "POST" },
+      async () => Response.json(body, { status })), error => {
+      assert.equal(error.status, status);
+      assert.doesNotMatch(error.message, /rejected before startup/);
+      return true;
+    });
+  }
+});
+
 test("only events with the exact selected colony are accepted, including status and lifecycle events", () => {
   for (const type of ["probe_born", "probe_update", "probe_dying", "probe_reproducing", "simulation_status", "generation_complete", "price_update"]) {
     assert.equal(belongsToSelectedColony({ type, colony_id: "A", data: {} }, "A"), true);
