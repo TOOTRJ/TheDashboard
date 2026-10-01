@@ -745,3 +745,81 @@ larger datasets need streaming ledgers and measured memory limits. DB-03A/SVC-02
 still gate unattended hosting; this local result bundle is not worker recovery,
 a transactional database event ledger or writer fencing. No provider dataset,
 API key, migration, wallet action or live trading was changed or initiated.
+
+## 31. Equal-budget reference GA comparison and next worker prerequisites (2026-09-30)
+
+BASE-03B adds a deliberately small discrete reference GA to the existing offline
+EMA evaluator. Random search and GA share the twenty-point domain, training
+objective, first four seeded candidates and exact logical request budget. The
+GA has a fixed four-member population, binary tournaments, uniform crossover,
+0.25 mutation probability per locus and one elite plus three requested children.
+Duplicates consume requests; copied elites are separately counted reuse. Partial
+generations can improve best-seen fitness without changing their parent pool or
+exceeding the budget. These are declared mechanics settings, not tuned trading
+parameters. The deployed worker's production optimizer is unchanged.
+
+Each selector sees only requested finite, stationary scalar training fitness.
+The runner adds oracle regret, optimum-fitness/canonical-winner hits and the
+paired fitness difference only after both searches finish. This distinguishes
+fitness ties from candidate identity. Search traces stop at the chosen budget;
+the random permutation's remaining order is metadata only. All training scores
+come from the separate twenty-grid/four-control benchmark: every request is a
+cache read, with zero additional market replay and no claimed runtime saving.
+The deduplicated GA/random/grid winners and fixed controls get fresh holdout
+accounts. No holdout ranking or parameter adjustment occurs.
+
+Engine version is `ema-grid-mechanics-v2`, including the new search module's
+source hash. The generic artifact envelope and strict config shape remain
+version 1. Existing `random_seed`/`random_budget` fields govern both algorithms;
+CLI help explains this. Old artifacts remain readable but require their original
+source/runtime for full replay. See [the contract and current primary research](services/vonneumann/OFFLINE-RESEARCH.md).
+
+**Verification:** all **703 worker tests pass** (19 new tests: 16 search, two
+runner and one CLI), plus the strengthened enormous-integer fitness validation
+case. The independent search suite checks budgets 1–20, shared initialization,
+prefix consistency, duplicate charges, partial-generation parent eligibility,
+mutation threshold and best-seen/tie behavior. Making an unvisited candidate
+uniquely optimal leaves the GA trace unchanged, while exhaustive random coverage
+finds it. Existing holdout-suffix, accounting and fresh-process offline checks
+continue to pass. Rehashed search/diagnostic tampering fails full CLI replay.
+A separate read-only review exercised 800 seed/algorithm/budget cases without
+finding a budget or ranking defect. No frontend runtime or dependency changed;
+the exact automatic Vercel builds remain release checks.
+
+The prespecified default smoke reuses the 3,795-frame seed-42 synthetic fixture,
+15-minute candles, 1,440-minute train/holdout windows, search seed 0/budget 10 and
+hypothetical 5/5/10-bps fee/half-spread/slippage. It produces 24 training accounts,
+six deduplicated holdout accounts, **43,230 ledger rows**, 47 closed trades and an
+11,777,190-byte result. A separate CLI verification reproduced the whole payload:
+dataset `0686b0dd5fdbad56cf9ac1b2ccef704375385d615955ea88d8fe2f7f8a9a50e9`,
+result `c080d682eb6547b410d2cab25a2ca0d9a7a0b469203b0e7716849f1dc3cdd809`.
+Random visited ten unique pairs and selected the grid optimum `ema-08-30`.
+GA visited six unique pairs plus four duplicates and selected `ema-03-20`, with
+training fitness lower by approximately 0.0200088 objective units. This is one
+synthetic mechanics outcome, not a superiority or historical-profitability test.
+No seed/settings were changed to improve that result.
+
+**Next prerequisites:** SVC-02A admission/startup tracking/drain is the next local
+batch; then DB-03A needs real isolated PostgreSQL tests and a complete fenced
+write cutover. The read-only review confirmed in-memory-only ownership, separate
+economic writes, untracked preparation during drain, retained controller growth
+and an empty repository config cache that cannot safely rewrite old-run details.
+A lease-only patch cannot protect paths that still write directly. DATA-01C can
+prepare importer/provenance fixtures now; actual acquisition needs the separate
+Birdeye rights/entitlements and a concrete shared-credit budget. Jupiter retention
+permission remains accepted. Paired multi-seed, historical availability/cost,
+initialization bias and production-solver adapter research remain explicit open
+tasks before adding genes or claiming an economic result.
+
+**Verified release targets:** GitHub `TOOTRJ/TheDashboard` / `1141090963`;
+Vercel `the-dashboard` / `prj_wFUe9k9USVreOQcmQKNWRAVsx5fH` /
+team `team_8iNNxiNjrOseD4gdSCHkQEzF`; Supabase `The Dashboard` /
+`fxpxsciltakyypunglzr` / organization `cqfnnaunmupdyobkyqfo`, ACTIVE_HEALTHY.
+The current READY production rollback point is `dpl_G5ygYM6s5yCENuD4kGskSb8fhtPv`,
+merge `2e7eaf719d945ceb83362995e7dfea33caaf90f2`. Publish a `codex/` PR, verify
+the exact source preview, merge the checked head, then verify the production
+alias's exact merge SHA and four read-only authentication/API smokes. Record
+actual deployment evidence in the PR. A reviewed revert restores code; no
+schema rollback is involved. Existing migration edits, Claude configuration,
+other projects and shared credentials are excluded. No provider acquisition,
+database write, hosted worker, wallet action or live trading is part of this release.

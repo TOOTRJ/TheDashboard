@@ -1,6 +1,6 @@
-# Offline EMA grid and control comparisons
+# Offline EMA grid, genetic search and control comparisons
 
-Implemented 2026-09-30 as BASE-02A / BASE-03A. This is a **synthetic mechanics
+Implemented 2026-09-30 as BASE-02A / BASE-03A / BASE-03B. This is a **synthetic mechanics
 experiment**, not a historical backtest or evidence of a profitable strategy.
 It needs no provider credentials, database, running worker, wallet or network.
 The dashboard does not launch it; use the isolated worker Python environment.
@@ -73,17 +73,49 @@ candidate ID. No Sharpe statistic is used or reported. This avoids presenting th
 existing engine's pre-decision return diagnostic as a complete net-cost return
 series. The selected training winner need not outperform cash or passive holding.
 
-A private seeded permutation samples the same grid without replacement. The
-report records the full order, best score after each budget from 1–20, a
-prespecified selection budget (default 10), unique trials and score-cache hits.
-It reuses the exhaustive training evaluations rather than rerunning identical
-accounts. At budget 20, equality with the exhaustive result is guaranteed by
-construction; this is not a claim of optimizer superiority. Smaller-budget
-prefixes show search progress; comparing a ten-trial result with a twenty-trial
-result must retain their unequal budgets.
+A private seeded permutation samples the same grid without replacement. A small
+reference GA uses the same grid and initial four candidates. Both stop at the
+same prespecified logical request budget (default 10, allowed 1–20), and record
+best-so-far results only through that budget. The full random permutation remains
+metadata; scores beyond the configured prefix are not exposed to that search.
+Both access the immutable exhaustive training cache through a scalar callback,
+without the full score table, oracle optimum or holdout evidence.
+
+The GA policy is fixed before evaluation:
+
+| Component | Policy |
+| --- | --- |
+| Population | Four; budgets below four stop during shared initialization |
+| Selection | Binary tournament over distinct population slots, fitness descending, then candidate ID and slot ascending |
+| Crossover | Independently choose each locus from either selected parent |
+| Mutation | Probability 0.25 per locus; uniformly select another legal grid level |
+| Replacement | One copied elite and three requested children; parents stay frozen during the generation |
+| Duplicates | Allowed and charged one request each; no forced unseen-candidate fallback |
+| Partial generation | Evaluated children can improve the incumbent; incomplete population is never used for parent selection |
+| Stopping | Check before each callback; no budget overshoot or adaptive stopping |
+
+The population and mutation settings are local mechanics choices, not tuned or
+recommended trading hyperparameters. This reference GA does **not** replace or
+benchmark the production worker's full solver, funding or reproduction lifecycle.
+That integration needs its own exact-domain adapter and acceptance evidence.
+
+Each trace records requested ID, returned fitness, initialization/offspring phase,
+parents, mutated loci, duplicate status and incumbent. Score-cache reads count
+every logical request; unique candidates and duplicates are separate. Copied
+elite scores are free reuse, explicitly counted. Both searches perform zero
+additional market replays: the runner has already evaluated 20 grid accounts
+and four controls. Equal logical budgets are not a measured runtime saving or
+equal numbers of unique candidates.
+
+Only after both searches stop does the runner add the fitness gap to the grid
+optimum, optimum-fitness hit, canonical-winner hit and GA-minus-random fitness.
+A different candidate can tie the optimum with zero gap. Fitness gaps are in
+objective units, not return percentages. Random at budget 20 equals exhaustive
+search by construction; GA can revisit candidates and miss the optimum even at
+20. The harness accepts an underperforming GA result without changing its policy.
 
 The complete training ledger is hashed before holdout decisions. Only the grid
-winner, the random-prefix winner and the four prespecified controls proceed to
+winner, the random winner, the GA winner and the four prespecified controls proceed to
 holdout, with duplicate winners evaluated once. Holdout results remain separate;
 there is no holdout ranking or reselection. Changing only the dataset suffix
 cannot change prior trading, training liquidation or winner selection. Choosing
@@ -128,6 +160,14 @@ hashes still fails replay verification. Changed source/runtime versions also fai
 exact reproduction. Hashes and replay consistency do not establish authentic
 market data or correctness beyond the tested model.
 
+BASE-03B bumps the engine to `ema-grid-mechanics-v2` and fingerprints the search
+module. The generic `ema-research-v1` payload and artifact envelope remain valid;
+the strict configuration field set is unchanged. Existing `random_seed` and
+`random_budget` names now govern both paired searches. Version 1 artifacts remain
+readable, but full replay needs their original source/runtime. Version 2 does
+not claim byte compatibility: random convergence now ends at the selected budget
+and GA evidence/holdout candidates are included. Do not overwrite old artifacts.
+
 ## Run in an isolated Python environment
 
 From the repository root, activate the project's reviewed worker Python 3.12
@@ -153,6 +193,8 @@ training selections and separate holdout summaries. Provider, database, server
 configuration and environment-loading imports are not needed. Tests invoke the
 real command in fresh processes with network/import guards and no credentials.
 Zero cost defaults are explicit frictionless mechanics controls, not estimates.
+`--random-seed` controls shared initialization and separate private GA offspring
+randomness; `--random-budget` is the equal logical budget for both algorithms.
 
 ## Remaining gates and deeper research
 
@@ -163,9 +205,14 @@ No historical performance claim follows from this synthetic experiment. The
 existing 10,000-frame cap spans less than seven modeled days; larger archives
 need streaming result ledgers, capacity measurements and a reviewed data model.
 
-Before adding a GA comparison, independently validate the evaluator and choose
-equal search domains/budgets. Preserve all attempted settings/seeds and failed
-runs, not just winners. Research EMA initialization sensitivity with longer
+The equal-domain/budget reference GA comparison now has independent regression
+coverage, including unseen-score isolation, all budget prefixes and partial
+generations. Before drawing search-quality conclusions, predeclare a paired
+multi-seed protocol, representative historical windows, failure accounting and
+uncertainty summaries. Preserve all attempted settings/seeds and failed runs,
+not just winners. Research logical versus unique-evaluation budgets, duplication
+cost, initialization/population bias, and integration with the repaired worker
+solver before adopting a library or adding genes. Research EMA initialization sensitivity with longer
 prehistory, chronological/regime coverage, serial dependence, holdout reuse and
 multiple-testing corrections. Do not assume twenty correlated candidates are
 independent trials or that a deflated-Sharpe/PBO formula is automatically valid.
@@ -177,6 +224,8 @@ Primary research supporting these boundaries, reviewed 2026-09-30:
 - [Freqtrade recursive analysis](https://docs.freqtrade.io/en/stable/recursive-analysis/): indicator initialization sensitivity; 61 bars is a reproducibility convention, not a convergence guarantee.
 - [Freqtrade backtesting](https://www.freqtrade.io/en/stable/backtesting/): make execution and forced terminal closures explicit; its fill rules are not copied here.
 - [Bailey et al., Probability of Backtest Overfitting](https://www.davidhbailey.com/dhbpapers/backtest-prob.pdf) and [Bailey/López de Prado, Deflated Sharpe Ratio](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2460551): selection/multiple-testing risks requiring deeper methodology work before empirical conclusions.
+- [pymoo termination](https://pymoo.org/interface/termination.html) separates evaluation limits from generation limits; this implementation enforces its local request limit before every callback.
+- [pymoo GA](https://pymoo.org/algorithms/soo/ga.html) exposes duplicate elimination as an explicit choice, while [DEAP algorithms](https://deap.readthedocs.io/en/master/api/algo.html) separates selection, variation and fitness evaluation. These are methodological references; no dependency or third-party implementation is copied into this bounded reference search.
 
 DB-03A/SVC-02 remain prerequisites for unattended worker hosting. This local file
 ledger supplies offline experiment evidence; it does not implement the worker's

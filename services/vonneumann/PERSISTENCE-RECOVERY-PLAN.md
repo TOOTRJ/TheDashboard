@@ -12,6 +12,25 @@ The cash reserve, exact account transitions, signal cursors, shared indicator st
 
 ## Recommended first durability release
 
+The immediate local precursor is **SVC-02A**: serialize start admission, latch
+draining, track preparation tasks before they become running controllers, and
+bound retained-controller admission. Current shutdown only considers prepared
+controllers; startup, pending acknowledgements and partial feed creation need
+explicit race tests. Preserve unresolved state rather than evicting it. A drain
+deadline must report uncertainty without releasing a still-running persistence
+operation's ownership. Health must distinguish process liveness and local
+admission from durable database readiness. This precursor needs no account or
+hosting setup and does not satisfy the database fencing gate below.
+
+Then prepare the fenced command/revision/journal contract against isolated real
+PostgreSQL connections and roles, followed by repository/engine integration as
+one complete write-boundary cutover. Do not ship a lease-only shim while direct
+service-role or authenticated-owner writes can bypass it. Existing normal-stop
+feed cleanup is already implemented; extend its failure/race coverage rather
+than replacing it wholesale. Shared provider polling comes after local lifecycle
+safety and needs immutable observations plus per-colony delivery cursors. Never
+couple synthetic clocks by sharing a mutable simulation feed.
+
 Implement fenced interruption and inspection before attempting resume:
 
 1. Introduce a durable lease/run-state record keyed by colony and owner, with worker-instance UUID, monotonically increasing fencing token, database-time lease expiry/heartbeat and committed state revision. A newly created run obtains its lease atomically with creation. Heartbeat loss blocks subsequent authoritative writes and decisions.
