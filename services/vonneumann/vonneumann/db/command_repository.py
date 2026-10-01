@@ -115,6 +115,7 @@ class CommandRepository:
         self._revision = 0
         self._fence: int | None = None
         self._status: str | None = None
+        self._command_version: int | None = None
         self._pending: PreparedCommand | None = None
         self._uncertain = False
         self._admission_open = True
@@ -147,6 +148,10 @@ class CommandRepository:
     @property
     def status(self) -> str | None:
         return self._status
+
+    @property
+    def command_version(self) -> int | None:
+        return self._command_version
 
     @property
     def pending(self) -> PreparedCommand | None:
@@ -258,6 +263,8 @@ class CommandRepository:
             if self._status in ("stopped", "failed"):
                 raise CommandAdmissionError("run is terminal")
             if command.kind == "batch":
+                if command.expected_request["payload"]["version"] != self._command_version:
+                    raise CommandAdmissionError("command version does not match this run")
                 if command.fence != self._fence or not self.lease_valid:
                     raise CommandAdmissionError("a current acknowledged lease is required")
         # No await occurs between admission and recording/owning the attempt.
@@ -317,6 +324,8 @@ class CommandRepository:
         return CommandReceipt(command, _json_bytes(response))
 
     def _adopt(self, receipt: CommandReceipt) -> None:
+        if receipt.command.kind == "create":
+            self._command_version = receipt.command.expected_request["config"].get("durability_contract_version", 1)
         self._revision = receipt.revision
         self._fence = receipt.fence
         self._status = receipt.status

@@ -1,4 +1,4 @@
-# DB-03A1: isolated fenced transaction contract
+# DB-03A: isolated fenced transaction contract
 
 This directory is an **executable design rehearsal**, not a Supabase migration.
 The application does not load this SQL. It does not repair production persistence
@@ -75,7 +75,7 @@ must set statement/idle-transaction timeouts and must not make trading decisions
 from an uncommitted result. Passing a lease check does not grant authority for
 later independent work.
 
-## Typed batch operations
+## Version 1 batch operations
 
 `payload` has exactly `{"version":1,"operations":[...]}`. There must be 1–256
 operations and at most 256 KiB of PostgreSQL JSONB text. Every operation has
@@ -116,6 +116,76 @@ This is a PostgreSQL-17 protocol representation, not a promise of cross-language
 JSON canonicalization. A versioned client encoder and cross-version hash
 fixtures are required before runtime use.
 
+## Version 2: exact execution and optimizer-source evidence
+
+DB-03A2B extends only this isolated fixture. Version 1 retains its original
+shape and limits; it is not reinterpreted as exact execution evidence. V2 runs
+declare `durability_contract_version: 2` and a complete execution policy in
+their original immutable configuration. Batches must match that run version.
+There is no v1 downgrade path that can skip v2 checks.
+V1 remains here for explicit fixture regression compatibility. That does not
+authorize retaining a weaker production mutation API during the later cutover.
+
+V2 keeps the 256 KiB JSONB payload cap and allows at most 1,024 operations. The
+higher operation bound accommodates a 100-member replacement with retirements,
+births and a distribution record without splitting an atomic transition. The
+byte cap remains authoritative: many open positions or complete future
+cohort/metric metadata may still exceed it. Full-engine planning must preflight
+the entire batch and establish supported capacity; never split a replacement
+to evade the limit.
+
+Open operations add `execution` containing the canonical `EntryPlan` evidence;
+close operations add the canonical `ExitPlan`. The SQL independently recomputes
+the declared policy using scaled numeric integers, `div` and exact products,
+then checks the operation quantities/notional/fees and immutable run policy.
+The declared entry budget must fit current cash. Close evidence must reproduce
+the stored entry, so the worker cannot substitute another quantity or entry
+cost. Entry/exit records persist with the position and original command.
+See [the exact arithmetic policy](../EXECUTION-CONTRACT.md#exact-durable-policy-plans-db-03a2b-2026-10-01).
+These are accounting checks; provider truth, source freshness and actual
+market execution are still separate responsibilities.
+
+V2 birth replaces `parent_ids` with typed `lineage`, while a new `distribution`
+operation stores the ordered CMA cohort once:
+
+| Strategy | Preserved source roles |
+| --- | --- |
+| GA | Ordered genetic parents and actual clone/crossover/repair operation |
+| DE | Target, base, positive/negative difference donors and asset template; clones do not invent donor contributions |
+| PSO | Particle, optional distinct social influence, and asset template |
+| CMA | Shared ordered distribution evidence and a separate asset-template source; fixed clones retain their clone source |
+
+`core/lineage.py` validates an explicit ordered cohort, complete evaluations,
+algorithm metadata, flat source lists and preallocated child IDs before creating
+immutable bindings. It rejects missing or contradictory evidence instead of
+guessing roles from a generic parent list. Founder births are explicit and
+have no invented evaluated ancestry.
+
+Distribution records distinguish bootstrap from update and retain a previous
+distribution reference for updates. Membership order is preserved, duplicate
+members are rejected, and children reference the shared record. This avoids
+copying 100 source IDs into every child of a 100-member cohort. A distribution
+source is an evaluated input to the process, not a claim that all sources had
+equal weight or genetically crossed with the child. Actual optimizer state and
+selection/evaluation records remain part of the full DB-03A2C boundary.
+
+New distribution, ordered-member, account-lineage and role-binding projections
+use owner/run composite foreign keys and private write privileges. Source roles
+and cardinalities are validated; self, missing, foreign-owner and foreign-run
+sources fail. One source can occupy different appropriate roles without losing
+that distinction. Iteration strings are retained provenance, not database proof
+of completed cohort membership until real evaluation tables are integrated.
+The offline converter verifies the supplied evaluation evidence; the fixture
+cannot prove its external origin.
+
+All v2 metadata and economic changes share the original command transaction,
+revision and journal. Late invalid lineage or execution evidence rolls back
+earlier closes, retirements, reserve movements and source records together.
+The existing runtime's `parent_ids` already preserves all source IDs; it is
+their roles that need durable per-child storage. The worker/Genome/browser
+paths remain unchanged until the complete cutover, and no cloud migration is
+created or applied by this rehearsal.
+
 ## Privilege and identity boundary
 
 The fixture uses independent connections for `anon`, `authenticated`, and
@@ -154,6 +224,8 @@ review. No global/shared account role is changed by this rehearsal.
    evaluation membership/results/selection, generation state and source/code/
    cost-policy identities. Reconcile DB numeric values with the float engine
    explicitly; never round the ledger merely to satisfy this prototype.
+   DB-03A2B now supplies exact pure fill/account plans and typed optimizer
+   source evidence, but does not connect or convert the existing engine state.
    Integrate ENG-05 risk-trip identity, recovery acknowledgment and fresh-source
    evidence before introducing a risk-recovery command. Persist resolved genome
    limits and allowed assets before enforcing complete entry policy in SQL.
@@ -204,3 +276,8 @@ restoration, power-loss durability, host capacity, or trading profitability.
   `BYPASSRLS` does not replace object permissions; role bypass must be tested.
 - [Binary hash functions](https://www.postgresql.org/docs/17/functions-binarystring.html):
   the SHA-256 primitive used for stored request fingerprints.
+- [CMA evolution strategy](https://cma-es.github.io/) and the
+  [installed library's upstream project](https://github.com/CyberAgentAILab/cmaes):
+  a sampled distribution and its evaluated update inputs are different evidence
+  from genetic crossover parents. Recorded membership does not encode numerical
+  optimizer weights or a restorable solver checkpoint.

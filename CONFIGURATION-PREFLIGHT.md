@@ -1112,3 +1112,74 @@ PostgREST transaction-end/schema/JWT behavior, lease timing including host pause
 and clock behavior, role inheritance, journal retention/replay and versioned
 optimizer/checkpoint compatibility. DB-03A, durable readiness and hosting remain
 open. No worker, provider acquisition, wallet operation or live trading starts.
+
+## 35. Exact accounting and normalized optimizer lineage (DB-03A2B, 2026-10-01)
+
+**Scope:** added pure `usd-reference-decimal-v2` entry/exit plans, bounded cash
+calculations, v2 operation builders, typed optimizer ancestry and an extension of
+the isolated database rehearsal. No application engine, production transport,
+frontend behavior, dependencies or Supabase migration is changed. The current
+worker and offline research runner retain their existing v1 execution model.
+
+The new policy uses integer arithmetic with cash at 36 decimal places,
+price/quantity at 18 and basis-point settings at six. Buy prices and fees round
+up; sell prices and quantities round down. Every unspent budget unit remains
+cash. Canonical decimal-string evidence retains its original budget and is
+recomputed independently by Python and PostgreSQL. Closes bind to their stored
+entry, and a run's immutable policy/version prevents a v1 command from bypassing
+the new checks. Zero-credit positive-price fills remain distinct from explicit
+writeoffs. Bounds are checked before state installation. This is a provisional
+USD-reference research policy, not mint-specific settlement or calibrated fills.
+
+Lineage preserves GA genetic parents, DE target/base/difference sources, PSO
+particle/social inputs and CMA's complete ordered distribution membership. CMA
+membership is stored once per proposal, with children separately identifying
+their asset template. Completion order cannot change the original evaluation
+slot binding. Direct SQL rejects duplicate offspring slots, foreign owner/run
+sources and malformed identities. A prior distribution reference records
+provenance; it does not prove the optimizer checkpoint that produced an update.
+
+The representative normalized 100-member CMA replacement is 201 operations and
+57,829 bytes, inside the v2 limit of 1,024 operations and 262,144 bytes. That
+measurement excludes position evidence, genomes, metrics and checkpoints.
+DB-03A2C must bound the complete transition and reject oversize plans without
+truncating ancestry or splitting an atomic economic replacement.
+
+**Validation:** 858 ordinary worker tests pass, including 69 new tests across
+exact execution, economic builders, repository version binding, typed lineage
+and real 100-member GA/DE/PSO/CMA outputs. Normal discovery reports 864 tests and
+nine skips: six explicitly opt-in harness tests and three class-level PostgreSQL
+skips. Independent arithmetic checks use 120 rational-oracle cases and hostile
+Decimal contexts. Real-strategy tests include reversed callbacks, sorted JSON
+metadata, a second CMA generation and swapped evaluation identities. The
+separate PostgreSQL runner passes all 59 cases (46 existing and 13 new), covering
+real roles, rollback, canonical UUIDs, version/evidence tampering, minimum/maximum
+values, residuals and full CMA source membership. Release evidence is recorded
+in the PR. Tests use only
+disposable isolated local containers and fake identities. No new frontend test
+run is claimed for this worker-contract batch; the exact Vercel Git deployments
+are verified separately during release.
+
+**Verified targets and rollback:** GitHub `TOOTRJ/TheDashboard` (`1141090963`);
+Vercel `the-dashboard` (`prj_wFUe9k9USVreOQcmQKNWRAVsx5fH`), team
+`team_8iNNxiNjrOseD4gdSCHkQEzF` / `orderoftheredjester`; Supabase `The Dashboard`
+(`fxpxsciltakyypunglzr`), organization `cqfnnaunmupdyobkyqfo` / `Valentine Jester`,
+ACTIVE_HEALTHY. Local project pins and the canonical GitHub origin match.
+PR28 merge `d2ff15ab854cb45a1dcfb333897864e5935acb0e`, with READY production
+`dpl_9LYUoSqLgjy4j3yArJX1WqFHN8rA`, is the pre-release rollback baseline.
+Verify the exact source preview before merging, then the production merge/alias
+and four read-only authentication/API smokes. Record actual release evidence in
+the PR. A reviewed code revert is sufficient; no cloud schema, environment or
+data rollback is required. The historical colony-migration edit retains SHA-256
+`a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc` and is excluded.
+Other-project credentials, settings, tools and processes are preserved.
+
+**Next priority and deeper research:** DB-03A2C must stage complete economic,
+cohort, optimizer and RNG state before submission, install only the matching
+acknowledgment and retain uncertain candidates without another decision or
+optimizer tell. Research exact provider-value decoding, signal/fitness
+conversion, rounding impact over realistic ranges, checkpoint compatibility,
+distribution-state provenance and complete transition size. DB-03A2D then
+prepares the exact target's legacy inventory, production transport, grants,
+historical readback and archive/cutover plan; DB-03A3 proves the full flow before
+applying it. DB-03A2, durable readiness, restoration and hosting remain open.
