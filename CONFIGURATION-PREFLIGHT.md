@@ -900,3 +900,133 @@ environment rollback is involved. The frontend formatter is deployable through
 Vercel; Python source remains unhosted. Supabase schema/data/credentials, user
 migration edits, Claude configuration, shared tooling and other projects are
 unchanged. Live signing, funding, swaps and trading remain outside this release.
+
+## 33. Isolated database ownership and transaction rehearsal (2026-09-30)
+
+**Scope:** DB-03A1 implements an executable design contract in
+`services/vonneumann/db-contract/001_fenced_commands.sql`, outside Supabase's
+migration directory. No production runtime imports it. The fixture schema is
+`vn_durability` in a newly initialized disposable PostgreSQL cluster; existing
+`public.vn_*` projections and their write paths are unchanged. DB-03A, DB-02,
+full restart restoration, and worker hosting remain open.
+
+**Database boundary:** creation atomically records initial reserve, worker UUID,
+fence, database-time lease and command revision. Heartbeats and commands lock
+the run before checking `clock_timestamp()`; expired ownership cannot renew.
+Typed bounded batches atomically debit/credit reserve and account cash, open or
+close positions, retire accounts and change lifecycle while recording one
+immutable request/result/hash at a unique revision. Later operation failure
+rolls back the whole batch. A partial unique index permits only one open
+position per account/asset. Risk halts cannot be cleared or routed through pause;
+the rehearsal has no recovery operation without ENG-05 trip/freshness evidence.
+
+Exact decimal strings and PostgreSQL numeric avoid float serialization and
+silent rounding in these fixtures. The finite 10^36/36-decimal-place bounds,
+256-operation batch cap and 30-second lease are provisional contract parameters,
+not calibrated market or hosting recommendations. Server-side SHA-256 binds the
+PostgreSQL JSONB request text, including owner/run/command identities and applicable
+worker/fence/revision. Full request comparison rejects changed-ID reuse semantics;
+JSON key order/whitespace normalize, but decimal string spelling remains exact.
+A versioned engine serializer and precision policy are still required.
+
+Stable-ID read-only resolution remains available after lease loss. An absent
+journal entry while a request is in flight is explicitly inconclusive. Interruption
+advances the fence/revision and records `worker_interrupted` without changing
+configuration, reserve, accounts or positions. It does not resume, liquidate,
+reclaim capital or submit interrupted fitness. The journal supplies ordered
+committed evidence; WebSocket replay/deduplication is not yet implemented.
+
+**Isolation and security:** an opt-in runner pins the existing PostgreSQL 17.6
+image to its immutable local image ID and pins the local Docker Unix socket.
+Each test class uses a uniquely labeled container with no network, ports, host
+mounts or application credentials, a read-only image and bounded tmpfs/resources.
+`fsync` remains on. Actual independent anon/authenticated/service-role connections
+exercise RLS and object permissions; service_role has BYPASSRLS but no direct DML.
+Only explicit RPCs execute with a dedicated NOLOGIN owner's privileges. Fixed
+search paths, qualified objects and private helper grants prevent tested bypasses.
+The runner removes only its own exact labeled containers. Temporary storage and
+backend termination do not establish power-loss or production host durability.
+
+**Review findings repaired:** real close/retire tests exposed an invalid
+PL/pgSQL local-variable qualification; the close branch now uses an unambiguous
+name. Independent review demonstrated that a schema-only default EXECUTE revoke
+cannot remove the global PUBLIC default. The dedicated fixture owner's defaults
+now revoke PUBLIC execution globally, with a regression for later-created helpers.
+Current function grants are also explicitly revoked in the installation transaction.
+A separate installation marker prevents accidental manual execution; it confers
+no privilege and is not relied on for security. See the official
+[PostgreSQL privilege explanation](https://www.postgresql.org/docs/17/sql-alterdefaultprivileges.html)
+and [contract research references](services/vonneumann/db-contract/README.md).
+
+**Validation:** all 734 existing worker cases pass. Normal discovery also skips
+the six opt-in harness cases and the contract class without starting Docker.
+The separate explicit PostgreSQL runner passes all **41 cases** (35 contract,
+six harness) in 50.461 seconds, including simultaneous independent sessions,
+after-lock/in-write expiry, uncertainty readback, replacement rollback, actual
+backend termination, numeric overflow/NULL boundaries, risk-halt bypass rejection,
+duplicate-position protection, RLS and helper/search-path permissions. Independent
+review and temporary-container probes found no remaining blocking issue within
+the documented rehearsal scope. Application TypeScript, frontend code and
+dependencies are unchanged; this batch does not claim a new browser/worker
+integration test or Supabase migration rehearsal against the legacy schema.
+
+**Next implementation order:** DB-03A2 must prepare complete engine economic
+plans before mutating local state, integrate command resolution and committed
+responses, persist the real genome/cohort/risk/evaluation/generation metadata,
+and prepare exact-object privilege and browser archive changes together. DB-03A3
+then validates that entire cutover against the actual legacy schema and client
+roles before any forward cloud migration. Research numeric/engine interoperability,
+lease timing under real latency, role inheritance/custom worker credentials,
+legacy classification, journal retention/pagination and checkpoint compatibility.
+The existing browser `deleteAllProbes` direct-write path must not survive the
+cutover. A lease-only patch would not satisfy the acceptance criteria.
+
+**Release targets and rollback:** fresh read-only metadata verifies GitHub
+`TOOTRJ/TheDashboard` (`1141090963`); Vercel `the-dashboard`
+(`prj_wFUe9k9USVreOQcmQKNWRAVsx5fH`) in team
+`team_8iNNxiNjrOseD4gdSCHkQEzF` / `orderoftheredjester`; and Supabase
+`The Dashboard` (`fxpxsciltakyypunglzr`) in organization
+`cqfnnaunmupdyobkyqfo` / `Valentine Jester`, ACTIVE_HEALTHY. Both local project pins
+match. Existing READY production is `dpl_FhwBv5i1433wXz9yDwQoPYcMUoyj` on
+`6c0f4d1d8e86e4b4f5719f727be45c60e391a220`. Publish a reviewed codex branch PR,
+verify its exact source preview, merge the tested head and verify the production
+merge/alias plus four read-only authentication/API smokes. Record actual deployment
+evidence in that PR. Rollback is an ordinary reviewed code revert; this release
+has no cloud schema, environment or data changes to undo.
+
+The current Vercel CLI reports 62.0.0; help was inspected and the dedicated profile
+and verified scope remain in use. No explicit CLI upgrade or shared-tool
+configuration change was performed. The user's edited historical colony migration retains SHA-256
+`a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc` and is excluded
+from the release. Claude configuration, shared credentials/processes and other
+projects are preserved. No worker, market acquisition, wallet operation or live
+trading is started by this release.
+
+**Publication checkpoint:** source commit
+`3556958ab6680b5c3b9b59d769f3135dd94ce3e3` is local on
+`codex/database-contract-rehearsal`, with verified biggrizzly11 author/committer.
+Before push, a repeated target verification failed in Vercel CLI's local runtime
+(`err` out of range). The existing Node 24 runtime also stalled; only that
+confirmed task-owned verification child was stopped. Inspection of the installed
+CLI confirmed that Keychain accounts are scoped by the global-config auth path.
+The exact Dashboard credential file was absent and the corresponding Dashboard
+Keychain item returned not found. No shared credential was read or changed.
+Publication/merge was held pending a Dashboard-only sign-in and fresh verification.
+The user was given the exact dedicated-profile login command.
+
+The dedicated profile also has automatic CLI updates enabled. Subsequent Dashboard
+CLI commands must set `NO_UPDATE_NOTIFIER=1` per child to prevent global update
+checks, and `VERCEL_TOKEN_STORAGE=file` to use only that profile's private file.
+No shared configuration is edited to accomplish either change. The cause of the
+missing authentication and previously observed CLI version change is not established.
+Do not assume a successful earlier identity check proves current release access.
+
+**Access restored (2026-10-01):** after the user's dedicated-profile sign-in,
+fresh GitHub, Vercel and Supabase metadata again matched all three allowlisted
+project identities and owners. Vercel CLI reads succeed with per-command
+`NO_UPDATE_NOTIFIER=1` and `VERCEL_TOKEN_STORAGE=file`; no shared profile or
+credential fallback is needed. The release access hold is cleared. The tested
+SQL and Python files are unchanged; publish through the reviewed branch and
+record exact preview/merge/production smoke evidence in the PR. This restores
+release access only; the database contract remains an isolated rehearsal and
+no Supabase migration or hosted worker is included.
