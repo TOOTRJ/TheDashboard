@@ -1,6 +1,6 @@
 # Safe durability and later worker hosting
 
-Source review and staged implementation plan, updated October 1, 2026. SVC-02A's local admission/drain precursor is implemented. DB-03A1 supplies an isolated executable database contract rehearsal; DB-03A2A adds immutable command preparation and an injected-transport repository tested against that contract. DB-03A2B adds exact pure economic plans and typed optimizer-source evidence with a v2 SQL rehearsal. The application write-boundary cutover below remains future work. The FILL-01A execution JSON column records accounting detail; it is not an atomic ledger, ownership lease or executable checkpoint.
+Source review and staged implementation plan, updated October 1, 2026. SVC-02A's local admission/drain precursor is implemented. DB-03A1 supplies an isolated executable database contract rehearsal; DB-03A2A adds immutable command preparation and an injected-transport repository tested against that contract. DB-03A2B adds exact pure economic plans and typed optimizer-source evidence with a v2 SQL rehearsal. DB-03A2C1 supplies detached in-process engine and optimizer state forks. Complete transition planning, acknowledged installation and the application write-boundary cutover below remain future work. The FILL-01A execution JSON column records accounting detail; it is not an atomic ledger, ownership lease or executable checkpoint.
 
 ## What is durable today
 
@@ -170,6 +170,86 @@ private RNG state. Introduce controlled strategy forks with alias-isolation and
 deterministic progression tests. In-process forks are not a versioned durable
 checkpoint; do not persist arbitrary pickles. Retired historical terminal
 capital is a separate fact from current cash ownership transferred to reserve.
+
+### DB-03A2C1: explicit in-process state forks
+
+`core/engine_state.py` supplies `capture_engine_state(controller)`, which waits
+for the existing tick/recovery lock and performs its capture synchronously
+inside that lock. A started-but-still-starting controller is rejected because
+the current startup preparation is not protected by this lock. Call from the
+controller's owning event loop, without already holding the lock. This does
+not add thread safety or replace lifecycle coordination.
+
+An `EngineSnapshot` owns a sealed detached graph. Its public identity properties
+are immutable values; `fork()` returns a new `EngineDraft` with independent
+mutable containers, probe data, shared indicator history, cohort and optimizer
+state. Probe data records its relationship to the one draft history without
+carrying a runnable `Probe` or bound clock. Capture reads raw attributes and
+never calls reporting properties, constructors, `attach_candle_history`, feeds,
+name generators, or optimizer `ask`/`tell`. Reporting currently trims retained
+closed trades, and attaching history resets cursors/intents, so neither is a
+safe cloning mechanism. Known fields are explicitly classified; unknown
+fields, resource-bearing graphs and unsupported solver versions fail closed.
+
+| Captured data | Excluded operational resources |
+| --- | --- |
+| Account/position/trade data, retained counters and equity history | Probe clocks, network feeds and feed cursors |
+| Genomes, configuration, source quotes/slots and signal cursors/intents | Event/persistence callbacks, clients, tasks and locks |
+| Shared recursive EMA state, completed/pending candles and evaluation membership | Wall-clock pacing origin and new wall/monotonic observations |
+| Reserve/baseline, generation aggregates and risk trip/recovery records | Running/paused/draining/feed-closed latches and persistence-ack flags |
+| Optimizer candidates, private RNG state and pending CMA ask vectors | New identity/name allocation and durable ownership/lease authority |
+
+`core/state_components.py` detaches nested mutable values even inside frozen
+records: signal dictionaries, historical genomes and candle mappings cannot
+alias the source or another draft. It preserves the optional persisted-offspring
+flag without triggering trade-retention side effects. Controller and probe
+identity relationships and shared-history ownership are checked before sealing.
+
+`core/strategy_fork.py` supports exactly the four current optimizers and their
+evaluation state. It preserves Python and NumPy random-generator state, including
+Gaussian caches, and copies solver arrays, candidate maps and configuration.
+It deliberately bypasses copy/pickle hooks. The installed **cmaes 0.13.1**
+[`CMA` serialization implementation](https://github.com/CyberAgentAILab/cmaes/blob/v0.13.1/cmaes/_cma.py)
+omits `_rng` and creates a fresh unseeded generator on restoration. Therefore
+ordinary `deepcopy` is not a deterministic fork of that solver. The reviewed
+helper pins its private-state shape/version and copies the actual RNG state;
+unknown versions require renewed compatibility tests. Python's
+[copy documentation](https://docs.python.org/3.12/library/copy.html) explains
+custom copy/serialization behavior, and its
+[lock contract](https://docs.python.org/3.12/library/asyncio-sync.html#asyncio.Lock)
+defines the event-loop synchronization used here.
+
+This is **in-process data isolation only**. The current engine is not replaced
+or run on drafts. Captured binary64 values are not silently converted to the
+new exact ledger policy. No install, transaction submission, durable checkpoint,
+restart restoration or event-delivery API is provided. Snapshot pickling is
+explicitly rejected. Original monotonic quote times are retained as evidence,
+not granted freshness in another process.
+
+The remaining C2/C3 boundaries must supply frozen decision inputs and controlled
+clock/identity/name sources, stage exact protective and ordinary decisions,
+birth/death and full cohort/recovery transitions, bind complete state/events to
+one command, and install only its matching acknowledgment. Cancellation must
+retain the candidate even if the repository later advances its revision. A
+lost reply requires original-ID readback; absence is still uncertain. Verify
+candidate reserve against the committed result. Installation or publication
+failure cannot repeat optimizer tell or economic writes, and a drain latch
+cannot be reset by old candidate state.
+
+**Measured capacity constraint:** with 100 CMA retirements/births and one shared
+distribution, representative zero-fee integer-valued close evidence produces
+301 operations / 112,499 bytes at one position per member, 401 / 170,199 at two,
+and 501 / 232,899 at three. Three assets per probe are within the current gene
+limits. The same three-position shape with budget 100, reference
+123.456789012345678901, exit 124.123456789012345678 and fee/spread/slippage of
+30/10/10 bps takes 390,099 bytes, already exceeding the 262,144-byte cap before
+full state/events. These are representative payload fixtures, not a trace of
+the current float engine or a universal byte estimate. Four/eight-position
+stress cases exceed the current per-probe asset limit and cannot stand in for
+supported genome acceptance.
+Research and test bounded full-transition admission, peak fork memory/latency,
+checkpoint codecs and solver version upgrades before changing limits. A larger
+payload allowance alone does not establish transaction latency or host capacity.
 
 ## Forward migration and authorization requirements
 
