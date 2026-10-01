@@ -1030,3 +1030,85 @@ SQL and Python files are unchanged; publish through the reviewed branch and
 record exact preview/merge/production smoke evidence in the PR. This restores
 release access only; the database contract remains an isolated rehearsal and
 no Supabase migration or hosted worker is included.
+
+## 34. Immutable worker commands and uncertainty rehearsal (2026-10-01)
+
+**Scope:** DB-03A2A adds `db/command_protocol.py` and
+`db/command_repository.py`, with fast tests and an adapter-to-PostgreSQL fixture
+suite. The modules accept only explicit inputs/injected transport. They load no
+credentials or application connection and are not imported by the running
+worker. Existing CRUD persistence, browser writes, SQL fixture, migrations,
+frontend, dependencies and readiness behavior are unchanged.
+
+**Implemented:** prepared commands bind stable canonical UUIDs, exact operation
+keys, integer fences/revisions and immutable request bytes. Economic amounts
+must be decimal strings; all float JSON/config values are rejected rather than
+silently converted. Returned dictionaries/receipt data are copies. Each run has
+one owned RPC and one unresolved command. Caller cancellation cannot discard an
+admitted request; a matching late reply remains available as `last_receipt`.
+Failed/malformed replies retain the original command and freeze new submission.
+Read-only resolution validates the complete typed request and result; absent
+journal evidence remains uncertain and never authorizes another write ID.
+The PostgreSQL request hash is format-checked, not falsely recomputed using a
+different JSON encoding.
+
+Creation replay never grants a decision lease. A matching heartbeat uses local
+request-start monotonic time less a safety margin; delayed or invalid replies
+leave the lease unavailable. Closed admission stays closed through later
+acknowledgment, while original-command readback remains available. Terminal
+interruption preserves configuration, balances and positions. The adapter has
+no restart-adoption, economic retry, candidate installation or outbox-delivery
+API. Those remain full-cutover requirements.
+
+**Findings driving next priorities:** independently encoding the current float
+fill's notional and fee can exceed its stated cash debit (100 becomes
+100.00000000000000734). A versioned arithmetic/residual/rounding policy is needed
+before engine-to-ledger integration. CMA records whole-distribution lineage,
+which cannot fit the rehearsal's two-parent birth contract without losing
+evidence. Preserve distribution sources and template/genetic ancestry
+separately. Whole-controller deep copy fails on immutable candle mapping proxies
+and would improperly mix locks/feeds/drain latches with candidate state. Plan
+data-only engine/optimizer/RNG transitions before submission and install only
+the matching committed candidate before publication or another decision.
+
+Independent review also found mutable repository identity attributes and JSON
+serialization coercing tuples/non-string keys during journal comparison. Both
+are repaired with read-only identity properties and strict recursive protocol
+JSON validation. Regression coverage includes Python 3.12 eager task scheduling,
+scheduler failure, cancellation before execution, caller cancellation, late
+acknowledgments, closed admission, invalid clocks and cross-event-loop use.
+
+**Validation:** 789 ordinary worker tests pass (734 existing, 15 protocol, 40
+repository). Normal discovery reports 795 run and eight skips: six opt-in
+harness tests plus two class-level PostgreSQL skips. The separate explicit
+PostgreSQL runner verifies 46 cases (35 SQL contract, six harness, five new
+adapter cases). The latter cover exact decimal accounting, lost create/batch
+replies, read-only resolution after expiry, late full-batch rollback and
+interruption preserving an open position. These tests use only temporary
+no-network harness containers and fake identities. No production PostgREST,
+legacy-schema or engine-to-UI acceptance is implied. No new frontend test/build
+run is claimed for this Python-only batch; exact Vercel Git deployment status
+is checked separately during release.
+
+**Verified release scope and rollback:** GitHub `TOOTRJ/TheDashboard`
+(`1141090963`); Vercel `the-dashboard` (`prj_wFUe9k9USVreOQcmQKNWRAVsx5fH`), team
+`team_8iNNxiNjrOseD4gdSCHkQEzF` / `orderoftheredjester`; Supabase `The Dashboard`
+(`fxpxsciltakyypunglzr`), organization `cqfnnaunmupdyobkyqfo` / `Valentine Jester`,
+ACTIVE_HEALTHY. Both local pins match. PR27 is merged at
+`6075609272579bb2600a85f94cee30b70f15c6f3`, with READY production
+`dpl_MVfiJfHJ7hZuvcLfbKV8T3G9kjA8`; this is the pre-release rollback target.
+Publish the reviewed codex branch, verify exact source preview, merge that head,
+then verify exact production merge/alias and four read-only authentication/API
+smokes. Record actual release evidence in the PR. An ordinary reviewed code
+revert is sufficient; this release changes no cloud schema, environment or data.
+The user's historical colony-migration edit retains SHA-256
+`a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc` and is excluded.
+Other-project credentials, configuration and processes remain untouched.
+
+**Remaining gate:** DB-03A2B accounting/lineage, DB-03A2C full engine transitions,
+DB-03A2D target-specific inventory/transport/migration/archive plan, then DB-03A3
+complete cutover acceptance. Deeper research is required on numeric units,
+PostgREST transaction-end/schema/JWT behavior, lease timing including host pause
+and clock behavior, role inheritance, journal retention/replay and versioned
+optimizer/checkpoint compatibility. DB-03A, durable readiness and hosting remain
+open. No worker, provider acquisition, wallet operation or live trading starts.

@@ -1,6 +1,6 @@
 # Safe durability and later worker hosting
 
-Source review and staged implementation plan, September 30, 2026. SVC-02A's local admission/drain precursor is implemented. DB-03A1 now supplies an isolated executable database contract rehearsal; the application write-boundary cutover below remains future work. The FILL-01A execution JSON column records accounting detail; it is not an atomic ledger, ownership lease or executable checkpoint.
+Source review and staged implementation plan, updated October 1, 2026. SVC-02A's local admission/drain precursor is implemented. DB-03A1 supplies an isolated executable database contract rehearsal; DB-03A2A adds immutable command preparation and an injected-transport repository tested against that contract. The application write-boundary cutover below remains future work. The FILL-01A execution JSON column records accounting detail; it is not an atomic ledger, ownership lease or executable checkpoint.
 
 ## What is durable today
 
@@ -61,6 +61,95 @@ Transactions must cover these units:
 - Generation completion and lifecycle/risk transitions: event plus their authoritative projection/revision.
 
 Use unrounded canonical economic values. Decode old database pnl_pct as percentage points; the new execution.exit.net_return and in-memory TradeRecord.pnl_pct are fractions. Never hydrate the latter directly from the former. WebSocket publication follows commit and is replayable by durable sequence; clients deduplicate and recover missed messages after reconnect. An outbox does not promise exactly-once network delivery, so UI idempotence remains necessary.
+
+## DB-03A2A: implemented local command boundary
+
+`db/command_protocol.py` prepares immutable, bounded JSON requests with stable
+run/worker/command/entity IDs before submission. Economic amounts must already
+be exact decimal strings. JSON floats are refused, including in configuration;
+this is an intentionally restricted rehearsal protocol, not an implicit encoder
+for today's engine configuration. Decimal spelling remains significant.
+Factories validate UUIDs, revisions, operation keys, size/depth, relationships
+and Unicode. Returned dictionaries are copies of the immutable request bytes.
+
+`db/command_repository.py` accepts an explicitly injected transport. It imports
+no application connection, configuration or credentials and is not wired into
+the worker. It owns at most one RPC and one unresolved economic command per run.
+Caller cancellation leaves the admitted task owned; a later valid reply updates
+`last_receipt`. An error or invalid reply retains the original prepared command,
+invalidates the local lease and blocks new economic submissions. Read-only
+`get_command` compares the entire typed request and committed reply; a NULL
+result remains unresolved. There is no automatic POST retry or new command ID.
+The server hash is checked for shape only: PostgreSQL JSONB text is not Python's
+canonical JSON encoding. Full request equality binds resolution to the command.
+
+Creation acknowledgment grants no local decision lease because it may be an old
+replay. A matching heartbeat grants a conservative deadline measured from local
+request **start**, less a safety margin, never a fresh interval from reply time.
+A late, failed or mismatched renewal leaves admission unavailable. Closing
+admission is permanent; a pending renewal cannot reopen it. Readback is allowed
+after closure and does not renew a lease. A matching terminal reply prevents
+further mutations without fabricating closes, reserve transfers or fitness.
+
+This module acknowledges commands; it does not install engine state, deliver an
+outbox or restore a process after restart. Its future caller must install the
+matching prepared candidate state before admitting another decision. Cancellation
+can leave that caller without a direct return value, so it must reconcile with
+`last_receipt` or the original pending command. The full coordinator must retain
+that candidate until installation. Do not substitute current mutable engine
+events for prepared plans.
+
+The injected transport's future production implementation must pin the schema
+and verified project, own its client and shutdown lifecycle, disable retries,
+redirects and environment-proxy fallback, bound responses/timeouts and establish
+that a successful response represents a committed transaction. The installed
+PostgREST client's `schema()` creates a new client; do not assume it preserves an
+injected client's settings. Actual PostgREST transaction-end preferences, exposed
+schema, role/JWT grants and overlapping old clients require acceptance tests.
+See [Python task ownership/cancellation](https://docs.python.org/3.12/library/asyncio-task.html#shielding-from-cancellation),
+[HTTPX timeout phases](https://www.python-httpx.org/advanced/timeouts/), and
+[PostgREST transaction termination](https://docs.postgrest.org/en/v14/references/transactions.html).
+
+## Engine integration findings and next boundaries
+
+Two reproduced incompatibilities must be resolved before wiring these commands:
+
+- The current `buy_fill(100, 123.45, fee_bps=30, half_spread_bps=10,
+  slippage_bps=10)` reports a float cash debit of `100.0`, but converting its
+  notional and fee independently to decimal strings sums to
+  `100.00000000000000734`. The exact SQL ledger correctly rejects that debit
+  against a 100 balance. Define a versioned decimal arithmetic, division,
+  residual and rounding policy; do not silently adjust fees or use
+  `Decimal.from_float()` to hide the mismatch. Signals/optimizer calculations
+  can remain floats while authoritative economic arithmetic becomes consistent.
+- CMA-ES currently records every distribution-source member as ancestry, while
+  the rehearsal birth operation allows only two parents. Preserve distribution
+  sources separately from the asset-template source and genetic parent edges.
+  Truncating ancestry would discard the evidence needed to explain selection.
+
+Blindly deep-copying `GenesisController` is unsuitable: immutable candle
+snapshots contain `MappingProxyType` (which fails `deepcopy`), and controllers
+own locks, feeds, callbacks and shutdown latches. Separate a data-only
+`EngineState` from immutable decision evidence and operational resources.
+Construct a complete candidate state and sealed command before submission;
+install it by a prevalidated state replacement after matching acknowledgment.
+Never let that installation reset a permanent worker-drain latch. Failure to
+publish a committed event must not repeat economic operations or optimizer tell.
+
+Plan semantic units independently of network acquisition: a protective pass
+(including risk trips), ordinary decisions plus consumed signal cursors,
+birth/death reserve transfers, full completed-cohort replacement, and lifecycle
+or evidence-backed risk recovery. Preserve the existing guarantee that valid
+protective closes can complete before a later candle outage stops decisions.
+
+`_plan_closures` is a useful starting point but still retains mutable trade/event
+references and must bind exact position IDs and base revision. Opening, birth,
+retirement and replacement currently mutate before persistence. Cohort
+completion and solver `tell`/`ask` also mutate results, candidate mappings and
+private RNG state. Introduce controlled strategy forks with alias-isolation and
+deterministic progression tests. In-process forks are not a versioned durable
+checkpoint; do not persist arbitrary pickles. Retired historical terminal
+capital is a separate fact from current cash ownership transferred to reserve.
 
 ## Forward migration and authorization requirements
 
