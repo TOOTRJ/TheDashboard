@@ -995,9 +995,28 @@ evidence in that PR. Rollback is an ordinary reviewed code revert; this release
 has no cloud schema, environment or data changes to undo.
 
 The current Vercel CLI reports 62.0.0; help was inspected and the dedicated profile
-and verified scope remain in use. This task did not upgrade it or other shared
-tools. The user's edited historical colony migration retains SHA-256
+and verified scope remain in use. No explicit CLI upgrade or shared-tool
+configuration change was performed. The user's edited historical colony migration retains SHA-256
 `a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc` and is excluded
 from the release. Claude configuration, shared credentials/processes and other
 projects are preserved. No worker, market acquisition, wallet operation or live
 trading is started by this release.
+
+**Publication checkpoint:** source commit
+`3556958ab6680b5c3b9b59d769f3135dd94ce3e3` is local on
+`codex/database-contract-rehearsal`, with verified biggrizzly11 author/committer.
+Before push, a repeated target verification failed in Vercel CLI's local runtime
+(`err` out of range). The existing Node 24 runtime also stalled; only that
+confirmed task-owned verification child was stopped. Inspection of the installed
+CLI confirmed that Keychain accounts are scoped by the global-config auth path.
+The exact Dashboard credential file was absent and the corresponding Dashboard
+Keychain item returned not found. No shared credential was read or changed.
+Publication/merge is held pending a Dashboard-only sign-in and fresh verification.
+The user has been given the exact dedicated-profile login command.
+
+The dedicated profile also has automatic CLI updates enabled. Subsequent Dashboard
+CLI commands must set `NO_UPDATE_NOTIFIER=1` per child to prevent global update
+checks, and `VERCEL_TOKEN_STORAGE=file` to use only that profile's private file.
+No shared configuration is edited to accomplish either change. The cause of the
+missing authentication and previously observed CLI version change is not established.
+Do not assume a successful earlier identity check proves current release access.

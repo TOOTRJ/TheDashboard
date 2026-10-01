@@ -25,6 +25,15 @@ New dashboard commits use repository-local `user.name` / `user.email` for verifi
 
 For every Vercel command, use global configuration directory `/Users/redjester/.config/vercel-dashboard-codex`. Remove inherited `VERCEL_TOKEN`, `VERCEL_ORG_ID`, and `VERCEL_PROJECT_ID` from the command's child-process environment. Do not unset variables in another running process or alter shell startup files. Use the verified `--scope` and `--project` IDs wherever the command supports them; inspect installed command help instead of guessing flags.
 
+Set `NO_UPDATE_NOTIFIER=1` and `VERCEL_TOKEN_STORAGE=file` only in each Dashboard
+Vercel child process. The dedicated profile was observed with automatic CLI
+updates enabled; disable those checks per command without changing shared
+settings. CLI 62.0.0's native credential read failed during DB-03A1 release
+verification, and the dedicated profile's auth file/Keychain item were absent.
+File storage must remain inside the exact Dashboard global-config directory;
+never fall back to the default profile, copy shared credentials, or print tokens.
+If Dashboard authentication is missing, request a login to that exact profile.
+
 The ignored `.vercel/project.json` pins the verified IDs locally. Reinspect resolved context before using it. Do not run a shared/default-profile login, logout, or team switch. A separate profile isolates local state; it does not reduce the account's cloud permissions.
 
 Installed Vercel CLI 60.0.0 `link` can refresh `.env.local` OIDC data and perform a configuration migration. Do not use it as an assumed metadata-only operation. Avoid environment pulls that overwrite local files. Capture environment API responses in memory and output only approved metadata/comparison results. `env ls --json` can return encrypted envelopes, so a returned value string is not proof of plaintext or a credential mismatch.
