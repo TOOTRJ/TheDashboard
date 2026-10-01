@@ -161,6 +161,8 @@ class GenesisController:
         persist_risk_status: Optional[Callable[[dict], Awaitable[None]]] = None,
         search_seed: str = "0",
     ):
+        if getattr(market_feed, "simulation_only", False) and mode != "simulation":
+            raise ValueError("This offline fixture feed supports simulation mode only")
         self.market_feed = market_feed
         self.strategy = strategy
         self._search_streams = SearchRandomStreams(search_seed, strategy.name)
@@ -339,7 +341,9 @@ class GenesisController:
             "strategy": self.strategy.name,
             "search_spec": {**self._search_streams.spec(self._search_epoch),
                 "simulation_spec": (self.market_feed.simulation_spec
-                    if self._uses_simulation_clock and hasattr(self.market_feed, "simulation_spec") else None)},
+                    if self._uses_simulation_clock and hasattr(self.market_feed, "simulation_spec") else None),
+                "dataset_spec": (self.market_feed.dataset_spec
+                    if self._uses_simulation_clock and hasattr(self.market_feed, "dataset_spec") else None)},
             "mode": self.mode,
             "generation": self.current_generation,
             "tick": self.tick_count,
