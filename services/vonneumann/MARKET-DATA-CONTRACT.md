@@ -119,8 +119,11 @@ part of this feature.
 
 ## Research gates
 
-Before collecting provider datasets, resolve retention/replay/export rights,
-point-in-time coverage and survivorship, exact request/scaling semantics,
+The user confirmed Jupiter backtesting retention on 2026-09-30; accept that
+permission. The next acquisition step is selected historical windows with frozen
+research snapshots, not continuous archiving. See [provider research](JUPITER-DATA-RESEARCH.md).
+Resolve separate Birdeye entitlements/retention, point-in-time coverage and
+survivorship, exact request/scaling semantics,
 publication delays and revisions, raw response/query/parser provenance, and
 USD versus USDC accounting. A rights flag in a manifest is a declaration, not
 verification of a contract. Before comparing evolutionary candidates, add

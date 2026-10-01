@@ -570,3 +570,42 @@ copied-schema contract passes, and the privileged zero-row PostgREST read of
 `vn_trades.execution` returns HTTP 200 with no rows. No application/auth records
 were used as fixtures. All 90 frontend tests, TypeScript and the isolated Next.js
 production build pass; broad lint reports zero errors and 33 existing warnings.
+
+
+## 28. Jupiter documentation tooling and historical-data decision (2026-09-30)
+
+The user confirmed Jupiter permits backtesting retention. This supersedes the
+outstanding Jupiter-permission question recorded in section 27; separate Birdeye
+terms/entitlements remain unresolved. The accepted design is small on-demand
+historical OHLCV downloads with immutable experiment snapshots. A 24/7 archive
+is deferred. Historical playback still needs explicit availability and execution
+assumptions; the current replay implementation remains synthetic-only.
+
+Reverification matched GitHub `TOOTRJ/TheDashboard` / `1141090963`, Vercel
+`the-dashboard` / `prj_wFUe9k9USVreOQcmQKNWRAVsx5fH` /
+`team_8iNNxiNjrOseD4gdSCHkQEzF`, and Supabase `The Dashboard` /
+`fxpxsciltakyypunglzr` / `cqfnnaunmupdyobkyqfo`. Production was READY at merge
+`3d0923471be5183f2011920360e2c6fac2d4f594` before this documentation setup.
+No database changes, market-data acquisition or account-setting changes were
+needed for this setup. Existing user edits and other-agent configuration remain
+preserved.
+
+Installed the official `integrating-jupiter` (1.2.0) and `jupiter-swap-migration`
+(1.1.0) skills under `.agents/skills`, pinned to upstream commit
+`a2211e3f6a7caa03310c7a9a8d816e723b0bdc5f`. Preserved unmodified upstream files,
+MIT notices and SHA-256 provenance. Project `.codex/config.toml` connects the
+official documentation MCP at `https://developers.jup.ag/docs/mcp`, allowing only
+`search_jupiter` and `query_docs_filesystem_jupiter`; feedback submission is not
+enabled. Codex resolved this exact configuration. MCP initialize, tools/list,
+documentation search and Price V3 OpenAPI retrieval passed without credentials.
+Activation in the running client may require reconnect/restart; newly installed
+skills are available on a subsequent turn.
+
+The official CLI was source-reviewed and deferred: it initializes shared-home
+configuration even for help/version, and its alpha trading surface is unnecessary
+for offline research. Trading MCP and unrelated product skills were also deferred.
+Current docs override stale skill quota/authentication examples; migration examples
+do not authorize their suggested live swap test. No global Codex/Claude, shell,
+wallet or package configuration was changed. See [tool setup](JUPITER-TOOLING.md)
+and [data research](services/vonneumann/JUPITER-DATA-RESEARCH.md) for decisions,
+source links, known ambiguities, verification and next priorities.

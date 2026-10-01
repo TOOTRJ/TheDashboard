@@ -111,9 +111,9 @@ Primary sources reviewed 2026-09-30:
 - [Jito submission](https://docs.jito.wtf/lowlatencytxnsend/): tips and transaction
   composition; minimum tips do not establish landing probability.
 
-Before provider archive collection, establish account-specific retention,
-combination, backtesting and redistribution rights. Public
-[Birdeye terms](https://birdeye.so/data-api/terms-of-service) and
-[Jupiter's API agreement](https://developers.jup.ag/docs/legal/sdk-api-license-agreement)
-do not establish those permissions for a combined historical archive. API keys
-are not license evidence. No provider records were collected for this change.
+The user confirmed on 2026-09-30 that Jupiter permits retention for backtesting;
+that permission is accepted. [The data research decision](JUPITER-DATA-RESEARCH.md)
+favors small on-demand historical snapshots now and bounded quote/receipt recording
+later for execution calibration. Separate Birdeye entitlements/retention and any
+future redistribution remain research items; a combined public archive is not
+part of the current work. No provider records were collected for this change.
