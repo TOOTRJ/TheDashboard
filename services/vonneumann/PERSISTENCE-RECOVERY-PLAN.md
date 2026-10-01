@@ -1,6 +1,6 @@
 # Safe durability and later worker hosting
 
-Source review and staged implementation plan, updated October 1, 2026. SVC-02A's local admission/drain precursor is implemented. DB-03A1 supplies an isolated executable database contract rehearsal; DB-03A2A adds immutable command preparation and an injected-transport repository tested against that contract. DB-03A2B adds exact pure economic plans and typed optimizer-source evidence with a v2 SQL rehearsal. DB-03A2C1 supplies detached in-process engine and optimizer state forks. Complete transition planning, acknowledged installation and the application write-boundary cutover below remain future work. The FILL-01A execution JSON column records accounting detail; it is not an atomic ledger, ownership lease or executable checkpoint.
+Source review and staged implementation plan, updated October 1, 2026. SVC-02A's local admission/drain precursor is implemented. DB-03A1 supplies an isolated executable database contract rehearsal; DB-03A2A adds immutable command preparation and an injected-transport repository tested against that contract. DB-03A2B adds exact pure economic plans and typed optimizer-source evidence with a v2 SQL rehearsal. DB-03A2C1 supplies detached in-process engine and optimizer state forks; C2A makes the current engine's clock and identity inputs explicit. Complete transition planning, acknowledged installation and the application write-boundary cutover below remain future work. The FILL-01A execution JSON column records accounting detail; it is not an atomic ledger, ownership lease or executable checkpoint.
 
 ## What is durable today
 
@@ -250,6 +250,78 @@ supported genome acceptance.
 Research and test bounded full-transition admission, peak fork memory/latency,
 checkpoint codecs and solver version upgrades before changing limits. A larger
 payload allowance alone does not establish transaction latency or host capacity.
+
+### DB-03A2C2A: explicit clocks and identity allocations
+
+`core/decision_inputs.py` provides immutable, bounded `DecisionInputs` for event
+time, wall time, monotonic time, preallocated UUIDs and generation/name pairs.
+Each `new_cursor()` owns its allocation offsets. Repeating an offline attempt
+with a fresh cursor reads the same values; neither construction nor consumption
+reads clocks, creates UUIDs, draws randomness or updates the global name set.
+Exhaustion, invalid values and a name requested for the wrong generation fail
+without fallback. These are ordered allocation budgets, not semantic
+entity-to-ID bindings or proof that IDs are unused in a persisted run.
+
+The actual `GenesisController` now accepts optional `event_clock`, `wall_clock`,
+`monotonic_clock`, `id_factory` and `name_factory` callbacks. `Probe` accepts
+the identity and monotonic callbacks alongside its existing event clock.
+Controller-created probes receive the same identity source. Births, fills,
+risk-trip IDs, timestamps, uptime and paper signal availability can therefore
+be exercised reproducibly without changing process-global sources. Production
+callers omit the new arguments and retain the existing modeled-event/real-time
+behavior. Explicit event-clock overrides report `clock_basis=explicit_decision`.
+All new callbacks remain operational resources excluded from C1 data forks.
+
+Paper quote consumption reads the supplied wall/monotonic callbacks again at
+each existing freshness check, including after awaited history or event work.
+Default freshness helpers keep their existing real clocks. A frozen cursor is
+only for an offline decision: it cannot authorize a later submission, execution
+or lease renewal. Python documents that the
+[monotonic reference point is undefined](https://docs.python.org/3/library/time.html#time.monotonic);
+retained readings require a known compatible clock basis and cannot independently
+prove freshness after restart. The future coordinator must check real source
+freshness and lease authority outside a frozen planning context.
+
+The signal path validates the injected monotonic reading before consuming a
+new candle signal, and retains an eligible pending intent if a clock, price or
+identity error prevents its fill. Successful fills and ordinary rejected or
+expired intents retain their prior consumption semantics. This is per-action
+failure ordering, not atomic rollback of an entire tick. A circuit-breaker trip
+keeps its safety latch even if identity allocation fails afterward. That error
+propagates to the existing supervisor's failed/reconciliation path; a halt with
+incomplete trip metadata is not a successful recoverable trip. Complete risk
+transition staging and acknowledgment remain part of C2/C3.
+
+**C2 remains open.** These inputs contain no market observations, owner/run or
+base-revision proof, exact ledger state, prepared command, complete transition
+or durable event list. Source allocation consumption is local to an attempt;
+it must not be reused as a transaction retry coordinator. Do not turn a C1
+binary64 snapshot into exact v2 money or a runnable controller.
+
+**Next implementation and research:** begin the exact accounting rehearsal
+from a new flat run with canonical initial/seed cash, costs and price evidence;
+reject conversion of existing v1 positions. A bounded first acceptance target
+is the existing two-gene EMA profile with eight members and one asset, using
+all four solvers. Exercise funding, a causal entry, protective/signal exits,
+complete liquidation/evaluation/selection/retirement/birth and next-cohort
+binding through the isolated SQL contract. Keep indicators as explicitly
+derived float views and execution amounts exact; share existing signal logic
+rather than creating a competing implementation.
+
+Current feed adapters have already decoded prices to binary64. Python's
+[JSON parse hooks](https://docs.python.org/3.12/library/json.html#json.load)
+can preserve the original numeric spelling before float conversion;
+[constructing Decimal from a float](https://docs.python.org/3.12/library/decimal.html#decimal.Decimal.from_float)
+preserves that float's approximation rather than recovering the original
+decimal evidence. Research bounded lexeme/exponent decoding, explicit grid
+rejection/rounding and indicator/fitness conversions. Automatic protective
+decisions also need exact thresholds bound to the position, including equality
+at stop/take boundaries. The current v2 SQL close verifies stored entry and
+cash arithmetic but does not bind source observations, close reason, threshold
+policy, signal cursors or full state/events. Add a reviewed versioned envelope
+before claiming a complete authoritative transition. Research payload size,
+memory and transaction latency using full supported transitions; do not split
+a population replacement or drop evidence to fit a limit.
 
 ## Forward migration and authorization requirements
 
