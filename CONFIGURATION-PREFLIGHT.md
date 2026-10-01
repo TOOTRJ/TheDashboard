@@ -1011,8 +1011,8 @@ confirmed task-owned verification child was stopped. Inspection of the installed
 CLI confirmed that Keychain accounts are scoped by the global-config auth path.
 The exact Dashboard credential file was absent and the corresponding Dashboard
 Keychain item returned not found. No shared credential was read or changed.
-Publication/merge is held pending a Dashboard-only sign-in and fresh verification.
-The user has been given the exact dedicated-profile login command.
+Publication/merge was held pending a Dashboard-only sign-in and fresh verification.
+The user was given the exact dedicated-profile login command.
 
 The dedicated profile also has automatic CLI updates enabled. Subsequent Dashboard
 CLI commands must set `NO_UPDATE_NOTIFIER=1` per child to prevent global update
@@ -1020,3 +1020,13 @@ checks, and `VERCEL_TOKEN_STORAGE=file` to use only that profile's private file.
 No shared configuration is edited to accomplish either change. The cause of the
 missing authentication and previously observed CLI version change is not established.
 Do not assume a successful earlier identity check proves current release access.
+
+**Access restored (2026-10-01):** after the user's dedicated-profile sign-in,
+fresh GitHub, Vercel and Supabase metadata again matched all three allowlisted
+project identities and owners. Vercel CLI reads succeed with per-command
+`NO_UPDATE_NOTIFIER=1` and `VERCEL_TOKEN_STORAGE=file`; no shared profile or
+credential fallback is needed. The release access hold is cleared. The tested
+SQL and Python files are unchanged; publish through the reviewed branch and
+record exact preview/merge/production smoke evidence in the PR. This restores
+release access only; the database contract remains an isolated rehearsal and
+no Supabase migration or hosted worker is included.
