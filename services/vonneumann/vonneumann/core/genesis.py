@@ -22,7 +22,7 @@ from dataclasses import dataclass, field, replace
 from datetime import datetime
 from typing import Optional, Callable, Awaitable
 
-from .clock import timestamp_datetime, utc_now
+from .clock import clock_datetime, timestamp_datetime, utc_now
 from .colony_config import ColonyConfig
 from .signal_profile import EMA_BASELINE_PROFILE, signal_policy
 from .evolution import FITNESS_POLICY, NUMERIC_GENES, mutate, population_diversity
@@ -163,9 +163,26 @@ class GenesisController:
         persist_risk_status: Optional[Callable[[dict], Awaitable[None]]] = None,
         search_seed: str = "0",
         execution_config: Optional[ExecutionConfig] = None,
+        *,
+        event_clock: Optional[Callable[[], datetime]] = None,
+        wall_clock: Optional[Callable[[], datetime]] = None,
+        monotonic_clock: Optional[Callable[[], float]] = None,
+        id_factory: Optional[Callable[[], str]] = None,
+        name_factory: Optional[Callable[[int], str]] = None,
     ):
         if getattr(market_feed, "simulation_only", False) and mode != "simulation":
             raise ValueError("This offline fixture feed supports simulation mode only")
+        # Operational dependencies, never checkpoint data. Production callers
+        # omit them; an offline planner can explicitly supply one decision's
+        # clocks/allocations without changing process-wide time or randomness.
+        for source in (event_clock, wall_clock, monotonic_clock, id_factory, name_factory):
+            if source is not None and not callable(source):
+                raise ValueError("Decision sources must be callable")
+        self._event_clock = event_clock
+        self._wall_clock = wall_clock
+        self._monotonic_clock = monotonic_clock
+        self._id_factory = id_factory
+        self._name_factory = name_factory
         self.market_feed = market_feed
         self.strategy = strategy
         self._search_streams = SearchRandomStreams(search_seed, strategy.name)
@@ -291,9 +308,49 @@ class GenesisController:
         )
 
     def _event_time(self) -> datetime:
+        if self._event_clock is not None:
+            return clock_datetime(self._event_clock())
         if self._uses_simulation_clock:
             return timestamp_datetime(self.market_feed.current_timestamp)
-        return utc_now()
+        return self._wall_time()
+
+    def _wall_time(self) -> datetime:
+        return clock_datetime(utc_now() if self._wall_clock is None else self._wall_clock())
+
+    def _monotonic_time(self) -> float:
+        return nonnegative_value(time.monotonic() if self._monotonic_clock is None
+                                 else self._monotonic_clock())
+
+    def _quote_clock_values(self) -> dict:
+        # Defaults deliberately remain those of quote_freshness. Sample again
+        # after every await; never cache a frozen planning time as permission
+        # to consume a quote or commit a proposed transition later.
+        return {
+            "wall_now": None if self._wall_clock is None else self._wall_time().timestamp(),
+            "monotonic_now": None if self._monotonic_clock is None else self._monotonic_time(),
+        }
+
+    def _new_id(self) -> str:
+        value = str(uuid.uuid4()) if self._id_factory is None else self._id_factory()
+        if type(value) is not str or len(value) != 36:
+            raise ValueError("Generated identity must be a canonical UUID")
+        try:
+            valid = str(uuid.UUID(value)) == value
+        except ValueError:
+            valid = False
+        if not valid:
+            raise ValueError("Generated identity must be a canonical UUID")
+        return value
+
+    def _probe_name(self, generation: int) -> str:
+        value = (generate_probe_name(generation) if self._name_factory is None
+                 else self._name_factory(generation))
+        if (type(value) is not str or not 1 <= len(value) <= 128
+                or value.strip() != value or not value.isprintable()):
+            raise ValueError("Generated probe name must be bounded nonempty text")
+        if len(value.encode("utf-8")) > 128:
+            raise ValueError("Generated probe name exceeds its byte budget")
+        return value
 
     # ── Properties ───────────────────────────────────────────────────────
 
@@ -374,10 +431,11 @@ class GenesisController:
             "diversity": round(diversity, 4) if diversity is not None else None,
             "started_at": self.started_at.isoformat() if self.started_at else None,
             "uptime_secs": (
-                max(0.0, time.monotonic() - self._wall_started_monotonic)
+                max(0.0, self._monotonic_time() - self._wall_started_monotonic)
                 if self._wall_started_monotonic is not None else 0
             ),
-            "clock_basis": "synthetic_market" if self._uses_simulation_clock else "wall",
+            "clock_basis": ("explicit_decision" if self._event_clock is not None
+                            else "synthetic_market" if self._uses_simulation_clock else "wall"),
             "quote_policy": dict(QUOTE_POLICY) if self.mode == "paper" else None,
             "candle_policy": deepcopy(CANDLE_POLICY),
             "metrics_policy": dict(EQUITY_METRICS_POLICY),
@@ -418,8 +476,10 @@ class GenesisController:
 
     async def prepare(self) -> None:
         """Seed and persist the population before a supervised loop may start."""
-        self.started_at = utc_now()
-        self._wall_started_monotonic = time.monotonic()
+        started_at = self._wall_time()
+        started_monotonic = self._monotonic_time()
+        self.started_at = started_at
+        self._wall_started_monotonic = started_monotonic
         logger.info(f"[Genesis] Starting in {self.mode} mode. Seeding {self.gen0_count} Gen-0 probes.")
 
         genomes = [random_genome(generation=0, colony_config=self.colony_config,
@@ -525,12 +585,19 @@ class GenesisController:
                 raise FundingError()
             reserve_after = _planned_reserve
 
+        probe_name = self._probe_name(genome.generation)
+        probe_id = self._new_id()
+        if probe_id in self.probes or any(probe.probe_id == probe_id for probe in self.dead_probes):
+            raise ValueError("Generated probe identity is already retained")
         probe = Probe(
             genome=genome,
             initial_capital=capital,
             mode=self.mode,
-            probe_name=generate_probe_name(genome.generation),
+            probe_id=probe_id,
+            probe_name=probe_name,
             clock=self._event_time,
+            id_factory=self._id_factory,
+            monotonic_clock=self._monotonic_clock,
             candle_history=self.candle_history,
             execution_config=self.execution_config,
             strategy_profile=self.colony_config.strategy_profile,
@@ -992,7 +1059,8 @@ class GenesisController:
             tick = self._latest_ticks.get(asset)
             if tick is None:
                 raise MarketFeedError("source_time_unavailable")
-            validate_quote(tick, previous_slot=self._source_slots.get(asset))
+            validate_quote(tick, previous_slot=self._source_slots.get(asset),
+                           **self._quote_clock_values())
         return positive_price(self._latest_prices.get(asset))
 
     def _require_fresh_assets(self, assets) -> None:
@@ -1041,7 +1109,8 @@ class GenesisController:
                             source_age_at_receipt=max(floor, quote_source_age(normalized,
                                 wall_now=normalized.evidence.received_at,
                                 monotonic_now=normalized.evidence.received_monotonic))))
-                    validate_quote(normalized, previous_slot=self._source_slots.get(asset))
+                    validate_quote(normalized, previous_slot=self._source_slots.get(asset),
+                                   **self._quote_clock_values())
                     self._source_slots[asset] = normalized.evidence.source_slot
                     self._source_quotes[asset] = normalized
                 valid[asset] = normalized
@@ -1121,7 +1190,8 @@ class GenesisController:
                     if self.mode == "paper":
                         for asset in probe.open_positions:
                             try:
-                                asset_remaining = MAX_SOURCE_AGE_SECONDS - quote_source_age(ticks[asset])
+                                asset_remaining = MAX_SOURCE_AGE_SECONDS - quote_source_age(
+                                    ticks[asset], **self._quote_clock_values())
                                 if asset_remaining < 0:
                                     raise MarketFeedError("price_stale")
                                 remaining_age = min(remaining_age, asset_remaining)
@@ -1323,7 +1393,7 @@ class GenesisController:
         self.circuit_breaker_active = True
         self.set_lifecycle("risk_halted")
         self.state_persisted = False
-        self._risk_control.update(trip_id=str(uuid.uuid4()), tripped_at=self._event_time().isoformat(),
+        self._risk_control.update(trip_id=self._new_id(), tripped_at=self._event_time().isoformat(),
                                   trip_equity=total, trip_loss_fraction=loss)
         for probe in self.probes.values():
             probe.discard_entry_intents()

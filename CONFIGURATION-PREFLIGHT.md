@@ -1248,3 +1248,79 @@ code revert is sufficient; there is no cloud schema/environment/data rollback.
 The historical migration edit retains SHA-256
 `a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc` and is excluded.
 Other projects, shared credentials/tools and unrelated local files are preserved.
+
+## 37. Explicit engine decision sources (DB-03A2C2A, 2026-10-01)
+
+**Scope:** the actual controller and Probe now accept explicit event/wall/
+monotonic clocks and identity/name sources. Production callers retain dynamic
+defaults. Immutable `DecisionInputs` supplies bounded preallocated identities
+and generation/name pairs through independently repeatable cursors. It neither
+allocates replacements on exhaustion nor touches global name/random state.
+Callbacks are operational resources excluded from engine/probe data snapshots.
+
+This completes the nondeterministic-input prerequisite of C2, not full exact
+transition planning. Input records contain no market evidence, owner/run/base
+revision proof, exact accounts, semantic entity bindings or database authority.
+The worker still uses its existing accounting and persistence paths. No SQL,
+provider, dependency, API schema or environment change is included; no worker
+hosting or live trading is enabled.
+
+**Runtime fixes:** a failed clock read during paper signal discovery no longer
+consumes its candle cursor or replaces the pending signal. A failed time,
+identity or price dependency before a fill preserves its eligible pending
+intent and pre-fill economic state. Successful or deliberately declined fills
+consume the intent once. Invalid/duplicate retained generated IDs fail before
+funding or trade debits; global/historical uniqueness still belongs to the
+allocation source and future durable ledger. Whole-tick rollback is not claimed.
+The account-loss latch stays closed if risk identity allocation fails; the
+exception propagates to the supervisor's failed/reconciliation path, rather
+than representing a successfully persisted or recoverable trip.
+
+**Freshness:** paper quote validation and age budgets sample explicit wall/
+monotonic callbacks again at each consumption boundary after awaited work.
+Default helpers retain real clock reads. A frozen decision cursor has no lease
+or later quote-admission authority. The future coordinator must verify current
+source freshness independently of its frozen planning inputs.
+
+**Validation:** all 930 ordinary worker tests pass, including 28 new tests
+(10 input-budget, 10 Probe-source and eight controller-source cases). Discovery
+reports 936 tests in 27.918 seconds and nine skips: six opt-in PostgreSQL cases
+and three PostgreSQL class-level skips. The complete new controller trace uses
+the existing two-gene EMA profile and all four actual solvers across three
+replacement windows, with real ordinary entries/exits and risk trips. Complete
+unnormalized events, identities, names, timestamps, populations, trades and
+status match whether publication callbacks return immediately or yield.
+Further tests cover paper receipt ordering, stale quotes after awaited close/
+price publication, wall-clock rollback, source exhaustion, signal retention,
+snapshot resource exclusion and unchanged global random state. Independent
+implementation review found no remaining blockers within this declared scope.
+The unchanged SQL contract's prior PostgreSQL acceptance was not rerun; frontend
+tests were not rerun for these Python-only changes. Exact Vercel Git builds and
+read-only production authentication/API smokes remain release checks.
+
+**Next priority and research:** C2B should begin from a new flat exact-policy
+run with the two-gene EMA profile, eight members and one asset. Exercise funding,
+causal entry, protective/signal closes and full solver replacement through the
+isolated SQL contract. Reject implicit legacy float-position adoption. Research
+bounded original numeric-lexeme decoding, precision-grid policy, exact trigger
+thresholds, indicator/fitness conversion, full state/event encoding, worst-case
+payload bounds, peak memory and transaction latency. The current v2 SQL journal
+does not bind close reason, source/threshold evidence, cursors or complete
+state/events; a reviewed versioned extension remains necessary. C2/C3, the
+production cutover, restoration and unattended hosting remain open. Details and
+primary sources are in the recovery plan's C2A section.
+
+**Verified target/release plan:** GitHub `TOOTRJ/TheDashboard` (`1141090963`);
+Vercel `the-dashboard` (`prj_wFUe9k9USVreOQcmQKNWRAVsx5fH`), team
+`team_8iNNxiNjrOseD4gdSCHkQEzF` / `orderoftheredjester`; Supabase `The Dashboard`
+(`fxpxsciltakyypunglzr`), organization `cqfnnaunmupdyobkyqfo` / `Valentine Jester`,
+ACTIVE_HEALTHY. Canonical origin and both local project pins match. PR30 merge
+`df002fc5af6b62661da01f4c1696902db4a5f2e6`, READY production
+`dpl_CxVYzDjnvKy6o423T4yMLBz6Uf9r`, is the rollback baseline. Reverify target
+identity and the exact source preview before merging; verify production's exact
+merge/alias and four read-only smokes afterward. Record release evidence in the
+PR. A reviewed code revert is sufficient; no cloud schema/environment/data
+rollback is needed. The historical migration edit retains SHA-256
+`a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc` and is excluded.
+Other projects, shared credentials/settings/tools and unrelated local files
+are preserved.

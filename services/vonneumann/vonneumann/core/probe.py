@@ -49,6 +49,15 @@ logger = logging.getLogger(__name__)
 CLOSED_TRADE_RETENTION = 256
 
 
+def _default_identity() -> str:
+    """Resolve defaults when used so runtime/test patches remain effective."""
+    return str(uuid.uuid4())
+
+
+def _default_monotonic() -> float:
+    return time.monotonic()
+
+
 @dataclass(frozen=True)
 class _ClosePlan:
     asset: str
@@ -88,11 +97,19 @@ class Probe:
         candle_history: Optional[CandleHistory] = None,
         execution_config: Optional[ExecutionConfig] = None,
         strategy_profile: str = LEGACY_PROFILE,
+        *,
+        id_factory: Optional[Callable[[], str]] = None,
+        monotonic_clock: Optional[Callable[[], float]] = None,
     ):
         signal_policy(strategy_profile)
         self.strategy_profile = strategy_profile
+        if ((id_factory is not None and not callable(id_factory)) or
+                (monotonic_clock is not None and not callable(monotonic_clock))):
+            raise ValueError("Probe decision sources must be callable")
+        self._id_factory = _default_identity if id_factory is None else id_factory
+        self._monotonic_clock = _default_monotonic if monotonic_clock is None else monotonic_clock
         self._clock = clock or utc_now
-        self.probe_id = probe_id or str(uuid.uuid4())
+        self.probe_id = probe_id or self._new_identity()
         self.probe_name = probe_name or f"Probe-G{genome.generation}-{self.probe_id[:4]}"
         self.genome = genome
         self.mode = mode
@@ -137,6 +154,18 @@ class Probe:
 
     def _now(self) -> datetime:
         return clock_datetime(self._clock())
+
+    def _new_identity(self) -> str:
+        value = self._id_factory()
+        if type(value) is not str:
+            raise ValueError("Probe identity source must return a canonical UUID string")
+        try:
+            canonical = str(uuid.UUID(value))
+        except ValueError:
+            raise ValueError("Probe identity source must return a canonical UUID string") from None
+        if canonical != value:
+            raise ValueError("Probe identity source must return a canonical UUID string")
+        return value
 
     @property
     def open_position_value(self) -> float:
@@ -482,9 +511,17 @@ class Probe:
         sl_price = positive_price(current_price * (1 - stop_loss))
         tp_price = positive_price(current_price * (1 + take_profit))
         opened_at = self._now()
+        trade_id = self._new_identity()
+        # An injected source can repeat a valid UUID. Reject collisions visible
+        # in this owned account before a trade is created. Global/evicted ID
+        # uniqueness remains the source and durable ledger's responsibility.
+        if trade_id == self.probe_id or any(
+                existing.trade_id == trade_id
+                for existing in (*self.open_positions.values(), *self.closed_trades)):
+            raise ValueError("Probe identity source repeated an existing entity identity")
 
         trade = TradeRecord(
-            trade_id=str(uuid.uuid4()),
+            trade_id=trade_id,
             probe_id=self.probe_id,
             pair=asset,
             side="BUY",
@@ -735,7 +772,6 @@ class Probe:
                     continue
                 if stamp <= intent.candle_end or receipt <= intent.receipt_boundary:
                     continue
-                self._pending_intents.pop(asset, None)
                 price = positive_price(self._marks.get(asset))
                 if intent.action == "entry":
                     event = self._open_position(asset, price, intent.signals)
@@ -744,8 +780,12 @@ class Probe:
                 else:
                     trade = self.open_positions.get(asset)
                     if trade is None or trade.trade_id != intent.trade_id:
+                        self._pending_intents.pop(asset, None)
                         continue
                     event = self._close_position(asset, price, "SIGNAL_EXIT")
+                # Source failures must not consume an otherwise eligible
+                # signal before its trade identity/time has been validated.
+                self._pending_intents.pop(asset, None)
                 if event is not None:
                     events.append(event)
                     self._observe_drawdown()
@@ -767,32 +807,31 @@ class Probe:
             previous = self._candle_cursors.get(asset)
             if previous is not None and end <= previous:
                 continue
-            self._candle_cursors[asset] = end
-            self._pending_intents.pop(asset, None)
-            if end <= self._signals_after:
-                continue
             # Catch-up history advances the cursor without replaying missed
             # decisions. A newly attached empty history can see its first bar.
-            if previous is not None and end - previous > timeframe_seconds:
-                continue
-            if end > now or now > end + timeframe_seconds:
-                continue
+            eligible = (end > self._signals_after and
+                        not (previous is not None and end - previous > timeframe_seconds) and
+                        end <= now <= end + timeframe_seconds)
             observation = self._quote_observations.get(asset)
-            if observation is None:
-                continue
-            if asset not in self.open_positions:
-                triggered, signals = self._has_entry_signal(asset)
-                action, trade_id = "entry", None
-            else:
-                triggered, signals = self._has_exit_signal(asset), {}
-                action, trade_id = "exit", self.open_positions[asset].trade_id
-            if triggered:
-                # History may arrive after the quote fetch. A quote received
-                # during that wait still predates the newly available signal.
-                available = time.monotonic() if self.mode == "paper" else now
-                boundary = max(observation[1], nonnegative_value(available))
-                self._pending_intents[asset] = _SignalIntent(
-                    end, boundary, action, trade_id, dict(signals))
+            next_intent = None
+            if eligible and observation is not None:
+                if asset not in self.open_positions:
+                    triggered, signals = self._has_entry_signal(asset)
+                    action, trade_id = "entry", None
+                else:
+                    triggered, signals = self._has_exit_signal(asset), {}
+                    action, trade_id = "exit", self.open_positions[asset].trade_id
+                if triggered:
+                    # History may arrive after the quote fetch. A quote received
+                    # during that wait still predates the newly available signal.
+                    available = self._monotonic_clock() if self.mode == "paper" else now
+                    boundary = max(observation[1], nonnegative_value(available))
+                    next_intent = _SignalIntent(end, boundary, action, trade_id, dict(signals))
+            # Commit the cursor/intent only after any requested source succeeds.
+            self._candle_cursors[asset] = end
+            self._pending_intents.pop(asset, None)
+            if next_intent is not None:
+                self._pending_intents[asset] = next_intent
 
     # ── Main tick ────────────────────────────────────────────────────────
 

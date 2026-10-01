@@ -40,6 +40,7 @@ OPERATIONAL_FIELDS = frozenset({
     "market_feed", "_on_event", "_persist_risk_status", "_tick_lock",
     "_running", "_paused", "_worker_draining", "_feed_closed",
     "_wall_started_monotonic", "state_persisted",
+    "_event_clock", "_wall_clock", "_monotonic_clock", "_id_factory", "_name_factory",
 })
 COMPONENT_FIELDS = frozenset({"strategy", "probes", "dead_probes", "candle_history", "_cohort"})
 DATA_FIELDS = frozenset({

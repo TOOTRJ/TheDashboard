@@ -48,7 +48,7 @@ _PROBE_FIELDS = frozenset({
     "_candle_cursors", "_pending_intents", "_signals_after",
 })
 _PROBE_OPTIONAL = frozenset({"_has_persisted_offspring"})
-_PROBE_RESOURCES = frozenset({"_clock", "_candle_history"})
+_PROBE_RESOURCES = frozenset({"_clock", "_candle_history", "_id_factory", "_monotonic_clock"})
 _GENES = frozenset({"rsi_period", "rsi_oversold", "rsi_overbought", "ema_fast", "ema_slow",
     "volume_threshold", "position_size_pct", "stop_loss_pct", "take_profit_pct",
     "max_open_positions", "timeframe_minutes", "benchmark_target_pct",
@@ -300,7 +300,8 @@ def capture_probe_data(probe: Probe, *, memo=None) -> ProbeData:
     fields = vars(probe)
     _require((_PROBE_FIELDS | _PROBE_RESOURCES) <= fields.keys()
              and not fields.keys() - (_PROBE_FIELDS | _PROBE_OPTIONAL | _PROBE_RESOURCES))
-    _require(callable(fields["_clock"]) and (fields["_candle_history"] is None
+    _require(all(callable(fields[name]) for name in ("_clock", "_id_factory", "_monotonic_clock"))
+             and (fields["_candle_history"] is None
              or type(fields["_candle_history"]) is CandleHistory))
     values = {name: item for name, item in fields.items() if name not in _PROBE_RESOURCES}
     _validate_probe_attributes(values)
