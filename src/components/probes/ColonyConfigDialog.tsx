@@ -100,6 +100,7 @@ export function ColonyConfigDialog({ open, onClose, onStart, starting, startErro
   );
   const [geneOverrides, setGeneOverrides] = React.useState<Record<string, GeneOverride>>({});
   const [selectedAssets, setSelectedAssets] = React.useState<string[]>([...ALL_ASSETS]);
+  const isEmaBaseline = config.colony_config.strategy_profile === "ema_baseline_v1";
   const [strategies, setStrategies] = React.useState<StrategyInfo[]>(() =>
     Object.keys(STRATEGY_LABELS).map((name) => ({
       name,
@@ -130,6 +131,7 @@ export function ColonyConfigDialog({ open, onClose, onStart, starting, startErro
     setPreset(presetName);
     const p = PRESETS.find((x) => x.name === presetName);
     if (!p) return;
+    setValidationErrors([]);
     const c = p.config;
 
     const enabled: Record<string, boolean> = {};
@@ -160,8 +162,9 @@ export function ColonyConfigDialog({ open, onClose, onStart, starting, startErro
 
   // Preset summary stats
   const presetSummary = React.useMemo(() => {
-    const evolving = GENE_DEFINITIONS.filter((g) => geneEnabled[g.name] && geneOverrides[g.name]?.fixed == null).length;
-    const locked = GENE_DEFINITIONS.filter((g) => geneOverrides[g.name]?.fixed != null).length;
+    const evolving = GENE_DEFINITIONS.filter((g) => geneEnabled[g.name] && geneOverrides[g.name]?.fixed == null &&
+      (geneOverrides[g.name]?.min ?? g.min) < (geneOverrides[g.name]?.max ?? g.max)).length;
+    const locked = GENE_DEFINITIONS.length - evolving;
     const repro = config.colony_config.reproduction_interval;
     return { evolving, locked, repro };
   }, [geneEnabled, geneOverrides, config.colony_config.reproduction_interval]);
@@ -178,6 +181,7 @@ export function ColonyConfigDialog({ open, onClose, onStart, starting, startErro
       .map((g) => g.name);
 
     const colonyConfig: ColonyConfig = {
+      strategy_profile: config.colony_config.strategy_profile ?? "rsi_ema_volume_v1",
       gene_overrides: overrides,
       enabled_genes: enabledGenes.length < GENE_DEFINITIONS.length ? enabledGenes : null,
       available_assets: selectedAssets.length < ALL_ASSETS.length ? selectedAssets : null,
@@ -213,7 +217,10 @@ export function ColonyConfigDialog({ open, onClose, onStart, starting, startErro
   const setGeneRange = (geneName: string, min: number, max: number) => {
     setGeneOverrides((prev) => ({
       ...prev,
-      [geneName]: { ...prev[geneName], min, max, fixed: undefined },
+      [geneName]: { ...prev[geneName], min, max, fixed: undefined,
+        ...(prev[geneName]?.default !== undefined && Number.isFinite(min) && Number.isFinite(max) && min <= max
+          ? { default: Math.min(max, Math.max(min, prev[geneName].default!)) } : {}),
+      },
     }));
   };
 
@@ -307,7 +314,7 @@ export function ColonyConfigDialog({ open, onClose, onStart, starting, startErro
         <div className="flex gap-3 text-[10px] text-muted-foreground mt-1">
           <span><span className="text-[#00fff5] font-mono">{presetSummary.evolving}</span> genes evolve</span>
           <span className="text-muted-foreground/40">|</span>
-          <span><span className="text-[#ffff00] font-mono">{presetSummary.locked}</span> locked</span>
+          <span><span className="text-[#ffff00] font-mono">{presetSummary.locked}</span> fixed parameters</span>
           <span className="text-muted-foreground/40">|</span>
           <span>evaluation window <span className="text-[#bf00ff] font-mono">{presetSummary.repro}</span> market minutes</span>
           {config.mutation_rate !== 0.20 && (
@@ -318,7 +325,56 @@ export function ColonyConfigDialog({ open, onClose, onStart, starting, startErro
           )}
         </div>
 
-        {/* Gene groups */}
+        {isEmaBaseline ? (
+          <fieldset className="mt-3 space-y-3 rounded-md border border-[#00fff5]/20 p-3">
+            <legend className="px-1 text-xs font-medium">EMA crossing profile</legend>
+            <p className="text-xs text-muted-foreground">
+              Enter on a bullish EMA crossing and exit on a bearish crossing, using completed 15-minute candles.
+              RSI and volume filters are off. A signal fills only on a later eligible quote.
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Fixed for every candidate: one asset, one position, 25% of available cash per entry,
+              3% stop loss, 7% take profit, and 20% drawdown retirement. No self-reproduction or age limit.
+              Protective exits and the colony circuit breaker remain active.
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Common warmup: 61 completed timeframe bars (at least 915 modeled minutes), even with narrower EMA ranges.
+              These are research settings; synthetic prices and cost assumptions do not establish trading performance.
+            </p>
+            {GENE_DEFINITIONS.filter((gene) => gene.name === "ema_fast" || gene.name === "ema_slow").map((gene) => {
+              const minimum = geneOverrides[gene.name]?.min ?? gene.min;
+              const maximum = geneOverrides[gene.name]?.max ?? gene.max;
+              return (
+                <fieldset key={gene.name} className="space-y-1">
+                  <legend className="text-xs">{gene.label} range (completed bars)</legend>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div><Label htmlFor={`baseline-${gene.name}-min`} className="text-xs">Minimum</Label>
+                      <Input id={`baseline-${gene.name}-min`} type="number" min={gene.min} max={gene.max} step={1}
+                        value={Number.isFinite(minimum) ? minimum : ""}
+                        onChange={(event) => setGeneRange(gene.name, event.target.value === "" ? NaN : Number(event.target.value), maximum)} /></div>
+                    <div><Label htmlFor={`baseline-${gene.name}-max`} className="text-xs">Maximum</Label>
+                      <Input id={`baseline-${gene.name}-max`} type="number" min={gene.min} max={gene.max} step={1}
+                        value={Number.isFinite(maximum) ? maximum : ""}
+                        onChange={(event) => setGeneRange(gene.name, minimum, event.target.value === "" ? NaN : Number(event.target.value))} /></div>
+                  </div>
+                </fieldset>
+              );
+            })}
+            <div className="space-y-1">
+              <Label htmlFor="baseline-horizon" className="text-xs">Common evaluation window (modeled minutes)</Label>
+              <Input id="baseline-horizon" type="number" min={START_LIMITS.reproduction_interval.min}
+                max={START_LIMITS.reproduction_interval.max} step={1}
+                value={Number.isFinite(config.colony_config.reproduction_interval) ? config.colony_config.reproduction_interval : ""}
+                onChange={(event) => setConfig((current) => ({ ...current, colony_config: {
+                  ...current.colony_config, reproduction_interval: event.target.value === "" ? NaN : Number(event.target.value),
+                } }))} />
+              <p className="text-xs text-muted-foreground">
+                Default: 1,440 modeled minutes (24 hours) after warmup. Playback speed changes the wait in simulation,
+                not the evaluation horizon. All candidates share the chosen window and cost scenario.
+              </p>
+            </div>
+          </fieldset>
+        ) : (
         <TooltipProvider>
           <div className="space-y-4 mt-3">
             {GENE_GROUPS.map((group) => {
@@ -445,12 +501,19 @@ export function ColonyConfigDialog({ open, onClose, onStart, starting, startErro
             })}
           </div>
         </TooltipProvider>
+        )}
 
         {/* Asset selector */}
         <div className="mt-4">
           <span className="text-[10px] font-bold uppercase tracking-widest text-[#bf00ff]">
-            Trading Pairs
+            {isEmaBaseline ? "Fixed asset for this run" : "Trading Pairs"}
           </span>
+          {isEmaBaseline ? (
+            <Select value={selectedAssets[0] ?? ""} onValueChange={(asset) => setSelectedAssets([asset])}>
+              <SelectTrigger className="mt-2" aria-label="Fixed asset for this run"><SelectValue /></SelectTrigger>
+              <SelectContent>{ALL_ASSETS.map((asset) => <SelectItem key={asset} value={asset}>{asset}</SelectItem>)}</SelectContent>
+            </Select>
+          ) : (
           <div className="flex flex-wrap gap-2 mt-2">
             {ALL_ASSETS.map((asset) => {
               const checked = selectedAssets.includes(asset);
@@ -477,6 +540,7 @@ export function ColonyConfigDialog({ open, onClose, onStart, starting, startErro
               );
             })}
           </div>
+          )}
         </div>
 
             <fieldset className="space-y-2 col-span-full rounded-md border border-[#00fff5]/15 p-3">
@@ -581,7 +645,7 @@ export function ColonyConfigDialog({ open, onClose, onStart, starting, startErro
                 className="h-7 text-xs font-mono border-[#00fff5]/20 bg-transparent"
               />
             </div>
-            <div className="space-y-1">
+            {!isEmaBaseline && <div className="space-y-1">
               <Label className="text-[9px] uppercase tracking-wider text-muted-foreground">
                 Evaluation window (market minutes)
               </Label>
@@ -594,13 +658,14 @@ export function ColonyConfigDialog({ open, onClose, onStart, starting, startErro
                 }))}
                 className="h-7 text-xs font-mono border-[#00fff5]/20 bg-transparent"
               />
-            </div>
+            </div>}
             <div className="space-y-1">
               <Label className="text-[9px] uppercase tracking-wider text-muted-foreground">
                 Maximum candidate age (market minutes after warmup)
               </Label>
               <Input
                 type="number" min={START_LIMITS.max_lifespan_ticks.min} max={START_LIMITS.max_lifespan_ticks.max} step={1}
+                disabled={isEmaBaseline}
                 value={config.colony_config.max_lifespan_ticks ?? 0}
                 onChange={(e) => {
                   const v = Number(e.target.value);

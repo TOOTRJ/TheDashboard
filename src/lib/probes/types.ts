@@ -1,4 +1,5 @@
 import type { ExecutionPolicy, TradeExecution, ProbeAccounting } from "./execution";
+import type { SignalPolicy } from "./signal-profile";
 
 export type ProbeState =
   | "BORN"
@@ -214,7 +215,7 @@ export interface ColonyRun {
   probe_count: number;
   best_fitness: number;
   status?: Exclude<SimulationStatus, "unknown">;
-  runtime?: Partial<Pick<SystemStatus, "failure_code" | "state_persisted" | "open_positions" | "requires_reconciliation" | "valuation_available" | "clock_basis" | "market_time" | "market_elapsed_secs" | "circuit_breaker" | "risk_control" | "evaluation_policy" | "cohort" | "search_spec" | "lifecycle_policy" | "execution_policy">>;
+  runtime?: Partial<Pick<SystemStatus, "failure_code" | "state_persisted" | "open_positions" | "requires_reconciliation" | "valuation_available" | "clock_basis" | "market_time" | "market_elapsed_secs" | "circuit_breaker" | "risk_control" | "evaluation_policy" | "cohort" | "search_spec" | "lifecycle_policy" | "execution_policy" | "signal_policy">>;
 }
 
 export interface PriceTick {
@@ -246,6 +247,7 @@ export interface SystemStatus {
   search_spec?: SearchSpec;
   lifecycle_policy?: LifecyclePolicy;
   execution_policy?: ExecutionPolicy;
+  signal_policy?: SignalPolicy;
   evaluation_policy?: EvaluationPolicy;
   cohort?: EvaluationCohort;
   diversity: number | null;
@@ -285,6 +287,7 @@ export interface ColonyInfo {
   search_spec?: SearchSpec;
   lifecycle_policy?: LifecyclePolicy;
   execution_policy?: ExecutionPolicy;
+  signal_policy?: SignalPolicy;
   evaluation_policy?: EvaluationPolicy;
   cohort?: EvaluationCohort;
 }

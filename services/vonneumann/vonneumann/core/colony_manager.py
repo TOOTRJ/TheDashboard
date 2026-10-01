@@ -7,6 +7,7 @@ import logging
 from typing import Optional, Callable, Awaitable
 
 from .colony_config import ColonyConfig
+from .signal_profile import signal_policy
 from .genesis import GenesisController
 from .funding import FundingError
 from .market_validation import MarketValueError
@@ -94,7 +95,8 @@ def _failure_code(error: Exception, default: str) -> str:
 
 class _StartingColony:
     """Retain an owner-visible failure even when constructing the controller fails."""
-    def __init__(self, colony_id: str, user_id: str, mode: str, strategy: str):
+    def __init__(self, colony_id: str, user_id: str, mode: str, strategy: str,
+                 strategy_profile: str | None = None):
         self.colony_id = self.run_id = colony_id
         self.user_id = user_id
         self.mode = mode
@@ -103,6 +105,7 @@ class _StartingColony:
         self.state_persisted = True
         self.failure_code = self.failure_message = None
         self.market_feed = None
+        self.strategy_profile = strategy_profile
 
     def set_lifecycle(self, status: str) -> None:
         self.lifecycle = status
@@ -113,6 +116,8 @@ class _StartingColony:
 
     def status(self) -> dict:
         return {"colony_id": self.colony_id, "run_id": self.run_id,
+                "strategy_profile": self.strategy_profile,
+                "signal_policy": signal_policy(self.strategy_profile) if self.strategy_profile is not None else None,
                 "status": self.lifecycle, "mode": self.mode, "strategy": self.strategy_name,
                 "state_persisted": self.state_persisted, "failure_code": self.failure_code,
                 "failure_message": self.failure_message, "open_positions": 0,
@@ -138,8 +143,9 @@ class ColonyManager:
         self._publish: dict[str, StatusCallback] = {}
         self._pending_failures: dict[str, str] = {}
 
-    def _register(self, colony_id, user_id, mode, strategy, persist_status, on_status):
-        self._colonies[colony_id] = _StartingColony(colony_id, user_id, mode, strategy)
+    def _register(self, colony_id, user_id, mode, strategy, persist_status, on_status,
+                  strategy_profile=None):
+        self._colonies[colony_id] = _StartingColony(colony_id, user_id, mode, strategy, strategy_profile)
         self._locks[colony_id] = asyncio.Lock()
         if persist_status is not None:
             self._persist[colony_id] = persist_status
@@ -147,9 +153,9 @@ class ColonyManager:
             self._publish[colony_id] = on_status
 
     async def record_start_failure(self, colony_id, user_id, mode, strategy_name,
-                                   persist_status, on_status) -> None:
+                                   persist_status, on_status, *, strategy_profile=None) -> None:
         """Cancellation after an initial insert still leaves a truthful terminal record."""
-        self._register(colony_id, user_id, mode, strategy_name, persist_status, on_status)
+        self._register(colony_id, user_id, mode, strategy_name, persist_status, on_status, strategy_profile)
         await self._fail(colony_id, "startup_cancelled")
 
     async def create_colony(
@@ -165,7 +171,8 @@ class ColonyManager:
         """The caller must persist the starting row before calling this method."""
         from .strategies import get_strategy
 
-        self._register(colony_id, user_id, mode, strategy_name, persist_status, on_status)
+        self._register(colony_id, user_id, mode, strategy_name, persist_status, on_status,
+                       colony_config.strategy_profile)
 
         async def prepare() -> None:
             strategy = get_strategy(strategy_name)

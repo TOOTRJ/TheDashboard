@@ -7,6 +7,7 @@ import { BookOpen, Dna } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { ExecutionPolicyNotice } from "@/components/probes/ExecutionPolicyNotice";
 import { parseExecutionPolicy } from "@/lib/probes/execution";
+import { parseSignalPolicy, signalPolicyDescription } from "@/lib/probes/signal-profile";
 import { ProbesDashboard } from "@/components/probes/ProbesDashboard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { fetchProbes, fetchGenerationStats, fetchColonyRuns } from "@/lib/probes/probes-supabase";
@@ -308,6 +309,7 @@ function AuthenticatedProbesPage({ userId, accessToken }: { userId: string; acce
   const diagnostics = showSavedStatus || !systemStatus ? selectedHistory?.runtime : systemStatus;
   const searchSpec = parseSearchSpec((!systemStatus || errors.status ? selectedHistory?.runtime : systemStatus)?.search_spec);
   const executionPolicy = parseExecutionPolicy((!systemStatus || errors.status ? selectedHistory?.runtime : systemStatus)?.execution_policy);
+  const signalPolicy = parseSignalPolicy((!systemStatus || errors.status ? selectedHistory?.runtime : systemStatus)?.signal_policy);
   const lifecyclePolicy = parseLifecyclePolicy((!systemStatus || errors.status ? selectedHistory?.runtime : systemStatus)?.lifecycle_policy);
   const riskControl = parseRiskControl(diagnostics?.risk_control);
   const confirmedRiskHalt = !showSavedStatus && !errors.status && systemStatus?.status === "risk_halted";
@@ -351,6 +353,7 @@ function AuthenticatedProbesPage({ userId, accessToken }: { userId: string; acce
         </div>
       )}
       {selectedColonyId && <ExecutionPolicyNotice policy={executionPolicy} />}
+      {selectedColonyId && <p className="text-xs text-muted-foreground">{signalPolicyDescription(signalPolicy)}</p>}
       {syntheticMarketTime && (
         <p className="text-xs text-muted-foreground">
           Last reported synthetic market time: <span className="font-mono">{syntheticMarketTime}</span>.

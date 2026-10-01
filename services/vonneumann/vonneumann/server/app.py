@@ -21,6 +21,7 @@ from fastapi.responses import JSONResponse
 from ..config import VN_ALLOWED_ORIGINS
 from ..core.colony_config import PRESET_CONFIGS
 from ..core.search_random import SearchRandomStreams
+from ..core.signal_profile import signal_policy
 from ..core.colony_manager import ColonyManager, ColonyLifecycleError, complete_operation
 from ..core.gene_registry import GENE_REGISTRY
 from ..core.genome import AVAILABLE_ASSETS
@@ -99,7 +100,7 @@ async def invalid_request(_request, error: RequestValidationError):
     # Do not reflect arbitrary body values, unknown field names, or exception ctx.
     known_fields = set(StartRequest.model_fields) | set(RecoverRequest.model_fields) | {
         "body", "colony_config", "gene_overrides", "enabled_genes", "available_assets",
-        "max_lifespan_ticks", "reproduction_interval", "min", "max", "default", "fixed",
+        "max_lifespan_ticks", "reproduction_interval", "strategy_profile", "min", "max", "default", "fixed",
         "execution", "fee_bps", "half_spread_bps", "slippage_bps",
     } | set(GENE_REGISTRY.numeric_gene_names())
     return JSONResponse(status_code=422, content={"detail": [
@@ -129,7 +130,8 @@ async def _start_colony(req: StartRequest, user: VerifiedUser) -> dict:
     search_spec = SearchRandomStreams(req.search_seed, req.strategy).spec()
     execution_config = ExecutionConfig(**req.execution.model_dump())
     persisted_config = {**resolved_request, "search_spec": search_spec,
-                        "execution_policy": execution_config.policy()}
+                        "execution_policy": execution_config.policy(),
+                        "signal_policy": signal_policy(colony_config.strategy_profile)}
 
     try:
         repo = VonNeumannRepository(user.id, run_id=colony_id)
@@ -153,6 +155,8 @@ async def _start_colony(req: StartRequest, user: VerifiedUser) -> dict:
         # Even a preparation failure has a known immutable run policy. The
         # starting placeholder has no controller metadata to copy yet.
         details["execution_policy"] = execution_config.policy()
+        details["strategy_profile"] = colony_config.strategy_profile
+        details["signal_policy"] = signal_policy(colony_config.strategy_profile)
         await repo.execute_async("update_colony_status", colony_id, status["status"], details=details)
 
     async def publish_status(status: dict) -> None:
@@ -177,7 +181,8 @@ async def _start_colony(req: StartRequest, user: VerifiedUser) -> dict:
                 # original config if attempting the terminal status finds a row.
                 await repo.execute_async("update_colony_status", colony_id, "failed")
         await complete_operation(colony_manager.record_start_failure(
-            colony_id, user.id, mode, req.strategy, persist_cancelled, publish_status))
+            colony_id, user.id, mode, req.strategy, persist_cancelled, publish_status,
+            strategy_profile=colony_config.strategy_profile))
         raise
     except PersistenceError:
         raise HTTPException(status_code=503, detail={

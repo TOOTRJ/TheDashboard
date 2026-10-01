@@ -4,8 +4,8 @@ Live market feed using the Jupiter API.
 Uses Jupiter Price API v3 for Solana token prices, batching requested assets.
 Provider failures stop execution; only source-validated complete batches are cached.
 
-Jupiter is also the swap provider for live trading (Phase 6), so using it
-for prices keeps the entire pipeline on one provider.
+The separate Swap V2 helper supplies indicative token quotes only. It does not
+participate in paper USD valuation and cannot build, sign, or execute a swap.
 
 Completed indicator candles use the separate Birdeye V3 history adapter.
 """
@@ -26,6 +26,10 @@ from .candles import MinuteCandle
 from .feed import MarketFeed, MarketFeedError, MarketTick, QuoteEvidence
 from .quote_freshness import quote_source_age, source_slot, validate_quote
 from .solana_time import SolanaTimeResolver
+from .swap_quote import (
+    QUOTE_TIMEOUT_SECONDS, SWAP_ORDER_URL, SwapQuote, SwapQuoteError,
+    bounded_quote_body, parse_swap_quote, quote_parameters,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -240,38 +244,62 @@ class JupiterFeed(MarketFeed):
         """Fetch completed source minutes for the shared indicator history."""
         return await self._candles.get_candles(assets, warmup=warmup)
 
-    # ── Swap Quoting (for future live trading) ───────────────────────────
+    # ── Indicative Swap V2 quotes (not used for paper USD valuation) ─────
 
     async def get_swap_quote(
         self,
         input_mint: str,
         output_mint: str,
-        amount_lamports: int,
-        slippage_bps: int = 100,
-    ) -> Optional[dict]:
-        """
-        Get a swap quote from Jupiter. Used for live trading (Phase 6).
-        Returns the full quote response needed to execute a swap.
-        """
-        session = await self._get_session()
-        self.api_call_count += 1
-        try:
-            async with session.get(
-                f"{JUPITER_API_URL}/swap/v1/quote",
-                params={
-                    "inputMint": input_mint,
-                    "outputMint": output_mint,
-                    "amount": str(amount_lamports),
-                    "slippageBps": str(slippage_bps),
-                },
-                headers=self._jup_headers,
-                allow_redirects=False,
-            ) as resp:
-                if resp.status != 200:
-                    logger.warning(f"[Jupiter] Quote API HTTP {resp.status}")
-                    return None
-                return await resp.json()
+        amount_atomic: int,
+        slippage_bps: int | None = None,
+    ) -> SwapQuote:
+        """One bounded quote-only request, with explicit safe failure codes.
 
+        Omits taker and all wallet/execution options. Default slippage is managed
+        by Jupiter; an explicit integer override may affect routing. Returned
+        amounts are atomic token estimates, not USD marks or net wallet fills.
+        No provider error body, transaction, request ID, or raw response escapes.
+        """
+        params = quote_parameters(input_mint, output_mint, amount_atomic, slippage_bps)
+        attempted = False
+
+        async def one_attempt(request, handler):
+            # aiohttp retries some idempotent GET disconnects internally. Its
+            # public per-request middleware runs on each attempt, so block the
+            # second before transport work without mutating our shared session.
+            nonlocal attempted
+            if attempted:
+                raise SwapQuoteError("swap_quote_unavailable") from None
+            attempted = True
+            return await handler(request)
+
+        try:
+            async with asyncio.timeout(QUOTE_TIMEOUT_SECONDS):
+                session = await self._get_session()
+                self.api_call_count += 1
+                async with session.get(
+                    SWAP_ORDER_URL, params=params, headers=self._jup_headers,
+                    allow_redirects=False,
+                    timeout=aiohttp.ClientTimeout(total=QUOTE_TIMEOUT_SECONDS),
+                    middlewares=(one_attempt,),
+                ) as resp:
+                    if resp.status != 200:
+                        code = ("swap_quote_auth_failed" if resp.status in (401, 403)
+                                else "swap_quote_rate_limited" if resp.status == 429
+                                else "swap_quote_redirect_rejected" if 300 <= resp.status < 400
+                                else "swap_quote_provider_rejected" if 400 <= resp.status < 500
+                                else "swap_quote_unavailable")
+                        raise SwapQuoteError(code)
+                    body = await bounded_quote_body(resp)
+                    received_at, received_mono = time.time(), time.monotonic()
+                return parse_swap_quote(
+                    body, input_mint=input_mint, output_mint=output_mint,
+                    amount_atomic=amount_atomic, slippage_bps=slippage_bps,
+                    received_at=received_at, received_monotonic=received_mono,
+                )
+        except SwapQuoteError:
+            raise
+        except TimeoutError:
+            raise SwapQuoteError("swap_quote_timeout") from None
         except Exception:
-            logger.warning("[Jupiter] Quote unavailable")
-            return None
+            raise SwapQuoteError("swap_quote_unavailable") from None

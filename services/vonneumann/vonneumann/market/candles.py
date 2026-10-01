@@ -100,6 +100,8 @@ class CandleSnapshot:
     source: str
     quote_currency: str
     volume_unit: str
+    previous_emas: Mapping[int, float] = field(default_factory=dict)
+    previous_end: int | None = None
 
     def __post_init__(self) -> None:
         # Copy as well as freeze: a caller retaining the original dict cannot
@@ -107,6 +109,7 @@ class CandleSnapshot:
         object.__setattr__(self, "closes", tuple(self.closes))
         object.__setattr__(self, "volumes", tuple(self.volumes))
         object.__setattr__(self, "emas", MappingProxyType(dict(self.emas)))
+        object.__setattr__(self, "previous_emas", MappingProxyType(dict(self.previous_emas)))
 
 
 @dataclass
@@ -140,6 +143,8 @@ class _Series:
         self.volumes.append(volume)
         del self.closes[:-64]
         del self.volumes[:-21]
+        previous_emas = dict(self.emas)
+        previous_end = self.snapshot.end if self.snapshot is not None else None
         for period in range(2, 61):
             if self.completed_count == period:
                 # Scaling prevents overflow of a representable mean and avoids
@@ -160,6 +165,7 @@ class _Series:
             closes=tuple(self.closes), volumes=tuple(self.volumes), emas=self.emas,
             completed_count=self.completed_count, source=first.source,
             quote_currency=first.quote_currency, volume_unit=first.volume_unit,
+            previous_emas=previous_emas, previous_end=previous_end,
         )
         self.pending.clear()
 
