@@ -1,6 +1,6 @@
 # Safe durability and later worker hosting
 
-Source review and staged implementation plan, September 30, 2026. SVC-02A's local admission/drain precursor is implemented; the database durability contract below remains future work. The FILL-01A execution JSON column records accounting detail; it is not an atomic ledger, ownership lease or executable checkpoint.
+Source review and staged implementation plan, September 30, 2026. SVC-02A's local admission/drain precursor is implemented. DB-03A1 now supplies an isolated executable database contract rehearsal; the application write-boundary cutover below remains future work. The FILL-01A execution JSON column records accounting detail; it is not an atomic ledger, ownership lease or executable checkpoint.
 
 ## What is durable today
 
@@ -23,9 +23,14 @@ is explicitly unavailable. Offline race/lifespan tests cover the acceptance
 boundaries. See [the implemented lifecycle contract](WORKER-LIFECYCLE.md).
 This precursor does not satisfy the database fencing gate below.
 
-Then prepare the fenced command/revision/journal contract against isolated real
-PostgreSQL connections and roles, followed by repository/engine integration as
-one complete write-boundary cutover. Do not ship a lease-only shim while direct
+The [DB-03A1 rehearsal](db-contract/README.md) implements the proposed
+command/revision/journal boundary in a disposable schema against isolated real
+PostgreSQL connections and roles. It exercises exact decimal cash/reserve,
+birth/open/close/retire batches, fixed ownership grants, lease expiry after lock
+waits, and interruption without adopting old positions. It is outside the
+Supabase migration path and is not loaded by the worker. The next stage is
+repository/engine integration as one complete write-boundary cutover. Do not
+ship a lease-only shim while direct
 service-role or authenticated-owner writes can bypass it. Existing normal-stop
 feed cleanup is already implemented; extend its failure/race coverage rather
 than replacing it wholesale. Shared provider polling comes after local lifecycle
@@ -86,6 +91,14 @@ Use actual isolated PostgreSQL roles/connections as well as fast unit tests:
 A versioned atomic checkpoint must include probe cash/open positions and lifetime counters; reserve ownership; historical peak/drawdown; risk baseline/trip/recovery; cohort membership and pending/completed results; generation seals/aggregates; pending commands and event cursors; exact shared candle/EMA origin and recursive state; equity sample/gap state; signal/decision cursors; search epochs and private RNG state; and solver-specific state including CMA ask vectors/covariance/paths and PSO/DE mappings. Record code/dependency/policy versions and dataset identity.
 
 Synthetic/replay continuation additionally requires frame cursor, per-asset delivery watermarks and exact feed RNG state. A seed alone does not restore the current state. Paper restart must obtain new source evidence, never reuse process-local monotonic timestamps, discard expired pending intents and ordinarily abort the interrupted evaluation without tell. Restoring shared EMA from an arbitrary short history changes the strategy. Full live execution would additionally need on-chain reconciliation and remains unauthorized.
+
+Before integration, deepen research on database/PostgREST role inheritance and
+custom worker credentials, exact numeric serialization versus the float engine,
+lease durations under measured lock/transport latency, bounded event retention
+and replay pagination, and versioned checkpoint compatibility. DB-03A1's cash
+and position fixtures do not persist complete genomes/cohorts/metrics/RNG state,
+and its temporary-cluster backend-termination checks are not power-loss or
+production host acceptance.
 
 Hosting then needs a reviewed Linux image, capacity/drain measurements, shared-provider quota budgeting, isolated secrets and exact origins/TLS endpoints, readiness/alerts, and demonstrated SIGTERM/SIGKILL/release-overlap/rollback behavior. A local disk, successful history read or idle health response is insufficient.
 
