@@ -510,6 +510,9 @@ class FundingContinuityTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase)
 
     async def test_simultaneous_deaths_pool_recoverable_cash_before_extinction(self):
         controller = await self.controller(population=2, max_probes=2, capital=200.0)
+        # This fixture isolates cash pooling after 50% loss. The new allocation
+        # risk checkpoint correctly blocks births under the usual 30% limit.
+        controller.circuit_breaker_drop_pct = .60
         parents = list(controller.live_probes)
         for probe in parents:
             probe.genome.position_size_pct = 1.0

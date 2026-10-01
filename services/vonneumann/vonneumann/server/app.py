@@ -30,6 +30,7 @@ from ..db.repository import VonNeumannRepository, EventPersister, PersistenceErr
 from .auth import VerifiedUser, require_user, verify_access_token
 from .websocket import ws_manager
 from .models import RecoverRequest, StartRequest, build_colony_config as _build_colony_config
+from ..core.execution import ExecutionConfig
 
 logger = logging.getLogger(__name__)
 
@@ -99,6 +100,7 @@ async def invalid_request(_request, error: RequestValidationError):
     known_fields = set(StartRequest.model_fields) | set(RecoverRequest.model_fields) | {
         "body", "colony_config", "gene_overrides", "enabled_genes", "available_assets",
         "max_lifespan_ticks", "reproduction_interval", "min", "max", "default", "fixed",
+        "execution", "fee_bps", "half_spread_bps", "slippage_bps",
     } | set(GENE_REGISTRY.numeric_gene_names())
     return JSONResponse(status_code=422, content={"detail": [
         {"loc": [item if isinstance(item, int) or item in known_fields else "unknown_field"
@@ -125,7 +127,9 @@ async def _start_colony(req: StartRequest, user: VerifiedUser) -> dict:
     resolved_request = {**req.model_dump(), "mutation_rate": colony_config.mutation_rate,
                         "colony_config": resolved_colony_config}
     search_spec = SearchRandomStreams(req.search_seed, req.strategy).spec()
-    persisted_config = {**resolved_request, "search_spec": search_spec}
+    execution_config = ExecutionConfig(**req.execution.model_dump())
+    persisted_config = {**resolved_request, "search_spec": search_spec,
+                        "execution_policy": execution_config.policy()}
 
     try:
         repo = VonNeumannRepository(user.id, run_id=colony_id)
@@ -139,13 +143,17 @@ async def _start_colony(req: StartRequest, user: VerifiedUser) -> dict:
     handler = _make_dual_handler(colony_id, user.id, persister)
 
     async def persist_status(status: dict) -> None:
-        await repo.execute_async("update_colony_status", colony_id, status["status"], details={
+        details = {
             name: status.get(name) for name in ("failure_code", "failure_message", "state_persisted",
                                                "open_positions", "requires_reconciliation", "valuation_available",
                                                "clock_basis", "market_time", "market_elapsed_secs", "simulation_spec", "quote_policy",
-                                               "candle_policy", "metrics_policy", "fitness_policy", "lifecycle_policy",
+                                               "candle_policy", "metrics_policy", "fitness_policy", "lifecycle_policy", "execution_policy",
                                                "circuit_breaker", "risk_control", "evaluation_policy", "cohort", "last_evaluation", "search_spec")
-        })
+        }
+        # Even a preparation failure has a known immutable run policy. The
+        # starting placeholder has no controller metadata to copy yet.
+        details["execution_policy"] = execution_config.policy()
+        await repo.execute_async("update_colony_status", colony_id, status["status"], details=details)
 
     async def publish_status(status: dict) -> None:
         # Failure notification remains possible when the database itself is down.
@@ -185,7 +193,7 @@ async def _start_colony(req: StartRequest, user: VerifiedUser) -> dict:
             seed_capital=req.seed_capital, max_capital=req.max_capital,
             tick_interval_ms=req.tick_interval_ms, mutation_rate=colony_config.mutation_rate,
             persist_status=persist_status, on_status=publish_status,
-            search_seed=req.search_seed,
+            search_seed=req.search_seed, execution_config=execution_config,
         )
     except ColonyLifecycleError as error:
         raise _lifecycle_http_error(error, colony_id) from None

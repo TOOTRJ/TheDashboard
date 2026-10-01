@@ -7,7 +7,9 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Optional
 
-from .market_validation import trade_return
+from .market_validation import (trade_return, position_value, MarketValueError,
+                                positive_price, nonnegative_value, finite_number)
+from .execution import parse_execution, mark_value
 
 
 class ProbeState(str, Enum):
@@ -39,7 +41,7 @@ class TradeRecord:
     pair: str
     side: str  # 'BUY' | 'SELL'
     entry_price: float
-    amount: float  # USDC size
+    amount: float  # All-in entry cash debit; currency requires execution metadata
     exit_price: Optional[float] = None
     pnl: Optional[float] = None
     pnl_pct: Optional[float] = None
@@ -53,7 +55,39 @@ class TradeRecord:
     opened_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     closed_at: Optional[datetime] = None
 
+    execution: Optional[dict] = None
+
+    def execution_parts(self):
+        if self.execution is None:
+            return None
+        config, entry, exit_fill = parse_execution(self.execution)
+        if (positive_price(self.amount) != entry.cash_debit or
+                positive_price(self.entry_price) != entry.fill_price):
+            raise MarketValueError()
+        if exit_fill is None:
+            if any(value is not None for value in (self.exit_price, self.pnl, self.pnl_pct)):
+                raise MarketValueError()
+        elif (nonnegative_value(self.exit_price) != exit_fill.fill_price or
+              finite_number(self.pnl) != exit_fill.net_pnl or
+              finite_number(self.pnl_pct) != exit_fill.net_return):
+            raise MarketValueError()
+        return config, entry, exit_fill
+
+    @property
+    def reference_entry_price(self) -> float:
+        parts = self.execution_parts()
+        return parts[1].reference_price if parts else self.entry_price
+
+    def marked_value(self, price: float) -> float:
+        parts = self.execution_parts()
+        return mark_value(parts[1], price) if parts else position_value(self.amount, self.entry_price, price)
+
     def return_pct(self) -> float:
+        parts = self.execution_parts()
+        if parts:
+            if parts[2] is None:
+                raise MarketValueError()
+            return parts[2].net_return
         return trade_return(self.entry_price, self.exit_price)
 
 

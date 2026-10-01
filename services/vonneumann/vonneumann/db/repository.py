@@ -158,6 +158,7 @@ class VonNeumannRepository:
             "pair": trade.pair,
             "entry_price": trade.entry_price,
             "amount": trade.amount,
+            "execution": deepcopy(trade.execution),
             "signal_rsi": trade.signal_rsi,
             "signal_ema_fast": trade.signal_ema_fast,
             "signal_ema_slow": trade.signal_ema_slow,
@@ -331,6 +332,7 @@ class EventPersister:
                 stop_loss_price=data.get("stop_loss_price"),
                 take_profit_price=data.get("take_profit_price"),
                 opened_at=timestamp,
+                execution=deepcopy(data.get("execution")),
             )
             await self.repo.execute_async("insert_trade", trade, mode=self.mode)
 
@@ -341,6 +343,7 @@ class EventPersister:
                 "pnl_pct": data.get("pnl_pct"),
                 "exit_reason": data.get("exit_reason"),
                 "closed_at": timestamp.isoformat(),
+                "execution": deepcopy(data.get("execution")),
             })
 
         elif etype == EventType.PROBE_UPDATE:

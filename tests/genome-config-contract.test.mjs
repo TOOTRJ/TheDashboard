@@ -5,6 +5,7 @@ import test from "node:test";
 import ts from "typescript";
 import * as genes from "../src/lib/probes/gene-registry.ts";
 import * as transport from "../src/lib/probes/transport.ts";
+import * as execution from "../src/lib/probes/execution.ts";
 
 const source = fs.readFileSync(new URL("../src/lib/probes/colony-config.ts", import.meta.url), "utf8");
 const compiled = ts.transpileModule(source, { compilerOptions: {
@@ -14,6 +15,7 @@ const exports = {};
 vm.runInNewContext(compiled, { exports, require(name) {
   if (name === "./gene-registry") return genes;
   if (name === "./transport") return transport;
+  if (name === "./execution") return execution;
   throw new Error(`Unexpected import ${name}`);
 } });
 

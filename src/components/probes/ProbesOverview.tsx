@@ -2,6 +2,7 @@
 
 import { Activity, Dna, DollarSign, TrendingUp, Zap } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { parseExecutionPolicy } from "@/lib/probes/execution";
 import { parseLifecyclePolicy } from "@/lib/probes/transport";
 import type { Probe, SystemStatus } from "@/lib/probes/types";
 
@@ -12,6 +13,8 @@ interface Props {
 }
 
 export function ProbesOverview({ probes, systemStatus, valuationAvailable }: Props) {
+  const accountingPolicy = parseExecutionPolicy(systemStatus?.execution_policy);
+  const currencyPrefix = accountingPolicy ? "$" : "";
   const live = probes.filter((p) => p.state !== "DEAD");
   const bestFitness = live.length > 0
     ? Math.max(...live.map((p) => p.fitness_score))
@@ -21,7 +24,7 @@ export function ProbesOverview({ probes, systemStatus, valuationAvailable }: Pro
     typeof totalCapital === "number" && Number.isFinite(totalCapital);
   const reserve = systemStatus?.reserve_capital;
   const reserveText = typeof reserve === "number" && Number.isFinite(reserve)
-    ? `$${reserve.toLocaleString("en-US", { maximumFractionDigits: 0 })}` : "unavailable";
+    ? `${currencyPrefix}${reserve.toLocaleString("en-US", { maximumFractionDigits: 0 })}` : "unavailable";
   const diversity = systemStatus?.diversity;
   const maxGen = probes.length > 0
     ? Math.max(...probes.map((p) => p.generation))
@@ -66,8 +69,8 @@ export function ProbesOverview({ probes, systemStatus, valuationAvailable }: Pro
       color: "#ff00ff",
     },
     {
-      label: "Colony Capital",
-      value: hasValuation ? `$${totalCapital.toLocaleString("en-US", { maximumFractionDigits: 0 })}` : "Unavailable",
+      label: accountingPolicy ? "Colony equity (USD reference)" : "Recorded total · unit unverified",
+      value: hasValuation ? `${currencyPrefix}${totalCapital.toLocaleString("en-US", { maximumFractionDigits: 0 })}` : "Unavailable",
       sub: hasValuation
         ? `Last reported total · Reserve: ${reserveText}`
         : "Current market valuation is unavailable",

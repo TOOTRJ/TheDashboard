@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { defaultExecutionConfig } from "@/lib/probes/execution";
 import { FlaskConical, Zap, Settings2, Dna, Shield, Timer, Lock, Unlock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -478,6 +479,25 @@ export function ColonyConfigDialog({ open, onClose, onStart, starting, startErro
           </div>
         </div>
 
+            <fieldset className="space-y-2 col-span-full rounded-md border border-[#00fff5]/15 p-3">
+              <legend className="px-1 text-xs font-medium">Execution cost scenario · USD reference account</legend>
+              <p className="text-[11px] text-muted-foreground">Fixed for this run. These are uncalibrated assumptions applied on each entry and exit; 100 basis points = 1%. Zero costs provide a frictionless mechanics control. Gas, priority fees, size impact and execution latency are not modeled.</p>
+              <div className="grid gap-3 sm:grid-cols-3">
+                {([['fee_bps', 'Fee (bps)'], ['half_spread_bps', 'Half-spread (bps)'], ['slippage_bps', 'Adverse slippage (bps)']] as const).map(([key, label]) => (
+                  <div key={key} className="space-y-1">
+                    <Label htmlFor={`execution-${key}`} className="text-[10px]">{label}</Label>
+                    <Input id={`execution-${key}`} type="number" min={0} max={10000} step="any"
+                      value={Number.isFinite((config.execution ?? defaultExecutionConfig())[key]) ? (config.execution ?? defaultExecutionConfig())[key] : ""}
+                      onChange={(event) => setConfig(current => ({ ...current, execution: {
+                        ...(current.execution ?? defaultExecutionConfig()), [key]: event.target.value === '' ? NaN : Number(event.target.value),
+                      } }))}
+                      className="h-7 text-xs font-mono border-[#00fff5]/20 bg-transparent" />
+                  </div>
+                ))}
+              </div>
+              <p className="text-[11px] text-muted-foreground">Fee must be below 10,000 bps; half-spread plus slippage must be below 10,000 bps. Asset identifiers ending in /USDC are retained for compatibility; prices and simulated balances use USD reference values, with no USDC conversion.</p>
+            </fieldset>
+
         {/* Advanced toggle */}
         <button
           onClick={() => setShowAdvanced(!showAdvanced)}
@@ -519,7 +539,7 @@ export function ColonyConfigDialog({ open, onClose, onStart, starting, startErro
             </div>
             <div className="space-y-1">
               <Label className="text-[9px] uppercase tracking-wider text-muted-foreground">
-                Max Capital ($)
+                Starting account (USD reference)
               </Label>
               <Input
                 type="number" min={START_LIMITS.max_capital.min} max={START_LIMITS.max_capital.max} step={10}
@@ -530,7 +550,7 @@ export function ColonyConfigDialog({ open, onClose, onStart, starting, startErro
             </div>
             <div className="space-y-1">
               <Label className="text-[9px] uppercase tracking-wider text-muted-foreground">
-                Capital Per Probe ($)
+                Cash per probe (USD reference)
               </Label>
               <Input
                 type="number" min={START_LIMITS.seed_capital.min} max={START_LIMITS.seed_capital.max} step={10}

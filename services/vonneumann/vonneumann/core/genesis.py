@@ -27,11 +27,12 @@ from .colony_config import ColonyConfig
 from .evolution import FITNESS_POLICY, NUMERIC_GENES, mutate, population_diversity
 from .equity_metrics import EQUITY_METRICS_POLICY
 from .genome import Genome, random_genome
+from .execution import ExecutionConfig
 from .gene_registry import GENE_REGISTRY
 from .search_random import SearchRandomStreams
 from .funding import FundingError, can_fund, funding_tolerance, sum_cashflows, valid_cash
 from .names import generate_probe_name
-from .market_validation import MarketValueError, nonnegative_value, positive_price, position_value
+from .market_validation import MarketValueError, nonnegative_value, positive_price
 from .probe import Probe, ProbeStepError
 from .risk_control import RiskRecoveryError
 from .evaluation import EvaluationCohort, EVALUATION_POLICY
@@ -160,6 +161,7 @@ class GenesisController:
         on_event: Optional[Callable[[ProbeEvent], Awaitable[None]]] = None,
         persist_risk_status: Optional[Callable[[dict], Awaitable[None]]] = None,
         search_seed: str = "0",
+        execution_config: Optional[ExecutionConfig] = None,
     ):
         if getattr(market_feed, "simulation_only", False) and mode != "simulation":
             raise ValueError("This offline fixture feed supports simulation mode only")
@@ -172,6 +174,7 @@ class GenesisController:
         self._uses_cohorts = bool(getattr(strategy, "supports_cohorts", False))
         self.user_id = user_id
         self.mode = mode
+        self.execution_config = execution_config or ExecutionConfig()
 
         # Population config
         self.max_probes = max_probes
@@ -315,9 +318,7 @@ class GenesisController:
                 values.append(nonnegative_value(probe.capital))
                 for asset, trade in probe.open_positions.items():
                     price = self._mark_price(asset)
-                    entry = positive_price(trade.entry_price)
-                    amount = nonnegative_value(trade.amount)
-                    values.append(position_value(amount, entry, price))
+                    values.append(trade.marked_value(price))
             active = nonnegative_value(math.fsum(values))
             if reserve is not None:
                 total = nonnegative_value(reserve + active)
@@ -345,6 +346,7 @@ class GenesisController:
                 "dataset_spec": (self.market_feed.dataset_spec
                     if self._uses_simulation_clock and hasattr(self.market_feed, "dataset_spec") else None)},
             "mode": self.mode,
+            "execution_policy": self.execution_config.policy(),
             "generation": self.current_generation,
             "tick": self.tick_count,
             "live_probes": len(live),
@@ -513,6 +515,7 @@ class GenesisController:
             probe_name=generate_probe_name(genome.generation),
             clock=self._event_time,
             candle_history=self.candle_history,
+            execution_config=self.execution_config,
         )
         for asset in genome.assets:
             if asset in self._latest_ticks:
@@ -649,6 +652,10 @@ class GenesisController:
             reason = "evolution_selected" if probe.probe_id in selected_ids else "evolution_culled"
             reclaimed_flows.append(await self._retire_probe(probe, reason=reason, prices=prices))
             self.reserve_capital = sum_cashflows(reclaimed_flows)
+        if self._check_circuit_breaker():
+            await self._save_risk_status(self.status())
+            await self._publish_risk_change("tripped")
+            return
         for genome, balance in zip(children, balances):
             self._require_current_quotes()
             new_probe = await self._spawn_probe(genome, self.seed_capital, _planned_reserve=balance)
@@ -782,6 +789,8 @@ class GenesisController:
             genome.generation = self.current_generation + 1
             genome.parent_ids = []
         await self._apply_replacement(EvolutionResult(genomes, list(self.probes)))
+        if self.circuit_breaker_active:
+            return
         self._search_epoch += 1
         self._mutation_event = 0
         self.strategy.configure_search(self._search_streams, self._search_epoch)
@@ -821,6 +830,22 @@ class GenesisController:
             now = self._event_time().timestamp()
             if cohort is None or not cohort.due(now):
                 return
+            # A completed window must rank net liquidation results, including
+            # the same exit costs that retirement will actually pay. Validate
+            # every candidate first; a bad sibling cannot cause a partial batch.
+            closures = []
+            for probe in self.live_probes:
+                prices = {asset: self._mark_price(asset) for asset in probe.open_positions}
+                probe.validate_liquidation(prices)
+                closures.append((probe, prices))
+            for probe, prices in closures:
+                self._require_fresh_assets(probe.open_positions)
+                for event in probe.close_all_positions(prices, "EVOLUTION"):
+                    await self._emit(event)
+            if self._check_circuit_breaker():
+                await self._save_risk_status(self.status())
+                await self._publish_risk_change("tripped")
+                return
             evaluated = cohort.complete(list(self.live_probes), now)
             self._last_evaluation = cohort.to_dict()
             await self._publish_evaluation()
@@ -839,6 +864,8 @@ class GenesisController:
             self._last_evaluation["selection"] = deepcopy(result.metadata)
             await self._publish_evaluation()
             await self._apply_replacement(EvolutionResult(children, list(self.probes), parents, result.metadata))
+            if self.circuit_breaker_active:
+                return
             self._bind_evaluation()
             await self._publish_evaluation()
             return
@@ -1127,7 +1154,9 @@ class GenesisController:
         # Broadcast prices every 5 ticks
         if self.tick_count % 5 == 0:
             price_data = {
-                asset: {"price": round(t.price, 6), "volume": round(t.volume, 2)}
+                asset: {"price": t.price, "volume": t.volume,
+                        "timestamp": t.timestamp, "account_currency": "USD",
+                        "mode": self.mode}
                 for asset, t in ticks.items() if t.price > 0
             }
             if price_data:
@@ -1145,6 +1174,7 @@ class GenesisController:
         for probe in live:
             # Event writes and broadcasts above may have aged every quote.
             self._require_current_quotes()
+            was_halted = self.circuit_breaker_active
             try:
                 max_life = self.colony_config.max_lifespan_ticks
                 age = self.tick_count - probe.birth_tick
@@ -1158,19 +1188,33 @@ class GenesisController:
                 else:
                     events = probe.tick(check_risk=False,
                                         allow_new_risk=not self.circuit_breaker_active and decisions_allowed,
-                                        allow_reproduction=not self._uses_cohorts)
+                                        allow_reproduction=not self._uses_cohorts,
+                                        risk_check=lambda: self._check_circuit_breaker() or self.circuit_breaker_active)
             except ProbeStepError as error:
                 for event in error.events:
                     await self._emit(event)
                 # Accounts and positions remain owned for reconciliation. Do
                 # not breed/reclaim capital after an incomplete decision phase.
                 raise error.cause
+            # Forced closes can also incur costs. Latch before awaited writes
+            # or the next candidate decision, preserving all close events.
+            cost_risk_error = None
+            try:
+                self._check_circuit_breaker()
+            except Exception as error:
+                cost_risk_error = error
             for evt in events:
                 await self._emit(evt)
                 if evt.event_type == EventType.PROBE_DEAD:
                     dying.append(probe)
                 elif evt.event_type == EventType.PROBE_REPRODUCING:
                     self_reproducing.append(probe)
+
+            if cost_risk_error is not None:
+                raise cost_risk_error
+            if self.circuit_breaker_active and not was_halted:
+                await self._save_risk_status(self.status())
+                await self._publish_risk_change("tripped")
 
         # Process death events
         for probe in dying:
@@ -1231,8 +1275,7 @@ class GenesisController:
                 # mark used by protective exits and subsequent decisions.
                 if probe._marks.get(asset) != price:
                     raise MarketValueError()
-                values.append(position_value(nonnegative_value(trade.amount),
-                                             positive_price(trade.entry_price), price))
+                values.append(trade.marked_value(price))
         return nonnegative_value(math.fsum(values))
 
     def _observe_account_risk(self) -> Optional[tuple[float, float]]:
