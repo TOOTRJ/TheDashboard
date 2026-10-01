@@ -100,12 +100,60 @@ class ResearchRunnerTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase):
         self.assertEqual(one['selection']['random']['trial_ids'], order[:1])
         self.assertEqual(one['selection']['random']['winner'], order[0])
         self.assertEqual(full['selection']['random']['winner'], 'ema-03-15')
-        expected_holdout = {full['selection']['grid_winner'], full['selection']['random']['winner'], *CONTROL_IDS}
+        expected_holdout = {full['selection']['grid_winner'], full['selection']['random']['winner'],
+                            full['selection']['ga']['winner'], *CONTROL_IDS}
         self.assertEqual(set(self.evaluations(full, 'holdout')), expected_holdout)
         self.assertEqual(len(full['evaluations']['holdout']), len(expected_holdout))
         for row in full['evaluations']['train']:
             self.assertAlmostEqual(row['summary']['cash'], 1000)
             self.assertEqual(row['summary']['roi'], 0)
+
+    async def test_equal_budget_search_traces_and_external_oracle_metrics_reconcile(self):
+        prices = [100.0] * (WARMUP_MINUTES + 40)
+        prices[309], prices[310], prices[314], prices[315] = 105, 101, 95, 99
+        path, _ = self.fixture(quote_prices=prices)
+        result = await run_experiment(path, self.config(random_seed='43', random_budget=13))
+        self.assertEqual(result['engine']['version'], 'ema-grid-mechanics-v2')
+        self.assertIn('services/vonneumann/vonneumann/research/search.py', result['engine']['source_sha256'])
+        scores = {row['candidate_id']: row['summary']['fitness'] for row in result['evaluations']['train']}
+        optimum = max(scores[ident] for ident in GRID_IDS)
+        selection = result['selection']
+        for algorithm in ('random', 'ga'):
+            trace = selection[algorithm]
+            self.assertEqual(len(trace['trials']), 13)
+            self.assertEqual(trace['score_cache_hits'], 13)
+            self.assertEqual(trace['additional_computed_evaluations'], 0)
+            self.assertEqual(len(trace['best_by_budget']), 13)
+            for n, row in enumerate(trace['best_by_budget'], 1):
+                seen = trace['trial_ids'][:n]
+                best = min(seen, key=lambda ident: (-scores[ident], ident))
+                self.assertEqual(row['winner'], best)
+                self.assertEqual(row['fitness'], scores[best])
+                self.assertEqual(row['oracle_regret'], optimum - scores[best])
+                self.assertEqual(row['optimum_fitness_hit'], scores[best] == optimum)
+                self.assertEqual(row['canonical_winner_hit'], best == selection['grid_winner'])
+                self.assertEqual(trace['trials'][n - 1]['fitness'], scores[seen[-1]])
+        self.assertEqual(selection['ga']['trial_ids'][:4], selection['random']['trial_ids'][:4])
+        comparison = selection['comparison']
+        self.assertEqual(comparison['budget'], 13)
+        self.assertEqual(comparison['exhaustive_grid_evaluations'], 20)
+        self.assertEqual(comparison['separate_control_evaluations'], 4)
+        self.assertEqual(comparison['oracle_fitness'], optimum)
+        self.assertEqual(comparison['ga_minus_random_fitness'],
+                         scores[selection['ga']['winner']] - scores[selection['random']['winner']])
+        expected = {selection['grid_winner'], selection['random']['winner'],
+                    selection['ga']['winner'], *CONTROL_IDS}
+        self.assertEqual(set(self.evaluations(result, 'holdout')), expected)
+
+    async def test_flat_objective_distinguishes_optimum_fitness_from_canonical_tie_winner(self):
+        path, _ = self.fixture()
+        result = await run_experiment(path, self.config(random_seed='31', random_budget=1))
+        for algorithm in ('random', 'ga'):
+            row = result['selection'][algorithm]['best_by_budget'][0]
+            self.assertNotEqual(row['winner'], result['selection']['grid_winner'])
+            self.assertEqual(row['oracle_regret'], 0)
+            self.assertTrue(row['optimum_fitness_hit'])
+            self.assertFalse(row['canonical_winner_hit'])
 
     async def test_holdout_changes_cannot_change_training_ledgers_or_selections(self):
         config = self.config(random_seed='79', random_budget=6)

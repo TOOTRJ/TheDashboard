@@ -20,14 +20,15 @@ from ..core.evolution import FITNESS_POLICY, compute_fitness
 from ..core.execution import ExecutionConfig, buy_fill, sell_fill, mark_value, execution_record, parse_execution
 from ..core.genome import Genome
 from ..core.probe import Probe
-from ..core.search_random import SearchRandomStreams, validate_search_seed
+from ..core.search_random import validate_search_seed
 from ..core.signal_profile import EMA_BASELINE_PROFILE, EMA_WARMUP_BARS, signal_policy
 from ..core.types import EventType, ProbeEvent, ProbeState
 from ..market.candles import CandleHistory, CANDLE_POLICY
 from ..market.dataset import MAX_FRAMES, DatasetError, canonical_bytes
 from ..market.replay_feed import ReplayFeed
+from .search import SEARCH_POLICY, search_grid
 
-VERSION = 'ema-grid-mechanics-v1'
+VERSION = 'ema-grid-mechanics-v2'
 GRID = tuple((fast, slow) for fast in (3, 5, 8, 12) for slow in (15, 20, 30, 45, 60))
 
 
@@ -110,7 +111,7 @@ def candidates():
 
 def source_fingerprint():
     root = Path(__file__).resolve().parents[1]
-    files = ['research/runner.py', 'core/colony_config.py', 'core/genome.py', 'core/gene_registry.py',
+    files = ['research/runner.py', 'research/search.py', 'core/colony_config.py', 'core/genome.py', 'core/gene_registry.py',
              'core/probe.py', 'core/execution.py', 'core/evolution.py', 'core/equity_metrics.py',
              'core/signal_profile.py', 'core/types.py', 'core/clock.py', 'core/market_validation.py',
              'core/search_random.py', 'market/candles.py', 'market/dataset.py', 'market/replay_feed.py',
@@ -344,22 +345,29 @@ async def run_experiment(dataset_path, config: ResearchConfig) -> dict:
             training = [account.result() for account in train]
             scores = {item['candidate_id']: item['summary'] for item in training}
             grid_ids = [_candidate_id(pair) for pair in GRID]
-            order = list(grid_ids)
-            SearchRandomStreams(config.random_seed, 'ema_grid_random').rng('grid-permutation').shuffle(order)
-            selected = _winner(order[:config.random_budget], scores)
+            # Search sees only each requested scalar training score. Oracle
+            # diagnostics are computed after both algorithms have stopped.
+            searches = {algorithm: search_grid(GRID, seed=config.random_seed, budget=config.random_budget,
+                        algorithm=algorithm, evaluate=lambda ident: scores[ident]['fitness'])
+                        for algorithm in ('random', 'ga')}
+            oracle = _winner(grid_ids, scores)
+            optimum = scores[oracle]['fitness']
+            for result in searches.values():
+                for row in result['best_by_budget']:
+                    row['oracle_regret'] = optimum - row['fitness']
+                    row['optimum_fitness_hit'] = row['fitness'] == optimum
+                    row['canonical_winner_hit'] = row['winner'] == oracle
             selection = dict(objective=deepcopy(FITNESS_POLICY), tie_break='candidate_id_ascending',
-                grid_winner=_winner(grid_ids, scores),
-                random=dict(seed=config.random_seed, order=order, budget=config.random_budget,
-                    sampling='without_replacement', unique_trials=config.random_budget,
-                    duplicate_trials=0, score_cache_hits=config.random_budget,
+                grid_winner=oracle, **searches,
+                comparison=dict(budget=config.random_budget, unit='logical_training_score_requests',
+                    exhaustive_grid_evaluations=len(GRID), separate_control_evaluations=4,
                     additional_computed_evaluations=0,
-                    trial_ids=order[:config.random_budget], winner=selected,
-                    best_by_budget=[dict(budget=n, winner=_winner(order[:n], scores),
-                                        fitness=scores[_winner(order[:n], scores)]['fitness'])
-                                    for n in range(1, len(order) + 1)]))
+                    ga_minus_random_fitness=(scores[searches['ga']['winner']]['fitness'] -
+                                             scores[searches['random']['winner']]['fitness']),
+                    oracle_fitness=optimum))
             # Bind the complete training evidence before any holdout decision.
             selection['training_evidence_sha256'] = hashlib.sha256(canonical_bytes(training)).hexdigest()
-            selected_ids = {selection['grid_winner'], selected,
+            selected_ids = {selection['grid_winner'], searches['random']['winner'], searches['ga']['winner'],
                             'fixed-ema-09-21', 'cash', 'buy-hold-25', 'buy-hold-100'}
             holdout = [_account(d, config, history, tick.timestamp, fixed_controls) for d in definitions if d['id'] in selected_ids]
         if train_end <= index <= holdout_end:
@@ -376,6 +384,8 @@ async def run_experiment(dataset_path, config: ResearchConfig) -> dict:
             selection='training_only; net terminal fitness; no holdout ranking',
             coverage='every completed minute delivered on its modeled quote frame; gaps/delays rejected',
             random_search='seeded permutation without replacement; score-cache prefixes; 20 equals exhaustive by construction',
+            search=deepcopy(SEARCH_POLICY),
+            search_comparison='equal logical requests; cached exhaustive training scores; no runtime-savings claim; oracle diagnostics added after selection',
             equity='pre-decision mark and post-action cash/equity; each fill records intermediate cash/equity; terminal costs included',
             risk='independent EMA probe drawdown retirement; no shared Genesis capital or circuit breaker',
             passive_controls='cash zero interest; buy-hold 25%/100% initial cash on first quote after boundary; no rebalance or protective exits',

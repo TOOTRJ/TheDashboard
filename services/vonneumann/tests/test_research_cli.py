@@ -137,6 +137,9 @@ class ResearchCliTests(unittest.TestCase):
         self.assertEqual(self.report['scope'], 'synthetic_mechanics_only')
         self.assertEqual(self.report['verification'], 'created')
         self.assertEqual(self.report['random_budget'], 7)
+        self.assertEqual(self.report['ga_budget'], 7)
+        self.assertEqual(self.report['ga_unique_trials'] + self.report['ga_duplicate_trials'], 7)
+        self.assertEqual(self.report['ga_training_winner'], self.original.payload['selection']['ga']['winner'])
         self.assertEqual(self.original.payload['config']['random_seed'], '18446744073709551615')
         training = self.original.payload['evaluations']['train']
         self.assertEqual(len(training), 24)
@@ -157,6 +160,15 @@ class ResearchCliTests(unittest.TestCase):
         self.assertEqual(load_result(path).payload['evaluations']['train'][0]['summary'],
                          self.original.payload['evaluations']['train'][0]['summary'])
         self.assert_safe_failure(self.verify(path), code='research_integrity')
+
+    def test_rehashed_search_trace_and_oracle_tampering_fail_full_replay(self):
+        def edit_request(value):
+            value['selection']['ga']['trials'][0]['fitness'] += 0.125
+        def edit_regret(value):
+            value['selection']['ga']['best_by_budget'][0]['oracle_regret'] += 0.125
+        for edit in (edit_request, edit_regret):
+            with self.subTest(edit=edit):
+                self.assert_safe_failure(self.verify(self.tampered(edit)), code='research_integrity')
 
     def test_rehashed_wrong_dataset_identity_engine_version_and_source_fingerprint_fail(self):
         def fingerprint(value):

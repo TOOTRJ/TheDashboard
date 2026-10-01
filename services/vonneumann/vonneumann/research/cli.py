@@ -29,8 +29,8 @@ def _parser():
     run.add_argument('--train-minutes', type=int, default=1440)
     run.add_argument('--holdout-minutes', type=int, default=1440)
     run.add_argument('--initial-capital', type=float, default=1000.0)
-    run.add_argument('--random-seed', default='0')
-    run.add_argument('--random-budget', type=int, default=10)
+    run.add_argument('--random-seed', default='0', help='shared initialization seed for random search and GA')
+    run.add_argument('--random-budget', type=int, default=10, help='equal logical request budget per search (1–20)')
     run.add_argument('--fee-bps', type=float, default=0.0)
     run.add_argument('--half-spread-bps', type=float, default=0.0)
     run.add_argument('--slippage-bps', type=float, default=0.0)
@@ -47,6 +47,11 @@ def _summary(artifact, *, verified=False):
             'grid_training_winner': payload['selection']['grid_winner'],
             'random_training_winner': payload['selection']['random']['winner'],
             'random_budget': payload['selection']['random']['budget'],
+            'ga_training_winner': payload['selection']['ga']['winner'],
+            'ga_budget': payload['selection']['ga']['budget'],
+            'ga_unique_trials': payload['selection']['ga']['unique_trials'],
+            'ga_duplicate_trials': payload['selection']['ga']['duplicate_trials'],
+            'training_comparison': plain_data(payload['selection']['comparison']),
             'holdout': [{'candidate_id': row['candidate_id'], **plain_data(row['summary'])}
                         for row in payload['evaluations']['holdout']]}
 
