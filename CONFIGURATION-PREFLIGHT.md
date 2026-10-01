@@ -1183,3 +1183,68 @@ distribution-state provenance and complete transition size. DB-03A2D then
 prepares the exact target's legacy inventory, production transport, grants,
 historical readback and archive/cutover plan; DB-03A3 proves the full flow before
 applying it. DB-03A2, durable readiness, restoration and hosting remain open.
+
+## 36. Explicit engine-state and optimizer forks (DB-03A2C1, 2026-10-01)
+
+**Scope:** the first state-isolation prerequisite of DB-03A2C. Added a sealed
+in-process engine snapshot with defensive data forks, raw Probe data/candle
+forks and explicit GA/DE/PSO/CMA/evaluation forks. No existing controller,
+execution, API, UI, dependency or production persistence behavior is changed.
+There is no database migration or worker deployment. C2/C3 retain complete
+transition planning, atomic state/events, acknowledgment installation and outbox
+delivery; the parent C remains open.
+
+The capture acquires the existing tick/recovery lock and copies synchronously,
+rejecting incomplete startup and unsupported state. It excludes network/feed
+resources, callbacks, bound clocks, operational drain/run/ack flags and identity
+allocation. Raw copying preserves retained trade counters, optional offspring
+flags, signal intents/cursors, shared recursive EMA state, candidate bindings
+and risk/generation data without calling reporting methods or constructors.
+`fork()` returns a new independent graph; the snapshot has no execution,
+installation, serialization or database authority.
+
+**Confirmed findings:** the installed cmaes 0.13.1 serialization hooks omit the
+RNG and recreate it unseeded; ordinary deepcopy is therefore unsuitable for
+deterministic solver continuation. The new version-pinned copier bypasses those
+hooks and preserves exact RNG state/caches and reviewed solver arrays/mappings.
+Independent review also fixed a temporary-dictionary ID-reuse bug in copy
+memoization, mutable Gaussian-cache and numeric-array-metadata alias bypasses,
+and custom comparison hooks in rejected identity values. Unknown object fields,
+resource-bearing state, solver versions and overlapping array views fail closed.
+
+**Validation:** all 902 ordinary worker tests pass. Discovery reports 908 tests
+and nine skips (six opt-in harness cases and three PostgreSQL class-level skips).
+New coverage comprises 18 controller-state tests, 12 probe/candle component tests and
+14 optimizer/evaluation tests. It includes four real solver generations, actual
+controllers for all four algorithms across three population replacements,
+partial evaluations, cancellation while waiting for the lock, source/sibling
+isolation, frozen-record nested mutation, 100 distinct probe captures, retained
+terminal capital and forbidden-resource/serialization checks. The SQL fixture
+and command protocol are unchanged; the previous 59-case PostgreSQL acceptance
+is not represented as rerun for this batch. Frontend tests likewise are not
+rerun for these disconnected Python helpers; exact Vercel Git builds and
+read-only production smokes remain release checks.
+
+**Capacity and deeper research:** a synthetic 100-member, three-position CMA
+replacement has 501 operations and measures 232,899 bytes with simple values,
+or 390,099 with fractional price/cost evidence. The latter exceeds the current
+262,144-byte cap before state/events. Four/eight-position stress fixtures are
+outside the current per-probe asset limit and are not runtime acceptance.
+Research a bounded complete-state codec, numerical conversions and fork/commit
+memory/latency before raising limits. Preserve valid protective closes when a
+later quote/history or decision phase fails. Stage replacement atomically and
+never truncate evidence or split economic state to evade bounds.
+
+**Verified target/release plan:** GitHub `TOOTRJ/TheDashboard` (`1141090963`);
+Vercel `the-dashboard` (`prj_wFUe9k9USVreOQcmQKNWRAVsx5fH`), team
+`team_8iNNxiNjrOseD4gdSCHkQEzF` / `orderoftheredjester`; Supabase `The Dashboard`
+(`fxpxsciltakyypunglzr`), organization `cqfnnaunmupdyobkyqfo` / `Valentine Jester`,
+ACTIVE_HEALTHY. Canonical origin and both local pins match. PR29 merge
+`d42be517d65c94b461826839470bda364272682c`, READY production
+`dpl_E38p8R6HeTXdrSCZ3aeZRmHLSaj5`, is the rollback baseline. Verify the exact
+source preview before merging and the exact production merge/alias afterward;
+record deployment IDs and four read-only smoke results in the PR. A reviewed
+code revert is sufficient; there is no cloud schema/environment/data rollback.
+The historical migration edit retains SHA-256
+`a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc` and is excluded.
+Other projects, shared credentials/tools and unrelated local files are preserved.
