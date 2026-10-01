@@ -1,0 +1,32 @@
+{
+  "repository": "https://github.com/jup-ag/agent-skills",
+  "revision": "a2211e3f6a7caa03310c7a9a8d816e723b0bdc5f",
+  "review_date": "2026-09-30",
+  "installer": "OpenAI skill-installer install-skill-from-github.py; download mode; explicit project destination",
+  "skills": {
+    "integrating-jupiter": {
+      "path": "skills/integrating-jupiter",
+      "metadata_version": "1.2.0"
+    },
+    "jupiter-swap-migration": {
+      "path": "skills/jupiter-swap-migration",
+      "metadata_version": "1.1.0"
+    }
+  },
+  "modifications": "Upstream skill files are unmodified. Root MIT LICENSE copied into each skill directory. Dashboard overrides and stale-claim notes are in root AGENTS.md and JUPITER-TOOLING.md.",
+  "sha256": {
+    "integrating-jupiter/LICENSE": "26e0d1929275b46d985c28ec5b4885f4e6fc207d0ad9277773d58c4c13df3bba",
+    "integrating-jupiter/README.md": "d13a582cd820a051df2e3a221a3b0c96b02e28677f6c0e770ba7204c90f5e9d2",
+    "integrating-jupiter/SKILL.md": "57a976af66a5cb3643db0593e3c7fd8e0b9d8c9aeb95de3320856f2d0f1b5619",
+    "integrating-jupiter/examples/lend.md": "8a59522cd845b6d99c5ee7ee2cd6bcbc69d7615ad28229099829643959a8d852",
+    "integrating-jupiter/examples/price.md": "5e45a6936d7df2c72570b994eefc5e130a31ed2230e7dc7bb19afe117b2862a5",
+    "integrating-jupiter/examples/swap.md": "5c3717ff559d34f7d8c63096be4a70094f44faf40e1a564b4af9113496cfe9c0",
+    "integrating-jupiter/examples/trigger.md": "4a2d0a3d4fcfebd7b05894c09bdb5ac622e5b3f34379c2920749a80143a2ef71",
+    "jupiter-swap-migration/LICENSE": "26e0d1929275b46d985c28ec5b4885f4e6fc207d0ad9277773d58c4c13df3bba",
+    "jupiter-swap-migration/README.md": "190d54ff5a9ac690aa86cfc9c328aa1c3b5f470d0d3faf61d28540a72aabdc3d",
+    "jupiter-swap-migration/SKILL.md": "20aca875086fa8da9ad6a0bcb6ea8847236dd505180d39784bb3491938ca4a0f",
+    "jupiter-swap-migration/examples/metis-to-build.md": "804c5a69a4b1303fea2ed215a63125d8f2bc1c21a1dce9e89ebb6a255b42c5fd",
+    "jupiter-swap-migration/examples/metis-to-order.md": "a115d3f8d4ba215d4325bfdcaa7725b717b1a2869541eff32a46d46d2280eea0",
+    "jupiter-swap-migration/examples/ultra-to-order.md": "1f17fb48033d210dcfefffca90d4072608ef57d7be3acdaeea0fa14e94572a1b"
+  }
+}

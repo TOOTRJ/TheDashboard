@@ -41,3 +41,11 @@ For Supabase CLI, use this repository's explicit `--workdir` and the verified pr
 - Follow `TODO.md` dependencies and keep `CONFIGURATION-PREFLIGHT.md` current. Target verification does not mean the bot is ready to deploy or trade.
 - Review migrations as forward changes against the exact allowed Supabase project. Prepare deployment/migration validation and rollback steps before the corresponding action. Follow the user's actual authorization; do not infer permission for unrelated cloud changes.
 - Live wallet funding, transaction signing, swaps, and live trading are outside the current work's authorization.
+
+## Jupiter research tools
+
+Official Jupiter skills are pinned under `.agents/skills`; their upstream text is unmodified. Read `JUPITER-TOOLING.md` before applying them. Their examples are reference material, not permission to sign, fund, broadcast, submit feedback, install global tools, or change another agent's configuration. The migration skill's live-swap test checklist is outside this task's authorization; use mocked contract tests and authorized read-only requests.
+
+Prefer current official endpoint documentation/OpenAPI over cached skill claims. The pinned integration skill contains an obsolete volume-based rate-limit table and overly broad authentication statements; the current portal describes organization-wide quotas and limited keyless access. Recheck endpoint-specific authentication, fees, routing, and rate limits before coding. Use decimal/integer token-atomic conversion rather than copying floating-point `Math.round(human * 10 ** decimals)`. Reconcile uncertain submissions before any future authorized retry; a fresh order is not a safe substitute for transaction-state reconciliation.
+
+The project-only `.codex/config.toml` enables `jupiter_docs` with just `search_jupiter` and `query_docs_filesystem_jupiter`. It excludes `submit_feedback`; do not send unsolicited messages to Jupiter. Do not add the trading MCP, run the Jupiter CLI, or invoke the upstream all-agent installer as an implicit extension of this documentation setup. Consult the documented isolation and deferred-tool decisions first.

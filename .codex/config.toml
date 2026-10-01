@@ -1,0 +1,7 @@
+# Dashboard-only Jupiter documentation access. No credentials or trading tools.
+# Project MCP config loads only when this repository is trusted in Codex.
+[mcp_servers.jupiter_docs]
+url = "https://developers.jup.ag/docs/mcp"
+enabled_tools = ["search_jupiter", "query_docs_filesystem_jupiter"]
+startup_timeout_sec = 30
+tool_timeout_sec = 60
