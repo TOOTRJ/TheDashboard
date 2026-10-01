@@ -76,11 +76,12 @@ configuration/runtime JSON, so this change requires no database migration.
 
 ## Research still required
 
-BASE-02 must add the frozen 20-candidate grid with common initial conditions and
-traceable signals, fills and metrics. BASE-03 must compare cash, buy-and-hold,
-fixed EMA, exhaustive and seeded-random baselines before drawing conclusions
-about the evolutionary optimizers. The current four optimizers passing mechanics
-tests does not establish economic usefulness.
+BASE-02A/03A now supply the [offline synthetic grid and comparisons](OFFLINE-RESEARCH.md),
+with common initial conditions, traceable ledgers, cash, passive buy-and-hold,
+fixed EMA and seeded-random controls. BASE-02/03 remain open for historical
+acceptance and an equal-budget GA comparison through that independently tested
+evaluator. The current four optimizers passing mechanics tests does not establish
+economic usefulness.
 
 DATA-01C must explicitly model historical bar availability/fills and preserve
 immutable provider provenance before historical evaluation. Existing replay is
