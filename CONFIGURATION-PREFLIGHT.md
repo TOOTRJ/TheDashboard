@@ -1553,3 +1553,62 @@ journal/outbox retention before expansion. A failed pure protective candidate
 leaves its source unchanged; the future runtime must independently halt decision
 admission and never reuse an older frame. A delayed recovery receipt establishes
 a commit, not current market freshness. See [the lifecycle contract](services/vonneumann/EXACT-LIFECYCLE.md).
+
+
+## 41. Exact provider evidence — C2D1 (2026-10-02)
+
+**Scope:** both active paper adapters now capture bounded raw JSON before producing
+legacy float views. Immutable price/candle records derive values from their owned
+response documents; canonical safe requests, body/request digests, parser policy
+and receipt clocks retain provenance. Exact candles distinguish base-token and USD
+volumes and retain scaling metadata. Unknown/invalid wire forms fail without a
+partial cache update. No provider API credentials were printed, no authenticated
+market acquisition was made, and no shared tooling/configuration was changed.
+
+**Review findings fixed:** legacy mutable ticks could otherwise contaminate cache
+source-age evidence; fresh views now come from immutable captures. Exact overlap
+comparison initially remembered only the last small request window, so a later
+warmup could miss an older candle revision hidden by float precision. Bounded
+4,096-minute exact fingerprints now survive those window changes, with complete
+batch atomicity and no indefinite raw-response retention. A same-minute explicit
+warmup now refetches when the cached incremental request did not cover its wider
+window, instead of returning too little history.
+
+**Research:** current official Jupiter/Birdeye/Solana documents confirm that source
+numeric tokens must be preserved before binary64 conversion, token decimals do
+not define USD-price precision, and candle time is the open. Jupiter's block-ID
+to RPC-slot mapping is not unambiguously specified; the existing local resolver
+policy is explicitly labeled. Adjacent slots can share estimated seconds, which
+is incompatible with a direct adapter to the synthetic exact planner's strict
+increasing timestamps. Full provider binding therefore remains C2D2 rather than
+silently changing v3/v4 meaning. [Research](services/vonneumann/EXACT-SOURCE-RESEARCH.md)
+and [implemented scope](services/vonneumann/EXACT-PROVIDER-INPUTS.md) retain deeper
+publication/revision, currencies/scaling, memory and latency questions.
+
+**Acceptance:** all 1,125 ordinary worker tests pass, including 73 new cases
+(26 document/parser, 25 exact records and 22 actual-adapter integration). Final
+full discovery reports 1,131 tests in 169.121 seconds, with 15 skips: six explicitly
+opt-in PostgreSQL cases plus nine class-level skips. The first full run exposed
+an inherited sticky Decimal flag in a new test; clearing the local context's flags
+before its assertion fixed test isolation, and the final full rerun passed.
+Existing 80 provider/freshness tests also pass. There is no SQL, command version
+or migration change in this increment; the prior 95-case isolated database
+acceptance is not claimed as a new run here.
+
+**Target/release and rollback plan:** verified GitHub `TOOTRJ/TheDashboard` /
+`1141090963`; Vercel `the-dashboard` / `prj_wFUe9k9USVreOQcmQKNWRAVsx5fH`,
+team `team_8iNNxiNjrOseD4gdSCHkQEzF`; Supabase `The Dashboard` /
+`fxpxsciltakyypunglzr`, organization `cqfnnaunmupdyobkyqfo`. Reverify before remote
+writes. PR34 merge `ce8433c7f8899d13b8c1f252d40df72d6c821ec7`, READY production
+`dpl_9yaANPAh5sKhRKLQ9yDwTMGPqhUm`, is the rollback baseline. Verify the source
+preview/author, exact production merge and alias, then four read-only application
+smokes. Record immutable release evidence in the PR. Rollback is a reviewed code
+revert; there is no production database or environment change to reverse.
+Preserve the existing migration edit with SHA-256
+`a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc`, `.claude/`,
+other local files, shared credentials/tools/processes and all other projects.
+
+**Next:** C2D2 provider command binding and the operational freshness/failure owner,
+then broader capacity acceptance and D/A3 transport/legacy/grant cutover. The
+active controller still uses float compatibility views. The worker remains
+unhosted, and no signing, funding, swap or live trading action is enabled.

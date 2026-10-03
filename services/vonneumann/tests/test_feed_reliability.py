@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import time
 import traceback
 import unittest
@@ -29,6 +30,14 @@ def prices(**values):
 class Response:
     def __init__(self, body=None, status=200, error=None):
         self.body, self.status, self.error = body, status, error
+        self.content = self
+
+    async def iter_chunked(self, size):
+        if self.error:
+            raise self.error
+        raw = self.body if isinstance(self.body, bytes) else json.dumps(self.body).encode()
+        for offset in range(0, len(raw), size):
+            yield raw[offset:offset + size]
 
     async def __aenter__(self):
         return self

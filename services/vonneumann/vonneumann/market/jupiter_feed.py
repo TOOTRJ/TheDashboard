@@ -14,9 +14,9 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import math
 import os
 import time
+from dataclasses import dataclass
 from typing import Optional
 
 import aiohttp
@@ -26,6 +26,8 @@ from .candles import MinuteCandle
 from .feed import MarketFeed, MarketFeedError, MarketTick, QuoteEvidence
 from .quote_freshness import quote_source_age, source_slot, validate_quote
 from .solana_time import SolanaTimeResolver
+from .provider_evidence import ProviderDocument, ProviderEvidenceError, bounded_response_body
+from .exact_records import ExactPriceRecord, parse_price_record
 from .swap_quote import (
     QUOTE_TIMEOUT_SECONDS, SWAP_ORDER_URL, SwapQuote, SwapQuoteError,
     bounded_quote_body, parse_swap_quote, quote_parameters,
@@ -55,13 +57,42 @@ MINT_TO_ASSET: dict[str, str] = {v: k for k, v in TOKEN_MINTS.items()}
 USDC_MINT = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
 
 
-def _number(value, *, positive: bool) -> float:
-    if isinstance(value, bool) or not isinstance(value, (int, float)):
-        raise ValueError("Invalid market value")
-    value = float(value)
-    if not math.isfinite(value) or (value <= 0 if positive else value < 0):
-        raise ValueError("Invalid market value")
-    return value
+@dataclass(frozen=True, slots=True)
+class PriceCapture:
+    """Exact provider price paired with the existing local block-time policy.
+
+    RPC response bytes are not archived by this capture. Estimated source time
+    is a local resolver result, not provider publication time or finality.
+    """
+    record: ExactPriceRecord
+    source_timestamp: int
+    evidence: QuoteEvidence
+
+    def __post_init__(self):
+        if (type(self.record) is not ExactPriceRecord or type(self.evidence) is not QuoteEvidence
+                or type(self.source_timestamp) is not int or not 0 <= self.source_timestamp < 2**63
+                or self.evidence.provider != self.record.document.provider
+                or self.evidence.quote_currency != "USD"
+                or self.evidence.source_slot != self.record.block_id
+                or self.evidence.received_at != self.record.document.received_at
+                or self.evidence.received_monotonic != self.record.document.received_monotonic):
+            raise ProviderEvidenceError()
+        quote_source_age(self.as_tick(), wall_now=self.evidence.received_at,
+                         monotonic_now=self.evidence.received_monotonic)
+
+    def as_tick(self) -> MarketTick:
+        return MarketTick(self.record.asset, float(self.record.price), 0.0,
+                          self.source_timestamp, self.evidence)
+
+    def validate(self, *, previous_slot=None, wall_now=None, monotonic_now=None):
+        validate_quote(self.as_tick(), previous_slot=previous_slot,
+                       wall_now=wall_now, monotonic_now=monotonic_now)
+
+    def to_dict(self):
+        return {"record": self.record.to_dict(),
+                "source_timestamp": self.source_timestamp,
+                "source_time_policy": "jupiter-block-id-as-slot-estimated-time-v1",
+                "source_age_at_receipt": self.evidence.source_age_at_receipt}
 
 
 class JupiterFeed(MarketFeed):
@@ -98,6 +129,7 @@ class JupiterFeed(MarketFeed):
 
         # Cache: asset -> (monotonic receipt time, source-validated MarketTick)
         self._cache: dict[str, tuple[float, MarketTick]] = {}
+        self._captures: dict[str, PriceCapture] = {}
         self._cache_ttl = 0.8  # seconds — slightly under 1s tick
 
         self._session: Optional[aiohttp.ClientSession] = None
@@ -119,7 +151,7 @@ class JupiterFeed(MarketFeed):
 
     # ── Price API ────────────────────────────────────────────────────────
 
-    async def _fetch_all_prices(self, assets: Optional[list[str]] = None) -> dict[str, MarketTick]:
+    async def _fetch_all_prices(self, assets: Optional[list[str]] = None, *, exact: bool = False):
         """Bound the complete price/source lookup; never refresh a source timestamp.
 
         A failed batch carries only currently validated siblings for a final risk
@@ -133,7 +165,8 @@ class JupiterFeed(MarketFeed):
         try:
             async with asyncio.timeout(5) as deadline:
                 async with self._price_lock:
-                    return await self._fetch_prices_locked(requested, deadline=deadline.when())
+                    ticks = await self._fetch_prices_locked(requested, deadline=deadline.when())
+                    return ({asset: self._captures[asset] for asset in requested} if exact else ticks)
         except MarketFeedError:
             raise
         except (ValueError, TypeError, OverflowError):
@@ -148,28 +181,38 @@ class JupiterFeed(MarketFeed):
             entry = self._cache.get(asset)
             if entry is None or not 0 <= mono - entry[0] < self._cache_ttl:
                 break
+            capture = self._captures.get(asset)
+            if capture is None:
+                break
             try:
-                validate_quote(entry[1], previous_slot=self._source_slots.get(asset),
-                               wall_now=wall, monotonic_now=mono)
+                capture.validate(previous_slot=self._source_slots.get(asset),
+                                 wall_now=wall, monotonic_now=mono)
             except MarketFeedError:
                 break
-            cached[asset] = entry[1]
+            # Legacy ticks are mutable. Never let a caller rewrite the retained
+            # exact price or source-age anchor through a cached display view.
+            view = capture.as_tick()
+            cached[asset] = entry[1] if entry[1] == view else view
         if len(cached) == len(requested):
             return cached
 
         session = await self._get_session()
         self.api_call_count += 1
+        parameters = {"ids": ",".join(TOKEN_MINTS[asset] for asset in requested)}
         async with session.get(
             f"{JUPITER_API_URL}/price/v3",
-            params={"ids": ",".join(TOKEN_MINTS[asset] for asset in requested)},
+            params=parameters,
             headers=self._jup_headers,
             allow_redirects=False,
         ) as resp:
             if resp.status != 200:
                 raise MarketFeedError("price_rate_limited" if resp.status == 429 else "price_unavailable")
-            data = await resp.json()
-            # Record receipt before RPC work. RPC latency consumes freshness.
+            raw = await bounded_response_body(resp, provider="jupiter-price-v3")
+            # Capture receipt before parsing/RPC. Both consume freshness.
             received_at, received_mono = time.time(), time.monotonic()
+            document = ProviderDocument.capture("jupiter-price-v3", parameters, raw,
+                                               received_at, received_mono)
+            data = document.decode()
             if not isinstance(data, dict):
                 raise MarketFeedError("price_invalid")
 
@@ -180,9 +223,9 @@ class JupiterFeed(MarketFeed):
                 errors[asset] = MarketFeedError("price_missing")
                 continue
             try:
-                price = _number(info.get("usdPrice"), positive=True)
                 slot = source_slot(info.get("blockId"))
-                candidates[asset] = (price, slot)
+                record = parse_price_record(document, asset=asset, mint=TOKEN_MINTS[asset])
+                candidates[asset] = (record, slot)
             except MarketFeedError as error:
                 errors[asset] = error
             except (ValueError, TypeError, OverflowError):
@@ -190,37 +233,33 @@ class JupiterFeed(MarketFeed):
 
         times, time_errors = await self._source_time.resolve(
             session, [slot for _, slot in candidates.values()], deadline=deadline)
-        result = {}
+        result, captures = {}, {}
         # One final shared time boundary prevents earlier-resolved slots from
         # appearing fresh after a slow sibling lookup.
         wall, mono = time.time(), time.monotonic()
-        for asset, (price, slot) in candidates.items():
+        for asset, (record, slot) in candidates.items():
             if slot in time_errors:
                 errors[asset] = time_errors[slot]
                 continue
             try:
                 stamp = times[slot]
                 age_floor = max(0.0, received_at - stamp)
-                previous = self._cache.get(asset)
+                previous = self._captures.get(asset)
                 if previous is not None:
-                    previous_tick = previous[1]
+                    previous_tick = previous.as_tick()
                     if (previous_tick.evidence.source_slot == slot
                             and previous_tick.timestamp != stamp):
                         raise MarketFeedError("source_time_invalid")
                     previous_age = quote_source_age(
                         previous_tick, wall_now=received_at, monotonic_now=received_mono)
                     age_floor = max(age_floor, previous_age - (stamp - previous_tick.timestamp))
-                tick = MarketTick(
-                    asset=asset, price=price,
-                    # Jupiter does not supply volume. Indicator volume comes only
-                    # from completed source candles, never repeated quote polls.
-                    volume=0.0, timestamp=stamp,
-                    evidence=QuoteEvidence(slot, received_at, received_mono,
-                                           source_age_at_receipt=age_floor),
-                )
+                capture = PriceCapture(record, stamp, QuoteEvidence(
+                    slot, received_at, received_mono, source_age_at_receipt=age_floor))
+                tick = capture.as_tick()
                 validate_quote(tick, previous_slot=self._source_slots.get(asset),
                                wall_now=wall, monotonic_now=mono)
                 result[asset] = tick
+                captures[asset] = capture
             except MarketFeedError as error:
                 errors[asset] = error
             except (ValueError, TypeError, OverflowError):
@@ -228,6 +267,7 @@ class JupiterFeed(MarketFeed):
         if errors:
             first = next(errors[asset] for asset in requested if asset in errors)
             raise MarketFeedError(first.code, valid_ticks=result)
+        self._captures.update(captures)
         self._cache.update({asset: (received_mono, tick) for asset, tick in result.items()})
         self._source_slots.update({asset: tick.evidence.source_slot for asset, tick in result.items()})
         return result
@@ -239,6 +279,14 @@ class JupiterFeed(MarketFeed):
     async def get_ticks(self, assets: list[str]) -> dict[str, MarketTick]:
         """Get prices for multiple assets — single API call."""
         return await self._fetch_all_prices(assets)
+
+    async def get_price_captures(self, assets: list[str]) -> dict[str, PriceCapture]:
+        """Fresh immutable exact captures; not an executable engine checkpoint."""
+        return await self._fetch_all_prices(assets, exact=True)
+
+    async def get_exact_candles(self, assets: list[str], *, warmup: bool = False):
+        """Retain provider decimals independently of legacy indicator views."""
+        return await self._candles.get_exact_candles(assets, warmup=warmup)
 
     async def get_candles(self, assets: list[str], *, warmup: bool = False) -> list[MinuteCandle]:
         """Fetch completed source minutes for the shared indicator history."""

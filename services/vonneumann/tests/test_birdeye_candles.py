@@ -7,6 +7,7 @@ from copy import deepcopy
 import json
 from pathlib import Path
 import traceback
+import time
 from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
@@ -19,7 +20,7 @@ with deny_network():
     from vonneumann.market.feed import MarketFeedError
 
 SOL, JUP = "SOL/USDC", "JUP/USDC"
-MINTS = {SOL: "So11111111111111111111111111111111111111112", JUP: "fake-jup-mint"}
+MINTS = {SOL: "So11111111111111111111111111111111111111112", JUP: "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN"}
 SECRET = "fake-birdeye-secret-never-display"
 CUTOFF = 1_790_756_100
 
@@ -43,6 +44,16 @@ class Response:
     def __init__(self, payload=None, *, status=200, error=None, before_json=None):
         self.payload, self.status, self.error = payload, status, error
         self.before_json = before_json
+        self.content = self
+
+    async def iter_chunked(self, size):
+        if self.before_json:
+            await self.before_json()
+        if self.error is not None:
+            raise self.error
+        raw = self.payload if isinstance(self.payload, bytes) else json.dumps(self.payload).encode()
+        for offset in range(0, len(raw), size):
+            yield raw[offset:offset + size]
 
     async def __aenter__(self):
         return self
@@ -81,7 +92,7 @@ class BirdeyeCandlesTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         super().setUp()
         self.now = CUTOFF + module.COMPLETION_MARGIN_SECONDS
-        self.enterContext(patch.object(module, "time", SimpleNamespace(time=lambda: self.now)))
+        self.enterContext(patch.object(module, "time", SimpleNamespace(time=lambda: self.now, monotonic=time.monotonic)))
         self.enterContext(patch.object(module, "REQUEST_SPACING_SECONDS", 0))
 
     def make_adapter(self, *responses, key=SECRET):
