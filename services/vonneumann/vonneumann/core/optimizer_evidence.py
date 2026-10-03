@@ -23,7 +23,7 @@ import sys
 import numpy as np
 
 from . import strategy_fork as reviewed
-from .colony_config import ColonyConfig, GeneOverride
+from .colony_config import ColonyConfig, GeneOverride, ExactMarkColonyConfig
 from .evaluation import EvaluatedCandidate, EvaluationCohort
 from .gene_registry import GeneDomain
 from .genome import Genome
@@ -54,6 +54,7 @@ _TYPE_NAMES = {
     SelectionCohort: "SelectionCohort",
     ParameterCodec: "ParameterCodec",
     ColonyConfig: "ColonyConfig",
+    ExactMarkColonyConfig: "ExactMarkColonyConfig",
     GeneOverride: "GeneOverride",
     GeneDomain: "GeneDomain",
     Genome: "Genome",

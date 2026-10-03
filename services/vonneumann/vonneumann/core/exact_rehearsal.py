@@ -15,7 +15,7 @@ from fractions import Fraction
 from types import SimpleNamespace
 from uuid import UUID
 
-from .colony_config import ColonyConfig, GeneOverride
+from .colony_config import ColonyConfig, GeneOverride, ExactMarkColonyConfig
 from .decision_inputs import DecisionInputs
 from .decimal_execution import (CASH_SCALE, PRICE_SCALE, DecimalExecutionConfig,
     EntryPlan, ExitPlan, _units, _text, debit_cash, credit_cash, mark_value)
@@ -115,7 +115,8 @@ class ExactRehearsalConfig:
                 'integer_rounding': 'genome_nearest_half_up', 'assets': 'inherit_and_resize',
                 'repairs': 'configured_phenotype'}):
             raise ExactRehearsalError('gene or parameter policy requires a reviewed version change')
-        config = ColonyConfig(strategy_profile='ema_baseline_v1',
+        config_type = ExactMarkColonyConfig if self.asset == 'SOL/USD' else ColonyConfig
+        config = config_type(strategy_profile='ema_baseline_v1',
             enabled_genes=['ema_fast', 'ema_slow'], available_assets=[self.asset],
             reproduction_interval=HORIZON_SECONDS // 60, gene_overrides={
                 'ema_fast': GeneOverride(min=3, max=12, default=9),

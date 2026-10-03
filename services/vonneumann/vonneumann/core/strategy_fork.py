@@ -20,7 +20,7 @@ from typing import TypeVar
 
 import numpy as np
 
-from .colony_config import ColonyConfig, GeneOverride
+from .colony_config import ColonyConfig, GeneOverride, ExactMarkColonyConfig
 from .evaluation import EvaluatedCandidate, EvaluationCohort
 from .gene_registry import GeneDomain
 from .genome import Genome
@@ -51,6 +51,8 @@ _STATE_FIELDS = {
     ParameterCodec: {"_config", "domains", "names", "_assets"},
     ColonyConfig: {"gene_overrides", "enabled_genes", "available_assets", "max_lifespan_ticks",
                    "reproduction_interval", "mutation_rate", "strategy_profile"},
+    ExactMarkColonyConfig: {"gene_overrides", "enabled_genes", "available_assets", "max_lifespan_ticks",
+                           "reproduction_interval", "mutation_rate", "strategy_profile"},
     GeneOverride: {"min", "max", "default", "fixed"},
     GeneDomain: {"minimum", "maximum", "default", "integer"},
     Genome: {"rsi_period", "rsi_oversold", "rsi_overbought", "ema_fast", "ema_slow", "volume_threshold",

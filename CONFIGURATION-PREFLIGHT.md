@@ -1677,3 +1677,80 @@ updates, block/slot/fork mappings, outlier/revision semantics, USD/scaling,
 restart clocks, source/lease/relay latency and worst-case memory before adoption.
 Then prove active-controller ownership and capacity, followed by D/A3 production
 transport, legacy/grants and migration. The worker remains unhosted.
+
+## 43. Provider-bound command and historical startup — C2D2B (2026-10-02)
+
+**Scope:** fresh version 5 binds exact Jupiter price/Birdeye candle captures to
+run policy, owned state, commands and the isolated SQL contract. Wrapped SOL,
+nine token decimals, unscaled USD price candles and the existing exact price grid
+are pinned. The model uses `SOL/USD` reference marks, with an explicit typed
+optimizer configuration; the active controller's tradeable asset registry is
+unchanged. Existing synthetic versions retain their original meaning.
+
+**Time and history:** increasing block references are separate from nondecreasing
+estimated source seconds, original receipt clocks and actual decision seconds.
+Equal estimated seconds are valid; same-source/same-second deferral cannot renew
+anchors or bypass freshness. Integer microsecond conversion floors receipts and
+ceils current samples using their original exact ratios. Carried source-age floors
+survive unequal clock progress. Every new provider command has receipt/source
+freshness checked in the owner and at SQL server boundaries. The server rejects
+future decision envelopes; strict admission requires clock/latency measurements
+before deployment. Original-ID replay retains the prior committed receipt.
+
+Startup seeds 61 completed 15-minute closes from 915 exact historical minute
+records **at actual current receipt time**, with no retrospective decisions,
+fills or scores. Current next-bar admission rejects gaps/revisions; nonmarket
+controls retain source state, while halted protection/eligible exits need no new
+candle. The owner retains source receipts through acknowledgment and delivery;
+expiry closes future economics without discarding acknowledged state/events.
+
+**Trust and review:** manifests record safe request/parser/response identities;
+SQL checks their shape and the worker-declared consumed rows, not provider
+truth/raw-body derivation. Python recomputes seeded EMA values; SQL validates
+seed shape/source binding and existing exact economics, not binary64 indicator
+or optimizer mathematics. Prequote seed validation uses only explicit local
+empty-EMA projections. Review caught stale deferral, weakened source-age floors,
+omitted-history admission, seeded prequote compatibility, PSO/CMA typed optimizer
+state, source/prepare clock separation and caller-owned record-list mutation.
+
+**Acceptance:** all 1,229 ordinary worker tests pass, including 46 new provider,
+owner and source-boundary cases. Full discovery completed 1,235 tests in 147.112
+seconds with 16 skips: six explicit opt-in database tests and ten class-level
+skips. Final focused source-clock refinements also passed. The complete isolated
+PostgreSQL suite passed all 110 tests in 397.093 seconds, including 15 new provider
+cases; focused provider acceptance also passed all 15 in 21.166 seconds. The
+harness removed all of its labeled local containers. Real tests cover fresh
+admission, server expiry before/after effects, full rollback, old-ID replay,
+request/time/source tampering, private helper boundaries and current-clock
+startup/protection/decision for all four solvers. Simulated-hour provider
+replacements remain offline tests; the SQL has no test-only clock override.
+The independent one-window traces measured 68 complete v5 payloads; the largest
+was a 188,148-byte CMA replacement, below the unchanged 262,144-byte cap. This is
+not worst-case capacity or a production performance measurement.
+The guarded SQL remains outside
+`supabase/migrations`; tests use offline mocked inputs and uniquely owned local
+no-network PostgreSQL containers. No production database data/schema, environment,
+worker hosting, signing or live trading change is part of this increment.
+
+**Targets/release and rollback:** initial read-only verification matched GitHub
+`TOOTRJ/TheDashboard` / `1141090963`; Vercel `the-dashboard` /
+`prj_wFUe9k9USVreOQcmQKNWRAVsx5fH`, team `team_8iNNxiNjrOseD4gdSCHkQEzF`;
+Supabase `The Dashboard` / `fxpxsciltakyypunglzr`, organization
+`cqfnnaunmupdyobkyqfo`. Reverify before remote writes. PR36 merge
+`b1abcfdd1c4a166bbe330210cfaf928d5de2d4ad`, READY production
+`dpl_93FPzLTGUDbd2TbseQAX9CSGC1CP`, is the rollback baseline. Release requires
+verified source preview/author, exact production merge/project/team/alias and
+four read-only application smokes; record immutable results in the PR. Rollback
+is a reviewed code revert; no database or environment reversal is required.
+Preserve the historical migration edit SHA-256
+`a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc`, `.claude/`,
+other local files and all shared credentials/tools/processes and other projects.
+
+**Next and deeper research:** prove active-controller ownership and supported
+whole-command capacity/latency, then D/A3 production transport, legacy/grants,
+checkpoint recovery and reviewed migration cutover. Hosting remains gated.
+Research block/slot/fork mapping and same-block changes, provider publication/
+revision/outlier semantics, receipt/lease/relay and protective latency, USD/USDC
+and scaled-token expansion, restart clock/history reconciliation, data rights,
+frozen reproducible datasets and capture/journal/outbox memory/retention.
+See [the provider contract](services/vonneumann/PROVIDER-COMMAND-CONTRACT.md).
