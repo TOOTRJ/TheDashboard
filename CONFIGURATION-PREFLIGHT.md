@@ -1324,3 +1324,92 @@ rollback is needed. The historical migration edit retains SHA-256
 `a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc` and is excluded.
 Other projects, shared credentials/settings/tools and unrelated local files
 are preserved.
+
+## 38. Bounded exact engine/database rehearsal (DB-03A2C2B, 2026-10-02)
+
+**Scope:** a new flat synthetic run combines the reviewed two-gene EMA profile,
+eight members, one asset and three complete replacement windows with all four
+actual optimizers. Pure candidates retain detached state and optimizer/cohort
+forks. Canonical decimal inputs drive exact funding, entry/exit costs, reserve
+returns and births. Shared EMA crossing predicates preserve existing Probe
+behavior; an independent comparison checks all 59 derived EMA periods against
+the actual candle-history implementation. Reference-price stop/take thresholds
+include exact equality at 97%/107%, separate from adverse execution fills.
+
+Version 3 of the isolated command fixture binds the prior and candidate state,
+source/action/threshold/cursor evidence, complete evaluation/selection,
+optimizer/RNG evidence and ordered events in the same fenced transaction as
+the economic rows and immutable response. Empty economic batches still bind
+full source/indicator checkpoints. Rejected metadata or late operations roll
+back every projection and event. Replaying the same request returns the
+original result; changed requests conflict. Interrupted runs retain their last
+checkpoint as evidence without permission to resume from its old status.
+
+The reviewed optimizer codec preserves ordered maps, aliases, numeric array
+types and complete RNG states without pickle or serialization hooks. CMA
+0.13.1 has an uninitialized fitness-history buffer; only initialized slots are
+read and the remainder are explicitly marked unwritten. SQL validates evidence
+shape and bindings, exact monetary arithmetic and position counts; it does not
+independently rerun EMA, fitness or optimizer selection mathematics.
+
+This path remains disconnected from Genesis/application persistence and the
+cloud schema. It does not implement the full controller's risk-latch,
+early-terminal-member, stop/pause, recovery, diversity or auto-spawn lifecycle.
+There is no legacy float-position import, checkpoint decoder, hosted worker,
+provider collection or live signing/trading. Parent C2, C3, D/A3 and hosting
+remain open. [Rehearsal contract](services/vonneumann/EXACT-ENGINE-REHEARSAL.md)
+records the precise admission policy and further research.
+
+**Validation:** all 972 ordinary worker tests pass, including 42 new cases
+covering exact preparation, optimizer encoding, transition validation and
+indicator equivalence. Discovery reports 978 tests in 74.140 seconds with ten
+skips: six opt-in PostgreSQL test cases and four PostgreSQL class-level skips.
+The nine new targeted PostgreSQL cases also pass against the frozen fixture.
+They exercise every transition from all four real solvers across three traded
+replacements, equality and one-quantum threshold neighbors, malformed optimizer,
+EMA and completed-evaluation evidence, unchanged source on rejection, original
+command resolution, full rollback and preserved interrupted checkpoints.
+The final complete PostgreSQL regression suite passes all 68 tests in
+197.490 seconds, including the 59 prior contract regressions. Its owned
+no-network temporary database container was cleaned up by the harness.
+Frontend tests were not rerun for this Python/isolated-SQL slice; exact Vercel
+Git builds and read-only production smoke checks remain release gates.
+
+**Capacity and next research:** whole payloads retain the 262,144-byte cap in
+addition to 32 retained accounts and 64 positions. Three-window maxima are
+161,733 bytes (GA), 175,582 (DE), 209,607 (PSO) and 228,799 (CMA). A denser CMA
+trace exceeds the cap and rejects without changing its source; position-count
+ceilings do not guarantee that every complete checkpoint fits. No cap increase,
+partial replacement or evidence truncation is introduced. A diagnostic that
+aggregated full command journals exhausted the disposable database's 512 MiB
+allowance; tests now aggregate bounded row digests instead. Research paginated,
+byte-bounded journal/outbox reads and retention before cutover. Source numeric
+lexemes/manifests, numerical conversion policy, full lifecycle acceptance and
+worst-case payload/RSS/transaction/lease measurements remain C2 work.
+**Next implementation is C3:** retain a candidate through submission and late
+acknowledgment, install only its matching committed result, and deliver stable
+event IDs after installation without another optimizer tell/ask.
+
+**Security follow-up:** current official release/advisory metadata still has
+Next.js/eslint-config-next 16.3.8 as the latest stable release. One critical and
+one high issue remain pending upstream coordination; SEC-05 stays open. No new
+package installation or fresh full dependency audit is claimed.
+
+**Verified targets and release plan:** GitHub `TOOTRJ/TheDashboard`
+(`1141090963`); Vercel `the-dashboard` (`prj_wFUe9k9USVreOQcmQKNWRAVsx5fH`), team
+`team_8iNNxiNjrOseD4gdSCHkQEzF` / `orderoftheredjester`; Supabase `The Dashboard`
+(`fxpxsciltakyypunglzr`), organization `cqfnnaunmupdyobkyqfo` / `Valentine Jester`,
+ACTIVE_HEALTHY. Canonical origin and both local pins match. The dedicated
+Dashboard Vercel session expired during verification; the user renewed only
+that profile, and exact target checks then passed again. No shared/default
+profile or another project's configuration was changed. PR31 merge
+`2f42831c571de32c2636842c24198fde8fbc72b4`, READY production
+`dpl_6jUjGMaRFGftYBdqbbLDvFxhAStx`, is the rollback baseline. Verify the exact
+source preview and author before merge; verify production's exact merge/alias
+and four read-only smoke checks afterward. Record release evidence in the PR.
+A reviewed code revert is sufficient; this fixture is outside migrations and
+there is no cloud schema/environment/data rollback. The historical migration
+edit retains SHA-256
+`a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc` and is excluded.
+Unrelated local files and the other agent's tools, credentials and processes
+are preserved.

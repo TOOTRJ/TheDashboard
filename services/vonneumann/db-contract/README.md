@@ -18,6 +18,11 @@ it never installs tools, downloads images, starts Docker, or connects to a
 configured PostgreSQL/Supabase URL. See [harness isolation](../tests/postgres/README.md).
 Ordinary worker test discovery skips these opt-in tests.
 
+DB-03A2C2B now also rehearses complete **bounded fresh exact engine decisions**
+through version 3 below. See [experiment, capacity measurements and remaining
+research](../EXACT-ENGINE-REHEARSAL.md). The fixture remains nondeployable and is
+not application runtime wiring or a restart decoder.
+
 The DB-03A2A Python command layer is now tested against this fixture through an
 allowlisted, fixture-only SQL transport in `tests/postgres/test_command_adapter.py`.
 `db/command_protocol.py` seals command identity/payloads; `db/command_repository.py`
@@ -258,6 +263,44 @@ The tests establish SQL transaction/permission/concurrency behavior in one
 disposable PostgreSQL cluster. They do not establish actual Supabase/PostgREST
 privileges, network exactly-once delivery, provider correctness, process restart
 restoration, power-loss durability, host capacity, or trading profitability.
+
+## Version 3: bounded complete engine transitions
+
+V3 creation requires the exact execution policy and immutable
+`ema-baseline-exact-rehearsal-v1` configuration. V3 batches contain exactly
+`version`, `operations`, and `transition`; the latter contains `version: 1`,
+`before`, `after`, `evidence`, and ordered `events`. V2 economic operations are
+reused, but no version downgrade is accepted. Only V3 permits an empty operation
+list for a complete source/indicator state transition. The 256 KiB **whole
+payload** cap still applies, including both full states and events.
+
+The run row retains its last acknowledged engine checkpoint. Under the run
+lock, `before` must equal that checkpoint; only the first fresh flat bootstrap
+can use null. SQL independently checks complete account/position projections
+against its economic rows, canonical decimal strings, fixed entry budgets and
+protective thresholds, source ordering, pending-signal expiry, member/parent
+ownership, exact reference-mark risk metrics, full replacement, allocation
+evidence and ordered operation/evaluation events. Reviewed optimizer evidence
+has bounded tagged grammar, required object fields and critical RNG/cohort
+roles; uninitialized CMA history is represented explicitly. These checks do
+not execute the optimizer or establish semantic compatibility for restoring a
+future process.
+
+State and events reside in the same command journal transaction as the exact
+economic effects. Their replay identity is `(command_id, event_index)`; there
+is no delivery/acknowledgment outbox yet. Read-only command resolution retains
+the original complete envelope, and a changed envelope cannot reuse its ID.
+Interruption preserves the last checkpoint while advancing the run's fence,
+revision and failed status. The checkpoint's old running status never grants
+restart or lease authority.
+
+The complete real-solver traces include every no-operation warmup and source
+update, three traded replacement windows, and the next bound cohort for GA,
+DE, PSO and CMA. Raw service-role tamper tests bypass Python validation and
+check rollback of all earlier operations, checkpoint and journal effects.
+These are isolated PostgreSQL statements; production PostgREST, legacy writer
+cutover, browser readback and C3 acknowledgment installation remain open.
+See [full policy and limits](../EXACT-ENGINE-REHEARSAL.md).
 
 ## Primary references
 

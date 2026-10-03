@@ -1,10 +1,23 @@
-# Dependency security review — updated 2026-09-30
+# Dependency security review — security follow-up checked 2026-10-02
 
 The local dependency repair is implemented. Fresh September 30 npm audits report **zero known vulnerabilities** for both the full installed graph and the production graph. Both Python lock files contain **49 exact, hashed packages**; their original September 29 advisory checks reported **zero known vulnerabilities**, and Python was not changed or rescanned in this Next.js patch. These results describe the advisory databases and versions at their check times; they are not a claim that the application is secure or ready to deploy.
 
 **Next.js 16.3.8 is now published and installed locally with its matching ESLint configuration.** The September 30 release fixes seven vulnerabilities: one high, five medium, and one low. The earlier nine-vulnerability announcement was revised: one critical and one high issue remain pending upstream coordination and a later release. Keep that remaining security follow-up open. The earlier checks below correctly describe 16.3.8 as unavailable at their check times; the final September 30 follow-up supersedes that release status. Sources: [updated security notice](https://nextjs.org/blog/upcoming-nextjs-security-release-september-2026), [16.3.8 release and its seven advisories](https://github.com/vercel/next.js/releases/tag/v16.3.8).
 
 ## Scope and isolation
+
+**October 2 follow-up:** official npm metadata still identifies `16.3.8` as the
+latest stable release of both `next` and `eslint-config-next`; the manifest,
+lockfile and installed versions agree. GitHub's newer 16.4 builds are
+prereleases. The revised security notice still leaves one critical and one
+high-severity fix pending upstream coordination, so SEC-05 remains open.
+No additional dependency change is justified by those published releases.
+This is a release/advisory follow-up, not a fresh full dependency audit; the
+dated audit results above retain their original scope. Sources:
+[Next.js npm tags](https://registry.npmjs.org/-/package/next/dist-tags),
+[matching ESLint configuration tags](https://registry.npmjs.org/-/package/eslint-config-next/dist-tags),
+[official releases](https://github.com/vercel/next.js/releases), and the
+[revised security notice](https://nextjs.org/blog/upcoming-nextjs-security-release-september-2026).
 
 Only this checkout's dependency manifests/locks and this report were changed for SEC-05. Application fixes are separate work by the other agents. No cloud configuration, credentials, environment files, migrations, shared tool installations, or other project's dependencies were changed. No development server or trading worker was started for dependency verification.
 

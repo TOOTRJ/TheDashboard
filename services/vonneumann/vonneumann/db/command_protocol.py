@@ -241,8 +241,8 @@ class PreparedCommand:
             if type(body["config"]) is not dict or len(_encode(body["config"], postgres_spacing=True)) > MAX_CONFIG_BYTES:
                 raise CommandValidationError("Configuration must be an object within the SQL size limit")
             version = bounded_integer(body["config"].get("durability_contract_version", 1),
-                                      "durability contract version", maximum=2)
-            if version == 2:
+                                      "durability contract version", maximum=3)
+            if version >= 2:
                 execution = body["config"].get("execution")
                 try:
                     if type(execution) is not dict or "config" not in execution:
@@ -251,7 +251,15 @@ class PreparedCommand:
                     if canonical_json(execution) != canonical_json(policy):
                         raise DecimalExecutionError("Mismatched exact execution policy")
                 except DecimalExecutionError:
-                    raise CommandValidationError("Version 2 creation requires its exact execution policy") from None
+                    raise CommandValidationError("Exact creation requires its execution policy") from None
+            if version == 3:
+                from .transition_protocol import validate_configuration
+                try:
+                    validate_configuration(body["config"], self.owner_id, self.run_id, body["initial_cash"])
+                except CommandValidationError:
+                    raise
+                except (ValueError, TypeError, KeyError, OverflowError):
+                    raise CommandValidationError("Invalid bounded rehearsal configuration") from None
             decimal_amount(body["initial_cash"], "initial cash", positive=True)
             bounded_integer(body["lease_seconds"], "lease seconds", maximum=120)
         elif self.kind == "batch":
@@ -261,11 +269,25 @@ class PreparedCommand:
             bounded_integer(self.expected_revision, "expected revision", maximum=MAX_BIGINT - 1)
             bounded_integer(body["fence"], "request fence")
             bounded_integer(body["expected_revision"], "request expected revision", maximum=MAX_BIGINT - 1)
-            _keys(body["payload"], {"version", "operations"})
-            version = bounded_integer(body["payload"]["version"], "payload version", maximum=2)
+            if type(body["payload"]) is not dict:
+                raise CommandValidationError("Payload must be an object")
+            version = bounded_integer(body["payload"].get("version"), "payload version", maximum=3)
+            _keys(body["payload"], {"version", "operations", "transition"} if version == 3 else {"version", "operations"})
             if len(_encode(body["payload"], postgres_spacing=True)) > MAX_PAYLOAD_BYTES:
                 raise CommandValidationError("Payload exceeds the SQL size limit")
-            _operations(body["payload"]["operations"], version)
+            # A v3 cursor/indicator-only decision still advances its complete
+            # state atomically. Older economic-only batches remain nonempty.
+            if not (version == 3 and body["payload"]["operations"] == []):
+                _operations(body["payload"]["operations"], min(version, 2))
+            if version == 3:
+                from .transition_protocol import validate_transition
+                try:
+                    validate_transition(body["payload"]["transition"], body["payload"]["operations"],
+                                        self.owner_id, self.run_id, self.expected_revision)
+                except CommandValidationError:
+                    raise
+                except (ValueError, TypeError, KeyError, OverflowError):
+                    raise CommandValidationError("Invalid bounded rehearsal transition") from None
         elif self.kind == "interrupt":
             _keys(body, common | {"expected_revision"})
             if self.worker_id is not None or self.fence is not None:
@@ -299,12 +321,16 @@ class PreparedCommand:
     @classmethod
     def batch(cls, owner_id: str, run_id: str, worker_id: str, fence: int,
               expected_revision: int, operations: list[dict],
-              command_id: str | None = None, *, version: int = 1) -> "PreparedCommand":
+              command_id: str | None = None, *, version: int = 1,
+              transition: dict | None = None) -> "PreparedCommand":
         command_id = str(uuid4()) if command_id is None else command_id
+        payload = {"version": version, "operations": operations}
+        if transition is not None:
+            payload["transition"] = transition
         body = _json_snapshot({"kind": "batch", "owner_id": owner_id, "run_id": run_id,
                                "worker": worker_id, "command_id": command_id, "fence": fence,
                                "expected_revision": expected_revision,
-                               "payload": {"version": version, "operations": operations}})
+                               "payload": payload})
         return cls("batch", owner_id, run_id, worker_id, command_id, fence, expected_revision, _encode(body))
 
     @classmethod
