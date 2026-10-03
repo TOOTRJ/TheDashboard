@@ -426,3 +426,23 @@ if slow publication delays protective decisions. Keep unattended hosting gated.
 ## Related dashboard gaps
 
 Keep `/USDC` asset IDs stable but label the versioned model as USD reference accounting. Report cash separately from marked equity and net return; legacy cost/unit metadata remains unknown. Add append-only versioned evaluation/member/result/selection records for historical evolution analysis. Birth-generation summaries and common-window optimizer results are distinct. Preserve dataset/config/code/cost-policy identities, pagination and nullable diagnostics; do not compare heterogeneous or aborted windows as equivalent performance evidence.
+
+
+## DB-03A2C2C bounded exact lifecycle extension
+
+The separate v4 fixture extends the fresh exact path to original-capital risk
+latches, current member drawdown death, frozen early-terminal evaluation,
+pause/stop with retained positions, and explicit trip-bound recovery. Interrupted
+cohorts restart as all-eight fresh funded phenotype clones in a new search epoch;
+no aborted results reach selection. Python, SQL and coordinator acceptance bind
+the full lifecycle/cohort evidence and transactional events. Version 3 keeps its
+existing contract. See [the detailed lifecycle contract](EXACT-LIFECYCLE.md) for
+ordering, versioned restart ancestry, warmup/backfill, acknowledgment rules and
+remaining research.
+
+Parent C2 is still open for real provider numeric-lexeme/provenance/freshness
+binding, runtime admission closure after protective-preparation failure, broader
+profiles including active lifespan policy, and supported worst-case capacity.
+Then D/A3 must close direct-write paths, prove transport/grant/legacy compatibility
+and prepare a reviewed forward migration against the verified Dashboard target.
+The worker remains unhosted until these gates and SVC-02 pass.

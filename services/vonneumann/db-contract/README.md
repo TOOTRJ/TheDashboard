@@ -21,7 +21,8 @@ Ordinary worker test discovery skips these opt-in tests.
 DB-03A2C2B now also rehearses complete **bounded fresh exact engine decisions**
 through version 3 below. See [experiment, capacity measurements and remaining
 research](../EXACT-ENGINE-REHEARSAL.md). The fixture remains nondeployable and is
-not application runtime wiring or a restart decoder.
+not application runtime wiring or a restart decoder. Version 4 adds the bounded
+[risk and lifecycle extension](../EXACT-LIFECYCLE.md) with its own admission rules.
 
 The DB-03A2A Python command layer is now tested against this fixture through an
 allowlisted, fixture-only SQL transport in `tests/postgres/test_command_adapter.py`.
@@ -271,7 +272,7 @@ V3 creation requires the exact execution policy and immutable
 `ema-baseline-exact-rehearsal-v1` configuration. V3 batches contain exactly
 `version`, `operations`, and `transition`; the latter contains `version: 1`,
 `before`, `after`, `evidence`, and ordered `events`. V2 economic operations are
-reused, but no version downgrade is accepted. Only V3 permits an empty operation
+reused, but no version downgrade is accepted. V3 and V4 permit an empty operation
 list for a complete source/indicator state transition. The 256 KiB **whole
 payload** cap still applies, including both full states and events.
 
@@ -305,9 +306,9 @@ cutover and browser readback remain open; the C3 coordinator installs only a
 matching acknowledgment for this bounded path.
 See [full policy and limits](../EXACT-ENGINE-REHEARSAL.md).
 
-## Version 3 outbox and acknowledged installation
+## Version 3/4 outbox and acknowledged installation
 
-`outbox_events` is populated atomically with each v3 command. Immutable event
+`outbox_events` is populated atomically with each v3/v4 command. Immutable event
 rows bind owner/run/command/revision, and `outbox_progress` tracks one fixed
 application publisher's contiguous acknowledged prefix. `read_outbox` returns
 at most 100 rows and 65,536 UTF-8 bytes including metadata, ordered uniquely by
@@ -327,9 +328,34 @@ same acknowledgment. Ambiguous callbacks may redeliver the same event ID.
 
 This implements one ordered relay with receiver deduplication, not browser-wide
 delivery, multi-consumer subscriptions or restart restoration. Creation and
-interruption are not v3 candidate notifications. Bounded reads do not establish
+interruption are not v3/v4 candidate notifications. Bounded reads do not establish
 a storage retention policy or bound HTTP response allocation before decoding.
 See [acknowledged transitions and research](../ACKNOWLEDGED-TRANSITIONS.md).
+
+## Version 4: exact bounded risk and lifecycle
+
+V4 pins `ema-baseline-exact-lifecycle-v1` and its original-capital loss policy.
+It adds explicit risk/control evidence, early terminal members, a readable cohort
+mirror bound to optimizer evidence, and lineage version 2 for unscored restart
+clones. Existing v1/v2/v3 validators retain their original semantics; only shared
+version dispatch, command journal and outbox machinery admit the new profile.
+
+The transaction checks the first exact risk crossing before protective operations
+and after actual fills. Later exposure or funding is forbidden after that crossing.
+Required drawdown deaths and stop/take reasons cannot be omitted or relabeled.
+Pause/stop preserve holdings, and recovery must identify the current trip with
+strictly recovered equity and current accepted history. A due evaluation must
+complete replacement or record a genuine new risk abort. Interrupted evaluation
+never becomes selection; a restart funds all eight fresh phenotype clones in a
+new search epoch. Current-cohort lineage, ordered offspring and complete CMA
+distribution membership/chain are pinned to the retained checkpoint.
+
+Raw-RPC adversarial tests exercise these checks independently of Python, including
+rollback of ledger, journal, checkpoint, ancestry and outbox rows. SQL validates
+exact economics and consistent/frozen cohort evidence; it does not recompute
+binary64 EMA/fitness arithmetic or optimizer mathematics. The production source,
+transport, grant, legacy cutover and capacity gates remain open. See the complete
+[lifecycle contract and research requirements](../EXACT-LIFECYCLE.md).
 
 ## Primary references
 

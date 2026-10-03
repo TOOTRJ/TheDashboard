@@ -113,7 +113,7 @@ def _keys(value: object, expected: set[str]) -> None:
         raise CommandValidationError("Object keys do not match the command contract")
 
 
-def _operations(value: object, version: int) -> None:
+def _operations(value: object, version: int, *, allow_restart: bool = False) -> None:
     maximum = 256 if version == 1 else 1024
     if type(value) is not list or not 1 <= len(value) <= maximum:
         raise CommandValidationError(f"A batch requires between 1 and {maximum} operations")
@@ -137,6 +137,8 @@ def _operations(value: object, version: int) -> None:
                     lineage = BirthLineage.from_dict(operation["lineage"])
                 except LineageValidationError:
                     raise CommandValidationError("Birth lineage is invalid") from None
+                if lineage.version == 2 and not allow_restart:
+                    raise CommandValidationError("Restart lineage requires lifecycle contract v4")
                 if lineage.child_id != entity:
                     raise CommandValidationError("Birth lineage is bound to another child")
         elif kind == "distribution" and version == 2:
@@ -241,7 +243,7 @@ class PreparedCommand:
             if type(body["config"]) is not dict or len(_encode(body["config"], postgres_spacing=True)) > MAX_CONFIG_BYTES:
                 raise CommandValidationError("Configuration must be an object within the SQL size limit")
             version = bounded_integer(body["config"].get("durability_contract_version", 1),
-                                      "durability contract version", maximum=3)
+                                      "durability contract version", maximum=4)
             if version >= 2:
                 execution = body["config"].get("execution")
                 try:
@@ -252,8 +254,10 @@ class PreparedCommand:
                         raise DecimalExecutionError("Mismatched exact execution policy")
                 except DecimalExecutionError:
                     raise CommandValidationError("Exact creation requires its execution policy") from None
-            if version == 3:
+            if version in (3, 4):
                 from .transition_protocol import validate_configuration
+                if version == 4:
+                    from .lifecycle_protocol import validate_configuration
                 try:
                     validate_configuration(body["config"], self.owner_id, self.run_id, body["initial_cash"])
                 except CommandValidationError:
@@ -271,16 +275,18 @@ class PreparedCommand:
             bounded_integer(body["expected_revision"], "request expected revision", maximum=MAX_BIGINT - 1)
             if type(body["payload"]) is not dict:
                 raise CommandValidationError("Payload must be an object")
-            version = bounded_integer(body["payload"].get("version"), "payload version", maximum=3)
-            _keys(body["payload"], {"version", "operations", "transition"} if version == 3 else {"version", "operations"})
+            version = bounded_integer(body["payload"].get("version"), "payload version", maximum=4)
+            _keys(body["payload"], {"version", "operations", "transition"} if version in (3, 4) else {"version", "operations"})
             if len(_encode(body["payload"], postgres_spacing=True)) > MAX_PAYLOAD_BYTES:
                 raise CommandValidationError("Payload exceeds the SQL size limit")
-            # A v3 cursor/indicator-only decision still advances its complete
+            # A v3/v4 cursor/indicator-only decision still advances its complete
             # state atomically. Older economic-only batches remain nonempty.
-            if not (version == 3 and body["payload"]["operations"] == []):
-                _operations(body["payload"]["operations"], min(version, 2))
-            if version == 3:
+            if not (version in (3, 4) and body["payload"]["operations"] == []):
+                _operations(body["payload"]["operations"], min(version, 2), allow_restart=version == 4)
+            if version in (3, 4):
                 from .transition_protocol import validate_transition
+                if version == 4:
+                    from .lifecycle_protocol import validate_transition
                 try:
                     validate_transition(body["payload"]["transition"], body["payload"]["operations"],
                                         self.owner_id, self.run_id, self.expected_revision)

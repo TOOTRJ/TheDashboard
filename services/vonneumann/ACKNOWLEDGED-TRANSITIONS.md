@@ -1,7 +1,7 @@
 # Acknowledged transition installation and event delivery
 
 DB-03A2C3 places one `TransitionCoordinator` around the bounded exact rehearsal
-and its command repository. It starts only after an acknowledged fresh version-3
+and its command repository. It starts only after an acknowledged fresh version-3 or version-4
 run creation. It does not adopt a historical run or decode persisted optimizer
 state. The application controller, production database and hosted worker remain
 behind the broader C2/D/A3 acceptance gates.
@@ -42,7 +42,7 @@ admitted RPC requires original-ID readback.
 
 ## Durable, ordered delivery
 
-The isolated SQL transaction writes each v3 candidate event into immutable
+The isolated SQL transaction writes each v3/v4 candidate event into immutable
 `outbox_events` alongside economics, engine state, journal and receipt. Separate
 `outbox_progress` records the contiguous acknowledged prefix for one fixed
 application publisher. No delivery update rewrites monetary state or the
@@ -83,9 +83,14 @@ renewal is still possible between delivery attempts while admission remains open
 Read/ack RPCs are lease-free delivery operations over committed events; they grant
 no trading authority, do not renew a lease, and remain usable after interruption.
 
+Version 4 adds risk, early terminal members, pause/stop and explicit recovery
+within the same installation/outbox boundary. See [the lifecycle contract](EXACT-LIFECYCLE.md).
+A durable stop must be admitted before permanent `close_admission()`; drain
+cannot be undone to manufacture a stop receipt.
+
 ## Boundaries and further research
 
-- This publishes v3 candidate events only. Creation and interruption use separate
+- This publishes v3/v4 candidate events only. Creation and interruption use separate
   existing command receipts; complete lifecycle/browser notification coverage
   remains a production integration task. An old checkpoint's `running` field
   cannot be treated as authority to resume an interrupted run.

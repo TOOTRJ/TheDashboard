@@ -1,7 +1,7 @@
 """Acknowledged installation and serial outbox delivery for the bounded rehearsal.
 
 Own this coordinator and its repository exclusively on one event loop. It can
-start only from an acknowledged fresh v3 creation; it is not a checkpoint
+start only from an acknowledged fresh v3/v4 creation; it is not a checkpoint
 decoder, an adapter for the live controller, or a cross-process restorer.
 An injected publisher accepts one stable event identity and must deduplicate
 repeated delivery. Its success is relay acceptance, not every browser's receipt.
@@ -28,9 +28,9 @@ class TransitionCoordinator:
         receipt = repository.last_receipt
         if (repository.busy or repository.pending is not None or receipt is None
                 or receipt.command.kind != 'create' or repository.revision != 1
-                or repository.status != 'starting' or repository.command_version != 3
+                or repository.status != 'starting' or repository.command_version not in (3, 4)
                 or receipt.revision != 1 or receipt.fence != repository.fence):
-            raise CommandAdmissionError('coordinator requires an acknowledged fresh v3 run')
+            raise CommandAdmissionError('coordinator requires an acknowledged fresh v3/v4 run')
         self._repository = repository
         self._transport = outbox_transport
         self._creation = receipt.command
@@ -151,7 +151,7 @@ class TransitionCoordinator:
             raise CommandAdmissionError('candidate differs from acknowledged run configuration')
         command = PreparedCommand.batch(self._repository.owner_id, self._repository.run_id,
             self._repository.worker_id, self._repository.fence, self._repository.revision,
-            candidate.operations, command_id=command_id, version=3, transition=transition)
+            candidate.operations, command_id=command_id, version=self._repository.command_version, transition=transition)
         # No suspension between admission and retaining the exact candidate/ID.
         self._candidate, self._command = candidate, command
         self._receipt = None
@@ -201,7 +201,7 @@ class TransitionCoordinator:
                 or self._repository.pending is not None):
             raise UncertainCommand('acknowledgment does not establish the retained exact state')
         if (canonical_json(command.expected_request['payload']) != canonical_json({
-                'version': 3, 'operations': candidate.operations, 'transition': candidate.transition})):
+                'version': self._repository.command_version, 'operations': candidate.operations, 'transition': candidate.transition})):
             raise UncertainCommand('acknowledged payload differs from retained candidate')
 
     def _install(self):
