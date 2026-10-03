@@ -8,13 +8,17 @@ from __future__ import annotations
 
 import asyncio
 import math
+import hashlib
+import json
 import time
 from collections.abc import Mapping
 
 import aiohttp
 
-from .candles import MinuteCandle
+from .candles import MINUTE_RETENTION, MinuteCandle
 from .feed import MarketFeedError
+from .provider_evidence import ProviderDocument, bounded_response_body
+from .exact_records import ExactCandleRecord, ExactRecordError, parse_candle_records
 
 BIRDEYE_CANDLES_URL = "https://public-api.birdeye.so/defi/v3/ohlcv"
 CANDLE_SOURCE = "birdeye-ohlcv-v3"
@@ -57,6 +61,10 @@ the request watermarks; a retry must still cover the unavailable interval.
         self._cutoffs: dict[str, int] = {}
         self._first_starts: dict[str, int] = {}
         self._cache: dict[str, tuple[MinuteCandle, ...]] = {}
+        self._exact_cache: dict[str, tuple[ExactCandleRecord, ...]] = {}
+        # Keep only compact exact fingerprints across request-window changes.
+        # Retaining every old response document would grow without bound.
+        self._accepted_fingerprints: dict[str, dict[int, str]] = {}
         self.api_call_count = 0
 
     async def _get_session(self) -> aiohttp.ClientSession:
@@ -73,6 +81,13 @@ the request watermarks; a retry must still cover the unavailable interval.
 
     async def get_candles(self, assets: list[str], *, warmup: bool = False) -> list[MinuteCandle]:
         """Return validated completed minutes, or fail without stale fallback."""
+        return await self._get_candles(assets, warmup=warmup, exact=False)
+
+    async def get_exact_candles(self, assets: list[str], *, warmup: bool = False):
+        """Immutable raw-unit source records; no implicit execution-grid rounding."""
+        return await self._get_candles(assets, warmup=warmup, exact=True)
+
+    async def _get_candles(self, assets: list[str], *, warmup: bool, exact: bool):
         requested = list(dict.fromkeys(assets))
         if any(asset not in self._token_mints for asset in requested):
             raise MarketFeedError("unsupported_asset")
@@ -89,7 +104,9 @@ the request watermarks; a retry must still cover the unavailable interval.
                 raise MarketFeedError("candles_clock_invalid")
             async with asyncio.timeout(BATCH_TIMEOUT_SECONDS):
                 async with self._lock:
-                    return await self._fetch_locked(requested, cutoff=cutoff, warmup=warmup)
+                    views = await self._fetch_locked(requested, cutoff=cutoff, warmup=warmup)
+                    return ([row for asset in requested for row in self._exact_cache[asset]]
+                            if exact else views)
         except MarketFeedError:
             raise
         except (ValueError, TypeError, OverflowError):
@@ -100,13 +117,19 @@ the request watermarks; a retry must still cover the unavailable interval.
 
     async def _fetch_locked(self, assets: list[str], *, cutoff: int, warmup: bool) -> list[MinuteCandle]:
         pending: dict[str, tuple[MinuteCandle, ...]] = {}
+        exact_pending: dict[str, tuple[ExactCandleRecord, ...]] = {}
+        fingerprint_pending: dict[str, dict[int, str]] = {}
         request_count = 0
         for asset in assets:
             previous = self._cutoffs.get(asset)
             if previous is not None and cutoff < previous:
                 raise MarketFeedError("candles_clock_invalid")
-            if previous == cutoff:
+            covered_warmup = (previous == cutoff and self._exact_cache[asset][0].document.parameters[
+                "time_from"] <= cutoff - WARMUP_MINUTES * 60)
+            if previous == cutoff and (not warmup or covered_warmup):
                 pending[asset] = self._cache[asset]
+                exact_pending[asset] = self._exact_cache[asset]
+                fingerprint_pending[asset] = self._accepted_fingerprints[asset]
                 continue
             initial = previous is None or warmup
             start = (cutoff - WARMUP_MINUTES * 60 if initial else
@@ -119,68 +142,64 @@ the request watermarks; a retry must still cover the unavailable interval.
             session = await self._get_session()
             self.api_call_count += 1
             request_count += 1
+            parameters = {
+                "address": self._token_mints[asset], "type": "1m", "mode": "range",
+                "time_from": start, "time_to": cutoff, "currency": "usd",
+                "chart_type": "price", "ui_amount_mode": "raw", "padding": "false",
+            }
             async with session.get(
                 BIRDEYE_CANDLES_URL,
-                params={
-                    "address": self._token_mints[asset], "type": "1m", "mode": "range",
-                    "time_from": start, "time_to": cutoff, "currency": "usd",
-                    "chart_type": "price", "ui_amount_mode": "raw", "padding": "false",
-                },
+                params=parameters,
                 headers={"X-API-KEY": self._api_key, "x-chain": "solana", "Accept": "application/json"},
                 allow_redirects=False,
             ) as response:
                 if response.status != 200:
                     code = "candles_rate_limited" if response.status == 429 else "candles_unavailable"
                     raise MarketFeedError(code)
-                payload = await response.json()
-            pending[asset] = self._parse(payload, asset=asset, start=start, cutoff=cutoff, initial=initial)
+                raw = await bounded_response_body(response, provider=CANDLE_SOURCE)
+                received_at, received_mono = time.time(), time.monotonic()
+                if received_at < cutoff + COMPLETION_MARGIN_SECONDS:
+                    raise MarketFeedError("candles_clock_invalid")
+                document = ProviderDocument.capture(CANDLE_SOURCE, parameters, raw,
+                                                    received_at, received_mono)
+            rows = self._parse(document, asset=asset, start=start, cutoff=cutoff, initial=initial)
+            # Compare exact accepted history before float views can hide a
+            # revision, including explicit warmup after narrower refreshes.
+            fingerprints = dict(self._accepted_fingerprints.get(asset, {}))
+            fields = ("open", "high", "low", "close", "volume", "volume_usd",
+                      "is_scaled_ui_token", "multiplier")
+            for row in rows:
+                identity = [getattr(row, key) for key in fields]
+                fingerprint = hashlib.sha256(json.dumps(identity, ensure_ascii=True,
+                    separators=(",", ":"), allow_nan=False).encode("ascii")).hexdigest()
+                old = fingerprints.get(row.start)
+                if old is not None and old != fingerprint:
+                    raise MarketFeedError("candles_revision")
+                fingerprints[row.start] = fingerprint
+            fingerprint_pending[asset] = {stamp: fingerprints[stamp]
+                for stamp in sorted(fingerprints)[-MINUTE_RETENTION:]}
+            exact_pending[asset] = rows
+            pending[asset] = tuple(MinuteCandle(
+                asset=row.asset, start=row.start, open=float(row.open), high=float(row.high),
+                low=float(row.low), close=float(row.close), volume=float(row.volume),
+                source=CANDLE_SOURCE, quote_currency="USD", volume_unit="base_token") for row in rows)
+        self._accepted_fingerprints.update(fingerprint_pending)
+        self._exact_cache.update(exact_pending)
         self._cache.update(pending)
         self._cutoffs.update({asset: cutoff for asset in assets})
         self._first_starts.update({asset: min(self._first_starts.get(asset, rows[0].start), rows[0].start)
                                    for asset, rows in pending.items()})
         return [candle for asset in assets for candle in pending[asset]]
 
-    def _parse(self, payload: object, *, asset: str, start: int, cutoff: int,
-               initial: bool) -> tuple[MinuteCandle, ...]:
-        if not isinstance(payload, dict) or payload.get("success") is not True:
-            raise MarketFeedError("candles_invalid")
-        body = payload.get("data")
-        if not isinstance(body, dict) or not isinstance(body.get("is_scaled_ui_token"), bool):
-            raise MarketFeedError("candles_invalid")
-        items = body.get("items")
-        if not isinstance(items, list) or len(items) > MAX_PROVIDER_RECORDS:
-            raise MarketFeedError("candles_invalid")
-        by_start: dict[int, MinuteCandle] = {}
-        for row in items:
-            if not isinstance(row, dict):
-                raise MarketFeedError("candles_invalid")
-            stamp = row.get("unix_time")
-            if (isinstance(stamp, bool) or not isinstance(stamp, int)
-                    or stamp <= 0 or stamp % 60 != 0 or stamp > cutoff):
-                raise MarketFeedError("candles_invalid")
-            if (row.get("address") != self._token_mints[asset]
-                    or row.get("type") != "1m" or row.get("currency") != "usd"):
-                raise MarketFeedError("candles_invalid")
-            values = {key: _number(row.get(key), positive=True) for key in ("o", "h", "l", "c")}
-            volume = _number(row.get("v"), positive=False)
-            _number(row.get("v_usd"), positive=False)
-            if not values["l"] <= min(values["o"], values["c"]) <= max(values["o"], values["c"]) <= values["h"]:
-                raise MarketFeedError("candles_invalid")
-            # Validate even an excluded end-boundary row before discarding it.
-            if stamp < start or stamp + 60 > cutoff:
-                continue
-            candle = MinuteCandle(
-                asset=asset, start=stamp, open=values["o"], high=values["h"],
-                low=values["l"], close=values["c"], volume=volume,
-                source=CANDLE_SOURCE, quote_currency="USD", volume_unit="base_token",
-            )
-            if stamp in by_start and by_start[stamp] != candle:
-                raise MarketFeedError("candles_revision")
-            by_start[stamp] = candle
-        if not by_start:
+    def _parse(self, document: ProviderDocument, *, asset: str, start: int, cutoff: int,
+               initial: bool) -> tuple[ExactCandleRecord, ...]:
+        try:
+            candles = parse_candle_records(document, asset=asset, mint=self._token_mints[asset])
+        except ExactRecordError as error:
+            raise MarketFeedError(error.code) from None
+        if not candles:
             raise MarketFeedError("candles_missing")
-        candles = tuple(by_start[stamp] for stamp in sorted(by_start))
-        if ((not initial and candles[0].start != start) or candles[-1].start + 60 != cutoff
+        if ((not initial and candles[0].start != start) or candles[-1].end != cutoff
                 or any(right.start != left.start + 60 for left, right in zip(candles, candles[1:]))):
             raise MarketFeedError("candles_gap")
         return candles

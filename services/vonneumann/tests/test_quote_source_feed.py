@@ -199,7 +199,7 @@ class QuoteSourceFeedTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase):
         self.assertAlmostEqual(self.clock.wall - stale["source_timestamp"], 112.507, places=3)
 
     async def test_invalid_price_missing_slot_and_missing_asset_keep_valid_sibling(self):
-        for bad in (None, {}, {"usdPrice": float("nan"), "blockId": 78},
+        for bad in (None, {}, {"usdPrice": "not-a-number", "blockId": 78},
                     {"usdPrice": 1}, {"usdPrice": 1, "blockId": True},
                     {"usdPrice": 1, "blockId": 2**64}, {"usdPrice": 1, "blockId": -1},
                     {"usdPrice": 1, "blockId": "78"}):
@@ -405,8 +405,9 @@ class QuoteSourceFeedTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase):
 
     async def test_price_http_deadline_is_bounded_before_any_source_lookup(self):
         class HangingPrice(Response):
-            async def json(self):
+            async def iter_chunked(self, size):
                 await asyncio.Event().wait()
+                yield b""  # Make this an async byte-stream iterator.
         feed = self.feed(HangingPrice())
         real_timeout = asyncio.timeout
         with patch.object(jupiter.asyncio, "timeout", side_effect=lambda seconds: real_timeout(0.01)):
