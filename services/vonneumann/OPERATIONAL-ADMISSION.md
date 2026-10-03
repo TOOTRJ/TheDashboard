@@ -103,11 +103,12 @@ relay isolation, durable restart and protective-latency measurements remain gate
 
 ## Next contract and research
 
-C2D2 stays open. The provider-bound version must separately define source block
-reference, estimated source time, receipt sequence/process epoch, decision time,
-completed-candle availability, revision watermarks, pinned mint/USD/unscaled units
-and exact grid admission. Bind them to run configuration, commands, state and SQL
-validation under a new version; preserve v3/v4 fixture meaning.
+C2D2 stays open for active-controller ownership and production acceptance.
+[Provider command version 5](PROVIDER-COMMAND-CONTRACT.md) now separately binds
+source block reference, estimated time, receipt clocks/epoch, decision time,
+completed history and pinned mint/USD/unscaled units. Its `ProviderAdmissionOwner`
+reuses the ownership mechanics described here with source-aware guards and
+current-time historical startup. The v4 owner retains its synthetic meaning.
 
 Deep research remains necessary on Jupiter block-to-slot/fork semantics,
 same-slot/equal-second changes, Birdeye publication/revision/outlier behavior,

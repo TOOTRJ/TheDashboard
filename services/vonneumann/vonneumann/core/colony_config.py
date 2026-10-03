@@ -136,6 +136,17 @@ class ColonyConfig:
         )
 
 
+class ExactMarkColonyConfig(ColonyConfig):
+    """USD reference marks belong only to the isolated exact model asset pool.
+
+    Do not add them to the active controller's tradeable USDC pair registry.
+    """
+    def get_effective_assets(self):
+        if self.available_assets == ['SOL/USD']:
+            return ['SOL/USD']
+        return super().get_effective_assets()
+
+
 # ══════════════════════════════════════════════════════════════════════════════
 # PRESETS
 # ══════════════════════════════════════════════════════════════════════════════

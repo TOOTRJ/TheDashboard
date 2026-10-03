@@ -1,7 +1,7 @@
 """Acknowledged installation and serial outbox delivery for the bounded rehearsal.
 
 Own this coordinator and its repository exclusively on one event loop. It can
-start only from an acknowledged fresh v3/v4 creation; it is not a checkpoint
+start only from an acknowledged fresh v3/v4/v5 creation; it is not a checkpoint
 decoder, an adapter for the live controller, or a cross-process restorer.
 An injected publisher accepts one stable event identity and must deduplicate
 repeated delivery. Its success is relay acceptance, not every browser's receipt.
@@ -32,9 +32,9 @@ class TransitionCoordinator:
         receipt = repository.last_receipt
         if (repository.busy or repository.pending is not None or receipt is None
                 or receipt.command.kind != 'create' or repository.revision != 1
-                or repository.status != 'starting' or repository.command_version not in (3, 4)
+                or repository.status != 'starting' or repository.command_version not in (3, 4, 5)
                 or receipt.revision != 1 or receipt.fence != repository.fence):
-            raise CommandAdmissionError('coordinator requires an acknowledged fresh v3/v4 run')
+            raise CommandAdmissionError('coordinator requires an acknowledged fresh v3/v4/v5 run')
         self._repository = repository
         self._transport = outbox_transport
         self._creation = receipt.command
@@ -164,6 +164,11 @@ class TransitionCoordinator:
                 or Decimal(configuration['rehearsal']['initial_cash'])
                 != Decimal(self._creation.expected_request['initial_cash'])):
             raise CommandAdmissionError('candidate differs from acknowledged run configuration')
+        if self._repository.command_version == 5:
+            from ..market.provider_contract import source_policy
+            if (canonical_json(source_policy(transition['after']['source']['epoch']))
+                    != canonical_json(configuration['source_policy'])):
+                raise CommandAdmissionError('candidate differs from acknowledged source policy')
         command = PreparedCommand.batch(self._repository.owner_id, self._repository.run_id,
             self._repository.worker_id, self._repository.fence, self._repository.revision,
             candidate.operations, command_id=command_id, version=self._repository.command_version, transition=transition)

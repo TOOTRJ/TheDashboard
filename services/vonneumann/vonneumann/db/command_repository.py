@@ -364,7 +364,7 @@ class CommandRepository:
                     expected_status = operation["status"]
             if not _balance(response["reserve"]):
                 raise ValueError("invalid balance response")
-            if command.expected_request['payload']['version'] in (3, 4):
+            if command.expected_request['payload']['version'] in (3, 4, 5):
                 expected_reserve = command.expected_request['payload']['transition']['after']['reserve']
                 if Decimal(response['reserve']) != Decimal(expected_reserve):
                     raise ValueError('reserve differs from the retained exact transition')

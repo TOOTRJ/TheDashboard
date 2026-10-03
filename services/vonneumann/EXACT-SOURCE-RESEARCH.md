@@ -162,6 +162,29 @@ budget around synthetic inputs; it does not prove provider freshness.
   with an explicit availability model before comparing strategy performance.
   Jupiter backtesting retention was already confirmed by the user.
 
+## Version-five application of this research
+
+The October 2 continuation rechecked the Price V3 OpenAPI, Solana getBlockTime
+and Birdeye OHLCV contracts. Their limits above still apply. The new
+[provider command contract](PROVIDER-COMMAND-CONTRACT.md) explicitly separates
+block-reference order, estimated source time, current receipt and actual decision
+time. It permits adjacent references with equal estimated seconds and defers
+same-second scheduling without inventing timestamps. Source floors cannot be
+refreshed by unchanged snapshots or by slower wall-clock progress.
+
+Historical provider data is useful immediately for **indicator startup**: 915
+minute records seed 61 completed 15-minute closes at today's actual receipt
+clock. This does not replay historical decisions or infer when old candles were
+first published. Frozen research datasets and an availability model remain needed
+for reproducible comparative backtests. A five-second completion margin and a
+five-second ingestion/dispatch budget are conservative local policy choices that
+require latency/publication measurements before production adoption.
+
+The version pins USD reference marks and the wrapped SOL mint. It preserves
+worker-parsed close records and safe manifests, not independently authenticated
+raw-body or RPC evidence. It does not resolve fork/finality, outlier contradictions,
+scaled-token expansion, historical revision rights or restart-clock trust.
+
 ## Documentation fingerprints
 
 These SHA-256 values identify the exact public documents retrieved for this

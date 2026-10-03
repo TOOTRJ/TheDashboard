@@ -67,6 +67,11 @@ class RehearsalAdmissionOwner:
                 or receipt.command.owner_id != config.owner_id
                 or receipt.command.run_id != config.run_id):
             raise OperationalAdmissionError('owner requires its acknowledged fresh v4 configuration')
+        self._initialize(repository, outbox_transport, config, wall_clock, monotonic, max_wait_seconds)
+
+    def _initialize(self, repository, outbox_transport, config, wall_clock, monotonic, max_wait_seconds):
+        """Shared ownership mechanics; subclasses must validate their own contract first."""
+        receipt = repository.last_receipt
         self._config = config
         self._wall_clock, self._monotonic = wall_clock, monotonic
         self._budget = float(max_wait_seconds)

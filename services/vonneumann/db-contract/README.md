@@ -357,6 +357,31 @@ binary64 EMA/fitness arithmetic or optimizer mathematics. The production source,
 transport, grant, legacy cutover and capacity gates remain open. See the complete
 [lifecycle contract and research requirements](../EXACT-LIFECYCLE.md).
 
+## Version 5: provider source and current history
+
+V5 requires the separately pinned Jupiter/Birdeye SOL/USD source policy. Original
+source envelopes, state watermarks and safe manifests remain in the journal and
+checkpoint. Only local copies project into v4 economics/lifecycle validation.
+The first seeded state has no fictional quote: a declared empty-EMA projection
+allows baseline validation while separate seed checks bind 915 minute records,
+61 completed bars, indicator shape and immutable prequote history.
+
+New commands validate source reference/time/receipt progression, accepted-quote
+identity, current candle availability, consumed close fingerprints and their
+source request windows. Server wall checks run before and after economic effects;
+expiry rolls back ledger, checkpoint, ancestry, journal and outbox together.
+An existing identical command ID resolves to its original receipt without
+reapplying source freshness. Worker/server clocks must agree sufficiently for
+strict future/receipt checks; deployment clock/latency acceptance remains open.
+
+SQL trusts declared worker-parsed records and manifests; it does not authenticate
+providers, derive prices from response hashes or independently recompute indicator
+or optimizer mathematics. Python reparses retained raw bytes and checks its seed
+calculation. Tests exercise current-clock admission and adversarial raw RPCs in
+isolated PostgreSQL. Full simulated-hour solver traces run offline; no test-only
+server clock override is added to the SQL fixture. See the complete
+[provider contract and remaining gates](../PROVIDER-COMMAND-CONTRACT.md).
+
 ## Primary references
 
 - [PostgreSQL row locks](https://www.postgresql.org/docs/17/explicit-locking.html):

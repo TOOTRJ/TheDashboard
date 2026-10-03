@@ -31,7 +31,7 @@ CREATE TABLE vn_durability.runs (
   requires_reconciliation boolean NOT NULL DEFAULT false,
   interrupted_at timestamptz,
   config jsonb NOT NULL CHECK (jsonb_typeof(config) = 'object' AND octet_length(config::text) <= 65536),
-  command_version smallint NOT NULL CHECK (command_version IN (1,2,3,4)),
+  command_version smallint NOT NULL CHECK (command_version IN (1,2,3,4,5)),
   engine_state jsonb,
   initial_cash vn_durability.balance NOT NULL CHECK (initial_cash > 0),
   reserve vn_durability.balance NOT NULL,
@@ -252,10 +252,10 @@ CREATE FUNCTION vn_durability.record_command(
   VALUES (run,owner_id,command_id,sequence,command_kind,request_body,
           sha256(convert_to(request_body::text,'UTF8')),result);
   INSERT INTO vn_durability.outbox_progress(run_id,user_id)
-    SELECT run,owner_id WHERE command_kind='create' AND request_body#>>'{config,durability_contract_version}' IN ('3','4');
+    SELECT run,owner_id WHERE command_kind='create' AND request_body#>>'{config,durability_contract_version}' IN ('3','4','5');
   INSERT INTO vn_durability.outbox_events(run_id,user_id,command_id,revision,event_index,event)
     SELECT run,owner_id,command_id,sequence,(ordinal-1)::integer,value
-      FROM jsonb_array_elements(CASE WHEN command_kind='batch' AND request_body#>>'{payload,version}' IN ('3','4')
+      FROM jsonb_array_elements(CASE WHEN command_kind='batch' AND request_body#>>'{payload,version}' IN ('3','4','5')
         THEN request_body#>'{payload,transition,events}' ELSE '[]'::jsonb END) WITH ORDINALITY q(value,ordinal);
 $$;
 
@@ -530,7 +530,7 @@ RETURNS void LANGUAGE plpgsql SET search_path=pg_catalog,vn_durability,pg_temp A
 DECLARE state vn_durability.runs%ROWTYPE; ordinal integer; source uuid; iteration text; expected jsonb;
 BEGIN
   SELECT * INTO state FROM vn_durability.runs WHERE id=run AND user_id=owner_id;
-  IF NOT FOUND OR state.command_version<>4 OR
+  IF NOT FOUND OR state.command_version NOT IN (4,5) OR
      state.engine_state->'engine'->'lifecycle'->'restart_required' IS DISTINCT FROM 'true'::jsonb OR
      state.engine_state->'engine'->'cohort'->>'phase' IS DISTINCT FROM 'aborted' THEN
     RAISE EXCEPTION 'restart_lineage_unavailable' USING ERRCODE='22023';
@@ -769,6 +769,7 @@ BEGIN
     WHEN 'SearchRandomStreams' THEN RETURN ARRAY['algorithm','seed'];
     WHEN 'SelectionCohort' THEN RETURN ARRAY['_bootstrap','_pending','_previous_context','_previous_ids','_signatures','bound_ids','population_size'];
     WHEN 'ParameterCodec' THEN RETURN ARRAY['_assets','_config','domains','names'];
+    WHEN 'ExactMarkColonyConfig' THEN RETURN ARRAY['available_assets','enabled_genes','gene_overrides','max_lifespan_ticks','mutation_rate','reproduction_interval','strategy_profile'];
     WHEN 'ColonyConfig' THEN RETURN ARRAY['available_assets','enabled_genes','gene_overrides','max_lifespan_ticks','mutation_rate','reproduction_interval','strategy_profile'];
     WHEN 'GeneOverride' THEN RETURN ARRAY['default','fixed','max','min'];
     WHEN 'GeneDomain' THEN RETURN ARRAY['default','integer','maximum','minimum'];
@@ -790,7 +791,8 @@ BEGIN
     descriptor:=context->'nodes'->identity;
   END IF;
   IF descriptor IS NULL OR jsonb_typeof(descriptor) IS DISTINCT FROM 'object' OR
-     (CASE WHEN descriptor->>'type'='object' THEN descriptor->>'class' ELSE descriptor->>'type' END) IS DISTINCT FROM required THEN
+     ((CASE WHEN descriptor->>'type'='object' THEN descriptor->>'class' ELSE descriptor->>'type' END) IS DISTINCT FROM required AND
+       (required<>'ColonyConfig' OR descriptor->>'type' IS DISTINCT FROM 'object' OR descriptor->>'class' IS DISTINCT FROM 'ExactMarkColonyConfig')) THEN
     RAISE EXCEPTION 'optimizer_field_role_mismatch' USING ERRCODE='22023';
   END IF;
 END $$;
@@ -2929,6 +2931,374 @@ BEGIN
   PERFORM vn_durability.lifecycle_optimizer_mirror(engine);
 END $$;
 
+-- Provider v5 validates worker-parsed consumed records and safe manifests.
+-- It deliberately does not attest raw response derivation or provider truth.
+CREATE FUNCTION vn_durability.provider_us(value jsonb) RETURNS numeric
+LANGUAGE sql SET search_path=pg_catalog,vn_durability,pg_temp AS $$
+ SELECT vn_durability.rehearsal_integer(value,0,10000000000000000)
+$$;
+
+CREATE FUNCTION vn_durability.provider_hex_us(value jsonb) RETURNS numeric
+LANGUAGE plpgsql SET search_path=pg_catalog,vn_durability,pg_temp AS $$
+DECLARE raw text; digits text; amount numeric:=0; exponent integer; denominator numeric;
+BEGIN
+ PERFORM vn_durability.rehearsal_hex(value); raw:=value#>>'{}';
+ IF raw IN ('0x0.0p+0','-0x0.0p+0') THEN RETURN 0; END IF;
+ IF left(raw,1)='-' THEN RAISE EXCEPTION 'invalid_provider_clock' USING ERRCODE='22023'; END IF;
+ digits:=replace(substring(split_part(raw,'p',1),3),'.','');
+ exponent:=split_part(raw,'p',2)::integer-4*length(split_part(split_part(raw,'p',1),'.',2));
+ FOR i IN 1..length(digits) LOOP amount:=amount*16+strpos('0123456789abcdef',substring(digits,i,1))-1; END LOOP;
+ amount:=amount*1000000;
+ IF exponent>=0 THEN amount:=amount*power(2::numeric,exponent);
+ ELSE denominator:=power(2::numeric,-exponent); amount:=div(amount,denominator)+CASE WHEN mod(amount,denominator)>0 THEN 1 ELSE 0 END;
+ END IF;
+ IF amount>10000000000000000 THEN RAISE EXCEPTION 'invalid_provider_clock' USING ERRCODE='22023'; END IF;
+ RETURN amount;
+END $$;
+
+CREATE FUNCTION vn_durability.provider_config(configuration jsonb) RETURNS void
+LANGUAGE plpgsql SET search_path=pg_catalog,vn_durability,pg_temp AS $$
+DECLARE policy jsonb:=configuration->'source_policy'; epoch uuid;
+BEGIN
+ PERFORM vn_durability.exact_keys(configuration,ARRAY['durability_contract_version','execution','rehearsal','source_policy']);
+ IF configuration->'durability_contract_version' IS DISTINCT FROM '5'::jsonb OR
+    configuration->'rehearsal'->'asset' IS DISTINCT FROM '"SOL/USD"'::jsonb THEN
+  RAISE EXCEPTION 'invalid_provider_config' USING ERRCODE='22023'; END IF;
+ epoch:=vn_durability.canonical_id(policy->'epoch');
+ IF policy-'epoch' IS DISTINCT FROM '{"version":"jupiter-birdeye-sol-usd-v1","asset":"SOL/USD","mint":"So11111111111111111111111111111111111111112","chain":"solana","denomination":"USD","valuation":"reference_mark","source_time_policy":"jupiter-block-id-as-slot-estimated-time-v1","clock_policy":"conservative-integer-microseconds-v1","max_source_age_us":30000000,"future_tolerance_us":2000000,"max_receipt_age_us":5000000,"candle_seconds":900,"candle_completion_us":5000000,"seed_bars":61,"max_history_bars":64,"source_order":"strict-block-ref-nondecreasing-estimate-v1","evidence_trust":"worker-parsed-records-and-manifests-v1","outlier_policy":"provider-default-omitted"}'::jsonb THEN
+  RAISE EXCEPTION 'invalid_provider_policy' USING ERRCODE='22023'; END IF;
+ PERFORM vn_durability.lifecycle_config((configuration-'source_policy')||'{"durability_contract_version":4}'::jsonb);
+END $$;
+
+CREATE FUNCTION vn_durability.provider_mint(value text) RETURNS void
+LANGUAGE plpgsql SET search_path=pg_catalog,vn_durability,pg_temp AS $$
+DECLARE alphabet text:='123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+ amount numeric:=0; zeroes integer:=0; bytes integer:=0;
+BEGIN
+ IF value IS NULL OR value !~ '^[1-9A-HJ-NP-Za-km-z]{32,44}$' THEN
+  RAISE EXCEPTION 'invalid_provider_mint' USING ERRCODE='22023'; END IF;
+ FOR i IN 1..length(value) LOOP amount:=amount*58+strpos(alphabet,substring(value,i,1))-1; END LOOP;
+ WHILE zeroes<length(value) AND substring(value,zeroes+1,1)='1' LOOP zeroes:=zeroes+1; END LOOP;
+ WHILE amount>0 LOOP amount:=div(amount,256); bytes:=bytes+1; END LOOP;
+ IF bytes+zeroes<>32 THEN RAISE EXCEPTION 'invalid_provider_mint' USING ERRCODE='22023'; END IF;
+END $$;
+
+CREATE FUNCTION vn_durability.provider_document(value jsonb, provider text) RETURNS void
+LANGUAGE plpgsql SET search_path=pg_catalog,vn_durability,pg_temp AS $$
+DECLARE request jsonb; params jsonb; mints text[]; mint text; lower_time numeric; upper_time numeric;
+BEGIN
+ PERFORM vn_durability.exact_keys(value,ARRAY['provider','parser_policy','request','request_sha256','response_sha256','response_bytes','received_wall_us','received_monotonic_us']);
+ IF value->'provider' IS DISTINCT FROM to_jsonb(provider) OR value->'parser_policy' IS DISTINCT FROM '"provider-json-exact-v1"'::jsonb OR
+    jsonb_typeof(value->'request_sha256') IS DISTINCT FROM 'string' OR value->>'request_sha256' !~ '^[a-f0-9]{64}$' OR
+    jsonb_typeof(value->'response_sha256') IS DISTINCT FROM 'string' OR value->>'response_sha256' !~ '^[a-f0-9]{64}$' THEN
+  RAISE EXCEPTION 'invalid_provider_document' USING ERRCODE='22023'; END IF;
+ PERFORM vn_durability.provider_us(value->'received_wall_us'); PERFORM vn_durability.provider_us(value->'received_monotonic_us');
+ PERFORM vn_durability.rehearsal_integer(value->'response_bytes',1,CASE WHEN provider='jupiter-price-v3' THEN 131072 ELSE 4194304 END);
+ request:=value->'request'; params:=request->'parameters';
+ PERFORM vn_durability.exact_keys(request,ARRAY['method','endpoint','chain','parameters']);
+ IF request->'method' IS DISTINCT FROM '"GET"'::jsonb OR request->'chain' IS DISTINCT FROM '"solana"'::jsonb THEN
+  RAISE EXCEPTION 'invalid_provider_request' USING ERRCODE='22023'; END IF;
+ IF provider='jupiter-price-v3' THEN
+  PERFORM vn_durability.exact_keys(params,ARRAY['ids']);
+  IF request->'endpoint' IS DISTINCT FROM '"https://api.jup.ag/price/v3"'::jsonb OR
+     jsonb_typeof(params->'ids') IS DISTINCT FROM 'string' OR octet_length(params->>'ids')>2250 THEN
+   RAISE EXCEPTION 'invalid_provider_request' USING ERRCODE='22023'; END IF;
+  mints:=string_to_array(params->>'ids',',');
+  IF cardinality(mints) NOT BETWEEN 1 AND 50 OR NOT 'So11111111111111111111111111111111111111112'=ANY(mints) OR
+     (SELECT count(DISTINCT m) FROM unnest(mints) q(m))<>cardinality(mints) OR
+     EXISTS(SELECT 1 FROM unnest(mints) q(m) WHERE m !~ '^[1-9A-HJ-NP-Za-km-z]{32,44}$') THEN
+   RAISE EXCEPTION 'invalid_provider_request' USING ERRCODE='22023'; END IF;
+  FOREACH mint IN ARRAY mints LOOP PERFORM vn_durability.provider_mint(mint); END LOOP;
+ ELSIF provider='birdeye-ohlcv-v3' THEN
+  PERFORM vn_durability.exact_keys(params,ARRAY['address','type','mode','time_from','time_to','currency','chart_type','ui_amount_mode','padding']);
+  IF request->'endpoint' IS DISTINCT FROM '"https://public-api.birdeye.so/defi/v3/ohlcv"'::jsonb OR
+     params-ARRAY['time_from','time_to'] IS DISTINCT FROM '{"address":"So11111111111111111111111111111111111111112","type":"1m","mode":"range","currency":"usd","chart_type":"price","ui_amount_mode":"raw","padding":"false"}'::jsonb THEN
+   RAISE EXCEPTION 'invalid_provider_request' USING ERRCODE='22023'; END IF;
+  lower_time:=vn_durability.rehearsal_integer(params->'time_from',0,10000000000);
+  upper_time:=vn_durability.rehearsal_integer(params->'time_to',0,10000000000);
+  IF mod(lower_time,60)<>0 OR mod(upper_time,60)<>0 OR upper_time<=lower_time OR upper_time-lower_time>299940 THEN
+   RAISE EXCEPTION 'invalid_provider_request' USING ERRCODE='22023'; END IF;
+ ELSE RAISE EXCEPTION 'invalid_provider_kind' USING ERRCODE='22023'; END IF;
+END $$;
+
+CREATE FUNCTION vn_durability.provider_receipt(value jsonb, wall_us numeric, mono_us numeric, server boolean DEFAULT false) RETURNS void
+LANGUAGE plpgsql SET search_path=pg_catalog,vn_durability,pg_temp AS $$
+DECLARE wall numeric:=vn_durability.provider_us(value->'received_wall_us'); mono numeric:=vn_durability.provider_us(value->'received_monotonic_us');
+BEGIN
+ IF wall_us<wall OR (NOT server AND mono_us<mono) OR wall_us-wall>=5000000 OR
+    (NOT server AND mono_us-mono>=5000000) THEN
+  RAISE EXCEPTION 'provider_receipt_expired' USING ERRCODE='22023'; END IF;
+END $$;
+
+CREATE FUNCTION vn_durability.provider_frame(value jsonb) RETURNS void
+LANGUAGE plpgsql SET search_path=pg_catalog,vn_durability,pg_temp AS $$
+DECLARE quote jsonb:=value->'quote'; moment numeric; wall numeric; mono numeric;
+BEGIN
+ PERFORM vn_durability.exact_keys(value,ARRAY['sequence','decision_second','decision_wall_us','decision_monotonic_us','quote']);
+ PERFORM vn_durability.rehearsal_integer(value->'sequence',1,4096);
+ moment:=vn_durability.rehearsal_integer(value->'decision_second',0,10000000000);
+ wall:=vn_durability.provider_us(value->'decision_wall_us'); mono:=vn_durability.provider_us(value->'decision_monotonic_us');
+ PERFORM vn_durability.exact_keys(quote,ARRAY['price','block_ref','estimated_source_second','source_age_floor_us','document']);
+ IF vn_durability.lifecycle_amount(quote->'price',18)<=0 THEN RAISE EXCEPTION 'invalid_provider_price' USING ERRCODE='22023'; END IF;
+ PERFORM vn_durability.rehearsal_integer(quote->'block_ref',0,18446744073709551615);
+ PERFORM vn_durability.rehearsal_integer(quote->'estimated_source_second',0,10000000000);
+ PERFORM vn_durability.provider_us(quote->'source_age_floor_us');
+ PERFORM vn_durability.provider_document(quote->'document','jupiter-price-v3');
+ IF (wall<moment*1000000 OR wall>(moment+1)*1000000) OR moment<ceil((quote->'document'->>'received_wall_us')::numeric/1000000) OR
+    wall<(quote->'document'->>'received_wall_us')::numeric OR mono<(quote->'document'->>'received_monotonic_us')::numeric THEN
+  RAISE EXCEPTION 'invalid_provider_frame_clock' USING ERRCODE='22023'; END IF;
+END $$;
+
+CREATE FUNCTION vn_durability.provider_fresh_frame(value jsonb, wall_us numeric, mono_us numeric, server boolean DEFAULT false) RETURNS void
+LANGUAGE plpgsql SET search_path=pg_catalog,vn_durability,pg_temp AS $$
+DECLARE quote jsonb:=value->'quote'; doc jsonb:=quote->'document'; stamp numeric:=(quote->>'estimated_source_second')::numeric*1000000;
+ initial_age numeric; floor_age numeric; elapsed numeric;
+BEGIN
+ PERFORM vn_durability.provider_receipt(doc,wall_us,mono_us,server);
+ initial_age:=(doc->>'received_wall_us')::numeric-stamp;
+ floor_age:=greatest(0,initial_age,(quote->>'source_age_floor_us')::numeric);
+ elapsed:=CASE WHEN server THEN greatest(0,wall_us-(doc->>'received_wall_us')::numeric) ELSE mono_us-(doc->>'received_monotonic_us')::numeric END;
+ IF initial_age < -2000000 OR wall_us-stamp < -2000000 OR
+    greatest(wall_us-stamp,floor_age+elapsed)>30000000 THEN
+  RAISE EXCEPTION 'provider_quote_stale' USING ERRCODE='22023'; END IF;
+ IF NOT server AND (wall_us<(value->>'decision_wall_us')::numeric OR mono_us<(value->>'decision_monotonic_us')::numeric) THEN
+  RAISE EXCEPTION 'provider_clock_regressed' USING ERRCODE='22023'; END IF;
+END $$;
+
+CREATE FUNCTION vn_durability.provider_bars(value jsonb) RETURNS void
+LANGUAGE plpgsql SET search_path=pg_catalog,vn_durability,pg_temp AS $$
+DECLARE item jsonb; stamp numeric; previous numeric;
+BEGIN
+ IF jsonb_typeof(value) IS DISTINCT FROM 'array' OR jsonb_array_length(value) NOT BETWEEN 61 AND 64 THEN
+  RAISE EXCEPTION 'invalid_provider_bars' USING ERRCODE='22023'; END IF;
+ FOR item IN SELECT v FROM jsonb_array_elements(value) q(v) LOOP
+  IF jsonb_typeof(item) IS DISTINCT FROM 'array' OR jsonb_array_length(item)<>3 THEN
+   RAISE EXCEPTION 'invalid_provider_bar' USING ERRCODE='22023'; END IF;
+  stamp:=vn_durability.rehearsal_integer(item->0,900,10000000000);
+  IF mod(stamp,900)<>0 OR (previous IS NOT NULL AND stamp<>previous+900) OR
+     vn_durability.lifecycle_amount(item->1,18)<=0 OR jsonb_typeof(item->2) IS DISTINCT FROM 'string' OR item->>2 !~ '^[a-f0-9]{64}$' THEN
+   RAISE EXCEPTION 'invalid_provider_bar' USING ERRCODE='22023'; END IF;
+  previous:=stamp;
+ END LOOP;
+END $$;
+
+CREATE FUNCTION vn_durability.provider_history(value jsonb, old_bars jsonb, seed boolean, wall_us numeric, mono_us numeric) RETURNS jsonb
+LANGUAGE plpgsql SET search_path=pg_catalog,vn_durability,pg_temp AS $$
+DECLARE docs jsonb; minutes jsonb; doc jsonb; old_doc jsonb; item jsonb; ordinal integer:=0;
+ idx integer; used integer[]:=ARRAY[]::integer[]; stamp numeric; previous numeric; ending numeric; bars jsonb:='[]'::jsonb;
+ pairs text:=''; fingerprint text; latest numeric; result jsonb;
+BEGIN
+ PERFORM vn_durability.exact_keys(value,ARRAY['documents','minutes','unscaled']);
+ docs:=value->'documents'; minutes:=value->'minutes';
+ IF value->'unscaled' IS DISTINCT FROM 'true'::jsonb OR jsonb_typeof(docs) IS DISTINCT FROM 'array' OR
+    jsonb_array_length(docs) NOT BETWEEN 1 AND 4 OR jsonb_typeof(minutes) IS DISTINCT FROM 'array' OR
+    jsonb_array_length(minutes)<>(CASE WHEN seed THEN 915 ELSE 15 END) THEN
+  RAISE EXCEPTION 'invalid_provider_history' USING ERRCODE='22023'; END IF;
+ FOR doc IN SELECT v FROM jsonb_array_elements(docs) q(v) LOOP
+  PERFORM vn_durability.provider_document(doc,'birdeye-ohlcv-v3');
+  PERFORM vn_durability.provider_receipt(doc,wall_us,mono_us);
+  IF old_doc IS NOT NULL AND ROW(doc->>'response_sha256',doc->>'request_sha256',(doc->>'received_wall_us')::numeric,(doc->>'received_monotonic_us')::numeric)
+     <=ROW(old_doc->>'response_sha256',old_doc->>'request_sha256',(old_doc->>'received_wall_us')::numeric,(old_doc->>'received_monotonic_us')::numeric) THEN
+   RAISE EXCEPTION 'provider_document_order' USING ERRCODE='22023'; END IF;
+  old_doc:=doc;
+ END LOOP;
+ FOR item IN SELECT v FROM jsonb_array_elements(minutes) q(v) LOOP
+  IF jsonb_typeof(item) IS DISTINCT FROM 'array' OR jsonb_array_length(item)<>3 THEN
+   RAISE EXCEPTION 'invalid_provider_minute' USING ERRCODE='22023'; END IF;
+  stamp:=vn_durability.rehearsal_integer(item->0,60,9999999940);
+  idx:=vn_durability.rehearsal_integer(item->2,0,jsonb_array_length(docs)-1); doc:=docs->idx;
+  IF mod(stamp,60)<>0 OR (previous IS NULL AND mod(stamp,900)<>0) OR (previous IS NOT NULL AND stamp<>previous+60) OR
+     vn_durability.lifecycle_amount(item->1,18)<=0 OR stamp<(doc->'request'->'parameters'->>'time_from')::numeric OR
+     stamp+60>(doc->'request'->'parameters'->>'time_to')::numeric THEN
+   RAISE EXCEPTION 'invalid_provider_minute' USING ERRCODE='22023'; END IF;
+  ending:=(floor(stamp/900)+1)*900;
+  IF ending*1000000+5000000>(doc->>'received_wall_us')::numeric OR ending*1000000+5000000>wall_us THEN
+   RAISE EXCEPTION 'provider_candle_incomplete' USING ERRCODE='22023'; END IF;
+  IF NOT idx=ANY(used) THEN used:=array_append(used,idx); END IF;
+  pairs:=pairs||CASE WHEN mod(ordinal,15)=0 THEN '' ELSE ',' END||'['||stamp::text||','||(item->1)::text||']';
+  ordinal:=ordinal+1; previous:=stamp;
+  IF mod(ordinal,15)=0 THEN
+   fingerprint:=encode(sha256(convert_to('['||pairs||']','UTF8')),'hex');
+   bars:=bars||jsonb_build_array(jsonb_build_array(stamp+60,item->1,fingerprint)); pairs:='';
+  END IF;
+ END LOOP;
+ latest:=floor((wall_us-5000000)/900000000)*900;
+ IF cardinality(used)<>jsonb_array_length(docs) OR previous+60<>latest OR
+    (NOT seed AND (bars->0->0)::text<>(to_jsonb((old_bars->-1->>0)::numeric+900))::text) THEN
+  RAISE EXCEPTION 'provider_history_cursor' USING ERRCODE='22023'; END IF;
+ result:=CASE WHEN seed THEN bars ELSE old_bars||bars END;
+ SELECT jsonb_agg(v ORDER BY q.ordinal) INTO result FROM jsonb_array_elements(result) WITH ORDINALITY q(v,ordinal)
+  WHERE q.ordinal>greatest(jsonb_array_length(result)-64,0);
+ RETURN result;
+END $$;
+
+CREATE FUNCTION vn_durability.provider_state(value jsonb, epoch jsonb) RETURNS void
+LANGUAGE plpgsql SET search_path=pg_catalog,vn_durability,pg_temp AS $$
+DECLARE source jsonb:=value->'source'; frame jsonb;
+BEGIN
+ PERFORM vn_durability.exact_keys(value,ARRAY['version','owner_id','run_id','revision','status','reserve','accounts','positions','engine','source']);
+ PERFORM vn_durability.exact_keys(source,ARRAY['version','epoch','quote_sequence','last_quote','bars']);
+ IF source->'version' IS DISTINCT FROM '1'::jsonb OR source->'epoch' IS DISTINCT FROM epoch THEN
+  RAISE EXCEPTION 'provider_epoch_mismatch' USING ERRCODE='22023'; END IF;
+ PERFORM vn_durability.rehearsal_integer(source->'quote_sequence',0,4096);
+ PERFORM vn_durability.provider_bars(source->'bars'); frame:=source->'last_quote';
+ IF frame='null'::jsonb THEN
+  IF source->'quote_sequence'<>'0'::jsonb OR value->'engine'->'last_quote' IS DISTINCT FROM 'null'::jsonb THEN
+   RAISE EXCEPTION 'provider_quote_projection' USING ERRCODE='22023'; END IF;
+ ELSE
+  PERFORM vn_durability.provider_frame(frame);
+  IF frame->'sequence' IS DISTINCT FROM source->'quote_sequence' OR value->'engine'->'last_quote' IS DISTINCT FROM
+     jsonb_build_object('timestamp',frame->'decision_second','price',frame->'quote'->'price') THEN
+   RAISE EXCEPTION 'provider_quote_projection' USING ERRCODE='22023'; END IF;
+ END IF;
+ IF value->'engine'->'ema'->'last_end' IS DISTINCT FROM source->'bars'->-1->0 OR
+    value->'engine'->'ema'->'closes' IS DISTINCT FROM (SELECT jsonb_agg(v->1 ORDER BY ordinal) FROM jsonb_array_elements(source->'bars') WITH ORDINALITY q(v,ordinal)) THEN
+  RAISE EXCEPTION 'provider_ema_source_mismatch' USING ERRCODE='22023'; END IF;
+END $$;
+
+CREATE FUNCTION vn_durability.provider_model_payload(payload jsonb) RETURNS jsonb
+LANGUAGE plpgsql SET search_path=pg_catalog,vn_durability,pg_temp AS $$
+DECLARE result jsonb:=payload; transition jsonb:=payload->'transition';
+BEGIN
+ transition:=jsonb_set(transition,'{after}',(transition->'after')-'source');
+ IF transition->'before'<>'null'::jsonb THEN transition:=jsonb_set(transition,'{before}',(transition->'before')-'source'); END IF;
+ transition:=jsonb_set(transition,'{evidence}',(transition->'evidence')-'source');
+ IF transition->'before'='null'::jsonb OR transition->'before'->'engine'->'last_quote'='null'::jsonb THEN
+  IF transition->'before'<>'null'::jsonb THEN
+   transition:=jsonb_set(transition,'{before,engine,ema}','{"count":0,"last_end":null,"closes":[],"values":{},"previous":{}}'::jsonb);
+  END IF;
+  transition:=jsonb_set(transition,'{after,engine,ema}','{"count":0,"last_end":null,"closes":[],"values":{},"previous":{}}'::jsonb);
+ END IF;
+ RETURN jsonb_set(result,'{transition}',transition)||'{"version":4}'::jsonb;
+END $$;
+
+CREATE FUNCTION vn_durability.provider_model_run(state vn_durability.runs) RETURNS vn_durability.runs
+LANGUAGE plpgsql SET search_path=pg_catalog,vn_durability,pg_temp AS $$
+BEGIN
+ state.config:=(state.config-'source_policy')||'{"durability_contract_version":4}'::jsonb;
+ state.command_version:=4;
+ IF state.engine_state IS NOT NULL THEN
+  state.engine_state:=state.engine_state-'source';
+  IF state.engine_state->'engine'->'last_quote'='null'::jsonb THEN
+   state.engine_state:=jsonb_set(state.engine_state,'{engine,ema}','{"count":0,"last_end":null,"closes":[],"values":{},"previous":{}}'::jsonb);
+  END IF;
+ END IF;
+ RETURN state;
+END $$;
+
+CREATE FUNCTION vn_durability.provider_before(state vn_durability.runs, payload jsonb) RETURNS void
+LANGUAGE plpgsql SET search_path=pg_catalog,vn_durability,pg_temp AS $$
+DECLARE transition jsonb:=payload->'transition'; before_state jsonb:=transition->'before'; after_state jsonb:=transition->'after';
+ evidence jsonb:=transition->'evidence'; source jsonb:=evidence->'source'; before_source jsonb:=before_state->'source';
+ after_source jsonb:=after_state->'source'; frame jsonb:=source->'frame'; history jsonb:=source->'history'; expected jsonb; bars jsonb;
+ wall numeric; mono numeric; old_frame jsonb; observation jsonb:=evidence->'observation'; kind text:=evidence->>'kind'; recovery boolean;
+ input_wall numeric; moment numeric; ema jsonb; label text; value jsonb;
+BEGIN
+ PERFORM vn_durability.exact_keys(evidence,ARRAY['kind','inputs','observation','actions','control','source']);
+ PERFORM vn_durability.exact_keys(source,ARRAY['version','phase','frame','history','wall_us','monotonic_us']);
+ IF source->'version' IS DISTINCT FROM '1'::jsonb OR source->'phase' IS DISTINCT FROM evidence->'kind' OR
+    before_state IS DISTINCT FROM coalesce(state.engine_state,'null'::jsonb) THEN
+  RAISE EXCEPTION 'provider_before_mismatch' USING ERRCODE='22023'; END IF;
+ wall:=vn_durability.provider_us(source->'wall_us'); mono:=vn_durability.provider_us(source->'monotonic_us');
+ input_wall:=extract(epoch FROM (evidence->'inputs'->>'wall_at')::timestamptz)*1000000;
+ moment:=extract(epoch FROM (evidence->'inputs'->>'event_at')::timestamptz);
+ IF input_wall IS NULL OR moment IS NULL OR wall<>input_wall OR
+    mono<>vn_durability.provider_hex_us(evidence->'inputs'->'monotonic_at') THEN
+  RAISE EXCEPTION 'provider_decision_clock_mismatch' USING ERRCODE='22023'; END IF;
+ PERFORM vn_durability.provider_state(after_state,state.config->'source_policy'->'epoch');
+ IF before_state<>'null'::jsonb THEN
+  PERFORM vn_durability.provider_state(before_state,state.config->'source_policy'->'epoch');
+  old_frame:=before_source->'last_quote';
+  IF old_frame<>'null'::jsonb AND (wall<(old_frame->>'decision_wall_us')::numeric OR mono<(old_frame->>'decision_monotonic_us')::numeric) THEN
+   RAISE EXCEPTION 'provider_clock_regressed' USING ERRCODE='22023'; END IF;
+ END IF;
+ recovery:=kind='control' AND evidence->'control'->>'action'='recover';
+ IF kind='bootstrap' THEN
+  IF before_state<>'null'::jsonb OR frame IS DISTINCT FROM 'null'::jsonb OR history='null'::jsonb OR (wall<moment*1000000 OR wall>(moment+1)*1000000) THEN
+   RAISE EXCEPTION 'invalid_provider_bootstrap' USING ERRCODE='22023'; END IF;
+  bars:=vn_durability.provider_history(history,NULL,true,wall,mono);
+  expected:=jsonb_build_object('version',1,'epoch',state.config->'source_policy'->'epoch','quote_sequence',0,'last_quote',NULL,'bars',bars);
+  -- Shape/seed binding is independent of the empty-EMA local kernel projection.
+  -- PostgreSQL does not recompute the binary64 indicator recurrence.
+  ema:=after_state->'engine'->'ema';
+  PERFORM vn_durability.exact_keys(ema,ARRAY['count','last_end','closes','values','previous']);
+  IF ema->'count' IS DISTINCT FROM '61'::jsonb OR jsonb_typeof(ema->'values') IS DISTINCT FROM 'object' OR
+     jsonb_typeof(ema->'previous') IS DISTINCT FROM 'object' OR
+     (SELECT count(*) FROM jsonb_object_keys(ema->'values'))<>59 OR (SELECT count(*) FROM jsonb_object_keys(ema->'previous'))<>59 OR
+     EXISTS(SELECT 1 FROM generate_series(2,60) q(n) WHERE NOT (ema->'values')?n::text OR NOT (ema->'previous')?n::text) THEN
+   RAISE EXCEPTION 'provider_seed_ema_shape' USING ERRCODE='22023'; END IF;
+  FOR label,value IN SELECT * FROM jsonb_each(ema->'values') UNION ALL SELECT * FROM jsonb_each(ema->'previous') LOOP
+   PERFORM vn_durability.rehearsal_hex(value);
+   IF value#>>'{}' LIKE '-%' OR value#>>'{}'='0x0.0p+0' THEN RAISE EXCEPTION 'provider_seed_ema_shape' USING ERRCODE='22023'; END IF;
+  END LOOP;
+ ELSE
+  expected:=before_source; bars:=before_source->'bars';
+  IF old_frame='null'::jsonb AND after_state->'engine'->'ema' IS DISTINCT FROM before_state->'engine'->'ema' THEN
+   RAISE EXCEPTION 'provider_prequote_seed_changed' USING ERRCODE='22023'; END IF;
+  IF kind='protective' THEN
+   PERFORM vn_durability.provider_frame(frame);
+   IF history IS DISTINCT FROM 'null'::jsonb OR (frame->>'sequence')::integer<>(before_source->>'quote_sequence')::integer+1 THEN
+    RAISE EXCEPTION 'provider_protection_sequence' USING ERRCODE='22023'; END IF;
+   IF old_frame<>'null'::jsonb AND ((frame->>'decision_second')::numeric<=(old_frame->>'decision_second')::numeric OR
+      (frame->>'decision_wall_us')::numeric<(old_frame->>'decision_wall_us')::numeric OR
+      (frame->>'decision_monotonic_us')::numeric<(old_frame->>'decision_monotonic_us')::numeric OR
+      (frame->'quote'->>'block_ref')::numeric<=(old_frame->'quote'->>'block_ref')::numeric OR
+      (frame->'quote'->>'estimated_source_second')::numeric<(old_frame->'quote'->>'estimated_source_second')::numeric OR
+      (frame->'quote'->'document'->>'received_wall_us')::numeric<(old_frame->'quote'->'document'->>'received_wall_us')::numeric OR
+      (frame->'quote'->'document'->>'received_monotonic_us')::numeric<=(old_frame->'quote'->'document'->>'received_monotonic_us')::numeric) THEN
+    RAISE EXCEPTION 'provider_source_regressed' USING ERRCODE='22023'; END IF;
+   IF old_frame<>'null'::jsonb AND (frame->'quote'->>'source_age_floor_us')::numeric < greatest(0,
+      greatest(0,(frame->'quote'->'document'->>'received_wall_us')::numeric-(old_frame->'quote'->>'estimated_source_second')::numeric*1000000,
+       greatest(0,(old_frame->'quote'->'document'->>'received_wall_us')::numeric-(old_frame->'quote'->>'estimated_source_second')::numeric*1000000,
+        (old_frame->'quote'->>'source_age_floor_us')::numeric)+(frame->'quote'->'document'->>'received_monotonic_us')::numeric-
+        (old_frame->'quote'->'document'->>'received_monotonic_us')::numeric)-
+       ((frame->'quote'->>'estimated_source_second')::numeric-(old_frame->'quote'->>'estimated_source_second')::numeric)*1000000) THEN
+    RAISE EXCEPTION 'provider_age_floor_regressed' USING ERRCODE='22023'; END IF;
+   expected:=expected||jsonb_build_object('quote_sequence',frame->'sequence','last_quote',frame);
+  ELSIF kind='decision' OR recovery THEN
+   IF frame IS DISTINCT FROM old_frame OR frame='null'::jsonb THEN RAISE EXCEPTION 'provider_unprotected_quote' USING ERRCODE='22023'; END IF;
+   IF history<>'null'::jsonb THEN bars:=vn_durability.provider_history(history,bars,false,wall,mono); END IF;
+   IF (recovery OR before_state->'engine'->'lifecycle'->'risk'->'active'='false'::jsonb) AND
+      (bars->-1->>0)::numeric<>floor((wall-5000000)/900000000)*900 THEN
+    RAISE EXCEPTION 'provider_history_stale' USING ERRCODE='22023'; END IF;
+   IF NOT recovery AND before_state->'engine'->'lifecycle'->'risk'->'active'='true'::jsonb AND history<>'null'::jsonb THEN
+    RAISE EXCEPTION 'provider_halted_history' USING ERRCODE='22023'; END IF;
+   expected:=expected||jsonb_build_object('bars',bars);
+  ELSIF kind='control' THEN
+   IF frame IS DISTINCT FROM 'null'::jsonb OR history IS DISTINCT FROM 'null'::jsonb OR (wall<moment*1000000 OR wall>(moment+1)*1000000) THEN
+    RAISE EXCEPTION 'provider_control_source' USING ERRCODE='22023'; END IF;
+  ELSE RAISE EXCEPTION 'invalid_provider_phase' USING ERRCODE='22023'; END IF;
+ END IF;
+ IF expected IS DISTINCT FROM after_source THEN RAISE EXCEPTION 'provider_after_mismatch' USING ERRCODE='22023'; END IF;
+ IF frame<>'null'::jsonb THEN
+  PERFORM vn_durability.provider_fresh_frame(frame,wall,mono);
+  IF moment IS DISTINCT FROM (frame->>'decision_second')::numeric OR observation->'timestamp' IS DISTINCT FROM frame->'decision_second' OR
+     observation->'price' IS DISTINCT FROM frame->'quote'->'price' THEN
+   RAISE EXCEPTION 'provider_economic_quote_mismatch' USING ERRCODE='22023'; END IF;
+  IF kind='protective' THEN
+   IF observation->'candle_end' IS DISTINCT FROM 'null'::jsonb OR observation->'candle_close' IS DISTINCT FROM 'null'::jsonb THEN
+    RAISE EXCEPTION 'provider_protection_candle' USING ERRCODE='22023'; END IF;
+  ELSIF history<>'null'::jsonb OR recovery THEN
+   IF observation->'candle_end' IS DISTINCT FROM bars->-1->0 OR observation->'candle_close' IS DISTINCT FROM bars->-1->1 THEN
+    RAISE EXCEPTION 'provider_candle_projection' USING ERRCODE='22023'; END IF;
+  ELSIF observation->'candle_end' IS DISTINCT FROM 'null'::jsonb OR observation->'candle_close' IS DISTINCT FROM 'null'::jsonb THEN
+   RAISE EXCEPTION 'provider_unbound_candle' USING ERRCODE='22023'; END IF;
+ END IF;
+END $$;
+
+CREATE FUNCTION vn_durability.provider_server_fresh(payload jsonb) RETURNS void
+LANGUAGE plpgsql SET search_path=pg_catalog,vn_durability,pg_temp AS $$
+DECLARE source jsonb:=payload->'transition'->'evidence'->'source'; doc jsonb; wall numeric:=ceil(extract(epoch FROM clock_timestamp())*1000000);
+BEGIN
+ IF wall<(source->>'wall_us')::numeric THEN RAISE EXCEPTION 'provider_decision_future' USING ERRCODE='22023'; END IF;
+ IF source->'frame'<>'null'::jsonb THEN PERFORM vn_durability.provider_fresh_frame(source->'frame',wall,NULL,true); END IF;
+ IF source->'history'<>'null'::jsonb THEN
+  FOR doc IN SELECT v FROM jsonb_array_elements(source->'history'->'documents') q(v) LOOP
+   PERFORM vn_durability.provider_receipt(doc,wall,NULL,true);
+  END LOOP;
+ END IF;
+END $$;
+
 CREATE FUNCTION vn_durability.create_run(
   owner_id uuid, run uuid, worker uuid, command_id uuid, configuration jsonb,
   initial_cash text, lease_seconds integer DEFAULT 30
@@ -2946,7 +3316,7 @@ BEGIN
   amount := vn_durability.money(to_jsonb(initial_cash));
   IF amount <= 0 THEN RAISE EXCEPTION 'invalid_amount' USING ERRCODE = '22023'; END IF;
   IF configuration ? 'durability_contract_version' THEN
-    IF (configuration->'durability_contract_version')::text NOT IN ('1','2','3','4') THEN
+    IF (configuration->'durability_contract_version')::text NOT IN ('1','2','3','4','5') THEN
       RAISE EXCEPTION 'invalid_contract_version' USING ERRCODE='22023';
     END IF;
     contract_version:=(configuration->>'durability_contract_version')::integer;
@@ -2958,8 +3328,9 @@ BEGIN
       RAISE EXCEPTION 'rehearsal_initial_cash_mismatch' USING ERRCODE='22023';
     END IF;
   END IF;
-  IF contract_version=4 THEN
-    PERFORM vn_durability.lifecycle_config(configuration);
+  IF contract_version IN (4,5) THEN
+    IF contract_version=5 THEN PERFORM vn_durability.provider_config(configuration);
+    ELSE PERFORM vn_durability.lifecycle_config(configuration); END IF;
     IF initial_cash IS DISTINCT FROM configuration->'rehearsal'->>'initial_cash' THEN
       RAISE EXCEPTION 'rehearsal_initial_cash_mismatch' USING ERRCODE='22023';
     END IF;
@@ -3024,23 +3395,24 @@ DECLARE state vn_durability.runs%ROWTYPE; existing vn_durability.commands%ROWTYP
         notional numeric; fee numeric; close_proceeds numeric; next_status text;
         contract_version integer; execution jsonb; first_trip numeric; risk_blocked boolean:=false;
         observed_equity numeric; risk_threshold numeric; risk_price jsonb;
+        model_state vn_durability.runs; model_payload jsonb;
 BEGIN
   IF owner_id IS NULL OR run IS NULL OR worker IS NULL OR token IS NULL OR token < 1 OR
      expected_revision IS NULL OR expected_revision < 1 OR command_id IS NULL OR
      payload IS NULL OR octet_length(payload::text) > 262144 THEN
     RAISE EXCEPTION 'invalid_payload' USING ERRCODE='22023';
   END IF;
-  IF (payload->'version')::text IN ('3','4') THEN
+  IF (payload->'version')::text IN ('3','4','5') THEN
     PERFORM vn_durability.exact_keys(payload,ARRAY['version','operations','transition']);
   ELSE
     PERFORM vn_durability.exact_keys(payload,ARRAY['version','operations']);
   END IF;
-  IF (payload->'version')::text NOT IN ('1','2','3','4') OR
+  IF (payload->'version')::text NOT IN ('1','2','3','4','5') OR
      jsonb_typeof(payload->'operations') IS DISTINCT FROM 'array' THEN
     RAISE EXCEPTION 'invalid_payload' USING ERRCODE='22023';
   END IF;
   contract_version:=(payload->>'version')::integer;
-  IF jsonb_array_length(payload->'operations') NOT BETWEEN (CASE WHEN contract_version IN (3,4) THEN 0 ELSE 1 END)
+  IF jsonb_array_length(payload->'operations') NOT BETWEEN (CASE WHEN contract_version IN (3,4,5) THEN 0 ELSE 1 END)
      AND (CASE WHEN contract_version>=2 THEN 1024 ELSE 256 END) THEN
     RAISE EXCEPTION 'invalid_payload' USING ERRCODE='22023';
   END IF;
@@ -3066,8 +3438,14 @@ BEGIN
 
   IF contract_version=3 THEN
     PERFORM vn_durability.validate_transition_before(state,payload);
-  ELSIF contract_version=4 THEN
-    PERFORM vn_durability.validate_lifecycle_before(state,payload);
+  ELSIF contract_version IN (4,5) THEN
+    IF contract_version=5 THEN
+      PERFORM vn_durability.provider_before(state,payload);
+      PERFORM vn_durability.provider_server_fresh(payload);
+      model_state:=vn_durability.provider_model_run(state);
+      model_payload:=vn_durability.provider_model_payload(payload);
+      PERFORM vn_durability.validate_lifecycle_before(model_state,model_payload);
+    ELSE PERFORM vn_durability.validate_lifecycle_before(state,payload); END IF;
     risk_blocked:=coalesce(state.engine_state->'engine'->'lifecycle'->'risk'->'active'='true'::jsonb,false);
     risk_price:=payload->'transition'->'after'->'engine'->'last_quote'->'price';
     risk_threshold:=state.initial_cash*1e36*(10000-(state.config->'rehearsal'->'lifecycle_policy'->>'account_loss_bps')::numeric);
@@ -3079,7 +3457,7 @@ BEGIN
 
   FOR operation IN SELECT value FROM jsonb_array_elements(payload->'operations') WITH ORDINALITY q(value,ordinal) ORDER BY ordinal LOOP
     operation_kind := operation->>'kind';
-    IF contract_version=4 AND risk_blocked AND operation_kind IN ('open','birth','distribution') THEN
+    IF contract_version IN (4,5) AND risk_blocked AND operation_kind IN ('open','birth','distribution') THEN
       RAISE EXCEPTION 'lifecycle_risk_admission_blocked' USING ERRCODE='22023';
     END IF;
     IF state.status IN ('stopped','failed') THEN RAISE EXCEPTION 'run_terminal' USING ERRCODE='P0001'; END IF;
@@ -3100,7 +3478,7 @@ BEGIN
       END IF;
       INSERT INTO vn_durability.accounts(run_id,user_id,id,cash,initial_cash) VALUES(run,owner_id,entity,cash,cash);
       IF contract_version>=2 THEN
-        IF contract_version=4 AND operation->'lineage'->'version'='2'::jsonb THEN
+        IF contract_version IN (4,5) AND operation->'lineage'->'version'='2'::jsonb THEN
           PERFORM vn_durability.record_restart_lineage(owner_id,run,entity,operation->'lineage');
         ELSE
           PERFORM vn_durability.record_lineage(owner_id,run,entity,operation->'lineage');
@@ -3189,11 +3567,11 @@ BEGIN
       -- Version 4 admits only its separately validated synthetic control;
       -- this does not establish production source freshness or live authority.
       IF state.status='risk_halted' AND next_status NOT IN ('risk_halted','stopped','failed') AND NOT
-         (contract_version=4 AND next_status='running' AND payload->'transition'->'evidence'->>'kind'='control' AND
+         (contract_version IN (4,5) AND next_status='running' AND payload->'transition'->'evidence'->>'kind'='control' AND
           payload->'transition'->'evidence'->'control'->>'action'='recover') THEN
         RAISE EXCEPTION 'risk_recovery_unavailable' USING ERRCODE='P0001';
       END IF;
-      IF contract_version=4 THEN
+      IF contract_version IN (4,5) THEN
         IF next_status='risk_halted' AND first_trip IS NULL THEN RAISE EXCEPTION 'unjustified_risk_halt' USING ERRCODE='22023'; END IF;
         IF state.status='risk_halted' AND next_status='running' THEN risk_blocked:=false; END IF;
       END IF;
@@ -3202,7 +3580,7 @@ BEGIN
     ELSE
       RAISE EXCEPTION 'invalid_operation' USING ERRCODE='22023';
     END IF;
-    IF contract_version=4 AND operation_kind IN ('open','close') AND NOT risk_blocked THEN
+    IF contract_version IN (4,5) AND operation_kind IN ('open','close') AND NOT risk_blocked THEN
       observed_equity:=vn_durability.lifecycle_equity(run,state.reserve,risk_price);
       IF observed_equity*10000<=risk_threshold THEN first_trip:=observed_equity; risk_blocked:=true; END IF;
     END IF;
@@ -3211,8 +3589,14 @@ BEGIN
   IF contract_version=3 THEN
     PERFORM vn_durability.validate_transition_after(state,payload);
     state.engine_state:=payload->'transition'->'after';
-  ELSIF contract_version=4 THEN
-    PERFORM vn_durability.validate_lifecycle_after(state,payload,first_trip);
+  ELSIF contract_version IN (4,5) THEN
+    IF contract_version=5 THEN
+      model_state:=vn_durability.provider_model_run(state);
+      PERFORM vn_durability.validate_lifecycle_after(model_state,model_payload,first_trip);
+      -- Check current server wall time again after economic effects. This is
+      -- statement atomic; expiry rolls back every row, checkpoint and event.
+      PERFORM vn_durability.provider_server_fresh(payload);
+    ELSE PERFORM vn_durability.validate_lifecycle_after(state,payload,first_trip); END IF;
     state.engine_state:=payload->'transition'->'after';
   END IF;
 
@@ -3297,7 +3681,7 @@ BEGIN
     RAISE EXCEPTION 'invalid_outbox_request' USING ERRCODE='22023';
   END IF;
   IF NOT EXISTS(SELECT 1 FROM vn_durability.runs r WHERE r.id=run AND r.user_id=owner_id AND
-                r.command_version IN (3,4) AND through_revision<=r.revision) THEN
+                r.command_version IN (3,4,5) AND through_revision<=r.revision) THEN
     RAISE EXCEPTION 'outbox_unavailable' USING ERRCODE='P0001';
   END IF;
   SELECT * INTO progress FROM vn_durability.outbox_progress p WHERE p.run_id=run AND p.user_id=owner_id;
