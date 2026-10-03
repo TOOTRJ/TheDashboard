@@ -1413,3 +1413,82 @@ edit retains SHA-256
 `a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc` and is excluded.
 Unrelated local files and the other agent's tools, credentials and processes
 are preserved.
+
+## 39. Acknowledged installation and ordered outbox (DB-03A2C3, 2026-10-02)
+
+**Scope:** the bounded v3 rehearsal now has one coordinator that retains the
+exact candidate and prepared command before submission, validates the complete
+matching acknowledgment and exact reserve, then synchronously installs one
+state pointer. Its owned shielded task survives caller cancellation through
+late acknowledgment and installation. Original-ID readback or a matching late
+repository receipt resolves uncertainty without another command or optimizer
+tell/ask. Missing evidence and failed installation block further decisions.
+
+Drain remains permanent through submission, readback, installation and delivery.
+Heartbeat cannot renew an unresolved/uninstalled candidate; after installation
+it can renew between delivery attempts without reopening economic admission.
+Only demonstrably unsubmitted local scheduling/admission failures discard the
+attempt. That proof requires an unopened task barrier or unchanged repository
+receipt identity/revision/fence/status/version with no pending/busy request.
+Cancellation and uncertain transport results never use this cleanup.
+
+SQL materializes immutable candidate events in the same transaction as state,
+economics, command and receipt. One separate publisher checkpoint acknowledges
+only a contiguous ordered prefix. Page responses are bounded to 100 events and
+65,536 complete UTF-8 bytes; neither full state journals nor an unbounded event
+aggregate is read. The coordinator independently matches every returned event
+to its installed retained candidate before publication. Delivery reads/acks
+are lease-free and grant no economic or restart authority.
+
+**Review fixes:** a command UUID is unique only within a run, so event IDs use
+`run_id:command_id:event_index` and records carry owner/run routing. Otherwise a
+shared deduplicating relay could discard different runs' events as duplicates.
+A syntactically valid but wrong exact reserve is now rejected before repository
+adoption. Heartbeat after a failed install is explicitly blocked. A successful
+callback plus a lost database delivery ack retains an ack-only retry; ambiguous
+callback completion permits duplicate delivery of that same stable identity.
+Consumers must deduplicate. No exactly-once network or browser-wide delivery is
+claimed. Independent implementation and SQL review found no remaining blockers
+within this declared scope.
+
+**Validation:** all 1,004 ordinary worker tests pass, including 32 new independent
+coordinator cases. Discovery reports 1,010 tests in 92.133 seconds with 12 skips:
+six explicitly opt-in PostgreSQL test cases and six PostgreSQL class-level skips.
+Actual replacement candidates from all four solvers cross the coordinator while
+optimizer evolve/CMA ask/tell are patched to fail if repeated. Other cases cover
+late/canceled replies, forced outer-task cancellation, invalid/missing readback,
+install failure, typed full-state identity, partial publication and lost acks,
+run-ID collisions, eager task factories, scheduling failures, lease/drain races,
+and detached callback payloads. Nine new focused real PostgreSQL cases also
+pass, including a complete first CMA replacement whose lost reply resolves by
+the original ID after lease expiry. The final full PostgreSQL suite passes all
+77 tests in 223.945 seconds, including the 68 previous contract cases; its owned
+no-network database container was cleaned up. Frontend tests are not rerun for this disconnected Python/SQL
+slice; exact Vercel Git builds and four read-only production smokes remain gates.
+
+**Remaining work and research:** this is in-process installation/delivery for a
+fresh bounded run. No historical-state decoder, active-controller replacement,
+production relay, lifecycle/browser notification coverage or unattended worker
+is introduced. The next implementation is C2C full risk/terminal/pause/stop and
+evidence-backed recovery transitions, then remaining C2 source/provenance and
+capacity acceptance before D/A3 transport, grants, legacy compatibility and
+migration. Research relay ownership/durability, receiver deduplication retention,
+browser routing/reconnect, journal/outbox archival, body limits before decoding
+and production lease timing. The one-transition outbox gate bounds backlog but
+can delay protective decisions under a slow relay; measure that effect before
+considering bounded decoupling. [C3 contract and primary research sources](services/vonneumann/ACKNOWLEDGED-TRANSITIONS.md).
+
+**Target/release and rollback plan:** freshly verify repository
+`TOOTRJ/TheDashboard` / `1141090963`; Vercel `the-dashboard` /
+`prj_wFUe9k9USVreOQcmQKNWRAVsx5fH`, team `team_8iNNxiNjrOseD4gdSCHkQEzF` /
+`orderoftheredjester`; Supabase `The Dashboard` / `fxpxsciltakyypunglzr`,
+organization `cqfnnaunmupdyobkyqfo` / `Valentine Jester`. Canonical origin and
+local project pins must match. PR32 merge
+`3ce23678c758675a4e9c3435f6f371431541ae5e`, READY production
+`dpl_3CeuUP4MHX2F4n7ecSY257wQ7eSL`, is the rollback baseline. Verify source preview
+and author before merge, then exact production merge/alias and read-only smokes;
+record actual release evidence in the PR. A reviewed code revert is sufficient:
+the SQL remains outside the migration path, with no cloud schema/data/env change.
+The pre-existing historical migration edit remains excluded with SHA-256
+`a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc`. Other local
+files, projects, shared credentials/settings/tools and processes are preserved.

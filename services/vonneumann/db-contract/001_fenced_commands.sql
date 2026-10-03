@@ -144,8 +144,8 @@ CREATE TABLE vn_durability.positions (
   FOREIGN KEY (run_id, user_id, account_id) REFERENCES vn_durability.accounts(run_id, user_id, id)
 );
 
--- One immutable committed command is also one ordered outbox event. Delivery
--- acknowledgements are deliberately not part of this immutable journal.
+-- The command journal is immutable. Version-3 candidate events are separately
+-- materialized below; delivery progress never rewrites the request or receipt.
 CREATE TABLE vn_durability.commands (
   run_id uuid NOT NULL,
   user_id uuid NOT NULL,
@@ -158,6 +158,32 @@ CREATE TABLE vn_durability.commands (
   committed_at timestamptz NOT NULL DEFAULT clock_timestamp(),
   PRIMARY KEY (run_id, id),
   UNIQUE (run_id, revision),
+  UNIQUE (run_id, user_id, id, revision),
+  FOREIGN KEY (run_id, user_id) REFERENCES vn_durability.runs(id, user_id)
+);
+
+CREATE TABLE vn_durability.outbox_events (
+  run_id uuid NOT NULL,
+  user_id uuid NOT NULL,
+  command_id uuid NOT NULL,
+  revision bigint NOT NULL CHECK (revision > 0),
+  event_index integer NOT NULL CHECK (event_index BETWEEN 0 AND 1024),
+  event jsonb NOT NULL CHECK (jsonb_typeof(event)='object' AND octet_length(event::text)<=2048),
+  PRIMARY KEY (run_id, command_id, event_index),
+  UNIQUE (run_id, revision, event_index),
+  FOREIGN KEY (run_id, user_id, command_id, revision)
+    REFERENCES vn_durability.commands(run_id, user_id, id, revision)
+);
+
+-- One fixed application publisher per run. This is delivery metadata, not a
+-- worker lease, trading authority, browser cursor, or restoration checkpoint.
+CREATE TABLE vn_durability.outbox_progress (
+  run_id uuid PRIMARY KEY,
+  user_id uuid NOT NULL,
+  acknowledged_revision bigint NOT NULL DEFAULT 0,
+  acknowledged_index integer NOT NULL DEFAULT -1,
+  CHECK ((acknowledged_revision=0 AND acknowledged_index=-1) OR
+         (acknowledged_revision>0 AND acknowledged_index BETWEEN 0 AND 1024)),
   FOREIGN KEY (run_id, user_id) REFERENCES vn_durability.runs(id, user_id)
 );
 
@@ -174,6 +200,8 @@ ALTER TABLE vn_durability.accounts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE vn_durability.positions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE vn_durability.account_parents ENABLE ROW LEVEL SECURITY;
 ALTER TABLE vn_durability.commands ENABLE ROW LEVEL SECURITY;
+ALTER TABLE vn_durability.outbox_events ENABLE ROW LEVEL SECURITY;
+ALTER TABLE vn_durability.outbox_progress ENABLE ROW LEVEL SECURITY;
 ALTER TABLE vn_durability.distributions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE vn_durability.distribution_sources ENABLE ROW LEVEL SECURITY;
 ALTER TABLE vn_durability.account_lineage ENABLE ROW LEVEL SECURITY;
@@ -183,6 +211,8 @@ CREATE POLICY owner_read ON vn_durability.accounts FOR SELECT TO authenticated U
 CREATE POLICY owner_read ON vn_durability.positions FOR SELECT TO authenticated USING (user_id = auth.uid());
 CREATE POLICY owner_read ON vn_durability.account_parents FOR SELECT TO authenticated USING (user_id = auth.uid());
 CREATE POLICY owner_read ON vn_durability.commands FOR SELECT TO authenticated USING (user_id = auth.uid());
+CREATE POLICY owner_read ON vn_durability.outbox_events FOR SELECT TO authenticated USING (user_id = auth.uid());
+CREATE POLICY owner_read ON vn_durability.outbox_progress FOR SELECT TO authenticated USING (user_id = auth.uid());
 CREATE POLICY owner_read ON vn_durability.distributions FOR SELECT TO authenticated USING (user_id = auth.uid());
 CREATE POLICY owner_read ON vn_durability.distribution_sources FOR SELECT TO authenticated USING (user_id = auth.uid());
 CREATE POLICY owner_read ON vn_durability.account_lineage FOR SELECT TO authenticated USING (user_id = auth.uid());
@@ -221,6 +251,12 @@ CREATE FUNCTION vn_durability.record_command(
   INSERT INTO vn_durability.commands(run_id,user_id,id,revision,kind,request,request_hash,response)
   VALUES (run,owner_id,command_id,sequence,command_kind,request_body,
           sha256(convert_to(request_body::text,'UTF8')),result);
+  INSERT INTO vn_durability.outbox_progress(run_id,user_id)
+    SELECT run,owner_id WHERE command_kind='create' AND request_body#>>'{config,durability_contract_version}'='3';
+  INSERT INTO vn_durability.outbox_events(run_id,user_id,command_id,revision,event_index,event)
+    SELECT run,owner_id,command_id,sequence,(ordinal-1)::integer,value
+      FROM jsonb_array_elements(CASE WHEN command_kind='batch' AND request_body#>>'{payload,version}'='3'
+        THEN request_body#>'{payload,transition,events}' ELSE '[]'::jsonb END) WITH ORDINALITY q(value,ordinal);
 $$;
 
 -- Version-2 arithmetic uses integer-valued numeric units. div/mod avoid
@@ -1850,6 +1886,83 @@ BEGIN
   RETURN result;
 END $$;
 
+-- Reads and acknowledgements deliver already committed candidate events. They
+-- require no economic lease and never renew one or authorize a new decision.
+-- The caller must cap through_revision at its fully installed local state.
+CREATE FUNCTION vn_durability.read_outbox(owner_id uuid, run uuid, through_revision bigint,
+  max_events integer DEFAULT 50, max_bytes integer DEFAULT 65536)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER
+SET search_path=pg_catalog,vn_durability,pg_temp AS $$
+DECLARE progress vn_durability.outbox_progress%ROWTYPE; item vn_durability.outbox_events%ROWTYPE;
+        result jsonb; candidate jsonb; records jsonb:='[]'::jsonb; record jsonb; more boolean:=false;
+BEGIN
+  IF owner_id IS NULL OR run IS NULL OR through_revision IS NULL OR through_revision<1 OR
+     max_events IS NULL OR max_events NOT BETWEEN 1 AND 100 OR
+     max_bytes IS NULL OR max_bytes NOT BETWEEN 512 AND 65536 THEN
+    RAISE EXCEPTION 'invalid_outbox_request' USING ERRCODE='22023';
+  END IF;
+  IF NOT EXISTS(SELECT 1 FROM vn_durability.runs r WHERE r.id=run AND r.user_id=owner_id AND
+                r.command_version=3 AND through_revision<=r.revision) THEN
+    RAISE EXCEPTION 'outbox_unavailable' USING ERRCODE='P0001';
+  END IF;
+  SELECT * INTO progress FROM vn_durability.outbox_progress p WHERE p.run_id=run AND p.user_id=owner_id;
+  IF NOT FOUND THEN RAISE EXCEPTION 'outbox_unavailable' USING ERRCODE='P0001'; END IF;
+  result:=jsonb_build_object('version',1,'owner_id',owner_id,'run_id',run,
+    'through_revision',through_revision,'events',records,'has_more',false);
+  -- Only indexed, bounded event rows are visited. Never materialize full
+  -- command requests or an unbounded aggregate to build a delivery page.
+  FOR item IN SELECT e.* FROM vn_durability.outbox_events e WHERE e.run_id=run AND e.user_id=owner_id
+      AND (e.revision,e.event_index)>(progress.acknowledged_revision,progress.acknowledged_index)
+      AND e.revision<=through_revision ORDER BY e.revision,e.event_index LIMIT max_events+1 LOOP
+    IF jsonb_array_length(records)=max_events THEN more:=true; EXIT; END IF;
+    record:=jsonb_build_object('owner_id',owner_id,'run_id',run,
+      'event_id',run::text||':'||item.command_id::text||':'||item.event_index::text,
+      'command_id',item.command_id,'revision',item.revision,'event_index',item.event_index,'event',item.event);
+    candidate:=jsonb_set(result,'{events}',records||jsonb_build_array(record));
+    -- Measure the whole response, including UTF-8 and metadata. false is one
+    -- byte longer than true, so this remains safe when a later row sets more.
+    IF octet_length(candidate::text)>max_bytes THEN
+      IF records='[]'::jsonb THEN RAISE EXCEPTION 'outbox_event_exceeds_page' USING ERRCODE='22023'; END IF;
+      more:=true; EXIT;
+    END IF;
+    records:=records||jsonb_build_array(record); result:=candidate;
+  END LOOP;
+  RETURN jsonb_set(result,'{has_more}',to_jsonb(more));
+END $$;
+
+CREATE FUNCTION vn_durability.acknowledge_event(owner_id uuid, run uuid, command_id uuid, event_index integer)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER
+SET search_path=pg_catalog,vn_durability,pg_temp AS $$
+DECLARE progress vn_durability.outbox_progress%ROWTYPE; target vn_durability.outbox_events%ROWTYPE;
+        next_event vn_durability.outbox_events%ROWTYPE;
+BEGIN
+  IF owner_id IS NULL OR run IS NULL OR command_id IS NULL OR event_index IS NULL OR
+     event_index NOT BETWEEN 0 AND 1024 THEN
+    RAISE EXCEPTION 'invalid_outbox_acknowledgement' USING ERRCODE='22023';
+  END IF;
+  SELECT * INTO progress FROM vn_durability.outbox_progress p
+    WHERE p.run_id=run AND p.user_id=owner_id FOR UPDATE;
+  IF NOT FOUND THEN RAISE EXCEPTION 'outbox_unavailable' USING ERRCODE='P0001'; END IF;
+  SELECT * INTO target FROM vn_durability.outbox_events e WHERE e.run_id=run AND e.user_id=owner_id AND
+    e.command_id=acknowledge_event.command_id AND e.event_index=acknowledge_event.event_index;
+  IF NOT FOUND THEN RAISE EXCEPTION 'outbox_event_unavailable' USING ERRCODE='P0001'; END IF;
+  IF (target.revision,target.event_index)>(progress.acknowledged_revision,progress.acknowledged_index) THEN
+    SELECT * INTO next_event FROM vn_durability.outbox_events e WHERE e.run_id=run AND e.user_id=owner_id AND
+      (e.revision,e.event_index)>(progress.acknowledged_revision,progress.acknowledged_index)
+      ORDER BY e.revision,e.event_index LIMIT 1;
+    IF NOT FOUND OR (target.command_id,target.event_index) IS DISTINCT FROM (next_event.command_id,next_event.event_index) THEN
+      RAISE EXCEPTION 'outbox_acknowledgement_out_of_order' USING ERRCODE='P0001';
+    END IF;
+    UPDATE vn_durability.outbox_progress p SET acknowledged_revision=target.revision,acknowledged_index=target.event_index
+      WHERE p.run_id=run AND p.user_id=owner_id;
+  END IF;
+  -- Old acknowledgements remain idempotent after the contiguous prefix moves.
+  -- Return the requested identity, not the latest checkpoint or a new event.
+  RETURN jsonb_build_object('version',1,'owner_id',owner_id,'run_id',run,'command_id',target.command_id,
+    'event_id',run::text||':'||target.command_id::text||':'||target.event_index::text,'event_index',target.event_index,
+    'revision',target.revision,'acknowledged',true);
+END $$;
+
 REVOKE ALL ON SCHEMA vn_durability FROM PUBLIC, anon, authenticated, service_role;
 REVOKE ALL ON ALL TABLES IN SCHEMA vn_durability FROM PUBLIC, anon, authenticated, service_role;
 REVOKE ALL ON ALL FUNCTIONS IN SCHEMA vn_durability FROM PUBLIC, anon, authenticated, service_role;
@@ -1859,5 +1972,7 @@ GRANT EXECUTE ON FUNCTION vn_durability.create_run(uuid,uuid,uuid,uuid,jsonb,tex
   vn_durability.heartbeat(uuid,uuid,uuid,bigint,integer),
   vn_durability.commit_command(uuid,uuid,uuid,bigint,bigint,uuid,jsonb),
   vn_durability.get_command(uuid,uuid,uuid),
+  vn_durability.read_outbox(uuid,uuid,bigint,integer,integer),
+  vn_durability.acknowledge_event(uuid,uuid,uuid,integer),
   vn_durability.interrupt_expired(uuid,uuid,bigint,uuid) TO service_role;
 COMMIT;

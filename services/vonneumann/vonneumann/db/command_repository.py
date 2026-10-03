@@ -319,6 +319,10 @@ class CommandRepository:
                     expected_status = operation["status"]
             if not _balance(response["reserve"]):
                 raise ValueError("invalid balance response")
+            if command.expected_request['payload']['version'] == 3:
+                expected_reserve = command.expected_request['payload']['transition']['after']['reserve']
+                if Decimal(response['reserve']) != Decimal(expected_reserve):
+                    raise ValueError('reserve differs from the retained exact transition')
         if type(response["status"]) is not str or response["status"] != expected_status:
             raise ValueError("invalid command status")
         return CommandReceipt(command, _json_bytes(response))

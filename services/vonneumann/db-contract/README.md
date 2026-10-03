@@ -195,8 +195,9 @@ created or applied by this rehearsal.
 
 The fixture uses independent connections for `anon`, `authenticated`, and
 `service_role`. The latter really has `BYPASSRLS`, but has no direct table DML,
-TRUNCATE, or journal mutation privilege. It can execute only the five explicit
-RPCs. `authenticated` has owner-only SELECT and no RPC execution; `anon` has
+TRUNCATE, or journal mutation privilege. It can execute only seven explicit
+RPCs: the five command/lease/journal operations and two outbox read/ack operations.
+`authenticated` has owner-only SELECT and no RPC execution; `anon` has
 neither schema access nor RPC execution. Every relationship includes owner/run,
 including parent edges and positions' account references.
 
@@ -287,8 +288,9 @@ not execute the optimizer or establish semantic compatibility for restoring a
 future process.
 
 State and events reside in the same command journal transaction as the exact
-economic effects. Their replay identity is `(command_id, event_index)`; there
-is no delivery/acknowledgment outbox yet. Read-only command resolution retains
+economic effects. C3 separately materializes immutable event rows and a fixed
+publisher acknowledgment prefix. Their replay identity is
+`(run_id, command_id, event_index)`. Read-only command resolution retains
 the original complete envelope, and a changed envelope cannot reuse its ID.
 Interruption preserves the last checkpoint while advancing the run's fence,
 revision and failed status. The checkpoint's old running status never grants
@@ -299,8 +301,35 @@ update, three traded replacement windows, and the next bound cohort for GA,
 DE, PSO and CMA. Raw service-role tamper tests bypass Python validation and
 check rollback of all earlier operations, checkpoint and journal effects.
 These are isolated PostgreSQL statements; production PostgREST, legacy writer
-cutover, browser readback and C3 acknowledgment installation remain open.
+cutover and browser readback remain open; the C3 coordinator installs only a
+matching acknowledgment for this bounded path.
 See [full policy and limits](../EXACT-ENGINE-REHEARSAL.md).
+
+## Version 3 outbox and acknowledged installation
+
+`outbox_events` is populated atomically with each v3 command. Immutable event
+rows bind owner/run/command/revision, and `outbox_progress` tracks one fixed
+application publisher's contiguous acknowledged prefix. `read_outbox` returns
+at most 100 rows and 65,536 UTF-8 bytes including metadata, ordered uniquely by
+revision/index. It reads bounded event rows rather than aggregating full state
+journals. `acknowledge_event` locks publisher progress, rejects skipping an event,
+and returns the same stable identity for idempotent old acknowledgments. Events
+use `run_id:command_id:event_index` IDs and carry explicit owner/run routing.
+
+Only `service_role` can execute these two RPCs; direct client DML remains denied.
+Owner-filtered authenticated reads remain the fixture's inspection contract.
+Read/ack operations are lease-free and never change economic revision, status,
+fence or expiry. They acknowledge committed delivery, not trading permission.
+The in-process coordinator limits pages to installed state and validates every
+event against its retained candidate. Publication follows installation, and a
+successful callback followed by a lost database acknowledgment retries only the
+same acknowledgment. Ambiguous callbacks may redeliver the same event ID.
+
+This implements one ordered relay with receiver deduplication, not browser-wide
+delivery, multi-consumer subscriptions or restart restoration. Creation and
+interruption are not v3 candidate notifications. Bounded reads do not establish
+a storage retention policy or bound HTTP response allocation before decoding.
+See [acknowledged transitions and research](../ACKNOWLEDGED-TRANSITIONS.md).
 
 ## Primary references
 
