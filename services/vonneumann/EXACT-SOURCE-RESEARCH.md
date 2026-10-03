@@ -47,6 +47,13 @@ unfiltered; the parameter definition describes `true` as allowing outliers.
 The reviewed schema does not expose first-publication time or revision identity.
 [Endpoint and embedded OpenAPI](https://data.birdeye.so/docs/data-api/price-ohlcv/get-defi-v3-ohlcv).
 
+The WebSocket OHLCV documentation also describes close updates within an interval
+as qualifying transactions affect price. A candle message's arrival or interval
+label does not establish bar completion. The reviewed contract supplies no
+final-bar/publication-time guarantee; completion margins remain local policy and
+actual receipt is a separate availability boundary.
+[WebSocket OHLCV](https://data.birdeye.so/docs/websockets/subscribe-price-ohlcv).
+
 Solana recommends non-scaled values for internal calculations and provides
 separate historical multiplier guidance. Multiplier updates can refer to a past
 timestamp, so a current multiplier alone is insufficient for historical
@@ -122,6 +129,17 @@ unchanged. Shared quota/latency and source-age monitoring remain operational
 requirements; extra keys do not imply extra capacity.
 
 ## Deep research before broader or production admission
+
+The C2D2A review rechecked the three fingerprinted documents below without a
+content change. It confirmed a source-version blocker: the synthetic planner
+uses one strictly increasing timestamp for protective ordering, event inputs,
+signal expiry and cohort deadlines. Distinct slots may share estimated seconds,
+and hashes do not order updates. Do not substitute receipt time or manufacture
+`previous + 1` timestamps. The next source version needs separate source identity,
+estimated time, receipt sequence/epoch, decision time and candle availability.
+Until that contract and SQL validation exist, the new
+[operational owner](OPERATIONAL-ADMISSION.md) measures only a local processing
+budget around synthetic inputs; it does not prove provider freshness.
 
 - **Jupiter block reference semantics:** obtain an authoritative definition of
   `blockId` as a slot and the provider's fork/update policy. Until then, label the

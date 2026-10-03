@@ -1612,3 +1612,68 @@ other local files, shared credentials/tools/processes and all other projects.
 then broader capacity acceptance and D/A3 transport/legacy/grant cutover. The
 active controller still uses float compatibility views. The worker remains
 unhosted, and no signing, funding, swap or live trading action is enabled.
+
+## 42. Operational admission owner — C2D2A (2026-10-02)
+
+**Scope:** a fresh v4 `RehearsalAdmissionOwner` owns preparation, submission,
+acknowledgment installation, readback and ordered event delivery. Owner-issued
+immutable synthetic quotes preserve their original receipt clocks; ordinary
+decisions and recovery require the same accepted protective ticket. Receipt
+expiry is an explicit local processing-wait budget, independent of simulated
+event time. The source remains `synthetic-exact-fixture-v1`; there is no new
+provider/command version, SQL/schema change or active-controller cutover.
+
+**Failure and commit handling:** admission checks surround planning and run inside
+the repository-owned task just before transport dispatch, after request
+materialization. Lease and permanent closure are rechecked at that boundary.
+Only a proven pre-dispatch failure clears an unsent attempt; all post-dispatch
+uncertainty retains the original command. Guards run after awaited acknowledgment,
+readback, heartbeat and outbox boundaries. Expired committed work still installs
+and publishes while future economics remain closed. Planning/ID/body-capacity
+failures cannot reuse an old unconsumed frame. Explicit canonical command IDs are
+required; a bounded 4,096-ID set includes creation and rejects reuse without
+eviction or random fallback. Caller cancellation preserves ownership.
+
+**Review findings fixed:** async scheduling gaps could consume a quote or lease
+after an outer check; dispatch now has its own final check. Monotonic rollback
+could invalidate a repository lease without setting the owner's permanent latch;
+owner checks now run first and latch failures. A task factory raising
+`CancelledError` could bypass an `Exception` scheduling handler; the owned
+scheduling boundaries handle it explicitly. `command_id=None` could otherwise
+reach the protocol's UUID fallback; the owner rejects it before planning.
+
+**Acceptance:** all 1,183 ordinary worker tests pass, including 58 new cases
+(30 owner and 28 dispatch/coordinator). Full discovery completed 1,189 tests in
+170.555 seconds, with 15 skips: six explicit opt-in PostgreSQL cases and nine
+class-level database skips. The separate complete PostgreSQL suite passed all
+95 tests in 529.126 seconds; the harness removed all of its labeled isolated
+containers. Later scheduling/clock-exception refinements also passed focused
+regressions and the final ordinary suite; no SQL changed.
+Independent tests cover real exact lifecycle warmup/entries/risk/recovery,
+expired recovery replies, unsent scheduling failures, command identity limits,
+lost/missing/corrupt readback, installation retries, cancellation, and committed
+delivery after closure. See [the contract](services/vonneumann/OPERATIONAL-ADMISSION.md).
+
+**Target/release and rollback plan:** read-only checks matched GitHub
+`TOOTRJ/TheDashboard` / `1141090963`; Vercel `the-dashboard` /
+`prj_wFUe9k9USVreOQcmQKNWRAVsx5fH`, team `team_8iNNxiNjrOseD4gdSCHkQEzF`;
+Supabase `The Dashboard` / `fxpxsciltakyypunglzr`, organization
+`cqfnnaunmupdyobkyqfo`. Reverify before push/merge. PR35 merge
+`0595a311d14fd8c5e28d6c23d840dc4f3f1733cd`, READY production
+`dpl_FZGDLGB2xsDU9JeHrJyD9bDWk71n`, is the rollback baseline. Verify exact source
+preview/author, production merge/project/team/alias and the four read-only app
+smokes. Record actual release evidence in the PR. Rollback is a reviewed code
+revert; no production data, schema or environment change is introduced. Preserve
+the historical migration edit with SHA-256
+`a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc` and all other
+local files, projects, shared credentials, tools and processes.
+
+**Next and deeper research:** C2D2 still needs a new provider-source/command
+contract and SQL checks separating source ordering, source time, local receipt,
+decision time, availability and restart watermarks. The primary Jupiter/Birdeye/
+Solana documents were rechecked; Birdeye WebSocket closes can change within an
+interval and do not establish final publication. Research same-slot/equal-second
+updates, block/slot/fork mappings, outlier/revision semantics, USD/scaling,
+restart clocks, source/lease/relay latency and worst-case memory before adoption.
+Then prove active-controller ownership and capacity, followed by D/A3 production
+transport, legacy/grants and migration. The worker remains unhosted.

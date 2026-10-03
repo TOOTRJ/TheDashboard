@@ -88,6 +88,15 @@ within the same installation/outbox boundary. See [the lifecycle contract](EXACT
 A durable stop must be admitted before permanent `close_admission()`; drain
 cannot be undone to manufacture a stop receipt.
 
+C2D2A adds an optional synchronous admission guard at actual repository dispatch
+and after awaited coordinator boundaries. A rejected pre-dispatch check proves
+that attempt was unsent; any failure after entering the transport still retains
+its original identity as uncertain. Post-await expiry closes future admission
+without interrupting installation or committed delivery. The fresh v4
+`RehearsalAdmissionOwner` owns preparation and binds process-local receipt windows
+to exact synthetic quotes. This does not establish real provider source freshness
+or modify command versions. See [operational admission](OPERATIONAL-ADMISSION.md).
+
 ## Boundaries and further research
 
 - This publishes v3/v4 candidate events only. Creation and interruption use separate

@@ -17,6 +17,7 @@ from __future__ import annotations
 import asyncio
 from dataclasses import dataclass
 from decimal import Decimal
+import inspect
 import json
 import math
 import re
@@ -37,6 +38,17 @@ class CommandBusy(CommandAdmissionError):
 
 class UncertainCommand(RuntimeError):
     """The original command remains pending; only read-only resolution is safe."""
+
+
+def _run_admission_guard(guard: Callable[[], None]) -> None:
+    """A synchronous assertion must complete before any transport dispatch."""
+    result = guard()
+    if result is not None:
+        # Do not await a coroutine, or cancel a Future owned by somebody else.
+        # Closing an unstarted coroutine avoids leaking a never-awaited object.
+        if inspect.iscoroutine(result):
+            result.close()
+        raise CommandAdmissionError("admission guard must complete synchronously")
 
 
 class CommandTransport(Protocol):
@@ -170,11 +182,14 @@ class CommandRepository:
         return self._last_receipt
 
     def _now(self) -> float:
-        observed = self._clock()
-        if (type(observed) not in (float, int) or not math.isfinite(observed)
-                or (self._last_clock is not None and observed < self._last_clock)):
+        try:
+            observed = self._clock()
+            if (type(observed) not in (float, int) or not math.isfinite(observed)
+                    or (self._last_clock is not None and observed < self._last_clock)):
+                raise ValueError()
+        except (Exception, asyncio.CancelledError):
             self._lease_deadline = None
-            raise CommandAdmissionError("invalid monotonic clock")
+            raise CommandAdmissionError("invalid monotonic clock") from None
         self._last_clock = observed
         return observed
 
@@ -218,7 +233,7 @@ class CommandRepository:
         wrapper = run()
         try:
             task = asyncio.create_task(wrapper)
-        except Exception:
+        except (Exception, asyncio.CancelledError):
             wrapper.close()
             self._lease_deadline = None
             if self._pending is not None:
@@ -242,8 +257,11 @@ class CommandRepository:
         task.add_done_callback(completed)
         return await asyncio.shield(task)
 
-    async def submit(self, command: PreparedCommand) -> CommandReceipt:
+    async def submit(self, command: PreparedCommand, *,
+                     before_dispatch: Callable[[], None] | None = None) -> CommandReceipt:
         self._idle()
+        if before_dispatch is not None and not callable(before_dispatch):
+            raise CommandAdmissionError("a synchronous admission guard is required")
         if not self._admission_open:
             raise CommandAdmissionError("command admission is closed")
         if self._pending is not None:
@@ -269,11 +287,38 @@ class CommandRepository:
                     raise CommandAdmissionError("a current acknowledged lease is required")
         # No await occurs between admission and recording/owning the attempt.
         self._pending = command
-        return await self._owned(lambda: self._submit(command))
+        return await self._owned(lambda: self._submit(command, before_dispatch))
 
-    async def _submit(self, command: PreparedCommand) -> CommandReceipt:
+    async def _submit(self, command: PreparedCommand,
+                      before_dispatch: Callable[[], None] | None = None) -> CommandReceipt:
+        # Task scheduling can separate initial admission from actual dispatch.
+        # This block runs before the transport coroutine is even called, so a
+        # rejection here proves the retained command was never submitted.
         try:
-            response = await self._transport.rpc(command.rpc_name, command.rpc_args)
+            # Materialize immutable request views before the final clock sample.
+            # Decode/shape failures here also cannot have reached the transport.
+            rpc_name, rpc_args = command.rpc_name, command.rpc_args
+            if not self._admission_open:
+                raise CommandAdmissionError("command admission is closed")
+            if command.kind == "batch" and not self.lease_valid:
+                raise CommandAdmissionError("a current acknowledged lease is required")
+        except (Exception, asyncio.CancelledError):
+            self._pending = None
+            self._lease_deadline = None
+            raise CommandAdmissionError("command rejected before transport dispatch") from None
+        if before_dispatch is not None:
+            try:
+                _run_admission_guard(before_dispatch)
+                # A synchronous guard may close admission itself without raising.
+                if (not self._admission_open
+                        or command.kind == "batch" and not self.lease_valid):
+                    raise CommandAdmissionError("command admission is closed")
+            except (Exception, asyncio.CancelledError):
+                self._pending = None
+                self.close_admission()
+                raise CommandAdmissionError("command rejected before transport dispatch") from None
+        try:
+            response = await self._transport.rpc(rpc_name, rpc_args)
             receipt = self._validate(command, response)
             self._adopt(receipt)
             return receipt

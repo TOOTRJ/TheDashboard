@@ -16,7 +16,8 @@ from typing import Awaitable, Callable
 from ..core.exact_rehearsal import ExactCandidate, ExactState
 from .command_protocol import PreparedCommand, canonical_json, bounded_integer
 from .command_repository import (CommandRepository, CommandReceipt, CommandTransport,
-                                 CommandAdmissionError, CommandBusy, UncertainCommand)
+                                 CommandAdmissionError, CommandBusy, UncertainCommand,
+                                 _run_admission_guard)
 
 
 class PublicationError(RuntimeError):
@@ -24,7 +25,10 @@ class PublicationError(RuntimeError):
 
 
 class TransitionCoordinator:
-    def __init__(self, repository: CommandRepository, outbox_transport: CommandTransport):
+    def __init__(self, repository: CommandRepository, outbox_transport: CommandTransport, *,
+                 admission_guard: Callable[[], None] | None = None):
+        if admission_guard is not None and not callable(admission_guard):
+            raise CommandAdmissionError('a synchronous admission guard is required')
         receipt = repository.last_receipt
         if (repository.busy or repository.pending is not None or receipt is None
                 or receipt.command.kind != 'create' or repository.revision != 1
@@ -47,6 +51,7 @@ class TransitionCoordinator:
         self._open = True
         self._task: asyncio.Task | None = None
         self._loop: asyncio.AbstractEventLoop | None = None
+        self._admission_guard = admission_guard
 
     @property
     def installed_state(self):
@@ -89,6 +94,14 @@ class TransitionCoordinator:
         self._open = False
         self._repository.close_admission()
 
+    def _after_await(self):
+        """Expiry drains future work; it cannot erase or interrupt committed work."""
+        if self._admission_guard is not None:
+            try:
+                _run_admission_guard(self._admission_guard)
+            except (Exception, asyncio.CancelledError):
+                self.close_admission()
+
     def _idle(self):
         loop = asyncio.get_running_loop()
         if self._loop is None:
@@ -112,8 +125,10 @@ class TransitionCoordinator:
         coroutine = run()
         try:
             task = asyncio.create_task(coroutine)
-        except Exception:
+        except (Exception, asyncio.CancelledError) as error:
             coroutine.close()
+            if isinstance(error, asyncio.CancelledError):
+                self.close_admission()
             if unsubmitted:
                 # The readiness barrier never opened, so no repository call
                 # could start. This proves local rejection, not DB rollback.
@@ -166,7 +181,11 @@ class TransitionCoordinator:
 
     async def _submit(self):
         try:
-            receipt = await self._repository.submit(self._command)
+            try:
+                receipt = await self._repository.submit(
+                    self._command, before_dispatch=self._admission_guard)
+            finally:
+                self._after_await()
         except CommandAdmissionError:
             baseline, current = self._admission_baseline, self._repository_snapshot()
             if (baseline is not None and baseline[0] is current[0] and baseline[1:] == current[1:]
@@ -233,6 +252,14 @@ class TransitionCoordinator:
         return await self._owned(self._reconcile)
 
     async def _reconcile(self):
+        try:
+            return await self._reconcile_retained()
+        finally:
+            # Also cover an already-retained receipt: that fast path can have
+            # waited in the coordinator's owned-task scheduling barrier.
+            self._after_await()
+
+    async def _reconcile_retained(self):
         if self._receipt is None:
             if self._repository.pending is not None:
                 if self._repository.pending != self._command:
@@ -257,7 +284,13 @@ class TransitionCoordinator:
             raise CommandAdmissionError('transition admission is permanently closed')
         if (self._candidate is not None and not self._installed) or not self._current():
             raise CommandAdmissionError('install the retained transition before lease renewal')
-        return await self._owned(lambda: self._repository.heartbeat(lease_seconds))
+        return await self._owned(lambda: self._heartbeat(lease_seconds))
+
+    async def _heartbeat(self, lease_seconds):
+        try:
+            return await self._repository.heartbeat(lease_seconds)
+        finally:
+            self._after_await()
 
     def _event(self, index):
         command = self._command
@@ -291,9 +324,12 @@ class TransitionCoordinator:
 
     async def _acknowledge(self):
         event = self._event(self._next)
-        result = await self._transport.rpc('acknowledge_event', {
-            'owner_id': self._command.owner_id, 'run': self._command.run_id,
-            'command_id': self._command.command_id, 'event_index': self._next})
+        try:
+            result = await self._transport.rpc('acknowledge_event', {
+                'owner_id': self._command.owner_id, 'run': self._command.run_id,
+                'command_id': self._command.command_id, 'event_index': self._next})
+        finally:
+            self._after_await()
         expected = {key: value for key, value in event.items() if key != 'event'}
         expected.update(version=1, owner_id=self._command.owner_id,
                         run_id=self._command.run_id, acknowledged=True)
@@ -324,15 +360,21 @@ class TransitionCoordinator:
                     await self._acknowledge()
                     delivered += 1
                     continue
-                response = await self._transport.rpc('read_outbox', {
-                    'owner_id': self._command.owner_id, 'run': self._command.run_id,
-                    'through_revision': self._state.revision,
-                    'max_events': max_events - delivered, 'max_bytes': max_bytes})
+                try:
+                    response = await self._transport.rpc('read_outbox', {
+                        'owner_id': self._command.owner_id, 'run': self._command.run_id,
+                        'through_revision': self._state.revision,
+                        'max_events': max_events - delivered, 'max_bytes': max_bytes})
+                finally:
+                    self._after_await()
                 rows = self._page(response, max_events - delivered, max_bytes)
                 for row in rows:
                     # Detach from validation and retained evidence before entering
                     # caller code. Success and pending-ack ownership are atomic.
-                    result = await publisher(json.loads(canonical_json(row)))
+                    try:
+                        result = await publisher(json.loads(canonical_json(row)))
+                    finally:
+                        self._after_await()
                     if result is not None:
                         raise PublicationError('publisher must confirm relay acceptance with None')
                     self._awaiting_ack = True
