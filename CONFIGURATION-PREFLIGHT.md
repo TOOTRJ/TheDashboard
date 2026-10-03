@@ -1492,3 +1492,64 @@ the SQL remains outside the migration path, with no cloud schema/data/env change
 The pre-existing historical migration edit remains excluded with SHA-256
 `a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc`. Other local
 files, projects, shared credentials/settings/tools and processes are preserved.
+
+
+## 40. Exact lifecycle extension — implementation and acceptance (2026-10-02)
+
+**Scope:** DB-03A2C2C is a fresh-run v4 extension to the bounded EMA rehearsal.
+Version 3 remains unchanged. The pure planner now stages original-capital loss
+latches, drawdown terminal cash/results, pause/stop, and explicit trip-bound
+recovery followed by a complete unscored fresh-funded restart. Current history
+is required for new evaluation windows. The coordinator carries v4 through its
+existing original-command acknowledgment, installation and ordered outbox gates.
+The active application controller and cloud database are not switched over.
+
+**Findings fixed during independent review:** pause during warmup previously
+rejected each not-yet-ready candidate and could never accumulate enough resumed
+history; the new path admits history-only candidates. A long pause could also
+reuse 61 old candles as readiness; restart and new-window activation now require
+current completed history. Risk evidence preserves the first exact crossing,
+including before protective closes and after each cost, so later operations
+cannot hide it. A simultaneous colony trip and member death is deliberately
+unscored under this conservative v4 ordering. Early-dead candidates remain in
+the original full evaluation, and already reclaimed cash cannot be retired twice.
+
+**Ordinary acceptance:** all 1,052 ordinary worker tests pass, including 48 new
+cases (19 lifecycle, five history/profile-containment, 20 protocol and four
+coordinator cases). Final discovery reports 1,058 tests in 123.722 seconds with
+15 skips: six explicitly opt-in PostgreSQL cases and nine class-level skips.
+The unchanged-version protocol/repository/lineage/coordinator subset also passed
+all 110 cases. Independent review verified that non-aborted unchanged strategy
+state preserves its exact encoded map order/aliases; primitive mirror expansion
+has separate depth/visit/byte limits. The focused PostgreSQL run passed all 17
+loaded cases in 204.355 seconds. The final complete PostgreSQL run passed all
+95 cases in 413.948 seconds, including 18 new positive, adversarial and delivery
+cases. Raw monetary JSON numbers, omitted required deaths, changed frozen scores,
+incorrect trip identity, incomplete lineage and expired-window no-ops are rejected.
+SQL binds lifecycle economics and cohort mirrors while keeping existing versions
+available under their original rules. The fixture remains outside the Supabase
+migration path; test containers are isolated from the production database.
+
+**Target/release and rollback plan:** fresh checks passed for
+`TOOTRJ/TheDashboard` / `1141090963`; Vercel `the-dashboard` /
+`prj_wFUe9k9USVreOQcmQKNWRAVsx5fH`, team `team_8iNNxiNjrOseD4gdSCHkQEzF`;
+Supabase `The Dashboard` / `fxpxsciltakyypunglzr`, organization
+`cqfnnaunmupdyobkyqfo`. Reverify before push/merge. PR33 merge
+`a922dda0649947e6487be0e185b1cc88f6260871`, READY production
+`dpl_7hGboRLTiP2DmgLDuWZ17HzJ3TEn`, is the rollback baseline. Verify the exact
+source preview and merge production/alias, then the four read-only application
+smokes. Record immutable release evidence in the PR. Rollback is a reviewed code
+revert; no production data/schema/env change is introduced. Preserve the existing
+historical migration edit (SHA-256
+`a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc`) and other
+local files, projects, credentials, tools and processes.
+
+**Remaining gates and research:** next is C2D exact source/provenance and
+operational failure admission, then supported capacity/broader-profile acceptance
+and D/A3 transport/grants/legacy cutover. Fixed zero lifespan is not age-based
+termination coverage. Research post-acknowledgment freshness, source/currency
+semantics, repeated-interruption capacity, relay latency/deduplication, and
+journal/outbox retention before expansion. A failed pure protective candidate
+leaves its source unchanged; the future runtime must independently halt decision
+admission and never reuse an older frame. A delayed recovery receipt establishes
+a commit, not current market freshness. See [the lifecycle contract](services/vonneumann/EXACT-LIFECYCLE.md).

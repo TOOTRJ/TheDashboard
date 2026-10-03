@@ -1,11 +1,12 @@
-"""Immutable ancestry plans for the offline, exact DB-03A v2 boundary.
+"""Immutable ancestry plans for the offline exact DB-03A command boundary.
 
 Sources describe algorithm inputs, not equal genetic contribution or CMA
 weights. A normalized CMA distribution records its complete ordered evaluation
 membership once; children separately identify their asset template. Iteration
 IDs are bounded engine text, not UUIDs or database proof of cohort membership.
 The current engine, Genome JSON and dashboard remain on their existing lineage
-path until the complete persistence cutover.
+path until the complete persistence cutover. Lineage version 2 adds only an
+explicit unscored restart clone; command versions before v4 must reject it.
 """
 
 from __future__ import annotations
@@ -100,9 +101,12 @@ class BirthLineage:
     offspring_index: int | None
     sources: tuple[SourceBinding, ...]
     distribution_id: str | None = None
+    version: int = 1
 
     def __post_init__(self) -> None:
         _uuid(self.child_id)
+        if type(self.version) is not int or self.version not in (1, 2):
+            raise LineageValidationError("Unsupported lineage version")
         if type(self.strategy) is not str or self.strategy not in STRATEGIES:
             raise LineageValidationError("Unknown lineage strategy")
         if type(self.operation) is not str or type(self.sources) is not tuple:
@@ -111,6 +115,14 @@ class BirthLineage:
             raise LineageValidationError("Lineage sources must be typed immutable bindings")
         if any(source.source_id == self.child_id for source in self.sources):
             raise LineageValidationError("A child cannot name itself as an ancestry source")
+        if self.version == 2:
+            _text(self.source_iteration_id)
+            _integer(self.offspring_index)
+            if (self.operation != "restart_clone" or self.distribution_id is not None
+                    or [(s.role, s.ordinal) for s in self.sources] != [("clone_source", 0), ("asset_template", 0)]
+                    or self.sources[0].source_id != self.sources[1].source_id):
+                raise LineageValidationError("Restart lineage requires one ordered interrupted phenotype source")
+            return
         if self.operation == "founder":
             if self.source_iteration_id is not None or self.offspring_index is not None or self.sources or self.distribution_id is not None:
                 raise LineageValidationError("A founder cannot claim evaluated ancestry")
@@ -167,7 +179,7 @@ class BirthLineage:
         return cls(child_id, strategy, "founder", None, None, ())
 
     def to_dict(self) -> dict:
-        return {"version": 1, "child_id": self.child_id, "strategy": self.strategy,
+        return {"version": self.version, "child_id": self.child_id, "strategy": self.strategy,
                 "operation": self.operation, "source_iteration_id": self.source_iteration_id,
                 "offspring_index": self.offspring_index, "sources": [source.to_dict() for source in self.sources],
                 "distribution_id": self.distribution_id}
@@ -176,11 +188,11 @@ class BirthLineage:
     def from_dict(cls, value: object) -> "BirthLineage":
         _keys(value, {"version", "child_id", "strategy", "operation", "source_iteration_id",
                       "offspring_index", "sources", "distribution_id"})
-        if type(value["version"]) is not int or value["version"] != 1 or type(value["sources"]) is not list or len(value["sources"]) > 5:
+        if type(value["version"]) is not int or value["version"] not in (1, 2) or type(value["sources"]) is not list or len(value["sources"]) > 5:
             raise LineageValidationError("Unsupported or oversized lineage record")
         return cls(value["child_id"], value["strategy"], value["operation"], value["source_iteration_id"],
                    value["offspring_index"], tuple(SourceBinding.from_dict(source) for source in value["sources"]),
-                   value["distribution_id"])
+                   value["distribution_id"], value["version"])
 
 
 @dataclass(frozen=True, slots=True)
