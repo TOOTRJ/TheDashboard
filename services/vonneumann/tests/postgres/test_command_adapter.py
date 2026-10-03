@@ -61,6 +61,13 @@ _RPC_PARAMETERS = {
         ("owner_id", "uuid"), ("run", "uuid"),
         ("expected_revision", "bigint"), ("command_id", "uuid"),
     ),
+    "read_outbox": (
+        ("owner_id", "uuid"), ("run", "uuid"), ("through_revision", "bigint"),
+        ("max_events", "integer"), ("max_bytes", "integer"),
+    ),
+    "acknowledge_event": (
+        ("owner_id", "uuid"), ("run", "uuid"), ("command_id", "uuid"), ("event_index", "integer"),
+    ),
 }
 
 

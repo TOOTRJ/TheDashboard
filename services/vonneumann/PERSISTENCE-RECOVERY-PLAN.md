@@ -381,10 +381,10 @@ are synthetic fixture inputs, not an authenticated vendor dataset. Typed
 optimizer/RNG evidence preserves actual local continuation, including masking
 unwritten CMA history, but restoration compatibility needs separate acceptance.
 
-**Immediate continuation:** C3 must retain the complete candidate and its
+**C3 continuation (now implemented for this bounded path):** retain the complete candidate and its
 prepared command before submission, handle cancellation/late acknowledgment and
 original-ID uncertainty resolution, install only the matching full state, and
-deliver stable command/index event identities without another solver tell/ask.
+deliver stable run/command/index event identities without another solver tell/ask.
 Missing evidence or failed installation must block further decisions. Exercise
 these boundaries through this small complete SQL path before widening it.
 
@@ -398,6 +398,30 @@ that aggregated hundreds of full journal rows exhausted the isolated server's
 byte-bounded paginated journal/outbox reads and storage retention, peak memory,
 transaction/lease latency and crash-safe replay before expanding or deploying.
 Never split a replacement, drop evidence or increase limits without measurement.
+
+## DB-03A2C3 acknowledged installation and bounded outbox
+
+The [acknowledged-transition contract](ACKNOWLEDGED-TRANSITIONS.md) now owns the
+candidate before submission, validates the complete matching receipt, installs
+one state pointer without awaits, and retains failure/uncertainty through caller
+cancellation and late replies. A permanent drain latch never reopens. The v3
+repository validates exact reserve before adopting an acknowledgment; the
+coordinator independently binds it to the retained full state and configuration.
+
+SQL writes normalized immutable event rows in the same transaction, with a
+separate single-publisher checkpoint. Ordered count/byte-bounded pages avoid
+full-journal aggregation. A callback success followed by a lost database ack
+retries that ack only; ambiguous callback completion can redeliver the same
+run-qualified identity. Consumers must deduplicate and retain identity/content
+agreement. Delivery metadata grants no economic lease or restart authority.
+
+This completes the bounded installation/delivery component, not full production
+adoption. Immediate priorities remain full-controller risk/terminal/recovery C2
+acceptance, provider lexeme/provenance and capacity research, followed by D/A3
+transport/grant/legacy cutover. Deepen research on relay durability and ownership,
+receiver deduplication/retention, browser reconnect and authorized routing,
+decompressed response limits, production lease latency, and bounded decoupling
+if slow publication delays protective decisions. Keep unattended hosting gated.
 
 ## Related dashboard gaps
 

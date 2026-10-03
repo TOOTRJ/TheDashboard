@@ -4,7 +4,8 @@ DB-03A2C2B starts a **new, flat, synthetic research run**. It integrates the
 existing four optimizers and EMA crossover predicates with the exact execution
 policy and the isolated PostgreSQL command contract. It is not connected to the
 application controller, production database, a hosted worker, or a wallet.
-The parent C2 and the C3/D/A3 production gates remain open.
+The parent C2 and D/A3 production gates remain open. C3's bounded coordinator
+and delivery contract are described in [acknowledged transitions](ACKNOWLEDGED-TRANSITIONS.md).
 
 ## Admitted experiment
 
@@ -60,7 +61,8 @@ Preparation failures, exhausted identity/name allocations and capacity errors
 leave source state unchanged. Repeating a preparation from the same state and
 inputs produces identical operations and evidence. Preparing or inspecting a
 candidate does **not** establish that it committed or authorize another decision.
-The acknowledgment coordinator that enforces that rule is C3 work.
+The C3 acknowledgment coordinator enforces that rule for this bounded path;
+the application controller has not adopted it.
 
 ## Version 3 command envelope
 
@@ -76,7 +78,9 @@ cursors. The complete candidate contains reserve/accounts, retained closed and
 open positions, genomes, active membership, pending intents, shared EMA history,
 exact peak-equity/drawdown inputs, completed evaluation/selection results and
 optimizer/cohort continuation evidence. Event identity is the immutable command
-ID plus its ordered event index. This is not yet an application delivery outbox.
+ID plus its ordered event index, scoped to its run. C3 materializes these events
+in an atomic outbox with `run_id:command_id:event_index` identities and ordered
+delivery acknowledgments; it is not yet connected to an application relay.
 
 PostgreSQL locks the run and requires `before` to equal its stored state. It
 independently recomputes exact entry/exit arithmetic and checks economic
@@ -144,8 +148,8 @@ Deeper research remains necessary before enlarging or deploying this path:
   decimal grid boundaries, float indicator/fitness views and trigger equality.
   This USD reference model is not token-atomic Solana settlement or a calibrated
   market-impact/fee/latency model.
-- **Recovery:** implement retained acknowledgment installation and stable event
-  delivery (C3), then explicit schema compatibility/restoration, stale-process
+- **Recovery:** the bounded C3 coordinator now retains acknowledgment installation
+  and stable event delivery. Still required are schema compatibility/restoration, stale-process
   fencing, real transport behavior and the full legacy cutover (D/A3). An
   interrupted run retains its last engine checkpoint for reconciliation; it
   cannot use that checkpoint's old running status as permission to resume.
