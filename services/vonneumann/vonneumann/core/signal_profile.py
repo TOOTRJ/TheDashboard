@@ -8,6 +8,17 @@ EMA_GENES = frozenset({"ema_fast", "ema_slow"})
 EMA_WARMUP_BARS = 61
 
 
+def ema_crossing(previous_fast: float, previous_slow: float,
+                 fast: float, slow: float) -> tuple[bool, bool]:
+    """Entry/exit predicates after the caller validates adjacent warmed bars.
+
+    Indicator inputs are derived binary64 views; these comparisons never
+    produce a price, quantity, budget or protective threshold.
+    """
+    return (previous_fast <= previous_slow and fast > slow,
+            previous_fast >= previous_slow and fast < slow)
+
+
 def signal_policy(profile: str) -> dict:
     if profile == EMA_BASELINE_PROFILE:
         return {

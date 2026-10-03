@@ -363,6 +363,42 @@ production host acceptance.
 
 Hosting then needs a reviewed Linux image, capacity/drain measurements, shared-provider quota budgeting, isolated secrets and exact origins/TLS endpoints, readiness/alerts, and demonstrated SIGTERM/SIGKILL/release-overlap/rollback behavior. A local disk, successful history read or idle health response is insufficient.
 
+## DB-03A2C2B bounded exact rehearsal
+
+The [bounded exact engine/database rehearsal](EXACT-ENGINE-REHEARSAL.md) now
+connects fresh exact funds, complete staged decision state, real four-solver
+progression and version 3 atomic SQL checkpoint/events. The first admitted
+profile is eight members, one asset, two EMA genes and three replacement
+windows. Protection is a separate candidate before fallible candle/selection
+work; a whole replacement includes liquidation costs, evaluation, selection,
+retirements, reserve transfers, births and actual next-cohort binding.
+
+This advances beyond the earlier DB-03A1/v2 economic fixtures described above,
+while leaving their production limitations intact. It does not convert or
+replace the float controller, decode arbitrary checkpoints, start a service,
+or install a candidate on acknowledgment. Source quote/candle decimal strings
+are synthetic fixture inputs, not an authenticated vendor dataset. Typed
+optimizer/RNG evidence preserves actual local continuation, including masking
+unwritten CMA history, but restoration compatibility needs separate acceptance.
+
+**Immediate continuation:** C3 must retain the complete candidate and its
+prepared command before submission, handle cancellation/late acknowledgment and
+original-ID uncertainty resolution, install only the matching full state, and
+deliver stable command/index event identities without another solver tell/ask.
+Missing evidence or failed installation must block further decisions. Exercise
+these boundaries through this small complete SQL path before widening it.
+
+**Keep C2/D/A3 open:** broader profiles, production source lexemes and immutable
+dataset manifests, capacity admission, risk/lifecycle recovery, real pinned
+transport/grants, legacy migration and browser readback are still required.
+The measured CMA trace fits at 228,799 bytes with 24 retained positions; a
+denser trace breaches the unchanged 262,144-byte envelope cap. A diagnostic
+that aggregated hundreds of full journal rows exhausted the isolated server's
+512 MiB memory allowance. Deepen research on a compact compatible checkpoint,
+byte-bounded paginated journal/outbox reads and storage retention, peak memory,
+transaction/lease latency and crash-safe replay before expanding or deploying.
+Never split a replacement, drop evidence or increase limits without measurement.
+
 ## Related dashboard gaps
 
 Keep `/USDC` asset IDs stable but label the versioned model as USD reference accounting. Report cash separately from marked equity and net return; legacy cost/unit metadata remains unknown. Add append-only versioned evaluation/member/result/selection records for historical evolution analysis. Birth-generation summaries and common-window optimizer results are distinct. Preserve dataset/config/code/cost-policy identities, pagination and nullable diagnostics; do not compare heterogeneous or aborted windows as equivalent performance evidence.

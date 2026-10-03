@@ -25,7 +25,7 @@ from .evolution import FITNESS_POLICY, compute_fitness
 from .equity_metrics import EquityHistory, MAX_OBSERVATION_CARRY_SECONDS
 from .genome import Genome
 from .execution import ExecutionConfig, buy_fill, sell_fill, writeoff_fill, execution_record
-from .signal_profile import LEGACY_PROFILE, EMA_BASELINE_PROFILE, EMA_WARMUP_BARS, signal_policy
+from .signal_profile import LEGACY_PROFILE, EMA_BASELINE_PROFILE, EMA_WARMUP_BARS, signal_policy, ema_crossing
 from .market_validation import (
     MarketValueError,
     ProbeStepError,
@@ -423,7 +423,7 @@ class Probe:
                 return False, {}
             previous_fast, previous_slow, fast, slow = values
             # Preserve full precision; tiny token prices must not round to zero.
-            return previous_fast <= previous_slow and fast > slow, {
+            return ema_crossing(previous_fast, previous_slow, fast, slow)[0], {
                 "ema_fast": fast, "ema_slow": slow,
             }
         g, ints = self.genome, self.genome.int_genes()
@@ -459,7 +459,7 @@ class Probe:
             if values is None:
                 return False
             previous_fast, previous_slow, fast, slow = values
-            return previous_fast >= previous_slow and fast < slow
+            return ema_crossing(previous_fast, previous_slow, fast, slow)[1]
         g, ints = self.genome, self.genome.int_genes()
         rsi = self._compute_rsi(snapshot.closes)
         ema_fast = snapshot.emas.get(ints["ema_fast"])
