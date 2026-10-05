@@ -230,6 +230,15 @@ use this ownership path. Production transport, bounded checkpoint reconstruction
 legacy row/grant compatibility, reviewed migrations, preview database isolation,
 capacity/latency measurements and hosting remain separate prerequisites.
 
+The subsequent [bounded pilot](PROVIDER-PILOT-CONTRACT.md) adds a separate opt-in
+one-window v5 owner. It suppresses empty decisions and reserves a distinct stop
+ID/slot plus complete terminal bytes from every admitted prospective state.
+Capacity refusal retains a terminal path; hard failures keep their stricter
+latch. It leaves this wire/SQL contract and all existing caps unchanged. It is
+not selected by the service. The dense later-generation failures above remain
+relevant to longer runs; a versioned compact checkpoint design remains research
+and acceptance work.
+
 Deeper research is required on Jupiter block/slot/fork and same-block update
 semantics; Birdeye publication/revision/outlier behavior and acquisition rights;
 USD/USDC/scaled-token expansion; process-restart clock rebinding and missed-history
