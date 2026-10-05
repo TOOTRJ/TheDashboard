@@ -1813,9 +1813,10 @@ Vercel `the-dashboard` / `prj_wFUe9k9USVreOQcmQKNWRAVsx5fH`, team
 `team_8iNNxiNjrOseD4gdSCHkQEzF`, Git repository ID `1141090963`;
 Supabase `The Dashboard` / `fxpxsciltakyypunglzr`, organization
 `cqfnnaunmupdyobkyqfo`. Local pins matched. Later release verification found
-missing authentication in the exact dedicated Vercel profile; a login to
-`/Users/redjester/.config/vercel-dashboard-codex` is required before exact
-preview/production release verification. Never fall back to Claude/shared
+missing authentication in the exact dedicated Vercel profile. Its isolated
+login to `/Users/redjester/.config/vercel-dashboard-codex` was renewed before
+release, and all three exact target identities were freshly reverified.
+Preview/production release verification remains required. Never fall back to Claude/shared
 credentials. Fresh Dashboard GitHub verification and remote main readback passed.
 PR37 merge `0983468d09ee7a295d7601c2872240ad0204775e`, READY production
 `dpl_GPuBG8AKAg8zaPqqRgwwoLKmFsYm`, is the rollback baseline. Reverify targets,
