@@ -86,12 +86,13 @@ PR_OPTIONS = {
     "merge": ({"--match-head-commit", "--subject", "--body", "--body-file"},
               {"--merge", "--squash", "--rebase", "--auto", "--disable-auto"}),
     "edit": ({"--title", "--body", "--body-file", "--base"}, set()),
+    "ready": (set(), set()),
 }
 
 
 def validate_pr_args(args: list[str]) -> list[str]:
     if not args or args[0] not in PR_OPTIONS:
-        raise DashboardError("Supported PR commands: create, view, list, checks, merge, edit.")
+        raise DashboardError("Supported PR commands: create, view, list, checks, merge, edit, ready.")
     values, switches = PR_OPTIONS[args[0]]
     selectors: list[str] = []
     index = 1

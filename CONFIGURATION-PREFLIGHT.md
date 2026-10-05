@@ -1954,8 +1954,11 @@ remains explicit follow-up research. Pause/stop preserve holdings/cash/reserve.
 
 **Offline acceptance:** all 58 new focused cases pass (35 controller and 23
 runner; 17.526 seconds). Complete worker discovery ran **1,404 tests in 232.926
-seconds**, passing with 17 expected opt-in/database skips. All 16 dedicated
-Dashboard GitHub helper tests and `git diff --check` pass. Literal fixtures
+seconds**, passing with 17 expected opt-in/database skips. All 18 dedicated
+Dashboard GitHub helper tests and `git diff --check` pass. The helper now admits
+repository-pinned `pr ready` with no extra flags; new boundary tests reject
+foreign selectors, account/repository mismatches and unsupported options.
+Literal fixtures
 exercise actual provider parsers, strict owner/solver/command validation, open
 positions, deadline/clock failures, cancellation and uncertainty. The full suite
 ran with dotenv disabled and bytecode writes disabled in the isolated worker

@@ -167,6 +167,30 @@ class DashboardGitHubTests(unittest.TestCase):
         self.assertEqual(self.calls[-1][0], [self.client.gh, "pr", "view", "--repo", dashboard.REPO,
                                            "12", "--json", "url,headRefOid"])
 
+    def test_ready_is_pinned_and_requires_verified_account_and_repository(self):
+        result = self.client.execute(["pr", "ready", "40"])
+        self.assertEqual(result, "completed\n")
+        self.assertEqual(self.calls[-1][0], [self.client.gh, "pr", "ready", "--repo", dashboard.REPO, "40"])
+        self.assertEqual(self.calls[-1][1]["GH_TOKEN"], TOKEN)
+        for identity, invalid in (("user", {"login": "other", "id": 1}),
+                                  ("repo", {"id": 1, "permissions": {"push": True}})):
+            with self.subTest(identity=identity):
+                self.calls.clear()
+                with patch.object(self, identity, invalid), self.assertRaises(dashboard.DashboardError):
+                    self.client.execute(["pr", "ready", "40"])
+                self.assertFalse(any(command[1] == "pr" for command, _ in self.calls))
+
+    def test_ready_rejects_foreign_selectors_and_unsupported_flags_before_credentials(self):
+        for args in (["ready", "https://github.com/other/repo/pull/40"],
+                     ["ready", "40", "--repo", "other/repo"],
+                     ["ready", "40", "--undo"], ["ready", "40", "--web"],
+                     ["ready", "40", "41"]):
+            with self.subTest(args=args):
+                self.calls.clear()
+                with self.assertRaises(dashboard.DashboardError):
+                    self.client.execute(["pr", *args])
+                self.assertEqual(self.calls, [])
+
     def test_pr_overrides_and_foreign_selectors_are_rejected(self):
         cases = (["view", "--repo", "other/repo"], ["view", "-Rother/repo"],
                  ["view", "--hostname=evil.invalid"],
