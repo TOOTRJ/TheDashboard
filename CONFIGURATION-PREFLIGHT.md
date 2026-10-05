@@ -2,7 +2,7 @@
 
 Date: 2026-09-29. Scope: the local Dashboard checkout, Vercel **`the-dashboard`**, and Supabase **`The Dashboard`**. This report accompanies [TODO.md](TODO.md).
 
-**Last verified production release (2026-10-05): [PR #40](https://github.com/TOOTRJ/TheDashboard/pull/40) is merged; the production alias serves READY deployment `dpl_6rxutLU4iyGA3328ZhP7NkePYU4y`, built automatically from merge `22af3190c0171671747d69e971807144a2fa3322`, with four read-only application smokes passed.** It completes bounded local executable controller/runner acceptance in section 46. Section 47 records the verified read-only legacy/catalog inventory and complete forward-plan scope. Next.js remains 16.3.8. The Python worker is not hosted or running; production transport/selection, durable recovery, browser-to-worker/RLS acceptance, preview isolation, full migration/projections, broader capacity and hosting remain open. Only the projects pinned in [AGENTS.md](AGENTS.md) are authorized. Historical sections retain dated findings; later verified sections supersede earlier deployment state. Immutable release results are recorded in each PR.
+**Last verified production release (2026-10-05): [PR #41](https://github.com/TOOTRJ/TheDashboard/pull/41) is merged; the production alias serves READY deployment `dpl_DSMuwyjY6UzhnyvbT4N2H6JkBoAT`, built automatically from merge `299998ccb9727a23896029a6138b1b526617e142`, with four read-only application smokes passed.** Section 47 records the verified legacy/catalog inventory and forward plan; section 48 prepares the independent complete legacy-history reader repair. Next.js remains 16.3.8. The Python worker is not hosted or running; production transport/selection, durable recovery, browser-to-worker/RLS acceptance, preview isolation, full migration/projections, broader capacity and hosting remain open. Only the projects pinned in [AGENTS.md](AGENTS.md) are authorized. Historical sections retain dated findings; later verified sections supersede earlier deployment state. Immutable release results are recorded in each PR.
 
 ## 1. Exact project scope and available access
 
@@ -2108,3 +2108,81 @@ smoke verification after release. Rollback is a code/document revert. The
 pre-existing historical migration still has SHA-256
 `a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc`;
 unrelated edits/untracked artifacts and shared agent resources are preserved.
+
+
+## 48. Complete owner-visible legacy history repair — DB-03A2D1A
+
+Prepared 2026-10-05 against PR41 merge `299998ccb9727a23896029a6138b1b526617e142`.
+Before implementation, fresh authenticated identity metadata and local pins matched
+GitHub `TOOTRJ/TheDashboard` / `1141090963` / verified `biggrizzly11` (`16749816`),
+Vercel `the-dashboard` / `prj_wFUe9k9USVreOQcmQKNWRAVsx5fH` /
+`team_8iNNxiNjrOseD4gdSCHkQEzF`, and Supabase `The Dashboard` /
+`fxpxsciltakyypunglzr` / `cqfnnaunmupdyobkyqfo`. The dedicated profiles/helper
+were used; the mismatched Supabase connector remains unused.
+
+The reader previously returned only colony-derived runs whenever any colonies
+existed, omitting the 16 probe-only groups measured in section 47. It now scans
+both owner-filtered sources and merges exact run identities after both reads are
+complete. Each request includes `user_id = captured authenticated owner`; every
+returned row must match that owner. RLS remains in place. Stable exact counts,
+strict ascending row IDs, no overlap/duplicates, bounded pages and valid summary
+fields are required. Short pages advance by actual length until the exact count;
+missing counts, count drift, gaps, malformed values, later errors and exhausted
+budgets reject the whole result. No partial summary or empty success hides failure.
+
+Limits are 200 requested rows/page, 50,000 rows/table, 500 pages/table and one
+8-second scan deadline. They are local reader budgets, not remote configuration
+or a hosted latency/capacity guarantee. Probe requests select only identity,
+owner, run, mode, fitness and creation time; saved colony configuration is parsed
+through the existing public diagnostic/policy allowlists. Private errors and raw
+configuration do not enter returned history or UI messages.
+
+Colony-backed metadata retains known lifecycle/policies. Probe-only metadata has
+explicit provenance, unknown colony status/strategy/policies, no inferred end,
+and earliest recorded probe creation time labelled **First probe record** rather
+than a claimed colony launch. Negative scores remain negative; conflicting legacy
+modes stay unknown. The selector is available even for a single recorded run,
+and its total counts distinct run IDs across worker and saved lists.
+
+Each page refresh owns an abort controller shared by history and live-list reads.
+Superseding refreshes, token replacement, account unmount/logout and disposal
+abort retired requests; existing session/list/selection tickets additionally
+prevent late publication even if a transport ignores cancellation. Independent
+history/worker failures retain their last successful results and remain visible.
+
+**Verification:** 135/135 offline frontend tests pass under bundled Node 24.19.0
+(production major remains 24.x). Meaningful cases cover the synthetic measured
+shape (8 colonies, 497 probes, 24 total runs, 16 probe-only groups), negative best
+fitness on the final page, earliest dates, stable display ties, >1,000 rows,
+smaller server row caps, exact page boundaries, count/ID/owner validation, late
+failures, finite budgets, abort and retired account/token/run results. Tests use
+both query doubles and the actual installed Supabase SDK against fake HTTP
+responses to verify owner/count/order/range serialization, Content-Range parsing
+and in-flight cancellation. TypeScript passes; lint has zero errors and 33
+pre-existing warnings. A default-Turbopack production build passes in a temporary
+allowlisted source/dependency copy with fake credentials/`.invalid` endpoints,
+no environment files and telemetry disabled; the real checkout's build output
+is preserved. No dependency, schema, provider or trading change is required.
+
+[Supabase range](https://supabase.com/docs/reference/javascript/using-modifiers-range),
+[exact count](https://supabase.com/docs/reference/javascript/select) and
+[abort](https://supabase.com/docs/reference/javascript/using-modifiers-abortsignal)
+contracts were checked against current official documentation and the installed
+SDK. Cleanup and stale-publication behavior follows
+[React effect lifecycle guidance](https://react.dev/reference/react/useEffect).
+**Limit:** separate HTTP pages and the two source scans are not a repeatable-read
+snapshot. Validation detects count/order/duplicate drift but cannot prove the
+absence of every same-count concurrent metadata/fitness edit. D3 versioned server
+projections and actual two-owner/anonymous RLS tests remain required. Other probe,
+trade, sample and generation detail readers are not fixed by this history repair.
+
+Release gates are fresh exact-target verification, reviewed PR diff, exact-source
+READY preview, merge of that reviewed head, exact-merge READY production and four
+read-only application smokes. Final immutable identifiers/results belong in the
+PR body after release. Rollback is a reviewed code revert to the compatible PR41
+baseline; no data/schema rollback is needed. The preserved historical migration
+SHA-256 remains `a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc`.
+No production history rows, schemas, grants, environment files, shared credentials,
+other projects, worker processes, funded wallets or transactions were changed.
+D2 inert HTTP transport is next; D3/A3, source/lease/load and recovery/hosting
+acceptance remain open.

@@ -17,7 +17,7 @@ function compile(path, modules = {}, globals = {}) {
   const output = ts.transpileModule(source, { compilerOptions: {
     module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX,
   } }).outputText;
-  vm.runInNewContext(output, { exports, AbortController,
+  vm.runInNewContext(output, { exports, AbortController, setTimeout, clearTimeout,
     require(name) { assert.ok(Object.hasOwn(modules, name), `Unexpected import ${name}`); return modules[name]; },
     fetch() { throw new Error("Execution UI tests must remain offline"); }, ...globals,
   });
@@ -206,8 +206,11 @@ test("saved run policy is allowlisted without exposing raw configuration and leg
     const responses = [{ data: [{ id: "A", config: { secret: "do-not-copy", runtime: {
       execution_policy: value ? { ...value, secret: "do-not-copy" } : undefined,
     } } }], error: null }, { data: [], error: null }];
-    const client = { from() { const result = responses.shift(); return {
-      select() { return this; }, order() { return this; }, in() { return this; },
+    const client = { from() { const result = responses.shift();
+      result.count = result.data.length;
+      result.data = result.data.map(row => ({ user_id: "user-A", mode: "paper", strategy: "genetic_algorithm", started_at: "2026-01-01", stopped_at: null, ...row }));
+      return {
+      select() { return this; }, order() { return this; }, eq() { return this; }, range() { return this; }, abortSignal() { return this; }, in() { return this; },
       then(resolve, reject) { return Promise.resolve(result).then(resolve, reject); },
     }; } };
     const database = compile("../src/lib/probes/probes-supabase.ts", {
@@ -215,7 +218,7 @@ test("saved run policy is allowlisted without exposing raw configuration and leg
       "./execution": execution, "./transport": transport,
       "@/lib/supabase/client": { createClient: () => client },
     });
-    const [run] = await database.fetchColonyRuns();
+    const [run] = await database.fetchColonyRuns("user-A");
     assert.deepEqual(plain(run.runtime.execution_policy ?? null), value?.account_currency === "USD" ? policy() : null);
     assert.ok(!JSON.stringify(run).includes("do-not-copy"));
   }
@@ -308,8 +311,11 @@ test("known execution policy rejects contradictory economic identities and malfo
 test("initial saved policy remains classified before a runtime snapshot while unknown runtime versions do not fall back", async () => {
   for (const [runtime, expected] of [[undefined, true], [{}, true], [{ execution_policy: null }, false], [{ execution_policy: { ...policy(), version: "future" } }, false]]) {
     const responses = [{ data: [{ id: "A", config: { execution_policy: { ...policy(), secret: "do-not-copy" }, runtime } }], error: null }, { data: [], error: null }];
-    const client = { from() { const result = responses.shift(); return {
-      select() { return this; }, order() { return this; }, in() { return this; },
+    const client = { from() { const result = responses.shift();
+      result.count = result.data.length;
+      result.data = result.data.map(row => ({ user_id: "user-A", mode: "paper", strategy: "genetic_algorithm", started_at: "2026-01-01", stopped_at: null, ...row }));
+      return {
+      select() { return this; }, order() { return this; }, eq() { return this; }, range() { return this; }, abortSignal() { return this; }, in() { return this; },
       then(resolve, reject) { return Promise.resolve(result).then(resolve, reject); },
     }; } };
     const database = compile("../src/lib/probes/probes-supabase.ts", {
@@ -317,7 +323,7 @@ test("initial saved policy remains classified before a runtime snapshot while un
       "./execution": execution, "./transport": transport,
       "@/lib/supabase/client": { createClient: () => client },
     });
-    const [run] = await database.fetchColonyRuns();
+    const [run] = await database.fetchColonyRuns("user-A");
     assert.equal(Boolean(run.runtime.execution_policy), expected);
     assert.ok(!JSON.stringify(run).includes("do-not-copy"));
   }

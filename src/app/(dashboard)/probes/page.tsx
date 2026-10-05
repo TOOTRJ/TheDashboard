@@ -65,10 +65,11 @@ function AuthenticatedProbesPage({ userId, accessToken }: { userId: string; acce
   const prevPrices = React.useRef<Record<string, number>>({});
   const creating = React.useRef(false);
   const controlling = React.useRef(false);
+  const historyAbort = React.useRef<AbortController | null>(null);
 
   React.useLayoutEffect(() => {
     scope.activate();
-    return () => scope.dispose();
+    return () => { historyAbort.current?.abort(); scope.dispose(); };
   }, [scope, accessToken]);
 
   const selectColony = React.useCallback((id: string) => {
@@ -153,12 +154,16 @@ function AuthenticatedProbesPage({ userId, accessToken }: { userId: string; acce
   const connection = useProbesWebSocket(accessToken, userId, handleWsMessage);
 
   const refreshColonyList = React.useCallback(async () => {
+    historyAbort.current?.abort();
+    const abort = new AbortController();
+    historyAbort.current = abort;
     const ticket = scope.begin("list");
     const [history, live] = await Promise.allSettled([
-      fetchColonyRuns(),
-      requestWorker<ColonyInfo[]>(VN_ENDPOINTS, accessToken, "/api/v1/colonies/"),
+      fetchColonyRuns(userId, abort.signal),
+      requestWorker<ColonyInfo[]>(VN_ENDPOINTS, accessToken, "/api/v1/colonies/", { signal: abort.signal }),
     ]);
-    if (!scope.isCurrent(ticket)) return;
+    if (historyAbort.current === abort) historyAbort.current = null;
+    if (abort.signal.aborted || !scope.isCurrent(ticket)) return;
     const runs = history.status === "fulfilled" ? history.value : [];
     const colonies = live.status === "fulfilled" && Array.isArray(live.value) ? live.value : [];
     if (history.status === "fulfilled") {
@@ -178,12 +183,12 @@ function AuthenticatedProbesPage({ userId, accessToken }: { userId: string; acce
       if (id) selectColony(id);
       else setLoading(false);
     }
-  }, [accessToken, scope, selectColony, reportError]);
+  }, [accessToken, userId, scope, selectColony, reportError]);
 
   React.useEffect(() => {
     void refreshColonyList();
     const timer = setInterval(() => void refreshColonyList(), 10_000);
-    return () => clearInterval(timer);
+    return () => { historyAbort.current?.abort(); clearInterval(timer); };
   }, [refreshColonyList]);
 
   const refreshSelected = React.useCallback(async (signal?: AbortSignal) => {

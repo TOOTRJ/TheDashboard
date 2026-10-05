@@ -15,7 +15,7 @@ function loadModule(path, modules, globals = {}) {
     module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX,
   } }).outputText;
   vm.runInNewContext(compiled, {
-    exports, AbortController,
+    exports, AbortController, setTimeout, clearTimeout,
     require(name) { assert.ok(Object.hasOwn(modules, name), `Unexpected import ${name}`); return modules[name]; },
     fetch() { throw new Error("Real network is forbidden in reliability tests"); },
     ...globals,
@@ -33,11 +33,17 @@ function databaseHarness(responses) {
     from(table) {
       const call = { table, filters: [] }; calls.push(call);
       const result = responses.shift();
+      if (Array.isArray(result?.data)) {
+        result.count ??= result.data.length;
+        result.data = result.data.map((row) => table === "vn_colonies" ? {
+          user_id: "user-A", mode: "paper", strategy: "genetic_algorithm", started_at: "2026-01-01", stopped_at: null, ...row,
+        } : row);
+      }
       assert.ok(result, `Missing offline result for ${table}`);
       const query = {
         select() { return this; }, order() { return this; }, limit() { return this; },
         eq(...args) { call.filters.push(args); return this; }, in() { return this; }, not() { return this; },
-        maybeSingle() { return this; }, delete() { return this; }, gte() { return this; },
+        range() { return this; }, abortSignal() { return this; }, maybeSingle() { return this; }, delete() { return this; }, gte() { return this; },
         then(resolve, reject) { return Promise.resolve(result).then(resolve, reject); },
       };
       return query;
@@ -71,15 +77,15 @@ test("successful empty data stays distinct from failure, and selected run IDs ar
 
 test("colony history does not silently fall back on query failure or fabricate counts after enrichment failure", async () => {
   const failed = databaseHarness([{ data: null, error: { code: "PGRST205" } }]);
-  await assert.rejects(failed.api.fetchColonyRuns(), /colony history/);
+  await assert.rejects(failed.api.fetchColonyRuns("user-A"), /colony history/);
   assert.equal(failed.calls.length, 1);
   const enrichment = databaseHarness([
     { data: [{ id: "A", mode: "paper", strategy: "genetic_algorithm", started_at: "2026-01-01" }], error: null },
     { data: null, error: { message: "offline" } },
   ]);
-  await assert.rejects(enrichment.api.fetchColonyRuns(), /summary statistics/);
+  await assert.rejects(enrichment.api.fetchColonyRuns("user-A"), /summary statistics/);
   const legacy = databaseHarness([{ data: [], error: null }, { data: [], error: null }]);
-  assert.deepEqual(plain(await legacy.api.fetchColonyRuns()), []);
+  assert.deepEqual(plain(await legacy.api.fetchColonyRuns("user-A")), []);
   assert.equal(legacy.calls.length, 2);
 });
 
@@ -91,7 +97,7 @@ test("colony history preserves persisted terminal diagnostics without exposing r
     } } }], error: null },
     { data: [], error: null },
   ]);
-  const [run] = await h.api.fetchColonyRuns();
+  const [run] = await h.api.fetchColonyRuns("user-A");
   assert.equal(run.status, "failed");
   assert.equal(run.runtime.open_positions, 2);
   assert.equal(run.runtime.requires_reconciliation, true);
@@ -121,7 +127,7 @@ test("saved valuation availability accepts only explicit booleans", async () => 
       { data: [{ id: "A", mode: "paper", config: { runtime: { valuation_available: value } } }], error: null },
       { data: [], error: null },
     ]);
-    const [run] = await h.api.fetchColonyRuns();
+    const [run] = await h.api.fetchColonyRuns("user-A");
     assert.equal(run.runtime.valuation_available, typeof value === "boolean" ? value : undefined);
   }
 });
@@ -132,11 +138,11 @@ test("saved history preserves explicit valid market-clock metadata without relab
     { data: [], error: null },
   ]);
   const validClock = { clock_basis: "synthetic_market", market_time: "2024-01-01T00:02:00+00:00", market_elapsed_secs: 120 };
-  const [run] = await make(validClock).api.fetchColonyRuns();
+  const [run] = await make(validClock).api.fetchColonyRuns("user-A");
   for (const [key, value] of Object.entries(validClock)) assert.equal(run.runtime[key], value);
   for (const runtime of [{}, { clock_basis: "simulation", market_time: "invalid-date", market_elapsed_secs: -1 },
     { clock_basis: true, market_time: 123, market_elapsed_secs: Infinity }]) {
-    const [bad] = await make(runtime).api.fetchColonyRuns();
+    const [bad] = await make(runtime).api.fetchColonyRuns("user-A");
     assert.equal(bad.runtime.clock_basis, undefined);
     assert.equal(bad.runtime.market_time, undefined);
     assert.equal(bad.runtime.market_elapsed_secs, undefined);
@@ -224,8 +230,8 @@ test("structured 422 errors identify known fields without reflecting server text
 
 function pageHarness(initial = {}) {
   let hookIndex = 0, dirty = false, output, websocketMessage, now = 0;
-  const hooks = [], pendingEffects = [], intervals = new Map(), requests = [];
-  const control = { databaseFails: false, workerFails: false, launchFails: false, revision: 1, ...initial };
+  const hooks = [], pendingEffects = [], intervals = new Map(), requests = [], historyRequests = [];
+  const control = { databaseFails: false, workerFails: false, launchFails: false, revision: 1, userId: "user-A", token: "token-A", ...initial };
   const sameDeps = (a, b) => a && b && a.length === b.length && a.every((value, index) => Object.is(value, b[index]));
   function memo(factory, deps) {
     const i = hookIndex++;
@@ -271,13 +277,17 @@ function pageHarness(initial = {}) {
     react, "react/jsx-runtime": { jsx: (type, props, key) => ({ type, props, key }), jsxs: (type, props, key) => ({ type, props, key }) },
     "next/link": { default: "link" }, sonner: { toast: { success() { control.successes = (control.successes ?? 0) + 1; } } },
     "lucide-react": { BookOpen: "BookOpen", Dna: "Dna" },
-    "@/components/auth/AuthProvider": { useAuth: () => ({ user: { id: "user-A" }, session: { access_token: "token-A" }, loading: false }) },
+    "@/components/auth/AuthProvider": { useAuth: () => ({ user: { id: control.userId }, session: { access_token: control.token }, loading: false }) },
     "@/components/probes/ProbesDashboard": { ProbesDashboard: "Dashboard" },
     "@/components/probes/ExecutionPolicyNotice": { ExecutionPolicyNotice: "ExecutionPolicyNotice" },
     "@/components/ui/skeleton": { Skeleton: "Skeleton" },
     "@/lib/probes/probes-supabase": {
-      fetchColonyRuns: () => dbRead(history()), fetchProbes: (id) => { assert.equal(id, "A"); return dbRead([{ id: "probe", current_capital: control.revision }]); },
-      fetchGenerationStats: (id) => { assert.equal(id, "A"); return dbRead([{ generation: control.revision }]); },
+      fetchColonyRuns: (owner, signal) => {
+        assert.equal(owner, control.userId);
+        const request = { owner, signal, rows: history() }; historyRequests.push(request);
+        return control.historyRead ? control.historyRead(request) : dbRead(request.rows);
+      }, fetchProbes: (id) => { assert.equal(id, control.selectedId ?? "A"); return dbRead([{ id: "probe", current_capital: control.revision }]); },
+      fetchGenerationStats: (id) => { assert.equal(id, control.selectedId ?? "A"); return dbRead([{ generation: control.revision }]); },
     },
     "@/lib/probes/websocket": { useProbesWebSocket: (_token, _user, callback) => { websocketMessage = callback; return { connected: true, error: null }; } },
     "@/lib/probes/constants": { VN_ENDPOINTS: { apiUrl: "https://offline.invalid", wsUrl: "wss://offline.invalid", error: null } },
@@ -290,7 +300,7 @@ function pageHarness(initial = {}) {
     setInterval: (callback, delay) => { intervals.set(++now, { callback, delay }); return now; },
     clearInterval: (id) => intervals.delete(id),
   });
-  const child = page.default();
+  let child = page.default();
   function render() {
     hookIndex = 0; dirty = false;
     output = child.type(child.props);
@@ -305,7 +315,13 @@ function pageHarness(initial = {}) {
       const result = find(item, type); if (result) return result;
     }
   }
-  return { control, requests,
+  return { control, requests, historyRequests,
+    changeToken(token) { control.token = token; child = page.default(); render(); },
+    changeAccount(userId, token) {
+      for (const hook of hooks) hook?.cleanup?.();
+      hooks.length = 0; control.userId = userId; control.token = token;
+      child = page.default(); render();
+    },
     dashboard: () => find(output, "Dashboard").props,
     alerts: () => JSON.stringify(output).match(/"role":"alert"/g) ?? [],
     text: () => JSON.stringify(output),
@@ -474,7 +490,7 @@ test("saved risk halts preserve only validated public diagnostics", async () => 
     } } }], error: null },
     { data: [], error: null },
   ]);
-  const [run] = await h.api.fetchColonyRuns();
+  const [run] = await h.api.fetchColonyRuns("user-A");
   assert.equal(run.status, "risk_halted");
   assert.equal(run.runtime.circuit_breaker, true);
   assert.deepEqual(plain(run.runtime.risk_control), riskDetails());
@@ -484,7 +500,7 @@ test("saved risk halts preserve only validated public diagnostics", async () => 
       circuit_breaker: "true", risk_control: { ...riskDetails(), policy: "private-policy" },
     } } }], error: null }, { data: [], error: null },
   ]);
-  const [invalid] = await bad.api.fetchColonyRuns();
+  const [invalid] = await bad.api.fetchColonyRuns("user-A");
   assert.equal(invalid.runtime.circuit_breaker, undefined);
   assert.equal(invalid.runtime.risk_control, undefined);
 });
@@ -695,7 +711,7 @@ test("saved evaluation metadata recognizes only the common-window policy and str
           member_ids: ["private-members"], evaluations: [{ private: "secret" }], private: "secret" },
       } } }], error: null }, { data: [], error: null },
     ]);
-    const [run] = await h.api.fetchColonyRuns();
+    const [run] = await h.api.fetchColonyRuns("user-A");
     if (policy?.version === "common-market-window-v1") {
       assert.deepEqual(plain(run.runtime.evaluation_policy), evaluationPolicy());
       assert.deepEqual(plain(run.runtime.cohort), evaluationCohort());
@@ -883,7 +899,7 @@ test("saved lifecycle policy requires exact semantics and bounded integer limits
     { data: [{ id: "A", mode: "simulation", config: { runtime: { lifecycle_policy: { ...lifecyclePolicy, secret: "private" } } } }], error: null },
     { data: [], error: null },
   ]);
-  const [run] = await h.api.fetchColonyRuns();
+  const [run] = await h.api.fetchColonyRuns("user-A");
   assert.deepEqual(plain(run.runtime.lifecycle_policy), lifecyclePolicy);
   assert.ok(!JSON.stringify(run).includes("private"));
 });
@@ -905,7 +921,7 @@ test("saved colony signal policies preserve provenance without inferring semanti
       { data: [{ id: "A", mode: "simulation", config }], error: null },
       { data: [], error: null },
     ]);
-    const [run] = await h.api.fetchColonyRuns();
+    const [run] = await h.api.fetchColonyRuns("user-A");
     assert.deepEqual(plain(run.runtime.signal_policy ?? null), expected);
     assert.ok(!JSON.stringify(run).includes("do-not-copy"));
   }
@@ -926,4 +942,83 @@ test("actual selected-run page uses known live or saved policy and never guesses
       if (expected.source.includes("unavailable")) assert.ok(!h.visibleText().includes("RSI and volume filters are off"));
     } finally { h.cleanup(); }
   }
+});
+
+test("actual page cancels superseded history and prevents late success or failure from replacing newer results", async () => {
+  for (const failOld of [false, true]) {
+    const h = pageHarness();
+    try {
+      await h.pump();
+      const pending = [];
+      h.control.historyRead = (request) => new Promise((resolve, reject) => pending.push({ ...request, resolve, reject }));
+      h.control.revision = 2; h.tick(); await h.pump();
+      h.control.revision = 3; h.tick(); await h.pump();
+      assert.equal(pending.length, 2); assert.equal(pending[0].signal.aborted, true);
+      pending[1].resolve(pending[1].rows); await h.pump();
+      assert.equal(h.dashboard().colonyRuns[0].probe_count, 3);
+      if (failOld) pending[0].reject(new Error("private stale failure"));
+      else pending[0].resolve(pending[0].rows);
+      await h.pump();
+      assert.equal(h.dashboard().colonyRuns[0].probe_count, 3);
+      assert.equal(h.alerts().length, 0);
+    } finally { h.cleanup(); }
+  }
+});
+
+test("actual page aborts history on token replacement and ignores retired token results", async () => {
+  const h = pageHarness();
+  try {
+    await h.pump();
+    const pending = [];
+    h.control.historyRead = (request) => new Promise(resolve => pending.push({ ...request, resolve }));
+    h.control.revision = 2; h.tick(); await h.pump();
+    h.control.revision = 3; h.changeToken("token-B"); await h.pump();
+    assert.equal(pending.length, 2); assert.equal(pending[0].signal.aborted, true);
+    assert.equal(pending[1].signal.aborted, false);
+    pending[1].resolve(pending[1].rows); await h.pump();
+    pending[0].resolve(pending[0].rows); await h.pump();
+    assert.equal(h.dashboard().colonyRuns[0].probe_count, 3);
+    assert.equal(h.alerts().length, 0);
+  } finally { h.cleanup(); }
+});
+
+test("actual account remounts abort A-to-B-to-A history, bind each owner, and reject retired results", async () => {
+  const pending = [];
+  const h = pageHarness({ historyRead: request => new Promise(resolve => pending.push({ ...request, resolve })) });
+  try {
+    await h.pump();
+    h.control.revision = 2; h.changeAccount("user-B", "token-B"); await h.pump();
+    h.control.revision = 3; h.changeAccount("user-A", "token-A-new"); await h.pump();
+    assert.deepEqual(pending.map(request => request.owner), ["user-A", "user-B", "user-A"]);
+    assert.equal(pending[0].signal.aborted, true); assert.equal(pending[1].signal.aborted, true);
+    assert.deepEqual(plain(h.dashboard().colonyRuns), []);
+    pending[2].resolve(pending[2].rows); await h.pump();
+    pending[1].resolve(pending[1].rows); pending[0].resolve(pending[0].rows); await h.pump();
+    assert.equal(h.dashboard().colonyRuns[0].probe_count, 3);
+    assert.equal(h.alerts().length, 0);
+  } finally { h.cleanup(); }
+});
+
+test("actual page cleanup cancels history and a late logout/disposal result cannot publish", async () => {
+  const h = pageHarness(); await h.pump();
+  let pending;
+  h.control.historyRead = request => new Promise(resolve => { pending = { ...request, resolve }; });
+  h.control.revision = 2; h.tick(); await h.pump();
+  h.cleanup(); assert.equal(pending.signal.aborted, true);
+  pending.resolve(pending.rows); await h.pump();
+  assert.equal(h.dashboard().colonyRuns[0].probe_count, 1);
+});
+
+test("a history response started before a run selection cannot change the selected run or its history", async () => {
+  const h = pageHarness();
+  try {
+    await h.pump();
+    let pending;
+    h.control.historyRead = request => new Promise(resolve => { pending = { ...request, resolve }; });
+    h.control.revision = 2; h.tick(); await h.pump();
+    h.control.selectedId = "B"; h.dashboard().onSelectRun("B"); await h.pump();
+    pending.resolve(pending.rows); await h.pump();
+    assert.equal(h.dashboard().activeRunId, "B");
+    assert.equal(h.dashboard().colonyRuns[0].probe_count, 1);
+  } finally { h.cleanup(); }
 });

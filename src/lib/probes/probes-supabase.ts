@@ -88,51 +88,120 @@ export async function fetchFitnessSnapshots(
   return data as FitnessSnapshot[];
 }
 
-/**
- * Fetch all distinct simulation runs with summary info.
- * Tries vn_colonies table first (new schema), falls back to grouping from vn_probes.
- * Returns newest first.
- */
-export async function fetchColonyRuns(): Promise<ColonyRun[]> {
-  // Try the new vn_colonies table first
-  const { data: colonies, error: colErr } = await supabase()
-    .from("vn_colonies")
-    .select("id, strategy, mode, status, config, started_at, stopped_at")
-    .order("created_at", { ascending: false });
+// A complete bounded scan is required before publishing any history. These are
+// read limits, not database/provider settings. Counts apply after owner filtering.
+const HISTORY_PAGE_SIZE = 200;
+const HISTORY_MAX_ROWS = 50_000;
+const HISTORY_MAX_PAGES = 500;
+const HISTORY_TIMEOUT_MS = 8_000;
 
-  if (colErr || !Array.isArray(colonies)) throw new ProbeDataError("colony history");
-  if (colonies.length > 0) {
-    return _enrichColonyRuns(colonies);
-  }
+type HistoryRow = { id: string; user_id: string };
+type SavedColony = HistoryRow & {
+  strategy: string; mode: string; status?: string; config?: unknown;
+  started_at: string; stopped_at: string | null;
+};
+type SavedProbe = HistoryRow & {
+  run_id: string | null; mode: string; fitness_score: number; created_at: string;
+};
 
-  // Successful empty colony table: support history created before colony records existed.
-  return _fetchColonyRunsFromProbes();
+function historyString(value: unknown): value is string {
+  return typeof value === "string" && value.trim().length > 0;
+}
+function historyDate(value: unknown): value is string {
+  return historyString(value) && Number.isFinite(Date.parse(value));
 }
 
-async function _enrichColonyRuns(
-  colonies: Array<{ id: string; strategy: string; mode: string; status?: string; config?: unknown; started_at: string; stopped_at: string | null }>,
-): Promise<ColonyRun[]> {
-  const colonyIds = colonies.map((c) => c.id);
+async function readHistoryPages<T extends HistoryRow>(
+  db: ReturnType<typeof supabase>, table: "vn_colonies" | "vn_probes", fields: string,
+  ownerId: string, signal: AbortSignal, operation: string,
+): Promise<T[]> {
+  const rows: T[] = [];
+  let expectedCount: number | undefined;
+  let previousId: string | undefined;
+  for (let page = 0; page < HISTORY_MAX_PAGES; page++) {
+    if (signal.aborted) throw new ProbeDataError(operation);
+    const { data, error, count } = await db.from(table)
+      .select(fields, { count: "exact" }).eq("user_id", ownerId)
+      .order("id", { ascending: true })
+      .range(rows.length, rows.length + HISTORY_PAGE_SIZE - 1).abortSignal(signal);
+    if (signal.aborted || error || !Array.isArray(data)
+      || typeof count !== "number" || !Number.isSafeInteger(count) || count < 0
+      || count > HISTORY_MAX_ROWS || data.length > HISTORY_PAGE_SIZE
+      || (expectedCount !== undefined && count !== expectedCount)
+      || rows.length + data.length > count) throw new ProbeDataError(operation);
+    expectedCount = count;
+    for (const value of data as unknown[]) {
+      if (!value || typeof value !== "object" || Array.isArray(value)) throw new ProbeDataError(operation);
+      const row = value as Record<string, unknown>;
+      // Exact ID order detects overlapping/repeated pages; never count them twice
+      // or silently deduplicate a changing/partial result into a successful scan.
+      if (!row || !historyString(row.id) || row.user_id !== ownerId
+        || (previousId !== undefined && row.id <= previousId)) throw new ProbeDataError(operation);
+      previousId = row.id;
+      rows.push(row as unknown as T);
+    }
+    if (rows.length === expectedCount) return rows;
+    if (data.length === 0) throw new ProbeDataError(operation);
+    // A server row cap may be smaller than the requested page. Advance by the
+    // actual rows and continue until the exact count, not until a short page.
+  }
+  throw new ProbeDataError(operation);
+}
 
-  const { data: probes, error } = await supabase()
-    .from("vn_probes")
-    .select("run_id, fitness_score")
-    .in("run_id", colonyIds);
-  if (error || !Array.isArray(probes)) throw new ProbeDataError("colony summary statistics");
+/** Merge owner-visible colony and probe-only runs, newest first.
+ * Separate page requests are not a repeatable-read database snapshot. Detected
+ * count/order drift fails the scan; same-count concurrent edits need the future
+ * versioned server projections. No historical colony authority is manufactured.
+ */
+export async function fetchColonyRuns(ownerId: string, signal?: AbortSignal): Promise<ColonyRun[]> {
+  if (!historyString(ownerId)) throw new ProbeDataError("colony history without an authenticated owner");
+  const abort = new AbortController();
+  const cancel = () => abort.abort();
+  signal?.addEventListener("abort", cancel, { once: true });
+  if (signal?.aborted) cancel();
+  const timer = setTimeout(cancel, HISTORY_TIMEOUT_MS);
+  try {
+    const db = supabase();
+    const colonies = await readHistoryPages<SavedColony>(db, "vn_colonies",
+      "id, user_id, strategy, mode, status, config, started_at, stopped_at", ownerId, abort.signal, "colony history");
+    const probes = await readHistoryPages<SavedProbe>(db, "vn_probes",
+      "id, user_id, run_id, mode, fitness_score, created_at", ownerId, abort.signal, "colony summary statistics");
+    if (abort.signal.aborted) throw new ProbeDataError("colony history");
+    return mergeColonyRuns(colonies, probes);
+  } catch (error) {
+    if (error instanceof ProbeDataError) throw error;
+    throw new ProbeDataError("colony history");
+  } finally {
+    clearTimeout(timer);
+    signal?.removeEventListener("abort", cancel);
+  }
+}
 
-  const probeAgg = new Map<string, { count: number; best: number }>();
-  for (const p of (probes ?? []) as Array<{ run_id: string; fitness_score: number }>) {
+function mergeColonyRuns(colonies: SavedColony[], probes: SavedProbe[]): ColonyRun[] {
+  const probeAgg = new Map<string, { count: number; best: number; first: string; mode: string }>();
+  for (const p of probes) {
+    if ((p.run_id !== null && !historyString(p.run_id)) || !historyDate(p.created_at)
+      || !historyString(p.mode) || typeof p.fitness_score !== "number" || !Number.isFinite(p.fitness_score)) {
+      throw new ProbeDataError("colony summary statistics");
+    }
+    // Rows without a run are not assigned a fabricated identity.
+    if (p.run_id === null) continue;
     const existing = probeAgg.get(p.run_id);
     if (existing) {
       existing.count += 1;
-      existing.best = Math.max(existing.best, p.fitness_score ?? 0);
+      existing.best = Math.max(existing.best, p.fitness_score);
+      if (Date.parse(p.created_at) < Date.parse(existing.first)) existing.first = p.created_at;
+      if (existing.mode !== p.mode) existing.mode = "unknown";
     } else {
-      probeAgg.set(p.run_id, { count: 1, best: p.fitness_score ?? 0 });
+      probeAgg.set(p.run_id, { count: 1, best: p.fitness_score, first: p.created_at, mode: p.mode });
     }
   }
 
-  return colonies.map((c) => {
+  const runs: ColonyRun[] = colonies.map((c) => {
+    if (!historyDate(c.started_at) || (c.stopped_at !== null && !historyDate(c.stopped_at))
+      || !historyString(c.mode) || !historyString(c.strategy)) throw new ProbeDataError("colony history");
     const agg = probeAgg.get(c.id);
+    probeAgg.delete(c.id);
     const saved = c.config && typeof c.config === "object" && "runtime" in c.config ? c.config.runtime : null;
     const record = saved && typeof saved === "object" && !Array.isArray(saved) ? saved as Record<string, unknown> : {};
     const evaluationPolicy = parseEvaluationPolicy(record.evaluation_policy);
@@ -156,6 +225,7 @@ async function _enrichColonyRuns(
     };
     return {
       run_id: c.id,
+      history_source: "colony",
       mode: c.mode,
       strategy: c.strategy,
       started_at: c.started_at,
@@ -166,42 +236,14 @@ async function _enrichColonyRuns(
       runtime,
     } as ColonyRun;
   });
-}
-
-async function _fetchColonyRunsFromProbes(): Promise<ColonyRun[]> {
-  const { data, error } = await supabase()
-    .from("vn_probes")
-    .select("run_id, mode, fitness_score, created_at")
-    .not("run_id", "is", null)
-    .order("created_at", { ascending: false });
-
-  if (error || !Array.isArray(data)) throw new ProbeDataError("legacy colony history");
-
-  const runs = new Map<string, ColonyRun>();
-  for (const row of data as Array<{
-    run_id: string;
-    mode: string;
-    fitness_score: number;
-    created_at: string;
-  }>) {
-    if (!row.run_id) continue;
-    const existing = runs.get(row.run_id);
-    if (existing) {
-      existing.probe_count += 1;
-      existing.best_fitness = Math.max(existing.best_fitness, row.fitness_score ?? 0);
-    } else {
-      runs.set(row.run_id, {
-        run_id: row.run_id,
-        mode: row.mode,
-        started_at: row.created_at,
-        ended_at: null,
-        probe_count: 1,
-        best_fitness: row.fitness_score ?? 0,
-      });
-    }
+  for (const [runId, agg] of probeAgg) {
+    runs.push({
+      run_id: runId, history_source: "probe_only", mode: agg.mode,
+      started_at: agg.first, ended_at: null, probe_count: agg.count, best_fitness: agg.best,
+    });
   }
-
-  return Array.from(runs.values());
+  return runs.sort((a, b) => Date.parse(b.started_at) - Date.parse(a.started_at)
+    || (a.run_id < b.run_id ? -1 : a.run_id > b.run_id ? 1 : 0));
 }
 
 export async function deleteAllProbes(): Promise<boolean> {
