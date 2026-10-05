@@ -2,7 +2,7 @@
 
 Date: 2026-09-29. Scope: the local Dashboard checkout, Vercel **`the-dashboard`**, and Supabase **`The Dashboard`**. This report accompanies [TODO.md](TODO.md).
 
-**Last verified production release (2026-10-05): [PR #38](https://github.com/TOOTRJ/TheDashboard/pull/38) is merged; the production alias serves READY deployment `dpl_71MaCDF8n6aeUDTZFJZushBJNLCj`, built automatically from merge `bdd22d3d46d04203541b4390761b6f813ec4f7e7`, with four read-only application smokes passed.** It adds provider acquisition and complete-command capacity measurements. The bounded pilot increment in section 45 requires its own release verification. Next.js remains 16.3.8. The Python worker is not hosted or running; executable exact-controller integration, durable recovery, browser-to-worker/RLS acceptance, preview isolation, transport/migration, broader capacity and hosting remain open. Only the projects pinned in [AGENTS.md](AGENTS.md) are authorized. Historical sections retain dated findings; later verified sections supersede earlier deployment state. Immutable release results are recorded in each PR.
+**Last verified production release (2026-10-05): [PR #39](https://github.com/TOOTRJ/TheDashboard/pull/39) is merged; the production alias serves READY deployment `dpl_FjGjYCXg3AhDw1qkiDcGn3FWtahP`, built automatically from merge `5eb46ea0658e5ef8e7243d75223b217602795119`, with four read-only application smokes passed.** It adds the bounded provider pilot and complete terminal reserve described in section 45. The executable controller increment in section 46 records bounded local PostgreSQL and cumulative latency acceptance; release verification is tracked in [PR #40](https://github.com/TOOTRJ/TheDashboard/pull/40). Next.js remains 16.3.8. The Python worker is not hosted or running; active exact-controller integration, durable recovery, browser-to-worker/RLS acceptance, preview isolation, transport/migration, broader capacity and hosting remain open. Only the projects pinned in [AGENTS.md](AGENTS.md) are authorized. Historical sections retain dated findings; later verified sections supersede earlier deployment state. Immutable release results are recorded in each PR.
 
 ## 1. Exact project scope and available access
 
@@ -1920,3 +1920,105 @@ prior-journal retention/availability, corruption/revision checks, source/server
 freshness, control reserve, clock/history restart, shared quotas and cumulative
 protective latency. Parent C2D2/C2/D/A3 and hosting remain open. See
 [the pilot contract](services/vonneumann/PROVIDER-PILOT-CONTRACT.md).
+
+## 46. Executable provider controller and bounded runner — C2D2D2 (2026-10-05)
+
+**Implemented local scope:** `ProviderPilotController` exclusively owns fresh
+bootstrap, complete ticks, pause, reserved stop and settlement through the real
+provider adapters and strict pilot owner. Retained phases bind the original
+ticket/history/allocation, successor revision and continuation before submission.
+Readback installs/publishes that exact command and renews its lease before any
+remaining new economics. No-op decisions avoid history/allocation/dispatch.
+Publication resumes only the original stable event prefix. Caller cancellation
+retains the whole operation/result; explicit task interruption also retains and
+consumes any shielded provider read before reporting idle.
+
+The separate finite runner requires explicit interval and attempt bounds,
+rejects intervals at/beyond the controller's lease, and schedules the next
+attempt after completion plus that interval. It has no catch-up queue or hidden
+heartbeat worker. Caller interruption drains future ticks; explicit stop wakes
+waiting work and uses reserved terminal capacity after original work settles.
+Uncertainty/publication failure requires explicit settlement, without automatic
+retry spinning. Retained result identity prevents an older completed tick from
+being counted as a rejected new operation. Pacing-clock failure drains scheduling
+but does not prevent original command/event settlement. Natural finite completion
+does not automatically spend a stop command.
+
+Review also repaired acquisition's rejection of the exact pilot owner and its
+conversion of ordinary pilot refusal into a hard failure; unretained decision
+windows incorrectly expiring delayed stop after drain; repeated uncertain
+pause/stop trying a second control after successful readback; and foreign-loop
+or interrupted-task paths dropping original ownership. Strict candle completion
+boundary crossing can still close the pilot safely; supported boundary deferral
+remains explicit follow-up research. Pause/stop preserve holdings/cash/reserve.
+
+**Offline acceptance:** all 58 new focused cases pass (35 controller and 23
+runner; 17.526 seconds). Complete worker discovery ran **1,404 tests in 232.926
+seconds**, passing with 17 expected opt-in/database skips. All 18 dedicated
+Dashboard GitHub helper tests and `git diff --check` pass. The helper now admits
+repository-pinned `pr ready` with no extra flags; new boundary tests reject
+foreign selectors, account/repository mismatches and unsupported options.
+Literal fixtures
+exercise actual provider parsers, strict owner/solver/command validation, open
+positions, deadline/clock failures, cancellation and uncertainty. The full suite
+ran with dotenv disabled and bytecode writes disabled in the isolated worker
+environment; no application/provider credentials were used.
+
+**Completed local database acceptance:** after the user started the existing
+Colima daemon, the six new real PostgreSQL controller/runner cases passed in
+13.952 seconds and full SQL discovery passed **116 tests in 507.692 seconds**.
+No application/fixture/SQL-contract corrections were needed. Actual process and
+server clocks, literal Jupiter/Birdeye/Solana documents and the uniquely owned
+no-network harness verify the finite runner, cancellation/drain, lost replies,
+original-ID readback, lease renewal, reserved stop and stable publication. The
+cached ARM64 PostgreSQL 17.6 image is
+`sha256:965e2dfb5a23a0d6541b6106541e777b303656ebabd4e878746b189d550c0a66`;
+Docker server is 29.5.2. Only the task's uniquely owned containers were removed.
+All nine original unrelated container identities remained running; shared
+daemon/context/settings were preserved. Ordinary opt-in skips remain distinct
+from actual SQL acceptance. D2 is complete as bounded local executable acceptance;
+its parents and production gates remain open.
+
+**Current-clock cumulative measurement:** the CLI passed with three accepted
+quotes, final revision 7/stopped, exact SQL projection and 11 unique fully
+acknowledged events. Five observed accepted-operation / first-request-through-
+completion times in milliseconds are: bootstrap **645.382 / 645.550**, first
+quote/protection/decision **344.824 / 442.211**, second quote **190.775 / 800.938**,
+third quote **212.108 / 1,010.231**, and reserved stop **288.205 / 288.570**. The
+requests include 1/7/9 actual receipt deferrals. Cumulative owner submission
+peaked at 311.138 ms for the two-command first tick; publication measured 356.813
+ms for nine bootstrap acknowledgments and 91.312 ms for two stop acknowledgments.
+One creation, six economic commits, 22 heartbeats, three outbox reads and 11
+delivery acknowledgments were counted. The request total and all-attempt phases
+include the original acquisition and real waits, rather than synthetic clock
+jumps. This flat-GA/local-sink sample does not measure dense replacement bursts,
+provider publication/network, remote PostgREST or browser/durable relay tails,
+and does not establish percentiles, worst-case bounds or production cadence.
+
+Reports include elapsed operation and cumulative acquisition, lease, submission,
+readback, cleanup and publication phases. Submission includes preparation,
+complete stop witness, validation and transport acknowledgment; publication
+includes all bounded pages and acknowledgment. The completed real-clock CLI
+includes deferred attempts and actual waiting. Fake/controller timing and even
+local SQL timing do not establish real provider/remote-database/relay tails,
+organization quota feasibility or a sustainable production cadence.
+
+**Exact targets:** fresh identity verification matched dedicated GitHub
+`biggrizzly11` / `16749816`, `TOOTRJ/TheDashboard` / `1141090963`; Vercel
+`the-dashboard` / `prj_wFUe9k9USVreOQcmQKNWRAVsx5fH`, team
+`team_8iNNxiNjrOseD4gdSCHkQEzF`; Supabase `The Dashboard` /
+`fxpxsciltakyypunglzr`, organization `cqfnnaunmupdyobkyqfo`. Both local pins
+match. PR39 merge `5eb46ea0658e5ef8e7243d75223b217602795119` / READY production
+`dpl_FjGjYCXg3AhDw1qkiDcGn3FWtahP` is the verified release baseline. Release
+verification is tracked in [PR40](https://github.com/TOOTRJ/TheDashboard/pull/40);
+final merge/deployment/alias/read-only smoke evidence will be recorded there
+after release. Rollback is a code revert; SQL, caps, schema,
+remote environments and service selection are unchanged.
+
+The pre-existing migration remains at SHA-256
+`a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc`.
+Untracked `.claude/`, service `.next/`, Supabase temporary files and other agent
+credentials/tools/processes are preserved. No provider credential was sent,
+database migration applied, hosted worker started, wallet signed or trade placed.
+See [the controller contract](services/vonneumann/PROVIDER-CONTROLLER-CONTRACT.md)
+for the ordered path, measured-evidence limits and remaining deep research.
