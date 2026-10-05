@@ -54,7 +54,8 @@ function formatUptime(secs: number): string {
 export function ColonySelector({ runs, activeRunId, activeColonies, onSelectRun }: Props) {
   const [open, setOpen] = React.useState(false);
 
-  if (activeColonies.length === 0 && runs.length <= 1) return null;
+  if (activeColonies.length === 0 && runs.length === 0) return null;
+  const runCount = new Set([...runs.map((run) => run.run_id), ...activeColonies.map((colony) => colony.colony_id)]).size;
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -65,7 +66,7 @@ export function ColonySelector({ runs, activeRunId, activeColonies, onSelectRun 
           className="h-8 border-[#bf00ff]/20 bg-[#bf00ff]/5 text-[#bf00ff] hover:bg-[#bf00ff]/15 hover:border-[#bf00ff]/40 text-xs"
         >
           <History className="mr-1.5 h-3.5 w-3.5" />
-          History ({runs.length + activeColonies.length})
+          History ({runCount})
         </Button>
       </SheetTrigger>
       <SheetContent
@@ -199,9 +200,11 @@ export function ColonySelector({ runs, activeRunId, activeColonies, onSelectRun 
                   </div>
                 </div>
                 {run.status && <p className={`text-[10px] uppercase ${run.status === "risk_halted" ? "text-[#ffff00]" : "text-muted-foreground"}`}>Saved status: {run.status === "risk_halted" ? "risk halted" : run.status}</p>}
+                {run.history_source === "probe_only" && <p className="text-[10px] text-muted-foreground">Legacy probe records. Colony status, strategy and policies are unknown.</p>}
                 {run.status === "failed" && <p className="text-[10px] text-destructive">{formatColonyFailure(run.runtime?.failure_code)}</p>}
                 {run.runtime?.requires_reconciliation && <p className="text-[10px] text-destructive">Paper positions or saved trade records require reconciliation.{(run.runtime.open_positions ?? 0) > 0 && ` ${run.runtime.open_positions} paper positions remain open.`}</p>}
                 <div className="text-[10px] text-muted-foreground mb-1">
+                  {run.history_source === "probe_only" && "First probe record: "}
                   {new Date(run.started_at).toLocaleString([], {
                     month: "short", day: "numeric", hour: "2-digit", minute: "2-digit",
                   })}

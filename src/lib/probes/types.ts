@@ -208,6 +208,7 @@ export interface WsMessage {
 
 export interface ColonyRun {
   run_id: string;
+  history_source?: "colony" | "probe_only";
   mode: string;
   strategy?: string;
   started_at: string;

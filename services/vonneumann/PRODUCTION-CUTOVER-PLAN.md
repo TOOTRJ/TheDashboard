@@ -14,6 +14,16 @@ The unrelated Supabase connector was not used. The preceding release is
 `22af3190c0171671747d69e971807144a2fa3322`, READY production
 `dpl_6rxutLU4iyGA3328ZhP7NkePYU4y`, with four read-only application checks passed.
 
+**DB-03A2D1A checkpoint (2026-10-05):** the independent browser history repair
+now merges owner-filtered colony and probe-only runs with validated complete
+bounded pagination and retired-session cancellation. Probe-only records remain
+historical evidence with unknown colony authority; no rows are backfilled. The
+135-test offline suite reproduces all 24 runs/16 legacy groups in the measured
+shape. Separate HTTP pages are not an atomic snapshot; versioned projections,
+other detail-reader pagination and actual actor-specific RLS acceptance remain
+open. See configuration preflight section 48. Inventory counts below remain the
+dated pre-repair snapshot, not a new live browser observation.
+
 ## Verified aggregate and catalog evidence
 
 The [audit SQL](../../supabase/audits/vonneumann-cutover-inventory.sql) runs one
@@ -46,13 +56,13 @@ two-user RLS isolation, reconstruct missing metadata or prevent future invalid
 relationships. No closed trade lacks the checked exit fields and no open trade
 contains those fields; this is shape evidence, not a cash/position reconciliation.
 
-**The current history reader omits 16 probe-only runs.** The 160 probes without
+**The pre-repair history reader omitted 16 probe-only runs.** The 160 probes without
 colony records belong to 16 owner/run groups whose owner also has colony rows.
-`fetchColonyRuns()` returns only colony-derived history whenever that query is
-nonempty; its probe fallback then does not run. This is a measured compatibility
+Before D1A, `fetchColonyRuns()` returned only colony-derived history whenever that query was
+nonempty; its probe fallback then did not run. This is a measured compatibility
 gap, not evidence that those older records should be deleted or assigned newly
 invented colony records. See
-[the reader](../../src/lib/probes/probes-supabase.ts#L96).
+[the reader](../../src/lib/probes/probes-supabase.ts#L156).
 
 All five tables are owned by `postgres`, have RLS enabled without FORCE RLS,
 and retain 18 permissive policies scoped to PUBLIC with `auth.uid() = user_id`.
@@ -125,7 +135,7 @@ configuration. No JWT secret or unrestricted settings response was inspected.
 | FastAPI start and startup compensation, `server/app.py` | Service-role colony INSERT and separate status/runtime UPDATE | One versioned creation/control boundary, original-ID resolution, no legacy CRUD fallback. |
 | `core/colony_manager.py` and risk callbacks | Process-local mutable `GenesisController`; separately persisted lifecycle | Explicit opt-in selection only after acceptance, database lease/fence authority and retained drain/settlement. |
 | `db/repository.py` / `EventPersister` | Probe births/metrics/deaths, trade opens/closes, snapshots and generation upserts are separate writes | All economic operations plus required projections/journal/outbox commit in the same command transaction. |
-| Browser `probes-supabase.ts` | Session/RLS reads, direct row casts, unpaginated multirow queries; colony-only history when nonempty | Versioned validated owner-only read models, merged legacy history and bounded deterministic pagination. |
+| Browser `probes-supabase.ts` | D1A merged owner-bound history with validated bounded pages; other detail queries retain direct casts/unpaginated reads | Versioned validated owner-only read models and bounded pagination for all remaining detail readers. |
 | Exported `deleteAllProbes()` | Four sequential date-filtered DELETEs, no selected-run filter, leaves colonies; no current caller found | Remove the helper and deny equivalent direct mutation; replace with a reviewed run-specific archive operation. |
 | `_make_dual_handler` / `server/websocket.py` | Persist one legacy event then attempt socket broadcast; send failure/zero subscribers is not durable delivery | Durable relay acceptance, stable IDs and replay/deduplication before acknowledging an outbox event. |
 
