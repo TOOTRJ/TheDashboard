@@ -2,7 +2,7 @@
 
 Date: 2026-09-29. Scope: the local Dashboard checkout, Vercel **`the-dashboard`**, and Supabase **`The Dashboard`**. This report accompanies [TODO.md](TODO.md).
 
-**Last verified production release (2026-10-05): [PR #39](https://github.com/TOOTRJ/TheDashboard/pull/39) is merged; the production alias serves READY deployment `dpl_FjGjYCXg3AhDw1qkiDcGn3FWtahP`, built automatically from merge `5eb46ea0658e5ef8e7243d75223b217602795119`, with four read-only application smokes passed.** It adds the bounded provider pilot and complete terminal reserve described in section 45. The executable controller increment in section 46 records bounded local PostgreSQL and cumulative latency acceptance; release verification is tracked in [PR #40](https://github.com/TOOTRJ/TheDashboard/pull/40). Next.js remains 16.3.8. The Python worker is not hosted or running; active exact-controller integration, durable recovery, browser-to-worker/RLS acceptance, preview isolation, transport/migration, broader capacity and hosting remain open. Only the projects pinned in [AGENTS.md](AGENTS.md) are authorized. Historical sections retain dated findings; later verified sections supersede earlier deployment state. Immutable release results are recorded in each PR.
+**Last verified production release (2026-10-05): [PR #40](https://github.com/TOOTRJ/TheDashboard/pull/40) is merged; the production alias serves READY deployment `dpl_6rxutLU4iyGA3328ZhP7NkePYU4y`, built automatically from merge `22af3190c0171671747d69e971807144a2fa3322`, with four read-only application smokes passed.** It completes bounded local executable controller/runner acceptance in section 46. Section 47 records the verified read-only legacy/catalog inventory and complete forward-plan scope. Next.js remains 16.3.8. The Python worker is not hosted or running; production transport/selection, durable recovery, browser-to-worker/RLS acceptance, preview isolation, full migration/projections, broader capacity and hosting remain open. Only the projects pinned in [AGENTS.md](AGENTS.md) are authorized. Historical sections retain dated findings; later verified sections supersede earlier deployment state. Immutable release results are recorded in each PR.
 
 ## 1. Exact project scope and available access
 
@@ -2022,3 +2022,89 @@ credentials/tools/processes are preserved. No provider credential was sent,
 database migration applied, hosted worker started, wallet signed or trade placed.
 See [the controller contract](services/vonneumann/PROVIDER-CONTROLLER-CONTRACT.md)
 for the ordered path, measured-evidence limits and remaining deep research.
+
+## 47. Verified production VN inventory and forward cutover — DB-03A2D1 (2026-10-05)
+
+Fresh provider metadata and local pins matched only GitHub
+`TOOTRJ/TheDashboard` / `1141090963`, dedicated user `biggrizzly11` / `16749816`;
+Vercel `the-dashboard` / `prj_wFUe9k9USVreOQcmQKNWRAVsx5fH`, team
+`team_8iNNxiNjrOseD4gdSCHkQEzF`; Supabase `The Dashboard` /
+`fxpxsciltakyypunglzr`, organization `cqfnnaunmupdyobkyqfo`. The cached
+database connection username also matches. The unrelated connector, other
+project contents, shared credentials and tool/process configuration were not used.
+
+The reviewed [inventory SQL](supabase/audits/vonneumann-cutover-inventory.sql)
+executed through Supabase CLI 2.84.2's linked Management API query path. Its
+returned context proves PostgreSQL 17.6, repeatable-read isolation, transaction
+read-only `on`, lock timeout `1s` and statement timeout `15s`, ending in rollback.
+Draft SQL needed the correct existing `metrics` column name before successful
+acceptance; failed read-only queries made no mutations. The
+[dated JSON snapshot](supabase/audits/2026-10-05-vonneumann-inventory.json)
+contains aggregate counts and exact catalog/ACL metadata, with no application
+IDs/bodies, credentials, function bodies or unrestricted service configuration.
+
+**Measured data:** 8 colonies (all saved stopped), 497 probes across 24 runs,
+807 trades across 15 runs, 9,837 snapshots across 10 runs, zero generation stats.
+The populated tables each have one owner. No NULL child run IDs, missing probe
+references or observed owner/bound-run disagreements were found. However,
+160 probes, 126 trades and 1,098 snapshots lack a corresponding colony row.
+The probes represent **16 older runs omitted by current history readback**
+because its fallback runs only when colony history is empty. All 497 probe and
+9,837 snapshot `metrics` values and all 807 trade `execution` values are SQL
+NULL. All new ancestry arrays are empty; 257 scalar parent references remain.
+Seventeen trade rows are open. Saved stopped status and these old rows do not
+establish monitored exposure, exact balances, cost policy or safe restoration.
+No historical data was filled, deleted, adopted or reclassified.
+
+**Measured security/schema:** five `postgres`-owned RLS-enabled tables, no FORCE
+RLS; 18 permissive PUBLIC-scoped owner policies, 93 columns, 19 validated
+constraints and 25 valid/ready indexes. Nullable run IDs lack colony FKs;
+trade/snapshot/parent links are scalar rather than composite owner/run checks.
+All eight table privileges, including TRUNCATE/TRIGGER/REFERENCES/MAINTAIN,
+are effective for anon/authenticated/service_role; only service_role has
+BYPASSRLS. Authenticator has no direct table privileges, but can SET ROLE to
+the three API roles without inheriting their grants. The role scan is complete
+at its bound and explicit column ACLs are absent. These are privilege/policy
+metadata, not actor-specific RLS tests or proof of an exposed truncate RPC.
+The related public defaults are broad; do not alter shared postgres defaults
+to repair VN. The plan scopes future denial to exact VN objects and installs
+new helpers under a separately reviewed dedicated owner.
+
+Both non-internal update triggers are enabled; the colony trigger is already
+bound to `extensions.moddatetime`. No durability schema, VN realtime table,
+related sequence, immediate dependent view, unexpected VN relation or external
+incoming FK was found. All fourteen migration versions match the tracked
+filenames. Function discovery covers VN name/source matches, direct dependencies
+and bound triggers, but cannot prove arbitrary dynamic SQL/client absence.
+Hosted PostgREST version/exposure/transaction-end/JWT configuration and actual
+HTTP actor/commit behavior remain unverified; selected database-role settings
+are not complete service configuration. The audit output excludes JWT secrets.
+
+The [concrete cutover plan](services/vonneumann/PRODUCTION-CUTOVER-PLAN.md)
+maps every active legacy writer, five read projections, archive and relay path,
+private/effective grants and rollback order. It identifies two specific projection
+traps: retirement sweeps cash to reserve, so post-retirement zero cash is not
+terminal capital; newest member/evaluation checkpoints cannot reconstruct full
+history. Required projections must commit with commands or have explicitly
+accepted durable replay/lag semantics. Current EventPersister and socket broadcast
+are not production replacements for atomic projection or durable relay acceptance.
+
+**Next order:** independent merged/paginated legacy history repair, inert pinned
+HTTP transport plus actual isolated PostgREST commit/schema/JWT faults, full
+versioned projections/archive/relay and forward migration/grant cutover, then
+production-source/lease/load and recovery/hosting acceptance. D1 is complete
+as this bounded read-only inventory/plan; D/A3, production timing, compact
+checkpoint and hosting parents remain open. The TODO now names D1A/D2/D3 and
+deep research on custom worker credentials, server transaction configuration,
+legacy classification, relay/replay/retention, source quotas and lease headroom.
+
+This release changes only audit/documentation files. SQL is outside migrations;
+no application, schema, grant, environment, provider acquisition, hosted worker,
+wallet or trade changes are included. PR40 merge
+`22af3190c0171671747d69e971807144a2fa3322` / READY production
+`dpl_6rxutLU4iyGA3328ZhP7NkePYU4y` remains the verified pre-release baseline.
+The inventory PR records its exact source/preview/merge/production/read-only
+smoke verification after release. Rollback is a code/document revert. The
+pre-existing historical migration still has SHA-256
+`a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc`;
+unrelated edits/untracked artifacts and shared agent resources are preserved.

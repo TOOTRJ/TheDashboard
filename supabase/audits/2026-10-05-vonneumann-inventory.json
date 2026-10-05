@@ -1,0 +1,3352 @@
+{
+  "authorized_target": {
+    "name": "The Dashboard",
+    "organization": "cqfnnaunmupdyobkyqfo",
+    "ref": "fxpxsciltakyypunglzr"
+  },
+  "date": "2026-10-05",
+  "inventory": {
+    "client_roles": [
+      {
+        "bypass_rls": false,
+        "inherit": true,
+        "name": "anon",
+        "superuser": false
+      },
+      {
+        "bypass_rls": false,
+        "inherit": true,
+        "name": "authenticated",
+        "superuser": false
+      },
+      {
+        "bypass_rls": false,
+        "inherit": false,
+        "name": "authenticator",
+        "superuser": false
+      },
+      {
+        "bypass_rls": true,
+        "inherit": true,
+        "name": "service_role",
+        "superuser": false
+      }
+    ],
+    "columns": [
+      {
+        "column_acl": null,
+        "default": "gen_random_uuid()",
+        "name": "id",
+        "not_null": true,
+        "table": "vn_colonies",
+        "type": "uuid"
+      },
+      {
+        "column_acl": null,
+        "default": null,
+        "name": "user_id",
+        "not_null": true,
+        "table": "vn_colonies",
+        "type": "uuid"
+      },
+      {
+        "column_acl": null,
+        "default": "'genetic_algorithm'::text",
+        "name": "strategy",
+        "not_null": true,
+        "table": "vn_colonies",
+        "type": "text"
+      },
+      {
+        "column_acl": null,
+        "default": "'{}'::jsonb",
+        "name": "config",
+        "not_null": true,
+        "table": "vn_colonies",
+        "type": "jsonb"
+      },
+      {
+        "column_acl": null,
+        "default": "'simulation'::text",
+        "name": "mode",
+        "not_null": true,
+        "table": "vn_colonies",
+        "type": "text"
+      },
+      {
+        "column_acl": null,
+        "default": "'running'::text",
+        "name": "status",
+        "not_null": true,
+        "table": "vn_colonies",
+        "type": "text"
+      },
+      {
+        "column_acl": null,
+        "default": "now()",
+        "name": "started_at",
+        "not_null": true,
+        "table": "vn_colonies",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column_acl": null,
+        "default": null,
+        "name": "stopped_at",
+        "not_null": false,
+        "table": "vn_colonies",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column_acl": null,
+        "default": "now()",
+        "name": "created_at",
+        "not_null": true,
+        "table": "vn_colonies",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column_acl": null,
+        "default": "now()",
+        "name": "updated_at",
+        "not_null": true,
+        "table": "vn_colonies",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column_acl": null,
+        "default": "gen_random_uuid()",
+        "name": "id",
+        "not_null": true,
+        "table": "vn_fitness_snapshots",
+        "type": "uuid"
+      },
+      {
+        "column_acl": null,
+        "default": null,
+        "name": "user_id",
+        "not_null": true,
+        "table": "vn_fitness_snapshots",
+        "type": "uuid"
+      },
+      {
+        "column_acl": null,
+        "default": null,
+        "name": "probe_id",
+        "not_null": true,
+        "table": "vn_fitness_snapshots",
+        "type": "uuid"
+      },
+      {
+        "column_acl": null,
+        "default": null,
+        "name": "generation",
+        "not_null": true,
+        "table": "vn_fitness_snapshots",
+        "type": "integer"
+      },
+      {
+        "column_acl": null,
+        "default": "0",
+        "name": "tick",
+        "not_null": true,
+        "table": "vn_fitness_snapshots",
+        "type": "integer"
+      },
+      {
+        "column_acl": null,
+        "default": null,
+        "name": "fitness_score",
+        "not_null": true,
+        "table": "vn_fitness_snapshots",
+        "type": "numeric"
+      },
+      {
+        "column_acl": null,
+        "default": "0",
+        "name": "roi",
+        "not_null": true,
+        "table": "vn_fitness_snapshots",
+        "type": "numeric"
+      },
+      {
+        "column_acl": null,
+        "default": "0",
+        "name": "sharpe_ratio",
+        "not_null": false,
+        "table": "vn_fitness_snapshots",
+        "type": "numeric"
+      },
+      {
+        "column_acl": null,
+        "default": "0",
+        "name": "max_drawdown",
+        "not_null": true,
+        "table": "vn_fitness_snapshots",
+        "type": "numeric"
+      },
+      {
+        "column_acl": null,
+        "default": "0",
+        "name": "win_rate",
+        "not_null": true,
+        "table": "vn_fitness_snapshots",
+        "type": "numeric"
+      },
+      {
+        "column_acl": null,
+        "default": "0",
+        "name": "trade_count",
+        "not_null": true,
+        "table": "vn_fitness_snapshots",
+        "type": "integer"
+      },
+      {
+        "column_acl": null,
+        "default": "0",
+        "name": "current_capital",
+        "not_null": true,
+        "table": "vn_fitness_snapshots",
+        "type": "numeric"
+      },
+      {
+        "column_acl": null,
+        "default": "now()",
+        "name": "captured_at",
+        "not_null": true,
+        "table": "vn_fitness_snapshots",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column_acl": null,
+        "default": null,
+        "name": "run_id",
+        "not_null": false,
+        "table": "vn_fitness_snapshots",
+        "type": "uuid"
+      },
+      {
+        "column_acl": null,
+        "default": null,
+        "name": "metrics",
+        "not_null": false,
+        "table": "vn_fitness_snapshots",
+        "type": "jsonb"
+      },
+      {
+        "column_acl": null,
+        "default": "gen_random_uuid()",
+        "name": "id",
+        "not_null": true,
+        "table": "vn_generation_stats",
+        "type": "uuid"
+      },
+      {
+        "column_acl": null,
+        "default": null,
+        "name": "user_id",
+        "not_null": true,
+        "table": "vn_generation_stats",
+        "type": "uuid"
+      },
+      {
+        "column_acl": null,
+        "default": null,
+        "name": "generation",
+        "not_null": true,
+        "table": "vn_generation_stats",
+        "type": "integer"
+      },
+      {
+        "column_acl": null,
+        "default": "0",
+        "name": "total_probes",
+        "not_null": true,
+        "table": "vn_generation_stats",
+        "type": "integer"
+      },
+      {
+        "column_acl": null,
+        "default": "0",
+        "name": "alive_probes",
+        "not_null": true,
+        "table": "vn_generation_stats",
+        "type": "integer"
+      },
+      {
+        "column_acl": null,
+        "default": "0",
+        "name": "dead_probes",
+        "not_null": true,
+        "table": "vn_generation_stats",
+        "type": "integer"
+      },
+      {
+        "column_acl": null,
+        "default": "0",
+        "name": "reproduced_count",
+        "not_null": true,
+        "table": "vn_generation_stats",
+        "type": "integer"
+      },
+      {
+        "column_acl": null,
+        "default": "0",
+        "name": "best_fitness",
+        "not_null": true,
+        "table": "vn_generation_stats",
+        "type": "numeric"
+      },
+      {
+        "column_acl": null,
+        "default": "0",
+        "name": "avg_fitness",
+        "not_null": true,
+        "table": "vn_generation_stats",
+        "type": "numeric"
+      },
+      {
+        "column_acl": null,
+        "default": "0",
+        "name": "worst_fitness",
+        "not_null": true,
+        "table": "vn_generation_stats",
+        "type": "numeric"
+      },
+      {
+        "column_acl": null,
+        "default": "0",
+        "name": "total_capital",
+        "not_null": true,
+        "table": "vn_generation_stats",
+        "type": "numeric"
+      },
+      {
+        "column_acl": null,
+        "default": "0",
+        "name": "avg_capital",
+        "not_null": true,
+        "table": "vn_generation_stats",
+        "type": "numeric"
+      },
+      {
+        "column_acl": null,
+        "default": "0",
+        "name": "total_trades",
+        "not_null": true,
+        "table": "vn_generation_stats",
+        "type": "integer"
+      },
+      {
+        "column_acl": null,
+        "default": "0",
+        "name": "avg_win_rate",
+        "not_null": true,
+        "table": "vn_generation_stats",
+        "type": "numeric"
+      },
+      {
+        "column_acl": null,
+        "default": "0",
+        "name": "best_roi",
+        "not_null": true,
+        "table": "vn_generation_stats",
+        "type": "numeric"
+      },
+      {
+        "column_acl": null,
+        "default": "0",
+        "name": "avg_roi",
+        "not_null": true,
+        "table": "vn_generation_stats",
+        "type": "numeric"
+      },
+      {
+        "column_acl": null,
+        "default": "0",
+        "name": "genome_diversity",
+        "not_null": true,
+        "table": "vn_generation_stats",
+        "type": "numeric"
+      },
+      {
+        "column_acl": null,
+        "default": "now()",
+        "name": "started_at",
+        "not_null": true,
+        "table": "vn_generation_stats",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column_acl": null,
+        "default": null,
+        "name": "ended_at",
+        "not_null": false,
+        "table": "vn_generation_stats",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column_acl": null,
+        "default": null,
+        "name": "run_id",
+        "not_null": false,
+        "table": "vn_generation_stats",
+        "type": "uuid"
+      },
+      {
+        "column_acl": null,
+        "default": "gen_random_uuid()",
+        "name": "id",
+        "not_null": true,
+        "table": "vn_probes",
+        "type": "uuid"
+      },
+      {
+        "column_acl": null,
+        "default": null,
+        "name": "user_id",
+        "not_null": true,
+        "table": "vn_probes",
+        "type": "uuid"
+      },
+      {
+        "column_acl": null,
+        "default": null,
+        "name": "probe_name",
+        "not_null": true,
+        "table": "vn_probes",
+        "type": "text"
+      },
+      {
+        "column_acl": null,
+        "default": "0",
+        "name": "generation",
+        "not_null": true,
+        "table": "vn_probes",
+        "type": "integer"
+      },
+      {
+        "column_acl": null,
+        "default": null,
+        "name": "parent_id",
+        "not_null": false,
+        "table": "vn_probes",
+        "type": "uuid"
+      },
+      {
+        "column_acl": null,
+        "default": "'BORN'::text",
+        "name": "state",
+        "not_null": true,
+        "table": "vn_probes",
+        "type": "text"
+      },
+      {
+        "column_acl": null,
+        "default": "'{}'::jsonb",
+        "name": "genome",
+        "not_null": true,
+        "table": "vn_probes",
+        "type": "jsonb"
+      },
+      {
+        "column_acl": null,
+        "default": "0",
+        "name": "initial_capital",
+        "not_null": true,
+        "table": "vn_probes",
+        "type": "numeric"
+      },
+      {
+        "column_acl": null,
+        "default": "0",
+        "name": "current_capital",
+        "not_null": true,
+        "table": "vn_probes",
+        "type": "numeric"
+      },
+      {
+        "column_acl": null,
+        "default": "0",
+        "name": "peak_capital",
+        "not_null": true,
+        "table": "vn_probes",
+        "type": "numeric"
+      },
+      {
+        "column_acl": null,
+        "default": "0",
+        "name": "total_trades",
+        "not_null": true,
+        "table": "vn_probes",
+        "type": "integer"
+      },
+      {
+        "column_acl": null,
+        "default": "0",
+        "name": "winning_trades",
+        "not_null": true,
+        "table": "vn_probes",
+        "type": "integer"
+      },
+      {
+        "column_acl": null,
+        "default": "0",
+        "name": "total_pnl",
+        "not_null": true,
+        "table": "vn_probes",
+        "type": "numeric"
+      },
+      {
+        "column_acl": null,
+        "default": "0",
+        "name": "max_drawdown",
+        "not_null": true,
+        "table": "vn_probes",
+        "type": "numeric"
+      },
+      {
+        "column_acl": null,
+        "default": "0",
+        "name": "sharpe_ratio",
+        "not_null": false,
+        "table": "vn_probes",
+        "type": "numeric"
+      },
+      {
+        "column_acl": null,
+        "default": "0",
+        "name": "fitness_score",
+        "not_null": true,
+        "table": "vn_probes",
+        "type": "numeric"
+      },
+      {
+        "column_acl": null,
+        "default": "now()",
+        "name": "born_at",
+        "not_null": true,
+        "table": "vn_probes",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column_acl": null,
+        "default": null,
+        "name": "died_at",
+        "not_null": false,
+        "table": "vn_probes",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column_acl": null,
+        "default": null,
+        "name": "death_reason",
+        "not_null": false,
+        "table": "vn_probes",
+        "type": "text"
+      },
+      {
+        "column_acl": null,
+        "default": "'simulation'::text",
+        "name": "mode",
+        "not_null": true,
+        "table": "vn_probes",
+        "type": "text"
+      },
+      {
+        "column_acl": null,
+        "default": "now()",
+        "name": "created_at",
+        "not_null": true,
+        "table": "vn_probes",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column_acl": null,
+        "default": "now()",
+        "name": "updated_at",
+        "not_null": true,
+        "table": "vn_probes",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column_acl": null,
+        "default": null,
+        "name": "run_id",
+        "not_null": false,
+        "table": "vn_probes",
+        "type": "uuid"
+      },
+      {
+        "column_acl": null,
+        "default": "'[]'::jsonb",
+        "name": "parent_ids",
+        "not_null": true,
+        "table": "vn_probes",
+        "type": "jsonb"
+      },
+      {
+        "column_acl": null,
+        "default": null,
+        "name": "metrics",
+        "not_null": false,
+        "table": "vn_probes",
+        "type": "jsonb"
+      },
+      {
+        "column_acl": null,
+        "default": "gen_random_uuid()",
+        "name": "id",
+        "not_null": true,
+        "table": "vn_trades",
+        "type": "uuid"
+      },
+      {
+        "column_acl": null,
+        "default": null,
+        "name": "user_id",
+        "not_null": true,
+        "table": "vn_trades",
+        "type": "uuid"
+      },
+      {
+        "column_acl": null,
+        "default": null,
+        "name": "probe_id",
+        "not_null": true,
+        "table": "vn_trades",
+        "type": "uuid"
+      },
+      {
+        "column_acl": null,
+        "default": null,
+        "name": "side",
+        "not_null": true,
+        "table": "vn_trades",
+        "type": "text"
+      },
+      {
+        "column_acl": null,
+        "default": "'SOL/USDC'::text",
+        "name": "pair",
+        "not_null": true,
+        "table": "vn_trades",
+        "type": "text"
+      },
+      {
+        "column_acl": null,
+        "default": null,
+        "name": "entry_price",
+        "not_null": true,
+        "table": "vn_trades",
+        "type": "numeric"
+      },
+      {
+        "column_acl": null,
+        "default": null,
+        "name": "exit_price",
+        "not_null": false,
+        "table": "vn_trades",
+        "type": "numeric"
+      },
+      {
+        "column_acl": null,
+        "default": null,
+        "name": "amount",
+        "not_null": true,
+        "table": "vn_trades",
+        "type": "numeric"
+      },
+      {
+        "column_acl": null,
+        "default": null,
+        "name": "pnl",
+        "not_null": false,
+        "table": "vn_trades",
+        "type": "numeric"
+      },
+      {
+        "column_acl": null,
+        "default": null,
+        "name": "pnl_pct",
+        "not_null": false,
+        "table": "vn_trades",
+        "type": "numeric"
+      },
+      {
+        "column_acl": null,
+        "default": null,
+        "name": "signal_rsi",
+        "not_null": false,
+        "table": "vn_trades",
+        "type": "numeric"
+      },
+      {
+        "column_acl": null,
+        "default": null,
+        "name": "signal_ema_fast",
+        "not_null": false,
+        "table": "vn_trades",
+        "type": "numeric"
+      },
+      {
+        "column_acl": null,
+        "default": null,
+        "name": "signal_ema_slow",
+        "not_null": false,
+        "table": "vn_trades",
+        "type": "numeric"
+      },
+      {
+        "column_acl": null,
+        "default": null,
+        "name": "signal_volume_ratio",
+        "not_null": false,
+        "table": "vn_trades",
+        "type": "numeric"
+      },
+      {
+        "column_acl": null,
+        "default": null,
+        "name": "stop_loss_price",
+        "not_null": false,
+        "table": "vn_trades",
+        "type": "numeric"
+      },
+      {
+        "column_acl": null,
+        "default": null,
+        "name": "take_profit_price",
+        "not_null": false,
+        "table": "vn_trades",
+        "type": "numeric"
+      },
+      {
+        "column_acl": null,
+        "default": null,
+        "name": "exit_reason",
+        "not_null": false,
+        "table": "vn_trades",
+        "type": "text"
+      },
+      {
+        "column_acl": null,
+        "default": "now()",
+        "name": "opened_at",
+        "not_null": true,
+        "table": "vn_trades",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column_acl": null,
+        "default": null,
+        "name": "closed_at",
+        "not_null": false,
+        "table": "vn_trades",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column_acl": null,
+        "default": "'simulation'::text",
+        "name": "mode",
+        "not_null": true,
+        "table": "vn_trades",
+        "type": "text"
+      },
+      {
+        "column_acl": null,
+        "default": "now()",
+        "name": "created_at",
+        "not_null": true,
+        "table": "vn_trades",
+        "type": "timestamp with time zone"
+      },
+      {
+        "column_acl": null,
+        "default": null,
+        "name": "run_id",
+        "not_null": false,
+        "table": "vn_trades",
+        "type": "uuid"
+      },
+      {
+        "column_acl": null,
+        "default": null,
+        "name": "execution",
+        "not_null": false,
+        "table": "vn_trades",
+        "type": "jsonb"
+      }
+    ],
+    "constraints": [
+      {
+        "definition": "PRIMARY KEY (id)",
+        "name": "vn_colonies_pkey",
+        "table": "vn_colonies",
+        "type": "p",
+        "validated": true
+      },
+      {
+        "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id)",
+        "name": "vn_colonies_user_id_fkey",
+        "table": "vn_colonies",
+        "type": "f",
+        "validated": true
+      },
+      {
+        "definition": "PRIMARY KEY (id)",
+        "name": "vn_fitness_snapshots_pkey",
+        "table": "vn_fitness_snapshots",
+        "type": "p",
+        "validated": true
+      },
+      {
+        "definition": "FOREIGN KEY (probe_id) REFERENCES vn_probes(id) ON DELETE CASCADE",
+        "name": "vn_fitness_snapshots_probe_id_fkey",
+        "table": "vn_fitness_snapshots",
+        "type": "f",
+        "validated": true
+      },
+      {
+        "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE",
+        "name": "vn_fitness_snapshots_user_id_fkey",
+        "table": "vn_fitness_snapshots",
+        "type": "f",
+        "validated": true
+      },
+      {
+        "definition": "PRIMARY KEY (id)",
+        "name": "vn_generation_stats_pkey",
+        "table": "vn_generation_stats",
+        "type": "p",
+        "validated": true
+      },
+      {
+        "definition": "UNIQUE (user_id, run_id, generation)",
+        "name": "vn_generation_stats_run_unique",
+        "table": "vn_generation_stats",
+        "type": "u",
+        "validated": true
+      },
+      {
+        "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE",
+        "name": "vn_generation_stats_user_id_fkey",
+        "table": "vn_generation_stats",
+        "type": "f",
+        "validated": true
+      },
+      {
+        "definition": "CHECK (mode = ANY (ARRAY['simulation'::text, 'paper'::text, 'live'::text]))",
+        "name": "vn_probes_mode_check",
+        "table": "vn_probes",
+        "type": "c",
+        "validated": true
+      },
+      {
+        "definition": "FOREIGN KEY (parent_id) REFERENCES vn_probes(id) ON DELETE SET NULL",
+        "name": "vn_probes_parent_id_fkey",
+        "table": "vn_probes",
+        "type": "f",
+        "validated": true
+      },
+      {
+        "definition": "PRIMARY KEY (id)",
+        "name": "vn_probes_pkey",
+        "table": "vn_probes",
+        "type": "p",
+        "validated": true
+      },
+      {
+        "definition": "CHECK (state = ANY (ARRAY['BORN'::text, 'FUNDED'::text, 'OBSERVING'::text, 'TRADING'::text, 'REPRODUCING'::text, 'DYING'::text, 'DEAD'::text]))",
+        "name": "vn_probes_state_check",
+        "table": "vn_probes",
+        "type": "c",
+        "validated": true
+      },
+      {
+        "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE",
+        "name": "vn_probes_user_id_fkey",
+        "table": "vn_probes",
+        "type": "f",
+        "validated": true
+      },
+      {
+        "definition": "CHECK (exit_reason IS NULL OR (exit_reason = ANY (ARRAY['TAKE_PROFIT'::text, 'STOP_LOSS'::text, 'SIGNAL_EXIT'::text, 'PROBE_DYING'::text, 'REPRODUCING'::text, 'EVOLUTION'::text, 'TERMINAL_LOSS'::text])))",
+        "name": "vn_trades_exit_reason_check",
+        "table": "vn_trades",
+        "type": "c",
+        "validated": true
+      },
+      {
+        "definition": "CHECK (mode = ANY (ARRAY['simulation'::text, 'paper'::text, 'live'::text]))",
+        "name": "vn_trades_mode_check",
+        "table": "vn_trades",
+        "type": "c",
+        "validated": true
+      },
+      {
+        "definition": "PRIMARY KEY (id)",
+        "name": "vn_trades_pkey",
+        "table": "vn_trades",
+        "type": "p",
+        "validated": true
+      },
+      {
+        "definition": "FOREIGN KEY (probe_id) REFERENCES vn_probes(id) ON DELETE CASCADE",
+        "name": "vn_trades_probe_id_fkey",
+        "table": "vn_trades",
+        "type": "f",
+        "validated": true
+      },
+      {
+        "definition": "CHECK (side = ANY (ARRAY['BUY'::text, 'SELL'::text]))",
+        "name": "vn_trades_side_check",
+        "table": "vn_trades",
+        "type": "c",
+        "validated": true
+      },
+      {
+        "definition": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE",
+        "name": "vn_trades_user_id_fkey",
+        "table": "vn_trades",
+        "type": "f",
+        "validated": true
+      }
+    ],
+    "dependent_views": [],
+    "durability_schema_present": false,
+    "effective_table_privileges": [
+      {
+        "any_column_insert": true,
+        "any_column_select": true,
+        "any_column_update": true,
+        "delete": true,
+        "insert": true,
+        "maintain": true,
+        "references": true,
+        "role": "anon",
+        "select": true,
+        "table": "vn_colonies",
+        "trigger": true,
+        "truncate": true,
+        "update": true
+      },
+      {
+        "any_column_insert": true,
+        "any_column_select": true,
+        "any_column_update": true,
+        "delete": true,
+        "insert": true,
+        "maintain": true,
+        "references": true,
+        "role": "anon",
+        "select": true,
+        "table": "vn_fitness_snapshots",
+        "trigger": true,
+        "truncate": true,
+        "update": true
+      },
+      {
+        "any_column_insert": true,
+        "any_column_select": true,
+        "any_column_update": true,
+        "delete": true,
+        "insert": true,
+        "maintain": true,
+        "references": true,
+        "role": "anon",
+        "select": true,
+        "table": "vn_generation_stats",
+        "trigger": true,
+        "truncate": true,
+        "update": true
+      },
+      {
+        "any_column_insert": true,
+        "any_column_select": true,
+        "any_column_update": true,
+        "delete": true,
+        "insert": true,
+        "maintain": true,
+        "references": true,
+        "role": "anon",
+        "select": true,
+        "table": "vn_probes",
+        "trigger": true,
+        "truncate": true,
+        "update": true
+      },
+      {
+        "any_column_insert": true,
+        "any_column_select": true,
+        "any_column_update": true,
+        "delete": true,
+        "insert": true,
+        "maintain": true,
+        "references": true,
+        "role": "anon",
+        "select": true,
+        "table": "vn_trades",
+        "trigger": true,
+        "truncate": true,
+        "update": true
+      },
+      {
+        "any_column_insert": true,
+        "any_column_select": true,
+        "any_column_update": true,
+        "delete": true,
+        "insert": true,
+        "maintain": true,
+        "references": true,
+        "role": "authenticated",
+        "select": true,
+        "table": "vn_colonies",
+        "trigger": true,
+        "truncate": true,
+        "update": true
+      },
+      {
+        "any_column_insert": true,
+        "any_column_select": true,
+        "any_column_update": true,
+        "delete": true,
+        "insert": true,
+        "maintain": true,
+        "references": true,
+        "role": "authenticated",
+        "select": true,
+        "table": "vn_fitness_snapshots",
+        "trigger": true,
+        "truncate": true,
+        "update": true
+      },
+      {
+        "any_column_insert": true,
+        "any_column_select": true,
+        "any_column_update": true,
+        "delete": true,
+        "insert": true,
+        "maintain": true,
+        "references": true,
+        "role": "authenticated",
+        "select": true,
+        "table": "vn_generation_stats",
+        "trigger": true,
+        "truncate": true,
+        "update": true
+      },
+      {
+        "any_column_insert": true,
+        "any_column_select": true,
+        "any_column_update": true,
+        "delete": true,
+        "insert": true,
+        "maintain": true,
+        "references": true,
+        "role": "authenticated",
+        "select": true,
+        "table": "vn_probes",
+        "trigger": true,
+        "truncate": true,
+        "update": true
+      },
+      {
+        "any_column_insert": true,
+        "any_column_select": true,
+        "any_column_update": true,
+        "delete": true,
+        "insert": true,
+        "maintain": true,
+        "references": true,
+        "role": "authenticated",
+        "select": true,
+        "table": "vn_trades",
+        "trigger": true,
+        "truncate": true,
+        "update": true
+      },
+      {
+        "any_column_insert": false,
+        "any_column_select": false,
+        "any_column_update": false,
+        "delete": false,
+        "insert": false,
+        "maintain": false,
+        "references": false,
+        "role": "authenticator",
+        "select": false,
+        "table": "vn_colonies",
+        "trigger": false,
+        "truncate": false,
+        "update": false
+      },
+      {
+        "any_column_insert": false,
+        "any_column_select": false,
+        "any_column_update": false,
+        "delete": false,
+        "insert": false,
+        "maintain": false,
+        "references": false,
+        "role": "authenticator",
+        "select": false,
+        "table": "vn_fitness_snapshots",
+        "trigger": false,
+        "truncate": false,
+        "update": false
+      },
+      {
+        "any_column_insert": false,
+        "any_column_select": false,
+        "any_column_update": false,
+        "delete": false,
+        "insert": false,
+        "maintain": false,
+        "references": false,
+        "role": "authenticator",
+        "select": false,
+        "table": "vn_generation_stats",
+        "trigger": false,
+        "truncate": false,
+        "update": false
+      },
+      {
+        "any_column_insert": false,
+        "any_column_select": false,
+        "any_column_update": false,
+        "delete": false,
+        "insert": false,
+        "maintain": false,
+        "references": false,
+        "role": "authenticator",
+        "select": false,
+        "table": "vn_probes",
+        "trigger": false,
+        "truncate": false,
+        "update": false
+      },
+      {
+        "any_column_insert": false,
+        "any_column_select": false,
+        "any_column_update": false,
+        "delete": false,
+        "insert": false,
+        "maintain": false,
+        "references": false,
+        "role": "authenticator",
+        "select": false,
+        "table": "vn_trades",
+        "trigger": false,
+        "truncate": false,
+        "update": false
+      },
+      {
+        "any_column_insert": true,
+        "any_column_select": true,
+        "any_column_update": true,
+        "delete": true,
+        "insert": true,
+        "maintain": true,
+        "references": true,
+        "role": "service_role",
+        "select": true,
+        "table": "vn_colonies",
+        "trigger": true,
+        "truncate": true,
+        "update": true
+      },
+      {
+        "any_column_insert": true,
+        "any_column_select": true,
+        "any_column_update": true,
+        "delete": true,
+        "insert": true,
+        "maintain": true,
+        "references": true,
+        "role": "service_role",
+        "select": true,
+        "table": "vn_fitness_snapshots",
+        "trigger": true,
+        "truncate": true,
+        "update": true
+      },
+      {
+        "any_column_insert": true,
+        "any_column_select": true,
+        "any_column_update": true,
+        "delete": true,
+        "insert": true,
+        "maintain": true,
+        "references": true,
+        "role": "service_role",
+        "select": true,
+        "table": "vn_generation_stats",
+        "trigger": true,
+        "truncate": true,
+        "update": true
+      },
+      {
+        "any_column_insert": true,
+        "any_column_select": true,
+        "any_column_update": true,
+        "delete": true,
+        "insert": true,
+        "maintain": true,
+        "references": true,
+        "role": "service_role",
+        "select": true,
+        "table": "vn_probes",
+        "trigger": true,
+        "truncate": true,
+        "update": true
+      },
+      {
+        "any_column_insert": true,
+        "any_column_select": true,
+        "any_column_update": true,
+        "delete": true,
+        "insert": true,
+        "maintain": true,
+        "references": true,
+        "role": "service_role",
+        "select": true,
+        "table": "vn_trades",
+        "trigger": true,
+        "truncate": true,
+        "update": true
+      }
+    ],
+    "incoming_foreign_keys": [
+      {
+        "deferrable": false,
+        "definition": "FOREIGN KEY (probe_id) REFERENCES vn_probes(id) ON DELETE CASCADE",
+        "initially_deferred": false,
+        "name": "vn_fitness_snapshots_probe_id_fkey",
+        "owner": "postgres",
+        "schema": "public",
+        "table": "vn_fitness_snapshots",
+        "target": "vn_probes",
+        "validated": true
+      },
+      {
+        "deferrable": false,
+        "definition": "FOREIGN KEY (parent_id) REFERENCES vn_probes(id) ON DELETE SET NULL",
+        "initially_deferred": false,
+        "name": "vn_probes_parent_id_fkey",
+        "owner": "postgres",
+        "schema": "public",
+        "table": "vn_probes",
+        "target": "vn_probes",
+        "validated": true
+      },
+      {
+        "deferrable": false,
+        "definition": "FOREIGN KEY (probe_id) REFERENCES vn_probes(id) ON DELETE CASCADE",
+        "initially_deferred": false,
+        "name": "vn_trades_probe_id_fkey",
+        "owner": "postgres",
+        "schema": "public",
+        "table": "vn_trades",
+        "target": "vn_probes",
+        "validated": true
+      }
+    ],
+    "indexes": [
+      {
+        "definition": "CREATE INDEX idx_vn_colonies_status ON public.vn_colonies USING btree (status)",
+        "name": "idx_vn_colonies_status",
+        "ready": true,
+        "table": "vn_colonies",
+        "valid": true
+      },
+      {
+        "definition": "CREATE INDEX idx_vn_colonies_user_id ON public.vn_colonies USING btree (user_id)",
+        "name": "idx_vn_colonies_user_id",
+        "ready": true,
+        "table": "vn_colonies",
+        "valid": true
+      },
+      {
+        "definition": "CREATE UNIQUE INDEX vn_colonies_pkey ON public.vn_colonies USING btree (id)",
+        "name": "vn_colonies_pkey",
+        "ready": true,
+        "table": "vn_colonies",
+        "valid": true
+      },
+      {
+        "definition": "CREATE INDEX vn_fitness_gen_idx ON public.vn_fitness_snapshots USING btree (user_id, generation)",
+        "name": "vn_fitness_gen_idx",
+        "ready": true,
+        "table": "vn_fitness_snapshots",
+        "valid": true
+      },
+      {
+        "definition": "CREATE INDEX vn_fitness_probe_idx ON public.vn_fitness_snapshots USING btree (probe_id, generation)",
+        "name": "vn_fitness_probe_idx",
+        "ready": true,
+        "table": "vn_fitness_snapshots",
+        "valid": true
+      },
+      {
+        "definition": "CREATE INDEX vn_fitness_run_id_idx ON public.vn_fitness_snapshots USING btree (run_id)",
+        "name": "vn_fitness_run_id_idx",
+        "ready": true,
+        "table": "vn_fitness_snapshots",
+        "valid": true
+      },
+      {
+        "definition": "CREATE UNIQUE INDEX vn_fitness_snapshots_pkey ON public.vn_fitness_snapshots USING btree (id)",
+        "name": "vn_fitness_snapshots_pkey",
+        "ready": true,
+        "table": "vn_fitness_snapshots",
+        "valid": true
+      },
+      {
+        "definition": "CREATE INDEX vn_fitness_user_idx ON public.vn_fitness_snapshots USING btree (user_id)",
+        "name": "vn_fitness_user_idx",
+        "ready": true,
+        "table": "vn_fitness_snapshots",
+        "valid": true
+      },
+      {
+        "definition": "CREATE UNIQUE INDEX vn_generation_stats_pkey ON public.vn_generation_stats USING btree (id)",
+        "name": "vn_generation_stats_pkey",
+        "ready": true,
+        "table": "vn_generation_stats",
+        "valid": true
+      },
+      {
+        "definition": "CREATE UNIQUE INDEX vn_generation_stats_run_unique ON public.vn_generation_stats USING btree (user_id, run_id, generation)",
+        "name": "vn_generation_stats_run_unique",
+        "ready": true,
+        "table": "vn_generation_stats",
+        "valid": true
+      },
+      {
+        "definition": "CREATE INDEX vn_genstats_run_id_idx ON public.vn_generation_stats USING btree (run_id)",
+        "name": "vn_genstats_run_id_idx",
+        "ready": true,
+        "table": "vn_generation_stats",
+        "valid": true
+      },
+      {
+        "definition": "CREATE INDEX vn_genstats_user_idx ON public.vn_generation_stats USING btree (user_id, generation)",
+        "name": "vn_genstats_user_idx",
+        "ready": true,
+        "table": "vn_generation_stats",
+        "valid": true
+      },
+      {
+        "definition": "CREATE INDEX vn_probes_fitness_idx ON public.vn_probes USING btree (user_id, fitness_score DESC)",
+        "name": "vn_probes_fitness_idx",
+        "ready": true,
+        "table": "vn_probes",
+        "valid": true
+      },
+      {
+        "definition": "CREATE INDEX vn_probes_generation_idx ON public.vn_probes USING btree (user_id, generation)",
+        "name": "vn_probes_generation_idx",
+        "ready": true,
+        "table": "vn_probes",
+        "valid": true
+      },
+      {
+        "definition": "CREATE INDEX vn_probes_parent_id_idx ON public.vn_probes USING btree (parent_id)",
+        "name": "vn_probes_parent_id_idx",
+        "ready": true,
+        "table": "vn_probes",
+        "valid": true
+      },
+      {
+        "definition": "CREATE INDEX vn_probes_parent_ids_idx ON public.vn_probes USING gin (parent_ids)",
+        "name": "vn_probes_parent_ids_idx",
+        "ready": true,
+        "table": "vn_probes",
+        "valid": true
+      },
+      {
+        "definition": "CREATE UNIQUE INDEX vn_probes_pkey ON public.vn_probes USING btree (id)",
+        "name": "vn_probes_pkey",
+        "ready": true,
+        "table": "vn_probes",
+        "valid": true
+      },
+      {
+        "definition": "CREATE INDEX vn_probes_run_id_idx ON public.vn_probes USING btree (user_id, run_id)",
+        "name": "vn_probes_run_id_idx",
+        "ready": true,
+        "table": "vn_probes",
+        "valid": true
+      },
+      {
+        "definition": "CREATE INDEX vn_probes_state_idx ON public.vn_probes USING btree (user_id, state)",
+        "name": "vn_probes_state_idx",
+        "ready": true,
+        "table": "vn_probes",
+        "valid": true
+      },
+      {
+        "definition": "CREATE INDEX vn_probes_user_id_idx ON public.vn_probes USING btree (user_id)",
+        "name": "vn_probes_user_id_idx",
+        "ready": true,
+        "table": "vn_probes",
+        "valid": true
+      },
+      {
+        "definition": "CREATE INDEX vn_trades_opened_at_idx ON public.vn_trades USING btree (user_id, opened_at DESC)",
+        "name": "vn_trades_opened_at_idx",
+        "ready": true,
+        "table": "vn_trades",
+        "valid": true
+      },
+      {
+        "definition": "CREATE UNIQUE INDEX vn_trades_pkey ON public.vn_trades USING btree (id)",
+        "name": "vn_trades_pkey",
+        "ready": true,
+        "table": "vn_trades",
+        "valid": true
+      },
+      {
+        "definition": "CREATE INDEX vn_trades_probe_id_idx ON public.vn_trades USING btree (probe_id)",
+        "name": "vn_trades_probe_id_idx",
+        "ready": true,
+        "table": "vn_trades",
+        "valid": true
+      },
+      {
+        "definition": "CREATE INDEX vn_trades_run_id_idx ON public.vn_trades USING btree (run_id)",
+        "name": "vn_trades_run_id_idx",
+        "ready": true,
+        "table": "vn_trades",
+        "valid": true
+      },
+      {
+        "definition": "CREATE INDEX vn_trades_user_id_idx ON public.vn_trades USING btree (user_id)",
+        "name": "vn_trades_user_id_idx",
+        "ready": true,
+        "table": "vn_trades",
+        "valid": true
+      }
+    ],
+    "membership_scan_truncated": false,
+    "migration_versions": [
+      "20260402100000",
+      "20260402120000",
+      "20260403100000",
+      "20260403110000",
+      "20260408200000",
+      "20260408200100",
+      "20260408200200",
+      "20260408200300",
+      "20260409200000",
+      "20260409210000",
+      "20260418120000",
+      "20260930010000",
+      "20260930020000",
+      "20260930030000"
+    ],
+    "parent_array_counts": {
+      "bound_run_mismatch": 0,
+      "duplicate_groups": 0,
+      "elements": 0,
+      "invalid_uuid": 0,
+      "missing_parent": 0,
+      "owner_mismatch": 0,
+      "self_parent": 0,
+      "unbound_run": 0
+    },
+    "policies": [
+      {
+        "check": "(auth.uid() = user_id)",
+        "command": "INSERT",
+        "name": "Users can insert own colonies",
+        "permissive": "PERMISSIVE",
+        "roles": [
+          "public"
+        ],
+        "table": "vn_colonies",
+        "using": null
+      },
+      {
+        "check": null,
+        "command": "UPDATE",
+        "name": "Users can update own colonies",
+        "permissive": "PERMISSIVE",
+        "roles": [
+          "public"
+        ],
+        "table": "vn_colonies",
+        "using": "(auth.uid() = user_id)"
+      },
+      {
+        "check": null,
+        "command": "SELECT",
+        "name": "Users can view own colonies",
+        "permissive": "PERMISSIVE",
+        "roles": [
+          "public"
+        ],
+        "table": "vn_colonies",
+        "using": "(auth.uid() = user_id)"
+      },
+      {
+        "check": null,
+        "command": "DELETE",
+        "name": "vn_fitness_delete_own",
+        "permissive": "PERMISSIVE",
+        "roles": [
+          "public"
+        ],
+        "table": "vn_fitness_snapshots",
+        "using": "(auth.uid() = user_id)"
+      },
+      {
+        "check": "(auth.uid() = user_id)",
+        "command": "INSERT",
+        "name": "vn_fitness_insert_own",
+        "permissive": "PERMISSIVE",
+        "roles": [
+          "public"
+        ],
+        "table": "vn_fitness_snapshots",
+        "using": null
+      },
+      {
+        "check": null,
+        "command": "SELECT",
+        "name": "vn_fitness_select_own",
+        "permissive": "PERMISSIVE",
+        "roles": [
+          "public"
+        ],
+        "table": "vn_fitness_snapshots",
+        "using": "(auth.uid() = user_id)"
+      },
+      {
+        "check": null,
+        "command": "DELETE",
+        "name": "vn_genstats_delete_own",
+        "permissive": "PERMISSIVE",
+        "roles": [
+          "public"
+        ],
+        "table": "vn_generation_stats",
+        "using": "(auth.uid() = user_id)"
+      },
+      {
+        "check": "(auth.uid() = user_id)",
+        "command": "INSERT",
+        "name": "vn_genstats_insert_own",
+        "permissive": "PERMISSIVE",
+        "roles": [
+          "public"
+        ],
+        "table": "vn_generation_stats",
+        "using": null
+      },
+      {
+        "check": null,
+        "command": "SELECT",
+        "name": "vn_genstats_select_own",
+        "permissive": "PERMISSIVE",
+        "roles": [
+          "public"
+        ],
+        "table": "vn_generation_stats",
+        "using": "(auth.uid() = user_id)"
+      },
+      {
+        "check": null,
+        "command": "UPDATE",
+        "name": "vn_genstats_update_own",
+        "permissive": "PERMISSIVE",
+        "roles": [
+          "public"
+        ],
+        "table": "vn_generation_stats",
+        "using": "(auth.uid() = user_id)"
+      },
+      {
+        "check": null,
+        "command": "DELETE",
+        "name": "vn_probes_delete_own",
+        "permissive": "PERMISSIVE",
+        "roles": [
+          "public"
+        ],
+        "table": "vn_probes",
+        "using": "(auth.uid() = user_id)"
+      },
+      {
+        "check": "(auth.uid() = user_id)",
+        "command": "INSERT",
+        "name": "vn_probes_insert_own",
+        "permissive": "PERMISSIVE",
+        "roles": [
+          "public"
+        ],
+        "table": "vn_probes",
+        "using": null
+      },
+      {
+        "check": null,
+        "command": "SELECT",
+        "name": "vn_probes_select_own",
+        "permissive": "PERMISSIVE",
+        "roles": [
+          "public"
+        ],
+        "table": "vn_probes",
+        "using": "(auth.uid() = user_id)"
+      },
+      {
+        "check": null,
+        "command": "UPDATE",
+        "name": "vn_probes_update_own",
+        "permissive": "PERMISSIVE",
+        "roles": [
+          "public"
+        ],
+        "table": "vn_probes",
+        "using": "(auth.uid() = user_id)"
+      },
+      {
+        "check": null,
+        "command": "DELETE",
+        "name": "vn_trades_delete_own",
+        "permissive": "PERMISSIVE",
+        "roles": [
+          "public"
+        ],
+        "table": "vn_trades",
+        "using": "(auth.uid() = user_id)"
+      },
+      {
+        "check": "(auth.uid() = user_id)",
+        "command": "INSERT",
+        "name": "vn_trades_insert_own",
+        "permissive": "PERMISSIVE",
+        "roles": [
+          "public"
+        ],
+        "table": "vn_trades",
+        "using": null
+      },
+      {
+        "check": null,
+        "command": "SELECT",
+        "name": "vn_trades_select_own",
+        "permissive": "PERMISSIVE",
+        "roles": [
+          "public"
+        ],
+        "table": "vn_trades",
+        "using": "(auth.uid() = user_id)"
+      },
+      {
+        "check": null,
+        "command": "UPDATE",
+        "name": "vn_trades_update_own",
+        "permissive": "PERMISSIVE",
+        "roles": [
+          "public"
+        ],
+        "table": "vn_trades",
+        "using": "(auth.uid() = user_id)"
+      }
+    ],
+    "reachable_role_memberships": [
+      {
+        "admin": false,
+        "granted_role": "anon",
+        "inherit": false,
+        "member": "authenticator",
+        "set": true
+      },
+      {
+        "admin": false,
+        "granted_role": "authenticated",
+        "inherit": false,
+        "member": "authenticator",
+        "set": true
+      },
+      {
+        "admin": false,
+        "granted_role": "service_role",
+        "inherit": false,
+        "member": "authenticator",
+        "set": true
+      }
+    ],
+    "realtime_tables": [],
+    "related_default_acl": [
+      {
+        "acl": "{postgres=rwU/supabase_admin,anon=rwU/supabase_admin,authenticated=rwU/supabase_admin,service_role=rwU/supabase_admin}",
+        "role": "supabase_admin",
+        "schema": "public",
+        "type": "S"
+      },
+      {
+        "acl": "{postgres=X/supabase_admin,anon=X/supabase_admin,authenticated=X/supabase_admin,service_role=X/supabase_admin}",
+        "role": "supabase_admin",
+        "schema": "public",
+        "type": "f"
+      },
+      {
+        "acl": "{postgres=arwdDxtm/supabase_admin,anon=arwdDxtm/supabase_admin,authenticated=arwdDxtm/supabase_admin,service_role=arwdDxtm/supabase_admin}",
+        "role": "supabase_admin",
+        "schema": "public",
+        "type": "r"
+      },
+      {
+        "acl": "{postgres=rwU/postgres,anon=rwU/postgres,authenticated=rwU/postgres,service_role=rwU/postgres}",
+        "role": "postgres",
+        "schema": "public",
+        "type": "S"
+      },
+      {
+        "acl": "{postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+        "role": "postgres",
+        "schema": "public",
+        "type": "f"
+      },
+      {
+        "acl": "{postgres=arwdDxtm/postgres,anon=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+        "role": "postgres",
+        "schema": "public",
+        "type": "r"
+      }
+    ],
+    "related_sequences": [],
+    "reviewed_role_database_settings": [
+      {
+        "database_scope": "ALL",
+        "role": "supabase_admin",
+        "setting": "search_path=\"$user\", public, auth, extensions"
+      },
+      {
+        "database_scope": "ALL",
+        "role": "postgres",
+        "setting": "search_path=\"\\$user\", public, extensions"
+      },
+      {
+        "database_scope": "ALL",
+        "role": "anon",
+        "setting": "statement_timeout=3s"
+      },
+      {
+        "database_scope": "ALL",
+        "role": "authenticated",
+        "setting": "statement_timeout=8s"
+      },
+      {
+        "database_scope": "ALL",
+        "role": "authenticator",
+        "setting": "lock_timeout=8s"
+      },
+      {
+        "database_scope": "ALL",
+        "role": "authenticator",
+        "setting": "statement_timeout=8s"
+      }
+    ],
+    "row_counts": {
+      "vn_colonies": {
+        "config_not_object": 0,
+        "distinct_owners": 1,
+        "missing_auth_owner": 0,
+        "null_owner": 0,
+        "statuses": {
+          "stopped": 8
+        },
+        "total": 8,
+        "unsupported_mode": 0
+      },
+      "vn_fitness_snapshots": {
+        "colony_owner_mismatch": 0,
+        "distinct_nonnull_runs": 10,
+        "distinct_owner_run_groups": 10,
+        "distinct_owners": 1,
+        "json_null_metrics": 0,
+        "metrics_wrong_shape": 0,
+        "missing_colony": 1098,
+        "missing_probe": 0,
+        "null_metrics": 9837,
+        "null_owner": 0,
+        "null_run": 0,
+        "probe_bound_run_mismatch": 0,
+        "probe_owner_mismatch": 0,
+        "probe_unbound_run": 0,
+        "total": 9837
+      },
+      "vn_generation_stats": {
+        "colony_owner_mismatch": 0,
+        "distinct_nonnull_runs": 0,
+        "distinct_owner_run_groups": 0,
+        "distinct_owners": 0,
+        "duplicate_owner_run_generation_groups": 0,
+        "missing_colony": 0,
+        "null_owner": 0,
+        "null_run": 0,
+        "total": 0
+      },
+      "vn_probes": {
+        "colony_mode_mismatch": 0,
+        "colony_owner_mismatch": 0,
+        "distinct_nonnull_runs": 24,
+        "distinct_owner_run_groups": 24,
+        "distinct_owners": 1,
+        "json_null_metrics": 0,
+        "metrics_wrong_shape": 0,
+        "missing_colony": 160,
+        "missing_colony_groups_hidden_by_reader": 16,
+        "missing_colony_owner_run_groups": 16,
+        "missing_parent": 0,
+        "null_metrics": 497,
+        "null_owner": 0,
+        "null_run": 0,
+        "null_sharpe": 0,
+        "parent_bound_run_mismatch": 0,
+        "parent_ids_empty_array": 497,
+        "parent_ids_not_array": 0,
+        "parent_owner_mismatch": 0,
+        "parent_unbound_run": 0,
+        "scalar_parent_present": 257,
+        "self_parent": 0,
+        "total": 497
+      },
+      "vn_trades": {
+        "closed_missing_exit_fields": 0,
+        "colony_mode_mismatch": 0,
+        "colony_owner_mismatch": 0,
+        "distinct_nonnull_runs": 15,
+        "distinct_owner_run_groups": 15,
+        "distinct_owners": 1,
+        "execution_wrong_shape": 0,
+        "json_null_execution": 0,
+        "missing_colony": 126,
+        "missing_probe": 0,
+        "null_execution": 807,
+        "null_owner": 0,
+        "null_run": 0,
+        "open": 17,
+        "open_with_exit_fields": 0,
+        "probe_bound_run_mismatch": 0,
+        "probe_owner_mismatch": 0,
+        "probe_unbound_run": 0,
+        "total": 807
+      }
+    },
+    "schema_privileges": [
+      {
+        "create": false,
+        "owner": "pg_database_owner",
+        "role": "anon",
+        "schema": "public",
+        "usage": true
+      },
+      {
+        "create": false,
+        "owner": "pg_database_owner",
+        "role": "authenticated",
+        "schema": "public",
+        "usage": true
+      },
+      {
+        "create": false,
+        "owner": "pg_database_owner",
+        "role": "authenticator",
+        "schema": "public",
+        "usage": true
+      },
+      {
+        "create": false,
+        "owner": "pg_database_owner",
+        "role": "service_role",
+        "schema": "public",
+        "usage": true
+      }
+    ],
+    "sequence_privileges": [],
+    "session": {
+      "isolation": "repeatable read",
+      "lock_timeout": "1s",
+      "postgres_version": "17.6",
+      "read_only": "on",
+      "statement_timeout": "15s"
+    },
+    "settable_role_privileges": [
+      {
+        "bypass_rls": false,
+        "client": "authenticator",
+        "inherited": false,
+        "reachable_role": "anon",
+        "settable": true,
+        "superuser": false
+      },
+      {
+        "bypass_rls": false,
+        "client": "authenticator",
+        "inherited": false,
+        "reachable_role": "authenticated",
+        "settable": true,
+        "superuser": false
+      },
+      {
+        "bypass_rls": true,
+        "client": "authenticator",
+        "inherited": false,
+        "reachable_role": "service_role",
+        "settable": true,
+        "superuser": false
+      }
+    ],
+    "table_acl": [
+      {
+        "grantable": false,
+        "grantee": "postgres",
+        "grantor": "postgres",
+        "privilege": "DELETE",
+        "table": "vn_colonies"
+      },
+      {
+        "grantable": false,
+        "grantee": "postgres",
+        "grantor": "postgres",
+        "privilege": "INSERT",
+        "table": "vn_colonies"
+      },
+      {
+        "grantable": false,
+        "grantee": "postgres",
+        "grantor": "postgres",
+        "privilege": "MAINTAIN",
+        "table": "vn_colonies"
+      },
+      {
+        "grantable": false,
+        "grantee": "postgres",
+        "grantor": "postgres",
+        "privilege": "REFERENCES",
+        "table": "vn_colonies"
+      },
+      {
+        "grantable": false,
+        "grantee": "postgres",
+        "grantor": "postgres",
+        "privilege": "SELECT",
+        "table": "vn_colonies"
+      },
+      {
+        "grantable": false,
+        "grantee": "postgres",
+        "grantor": "postgres",
+        "privilege": "TRIGGER",
+        "table": "vn_colonies"
+      },
+      {
+        "grantable": false,
+        "grantee": "postgres",
+        "grantor": "postgres",
+        "privilege": "TRUNCATE",
+        "table": "vn_colonies"
+      },
+      {
+        "grantable": false,
+        "grantee": "postgres",
+        "grantor": "postgres",
+        "privilege": "UPDATE",
+        "table": "vn_colonies"
+      },
+      {
+        "grantable": false,
+        "grantee": "anon",
+        "grantor": "postgres",
+        "privilege": "DELETE",
+        "table": "vn_colonies"
+      },
+      {
+        "grantable": false,
+        "grantee": "anon",
+        "grantor": "postgres",
+        "privilege": "INSERT",
+        "table": "vn_colonies"
+      },
+      {
+        "grantable": false,
+        "grantee": "anon",
+        "grantor": "postgres",
+        "privilege": "MAINTAIN",
+        "table": "vn_colonies"
+      },
+      {
+        "grantable": false,
+        "grantee": "anon",
+        "grantor": "postgres",
+        "privilege": "REFERENCES",
+        "table": "vn_colonies"
+      },
+      {
+        "grantable": false,
+        "grantee": "anon",
+        "grantor": "postgres",
+        "privilege": "SELECT",
+        "table": "vn_colonies"
+      },
+      {
+        "grantable": false,
+        "grantee": "anon",
+        "grantor": "postgres",
+        "privilege": "TRIGGER",
+        "table": "vn_colonies"
+      },
+      {
+        "grantable": false,
+        "grantee": "anon",
+        "grantor": "postgres",
+        "privilege": "TRUNCATE",
+        "table": "vn_colonies"
+      },
+      {
+        "grantable": false,
+        "grantee": "anon",
+        "grantor": "postgres",
+        "privilege": "UPDATE",
+        "table": "vn_colonies"
+      },
+      {
+        "grantable": false,
+        "grantee": "authenticated",
+        "grantor": "postgres",
+        "privilege": "DELETE",
+        "table": "vn_colonies"
+      },
+      {
+        "grantable": false,
+        "grantee": "authenticated",
+        "grantor": "postgres",
+        "privilege": "INSERT",
+        "table": "vn_colonies"
+      },
+      {
+        "grantable": false,
+        "grantee": "authenticated",
+        "grantor": "postgres",
+        "privilege": "MAINTAIN",
+        "table": "vn_colonies"
+      },
+      {
+        "grantable": false,
+        "grantee": "authenticated",
+        "grantor": "postgres",
+        "privilege": "REFERENCES",
+        "table": "vn_colonies"
+      },
+      {
+        "grantable": false,
+        "grantee": "authenticated",
+        "grantor": "postgres",
+        "privilege": "SELECT",
+        "table": "vn_colonies"
+      },
+      {
+        "grantable": false,
+        "grantee": "authenticated",
+        "grantor": "postgres",
+        "privilege": "TRIGGER",
+        "table": "vn_colonies"
+      },
+      {
+        "grantable": false,
+        "grantee": "authenticated",
+        "grantor": "postgres",
+        "privilege": "TRUNCATE",
+        "table": "vn_colonies"
+      },
+      {
+        "grantable": false,
+        "grantee": "authenticated",
+        "grantor": "postgres",
+        "privilege": "UPDATE",
+        "table": "vn_colonies"
+      },
+      {
+        "grantable": false,
+        "grantee": "service_role",
+        "grantor": "postgres",
+        "privilege": "DELETE",
+        "table": "vn_colonies"
+      },
+      {
+        "grantable": false,
+        "grantee": "service_role",
+        "grantor": "postgres",
+        "privilege": "INSERT",
+        "table": "vn_colonies"
+      },
+      {
+        "grantable": false,
+        "grantee": "service_role",
+        "grantor": "postgres",
+        "privilege": "MAINTAIN",
+        "table": "vn_colonies"
+      },
+      {
+        "grantable": false,
+        "grantee": "service_role",
+        "grantor": "postgres",
+        "privilege": "REFERENCES",
+        "table": "vn_colonies"
+      },
+      {
+        "grantable": false,
+        "grantee": "service_role",
+        "grantor": "postgres",
+        "privilege": "SELECT",
+        "table": "vn_colonies"
+      },
+      {
+        "grantable": false,
+        "grantee": "service_role",
+        "grantor": "postgres",
+        "privilege": "TRIGGER",
+        "table": "vn_colonies"
+      },
+      {
+        "grantable": false,
+        "grantee": "service_role",
+        "grantor": "postgres",
+        "privilege": "TRUNCATE",
+        "table": "vn_colonies"
+      },
+      {
+        "grantable": false,
+        "grantee": "service_role",
+        "grantor": "postgres",
+        "privilege": "UPDATE",
+        "table": "vn_colonies"
+      },
+      {
+        "grantable": false,
+        "grantee": "postgres",
+        "grantor": "postgres",
+        "privilege": "DELETE",
+        "table": "vn_fitness_snapshots"
+      },
+      {
+        "grantable": false,
+        "grantee": "postgres",
+        "grantor": "postgres",
+        "privilege": "INSERT",
+        "table": "vn_fitness_snapshots"
+      },
+      {
+        "grantable": false,
+        "grantee": "postgres",
+        "grantor": "postgres",
+        "privilege": "MAINTAIN",
+        "table": "vn_fitness_snapshots"
+      },
+      {
+        "grantable": false,
+        "grantee": "postgres",
+        "grantor": "postgres",
+        "privilege": "REFERENCES",
+        "table": "vn_fitness_snapshots"
+      },
+      {
+        "grantable": false,
+        "grantee": "postgres",
+        "grantor": "postgres",
+        "privilege": "SELECT",
+        "table": "vn_fitness_snapshots"
+      },
+      {
+        "grantable": false,
+        "grantee": "postgres",
+        "grantor": "postgres",
+        "privilege": "TRIGGER",
+        "table": "vn_fitness_snapshots"
+      },
+      {
+        "grantable": false,
+        "grantee": "postgres",
+        "grantor": "postgres",
+        "privilege": "TRUNCATE",
+        "table": "vn_fitness_snapshots"
+      },
+      {
+        "grantable": false,
+        "grantee": "postgres",
+        "grantor": "postgres",
+        "privilege": "UPDATE",
+        "table": "vn_fitness_snapshots"
+      },
+      {
+        "grantable": false,
+        "grantee": "anon",
+        "grantor": "postgres",
+        "privilege": "DELETE",
+        "table": "vn_fitness_snapshots"
+      },
+      {
+        "grantable": false,
+        "grantee": "anon",
+        "grantor": "postgres",
+        "privilege": "INSERT",
+        "table": "vn_fitness_snapshots"
+      },
+      {
+        "grantable": false,
+        "grantee": "anon",
+        "grantor": "postgres",
+        "privilege": "MAINTAIN",
+        "table": "vn_fitness_snapshots"
+      },
+      {
+        "grantable": false,
+        "grantee": "anon",
+        "grantor": "postgres",
+        "privilege": "REFERENCES",
+        "table": "vn_fitness_snapshots"
+      },
+      {
+        "grantable": false,
+        "grantee": "anon",
+        "grantor": "postgres",
+        "privilege": "SELECT",
+        "table": "vn_fitness_snapshots"
+      },
+      {
+        "grantable": false,
+        "grantee": "anon",
+        "grantor": "postgres",
+        "privilege": "TRIGGER",
+        "table": "vn_fitness_snapshots"
+      },
+      {
+        "grantable": false,
+        "grantee": "anon",
+        "grantor": "postgres",
+        "privilege": "TRUNCATE",
+        "table": "vn_fitness_snapshots"
+      },
+      {
+        "grantable": false,
+        "grantee": "anon",
+        "grantor": "postgres",
+        "privilege": "UPDATE",
+        "table": "vn_fitness_snapshots"
+      },
+      {
+        "grantable": false,
+        "grantee": "authenticated",
+        "grantor": "postgres",
+        "privilege": "DELETE",
+        "table": "vn_fitness_snapshots"
+      },
+      {
+        "grantable": false,
+        "grantee": "authenticated",
+        "grantor": "postgres",
+        "privilege": "INSERT",
+        "table": "vn_fitness_snapshots"
+      },
+      {
+        "grantable": false,
+        "grantee": "authenticated",
+        "grantor": "postgres",
+        "privilege": "MAINTAIN",
+        "table": "vn_fitness_snapshots"
+      },
+      {
+        "grantable": false,
+        "grantee": "authenticated",
+        "grantor": "postgres",
+        "privilege": "REFERENCES",
+        "table": "vn_fitness_snapshots"
+      },
+      {
+        "grantable": false,
+        "grantee": "authenticated",
+        "grantor": "postgres",
+        "privilege": "SELECT",
+        "table": "vn_fitness_snapshots"
+      },
+      {
+        "grantable": false,
+        "grantee": "authenticated",
+        "grantor": "postgres",
+        "privilege": "TRIGGER",
+        "table": "vn_fitness_snapshots"
+      },
+      {
+        "grantable": false,
+        "grantee": "authenticated",
+        "grantor": "postgres",
+        "privilege": "TRUNCATE",
+        "table": "vn_fitness_snapshots"
+      },
+      {
+        "grantable": false,
+        "grantee": "authenticated",
+        "grantor": "postgres",
+        "privilege": "UPDATE",
+        "table": "vn_fitness_snapshots"
+      },
+      {
+        "grantable": false,
+        "grantee": "service_role",
+        "grantor": "postgres",
+        "privilege": "DELETE",
+        "table": "vn_fitness_snapshots"
+      },
+      {
+        "grantable": false,
+        "grantee": "service_role",
+        "grantor": "postgres",
+        "privilege": "INSERT",
+        "table": "vn_fitness_snapshots"
+      },
+      {
+        "grantable": false,
+        "grantee": "service_role",
+        "grantor": "postgres",
+        "privilege": "MAINTAIN",
+        "table": "vn_fitness_snapshots"
+      },
+      {
+        "grantable": false,
+        "grantee": "service_role",
+        "grantor": "postgres",
+        "privilege": "REFERENCES",
+        "table": "vn_fitness_snapshots"
+      },
+      {
+        "grantable": false,
+        "grantee": "service_role",
+        "grantor": "postgres",
+        "privilege": "SELECT",
+        "table": "vn_fitness_snapshots"
+      },
+      {
+        "grantable": false,
+        "grantee": "service_role",
+        "grantor": "postgres",
+        "privilege": "TRIGGER",
+        "table": "vn_fitness_snapshots"
+      },
+      {
+        "grantable": false,
+        "grantee": "service_role",
+        "grantor": "postgres",
+        "privilege": "TRUNCATE",
+        "table": "vn_fitness_snapshots"
+      },
+      {
+        "grantable": false,
+        "grantee": "service_role",
+        "grantor": "postgres",
+        "privilege": "UPDATE",
+        "table": "vn_fitness_snapshots"
+      },
+      {
+        "grantable": false,
+        "grantee": "postgres",
+        "grantor": "postgres",
+        "privilege": "DELETE",
+        "table": "vn_generation_stats"
+      },
+      {
+        "grantable": false,
+        "grantee": "postgres",
+        "grantor": "postgres",
+        "privilege": "INSERT",
+        "table": "vn_generation_stats"
+      },
+      {
+        "grantable": false,
+        "grantee": "postgres",
+        "grantor": "postgres",
+        "privilege": "MAINTAIN",
+        "table": "vn_generation_stats"
+      },
+      {
+        "grantable": false,
+        "grantee": "postgres",
+        "grantor": "postgres",
+        "privilege": "REFERENCES",
+        "table": "vn_generation_stats"
+      },
+      {
+        "grantable": false,
+        "grantee": "postgres",
+        "grantor": "postgres",
+        "privilege": "SELECT",
+        "table": "vn_generation_stats"
+      },
+      {
+        "grantable": false,
+        "grantee": "postgres",
+        "grantor": "postgres",
+        "privilege": "TRIGGER",
+        "table": "vn_generation_stats"
+      },
+      {
+        "grantable": false,
+        "grantee": "postgres",
+        "grantor": "postgres",
+        "privilege": "TRUNCATE",
+        "table": "vn_generation_stats"
+      },
+      {
+        "grantable": false,
+        "grantee": "postgres",
+        "grantor": "postgres",
+        "privilege": "UPDATE",
+        "table": "vn_generation_stats"
+      },
+      {
+        "grantable": false,
+        "grantee": "anon",
+        "grantor": "postgres",
+        "privilege": "DELETE",
+        "table": "vn_generation_stats"
+      },
+      {
+        "grantable": false,
+        "grantee": "anon",
+        "grantor": "postgres",
+        "privilege": "INSERT",
+        "table": "vn_generation_stats"
+      },
+      {
+        "grantable": false,
+        "grantee": "anon",
+        "grantor": "postgres",
+        "privilege": "MAINTAIN",
+        "table": "vn_generation_stats"
+      },
+      {
+        "grantable": false,
+        "grantee": "anon",
+        "grantor": "postgres",
+        "privilege": "REFERENCES",
+        "table": "vn_generation_stats"
+      },
+      {
+        "grantable": false,
+        "grantee": "anon",
+        "grantor": "postgres",
+        "privilege": "SELECT",
+        "table": "vn_generation_stats"
+      },
+      {
+        "grantable": false,
+        "grantee": "anon",
+        "grantor": "postgres",
+        "privilege": "TRIGGER",
+        "table": "vn_generation_stats"
+      },
+      {
+        "grantable": false,
+        "grantee": "anon",
+        "grantor": "postgres",
+        "privilege": "TRUNCATE",
+        "table": "vn_generation_stats"
+      },
+      {
+        "grantable": false,
+        "grantee": "anon",
+        "grantor": "postgres",
+        "privilege": "UPDATE",
+        "table": "vn_generation_stats"
+      },
+      {
+        "grantable": false,
+        "grantee": "authenticated",
+        "grantor": "postgres",
+        "privilege": "DELETE",
+        "table": "vn_generation_stats"
+      },
+      {
+        "grantable": false,
+        "grantee": "authenticated",
+        "grantor": "postgres",
+        "privilege": "INSERT",
+        "table": "vn_generation_stats"
+      },
+      {
+        "grantable": false,
+        "grantee": "authenticated",
+        "grantor": "postgres",
+        "privilege": "MAINTAIN",
+        "table": "vn_generation_stats"
+      },
+      {
+        "grantable": false,
+        "grantee": "authenticated",
+        "grantor": "postgres",
+        "privilege": "REFERENCES",
+        "table": "vn_generation_stats"
+      },
+      {
+        "grantable": false,
+        "grantee": "authenticated",
+        "grantor": "postgres",
+        "privilege": "SELECT",
+        "table": "vn_generation_stats"
+      },
+      {
+        "grantable": false,
+        "grantee": "authenticated",
+        "grantor": "postgres",
+        "privilege": "TRIGGER",
+        "table": "vn_generation_stats"
+      },
+      {
+        "grantable": false,
+        "grantee": "authenticated",
+        "grantor": "postgres",
+        "privilege": "TRUNCATE",
+        "table": "vn_generation_stats"
+      },
+      {
+        "grantable": false,
+        "grantee": "authenticated",
+        "grantor": "postgres",
+        "privilege": "UPDATE",
+        "table": "vn_generation_stats"
+      },
+      {
+        "grantable": false,
+        "grantee": "service_role",
+        "grantor": "postgres",
+        "privilege": "DELETE",
+        "table": "vn_generation_stats"
+      },
+      {
+        "grantable": false,
+        "grantee": "service_role",
+        "grantor": "postgres",
+        "privilege": "INSERT",
+        "table": "vn_generation_stats"
+      },
+      {
+        "grantable": false,
+        "grantee": "service_role",
+        "grantor": "postgres",
+        "privilege": "MAINTAIN",
+        "table": "vn_generation_stats"
+      },
+      {
+        "grantable": false,
+        "grantee": "service_role",
+        "grantor": "postgres",
+        "privilege": "REFERENCES",
+        "table": "vn_generation_stats"
+      },
+      {
+        "grantable": false,
+        "grantee": "service_role",
+        "grantor": "postgres",
+        "privilege": "SELECT",
+        "table": "vn_generation_stats"
+      },
+      {
+        "grantable": false,
+        "grantee": "service_role",
+        "grantor": "postgres",
+        "privilege": "TRIGGER",
+        "table": "vn_generation_stats"
+      },
+      {
+        "grantable": false,
+        "grantee": "service_role",
+        "grantor": "postgres",
+        "privilege": "TRUNCATE",
+        "table": "vn_generation_stats"
+      },
+      {
+        "grantable": false,
+        "grantee": "service_role",
+        "grantor": "postgres",
+        "privilege": "UPDATE",
+        "table": "vn_generation_stats"
+      },
+      {
+        "grantable": false,
+        "grantee": "postgres",
+        "grantor": "postgres",
+        "privilege": "DELETE",
+        "table": "vn_probes"
+      },
+      {
+        "grantable": false,
+        "grantee": "postgres",
+        "grantor": "postgres",
+        "privilege": "INSERT",
+        "table": "vn_probes"
+      },
+      {
+        "grantable": false,
+        "grantee": "postgres",
+        "grantor": "postgres",
+        "privilege": "MAINTAIN",
+        "table": "vn_probes"
+      },
+      {
+        "grantable": false,
+        "grantee": "postgres",
+        "grantor": "postgres",
+        "privilege": "REFERENCES",
+        "table": "vn_probes"
+      },
+      {
+        "grantable": false,
+        "grantee": "postgres",
+        "grantor": "postgres",
+        "privilege": "SELECT",
+        "table": "vn_probes"
+      },
+      {
+        "grantable": false,
+        "grantee": "postgres",
+        "grantor": "postgres",
+        "privilege": "TRIGGER",
+        "table": "vn_probes"
+      },
+      {
+        "grantable": false,
+        "grantee": "postgres",
+        "grantor": "postgres",
+        "privilege": "TRUNCATE",
+        "table": "vn_probes"
+      },
+      {
+        "grantable": false,
+        "grantee": "postgres",
+        "grantor": "postgres",
+        "privilege": "UPDATE",
+        "table": "vn_probes"
+      },
+      {
+        "grantable": false,
+        "grantee": "anon",
+        "grantor": "postgres",
+        "privilege": "DELETE",
+        "table": "vn_probes"
+      },
+      {
+        "grantable": false,
+        "grantee": "anon",
+        "grantor": "postgres",
+        "privilege": "INSERT",
+        "table": "vn_probes"
+      },
+      {
+        "grantable": false,
+        "grantee": "anon",
+        "grantor": "postgres",
+        "privilege": "MAINTAIN",
+        "table": "vn_probes"
+      },
+      {
+        "grantable": false,
+        "grantee": "anon",
+        "grantor": "postgres",
+        "privilege": "REFERENCES",
+        "table": "vn_probes"
+      },
+      {
+        "grantable": false,
+        "grantee": "anon",
+        "grantor": "postgres",
+        "privilege": "SELECT",
+        "table": "vn_probes"
+      },
+      {
+        "grantable": false,
+        "grantee": "anon",
+        "grantor": "postgres",
+        "privilege": "TRIGGER",
+        "table": "vn_probes"
+      },
+      {
+        "grantable": false,
+        "grantee": "anon",
+        "grantor": "postgres",
+        "privilege": "TRUNCATE",
+        "table": "vn_probes"
+      },
+      {
+        "grantable": false,
+        "grantee": "anon",
+        "grantor": "postgres",
+        "privilege": "UPDATE",
+        "table": "vn_probes"
+      },
+      {
+        "grantable": false,
+        "grantee": "authenticated",
+        "grantor": "postgres",
+        "privilege": "DELETE",
+        "table": "vn_probes"
+      },
+      {
+        "grantable": false,
+        "grantee": "authenticated",
+        "grantor": "postgres",
+        "privilege": "INSERT",
+        "table": "vn_probes"
+      },
+      {
+        "grantable": false,
+        "grantee": "authenticated",
+        "grantor": "postgres",
+        "privilege": "MAINTAIN",
+        "table": "vn_probes"
+      },
+      {
+        "grantable": false,
+        "grantee": "authenticated",
+        "grantor": "postgres",
+        "privilege": "REFERENCES",
+        "table": "vn_probes"
+      },
+      {
+        "grantable": false,
+        "grantee": "authenticated",
+        "grantor": "postgres",
+        "privilege": "SELECT",
+        "table": "vn_probes"
+      },
+      {
+        "grantable": false,
+        "grantee": "authenticated",
+        "grantor": "postgres",
+        "privilege": "TRIGGER",
+        "table": "vn_probes"
+      },
+      {
+        "grantable": false,
+        "grantee": "authenticated",
+        "grantor": "postgres",
+        "privilege": "TRUNCATE",
+        "table": "vn_probes"
+      },
+      {
+        "grantable": false,
+        "grantee": "authenticated",
+        "grantor": "postgres",
+        "privilege": "UPDATE",
+        "table": "vn_probes"
+      },
+      {
+        "grantable": false,
+        "grantee": "service_role",
+        "grantor": "postgres",
+        "privilege": "DELETE",
+        "table": "vn_probes"
+      },
+      {
+        "grantable": false,
+        "grantee": "service_role",
+        "grantor": "postgres",
+        "privilege": "INSERT",
+        "table": "vn_probes"
+      },
+      {
+        "grantable": false,
+        "grantee": "service_role",
+        "grantor": "postgres",
+        "privilege": "MAINTAIN",
+        "table": "vn_probes"
+      },
+      {
+        "grantable": false,
+        "grantee": "service_role",
+        "grantor": "postgres",
+        "privilege": "REFERENCES",
+        "table": "vn_probes"
+      },
+      {
+        "grantable": false,
+        "grantee": "service_role",
+        "grantor": "postgres",
+        "privilege": "SELECT",
+        "table": "vn_probes"
+      },
+      {
+        "grantable": false,
+        "grantee": "service_role",
+        "grantor": "postgres",
+        "privilege": "TRIGGER",
+        "table": "vn_probes"
+      },
+      {
+        "grantable": false,
+        "grantee": "service_role",
+        "grantor": "postgres",
+        "privilege": "TRUNCATE",
+        "table": "vn_probes"
+      },
+      {
+        "grantable": false,
+        "grantee": "service_role",
+        "grantor": "postgres",
+        "privilege": "UPDATE",
+        "table": "vn_probes"
+      },
+      {
+        "grantable": false,
+        "grantee": "postgres",
+        "grantor": "postgres",
+        "privilege": "DELETE",
+        "table": "vn_trades"
+      },
+      {
+        "grantable": false,
+        "grantee": "postgres",
+        "grantor": "postgres",
+        "privilege": "INSERT",
+        "table": "vn_trades"
+      },
+      {
+        "grantable": false,
+        "grantee": "postgres",
+        "grantor": "postgres",
+        "privilege": "MAINTAIN",
+        "table": "vn_trades"
+      },
+      {
+        "grantable": false,
+        "grantee": "postgres",
+        "grantor": "postgres",
+        "privilege": "REFERENCES",
+        "table": "vn_trades"
+      },
+      {
+        "grantable": false,
+        "grantee": "postgres",
+        "grantor": "postgres",
+        "privilege": "SELECT",
+        "table": "vn_trades"
+      },
+      {
+        "grantable": false,
+        "grantee": "postgres",
+        "grantor": "postgres",
+        "privilege": "TRIGGER",
+        "table": "vn_trades"
+      },
+      {
+        "grantable": false,
+        "grantee": "postgres",
+        "grantor": "postgres",
+        "privilege": "TRUNCATE",
+        "table": "vn_trades"
+      },
+      {
+        "grantable": false,
+        "grantee": "postgres",
+        "grantor": "postgres",
+        "privilege": "UPDATE",
+        "table": "vn_trades"
+      },
+      {
+        "grantable": false,
+        "grantee": "anon",
+        "grantor": "postgres",
+        "privilege": "DELETE",
+        "table": "vn_trades"
+      },
+      {
+        "grantable": false,
+        "grantee": "anon",
+        "grantor": "postgres",
+        "privilege": "INSERT",
+        "table": "vn_trades"
+      },
+      {
+        "grantable": false,
+        "grantee": "anon",
+        "grantor": "postgres",
+        "privilege": "MAINTAIN",
+        "table": "vn_trades"
+      },
+      {
+        "grantable": false,
+        "grantee": "anon",
+        "grantor": "postgres",
+        "privilege": "REFERENCES",
+        "table": "vn_trades"
+      },
+      {
+        "grantable": false,
+        "grantee": "anon",
+        "grantor": "postgres",
+        "privilege": "SELECT",
+        "table": "vn_trades"
+      },
+      {
+        "grantable": false,
+        "grantee": "anon",
+        "grantor": "postgres",
+        "privilege": "TRIGGER",
+        "table": "vn_trades"
+      },
+      {
+        "grantable": false,
+        "grantee": "anon",
+        "grantor": "postgres",
+        "privilege": "TRUNCATE",
+        "table": "vn_trades"
+      },
+      {
+        "grantable": false,
+        "grantee": "anon",
+        "grantor": "postgres",
+        "privilege": "UPDATE",
+        "table": "vn_trades"
+      },
+      {
+        "grantable": false,
+        "grantee": "authenticated",
+        "grantor": "postgres",
+        "privilege": "DELETE",
+        "table": "vn_trades"
+      },
+      {
+        "grantable": false,
+        "grantee": "authenticated",
+        "grantor": "postgres",
+        "privilege": "INSERT",
+        "table": "vn_trades"
+      },
+      {
+        "grantable": false,
+        "grantee": "authenticated",
+        "grantor": "postgres",
+        "privilege": "MAINTAIN",
+        "table": "vn_trades"
+      },
+      {
+        "grantable": false,
+        "grantee": "authenticated",
+        "grantor": "postgres",
+        "privilege": "REFERENCES",
+        "table": "vn_trades"
+      },
+      {
+        "grantable": false,
+        "grantee": "authenticated",
+        "grantor": "postgres",
+        "privilege": "SELECT",
+        "table": "vn_trades"
+      },
+      {
+        "grantable": false,
+        "grantee": "authenticated",
+        "grantor": "postgres",
+        "privilege": "TRIGGER",
+        "table": "vn_trades"
+      },
+      {
+        "grantable": false,
+        "grantee": "authenticated",
+        "grantor": "postgres",
+        "privilege": "TRUNCATE",
+        "table": "vn_trades"
+      },
+      {
+        "grantable": false,
+        "grantee": "authenticated",
+        "grantor": "postgres",
+        "privilege": "UPDATE",
+        "table": "vn_trades"
+      },
+      {
+        "grantable": false,
+        "grantee": "service_role",
+        "grantor": "postgres",
+        "privilege": "DELETE",
+        "table": "vn_trades"
+      },
+      {
+        "grantable": false,
+        "grantee": "service_role",
+        "grantor": "postgres",
+        "privilege": "INSERT",
+        "table": "vn_trades"
+      },
+      {
+        "grantable": false,
+        "grantee": "service_role",
+        "grantor": "postgres",
+        "privilege": "MAINTAIN",
+        "table": "vn_trades"
+      },
+      {
+        "grantable": false,
+        "grantee": "service_role",
+        "grantor": "postgres",
+        "privilege": "REFERENCES",
+        "table": "vn_trades"
+      },
+      {
+        "grantable": false,
+        "grantee": "service_role",
+        "grantor": "postgres",
+        "privilege": "SELECT",
+        "table": "vn_trades"
+      },
+      {
+        "grantable": false,
+        "grantee": "service_role",
+        "grantor": "postgres",
+        "privilege": "TRIGGER",
+        "table": "vn_trades"
+      },
+      {
+        "grantable": false,
+        "grantee": "service_role",
+        "grantor": "postgres",
+        "privilege": "TRUNCATE",
+        "table": "vn_trades"
+      },
+      {
+        "grantable": false,
+        "grantee": "service_role",
+        "grantor": "postgres",
+        "privilege": "UPDATE",
+        "table": "vn_trades"
+      }
+    ],
+    "tables": [
+      {
+        "force_rls": false,
+        "name": "vn_colonies",
+        "owner": "postgres",
+        "replica_identity": "d",
+        "rls": true
+      },
+      {
+        "force_rls": false,
+        "name": "vn_fitness_snapshots",
+        "owner": "postgres",
+        "replica_identity": "d",
+        "rls": true
+      },
+      {
+        "force_rls": false,
+        "name": "vn_generation_stats",
+        "owner": "postgres",
+        "replica_identity": "d",
+        "rls": true
+      },
+      {
+        "force_rls": false,
+        "name": "vn_probes",
+        "owner": "postgres",
+        "replica_identity": "d",
+        "rls": true
+      },
+      {
+        "force_rls": false,
+        "name": "vn_trades",
+        "owner": "postgres",
+        "replica_identity": "d",
+        "rls": true
+      }
+    ],
+    "triggers": [
+      {
+        "definition": "CREATE TRIGGER set_vn_colonies_updated_at BEFORE UPDATE ON vn_colonies FOR EACH ROW EXECUTE FUNCTION moddatetime('updated_at')",
+        "enabled": "O",
+        "function": "moddatetime",
+        "function_owner": "supabase_admin",
+        "function_schema": "extensions",
+        "name": "set_vn_colonies_updated_at",
+        "security_definer": false,
+        "table": "vn_colonies"
+      },
+      {
+        "definition": "CREATE TRIGGER vn_probes_updated_at BEFORE UPDATE ON vn_probes FOR EACH ROW EXECUTE FUNCTION vn_set_updated_at()",
+        "enabled": "O",
+        "function": "vn_set_updated_at",
+        "function_owner": "postgres",
+        "function_schema": "public",
+        "name": "vn_probes_updated_at",
+        "security_definer": false,
+        "table": "vn_probes"
+      }
+    ],
+    "unexpected_vn_relations": [],
+    "vn_function_privileges": [
+      {
+        "arguments": "",
+        "execute": true,
+        "name": "moddatetime",
+        "role": "anon",
+        "schema": "extensions"
+      },
+      {
+        "arguments": "",
+        "execute": true,
+        "name": "moddatetime",
+        "role": "authenticated",
+        "schema": "extensions"
+      },
+      {
+        "arguments": "",
+        "execute": true,
+        "name": "moddatetime",
+        "role": "authenticator",
+        "schema": "extensions"
+      },
+      {
+        "arguments": "",
+        "execute": true,
+        "name": "moddatetime",
+        "role": "service_role",
+        "schema": "extensions"
+      },
+      {
+        "arguments": "",
+        "execute": true,
+        "name": "RI_FKey_cascade_del",
+        "role": "anon",
+        "schema": "pg_catalog"
+      },
+      {
+        "arguments": "",
+        "execute": true,
+        "name": "RI_FKey_cascade_del",
+        "role": "authenticated",
+        "schema": "pg_catalog"
+      },
+      {
+        "arguments": "",
+        "execute": true,
+        "name": "RI_FKey_cascade_del",
+        "role": "authenticator",
+        "schema": "pg_catalog"
+      },
+      {
+        "arguments": "",
+        "execute": true,
+        "name": "RI_FKey_cascade_del",
+        "role": "service_role",
+        "schema": "pg_catalog"
+      },
+      {
+        "arguments": "",
+        "execute": true,
+        "name": "RI_FKey_check_ins",
+        "role": "anon",
+        "schema": "pg_catalog"
+      },
+      {
+        "arguments": "",
+        "execute": true,
+        "name": "RI_FKey_check_ins",
+        "role": "authenticated",
+        "schema": "pg_catalog"
+      },
+      {
+        "arguments": "",
+        "execute": true,
+        "name": "RI_FKey_check_ins",
+        "role": "authenticator",
+        "schema": "pg_catalog"
+      },
+      {
+        "arguments": "",
+        "execute": true,
+        "name": "RI_FKey_check_ins",
+        "role": "service_role",
+        "schema": "pg_catalog"
+      },
+      {
+        "arguments": "",
+        "execute": true,
+        "name": "RI_FKey_check_upd",
+        "role": "anon",
+        "schema": "pg_catalog"
+      },
+      {
+        "arguments": "",
+        "execute": true,
+        "name": "RI_FKey_check_upd",
+        "role": "authenticated",
+        "schema": "pg_catalog"
+      },
+      {
+        "arguments": "",
+        "execute": true,
+        "name": "RI_FKey_check_upd",
+        "role": "authenticator",
+        "schema": "pg_catalog"
+      },
+      {
+        "arguments": "",
+        "execute": true,
+        "name": "RI_FKey_check_upd",
+        "role": "service_role",
+        "schema": "pg_catalog"
+      },
+      {
+        "arguments": "",
+        "execute": true,
+        "name": "RI_FKey_noaction_upd",
+        "role": "anon",
+        "schema": "pg_catalog"
+      },
+      {
+        "arguments": "",
+        "execute": true,
+        "name": "RI_FKey_noaction_upd",
+        "role": "authenticated",
+        "schema": "pg_catalog"
+      },
+      {
+        "arguments": "",
+        "execute": true,
+        "name": "RI_FKey_noaction_upd",
+        "role": "authenticator",
+        "schema": "pg_catalog"
+      },
+      {
+        "arguments": "",
+        "execute": true,
+        "name": "RI_FKey_noaction_upd",
+        "role": "service_role",
+        "schema": "pg_catalog"
+      },
+      {
+        "arguments": "",
+        "execute": true,
+        "name": "RI_FKey_setnull_del",
+        "role": "anon",
+        "schema": "pg_catalog"
+      },
+      {
+        "arguments": "",
+        "execute": true,
+        "name": "RI_FKey_setnull_del",
+        "role": "authenticated",
+        "schema": "pg_catalog"
+      },
+      {
+        "arguments": "",
+        "execute": true,
+        "name": "RI_FKey_setnull_del",
+        "role": "authenticator",
+        "schema": "pg_catalog"
+      },
+      {
+        "arguments": "",
+        "execute": true,
+        "name": "RI_FKey_setnull_del",
+        "role": "service_role",
+        "schema": "pg_catalog"
+      },
+      {
+        "arguments": "",
+        "execute": true,
+        "name": "vn_set_updated_at",
+        "role": "anon",
+        "schema": "public"
+      },
+      {
+        "arguments": "",
+        "execute": true,
+        "name": "vn_set_updated_at",
+        "role": "authenticated",
+        "schema": "public"
+      },
+      {
+        "arguments": "",
+        "execute": true,
+        "name": "vn_set_updated_at",
+        "role": "authenticator",
+        "schema": "public"
+      },
+      {
+        "arguments": "",
+        "execute": true,
+        "name": "vn_set_updated_at",
+        "role": "service_role",
+        "schema": "public"
+      }
+    ],
+    "vn_functions": [
+      {
+        "acl": "{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X*/supabase_admin}",
+        "arguments": "",
+        "name": "moddatetime",
+        "owner": "supabase_admin",
+        "reviewed_settings": null,
+        "schema": "extensions",
+        "security_definer": false
+      },
+      {
+        "acl": null,
+        "arguments": "",
+        "name": "RI_FKey_cascade_del",
+        "owner": "supabase_admin",
+        "reviewed_settings": null,
+        "schema": "pg_catalog",
+        "security_definer": false
+      },
+      {
+        "acl": null,
+        "arguments": "",
+        "name": "RI_FKey_check_ins",
+        "owner": "supabase_admin",
+        "reviewed_settings": null,
+        "schema": "pg_catalog",
+        "security_definer": false
+      },
+      {
+        "acl": null,
+        "arguments": "",
+        "name": "RI_FKey_check_upd",
+        "owner": "supabase_admin",
+        "reviewed_settings": null,
+        "schema": "pg_catalog",
+        "security_definer": false
+      },
+      {
+        "acl": null,
+        "arguments": "",
+        "name": "RI_FKey_noaction_upd",
+        "owner": "supabase_admin",
+        "reviewed_settings": null,
+        "schema": "pg_catalog",
+        "security_definer": false
+      },
+      {
+        "acl": null,
+        "arguments": "",
+        "name": "RI_FKey_setnull_del",
+        "owner": "supabase_admin",
+        "reviewed_settings": null,
+        "schema": "pg_catalog",
+        "security_definer": false
+      },
+      {
+        "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+        "arguments": "",
+        "name": "vn_set_updated_at",
+        "owner": "postgres",
+        "reviewed_settings": null,
+        "schema": "public",
+        "security_definer": false
+      }
+    ]
+  },
+  "scope": "VN aggregate counts and catalog metadata; no application row identities or bodies"
+}
