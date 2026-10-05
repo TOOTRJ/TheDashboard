@@ -10,6 +10,19 @@ Probe births, trades, occasional probe metrics, lifecycle changes and sealed gen
 
 The cash reserve, exact account transitions, signal cursors, shared indicator state, market/optimizer RNG state and complete optimizer state are not checkpointed. Older persisted trade P&L may be rounded, while engine cash uses unrounded values; FILL-01A preserves new trade values without display rounding. Latest probe cash can lag multiple trades. Reconstructing current cash or reserve from those rows is unsafe. Current history readback and mock repository tests do not prove restart resumption or database RLS correctness.
 
+## Current production inventory and next implementation
+
+DB-03A2D1 now records the exact Dashboard-only read-only catalog/effective
+privilege and aggregate inventory in [PRODUCTION-CUTOVER-PLAN.md](PRODUCTION-CUTOVER-PLAN.md).
+The v5 durability schema is not deployed; active service writers remain legacy
+CRUD. Sixteen probe-only runs are omitted by the current colony-only history
+reader. Next, repair compatible paginated history and implement the inert pinned
+HTTP transport, then complete atomic projections/archive/relay and the full
+forward migration/grant cutover. Local controller acceptance is complete in
+PR40; actor-specific RLS, hosted transaction/transport, production timing and
+recovery/hosting acceptance remain open. The dated findings below retain their
+original stage scope.
+
 ## Recommended first durability release
 
 The local precursor **SVC-02A is implemented**: start admission precedes the

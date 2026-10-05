@@ -221,6 +221,14 @@ review. No global/shared account role is changed by this rehearsal.
 
 ## Remaining production cutover, in order
 
+The verified bounded production inventory and concrete object/read/transport
+plan are now recorded in [PRODUCTION-CUTOVER-PLAN.md](../PRODUCTION-CUTOVER-PLAN.md)
+(DB-03A2D1). The deployed v5 schema remains absent; this fixture is still outside
+the migration path. Sixteen older probe-only runs need merged paginated history.
+Actual API transaction/role behavior, safe projections/archive/relay and the
+full legacy-writer/grant cutover remain acceptance gates. Re-inventory before
+any cloud mutation; catalog metadata does not replace two-user RLS tests.
+
 1. **Inventory real legacy data and grants read-only.** Count null/orphan/cross-run
    identities; resolve the existing locally modified historical migration
    without overwriting it. Record all VN writer paths, inherited grants, browser
