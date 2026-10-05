@@ -2,7 +2,7 @@
 
 Date: 2026-09-29. Scope: the local Dashboard checkout, Vercel **`the-dashboard`**, and Supabase **`The Dashboard`**. This report accompanies [TODO.md](TODO.md).
 
-**Last verified production release (2026-10-05): [PR #39](https://github.com/TOOTRJ/TheDashboard/pull/39) is merged; the production alias serves READY deployment `dpl_FjGjYCXg3AhDw1qkiDcGn3FWtahP`, built automatically from merge `5eb46ea0658e5ef8e7243d75223b217602795119`, with four read-only application smokes passed.** It adds the bounded provider pilot and complete terminal reserve described in section 45. The executable controller increment in section 46 still requires isolated PostgreSQL acceptance. Next.js remains 16.3.8. The Python worker is not hosted or running; active exact-controller integration, durable recovery, browser-to-worker/RLS acceptance, preview isolation, transport/migration, broader capacity and hosting remain open. Only the projects pinned in [AGENTS.md](AGENTS.md) are authorized. Historical sections retain dated findings; later verified sections supersede earlier deployment state. Immutable release results are recorded in each PR.
+**Last verified production release (2026-10-05): [PR #39](https://github.com/TOOTRJ/TheDashboard/pull/39) is merged; the production alias serves READY deployment `dpl_FjGjYCXg3AhDw1qkiDcGn3FWtahP`, built automatically from merge `5eb46ea0658e5ef8e7243d75223b217602795119`, with four read-only application smokes passed.** It adds the bounded provider pilot and complete terminal reserve described in section 45. The executable controller increment in section 46 records bounded local PostgreSQL and cumulative latency acceptance; release verification is tracked in [PR #40](https://github.com/TOOTRJ/TheDashboard/pull/40). Next.js remains 16.3.8. The Python worker is not hosted or running; active exact-controller integration, durable recovery, browser-to-worker/RLS acceptance, preview isolation, transport/migration, broader capacity and hosting remain open. Only the projects pinned in [AGENTS.md](AGENTS.md) are authorized. Historical sections retain dated findings; later verified sections supersede earlier deployment state. Immutable release results are recorded in each PR.
 
 ## 1. Exact project scope and available access
 
@@ -1961,21 +1961,41 @@ positions, deadline/clock failures, cancellation and uncertainty. The full suite
 ran with dotenv disabled and bytecode writes disabled in the isolated worker
 environment; no application/provider credentials were used.
 
-**Pending database acceptance:** six real PostgreSQL controller/runner cases and a
-cumulative latency CLI are prepared
-with literal Jupiter/Birdeye/Solana documents, actual parsers/process clocks and
-the existing uniquely owned no-network PostgreSQL harness. They have not been
-executed: the existing Docker context is Colima, its `default` profile is stopped
-and its socket is absent. Docker context, daemon and shared agent setup were not
-changed. A setup request is pending for the user to start the intended existing
-daemon. Imports and ordinary opt-in skip checks are not database acceptance.
-Run the isolated harness and measurement sequentially after it is available.
-The current D2 TODO and its parents remain open until required acceptance passes.
+**Completed local database acceptance:** after the user started the existing
+Colima daemon, the six new real PostgreSQL controller/runner cases passed in
+13.952 seconds and full SQL discovery passed **116 tests in 507.692 seconds**.
+No application/fixture/SQL-contract corrections were needed. Actual process and
+server clocks, literal Jupiter/Birdeye/Solana documents and the uniquely owned
+no-network harness verify the finite runner, cancellation/drain, lost replies,
+original-ID readback, lease renewal, reserved stop and stable publication. The
+cached ARM64 PostgreSQL 17.6 image is
+`sha256:965e2dfb5a23a0d6541b6106541e777b303656ebabd4e878746b189d550c0a66`;
+Docker server is 29.5.2. Only the task's uniquely owned containers were removed.
+All nine original unrelated container identities remained running; shared
+daemon/context/settings were preserved. Ordinary opt-in skips remain distinct
+from actual SQL acceptance. D2 is complete as bounded local executable acceptance;
+its parents and production gates remain open.
+
+**Current-clock cumulative measurement:** the CLI passed with three accepted
+quotes, final revision 7/stopped, exact SQL projection and 11 unique fully
+acknowledged events. Five observed accepted-operation / first-request-through-
+completion times in milliseconds are: bootstrap **645.382 / 645.550**, first
+quote/protection/decision **344.824 / 442.211**, second quote **190.775 / 800.938**,
+third quote **212.108 / 1,010.231**, and reserved stop **288.205 / 288.570**. The
+requests include 1/7/9 actual receipt deferrals. Cumulative owner submission
+peaked at 311.138 ms for the two-command first tick; publication measured 356.813
+ms for nine bootstrap acknowledgments and 91.312 ms for two stop acknowledgments.
+One creation, six economic commits, 22 heartbeats, three outbox reads and 11
+delivery acknowledgments were counted. The request total and all-attempt phases
+include the original acquisition and real waits, rather than synthetic clock
+jumps. This flat-GA/local-sink sample does not measure dense replacement bursts,
+provider publication/network, remote PostgREST or browser/durable relay tails,
+and does not establish percentiles, worst-case bounds or production cadence.
 
 Reports include elapsed operation and cumulative acquisition, lease, submission,
 readback, cleanup and publication phases. Submission includes preparation,
 complete stop witness, validation and transport acknowledgment; publication
-includes all bounded pages and acknowledgment. The prepared real-clock CLI
+includes all bounded pages and acknowledgment. The completed real-clock CLI
 includes deferred attempts and actual waiting. Fake/controller timing and even
 local SQL timing do not establish real provider/remote-database/relay tails,
 organization quota feasibility or a sustainable production cadence.
@@ -1986,9 +2006,11 @@ organization quota feasibility or a sustainable production cadence.
 `team_8iNNxiNjrOseD4gdSCHkQEzF`; Supabase `The Dashboard` /
 `fxpxsciltakyypunglzr`, organization `cqfnnaunmupdyobkyqfo`. Both local pins
 match. PR39 merge `5eb46ea0658e5ef8e7243d75223b217602795119` / READY production
-`dpl_FjGjYCXg3AhDw1qkiDcGn3FWtahP` is the verified release baseline. Keep this
-increment reviewable while real SQL acceptance is pending. Rollback is a code
-revert; SQL, caps, schema, remote environments and service selection are unchanged.
+`dpl_FjGjYCXg3AhDw1qkiDcGn3FWtahP` is the verified release baseline. Release
+verification is tracked in [PR40](https://github.com/TOOTRJ/TheDashboard/pull/40);
+final merge/deployment/alias/read-only smoke evidence will be recorded there
+after release. Rollback is a code revert; SQL, caps, schema,
+remote environments and service selection are unchanged.
 
 The pre-existing migration remains at SHA-256
 `a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc`.

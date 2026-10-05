@@ -109,6 +109,15 @@ failure remains visible and requires explicit settlement, rather than a retry
 spin. Merely reaching a finite tick limit does not invent an automatic stop.
 The executable runner is opt-in and absent from service startup/selection.
 
+The interval check is necessary but does not reserve the remaining lease. Its
+deadline starts at the prior renewal request, before acquisition, preparation
+and publication. Production acceptance must account for that completed work,
+the configured wait, renewal dispatch/tail and the repository's local margin.
+Before supporting long waits, expose validated remaining-lease evidence and
+either reject a wait without headroom or renew sequentially while idle before
+expiry. A heartbeat must never compete with an owned tick or event prefix.
+No default cadence or new arbitrary timing margin is selected by this increment.
+
 ## Timing evidence and remaining gates
 
 Every controller report contains immutable cumulative phase measurements:
@@ -133,14 +142,47 @@ Their HTTP documents remain local fabricated inputs. Even successful local SQL
 measurements exclude real provider publication age, remote RPC/PostgREST, host
 load, organization-wide quotas and browser/durable relay latency.
 
-**Pending acceptance:** run the new controller SQL cases, the complete isolated
-SQL suite and the cumulative latency measurement when the user's intended local
-Docker daemon is available. The current Docker context points to Colima with
-no running daemon; the task must not switch contexts or start shared services
-on behalf of another project. Ordinary opt-in skips are not SQL acceptance.
-Keep DB-03A2C2D2D2 and its parents open until the required evidence is recorded.
-The prepared commands, from `services/vonneumann` in an isolated development
-environment with dotenv disabled, are:
+**Completed local acceptance (2026-10-05):** after the user started the existing
+Colima daemon, all six new real PostgreSQL controller/runner cases passed in
+13.952 seconds. Full isolated SQL discovery passed **116 tests in 507.692
+seconds** without application, fixture or SQL-contract corrections. The
+current-clock latency CLI then passed, verifying three accepted quotes, exact
+SQL projection, reserved stop and 11 unique fully acknowledged events. Ordinary
+opt-in skips remain distinct from these actual SQL executions.
+
+The measured fixture uses the cached ARM64 PostgreSQL 17.6 image, a uniquely
+owned container limited to one CPU/512 MiB, no network, exposed ports or host mounts, and fabricated
+HTTP responses through the real adapters. Nine other containers were running;
+their identities remained present after owned cleanup. No daemon/context or
+shared settings were changed by the task. This accepts the bounded local
+executable controller; its parents and production selection remain open.
+
+| Local operation | Accepted operation (ms) | First request through completion (ms) | Deferred attempts |
+| --- | ---: | ---: | ---: |
+| Bootstrap | 645.382 | 645.550 | 0 |
+| First quote/protection/decision | 344.824 | 442.211 | 1 |
+| Second quote/protection | 190.775 | 800.938 | 7 |
+| Third quote/protection | 212.108 | 1,010.231 | 9 |
+| Reserved stop | 288.205 | 288.570 | 0 |
+
+Accepted-operation time excludes an earlier deferred acquisition attempt;
+request-through-completion and all-attempt phase totals include it and the real
+waits. The observed maximum cumulative owner-submission phase was 311.138 ms,
+including protection plus decision in one tick. Bootstrap publication measured
+356.813 ms across nine event acknowledgments; stop publication measured 91.312
+ms across two. The entire measurement used six economic commits, one creation,
+22 heartbeats, three outbox reads and 11 delivery acknowledgments. The 17 receipt
+deferrals show why this laboratory's short retry spacing is not a proposed
+production schedule. Lease/headroom and redundant renewal scheduling still need
+measured production policy.
+
+These are five observed flat-GA/local-sink samples, not percentiles, worst-case
+bounds, dense PSO/CMA replacement acceptance or a five-second production guarantee.
+No actual provider request, remote PostgREST, durable/browser relay or hosted
+worker was measured. `production_cadence_established` is explicitly false.
+
+To reproduce sequentially, from `services/vonneumann` in an isolated development
+environment with dotenv disabled, use:
 
 ```sh
 python -m tests.postgres.run --allow-isolated-postgres
