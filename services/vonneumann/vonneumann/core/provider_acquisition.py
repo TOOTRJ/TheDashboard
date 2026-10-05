@@ -11,6 +11,7 @@ import asyncio
 
 from ..db.command_repository import CommandBusy
 from ..db.provider_owner import ProviderAdmissionOwner
+from ..db.provider_pilot_owner import ProviderPilotOwner, PilotAdmissionRefused
 from ..db.rehearsal_owner import OperationalAdmissionError
 from ..market.jupiter_feed import PriceCapture
 from ..market.provider_contract import ProviderDeferred
@@ -28,7 +29,7 @@ class ProviderPriceAcquisition:
     """
 
     def __init__(self, feed, owner: ProviderAdmissionOwner):
-        if (type(owner) is not ProviderAdmissionOwner
+        if (type(owner) not in (ProviderAdmissionOwner, ProviderPilotOwner)
                 or not callable(getattr(feed, 'get_price_captures', None))):
             raise OperationalAdmissionError('provider acquisition requires its feed and v5 owner')
         self._feed, self._owner = feed, owner
@@ -93,6 +94,12 @@ class ProviderPriceAcquisition:
                 self._deadline(deadline)
                 self._capture = None
                 return ticket
+        except PilotAdmissionRefused:
+            # A normal pilot limit drains acquisition but preserves its reserved
+            # terminal path. No command was prepared by this helper.
+            self._capture = None
+            self._closed = True
+            raise
         except (Exception, asyncio.CancelledError):
             self._fail()
 

@@ -52,6 +52,11 @@ class ProviderPilotOwner(ProviderAdmissionOwner):
         return self._pilot_refusal
 
     @property
+    def limits(self):
+        """Immutable local policy for an exclusive scheduling owner."""
+        return self._limits
+
+    @property
     def owned_command_count(self):
         return len(self._used_command_ids)
 
@@ -116,6 +121,18 @@ class ProviderPilotOwner(ProviderAdmissionOwner):
         if (self._first_quote_second is not None and frame['decision_second']
                 > self._first_quote_second + self._limits.MAX_ELAPSED_QUOTE_SECONDS):
             self._refuse('pilot_duration')
+
+    def discard_unsubmitted_evidence(self):
+        """Abandon an idle scheduling window without touching retained work.
+
+        An exclusive controller uses this when draining between protection and
+        decision. The accepted ticket is invalidated; another decision requires
+        a new acknowledged protection. Hard admission latches are unchanged.
+        """
+        self._idle()
+        if self.pending_candidate is not None:
+            raise OperationalAdmissionError('retained evidence must settle before abandonment')
+        self._window = self._history = self._accepted_quote = None
 
     def capture_quote(self, capture):
         self._admit()
