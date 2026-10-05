@@ -7,6 +7,33 @@ requests, dataset purchases, signing, tool installations or account changes were
 performed. Read alongside [the prior data decision](JUPITER-DATA-RESEARCH.md)
 and [the lifecycle contract](EXACT-LIFECYCLE.md).
 
+**2026-10-05 acquisition recheck.** The current Jupiter Price overview and public
+Price V3 OpenAPI still document a current USD mark and `blockId` recency, rather
+than a historical selector or price-publication timestamp. The portal now
+explicitly documents organization-wide 60-second sliding quotas, shared across
+Price/Swap/Token requests except the separate execute bucket. Keep endpoint
+authentication and this worker's private key; do not apply the pinned skill's
+obsolete volume-based table or assume several keys increase the budget.
+[Price overview](https://developers.jup.ag/docs/price),
+[Price V3 OpenAPI](https://developers.jup.ag/docs/openapi-spec/price/v3/price.yaml),
+[current quotas](https://developers.jup.ag/docs/portal/rate-limits).
+
+The current Birdeye OHLCV V3 range schema supports one-minute, raw USD price
+candles with padding disabled and at most 5,000 rows. The bounded v5 acquisition
+uses a 915-row seed or a 30-row full prior/new 15-minute window, without changing
+the provider-default outlier selection. The existing contradictory outlier prose
+still needs provider clarification. These are request-contract checks, not
+account entitlement, retention-rights, market accuracy or publication-latency
+verification. No authenticated provider market request was made in this slice.
+[Official endpoint](https://data.birdeye.so/docs/data-api/price-ohlcv/get-defi-v3-ohlcv).
+
+The measured byte/command limits are local executable findings, not provider
+claims. See [the capacity results](PROVIDER-COMMAND-CONTRACT.md). Deeper research
+must compare bounded checkpoint versus append-only journal representations,
+closed-position archival and replay proofs, optimizer state growth, safe
+control/stop reserves, cumulative receipt/lease/publication latency and protective
+latency at any proposed slower cadence before choosing a supported run profile.
+
 ## Verified provider contracts
 
 **Jupiter Price V3.** The current OpenAPI defines `usdPrice` and `liquidity` as

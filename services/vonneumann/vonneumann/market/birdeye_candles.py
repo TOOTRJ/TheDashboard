@@ -19,6 +19,7 @@ from .candles import MINUTE_RETENTION, MinuteCandle
 from .feed import MarketFeedError
 from .provider_evidence import ProviderDocument, bounded_response_body
 from .exact_records import ExactCandleRecord, ExactRecordError, parse_candle_records
+from . import provider_contract as provider
 
 BIRDEYE_CANDLES_URL = "https://public-api.birdeye.so/defi/v3/ohlcv"
 CANDLE_SOURCE = "birdeye-ohlcv-v3"
@@ -66,6 +67,10 @@ the request watermarks; a retry must still cover the unavailable interval.
         # Retaining every old response document would grow without bound.
         self._accepted_fingerprints: dict[str, dict[int, str]] = {}
         self.api_call_count = 0
+        # The v5 acquisition surface owns no history cursor or cache. Its
+        # process clocks and close latch are independent of legacy feed state.
+        self._provider_closed = False
+        self._provider_last_wall = self._provider_last_mono = None
 
     async def _get_session(self) -> aiohttp.ClientSession:
         if self._session is None or self._session.closed:
@@ -76,8 +81,151 @@ the request watermarks; a retry must still cover the unavailable interval.
         return self._session
 
     async def close(self) -> None:
+        self._provider_closed = True
         if self._session is not None and not self._session.closed:
             await self._session.close()
+
+    def _provider_clocks(self):
+        if self._provider_closed:
+            raise MarketFeedError("candles_closed")
+        wall, mono = time.time(), time.monotonic()
+        try:
+            provider.clock_us(wall)
+            provider.clock_us(mono)
+            if (self._provider_last_wall is not None and wall < self._provider_last_wall
+                    or self._provider_last_mono is not None and mono < self._provider_last_mono):
+                raise ValueError()
+        except (ValueError, TypeError, OverflowError):
+            raise MarketFeedError("candles_clock_invalid") from None
+        self._provider_last_wall, self._provider_last_mono = wall, mono
+        return wall, mono
+
+    @staticmethod
+    def _provider_end(wall):
+        # Floor the actual reading: rounding up at a fractional microsecond
+        # must not make an incomplete five-second margin eligible.
+        end = ((provider.clock_us(wall) - provider.CANDLE_COMPLETION_US)
+               // (provider.CANDLE_SECONDS * 1_000_000) * provider.CANDLE_SECONDS)
+        if not provider.SEED_BARS * provider.CANDLE_SECONDS < end <= provider.MAX_SOURCE_SECOND:
+            raise MarketFeedError("candles_clock_invalid")
+        return end
+
+    async def get_provider_history(self, *, previous_end: int | None = None
+                                   ) -> tuple[ExactCandleRecord, ...]:
+        """Acquire one fresh bounded SOL/USD history window for the v5 owner.
+
+        ``previous_end`` is the caller's authoritative installed bar cursor;
+        this adapter never advances it. A seed requests 915 minutes. An
+        increment requests the complete prior bar and exactly one next bar,
+        allowing the owner to compare full overlap. No new eligible bar returns
+        an empty tuple without I/O. Gaps require explicit recovery elsewhere.
+        """
+        if (previous_end is not None
+                and (type(previous_end) is not int
+                     or not 0 < previous_end <= provider.MAX_SOURCE_SECOND
+                     or previous_end % provider.CANDLE_SECONDS)):
+            raise MarketFeedError("candles_cursor_invalid")
+        if (not isinstance(self._api_key, str) or not self._api_key.strip()
+                or not any(self._token_mints.get(key) == provider.MINT
+                           for key in (provider.ASSET, "SOL/USDC"))):
+            raise MarketFeedError("candles_configuration")
+        try:
+            wall, _ = self._provider_clocks()
+            end = self._provider_end(wall)
+            if previous_end is not None:
+                if end < previous_end:
+                    raise MarketFeedError("candles_clock_invalid")
+                if end == previous_end:
+                    return ()
+                if end != previous_end + provider.CANDLE_SECONDS:
+                    raise MarketFeedError("candles_backlog")
+            start = (end - provider.SEED_BARS * provider.CANDLE_SECONDS
+                     if previous_end is None else previous_end - provider.CANDLE_SECONDS)
+            if start <= 0 or (end - start) // 60 + 1 > MAX_PROVIDER_RECORDS:
+                raise MarketFeedError("candles_cursor_invalid")
+            loop = asyncio.get_running_loop()
+            async with asyncio.timeout(REQUEST_TIMEOUT_SECONDS) as deadline:
+                def check_deadline():
+                    # Dependency cancellation suppression and synchronous
+                    # parsing must not turn an expired acquisition into success.
+                    if deadline.expired() or loop.time() >= deadline.when():
+                        raise MarketFeedError("candles_unavailable")
+                async with self._lock:
+                    check_deadline()
+                    # A queued legacy request can move the real cutoff. Do not
+                    # silently choose another window after waiting for the lock.
+                    wall, _ = self._provider_clocks()
+                    if self._provider_end(wall) != end:
+                        raise MarketFeedError("candles_window_changed")
+                    session = await self._get_session()
+                    check_deadline()
+                    wall, _ = self._provider_clocks()
+                    if self._provider_end(wall) != end:
+                        raise MarketFeedError("candles_window_changed")
+                    parameters = {
+                        "address": provider.MINT, "type": "1m", "mode": "range",
+                        "time_from": start, "time_to": end, "currency": "usd",
+                        "chart_type": "price", "ui_amount_mode": "raw", "padding": "false",
+                    }
+                    attempted = False
+                    async def one_attempt(request, handler):
+                        nonlocal attempted
+                        check_deadline()
+                        if attempted:
+                            raise MarketFeedError("candles_unavailable")
+                        attempted = True
+                        result = await handler(request)
+                        check_deadline()
+                        return result
+                    check_deadline()
+                    self.api_call_count += 1
+                    async with session.get(
+                        BIRDEYE_CANDLES_URL, params=parameters,
+                        headers={"X-API-KEY": self._api_key, "x-chain": "solana",
+                                 "Accept": "application/json"},
+                        allow_redirects=False,
+                        timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT_SECONDS),
+                        middlewares=(one_attempt,),
+                    ) as response:
+                        check_deadline()
+                        if response.status != 200:
+                            raise MarketFeedError("candles_rate_limited" if response.status == 429
+                                                  else "candles_unavailable")
+                        raw = await bounded_response_body(response, provider=CANDLE_SOURCE)
+                        check_deadline()
+                        received_at, received_mono = self._provider_clocks()
+                        if self._provider_end(received_at) != end:
+                            raise MarketFeedError("candles_window_changed")
+                        document = ProviderDocument.capture(CANDLE_SOURCE, parameters, raw,
+                                                            received_at, received_mono)
+                    check_deadline()
+                    rows = parse_candle_records(document, asset=provider.ASSET, mint=provider.MINT)
+                    check_deadline()
+                    if (len(rows) != (end - start) // 60 or rows[0].start != start
+                            or rows[-1].end != end
+                            or any(right.start != left.start + 60
+                                   for left, right in zip(rows, rows[1:]))):
+                        raise MarketFeedError("candles_gap")
+                    if any(row.is_scaled_ui_token is not False
+                           or row.multiplier not in (None, "1") for row in rows):
+                        raise MarketFeedError("candles_invalid")
+                    wall, mono = self._provider_clocks()
+                    if self._provider_end(wall) != end:
+                        raise MarketFeedError("candles_window_changed")
+                    ages = (provider.clock_us(wall, upper=True) - provider.clock_us(received_at),
+                            provider.clock_us(mono, upper=True) - provider.clock_us(received_mono))
+                    if min(ages) < 0 or max(ages) >= provider.MAX_RECEIPT_AGE_US:
+                        raise MarketFeedError("candles_stale")
+                    check_deadline()
+                    return rows
+        except MarketFeedError:
+            raise
+        except ExactRecordError as error:
+            raise MarketFeedError(error.code) from None
+        except (ValueError, TypeError, OverflowError):
+            raise MarketFeedError("candles_invalid") from None
+        except Exception:
+            raise MarketFeedError("candles_unavailable") from None
 
     async def get_candles(self, assets: list[str], *, warmup: bool = False) -> list[MinuteCandle]:
         """Return validated completed minutes, or fail without stale fallback."""
