@@ -52,6 +52,10 @@ class ExactRehearsalError(ValueError):
     """Unsupported input, capacity, or exact transition; source state is intact."""
 
 
+class ExactCapacityError(ExactRehearsalError):
+    """A complete candidate exceeds an explicit retention or wire limit."""
+
+
 def _json(value):
     return json.dumps(value, sort_keys=True, separators=(',', ':'), ensure_ascii=True,
                       allow_nan=False).encode('ascii')
@@ -245,8 +249,10 @@ class ExactCandidate:
     def __post_init__(self):
         # A candidate is not a commit receipt, but its two exposed views must
         # still describe the same owned state before C3 can retain the pair.
-        if type(self.state) is not ExactState or type(self._wire) is not bytes or len(self._wire) > MAX_PAYLOAD_BYTES:
+        if type(self.state) is not ExactState or type(self._wire) is not bytes:
             raise ExactRehearsalError('candidate requires bounded immutable state evidence')
+        if len(self._wire) > MAX_PAYLOAD_BYTES:
+            raise ExactCapacityError('whole candidate immutable wire exceeds payload capacity')
         try:
             payload = json.loads(self._wire)
             measured = len(json.dumps(payload, ensure_ascii=False, sort_keys=True,
@@ -381,7 +387,7 @@ def _candidate(before, data, strategy, cohort, builder, kind, input_evidence, ob
     data['positions'].sort(key=lambda row: row['id'])
     data['engine']['optimizer'] = encode_optimizer_evidence(strategy, cohort)
     if len(data['accounts']) > POPULATION * (MAX_GENERATIONS + 1) or len(data['positions']) > MAX_POSITIONS:
-        raise ExactRehearsalError('rehearsal retention capacity reached')
+        raise ExactCapacityError('rehearsal retention capacity reached')
     payload = {'version': 3, 'operations': builder.operations, 'transition': {
         'version': 1, 'before': before, 'after': data, 'evidence': {'kind': kind,
         'inputs': input_evidence, 'observation': None if observation is None else observation.to_dict(),
@@ -392,7 +398,7 @@ def _candidate(before, data, strategy, cohort, builder, kind, input_evidence, ob
     payload_size = len(json.dumps(payload, sort_keys=True, separators=(', ', ': '),
                                  ensure_ascii=False, allow_nan=False).encode('utf-8'))
     if payload_size > MAX_PAYLOAD_BYTES:
-        raise ExactRehearsalError('whole candidate exceeds payload capacity; splitting is forbidden')
+        raise ExactCapacityError('whole candidate exceeds payload capacity; splitting is forbidden')
     return ExactCandidate(ExactState._seal(data, strategy, cohort), wire, payload_size)
 
 

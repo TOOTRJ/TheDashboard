@@ -74,7 +74,7 @@ def _candidate(before, data, strategy, cohort, builder, kind, evidence, observat
     if (len(data['accounts']) > base.POPULATION * (base.MAX_GENERATIONS + 1)
             or len(data['positions']) > base.MAX_POSITIONS
             or len(data['engine']['used_ids']) > 100):
-        raise ExactRehearsalError('lifecycle rehearsal retention capacity reached')
+        raise base.ExactCapacityError('lifecycle rehearsal retention capacity reached')
     payload = {'version': 4, 'operations': builder.operations, 'transition': {
         'version': 1, 'before': before, 'after': data, 'evidence': {
             'kind': kind, 'inputs': evidence,
@@ -84,7 +84,7 @@ def _candidate(before, data, strategy, cohort, builder, kind, evidence, observat
     size = len(json.dumps(payload, sort_keys=True, ensure_ascii=False, allow_nan=False,
                           separators=(', ', ': ')).encode('utf-8'))
     if size > base.MAX_PAYLOAD_BYTES:
-        raise ExactRehearsalError('whole lifecycle candidate exceeds payload capacity; splitting is forbidden')
+        raise base.ExactCapacityError('whole lifecycle candidate exceeds payload capacity; splitting is forbidden')
     return ExactCandidate(ExactState._seal(data, strategy, cohort), wire, size)
 
 

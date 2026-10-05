@@ -2,7 +2,7 @@
 
 Date: 2026-09-29. Scope: the local Dashboard checkout, Vercel **`the-dashboard`**, and Supabase **`The Dashboard`**. This report accompanies [TODO.md](TODO.md).
 
-**Last verified production release (2026-10-03): [PR #37](https://github.com/TOOTRJ/TheDashboard/pull/37) is merged; the production alias serves READY deployment `dpl_GPuBG8AKAg8zaPqqRgwwoLKmFsYm`, built automatically from merge `0983468d09ee7a295d7601c2872240ad0204775e`, with four read-only application smokes passed.** It adds the provider-bound exact paper command contract. The 2026-10-05 acquisition increment is described in section 44 and requires its own release verification. Next.js remains 16.3.8. The Python worker is not hosted or running; active exact-controller integration, durable recovery, browser-to-worker/RLS acceptance, preview isolation, transport/migration, capacity and hosting remain open. Only the projects pinned in [AGENTS.md](AGENTS.md) are authorized. Historical sections retain dated findings; later verified sections supersede earlier deployment state. Immutable release results are recorded in each PR.
+**Last verified production release (2026-10-05): [PR #38](https://github.com/TOOTRJ/TheDashboard/pull/38) is merged; the production alias serves READY deployment `dpl_71MaCDF8n6aeUDTZFJZushBJNLCj`, built automatically from merge `bdd22d3d46d04203541b4390761b6f813ec4f7e7`, with four read-only application smokes passed.** It adds provider acquisition and complete-command capacity measurements. The bounded pilot increment in section 45 requires its own release verification. Next.js remains 16.3.8. The Python worker is not hosted or running; executable exact-controller integration, durable recovery, browser-to-worker/RLS acceptance, preview isolation, transport/migration, broader capacity and hosting remain open. Only the projects pinned in [AGENTS.md](AGENTS.md) are authorized. Historical sections retain dated findings; later verified sections supersede earlier deployment state. Immutable release results are recorded in each PR.
 
 ## 1. Exact project scope and available access
 
@@ -1839,3 +1839,84 @@ provider/lease/relay latency, slower-cadence protective exposure, shared provide
 quotas, source forks/revisions/outliers and restart/history reconciliation.
 See [the contract](services/vonneumann/PROVIDER-COMMAND-CONTRACT.md) and
 [current primary-source recheck](services/vonneumann/EXACT-SOURCE-RESEARCH.md).
+
+## 45. Bounded provider pilot and terminal reserve — C2D2D1 (2026-10-05)
+
+**Implemented scope:** a separate opt-in v5 owner admits only one evaluation
+window/first replacement, with 3,601 accepted quotes, 3,600 quote seconds, 4,000
+total command IDs including creation/bootstrap/stop, no restart/resume/recovery,
+and bounded allocation inputs. It keeps the two EMA genes and all exact economic,
+source, optimizer, RNG and event evidence. The active service selection and
+legacy controller/writers remain unchanged.
+
+Each prospective nonterminal state must produce a pure complete v5 stop using
+maximal clocks and empty allocations. The reserve covers both PostgreSQL-spacing
+UTF-8 payload and compact ASCII candidate bytes, plus a derived nine-byte clock
+width margin. A distinct stop ID and last command slot cannot be spent by other
+work. Actual stop is prepared with current clocks, uses its original reserved
+ID through uncertainty/cancellation, and retains holdings/cash/reserve. The
+reservation proves bytes and identity capacity, not a lease or network delivery.
+
+The pilot's policy-refusal latch is separate from the existing hard-failure
+latch. Normal capacity/duration/completion refusal can retain terminal admission
+after settlement. Clock/source/ownership failures still close it. Review fixed
+unretained quote windows incorrectly expiring stop after a rejected decision,
+new-bar scheduling before the five-second completion margin, and the need to
+reserve both JSON encodings for Unicode names. Retained command/publication
+evidence is preserved. Typed capacity errors retain old v3/v4/v5 rejection
+semantics; neither SQL meanings nor any cap increased.
+
+**Acceptance:** all 44 new focused cases pass with denied network access,
+literal provider fixtures and real solvers/candidate/command validation. Coverage
+includes dense all-solver first replacement, pure repeated solver/RNG/state
+preparation, legal 128-byte Unicode names, clock-width and inclusive-cap bounds,
+creation/quote/command/duration accounting, reserved ID exclusion, no-op decision
+suppression, pause/stop retained holdings, delayed stops after soft refusal,
+hard failures, caller/task/early-task cancellation, lost acknowledgment,
+reconciliation and publication. The full worker suite ran **1,346 tests in
+226.816 seconds**, passing with 16 expected opt-in/database skips. The 35-case
+policy/existing capacity/provider-owner regression run passed; all 16 dedicated
+GitHub helper tests passed and `git diff --check` passed. Exact release results
+are recorded in the PR. SQL is unchanged; the prior
+110 isolated PostgreSQL tests remain historical acceptance, not a new rerun.
+
+The reusable offline measurement CLI exercises the actual pilot and fake
+ledger/outbox through 22 economic commands per solver, one suppressed decision,
+16 retained accounts/positions and complete stable-event acknowledgment. Largest
+actual SQL-spacing payloads GA/DE/PSO/CMA are 162,750/165,918/201,885/207,017 bytes;
+maximum reserved stop bounds are 162,770/165,938/182,904/198,136 bytes. Longest
+owned preparation/validation/fake-RPC operations measured approximately
+0.123/0.121/0.153/0.140 seconds; total traces approximately
+2.04/2.04/2.79/2.50 seconds. Sparse clock jumps and fake lease heartbeats are
+explicit. These numbers exclude real provider/DB/socket/durable-relay latency;
+they do not select cadence or prove the cumulative five-second budget.
+
+**Targets and release:** fresh verification matched dedicated GitHub
+`biggrizzly11` / `16749816`, `TOOTRJ/TheDashboard` / `1141090963`; Vercel
+`the-dashboard` / `prj_wFUe9k9USVreOQcmQKNWRAVsx5fH`, team
+`team_8iNNxiNjrOseD4gdSCHkQEzF`; Supabase `The Dashboard` /
+`fxpxsciltakyypunglzr`, organization `cqfnnaunmupdyobkyqfo`. Both local pins
+match. Existing PR38 merge `bdd22d3d46d04203541b4390761b6f813ec4f7e7` and READY
+production `dpl_71MaCDF8n6aeUDTZFJZushBJNLCj` are the rollback baseline. Verify
+the exact preview source/author and production merge/project/team/alias, then
+run the four read-only application smokes; record immutable results in the PR.
+Rollback is a reviewed code revert and needs no database/environment reversal.
+
+The pre-existing migration is byte-identical at SHA-256
+`a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc`.
+Untracked `.claude/`, service `.next/`, Supabase temporary files, shared tools,
+credentials/processes and all other projects are preserved. No database,
+environment, funding, signing or trading change is included. The worker remains
+unhosted and inactive.
+
+**Next priority:** C2D2D2 executable whole-tick/control ownership and cumulative
+latency acceptance, then D/A3 production transport and complete legacy/grant/
+archive/migration cutover, then hosting readiness. C2D2D3 separately researches
+a v6 prior-command reference to remove duplicated checkpoints before multi-window
+expansion. Preliminary PSO/CMA sizing suggests 150,496/143,497-byte compact
+commands, but no v6 candidate is admitted or implemented. Deep substantial
+research must cover bounded logical expansion, original-request replay,
+prior-journal retention/availability, corruption/revision checks, source/server
+freshness, control reserve, clock/history restart, shared quotas and cumulative
+protective latency. Parent C2D2/C2/D/A3 and hosting remain open. See
+[the pilot contract](services/vonneumann/PROVIDER-PILOT-CONTRACT.md).

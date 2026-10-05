@@ -89,15 +89,15 @@ def _wrap(candidate, before, source_state, inputs, phase, frame=None, history=No
     wall, mono = evidence_clocks(inputs)
     transition['evidence']['source'] = {'version': 1, 'phase': phase, 'frame': frame,
                                       'history': history, 'wall_us': wall, 'monotonic_us': mono}
-    validate_transition(transition, candidate.operations, data['owner_id'], data['run_id'],
-                        data['revision'] - 1)
     payload = {'version': 5, 'operations': candidate.operations, 'transition': transition}
     wire = base._json(payload)
     size = len(json.dumps(payload, sort_keys=True, ensure_ascii=False, allow_nan=False,
                           separators=(', ', ': ')).encode('utf-8'))
     if size > base.MAX_PAYLOAD_BYTES:
-        raise base.ExactRehearsalError(
+        raise base.ExactCapacityError(
             'whole provider lifecycle candidate exceeds payload capacity; splitting is forbidden')
+    validate_transition(transition, candidate.operations, data['owner_id'], data['run_id'],
+                        data['revision'] - 1)
     return base.ExactCandidate(base.ExactState._seal(data, strategy, cohort), wire, size)
 
 
