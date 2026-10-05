@@ -2,7 +2,7 @@
 
 Date: 2026-09-29. Scope: the local Dashboard checkout, Vercel **`the-dashboard`**, and Supabase **`The Dashboard`**. This report accompanies [TODO.md](TODO.md).
 
-**Latest application release verified (2026-09-30): PR #10 is merged; the production alias was verified serving READY deployment `dpl_EqbEvGzqe3RK7CD5mLscyf32SmiQ`, built automatically from PR #10 merge `e9045b4f133f81fc75d5552e531c43a6259c3500`.** The isolated biggrizzly11 identity repaired Git deployment authorization. Production includes PR #9's equity-metrics UI and the Next.js 16.3.8 security patch; section 18 records exact release and smoke-test evidence. The Python worker is not hosted or running. Durable recovery, browser-to-worker/RLS acceptance, preview isolation, remaining engine/data work, and the remaining upstream Next security follow-up remain open. Only the projects pinned in [AGENTS.md](AGENTS.md) are authorized. Historical sections retain dated findings; later verified sections supersede them.
+**Last verified production release (2026-10-03): [PR #37](https://github.com/TOOTRJ/TheDashboard/pull/37) is merged; the production alias serves READY deployment `dpl_GPuBG8AKAg8zaPqqRgwwoLKmFsYm`, built automatically from merge `0983468d09ee7a295d7601c2872240ad0204775e`, with four read-only application smokes passed.** It adds the provider-bound exact paper command contract. The 2026-10-05 acquisition increment is described in section 44 and requires its own release verification. Next.js remains 16.3.8. The Python worker is not hosted or running; active exact-controller integration, durable recovery, browser-to-worker/RLS acceptance, preview isolation, transport/migration, capacity and hosting remain open. Only the projects pinned in [AGENTS.md](AGENTS.md) are authorized. Historical sections retain dated findings; later verified sections supersede earlier deployment state. Immutable release results are recorded in each PR.
 
 ## 1. Exact project scope and available access
 
@@ -1754,3 +1754,88 @@ revision/outlier semantics, receipt/lease/relay and protective latency, USD/USDC
 and scaled-token expansion, restart clock/history reconciliation, data rights,
 frozen reproducible datasets and capture/journal/outbox memory/retention.
 See [the provider contract](services/vonneumann/PROVIDER-COMMAND-CONTRACT.md).
+
+## 44. Provider acquisition and later-generation capacity — C2D2C (2026-10-05)
+
+**Scope and findings:** the executable v5 owner still has no active service
+controller. Review identified two immediate acquisition blockers: the general
+Birdeye incremental cache contains only roughly three minutes, and continuously
+replacing a fractional Jupiter receipt can perpetually defer its admission.
+The new opt-in history API acquires one current 915-minute seed or a 30-minute
+full prior/new-bar window, with raw wrapped-SOL/USD records, original document
+identity and strict completion/coverage/freshness checks. It leaves the legacy
+feed caches and installed owner cursor untouched. The owner independently
+compares overlap. No new eligible bar performs no HTTP; a multi-bar gap fails
+visibly. A retained-price helper uses the actual owner clock on retries and
+preserves cancelled callers' original task/result. It has no economics,
+publication, service routing, migration or wallet-execution authority.
+
+Independent review found and fixed cancellation before the owned coroutine's
+first instruction and late successes after a dependency suppresses cancellation.
+Both acquisition APIs now explicitly check their event-loop deadlines after
+awaits and synchronous parsing. A late result rejects even when receipt clocks
+look fresh; these checks cannot preempt CPU work. The new price helper's lock
+covers acquisition only: a future exact controller must own the entire tick
+and every control across commit/reconciliation/publication.
+
+**Capacity is still a blocker:** three sparse replacements fit all four solvers,
+with maximum GA/DE/PSO/CMA payloads 162,965/172,688/218,286/218,343 bytes. Denser
+alternating-candle retention gives successful third GA/DE replacements of
+234,635/244,358 bytes (48 positions). PSO's third model payload already reaches
+262,546 bytes; CMA's second full v5 payload reaches 262,797 bytes (its model is
+248,760 bytes). Both exceed the unchanged 262,144-byte cap below the separate
+position-count bound, and reject without advancing sealed optimizer/cohort/RNG
+state. v5 now emits an explicit payload-capacity error. No thresholds are raised,
+evidence truncated or complete commands split. The 4,096-ID owner permits only
+2,047 complete protect/decision pairs after creation/bootstrap; a first one-hour
+1 Hz window needs 7,204 commands. Sparse time jumps establish retention mechanics,
+not sustainable cadence or production latency. Instrumented eight-trace capacity
+replay took about 29.35 seconds locally, excluding providers/database/publication.
+
+**Validation:** 67 new tests cover acquisition, full-window source consumption
+and actual later-generation v5 command encoding. They include real-owner
+bootstrap/next-bar installation and stable outbox IDs, original fractional
+receipt retention, unchanged-anchor expiry, lost waiter/results, single-owner
+admission, missing/invalid/scaled/gapped/revised data, clock/window changes,
+cleanup and cancellation/deadline overruns. Independent six-case review passed;
+83 existing focused feed/provider regressions also passed. Final full discovery
+ran **1,302 tests in 180.422 seconds**, passing with 16 expected opt-in/database
+skips; the 67-case final focused run passed in 34.841 seconds. The dedicated
+GitHub helper's 16 offline tests also passed. Release results are recorded with
+the PR when complete. SQL is
+unchanged; the prior 110 isolated PostgreSQL cases are historical acceptance,
+not rerun for this acquisition-only increment. All tests use fake provider I/O
+and isolated locked Python dependencies, with dotenv disabled and network denial.
+
+**Targets and release gate:** initial provider metadata matched GitHub
+`TOOTRJ/TheDashboard` / `1141090963` and dedicated `biggrizzly11` / `16749816`;
+Vercel `the-dashboard` / `prj_wFUe9k9USVreOQcmQKNWRAVsx5fH`, team
+`team_8iNNxiNjrOseD4gdSCHkQEzF`, Git repository ID `1141090963`;
+Supabase `The Dashboard` / `fxpxsciltakyypunglzr`, organization
+`cqfnnaunmupdyobkyqfo`. Local pins matched. Later release verification found
+missing authentication in the exact dedicated Vercel profile. Its isolated
+login to `/Users/redjester/.config/vercel-dashboard-codex` was renewed before
+release, and all three exact target identities were freshly reverified.
+Preview/production release verification remains required. Never fall back to Claude/shared
+credentials. Fresh Dashboard GitHub verification and remote main readback passed.
+PR37 merge `0983468d09ee7a295d7601c2872240ad0204775e`, READY production
+`dpl_GPuBG8AKAg8zaPqqRgwwoLKmFsYm`, is the rollback baseline. Reverify targets,
+source preview/author, production merge/project/team/alias and four read-only
+application smokes; retain immutable results in the PR. Rollback is a reviewed
+code revert; this increment requires no database/environment reversal.
+
+The pre-existing migration edit remains byte-identical at SHA-256
+`a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc`.
+`.claude/`, other local files, shared credentials/tools/processes and all other
+projects are preserved. The worker remains unhosted. No cloud database,
+application environment, funding, signing or live trading changes are included.
+
+**Next:** C2D2D first proves a supported representation/profile and reserved
+command/control budget, then an executable exact controller; D/A3 still gates
+production transport, legacy/grants/archive compatibility and migration. Keep
+parent C2D2/C2/D/A3 and hosting open. Deep research covers bounded checkpoint /
+journal / historical-position retention and replay proofs, real cumulative
+provider/lease/relay latency, slower-cadence protective exposure, shared provider
+quotas, source forks/revisions/outliers and restart/history reconciliation.
+See [the contract](services/vonneumann/PROVIDER-COMMAND-CONTRACT.md) and
+[current primary-source recheck](services/vonneumann/EXACT-SOURCE-RESEARCH.md).

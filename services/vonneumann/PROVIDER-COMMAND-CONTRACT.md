@@ -44,9 +44,10 @@ market-data claim is made.
 
 Identical same-block/price/source-time snapshots and valid same-second schedules
 are deferred before command ownership. A fractional-second receipt also waits
-until an actual whole-second decision can follow its availability. Future runtime
-wiring must retain that capture for a later clock sample; repeatedly replacing it
-with a just-fetched snapshot can keep deferring and is not an integration plan. Conflicting same-block values, regressing
+until an actual whole-second decision can follow its availability. The opt-in
+`ProviderPriceAcquisition` now retains that capture for a later actual clock
+sample; repeatedly replacing it with a just-fetched snapshot can keep deferring.
+This acquisition helper still needs an exclusively owned controller. Conflicting same-block values, regressing
 references/times/clocks and stale evidence fail closed. Deferral does not bypass
 freshness checks. Conservative source-age floors carry forward even when wall
 and monotonic clocks progress differently.
@@ -91,6 +92,26 @@ Bar fingerprints cover exact minute timestamps/closes, not retrieval metadata,
 so an unchanged refetch remains valid. Only the latest 64 bar fingerprints and
 closes are retained; at most four source documents occur in a history bundle.
 
+The opt-in `JupiterFeed.get_provider_history(previous_end=...)` delegates to a
+separate bounded Birdeye read. A missing cursor requests exactly 915 seed
+minutes. An installed cursor one eligible bar behind requests 30 minutes: the
+entire prior bar for overlap comparison and the entire next bar. The adapter
+returns `()` between boundaries without HTTP, rejects multi-bar gaps instead of
+backfilling decisions, and never advances the caller's installed cursor. Each
+request acquires a fresh raw document after completion; stitching older minute
+responses cannot satisfy this policy. The general legacy candle API still uses
+its original broad warmup and narrow minute refresh and is unsuitable here.
+
+The read pins wrapped SOL, raw USD price candles, range mode and padding=false,
+uses the shared history read lock, blocks redirects and implicit second attempts,
+and rechecks actual clocks/window/receipt ages before dispatch and after receipt
+and parsing. Its total five-second deadline includes lock wait. Explicit deadline
+checks reject a late result even if an awaited dependency suppresses cancellation
+or synchronous parsing overruns the deadline; they do not preempt CPU work.
+Cleanup permanently closes this new surface. Its reads do not mutate the legacy
+cache, cutoff or revision maps. The owner independently validates returned
+history and compares retained overlap before admitting an economic command.
+
 A seed requires a narrow validation projection: until the first accepted quote,
 local v4 validation sees its original empty EMA, while v5 independently validates
 the actual seeded state and forbids seed changes. Python recomputes all seeded
@@ -123,6 +144,23 @@ readback; no substitute command is generated. Historical source receipts remain
 retained through pending bootstrap/decision delivery. A new process cannot claim
 clock compatibility or resume merely by copying the source epoch.
 
+`ProviderPriceAcquisition(feed, owner)` owns one shielded acquisition task and
+retains its original result if its caller is cancelled. `settle()` observes
+without consuming it; the next `capture_quote()` retrieves that same ticket.
+Overlapping acquisition is rejected, not queued. Same-second deferral retains
+the immutable capture; unchanged accepted-block deferral drops the poll result
+so a later poll can discover a newer block while the owner preserves its old
+age anchors. Missing/invalid sources, clock rollback, deadline expiry and
+cancellation of the owned task permanently close admission, including cancellation
+before the coroutine starts. Acquisition draining leaves owned work and the
+owner intact so admitted results can settle. No new polling begins after drain.
+
+This helper covers acquisition only. The future controller must exclusively own
+the full protection → publication → history → decision sequence and every
+control. It must settle original uncertain commands and stable outbox events
+before any new acquisition. Passing exact events to the legacy event persister
+or separately writing manager lifecycle status would introduce a second writer.
+
 ## Acceptance and remaining gates
 
 Offline tests use literal provider JSON and real exact parsers, all four actual
@@ -148,6 +186,44 @@ positions; all 68 measured payloads fit the unchanged 262,144-byte limit. These
 are fixture measurements, not worst-case admission or production latency claims.
 They do not establish dense-history, later-generation, control/recovery or broader
 profile capacity. Do not increase the cap to bypass a failed complete command.
+
+The 2026-10-05 capacity suite extends actual provider preparation and real v5
+command encoding through three replacements. Every accepted payload is measured
+with PostgreSQL JSON spacing against the unchanged **262,144-byte** cap:
+
+| Solver | Largest sparse command, three replacements | Denser retained-trade result |
+| --- | ---: | --- |
+| Genetic algorithm | 162,965 bytes | Third replacement fits: 234,635 bytes, 24 operations, 48 positions |
+| Differential evolution | 172,688 bytes | Third replacement fits: 244,358 bytes, 24 operations, 48 positions |
+| Particle swarm | 218,286 bytes | Third replacement rejects: model payload already 262,546 bytes, before v5 wrapping |
+| CMA-ES | 218,343 bytes | Second replacement rejects: 248,760-byte model becomes a 262,797-byte full v5 payload |
+
+The rejected PSO/CMA cases retain 48/32 positions respectively, below the separate
+64-position bound. Both repeated preparations reproduce the identical optimizer,
+cohort, RNG and payload hashes without mutating the original sealed state. v5
+now reports explicit payload-capacity failure rather than a misleading
+candidate-binding failure. No cap is raised, evidence truncated or command split.
+These candle-crossing fixtures skip intermediate quote seconds; they are
+retention/capacity measurements, not sustainable controller or provider latency
+acceptance. Reproduce with `python -m tests.test_provider_capacity --measure` in
+the isolated locked worker environment. Instrumented eight-trace preparation and
+command validation took about 29.35 seconds on the local machine; that excludes
+provider/DB/publication latency and establishes no production deadline guarantee.
+
+**Cadence is another blocking bound.** Creation and bootstrap consume two of
+the owner's 4,096 command IDs. Each accepted quote normally consumes protection
+and decision, permitting only 2,047 complete pairs. Including the cohort-start
+quote, the first one-hour evaluation at one-second cadence needs 3,601 pairs,
+or 7,204 commands. The separate source sequence cap is also 4,096. Slowing the
+cadence can reduce command count but changes protective latency; do not select a
+six-second or other pilot cadence from arithmetic alone. A supported duration,
+reserved control/stop budget, bounded representation and cumulative latency must
+be explicitly reviewed before executable controller activation.
+
+The final acquisition increment passed full discovery of 1,302 tests with 16
+expected opt-in/database skips; all 67 new acquisition/window/capacity cases
+passed independently. No PostgreSQL fixture or migration changed, so the prior
+110 database tests remain historical acceptance rather than a new rerun.
 
 C2D2 and its parent gates remain open until the active controller is proved to
 use this ownership path. Production transport, bounded checkpoint reconstruction,

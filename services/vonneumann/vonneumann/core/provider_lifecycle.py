@@ -95,6 +95,9 @@ def _wrap(candidate, before, source_state, inputs, phase, frame=None, history=No
     wire = base._json(payload)
     size = len(json.dumps(payload, sort_keys=True, ensure_ascii=False, allow_nan=False,
                           separators=(', ', ': ')).encode('utf-8'))
+    if size > base.MAX_PAYLOAD_BYTES:
+        raise base.ExactRehearsalError(
+            'whole provider lifecycle candidate exceeds payload capacity; splitting is forbidden')
     return base.ExactCandidate(base.ExactState._seal(data, strategy, cohort), wire, size)
 
 

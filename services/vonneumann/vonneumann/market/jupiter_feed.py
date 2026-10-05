@@ -288,6 +288,10 @@ class JupiterFeed(MarketFeed):
         """Retain provider decimals independently of legacy indicator views."""
         return await self._candles.get_exact_candles(assets, warmup=warmup)
 
+    async def get_provider_history(self, *, previous_end: int | None = None):
+        """Fresh bounded SOL/USD windows; the v5 owner retains the bar cursor."""
+        return await self._candles.get_provider_history(previous_end=previous_end)
+
     async def get_candles(self, assets: list[str], *, warmup: bool = False) -> list[MinuteCandle]:
         """Fetch completed source minutes for the shared indicator history."""
         return await self._candles.get_candles(assets, warmup=warmup)

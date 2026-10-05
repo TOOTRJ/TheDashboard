@@ -40,6 +40,14 @@ class ProviderSourceError(ValueError):
 class ProviderDeferred(ProviderSourceError):
     """An unchanged quote or real same-second observation is not a new frame."""
 
+    def __init__(self, reason='same_second'):
+        # This distinction is local scheduling information, never persisted
+        # evidence or permission to relax any of the source checks.
+        if reason not in ('same_second', 'unchanged_quote'):
+            raise ProviderSourceError()
+        self.reason = reason
+        super().__init__()
+
 
 def _fail():
     raise ProviderSourceError()
@@ -336,7 +344,7 @@ def make_frame(capture, *, prior_source, epoch, wall_now, monotonic_now):
         if quote["block_ref"] == old["block_ref"]:
             if quote["price"] == old["price"] and quote["estimated_source_second"] == old["estimated_source_second"]:
                 check_frame(prior, wall_us=wall_us, monotonic_us=mono_us)
-                raise ProviderDeferred()
+                raise ProviderDeferred('unchanged_quote')
             _fail()
         if second <= prior["decision_second"]:
             raise ProviderDeferred()
