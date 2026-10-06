@@ -438,3 +438,9 @@ separately sequenced durable event acceptance/replay and presentation-only archi
 with retained holdings/reconciliation disclosure. The full contract and remaining
 production work are in [READ-PROJECTION-CONTRACT.md](../READ-PROJECTION-CONTRACT.md).
 It is outside migrations and application selection. D3B/D3C and DB-03A3 remain open.
+
+DB-03A2D3B2B adds the reviewed offline [canonical fresh v5 component](v5/package.sql),
+[dependency/object/signature/hash/grant manifest](v5/manifest.json) and reproducible
+`v5/build.py --check`. Public admission is v5-only, with separate inert economic/
+relay SQL capabilities. This is not the full production migration or credential
+configuration. [Contract, focused tests and next gates](../CANONICAL-V5-PACKAGE.md).

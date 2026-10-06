@@ -1,0 +1,1158 @@
+{
+  "admitted_command_versions": [
+    5
+  ],
+  "capability_roles": [
+    "vn_economic",
+    "vn_relay"
+  ],
+  "credential_or_gateway_configuration": false,
+  "entrypoints_sha256": "eb1bbd0f8e41da109cdd8187ff6bb8e14acf5f5eee92b863bf92d879058b5a21",
+  "functions": [
+    {
+      "body_sha256": "c628b78ce1d2a3b15ddbaf7b0a5838fa26c925d332103e53f34ba73b9b227604",
+      "ddl_sha256": "052dac20ffb8f80b1c73fc98cfb0d96d87af04ebd98b2fd184ff86ea05d58b5d",
+      "dependencies": [],
+      "execute_role": "vn_contract_owner",
+      "name": "vn_identity.owner_id",
+      "security_definer": true,
+      "signature": "vn_identity.owner_id()"
+    },
+    {
+      "body_sha256": "d9f3b2ca5568583c5605af160a3b5ca396ad192b80ef01265cc385fa16ed1f8f",
+      "ddl_sha256": "1986c0907b10a2d1048503d886eab9a8bf1fcee0712ca35dc8aef5ffa3d69461",
+      "dependencies": [],
+      "execute_role": null,
+      "name": "vn_durability.exact_keys",
+      "security_definer": false,
+      "signature": "vn_durability.exact_keys(jsonb,text[])"
+    },
+    {
+      "body_sha256": "3f7ff844afb4adc7af6c4e3f41a58bb89454ef2e61b1420937f365096e5fd70f",
+      "ddl_sha256": "f5547b013b4f09634a5ac6ec44c619c276c4667b1869b07af4d7b6cc31bf00a3",
+      "dependencies": [],
+      "execute_role": null,
+      "name": "vn_durability.money",
+      "security_definer": false,
+      "signature": "vn_durability.money(jsonb)"
+    },
+    {
+      "body_sha256": "0ce52862453a84b6f684e7519fc12b6b27e85a28908f5528d983ee849fa04699",
+      "ddl_sha256": "8f94d2b1541858b8660c3f326ab76de34314f89c80b8722a717d66bd230f3b61",
+      "dependencies": [
+        "vn_durability.money"
+      ],
+      "execute_role": null,
+      "name": "vn_durability.decimal_units",
+      "security_definer": false,
+      "signature": "vn_durability.decimal_units(jsonb,integer)"
+    },
+    {
+      "body_sha256": "e7974c191c93db5db5dfea0c0e1d556a75fe4fb97b12d62a999cbaebc7f47670",
+      "ddl_sha256": "f5bc8ebab2f6fde9b454f6fd66c12f261035d13cdb3d7be2f55bbdf91cbc1ac3",
+      "dependencies": [],
+      "execute_role": null,
+      "name": "vn_durability.decimal_text",
+      "security_definer": false,
+      "signature": "vn_durability.decimal_text(numeric,integer)"
+    },
+    {
+      "body_sha256": "80b54a747f7720ade400db09a5a2bafffdec33e67e4907feddda2f2b7974fb6d",
+      "ddl_sha256": "39eaf32b83c1e4056b228675157ab44f2c661f2ee3a83dc01160445375544dda",
+      "dependencies": [
+        "vn_durability.decimal_text",
+        "vn_durability.decimal_units",
+        "vn_durability.exact_keys"
+      ],
+      "execute_role": null,
+      "name": "vn_durability.execution_config",
+      "security_definer": false,
+      "signature": "vn_durability.execution_config(jsonb)"
+    },
+    {
+      "body_sha256": "3eeea7c4a832b72adf347f487a9e3fda40bccdd2d6d883cd46b0b32370ef2f02",
+      "ddl_sha256": "bcf1f3e3793da5eea715372050e7a0f0622583e88e4a7459a215519a90a4c71d",
+      "dependencies": [
+        "vn_durability.execution_config"
+      ],
+      "execute_role": null,
+      "name": "vn_durability.execution_policy",
+      "security_definer": false,
+      "signature": "vn_durability.execution_policy(jsonb)"
+    },
+    {
+      "body_sha256": "85d73cb1e26e692b7728ef91537001fa005651d3c142b477591d583c4e168534",
+      "ddl_sha256": "0bfbec065df17c646eda3bc845403b10c93fa9701e4282c035d6c1ff7ad9171e",
+      "dependencies": [
+        "vn_durability.decimal_text",
+        "vn_durability.decimal_units",
+        "vn_durability.exact_keys",
+        "vn_durability.execution_config"
+      ],
+      "execute_role": null,
+      "name": "vn_durability.entry_evidence",
+      "security_definer": false,
+      "signature": "vn_durability.entry_evidence(jsonb)"
+    },
+    {
+      "body_sha256": "e0e6c4c055ac82779b4b4eeb6d795211e0d67ca2b3bdd9ae8702e9a2ca46f15c",
+      "ddl_sha256": "f8850e3b6c0f500763712d42f7dc1f1f095b20aedffe8f16a3591ad19f7eee93",
+      "dependencies": [
+        "vn_durability.decimal_text",
+        "vn_durability.decimal_units",
+        "vn_durability.entry_evidence",
+        "vn_durability.exact_keys"
+      ],
+      "execute_role": null,
+      "name": "vn_durability.exit_evidence",
+      "security_definer": false,
+      "signature": "vn_durability.exit_evidence(jsonb,jsonb)"
+    },
+    {
+      "body_sha256": "f841db557e13b418b24ff443d158db0f98541e5aa92c51d92d518cf8d42f2352",
+      "ddl_sha256": "ef84c0bfb59cd4c60ae778f5464f054b436b63b5dc5e0de87f3b747220afa03f",
+      "dependencies": [],
+      "execute_role": null,
+      "name": "vn_durability.canonical_id",
+      "security_definer": false,
+      "signature": "vn_durability.canonical_id(jsonb)"
+    },
+    {
+      "body_sha256": "02f87309967b95c8df87faa027469e7612d79ceffa1a0b46a9f10f8f81cd01a0",
+      "ddl_sha256": "d9d432fd6e482a7a83d7a41e55c2b180d46d97077c8a89598e77fb5e11a5b99e",
+      "dependencies": [],
+      "execute_role": null,
+      "name": "vn_durability.valid_iteration",
+      "security_definer": false,
+      "signature": "vn_durability.valid_iteration(jsonb)"
+    },
+    {
+      "body_sha256": "bbfbc6765ad815f18cd1c64fe0692af180e0a3f1a975189e4a8563ec7be8b745",
+      "ddl_sha256": "982e24e78d78459d85598701228e380f9ba10a936ad7f3408b482f95e2d31125",
+      "dependencies": [
+        "vn_durability.canonical_id",
+        "vn_durability.exact_keys",
+        "vn_durability.valid_iteration"
+      ],
+      "execute_role": null,
+      "name": "vn_durability.record_distribution",
+      "security_definer": false,
+      "signature": "vn_durability.record_distribution(uuid,uuid,jsonb)"
+    },
+    {
+      "body_sha256": "7e90095c05fc8faeddbb602a83fa0ab1e8efb066a89f1b772bed303fa3eed990",
+      "ddl_sha256": "f52c92e11931e3dc4d260e8ad1b8e84bf862b3cb0b8950b6a1a6f795e89691c8",
+      "dependencies": [
+        "vn_durability.canonical_id",
+        "vn_durability.exact_keys",
+        "vn_durability.valid_iteration"
+      ],
+      "execute_role": null,
+      "name": "vn_durability.record_lineage",
+      "security_definer": false,
+      "signature": "vn_durability.record_lineage(uuid,uuid,uuid,jsonb)"
+    },
+    {
+      "body_sha256": "50a23b77010dbcb01b10de4d1edb8d84057d6632755c01478a304913b6a73e83",
+      "ddl_sha256": "45cec220d89ad5f199c3fa38e228f3d9a0dd3ee7be7479a28e064ee37bb70181",
+      "dependencies": [
+        "vn_durability.canonical_id",
+        "vn_durability.exact_keys",
+        "vn_durability.rehearsal_integer"
+      ],
+      "execute_role": null,
+      "name": "vn_durability.record_restart_lineage",
+      "security_definer": false,
+      "signature": "vn_durability.record_restart_lineage(uuid,uuid,uuid,jsonb)"
+    },
+    {
+      "body_sha256": "52e9fbbea1e0862199aa733051506954fda518d6d0975ac919ac99b8d04bab86",
+      "ddl_sha256": "4d252b1f2c5e88111dbdf144e986774c515e2262b1cbeaa8667d0db16da4a575",
+      "dependencies": [],
+      "execute_role": null,
+      "name": "vn_durability.rehearsal_integer",
+      "security_definer": false,
+      "signature": "vn_durability.rehearsal_integer(jsonb,numeric,numeric)"
+    },
+    {
+      "body_sha256": "f94f88a3ffe6f7d1608333b90d4cce84e33a040314f7d34926549b658ec771b9",
+      "ddl_sha256": "5574a64c0eb160e6ad000fb8300154ad915f23fa8fe8705a1c44001039a306ea",
+      "dependencies": [],
+      "execute_role": null,
+      "name": "vn_durability.rehearsal_hex",
+      "security_definer": false,
+      "signature": "vn_durability.rehearsal_hex(jsonb)"
+    },
+    {
+      "body_sha256": "618390b76556aae45d4f6a4175bcc9cdd39ad9e6c46cc6704f769898b1310599",
+      "ddl_sha256": "51ed5289ec9949bb1eb3fd5a1227c366f02c8909a07d8e8b5774d6cdda0891e9",
+      "dependencies": [
+        "vn_durability.exact_keys",
+        "vn_durability.rehearsal_hex",
+        "vn_durability.rehearsal_json"
+      ],
+      "execute_role": null,
+      "name": "vn_durability.rehearsal_json",
+      "security_definer": false,
+      "signature": "vn_durability.rehearsal_json(jsonb,integer)"
+    },
+    {
+      "body_sha256": "f67b881a39b82f0a18a4e8cb26ae21b55ed1d26c2a8a30b0488b08c61ba03267",
+      "ddl_sha256": "793aca8892aa9dc95465bb759586091baab93d3f96464346ec7daf6c4d593c2a",
+      "dependencies": [],
+      "execute_role": null,
+      "name": "vn_durability.rehearsal_integer_hex",
+      "security_definer": false,
+      "signature": "vn_durability.rehearsal_integer_hex(integer)"
+    },
+    {
+      "body_sha256": "33139f5b727aaf975ebba661cb296f748743dd3ccd52f512f82ba11f59f426bf",
+      "ddl_sha256": "7d6da29bb30ffc31182ae88b90256c534b81f45aedd094644fdad7cb83605850",
+      "dependencies": [],
+      "execute_role": null,
+      "name": "vn_durability.optimizer_integer",
+      "security_definer": false,
+      "signature": "vn_durability.optimizer_integer(jsonb,numeric,numeric)"
+    },
+    {
+      "body_sha256": "94d790efbeed8df37ae7eeb424f7f0a1d6d07b63bab612012d2a3b82d2e5bf83",
+      "ddl_sha256": "3b088468853357e23dbef5561f153ffd593db3810144f04f0dc8c45cd2d2affb",
+      "dependencies": [
+        "vn_durability.exact_keys"
+      ],
+      "execute_role": null,
+      "name": "vn_durability.optimizer_decimal",
+      "security_definer": false,
+      "signature": "vn_durability.optimizer_decimal(jsonb)"
+    },
+    {
+      "body_sha256": "b7df16fdc0dd4bcf969c72c5577f9cb55a13b8aed614c3a565e007b6f8e89dc8",
+      "ddl_sha256": "4d7608c07e4536004ceca110ab056831d1ef5de3f84ff549ffdca4d49218ba7f",
+      "dependencies": [],
+      "execute_role": null,
+      "name": "vn_durability.optimizer_bytes",
+      "security_definer": false,
+      "signature": "vn_durability.optimizer_bytes(jsonb,integer)"
+    },
+    {
+      "body_sha256": "ac6f536740f9fcd1a698a011d7cb284a4a231e01af4181aefe39f063a083fd93",
+      "ddl_sha256": "fe91a8a8bb8b4efd542eb3b0ea003e58eae936198c99cea8063000c3a16c4555",
+      "dependencies": [
+        "vn_durability.optimizer_integer"
+      ],
+      "execute_role": null,
+      "name": "vn_durability.optimizer_array_shape",
+      "security_definer": false,
+      "signature": "vn_durability.optimizer_array_shape(jsonb)"
+    },
+    {
+      "body_sha256": "93c82847ef5f72408604d0b37ab11497e3a3baa47dab6ba54d0b9de168189877",
+      "ddl_sha256": "e3b60d034a257d78b3b7aee544fdf663296ad1e093c52f0dd358f7f03195221c",
+      "dependencies": [
+        "vn_durability.optimizer_array_shape",
+        "vn_durability.optimizer_bytes"
+      ],
+      "execute_role": null,
+      "name": "vn_durability.optimizer_array",
+      "security_definer": false,
+      "signature": "vn_durability.optimizer_array(jsonb)"
+    },
+    {
+      "body_sha256": "00abd5daa5d7ee7dc0e8ba8c147f04d8dc73015a91ff2a20f5725996948b3eb3",
+      "ddl_sha256": "bd112f48357f448fbd4264c6824b497c63b4ad4d521091f63f6d795871ef04ca",
+      "dependencies": [
+        "vn_durability.exact_keys",
+        "vn_durability.optimizer_array_shape",
+        "vn_durability.optimizer_decimal",
+        "vn_durability.optimizer_integer",
+        "vn_durability.rehearsal_hex"
+      ],
+      "execute_role": null,
+      "name": "vn_durability.optimizer_history",
+      "security_definer": false,
+      "signature": "vn_durability.optimizer_history(jsonb,jsonb)"
+    },
+    {
+      "body_sha256": "f279f51df2c8eac7247c5f4a496528213a77f971005a7e7a9f2681b2a1cd0b4d",
+      "ddl_sha256": "8f0379f03d22624fbcb02108cef45558d8421d4f6fde6ec64f1f18645fd05a78",
+      "dependencies": [],
+      "execute_role": null,
+      "name": "vn_durability.optimizer_class_fields",
+      "security_definer": false,
+      "signature": "vn_durability.optimizer_class_fields(text)"
+    },
+    {
+      "body_sha256": "36054a5a5c3fbbf4b9095aa6408db27550a249d5cb2bc74b45fe36b536056773",
+      "ddl_sha256": "794890f264d5bccf0b76fce495fdc62f79f931927dce8f9c1f9e2b5ff2b9189e",
+      "dependencies": [
+        "vn_durability.optimizer_integer"
+      ],
+      "execute_role": null,
+      "name": "vn_durability.optimizer_role",
+      "security_definer": false,
+      "signature": "vn_durability.optimizer_role(jsonb,jsonb,text,boolean)"
+    },
+    {
+      "body_sha256": "e10a9b16f4d82fc01b14a83fa24c569d0c89850560e9fed232536e1fbe7d7157",
+      "ddl_sha256": "b58e80ebc12a17ec30ac172c046586381d8098720c030df3510fd8cd86b72970",
+      "dependencies": [
+        "vn_durability.exact_keys",
+        "vn_durability.optimizer_array",
+        "vn_durability.optimizer_bytes",
+        "vn_durability.optimizer_class_fields",
+        "vn_durability.optimizer_decimal",
+        "vn_durability.optimizer_history",
+        "vn_durability.optimizer_integer",
+        "vn_durability.optimizer_node",
+        "vn_durability.optimizer_role",
+        "vn_durability.rehearsal_hex"
+      ],
+      "execute_role": null,
+      "name": "vn_durability.optimizer_node",
+      "security_definer": false,
+      "signature": "vn_durability.optimizer_node(jsonb,jsonb,integer)"
+    },
+    {
+      "body_sha256": "6bcd98f371911317b75a6b99a203836e4e8bbf698007bc937969171688204946",
+      "ddl_sha256": "e5d866086fdbff2ea7b8cb632302d4fae789d19370113f6b8950d3775afe0998",
+      "dependencies": [
+        "vn_durability.exact_keys",
+        "vn_durability.optimizer_node",
+        "vn_durability.optimizer_role"
+      ],
+      "execute_role": null,
+      "name": "vn_durability.optimizer_evidence",
+      "security_definer": false,
+      "signature": "vn_durability.optimizer_evidence(jsonb,text)"
+    },
+    {
+      "body_sha256": "0ad92b290b7fba263986d49766eefb9df746bf724b2b7690072351bdb97e1d98",
+      "ddl_sha256": "2670a9ca46c1db7aa788dfc1529301fb9a701d8bc13b4e4af1114e36476da7d9",
+      "dependencies": [
+        "vn_durability.exact_keys",
+        "vn_durability.rehearsal_hex"
+      ],
+      "execute_role": null,
+      "name": "vn_durability.rehearsal_view_time",
+      "security_definer": false,
+      "signature": "vn_durability.rehearsal_view_time(jsonb)"
+    },
+    {
+      "body_sha256": "6ae08ef5ef63ea2b9c4a3ea8198986898a1fdc2463e556d17e8d28361655dcf2",
+      "ddl_sha256": "be0c5d9caaa9800265786534b647e05f043632c8b282444a43325f7fe0404f49",
+      "dependencies": [
+        "vn_durability.decimal_text",
+        "vn_durability.decimal_units",
+        "vn_durability.exact_keys",
+        "vn_durability.execution_policy"
+      ],
+      "execute_role": null,
+      "name": "vn_durability.lifecycle_config",
+      "security_definer": false,
+      "signature": "vn_durability.lifecycle_config(jsonb)"
+    },
+    {
+      "body_sha256": "be81cebeda3af4504fc0589f2e77e36be5098ee7b3eba0569d3d7eceadb39049",
+      "ddl_sha256": "4e2645af7383b7aa9e9f754b97e1e2e2ef4708c7dd52efcf4314c0269e1b140d",
+      "dependencies": [
+        "vn_durability.lifecycle_optimizer_view",
+        "vn_durability.optimizer_decimal"
+      ],
+      "execute_role": null,
+      "name": "vn_durability.lifecycle_optimizer_view",
+      "security_definer": false,
+      "signature": "vn_durability.lifecycle_optimizer_view(jsonb,jsonb,jsonb,jsonb,integer)"
+    },
+    {
+      "body_sha256": "bad4b3f57ceff48a662b09c48b374f7121c120ea1e992e943e57f18e7a7d733c",
+      "ddl_sha256": "80c8942fad23b40420bd56a52a2ad778ff10deb26f910711e2f6307fb320b7ff",
+      "dependencies": [
+        "vn_durability.lifecycle_optimizer_view"
+      ],
+      "execute_role": null,
+      "name": "vn_durability.lifecycle_optimizer_views",
+      "security_definer": false,
+      "signature": "vn_durability.lifecycle_optimizer_views(jsonb)"
+    },
+    {
+      "body_sha256": "972f2c381ba17963cfe8c4645e1f6d16ae9c61d1a9889251b29e913b834a4d2f",
+      "ddl_sha256": "132f497f84692229e5481bd10e04c5635d32b5b2fd6616aee06e3b73dc8741b6",
+      "dependencies": [
+        "vn_durability.lifecycle_optimizer_views"
+      ],
+      "execute_role": null,
+      "name": "vn_durability.lifecycle_optimizer_mirror",
+      "security_definer": false,
+      "signature": "vn_durability.lifecycle_optimizer_mirror(jsonb)"
+    },
+    {
+      "body_sha256": "177ecae6dab17599eede21367256cb991950d69cb1a29495d1f3aea6133e14f0",
+      "ddl_sha256": "a7ad5b05e50f86b1c739812771d5906f3876b3b02ed6ed4b9f71ea1c945a5094",
+      "dependencies": [
+        "vn_durability.decimal_text",
+        "vn_durability.decimal_units"
+      ],
+      "execute_role": null,
+      "name": "vn_durability.lifecycle_amount",
+      "security_definer": false,
+      "signature": "vn_durability.lifecycle_amount(jsonb,integer)"
+    },
+    {
+      "body_sha256": "17de133d73ced5e0333feecf11c173ea4044a2ab275d7e47a57dcd18aa5a7d10",
+      "ddl_sha256": "b8096cc0645bebe39b973526092150f2f942f1ff096d69ec788285c4ce4c4634",
+      "dependencies": [
+        "vn_durability.lifecycle_amount"
+      ],
+      "execute_role": null,
+      "name": "vn_durability.lifecycle_equity",
+      "security_definer": false,
+      "signature": "vn_durability.lifecycle_equity(uuid,numeric,jsonb)"
+    },
+    {
+      "body_sha256": "a8244e31f5a3baeffe30428b2ce52729895d054d9b3aeb46ad73123b4fa0b4c8",
+      "ddl_sha256": "7155156412ae4a8092ea85f97a57dd133a0b3549cafb9621d8fcc1b6053e0a64",
+      "dependencies": [
+        "vn_durability.canonical_id",
+        "vn_durability.decimal_text",
+        "vn_durability.exact_keys",
+        "vn_durability.lifecycle_amount",
+        "vn_durability.rehearsal_integer"
+      ],
+      "execute_role": null,
+      "name": "vn_durability.lifecycle_member_metrics",
+      "security_definer": false,
+      "signature": "vn_durability.lifecycle_member_metrics(vn_durability.runs,jsonb,jsonb,jsonb)"
+    },
+    {
+      "body_sha256": "1a6ad24244f8fd78488d148333524d6e6f7315771f252a6440a86c8b9634fc0d",
+      "ddl_sha256": "bbb956eee5865fcca8cbd93a9df227bbf808e7fe34c45d5ec081ff7c85b5a11f",
+      "dependencies": [
+        "vn_durability.canonical_id",
+        "vn_durability.exact_keys",
+        "vn_durability.rehearsal_hex",
+        "vn_durability.rehearsal_integer",
+        "vn_durability.rehearsal_view_time"
+      ],
+      "execute_role": null,
+      "name": "vn_durability.lifecycle_cohort",
+      "security_definer": false,
+      "signature": "vn_durability.lifecycle_cohort(vn_durability.runs,jsonb,integer)"
+    },
+    {
+      "body_sha256": "0e31231118ad0cf7e754236200c9d073f2740ca95bcbcd3e10b128e57e04f51d",
+      "ddl_sha256": "83586a25dfb73290ef11dc4703f51d8837bea7f6319d504e9b1bd14545a0ce5e",
+      "dependencies": [
+        "vn_durability.canonical_id",
+        "vn_durability.decimal_text",
+        "vn_durability.exact_keys",
+        "vn_durability.lifecycle_amount",
+        "vn_durability.lifecycle_cohort",
+        "vn_durability.lifecycle_equity",
+        "vn_durability.rehearsal_integer"
+      ],
+      "execute_role": null,
+      "name": "vn_durability.lifecycle_state",
+      "security_definer": false,
+      "signature": "vn_durability.lifecycle_state(vn_durability.runs,jsonb,numeric)"
+    },
+    {
+      "body_sha256": "51f61658f76d6e2bbab0bcfca2f322b0ca59c6fdc4d696a3157e8dc9c5cd006b",
+      "ddl_sha256": "8bbecd3ebc1973ae0d514bc2ae6c0512b395e80055bbf75b541771b6096fa91c",
+      "dependencies": [],
+      "execute_role": null,
+      "name": "vn_durability.lifecycle_candles",
+      "security_definer": false,
+      "signature": "vn_durability.lifecycle_candles(jsonb,jsonb,jsonb,boolean)"
+    },
+    {
+      "body_sha256": "4805a3775a8bf98bee83b951b0db2c2bcd483a5bca394811b80ae74ce310f2a7",
+      "ddl_sha256": "ac479513a7a279eecd008b80c9d933a17b984aa96763f53cfe55a0daabcfe2ee",
+      "dependencies": [
+        "vn_durability.lifecycle_optimizer_views",
+        "vn_durability.rehearsal_view_time"
+      ],
+      "execute_role": null,
+      "name": "vn_durability.lifecycle_cohort_continuation",
+      "security_definer": false,
+      "signature": "vn_durability.lifecycle_cohort_continuation(vn_durability.runs,jsonb,boolean,boolean,boolean,boolean,numeric)"
+    },
+    {
+      "body_sha256": "a515a79debe84a5d53576fa43866b483ec45f97f78e19302f5536d20e4ad39da",
+      "ddl_sha256": "9d1493aad77f180372410a0fcd501833bd6561f875d3e199a3307d4312511846",
+      "dependencies": [
+        "vn_durability.canonical_id",
+        "vn_durability.decimal_text",
+        "vn_durability.exact_keys",
+        "vn_durability.lifecycle_amount",
+        "vn_durability.lifecycle_cohort_continuation",
+        "vn_durability.rehearsal_integer",
+        "vn_durability.rehearsal_view_time"
+      ],
+      "execute_role": null,
+      "name": "vn_durability.lifecycle_actions",
+      "security_definer": false,
+      "signature": "vn_durability.lifecycle_actions(vn_durability.runs,jsonb,boolean,boolean,numeric,numeric)"
+    },
+    {
+      "body_sha256": "b1722f24ba94fe65a01cac5b1e083dfaf47c54458a0b2f2b2b4ec50040a0f294",
+      "ddl_sha256": "af88f60ad901c9f3eebf7792afe9cd33ad227b6ff12c94763de1bedd90a736ae",
+      "dependencies": [
+        "vn_durability.canonical_id",
+        "vn_durability.exact_keys",
+        "vn_durability.lifecycle_actions",
+        "vn_durability.lifecycle_amount",
+        "vn_durability.lifecycle_candles",
+        "vn_durability.lifecycle_equity",
+        "vn_durability.rehearsal_hex",
+        "vn_durability.rehearsal_integer",
+        "vn_durability.rehearsal_view_time"
+      ],
+      "execute_role": null,
+      "name": "vn_durability.validate_lifecycle_before",
+      "security_definer": false,
+      "signature": "vn_durability.validate_lifecycle_before(vn_durability.runs,jsonb)"
+    },
+    {
+      "body_sha256": "ef4742d30c93cf1f04eead80a841ed15d56dce33d7faf561cd84b3f5f4cb3c7d",
+      "ddl_sha256": "8f32e2fea24b409f7be14a7434517098c46106a8bec007bdbcb8a3f269494e0d",
+      "dependencies": [
+        "vn_durability.canonical_id",
+        "vn_durability.decimal_text",
+        "vn_durability.decimal_units",
+        "vn_durability.exact_keys",
+        "vn_durability.lifecycle_member_metrics",
+        "vn_durability.lifecycle_optimizer_mirror",
+        "vn_durability.lifecycle_state",
+        "vn_durability.optimizer_evidence",
+        "vn_durability.rehearsal_hex",
+        "vn_durability.rehearsal_integer",
+        "vn_durability.rehearsal_integer_hex",
+        "vn_durability.rehearsal_json"
+      ],
+      "execute_role": null,
+      "name": "vn_durability.validate_lifecycle_after",
+      "security_definer": false,
+      "signature": "vn_durability.validate_lifecycle_after(vn_durability.runs,jsonb,numeric)"
+    },
+    {
+      "body_sha256": "e19eba145fc166706658fc40f84b3a59dc2c162d685ccc025c333ef491a6ba29",
+      "ddl_sha256": "4cda3fb326084aadd767116cc546298fd24af47a00398bc0f3dc29b5da79fa31",
+      "dependencies": [
+        "vn_durability.rehearsal_integer"
+      ],
+      "execute_role": null,
+      "name": "vn_durability.provider_us",
+      "security_definer": false,
+      "signature": "vn_durability.provider_us(jsonb)"
+    },
+    {
+      "body_sha256": "2235960be55c6c159d4af4e4e00ce7d731ab396042e785564b9cf4ec0ff55351",
+      "ddl_sha256": "f0e87bb2cbca091c18c5105036ab1f5d7e66d7ba5c939b917896cc9c0415950c",
+      "dependencies": [
+        "vn_durability.rehearsal_hex"
+      ],
+      "execute_role": null,
+      "name": "vn_durability.provider_hex_us",
+      "security_definer": false,
+      "signature": "vn_durability.provider_hex_us(jsonb)"
+    },
+    {
+      "body_sha256": "4ca462749d55a5bef50a8976448c3196a3670120e7178f0afb934100a0f03c9f",
+      "ddl_sha256": "97e8fa08389aaa4282e24d8b51760db55b80efc42ad6516c2215eb1e20e36319",
+      "dependencies": [
+        "vn_durability.canonical_id",
+        "vn_durability.exact_keys",
+        "vn_durability.lifecycle_config"
+      ],
+      "execute_role": null,
+      "name": "vn_durability.provider_config",
+      "security_definer": false,
+      "signature": "vn_durability.provider_config(jsonb)"
+    },
+    {
+      "body_sha256": "ad0941ec5063c227d792902263dc51a5ed63146ecbb1736f10b278c2cba77347",
+      "ddl_sha256": "f6d35f87256f3477d1747df4f3f758c2f2a2e116f56e3e5ef11db8468255c07f",
+      "dependencies": [],
+      "execute_role": null,
+      "name": "vn_durability.provider_mint",
+      "security_definer": false,
+      "signature": "vn_durability.provider_mint(text)"
+    },
+    {
+      "body_sha256": "24e33789555de3ad6855fd09b7463240268f23be10efa93d6a8bb1f61ddc0e68",
+      "ddl_sha256": "4c81414cb48ab3771ad4714a9a22acdbbdeaf11e29f38f43d70661093cbc0cc9",
+      "dependencies": [
+        "vn_durability.exact_keys",
+        "vn_durability.provider_mint",
+        "vn_durability.provider_us",
+        "vn_durability.rehearsal_integer"
+      ],
+      "execute_role": null,
+      "name": "vn_durability.provider_document",
+      "security_definer": false,
+      "signature": "vn_durability.provider_document(jsonb,text)"
+    },
+    {
+      "body_sha256": "e6f23abfc1c30f9b0426962573662bad9f1310a381420c213ceb5f293f345bff",
+      "ddl_sha256": "3bec17ccdb411df0b3d1e14e504a5443a257aeb2cd3933a8a8e970675ebad12f",
+      "dependencies": [
+        "vn_durability.provider_us"
+      ],
+      "execute_role": null,
+      "name": "vn_durability.provider_receipt",
+      "security_definer": false,
+      "signature": "vn_durability.provider_receipt(jsonb,numeric,numeric,boolean)"
+    },
+    {
+      "body_sha256": "f872b47417472271e3bb55e3b2565fd9a4bc34d29a32e3fc5f51922c88b3b8bd",
+      "ddl_sha256": "814f4383d02ca4466ac3a3f913f28daacbdadb43b269749c6e0b171e4bf74d0a",
+      "dependencies": [
+        "vn_durability.exact_keys",
+        "vn_durability.lifecycle_amount",
+        "vn_durability.provider_document",
+        "vn_durability.provider_us",
+        "vn_durability.rehearsal_integer"
+      ],
+      "execute_role": null,
+      "name": "vn_durability.provider_frame",
+      "security_definer": false,
+      "signature": "vn_durability.provider_frame(jsonb)"
+    },
+    {
+      "body_sha256": "932fd091ae3cf28fac9653c195a91413771fd9a5b980289a65bb708951245b53",
+      "ddl_sha256": "92b61819e04dbdbc9b17eefbf6b417bd50f9b4f667553105453bd16a43e59aa4",
+      "dependencies": [
+        "vn_durability.provider_receipt"
+      ],
+      "execute_role": null,
+      "name": "vn_durability.provider_fresh_frame",
+      "security_definer": false,
+      "signature": "vn_durability.provider_fresh_frame(jsonb,numeric,numeric,boolean)"
+    },
+    {
+      "body_sha256": "a0fe1c55e55e4b8121114a96f0fe8bc27c0f19e5c61da96a8326348ef8019ae1",
+      "ddl_sha256": "6a03b9552d28424a5d3dca469c870401f28936878bb8999fcb976157c0952538",
+      "dependencies": [
+        "vn_durability.lifecycle_amount",
+        "vn_durability.rehearsal_integer"
+      ],
+      "execute_role": null,
+      "name": "vn_durability.provider_bars",
+      "security_definer": false,
+      "signature": "vn_durability.provider_bars(jsonb)"
+    },
+    {
+      "body_sha256": "ae4f3e4c4b06e7419b4b07c7fb2530bcaba4bcbb8e9240c11b0d3d878a5401a8",
+      "ddl_sha256": "e720baaa61cbe1ede379339695c3092590f875409b501dd3ed14ad9585d1b5ac",
+      "dependencies": [
+        "vn_durability.exact_keys",
+        "vn_durability.lifecycle_amount",
+        "vn_durability.provider_document",
+        "vn_durability.provider_receipt",
+        "vn_durability.rehearsal_integer"
+      ],
+      "execute_role": null,
+      "name": "vn_durability.provider_history",
+      "security_definer": false,
+      "signature": "vn_durability.provider_history(jsonb,jsonb,boolean,numeric,numeric)"
+    },
+    {
+      "body_sha256": "9c689699f394185714256b919577c8c98b78cb1d9793a38bb8af50b1199df9a6",
+      "ddl_sha256": "5691c864a08e08e89ff3ae553c47d6c3caa45d4665b272b709cafbea89ac7e28",
+      "dependencies": [
+        "vn_durability.exact_keys",
+        "vn_durability.provider_bars",
+        "vn_durability.provider_frame",
+        "vn_durability.rehearsal_integer"
+      ],
+      "execute_role": null,
+      "name": "vn_durability.provider_state",
+      "security_definer": false,
+      "signature": "vn_durability.provider_state(jsonb,jsonb)"
+    },
+    {
+      "body_sha256": "2e8e6ce05a1138b93a54d435afaeb86eb561722da149520f793e8db32980331f",
+      "ddl_sha256": "acf38157acfe51364f357f3aa7cf98568aa1bc8e3ee6a05f8b8c0b855cfafeb4",
+      "dependencies": [],
+      "execute_role": null,
+      "name": "vn_durability.provider_model_payload",
+      "security_definer": false,
+      "signature": "vn_durability.provider_model_payload(jsonb)"
+    },
+    {
+      "body_sha256": "8a23c995a3c862c688024eeb1381d6d1a72805ebefccb70f5d25d9806df5fd93",
+      "ddl_sha256": "5695aee513304c13f03ddaaa596d013a129b15eb72d86f2994db335ded287d44",
+      "dependencies": [],
+      "execute_role": null,
+      "name": "vn_durability.provider_model_run",
+      "security_definer": false,
+      "signature": "vn_durability.provider_model_run(vn_durability.runs)"
+    },
+    {
+      "body_sha256": "44bc3ad213897b957e4becebfea58e1726206360d0f6dd721d43bdbaf7c668ba",
+      "ddl_sha256": "73358b02c7e9c7c1eb01b3db22920642d23d58a5a1e5088bb16671536a3dc041",
+      "dependencies": [
+        "vn_durability.exact_keys",
+        "vn_durability.provider_frame",
+        "vn_durability.provider_fresh_frame",
+        "vn_durability.provider_hex_us",
+        "vn_durability.provider_history",
+        "vn_durability.provider_state",
+        "vn_durability.provider_us",
+        "vn_durability.rehearsal_hex"
+      ],
+      "execute_role": null,
+      "name": "vn_durability.provider_before",
+      "security_definer": false,
+      "signature": "vn_durability.provider_before(vn_durability.runs,jsonb)"
+    },
+    {
+      "body_sha256": "d9a9c0d9bade76a5d47709fba4abcf8cca6f136f7b7763f7f030bd754e190ea7",
+      "ddl_sha256": "4b442bf338fc25965e1438f95ebcb3a67a452b926a9562d4bd8e80110c6a20d7",
+      "dependencies": [
+        "vn_durability.provider_fresh_frame",
+        "vn_durability.provider_receipt"
+      ],
+      "execute_role": null,
+      "name": "vn_durability.provider_server_fresh",
+      "security_definer": false,
+      "signature": "vn_durability.provider_server_fresh(jsonb)"
+    },
+    {
+      "body_sha256": "4596980944508c01c791167808a38f7b860baed7783bd21340501c35c5c1f823",
+      "ddl_sha256": "1ef41e512545b35f44d47a289e5c61d3e117dde740aeb4aafe4c12f82ecfe827",
+      "dependencies": [],
+      "execute_role": null,
+      "name": "vn_durability.record_command",
+      "security_definer": false,
+      "signature": "vn_durability.record_command(uuid,uuid,uuid,bigint,text,jsonb,jsonb)"
+    },
+    {
+      "body_sha256": "fe9b5a316b83cb775e134cf7fd95418a0928d7eec38a435c6df8c1efca794c00",
+      "ddl_sha256": "1a49f99d40334f716e4b7cacea2574b06f700cfeda400cc8c10cd24d71959bf8",
+      "dependencies": [
+        "vn_durability.money",
+        "vn_durability.provider_config",
+        "vn_durability.record_command"
+      ],
+      "execute_role": "vn_economic",
+      "name": "vn_durability.create_run",
+      "security_definer": true,
+      "signature": "vn_durability.create_run(uuid,uuid,uuid,uuid,jsonb,text,integer)"
+    },
+    {
+      "body_sha256": "26f854853e535db9b0748652cf9172e7cd084815e1f2a6635df9fa38be3bc7c2",
+      "ddl_sha256": "5498b841127cd11881110ac52c168c26cd055adaec75ef1529c0a185e31b0a6c",
+      "dependencies": [],
+      "execute_role": "vn_economic",
+      "name": "vn_durability.heartbeat",
+      "security_definer": true,
+      "signature": "vn_durability.heartbeat(uuid,uuid,uuid,bigint,integer)"
+    },
+    {
+      "body_sha256": "9f5c753b5cdb1556bf2ab34175a259ad3c38f0feb7e9559faacc061408da2298",
+      "ddl_sha256": "81ec33c2bf11d3f9c5bc91c8ce3e54b31c618e08d1d9ece0159974b19449be0d",
+      "dependencies": [
+        "vn_durability.canonical_id",
+        "vn_durability.entry_evidence",
+        "vn_durability.exact_keys",
+        "vn_durability.exit_evidence",
+        "vn_durability.lifecycle_equity",
+        "vn_durability.money",
+        "vn_durability.provider_before",
+        "vn_durability.provider_model_payload",
+        "vn_durability.provider_model_run",
+        "vn_durability.provider_server_fresh",
+        "vn_durability.record_command",
+        "vn_durability.record_distribution",
+        "vn_durability.record_lineage",
+        "vn_durability.record_restart_lineage",
+        "vn_durability.validate_lifecycle_after",
+        "vn_durability.validate_lifecycle_before"
+      ],
+      "execute_role": "vn_economic",
+      "name": "vn_durability.commit_command",
+      "security_definer": true,
+      "signature": "vn_durability.commit_command(uuid,uuid,uuid,bigint,bigint,uuid,jsonb)"
+    },
+    {
+      "body_sha256": "1850642accd346cc2150aa938803df4bcef098b37deb6278cb55fc80b6560ef3",
+      "ddl_sha256": "4bf099a87ea70d0020936e79c16b12ff84fa769313f90c28d3530c94aef4ffbe",
+      "dependencies": [],
+      "execute_role": "vn_economic",
+      "name": "vn_durability.get_command",
+      "security_definer": true,
+      "signature": "vn_durability.get_command(uuid,uuid,uuid)"
+    },
+    {
+      "body_sha256": "a05056d3ef2b0329c78d13af0ffde4acc3146a2ce2b6922c3223d72f2d8b3fe0",
+      "ddl_sha256": "aa9fab571acfcaf1013e5bf21204a181ba34de14c48011cdb6c597d1ced1561a",
+      "dependencies": [
+        "vn_durability.record_command"
+      ],
+      "execute_role": "vn_economic",
+      "name": "vn_durability.interrupt_expired",
+      "security_definer": true,
+      "signature": "vn_durability.interrupt_expired(uuid,uuid,bigint,uuid)"
+    },
+    {
+      "body_sha256": "2e8803f058e615772059f38e63650d6740458ff2ae0260cc8bbb48620a8c21de",
+      "ddl_sha256": "7371f69230be3b258e54cfc53de347c5a81535a3ca394fc91ed8f1f753daf1b1",
+      "dependencies": [],
+      "execute_role": "vn_relay",
+      "name": "vn_durability.read_outbox",
+      "security_definer": true,
+      "signature": "vn_durability.read_outbox(uuid,uuid,bigint,integer,integer)"
+    },
+    {
+      "body_sha256": "83d09077c21a39695928028f9cbdc8ee43c1400f5a673c320f32c05f31d323ae",
+      "ddl_sha256": "cf183187b5946a9c4ec171e89962b164a0de87cad1a99ae632bbd907754c2990",
+      "dependencies": [],
+      "execute_role": "vn_relay",
+      "name": "vn_durability.acknowledge_event",
+      "security_definer": true,
+      "signature": "vn_durability.acknowledge_event(uuid,uuid,uuid,integer)"
+    },
+    {
+      "body_sha256": "b7d2cbd953494aa8ea9ae2da498fa1b30e27de8450e2eecde48cea7eb05421ca",
+      "ddl_sha256": "6e1156865d4aaa0f4e71660d6ce7e35ee26a887349753528baab362d78c0b50d",
+      "dependencies": [],
+      "execute_role": null,
+      "name": "vn_projection.project_command",
+      "security_definer": false,
+      "signature": "vn_projection.project_command()"
+    },
+    {
+      "body_sha256": "3383561d18c60c48bfe8637f885c139c7824fd9dcd5987348029dc1d11949bdf",
+      "ddl_sha256": "3122587adf79e2dd8fc1c8a3861d6c4e705d362db602ce62aa0291cc75701a8d",
+      "dependencies": [
+        "vn_identity.owner_id"
+      ],
+      "execute_role": "authenticated",
+      "name": "vn_read.page",
+      "security_definer": true,
+      "signature": "vn_read.page(uuid,text,bigint,bigint,text,integer,integer)"
+    },
+    {
+      "body_sha256": "b9fd18570c84ca0aa810d2000b32ed837464aeaff1e8ccae869061fb7e76bac6",
+      "ddl_sha256": "290b7bd19d78a8a04f32859e4bc00ca32b3b64070347ebc9cc55cb5701b547d2",
+      "dependencies": [],
+      "execute_role": "vn_relay",
+      "name": "vn_read.accept_event",
+      "security_definer": true,
+      "signature": "vn_read.accept_event(uuid,uuid,uuid,integer)"
+    },
+    {
+      "body_sha256": "7d62d492b9bfc51ff0b28fe95b72c481fe91e5fb0e86e42c551364732ade754f",
+      "ddl_sha256": "5a70b0731e911a36189bfb2694d24d35186df61055b89b3ac4b56b12a0cadcc6",
+      "dependencies": [
+        "vn_identity.owner_id"
+      ],
+      "execute_role": "authenticated",
+      "name": "vn_read.events",
+      "security_definer": true,
+      "signature": "vn_read.events(uuid,bigint,bigint,integer,integer)"
+    },
+    {
+      "body_sha256": "295044afe8bd95c5573e5a0baad294d9025eb76da538687030da354e0a93692c",
+      "ddl_sha256": "9e4c076746f367a17382c7bc687695abd3d33491b065036d66c529b13459e72b",
+      "dependencies": [],
+      "execute_role": null,
+      "name": "vn_projection.require_relay_acceptance",
+      "security_definer": false,
+      "signature": "vn_projection.require_relay_acceptance()"
+    },
+    {
+      "body_sha256": "0b5b8cdd104e9bb355c8c6b66d0e957da66cb21042eb6448fbefefa7790cb04c",
+      "ddl_sha256": "8fb7867f4673601ce3ec73ac57463f7ccb79606f0861bca0c4ae190af22f0d4f",
+      "dependencies": [
+        "vn_identity.owner_id"
+      ],
+      "execute_role": "authenticated",
+      "name": "vn_read.archive_run",
+      "security_definer": true,
+      "signature": "vn_read.archive_run(uuid,bigint,uuid)"
+    }
+  ],
+  "indexes": [
+    "accounts_owner",
+    "commands_owner_sequence",
+    "evaluations_owner_page",
+    "one_open_position_per_asset",
+    "parents_owner",
+    "positions_owner",
+    "probes_entity_versions",
+    "probes_owner_page",
+    "relay_events_identity",
+    "relay_events_owner_page",
+    "runs_owner",
+    "runs_owner_page",
+    "samples_owner_page",
+    "trades_entity_versions",
+    "trades_owner_page"
+  ],
+  "mode": "canonical_fresh_v5_offline_component",
+  "object_ddl": [
+    {
+      "ddl": "CREATE TABLE vn_durability.runs (\n  id uuid PRIMARY KEY,\n  user_id uuid NOT NULL REFERENCES auth.users(id),\n  worker_id uuid NOT NULL,\n  fence bigint NOT NULL CHECK (fence > 0),\n  revision bigint NOT NULL CHECK (revision > 0),\n  lease_until timestamptz NOT NULL,\n  status text NOT NULL CHECK (status IN ('starting','running','paused','risk_halted','stopped','failed')),\n  requires_reconciliation boolean NOT NULL DEFAULT false,\n  interrupted_at timestamptz,\n  config jsonb NOT NULL CHECK (jsonb_typeof(config) = 'object' AND octet_length(config::text) <= 65536),\n  command_version smallint NOT NULL CHECK (command_version=5),\n  engine_state jsonb,\n  initial_cash vn_durability.balance NOT NULL CHECK (initial_cash > 0),\n  reserve vn_durability.balance NOT NULL,\n  created_at timestamptz NOT NULL DEFAULT clock_timestamp(),\n  UNIQUE (id, user_id)\n);",
+      "ddl_sha256": "28a7f4a42ac589bd0fddbcdbc9100b7789f26f6ec40288fc766f2d8b61c96a0b",
+      "kind": "table",
+      "name": "vn_durability.runs"
+    },
+    {
+      "ddl": "CREATE TABLE vn_durability.accounts (\n  run_id uuid NOT NULL,\n  user_id uuid NOT NULL,\n  id uuid NOT NULL,\n  cash vn_durability.balance NOT NULL,\n  initial_cash vn_durability.balance NOT NULL CHECK (initial_cash > 0),\n  retired boolean NOT NULL DEFAULT false,\n  PRIMARY KEY (run_id, id),\n  UNIQUE (run_id, user_id, id),\n  FOREIGN KEY (run_id, user_id) REFERENCES vn_durability.runs(id, user_id)\n);",
+      "ddl_sha256": "f9289e49ecff9aa1b70f4d0246d51bc64ae738288f963386ca80aa983f8e67bd",
+      "kind": "table",
+      "name": "vn_durability.accounts"
+    },
+    {
+      "ddl": "CREATE TABLE vn_durability.account_parents (\n  run_id uuid NOT NULL,\n  user_id uuid NOT NULL,\n  account_id uuid NOT NULL,\n  parent_id uuid NOT NULL,\n  CHECK (account_id <> parent_id),\n  PRIMARY KEY (run_id, account_id, parent_id),\n  FOREIGN KEY (run_id, user_id, account_id) REFERENCES vn_durability.accounts(run_id, user_id, id),\n  FOREIGN KEY (run_id, user_id, parent_id) REFERENCES vn_durability.accounts(run_id, user_id, id)\n);",
+      "ddl_sha256": "aa4c5903bd1e055201b07ea63d1f32cd9d6826c15659f1d55f92c7d9afd14610",
+      "kind": "table",
+      "name": "vn_durability.account_parents"
+    },
+    {
+      "ddl": "CREATE TABLE vn_durability.distributions (\n  run_id uuid NOT NULL,\n  user_id uuid NOT NULL,\n  id uuid NOT NULL,\n  stage text NOT NULL CHECK (stage IN ('bootstrap','update')),\n  source_iteration_id text NOT NULL CHECK (length(source_iteration_id) BETWEEN 1 AND 256),\n  previous_distribution_id uuid,\n  CHECK ((stage='bootstrap' AND previous_distribution_id IS NULL) OR\n         (stage='update' AND previous_distribution_id IS NOT NULL AND previous_distribution_id<>id)),\n  PRIMARY KEY (run_id,id),\n  UNIQUE (run_id,user_id,id),\n  FOREIGN KEY (run_id,user_id) REFERENCES vn_durability.runs(id,user_id),\n  FOREIGN KEY (run_id,user_id,previous_distribution_id)\n    REFERENCES vn_durability.distributions(run_id,user_id,id)\n);",
+      "ddl_sha256": "4100e94951729d72faa6c1e52a8db42c77f70e8d13e708f78c5bdcfd39767660",
+      "kind": "table",
+      "name": "vn_durability.distributions"
+    },
+    {
+      "ddl": "CREATE TABLE vn_durability.distribution_sources (\n  run_id uuid NOT NULL,\n  user_id uuid NOT NULL,\n  distribution_id uuid NOT NULL,\n  source_id uuid NOT NULL,\n  ordinal smallint NOT NULL CHECK (ordinal BETWEEN 0 AND 99),\n  PRIMARY KEY (run_id,distribution_id,ordinal),\n  UNIQUE (run_id,distribution_id,source_id),\n  FOREIGN KEY (run_id,user_id,distribution_id) REFERENCES vn_durability.distributions(run_id,user_id,id),\n  FOREIGN KEY (run_id,user_id,source_id) REFERENCES vn_durability.accounts(run_id,user_id,id)\n);",
+      "ddl_sha256": "d90d4e846f335998e99c0c2c788671b9cdab2632bbc4ea81fbf38a0efdb62433",
+      "kind": "table",
+      "name": "vn_durability.distribution_sources"
+    },
+    {
+      "ddl": "CREATE TABLE vn_durability.account_lineage (\n  run_id uuid NOT NULL,\n  user_id uuid NOT NULL,\n  account_id uuid NOT NULL,\n  strategy text NOT NULL,\n  operation text NOT NULL,\n  source_iteration_id text,\n  offspring_index smallint CHECK (offspring_index BETWEEN 0 AND 99),\n  distribution_id uuid,\n  evidence jsonb NOT NULL,\n  PRIMARY KEY (run_id,account_id),\n  UNIQUE (run_id,user_id,account_id),\n  UNIQUE (run_id,source_iteration_id,offspring_index),\n  FOREIGN KEY (run_id,user_id,account_id) REFERENCES vn_durability.accounts(run_id,user_id,id),\n  FOREIGN KEY (run_id,user_id,distribution_id) REFERENCES vn_durability.distributions(run_id,user_id,id)\n);",
+      "ddl_sha256": "151e84c10fcae36009660e06b2d07e4116171a36e03760b52a916c3c38e66964",
+      "kind": "table",
+      "name": "vn_durability.account_lineage"
+    },
+    {
+      "ddl": "CREATE TABLE vn_durability.lineage_sources (\n  run_id uuid NOT NULL,\n  user_id uuid NOT NULL,\n  account_id uuid NOT NULL,\n  role text NOT NULL,\n  source_id uuid NOT NULL,\n  ordinal smallint NOT NULL CHECK (ordinal BETWEEN 0 AND 1),\n  CHECK (account_id<>source_id),\n  PRIMARY KEY (run_id,account_id,role,ordinal),\n  UNIQUE (run_id,account_id,role,source_id),\n  FOREIGN KEY (run_id,user_id,account_id) REFERENCES vn_durability.account_lineage(run_id,user_id,account_id),\n  FOREIGN KEY (run_id,user_id,source_id) REFERENCES vn_durability.accounts(run_id,user_id,id)\n);",
+      "ddl_sha256": "36ea566e8f8fedf3adaffcfa14b7cabe93faea778d7bcd857ae6d663ad05f523",
+      "kind": "table",
+      "name": "vn_durability.lineage_sources"
+    },
+    {
+      "ddl": "CREATE TABLE vn_durability.positions (\n  run_id uuid NOT NULL,\n  user_id uuid NOT NULL,\n  id uuid NOT NULL,\n  account_id uuid NOT NULL,\n  asset text NOT NULL CHECK (length(asset) BETWEEN 1 AND 64),\n  quantity vn_durability.balance NOT NULL CHECK (quantity > 0),\n  notional vn_durability.balance NOT NULL CHECK (notional > 0),\n  entry_fee vn_durability.balance NOT NULL,\n  proceeds vn_durability.balance,\n  exit_fee vn_durability.balance,\n  entry_execution jsonb,\n  exit_execution jsonb,\n  CHECK (exit_execution IS NULL OR entry_execution IS NOT NULL),\n  closed boolean NOT NULL DEFAULT false,\n  CHECK ((NOT closed AND proceeds IS NULL AND exit_fee IS NULL) OR\n         (closed AND proceeds IS NOT NULL AND exit_fee IS NOT NULL AND proceeds >= exit_fee)),\n  PRIMARY KEY (run_id, id),\n  FOREIGN KEY (run_id, user_id, account_id) REFERENCES vn_durability.accounts(run_id, user_id, id)\n);",
+      "ddl_sha256": "1fa7962ba23bfa3c1e694290161c6e94e9633b279c2166cddb104bfffd5e526b",
+      "kind": "table",
+      "name": "vn_durability.positions"
+    },
+    {
+      "ddl": "CREATE TABLE vn_durability.commands (\n  run_id uuid NOT NULL,\n  user_id uuid NOT NULL,\n  id uuid NOT NULL,\n  revision bigint NOT NULL CHECK (revision > 0),\n  kind text NOT NULL CHECK (kind IN ('create','batch','interrupt')),\n  request jsonb NOT NULL,\n  request_hash bytea NOT NULL CHECK (octet_length(request_hash) = 32),\n  response jsonb NOT NULL,\n  committed_at timestamptz NOT NULL DEFAULT clock_timestamp(),\n  PRIMARY KEY (run_id, id),\n  UNIQUE (run_id, revision),\n  UNIQUE (run_id, user_id, id, revision),\n  FOREIGN KEY (run_id, user_id) REFERENCES vn_durability.runs(id, user_id)\n);",
+      "ddl_sha256": "21ba75bc4618463873f70c297a7429ea458c529a2a56227f490b75f45ae5a291",
+      "kind": "table",
+      "name": "vn_durability.commands"
+    },
+    {
+      "ddl": "CREATE TABLE vn_durability.outbox_events (\n  run_id uuid NOT NULL,\n  user_id uuid NOT NULL,\n  command_id uuid NOT NULL,\n  revision bigint NOT NULL CHECK (revision > 0),\n  event_index integer NOT NULL CHECK (event_index BETWEEN 0 AND 1024),\n  event jsonb NOT NULL CHECK (jsonb_typeof(event)='object' AND octet_length(event::text)<=2048),\n  PRIMARY KEY (run_id, command_id, event_index),\n  UNIQUE (run_id, revision, event_index),\n  FOREIGN KEY (run_id, user_id, command_id, revision)\n    REFERENCES vn_durability.commands(run_id, user_id, id, revision)\n);",
+      "ddl_sha256": "dd8067e283b9cad0a9004b3c95e59e618fa4910c519dfa6e2e55965f62bc07a4",
+      "kind": "table",
+      "name": "vn_durability.outbox_events"
+    },
+    {
+      "ddl": "CREATE TABLE vn_durability.outbox_progress (\n  run_id uuid PRIMARY KEY,\n  user_id uuid NOT NULL,\n  acknowledged_revision bigint NOT NULL DEFAULT 0,\n  acknowledged_index integer NOT NULL DEFAULT -1,\n  CHECK ((acknowledged_revision=0 AND acknowledged_index=-1) OR\n         (acknowledged_revision>0 AND acknowledged_index BETWEEN 0 AND 1024)),\n  FOREIGN KEY (run_id, user_id) REFERENCES vn_durability.runs(id, user_id)\n);",
+      "ddl_sha256": "99de63398969d84fc78571bb43579c07f9349658a01ed2319deb0869fa5392b3",
+      "kind": "table",
+      "name": "vn_durability.outbox_progress"
+    },
+    {
+      "ddl": "CREATE TABLE vn_projection.runs (\n user_id uuid NOT NULL, run_id uuid NOT NULL, revision bigint NOT NULL,\n command_id uuid NOT NULL, entity_key text NOT NULL CHECK(octet_length(entity_key) BETWEEN 1 AND 256),\n data jsonb NOT NULL CHECK(jsonb_typeof(data)='object' AND octet_length(data::text)<=8192),\n PRIMARY KEY(run_id,revision,entity_key),\n FOREIGN KEY(run_id,user_id,command_id,revision) REFERENCES vn_durability.commands(run_id,user_id,id,revision)\n);",
+      "ddl_sha256": "f8aa30f1a1039d9eb27cee442893b7493a419af5749c27d1e354262e0075ff95",
+      "kind": "table",
+      "name": "vn_projection.runs"
+    },
+    {
+      "ddl": "CREATE TABLE vn_projection.probes (\n user_id uuid NOT NULL, run_id uuid NOT NULL, revision bigint NOT NULL,\n command_id uuid NOT NULL, entity_key text NOT NULL CHECK(octet_length(entity_key) BETWEEN 1 AND 256),\n data jsonb NOT NULL CHECK(jsonb_typeof(data)='object' AND octet_length(data::text)<=4096),\n PRIMARY KEY(run_id,revision,entity_key),\n FOREIGN KEY(run_id,user_id,command_id,revision) REFERENCES vn_durability.commands(run_id,user_id,id,revision)\n);",
+      "ddl_sha256": "3694781961d53adb8b2503d682bdcc8345ee2e9bf90a7da6a428bc9725c84ab2",
+      "kind": "table",
+      "name": "vn_projection.probes"
+    },
+    {
+      "ddl": "CREATE TABLE vn_projection.trades (\n user_id uuid NOT NULL, run_id uuid NOT NULL, revision bigint NOT NULL,\n command_id uuid NOT NULL, entity_key text NOT NULL CHECK(octet_length(entity_key) BETWEEN 1 AND 256),\n data jsonb NOT NULL CHECK(jsonb_typeof(data)='object' AND octet_length(data::text)<=8192),\n PRIMARY KEY(run_id,revision,entity_key),\n FOREIGN KEY(run_id,user_id,command_id,revision) REFERENCES vn_durability.commands(run_id,user_id,id,revision)\n);",
+      "ddl_sha256": "959469b14b21c76ad993f456d74fe51a148aa10faf0fd997b177ec4f38b10cb8",
+      "kind": "table",
+      "name": "vn_projection.trades"
+    },
+    {
+      "ddl": "CREATE TABLE vn_projection.samples (\n user_id uuid NOT NULL, run_id uuid NOT NULL, revision bigint NOT NULL,\n command_id uuid NOT NULL, entity_key text NOT NULL CHECK(octet_length(entity_key) BETWEEN 1 AND 256),\n data jsonb NOT NULL CHECK(jsonb_typeof(data)='object' AND octet_length(data::text)<=4096),\n PRIMARY KEY(run_id,revision,entity_key),\n FOREIGN KEY(run_id,user_id,command_id,revision) REFERENCES vn_durability.commands(run_id,user_id,id,revision)\n);",
+      "ddl_sha256": "2502db3a30a4d3f57ee8c7e61da389e3ce85b043ec17279098ea4ff8cb93a6f6",
+      "kind": "table",
+      "name": "vn_projection.samples"
+    },
+    {
+      "ddl": "CREATE TABLE vn_projection.evaluations (\n user_id uuid NOT NULL, run_id uuid NOT NULL, revision bigint NOT NULL,\n command_id uuid NOT NULL, entity_key text NOT NULL CHECK(octet_length(entity_key) BETWEEN 1 AND 256),\n data jsonb NOT NULL CHECK(jsonb_typeof(data)='object' AND octet_length(data::text)<=32768),\n PRIMARY KEY(run_id,revision,entity_key),\n FOREIGN KEY(run_id,user_id,command_id,revision) REFERENCES vn_durability.commands(run_id,user_id,id,revision)\n);",
+      "ddl_sha256": "ff2f0f8afcab6709b22f31b07476284ee36da125d7bc4f0e6da9c78c250c7a04",
+      "kind": "table",
+      "name": "vn_projection.evaluations"
+    },
+    {
+      "ddl": "CREATE TABLE vn_projection.relay_events (\n sequence bigint NOT NULL CHECK(sequence>0),\n user_id uuid NOT NULL, run_id uuid NOT NULL, revision bigint NOT NULL,\n command_id uuid NOT NULL, entity_key text NOT NULL CHECK(octet_length(entity_key) BETWEEN 1 AND 256),\n data jsonb NOT NULL CHECK(jsonb_typeof(data)='object' AND octet_length(data::text)<=4096),\n PRIMARY KEY(run_id,revision,entity_key),\n FOREIGN KEY(run_id,user_id,command_id,revision) REFERENCES vn_durability.commands(run_id,user_id,id,revision)\n);",
+      "ddl_sha256": "6dbf528241764b898ae12b69d56bb79dadc1a1dc69db8a61b7e3db8aceea36b4",
+      "kind": "table",
+      "name": "vn_projection.relay_events"
+    },
+    {
+      "ddl": "CREATE TABLE vn_projection.archives (\n user_id uuid NOT NULL, run_id uuid NOT NULL, expected_revision bigint NOT NULL,\n request_id uuid NOT NULL, archived_at timestamptz NOT NULL DEFAULT clock_timestamp(),\n receipt jsonb NOT NULL CHECK(jsonb_typeof(receipt)='object' AND octet_length(receipt::text)<=2048),\n PRIMARY KEY(user_id,request_id), UNIQUE(run_id),\n FOREIGN KEY(run_id,user_id) REFERENCES vn_durability.runs(id,user_id)\n);",
+      "ddl_sha256": "132b9cb4600891c94a7d6b23a376936817a6bbdf7590fb40d9ce84e06d857c44",
+      "kind": "table",
+      "name": "vn_projection.archives"
+    },
+    {
+      "ddl": "CREATE DOMAIN vn_durability.balance AS numeric\n  CHECK (VALUE >= 0 AND VALUE <= 1e36 AND scale(VALUE) <= 36);",
+      "ddl_sha256": "df8b70fbfe491b575bc070de452852f435d8dde8695ba115325776ac8214f1d0",
+      "kind": "domain",
+      "name": "vn_durability.balance"
+    },
+    {
+      "ddl": "CREATE INDEX runs_owner ON vn_durability.runs(user_id, id);",
+      "ddl_sha256": "cc54fc0fed89c7c1d8bcaf1029dafde09cc2c5709a6979429a04e9ebe9770665",
+      "kind": "index",
+      "name": "runs_owner"
+    },
+    {
+      "ddl": "CREATE INDEX accounts_owner ON vn_durability.accounts(user_id, run_id, id);",
+      "ddl_sha256": "3ef1a675408750fb9f5593951647258da7e8ee74e4e960448ef6d85d5e214065",
+      "kind": "index",
+      "name": "accounts_owner"
+    },
+    {
+      "ddl": "CREATE INDEX positions_owner ON vn_durability.positions(user_id, run_id, id);",
+      "ddl_sha256": "223f0e23062614075ec0e5b7d76218ff48d0c0658e160c298a1ff02390e30049",
+      "kind": "index",
+      "name": "positions_owner"
+    },
+    {
+      "ddl": "CREATE UNIQUE INDEX one_open_position_per_asset\n  ON vn_durability.positions(run_id, account_id, asset) WHERE NOT closed;",
+      "ddl_sha256": "7ccda1d3848d657208858e48e6357c650b2f069813298c08569dc412cb318ec5",
+      "kind": "index",
+      "name": "one_open_position_per_asset"
+    },
+    {
+      "ddl": "CREATE INDEX parents_owner ON vn_durability.account_parents(user_id, run_id);",
+      "ddl_sha256": "356ab955c4c0d0ccd68b0249939ae1e5bd7fe95671252715fafd11a10123262e",
+      "kind": "index",
+      "name": "parents_owner"
+    },
+    {
+      "ddl": "CREATE INDEX commands_owner_sequence ON vn_durability.commands(user_id, run_id, revision);",
+      "ddl_sha256": "1698fe9d7ad7a3fce2ac4f6e7edf1af0051773400752a86cac961d5e44849ca0",
+      "kind": "index",
+      "name": "commands_owner_sequence"
+    },
+    {
+      "ddl": "CREATE INDEX runs_owner_page ON vn_projection.runs(user_id,run_id,revision,entity_key);",
+      "ddl_sha256": "08f02a9be7d403c9a07959f804998d996081b417a69a264aa4de57e943100cc2",
+      "kind": "index",
+      "name": "runs_owner_page"
+    },
+    {
+      "ddl": "CREATE INDEX probes_owner_page ON vn_projection.probes(user_id,run_id,revision,entity_key);",
+      "ddl_sha256": "b928fafd7faf4566f68802a7b6f229c078c775696888dffa3e78041bee6af821",
+      "kind": "index",
+      "name": "probes_owner_page"
+    },
+    {
+      "ddl": "CREATE INDEX probes_entity_versions ON vn_projection.probes(run_id,entity_key,revision DESC);",
+      "ddl_sha256": "4901a1e56f3ffc872444b5eeef991198e70f16deab80c1c4a17a886715757e2e",
+      "kind": "index",
+      "name": "probes_entity_versions"
+    },
+    {
+      "ddl": "CREATE INDEX trades_owner_page ON vn_projection.trades(user_id,run_id,revision,entity_key);",
+      "ddl_sha256": "a97f8923fd887e1a0efa83ec762269fc4e2968c3ee2d9e353954e128e82b0b70",
+      "kind": "index",
+      "name": "trades_owner_page"
+    },
+    {
+      "ddl": "CREATE INDEX trades_entity_versions ON vn_projection.trades(run_id,(data->>'id'),revision DESC,entity_key DESC);",
+      "ddl_sha256": "bb2a48d147208a250dcd461ece426132c0893cc597cc314f8df20afe25e70286",
+      "kind": "index",
+      "name": "trades_entity_versions"
+    },
+    {
+      "ddl": "CREATE INDEX samples_owner_page ON vn_projection.samples(user_id,run_id,revision,entity_key);",
+      "ddl_sha256": "9596703213953f6986fe7fc6720691d6a64865870e18cd532cd9c5a23c8363a7",
+      "kind": "index",
+      "name": "samples_owner_page"
+    },
+    {
+      "ddl": "CREATE INDEX evaluations_owner_page ON vn_projection.evaluations(user_id,run_id,revision,entity_key);",
+      "ddl_sha256": "cd644e4cfa3ac68e71b7838096969a0d7d6c64ab628846ab14d6e0630ea7657b",
+      "kind": "index",
+      "name": "evaluations_owner_page"
+    },
+    {
+      "ddl": "CREATE UNIQUE INDEX relay_events_owner_page ON vn_projection.relay_events(user_id,run_id,sequence);",
+      "ddl_sha256": "d1a5b0db38ec0017a22a3476aaa2f4a259ceaa292b5fdc7742109f42f22bf910",
+      "kind": "index",
+      "name": "relay_events_owner_page"
+    },
+    {
+      "ddl": "CREATE UNIQUE INDEX relay_events_identity ON vn_projection.relay_events(run_id,entity_key);",
+      "ddl_sha256": "270d5cbb48161fb021423093850ff0df2151a5a7862517a502118f0cccfb125a",
+      "kind": "index",
+      "name": "relay_events_identity"
+    },
+    {
+      "ddl": "CREATE TRIGGER project_command AFTER INSERT ON vn_durability.commands FOR EACH ROW EXECUTE FUNCTION vn_projection.project_command();",
+      "ddl_sha256": "b7c772958125325a932126884f90be1e73be7fbf1d455e959cedb6ccc21e1e2e",
+      "kind": "trigger",
+      "name": "project_command"
+    },
+    {
+      "ddl": "CREATE TRIGGER require_relay_acceptance BEFORE UPDATE ON vn_durability.outbox_progress FOR EACH ROW EXECUTE FUNCTION vn_projection.require_relay_acceptance();",
+      "ddl_sha256": "50a311270d4815a9e7994c17c57b2b62a68df6a6dc94994cf8f8f09c0fa50feb",
+      "kind": "trigger",
+      "name": "require_relay_acceptance"
+    }
+  ],
+  "package_sha256": "b42228db587cba11f63528f4d29fe536d9c30ab195565781a2d6dacb2940d708",
+  "policies": [],
+  "postconditions_sha256": "1f3d48d28cde8a5acdf44bf9fd64a425be4f011da23d11a04679073ce8090c6e",
+  "production_application_available": false,
+  "removed_core_functions": [
+    "vn_durability.rehearsal_config",
+    "vn_durability.rehearsal_evaluation",
+    "vn_durability.validate_transition_after",
+    "vn_durability.validate_transition_before"
+  ],
+  "schemas": [
+    "vn_identity",
+    "vn_durability",
+    "vn_projection",
+    "vn_read"
+  ],
+  "sources_sha256": {
+    "001_fenced_commands.sql": "3312ccf8c28154cc35ef29aa36e66ef016b3e7e76c2a21a0e301b0b1ad30d4f2",
+    "002_read_projections.sql": "7b50a45244455dcd3b076bfb60ac02a512d7e59a8c204d3932279ebad4446fe0",
+    "004_installer_boundary.sql": "d3be3f59ef64e95bf5c78aeaf29b484a7e09e2b9f3f76a99210fa9cdac890d12"
+  },
+  "tables": [
+    "vn_durability.account_lineage",
+    "vn_durability.account_parents",
+    "vn_durability.accounts",
+    "vn_durability.commands",
+    "vn_durability.distribution_sources",
+    "vn_durability.distributions",
+    "vn_durability.lineage_sources",
+    "vn_durability.outbox_events",
+    "vn_durability.outbox_progress",
+    "vn_durability.positions",
+    "vn_durability.runs",
+    "vn_projection.archives",
+    "vn_projection.evaluations",
+    "vn_projection.probes",
+    "vn_projection.relay_events",
+    "vn_projection.runs",
+    "vn_projection.samples",
+    "vn_projection.trades"
+  ],
+  "triggers": [
+    "project_command",
+    "require_relay_acceptance"
+  ]
+}

@@ -145,7 +145,10 @@ class EngineClockTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase):
             first = controller.status()
         with patch("vonneumann.core.genesis.time.monotonic", return_value=baseline + 50_000):
             second = controller.status()
-        self.assertEqual((first["uptime_secs"], second["uptime_secs"]), (12, 50_000))
+        # Monotonic timestamps are binary64: adding/subtracting the uptime can
+        # lose the last bit. Market timestamps below must still match exactly.
+        self.assertAlmostEqual(first["uptime_secs"], 12, delta=1e-6)
+        self.assertAlmostEqual(second["uptime_secs"], 50_000, delta=1e-6)
         for key in ("market_time", "market_elapsed_secs", "simulation_spec"):
             self.assertEqual(first[key], second[key])
         self.assertEqual(controller.market_feed.current_timestamp, clock_before)

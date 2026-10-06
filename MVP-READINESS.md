@@ -147,3 +147,21 @@ relay credentials, durable legacy reconciliation/archive evidence and additive
 rollback remain B2 work. D3C service/browser selection and A3 hosted full-cutover
 acceptance still follow. The paper worker remains unhosted. PR45 is the verified
 preceding source release; immutable B2A deployment evidence belongs in its PR.
+
+
+## DB-03A2D3B2B checkpoint — 2026-10-06
+
+The canonical fresh v5 component is extracted and rehearsed under the actual
+limited installer: v5-only public admission, 72-function dependency/hash/signature/
+capability manifest, 18 fresh economic/projection tables and separate inert
+economic/relay SQL permissions. Five offline checks and 31 real PostgreSQL cases
+cover all four solver seed/protect/decide paths, controller recovery, owner reads,
+relay/archive, exact authority and atomic rollback/locks.
+[Contract and limits](services/vonneumann/CANONICAL-V5-PACKAGE.md).
+
+Next is actual separate credential/gateway/owner/run authorization and transport,
+then durable legacy reconciliation/archive evidence and complete forward-package
+composition/rollback. B2/D3 stay open. D3C selects one service authority and wires
+browser history/control/archive/replay; A3 proves/applies the complete hosted
+cutover. Production timing, safe interruption, preview isolation and hosting still
+gate paper MVP launch. The worker remains unhosted; live trading gates are unchanged.

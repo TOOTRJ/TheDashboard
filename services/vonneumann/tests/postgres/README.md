@@ -115,3 +115,11 @@ API/default/unrelated permissions, late rollback and FK lock timeout. Source
 hashes and composition anchors are pinned. This is not a production compiler,
 custom-role credential provisioner or complete managed-platform emulator.
 See [the installer boundary](../../INSTALLER-BOUNDARY.md).
+
+`test_canonical_v5.py` applies the committed fresh v5-only component as the actual
+limited postgres login, then uses independent non-admin economic/relay fixture
+logins with SET-only capability membership. Its 31 cases reuse provider/controller
+behavioral tests and add exact inventory/ACL, v5-only admission, owner/relay/archive,
+lock/atomic rollback acceptance. Five ordinary tests check deterministic artifact
+reproduction and source/dependency drift. No production credentials or configured
+database are accessed. [Scope and remaining gates](../../CANONICAL-V5-PACKAGE.md).
