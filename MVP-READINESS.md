@@ -1,6 +1,6 @@
 # Evolutionary trading bot MVP readiness
 
-Reviewed 2026-10-05 against the current implementation and [TODO.md](TODO.md).
+Reviewed 2026-10-06 against the current implementation and [TODO.md](TODO.md).
 This distinguishes tested components, deployed application behavior, and the
 integration work still required. Completing engine tests is not a hosted bot
 release or evidence of a profitable strategy.
@@ -132,3 +132,18 @@ selection and DB-03A3 full cutover follow; the paper worker remains unhosted.
 Dedicated Dashboard login and all exact targets were reverified on 2026-10-06.
 B1 release requires exact-source/merge READY deployments and read-only smokes;
 immutable release evidence belongs in its PR. Real trading gates are unchanged.
+
+## DB-03A2D3B2A checkpoint — 2026-10-06
+
+The installer/Auth dependency now has an executable hosted-like proof: an actual
+NOSUPERUSER postgres login installs the laboratory through a narrow Auth identity
+bridge and existing REFERENCES privilege, without changing managed Auth grants.
+All four v5 bootstraps and owner-scoped eight-probe reads pass; denial, preservation,
+late rollback and FK lock timeout are included in 17 PostgreSQL cases.
+[Scope, evidence and credential research](services/vonneumann/INSTALLER-BOUNDARY.md).
+
+This closes B2A only. Canonical v5-only production DDL/manifest, separate economic/
+relay credentials, durable legacy reconciliation/archive evidence and additive
+rollback remain B2 work. D3C service/browser selection and A3 hosted full-cutover
+acceptance still follow. The paper worker remains unhosted. PR45 is the verified
+preceding source release; immutable B2A deployment evidence belongs in its PR.

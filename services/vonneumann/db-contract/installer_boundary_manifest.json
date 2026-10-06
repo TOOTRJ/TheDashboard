@@ -1,0 +1,76 @@
+{
+  "version": 1,
+  "mode": "isolated_installer_rehearsal_only",
+  "production_application_available": false,
+  "installer": "postgres NOSUPERUSER CREATEDB CREATEROLE INHERIT NOREPLICATION BYPASSRLS; existing Auth USAGE/uid EXECUTE/id REFERENCES without grant options",
+  "sources_sha256": {
+    "001_fenced_commands.sql": "3312ccf8c28154cc35ef29aa36e66ef016b3e7e76c2a21a0e301b0b1ad30d4f2",
+    "002_read_projections.sql": "7b50a45244455dcd3b076bfb60ac02a512d7e59a8c204d3932279ebad4446fe0",
+    "004_installer_boundary.sql": "d3be3f59ef64e95bf5c78aeaf29b484a7e09e2b9f3f76a99210fa9cdac890d12"
+  },
+  "new_objects": {
+    "roles": [
+      "vn_contract_owner"
+    ],
+    "schema": [
+      "vn_identity"
+    ],
+    "function": [
+      "vn_identity.owner_id()"
+    ]
+  },
+  "auth_changes": [],
+  "fixture_adaptations": [
+    "installer creates Auth-FK runs table then transfers ownership",
+    "private identity expressions use installer-owned parameterless Auth uid bridge"
+  ],
+  "remaining_gates": [
+    "canonical v5-only DDL extraction and complete production manifest",
+    "separate economic/relay credentials and gateway acceptance",
+    "legacy drain/reconciliation/archive evidence",
+    "complete forward plan and post-acknowledgment rollback",
+    "hosted exact-project installation/transaction/schema-cache acceptance",
+    "service/browser adoption"
+  ],
+  "owner_memberships": [
+    {
+      "member": "postgres",
+      "grantor_bootstrap_role_oid": 10,
+      "admin": true,
+      "set": false,
+      "inherit": false
+    },
+    {
+      "member": "postgres",
+      "grantor": "postgres",
+      "admin": false,
+      "set": true,
+      "inherit": false
+    }
+  ],
+  "postgres_major": 17,
+  "milestone": "DB-03A2D3B2A",
+  "authorized_targets": {
+    "github": {
+      "name": "TOOTRJ/TheDashboard",
+      "id": 1141090963
+    },
+    "vercel": {
+      "name": "the-dashboard",
+      "id": "prj_wFUe9k9USVreOQcmQKNWRAVsx5fH",
+      "owner": "team_8iNNxiNjrOseD4gdSCHkQEzF"
+    },
+    "supabase": {
+      "name": "The Dashboard",
+      "id": "fxpxsciltakyypunglzr",
+      "owner": "cqfnnaunmupdyobkyqfo"
+    }
+  },
+  "preserve": [
+    "managed_auth_owners_acl_column_grants_uid_body",
+    "api_role_attributes_and_memberships",
+    "postgres_default_acls",
+    "unrelated_rows_and_grants"
+  ],
+  "scope_note": "Dependency proof only: the unchanged multi-version laboratory is composed offline; canonical v5 production DDL/credentials/legacy-evidence integration remain open."
+}

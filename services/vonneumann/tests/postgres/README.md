@@ -104,3 +104,14 @@ administrative bootstrap remains broader than hosted `postgres`; fresh read-only
 capability metadata exposes missing auth dependency grant options. No cloud
 mutation or production-ready owner creation is implied.
 See [the legacy retirement contract](../../LEGACY-WRITE-RETIREMENT.md).
+
+`test_installer_boundary.py` creates a distinct NOSUPERUSER postgres login after
+renaming initdb's mandatory-superuser bootstrap role. The installation connects
+as the actual limited login, with measured non-grantable Auth dependencies;
+separate fixture administration seeds and observes the experiment. Seventeen
+cases verify a fixed installer-owned identity bridge, Auth FK ownership transfer,
+private/API denial, four v5 bootstraps and owner history, unchanged managed Auth/
+API/default/unrelated permissions, late rollback and FK lock timeout. Source
+hashes and composition anchors are pinned. This is not a production compiler,
+custom-role credential provisioner or complete managed-platform emulator.
+See [the installer boundary](../../INSTALLER-BOUNDARY.md).
