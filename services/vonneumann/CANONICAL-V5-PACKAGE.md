@@ -143,3 +143,5 @@ credential issuer/gateway feasibility, legacy exposure/sample comparability,
 bounded retention and compact checkpoints, organization provider quotas, lease/
 relay/source latency, measured production cadence and worker restart/hosting.
 Live wallet funding/signing/swaps/trading remain outside authorization.
+
+B2C1 now composes this unchanged package into a separate [native-session authentication candidate](NATIVE-SESSION-AUTH.md). Its real SCRAM identity and owner/run/expiry binding proof does not activate or provision this component. B2C2 actual bounded SQL transport and hosted TLS/credential acceptance remain open.

@@ -1,0 +1,73 @@
+{
+  "access_sha256": "3024be75ba5494ee6a805c2315ba85380de3d4251124380e05dd646681b218a7",
+  "base_package_sha256": "b42228db587cba11f63528f4d29fe536d9c30ab195565781a2d6dacb2940d708",
+  "guarded_functions": [
+    {
+      "body_sha256": "b7a4fe85fc1620f73b24716261e2fe2f3e1cc7d7aa2f430297d64ff9b1e98926",
+      "capability": "economic",
+      "name": "vn_durability.create_run",
+      "signature": "vn_durability.create_run(uuid,uuid,uuid,uuid,jsonb,text,integer)",
+      "successful_returns": 2
+    },
+    {
+      "body_sha256": "b219dee473362b7fbcc3ab331823c46dad537254e722ef0afaba627cc875e622",
+      "capability": "economic",
+      "name": "vn_durability.heartbeat",
+      "signature": "vn_durability.heartbeat(uuid,uuid,uuid,bigint,integer)",
+      "successful_returns": 1
+    },
+    {
+      "body_sha256": "9c2a1e7a0c86fea0a4f86b25a595f856d3b0c6e65af0152990ac346e51a5426f",
+      "capability": "economic",
+      "name": "vn_durability.commit_command",
+      "signature": "vn_durability.commit_command(uuid,uuid,uuid,bigint,bigint,uuid,jsonb)",
+      "successful_returns": 2
+    },
+    {
+      "body_sha256": "605da54c2b1142258048dc0ad170d5a706dd7f9293c0467906dee38415807dd7",
+      "capability": "economic",
+      "name": "vn_durability.get_command",
+      "signature": "vn_durability.get_command(uuid,uuid,uuid)",
+      "successful_returns": 1
+    },
+    {
+      "body_sha256": "970f44076e4e136cc87dbe39ec5d1493e1c9f9ef4a2221709be8a3e25ad670a2",
+      "capability": "economic",
+      "name": "vn_durability.interrupt_expired",
+      "signature": "vn_durability.interrupt_expired(uuid,uuid,bigint,uuid)",
+      "successful_returns": 2
+    },
+    {
+      "body_sha256": "374ddc0e4fc587b008d7f28308528d4cb860fd0e4477af3f75fb144d39b53a13",
+      "capability": "relay",
+      "name": "vn_durability.read_outbox",
+      "signature": "vn_durability.read_outbox(uuid,uuid,bigint,integer,integer)",
+      "successful_returns": 1
+    },
+    {
+      "body_sha256": "684f34264ddcea3f266c46a9b42ad04b15047306c5ff02b176b930fb7e727b2d",
+      "capability": "relay",
+      "name": "vn_durability.acknowledge_event",
+      "signature": "vn_durability.acknowledge_event(uuid,uuid,uuid,integer)",
+      "successful_returns": 1
+    },
+    {
+      "body_sha256": "93c554920853f373a84cb49728e8db1edfd1551c0789a37753f140598731c94c",
+      "capability": "relay",
+      "name": "vn_read.accept_event",
+      "signature": "vn_read.accept_event(uuid,uuid,uuid,integer)",
+      "successful_returns": 1
+    }
+  ],
+  "maximum_recovery_lifetime_seconds": 86400,
+  "maximum_write_lifetime_seconds": 7200,
+  "mode": "native_direct_session_auth_offline_candidate",
+  "package_sha256": "28d5c947c08f1c5a4f3a604cc68d54e35b4269c8f1cca042743d43dbc2140f14",
+  "postconditions_sha256": "3d15e2860accf6ad0b92fd5eb2e52888598d1190f87732617c76486f47270bfe",
+  "production_application_available": false,
+  "provisioned_credentials": false,
+  "supported_connection_profiles": [
+    "direct_tls_scram"
+  ],
+  "unchanged_base_functions": 64
+}

@@ -123,3 +123,5 @@ behavioral tests and add exact inventory/ACL, v5-only admission, owner/relay/arc
 lock/atomic rollback acceptance. Five ordinary tests check deterministic artifact
 reproduction and source/dependency drift. No production credentials or configured
 database are accessed. [Scope and remaining gates](../../CANONICAL-V5-PACKAGE.md).
+
+`test_session_auth.py` authenticates independent native logins using synthetic TLS/SCRAM over loopback inside the same owned network-none container. Twenty cases verify owner/run scope, lifecycle/revocation, stale snapshots, late effects and installer rollback/preservation. Synthetic CA/password files live only in private owned tmpfs; no ports/mounts/shared secrets or hosted connections are used. Five offline package checks run without opt-in. [Contract and remaining hosted/transport gates](../../NATIVE-SESSION-AUTH.md).
