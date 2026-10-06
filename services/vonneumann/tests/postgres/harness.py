@@ -154,14 +154,7 @@ class IsolatedPostgres:
         image_id = image_info["Id"]
         if not re.fullmatch(r"sha256:[a-f0-9]{64}", image_id):
             raise RuntimeError("Docker did not return an immutable image ID")
-        script = (
-            "set -eu; mkdir -p /tmp/dashboard-pg/data; "
-            "initdb -D /tmp/dashboard-pg/data --auth-local=trust --auth-host=reject "
-            "--username=postgres --encoding=UTF8 --no-locale >/tmp/dashboard-initdb.log; "
-            "exec postgres -D /tmp/dashboard-pg/data -k /tmp "
-            "-c listen_addresses='' -c max_connections=30 "
-            "-c shared_buffers=32MB -c log_statement=none"
-        )
+        script = self.startup_script()
         try:
             result = self._command([
                 "run", "--detach", "--pull=never", "--name", self.name,
@@ -181,6 +174,7 @@ class IsolatedPostgres:
                     or state["HostConfig"].get("PortBindings")
                     or any(mount["Type"] != "tmpfs" for mount in state["Mounts"])):
                 raise RuntimeError("Owned PostgreSQL container isolation verification failed")
+            self.prepare_container()
             deadline = time.monotonic() + 30
             while time.monotonic() < deadline:
                 ready = self._command(["exec", self._container_id, "pg_isready",
@@ -200,6 +194,20 @@ class IsolatedPostgres:
         except BaseException:
             self.close()
             raise
+
+    def startup_script(self) -> str:
+        """Default fixture is socket-only; subclasses cannot alter Docker isolation."""
+        return (
+            "set -eu; mkdir -p /tmp/dashboard-pg/data; "
+            "initdb -D /tmp/dashboard-pg/data --auth-local=trust --auth-host=reject "
+            "--username=postgres --encoding=UTF8 --no-locale >/tmp/dashboard-initdb.log; "
+            "exec postgres -D /tmp/dashboard-pg/data -k /tmp "
+            "-c listen_addresses='' -c max_connections=30 "
+            "-c shared_buffers=32MB -c log_statement=none"
+        )
+
+    def prepare_container(self) -> None:
+        """Optional owned tmpfs setup before PostgreSQL becomes ready."""
 
     def begin_sql(self, source: str, *, role: str = "postgres", timeout: float = 10) -> SqlSession:
         if self._container_id is None:

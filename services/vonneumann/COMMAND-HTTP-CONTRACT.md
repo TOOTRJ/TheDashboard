@@ -119,3 +119,5 @@ measured remote source/DB/lease/relay latency; safe interrupted-state handling;
 custom worker credential research; preview isolation and hosting. Multi-window
 checkpoint expansion and automatic restoration remain separate. See
 [the MVP critical path](../../MVP-READINESS.md).
+
+The B2C1 research recommends a separate [native direct-session candidate](NATIVE-SESSION-AUTH.md) for the first long-running paper worker. The existing HTTP adapter stays inert; it is not silently repurposed or selected. B2C2 must prove the actual async SQL transport and hosted TLS/authentication before adoption.

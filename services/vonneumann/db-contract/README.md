@@ -444,3 +444,5 @@ DB-03A2D3B2B adds the reviewed offline [canonical fresh v5 component](v5/package
 `v5/build.py --check`. Public admission is v5-only, with separate inert economic/
 relay SQL capabilities. This is not the full production migration or credential
 configuration. [Contract, focused tests and next gates](../CANONICAL-V5-PACKAGE.md).
+
+`session-auth/` is the separate B2C1 offline native direct-session candidate. Its builder composes the unchanged pinned v5 package with immutable owner/run/capability issuance and real SCRAM session guards. It provisions no credentials and is not a migration or runtime path. [Contract, TLS/transaction limits and next transport work](../NATIVE-SESSION-AUTH.md).

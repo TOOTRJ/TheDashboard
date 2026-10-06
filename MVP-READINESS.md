@@ -13,12 +13,14 @@ release or evidence of a profitable strategy.
 | Small strategy | `ema_baseline_v1` evolves two parameters: fast and slow EMA periods. Asset, timeframe and other controls stay fixed; RSI/volume signal filters are disabled. All candidates share 61 completed warmup bars. |
 | Research evaluator | Synthetic replay, a twenty-pair exhaustive grid, cash/passive/fixed-EMA/random controls, and an equal-budget reference GA are implemented. Training-only selection and fresh chronological holdout accounts are tested. Representative historical research and calibrated fills remain open. |
 | Exact paper controller | An opt-in provider-bound v5 controller, command repository, lease fencing and event outbox work in offline/local database rehearsals. They are not yet selected by the production service. |
-| Database / HTTP | The inert transport pins the exact Dashboard host/schema/RPCs. Local real HTTP faults and PostgREST acceptance exercise original-ID reconciliation and transaction semantics. The hosted project runs PostgREST 14.5; `vn_durability` is not exposed or deployed. Existing public legacy writers remain in service code. |
+| Database / transports | Canonical fresh v5 SQL and native SCRAM owner/run authentication are proved offline. The inert HTTP adapter and local PostgREST tests retain reconciliation/transaction evidence; the bounded async SQL transport is next. The hosted project runs PostgREST 14.5; fresh v5 SQL is not deployed. Existing public legacy writers remain in service code. |
 | Dashboard | Next.js 16.3.8 is deployed. Selected-run targeting and complete bounded legacy history are repaired locally and released. Fresh versioned projections, detail pagination and two-owner end-to-end acceptance remain. |
 | Worker / live execution | The Python worker is unhosted. Runtime modes are simulation/paper. The Jupiter V2 helper requests quotes without a taker; it cannot sign or execute a swap. |
 
-The next implementation focus is DB-03A2D3, followed by DB-03A3's complete verified
-cutover. Detailed transport evidence lives in
+The next implementation focus is B2C2's bounded native async SQL transport and
+commit-uncertainty acceptance, then the remaining DB-03A2D3 full-package/legacy
+evidence/service/browser dependencies and DB-03A3's complete verified cutover.
+Detailed transport evidence lives in
 [COMMAND-HTTP-CONTRACT.md](services/vonneumann/COMMAND-HTTP-CONTRACT.md).
 
 ## First hosted paper MVP: ordered critical path
@@ -165,3 +167,21 @@ composition/rollback. B2/D3 stay open. D3C selects one service authority and wir
 browser history/control/archive/replay; A3 proves/applies the complete hosted
 cutover. Production timing, safe interruption, preview isolation and hosting still
 gate paper MVP launch. The worker remains unhosted; live trading gates are unchanged.
+
+
+## DB-03A2D3B2C1 checkpoint — 2026-10-06
+
+Separate native economic/relay logins now have an offline authentication and
+owner/run authorization proof. Five ordinary artifact checks and twenty real
+TLS/SCRAM database cases cover identity/scope, credential lifecycle, revocation,
+rollback and actual v5 bootstrap/relay/projections. The hash-pinned canonical v5
+component remains unchanged. [Research, contract and limits](services/vonneumann/NATIVE-SESSION-AUTH.md).
+
+This closes C1 only. B2C2 must add the bounded actual async SQL transport with
+project/CA pins, transaction/commit ownership, cancellation/lost replies and
+original-ID reconciliation. Hosted TLS/native authentication and credentials
+remain unconfigured. Durable legacy evidence, complete forward-package and
+post-acknowledgment rollback, D3C/A3, real timing/quotas, safe interruption, preview
+isolation and hosting still precede the bounded paper pilot. Continuous evolution
+still needs compact checkpoints and long-duration acceptance; live trading gates
+remain unchanged. No user setup is required for the next offline transport work.
