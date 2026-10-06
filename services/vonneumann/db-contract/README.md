@@ -18,6 +18,15 @@ it never installs tools, downloads images, starts Docker, or connects to a
 configured PostgreSQL/Supabase URL. See [harness isolation](../tests/postgres/README.md).
 Ordinary worker test discovery skips these opt-in tests.
 
+DB-03A2D3B1 adds `003_legacy_retirement.sql`, a separately guarded legacy-only
+retirement/classification rehearsal. It uses an independently captured,
+session-local catalog expectation from `legacy_catalog.sql`, not an application
+migration or an installation of 001. The reviewed
+[manifest](legacy_retirement_manifest.json) pins its sources and exact scope;
+25 PostgreSQL cases reconstruct the deployed legacy catalog/defaults and prove
+denial, evidence preservation, rollback/overlap and v5 projection coexistence.
+[Contract, hosted installer findings and remaining B2 work](../LEGACY-WRITE-RETIREMENT.md).
+
 DB-03A2C2B now also rehearses complete **bounded fresh exact engine decisions**
 through version 3 below. See [experiment, capacity measurements and remaining
 research](../EXACT-ENGINE-REHEARSAL.md). The fixture remains nondeployable and is

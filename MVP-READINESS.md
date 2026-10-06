@@ -116,3 +116,18 @@ production DDL/legacy privilege and classification cutover, D3C one service
 writer/read/operator flow, and DB-03A3 application acceptance. Timing, packaging,
 credentials, safe interruption, preview isolation and hosted pilot gates retain
 the order above. Real trading still requires LIVE-01 through LIVE-07 separately.
+
+## DB-03A2D3B1 checkpoint — 2026-10-05
+
+The isolated legacy write-retirement/classification slice passes 25 PostgreSQL
+cases, including exact table/column/maintenance denial, two-owner history,
+inherited/SET ROLE paths, preserved defaults/unrelated objects and old-worker
+overlap. Actual v5 bootstrap/projections work without writing retired legacy
+tables. [Contract](services/vonneumann/LEGACY-WRITE-RETIREMENT.md). Hosted
+`postgres` lacks grant options on the fixture's auth dependencies, so the next
+critical step is **D3B2**, a v5-only production DDL/object/credential package with
+actual installer acceptance and durable legacy drain/reconciliation/archive
+evidence. B1 does not complete D3B or apply a migration. D3C service/browser
+selection and DB-03A3 full cutover follow; the paper worker remains unhosted.
+Remote release of B1 awaits dedicated Dashboard Vercel login and exact target
+verification. Real trading gates are unchanged.
