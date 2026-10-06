@@ -104,3 +104,15 @@ More genes, extra assets, additional optimizers, a replacement optimization
 library, broader Nestegg work and cosmetic dashboard work are outside the
 critical path for this narrow paper MVP. Keep the two-gene baseline until the
 whole system and empirical comparisons justify adding complexity.
+
+## DB-03A2D3A checkpoint — 2026-10-05
+
+Atomic projection/terminal/evaluation history, owner-scoped bounded pages, durable
+sequenced relay/ACK/replay and retained-holdings archive now have an isolated SQL
+and actual v5/local PostgREST rehearsal. Exact display/collection/relay adapters
+remain inert. The unused bulk-delete browser helper is removed. [Contract](services/vonneumann/READ-PROJECTION-CONTRACT.md).
+This completes D3A, not the D3 parent or a hosted paper MVP. Next are D3B reviewed
+production DDL/legacy privilege and classification cutover, D3C one service
+writer/read/operator flow, and DB-03A3 application acceptance. Timing, packaging,
+credentials, safe interruption, preview isolation and hosted pilot gates retain
+the order above. Real trading still requires LIVE-01 through LIVE-07 separately.

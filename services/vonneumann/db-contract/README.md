@@ -412,3 +412,12 @@ server clock override is added to the SQL fixture. See the complete
   a sampled distribution and its evaluated update inputs are different evidence
   from genetic crossover parents. Recorded membership does not encode numerical
   optimizer weights or a restorable solver checkpoint.
+
+## DB-03A2D3A isolated read/relay/archive checkpoint
+
+`002_read_projections.sql` must follow a fresh empty command fixture. It adds
+atomic curated append-only versions, frozen retirement cash, owner RPC pages,
+separately sequenced durable event acceptance/replay and presentation-only archive
+with retained holdings/reconciliation disclosure. The full contract and remaining
+production work are in [READ-PROJECTION-CONTRACT.md](../READ-PROJECTION-CONTRACT.md).
+It is outside migrations and application selection. D3B/D3C and DB-03A3 remain open.

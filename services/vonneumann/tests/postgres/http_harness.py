@@ -30,6 +30,8 @@ def fixture_jwt(role, owner=None, *, expired=False, audience="dashboard-fixture"
 
 
 class IsolatedPostgREST(IsolatedPostgres):
+    api_schemas = ("vn_durability",)
+
     def __init__(self):
         super().__init__()
         self.network = f"dashboard-http-test-{self._token}"
@@ -114,6 +116,8 @@ class IsolatedPostgREST(IsolatedPostgres):
     def start_http(self, transaction_end, *, image_id=None):
         if transaction_end not in ("commit", "rollback", "commit-allow-override", "rollback-allow-override"):
             raise ValueError("Unsupported fixture transaction policy")
+        if self.api_schemas not in (("vn_durability",), ("vn_durability", "vn_read")):
+            raise ValueError("Unsupported fixture schema exposure")
         self.stop_http()
         self._verify_network()
         image_id = image_id or self.identity["postgrest_image"]
@@ -122,7 +126,7 @@ class IsolatedPostgREST(IsolatedPostgres):
             "--network", self.network, "--read-only", "--user", "1000:1000", "--cap-drop=ALL",
             "--security-opt", "no-new-privileges", "--pids-limit", "128", "--memory", "256m", "--cpus", "1",
             "--publish", "127.0.0.1::3000", "--env", "PGRST_DB_URI=postgres://authenticator@fixture-db:5432/postgres",
-            "--env", "PGRST_DB_SCHEMAS=vn_durability", "--env", "PGRST_DB_ANON_ROLE=anon",
+            "--env", "PGRST_DB_SCHEMAS=" + ",".join(self.api_schemas), "--env", "PGRST_DB_ANON_ROLE=anon",
             "--env", f"PGRST_JWT_SECRET={FAKE_JWT_SECRET}", "--env", "PGRST_JWT_AUD=dashboard-fixture",
             "--env", f"PGRST_DB_TX_END={transaction_end}", "--env", "PGRST_DB_POOL=2", "--env", "PGRST_LOG_LEVEL=error", image_id,
         ], timeout=20).stdout.strip()
