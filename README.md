@@ -4,6 +4,16 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 The **Nestegg** feature at `/nestegg` is documented in **[README-NESTEGG.md](./README-NESTEGG.md)**, including a high-level overview and a detailed breakdown of the projection math and code layout.
 
+## Evolutionary paper worker status
+
+See [MVP-READINESS.md](MVP-READINESS.md) for the ordered paper/live implementation
+gates and [TODO.md](TODO.md) for current priorities. The exact paper controller,
+canonical v5 SQL, native owner/run authentication and
+[bounded native SQL transport](services/vonneumann/NATIVE-SQL-TRANSPORT.md) are
+proved in isolated offline rehearsals. The native path is not selected by the
+production service and the Python worker is not hosted. Configuration and release
+evidence are recorded in [CONFIGURATION-PREFLIGHT.md](CONFIGURATION-PREFLIGHT.md).
+
 ## Getting Started
 
 Use **Node.js 24 LTS** (matching this project’s Vercel runtime), then install the locked dependencies with `npm ci`. The Supabase JavaScript SDK requires Node.js 22 or newer; this project targets Node 24 through `package.json`. Keep runtime selection local to this project when other agents are working on the same computer.

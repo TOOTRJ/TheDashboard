@@ -140,13 +140,13 @@ delete economic history or restore a second writer as a rollback shortcut.
 
 ## Next implementation and substantial research
 
-1. **B2C2: bounded async Python SQL transport.** Select and locally lock a driver;
-   pin exact Dashboard connection metadata, explicit private CA and two credentials;
-   avoid inherited DSN/PGSERVICE/proxy/certificate fallback; preserve exact numeric
-   JSON and strict capped responses. Own the connection/transaction/commit/cleanup
-   deadlines, lost replies, cancellation, stale receipts and original-ID readback.
-   Run the actual controller and relay through that transport offline before any
-   hosted credential provisioning. Do not shell out to psql in the runtime.
+1. **B2C2 is complete offline:** the [bounded native SQL transport](NATIVE-SQL-TRANSPORT.md)
+   hash-locks Psycopg 3.3.6, owns connections/transactions/explicit COMMIT/cleanup
+   and exact JSON, and proves the actual controller/relay plus lost-reply/cancel/
+   timeout recovery through real TLS/SCRAM. It remains inert and uses no runtime
+   psql subprocess. **B2C3 is next:** read-only hosted profile/CA/SSL/auth/network
+   facts and a scoped credential validation/storage/expiry/rollback plan before
+   provisioning or service selection.
 2. **Research deeply:** direct IPv6 versus session pool identity/TLS behavior,
    Supavisor queue/connect/statement/idle bounds, connection capacity, SCRAM/channel
    binding compatibility, secret storage/rotation/expiry and revocation-lock latency.
