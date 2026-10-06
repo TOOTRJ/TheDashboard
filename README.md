@@ -13,6 +13,10 @@ canonical v5 SQL, native owner/run authentication and
 proved in isolated offline rehearsals. The native path is not selected by the
 production service and the Python worker is not hosted. Configuration and release
 evidence are recorded in [CONFIGURATION-PREFLIGHT.md](CONFIGURATION-PREFLIGHT.md).
+The [hosted native preflight](services/vonneumann/HOSTED-NATIVE-PREFLIGHT.md)
+records actual Dashboard SSL/network facts and the remaining CA/credential
+acceptance. [Worker hosting research](WORKER-HOSTING-RESEARCH.md) now prioritizes
+Railway's opt-in outbound IPv6, subject to account, region and budget review.
 
 ## Getting Started
 

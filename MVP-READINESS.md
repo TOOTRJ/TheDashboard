@@ -13,15 +13,16 @@ release or evidence of a profitable strategy.
 | Small strategy | `ema_baseline_v1` evolves two parameters: fast and slow EMA periods. Asset, timeframe and other controls stay fixed; RSI/volume signal filters are disabled. All candidates share 61 completed warmup bars. |
 | Research evaluator | Synthetic replay, a twenty-pair exhaustive grid, cash/passive/fixed-EMA/random controls, and an equal-budget reference GA are implemented. Training-only selection and fresh chronological holdout accounts are tested. Representative historical research and calibrated fills remain open. |
 | Exact paper controller | An opt-in provider-bound v5 controller, command repository, lease fencing and event outbox work in offline/local database rehearsals. They are not yet selected by the production service. |
-| Database / transports | Canonical fresh v5 SQL and native SCRAM owner/run authentication are proved offline. The inert HTTP adapter and local PostgREST tests retain reconciliation/transaction evidence; the bounded native async SQL transport now proves real TLS/SCRAM controller/relay and commit recovery offline. Hosted CA/network/credential acceptance remains next. The hosted project runs PostgREST 14.5; fresh v5 SQL is not deployed. Existing public legacy writers remain in service code. |
+| Database / transports | Canonical fresh v5 SQL and native SCRAM owner/run authentication are proved offline. The inert HTTP adapter and local PostgREST tests retain reconciliation/transaction evidence; the bounded native async SQL transport now proves real TLS/SCRAM controller/relay and commit recovery offline. Read-only hosted metadata and a bounded TLS-only preflight are complete; project CA, actual worker IPv6 and limited native credential issuance/authentication acceptance remain. The hosted project runs PostgREST 14.5; fresh v5 SQL is not deployed. Existing public legacy writers remain in service code. |
 | Dashboard | Next.js 16.3.8 is deployed. Selected-run targeting and complete bounded legacy history are repaired locally and released. Fresh versioned projections, detail pagination and two-owner end-to-end acceptance remain. |
 | Worker / live execution | The Python worker is unhosted. Runtime modes are simulation/paper. The Jupiter V2 helper requests quotes without a taker; it cannot sign or execute a swap. |
 
-The next implementation focus is B2C3's read-only hosted CA/SSL/network/auth
-verification and scoped credential plan, then the remaining DB-03A2D3
+The next implementation focus is the remaining B2C3 project CA/worker IPv6 and
+limited credential issuer/native-session acceptance, then the remaining DB-03A2D3
 full-package/legacy evidence/service/browser dependencies and DB-03A3's complete
-verified cutover. Detailed native transport evidence and unresolved production
-bounds live in [NATIVE-SQL-TRANSPORT.md](services/vonneumann/NATIVE-SQL-TRANSPORT.md).
+verified cutover. Detailed transport evidence lives in [NATIVE-SQL-TRANSPORT.md](services/vonneumann/NATIVE-SQL-TRANSPORT.md);
+actual hosted facts, the credential/rollback plan and revised Railway IPv6 hosting
+recommendation live in [HOSTED-NATIVE-PREFLIGHT.md](services/vonneumann/HOSTED-NATIVE-PREFLIGHT.md).
 
 ## First hosted paper MVP: ordered critical path
 

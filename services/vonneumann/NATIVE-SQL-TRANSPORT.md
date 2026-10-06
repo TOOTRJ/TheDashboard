@@ -59,6 +59,10 @@ explains the behavior; the actual driver test exercises the corrected parameters
 [OpenSSL initialization in PostgreSQL 18](https://github.com/postgres/postgres/blob/REL_18_STABLE/src/interfaces/libpq/fe-secure-openssl.c).
 Hosted CA acquisition, expiry/replacement and certificate revocation policy still
 require B2C3 review before provisioning or runtime selection.
+The subsequent [hosted preflight](HOSTED-NATIVE-PREFLIGHT.md) records server SSL
+enforcement off, the management backend's TLS/SCRAM, IPv6-only direct DNS and
+the current local IPv6 failure. These facts do not prove a scoped worker session;
+project CA and selected-host/limited-issuer acceptance remain open.
 
 ## One owned transaction and exact responses
 

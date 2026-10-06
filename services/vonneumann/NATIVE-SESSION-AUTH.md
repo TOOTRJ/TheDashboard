@@ -161,3 +161,8 @@ delete economic history or restore a second writer as a rollback shortcut.
    and worker hosting still precede the supervised paper launch.
 
 Funding, signing, swaps and live trading remain outside this work.
+
+B2C3A now captures [actual hosted metadata and a TLS-only operator preflight](HOSTED-NATIVE-PREFLIGHT.md).
+The management path's SCRAM/TLS observation is not worker authentication proof.
+The synthetic login issuer uses disposable superuser authority; actual limited
+postgres issuance/grants/registry/revocation still require C3B acceptance.
