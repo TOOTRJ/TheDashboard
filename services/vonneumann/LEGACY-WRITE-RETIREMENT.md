@@ -44,9 +44,13 @@ treat its catalog capabilities as usable session authority.
 Vercel's dedicated profile could not return authenticated target metadata during
 this increment, and its auth file was absent when checked. A login to the exact
 Dashboard profile was requested. Shared/default profiles are not a fallback.
-Remote push/merge/release verification remains pending that setup and fresh
-verification of `the-dashboard`/`prj_wFUe9k9USVreOQcmQKNWRAVsx5fH`/team
-`team_8iNNxiNjrOseD4gdSCHkQEzF`.
+On 2026-10-06, user-completed dedicated login restored access. Fresh provider
+metadata, non-interactive resolved project inspection and team identity match
+`the-dashboard`/`prj_wFUe9k9USVreOQcmQKNWRAVsx5fH`/team
+`team_8iNNxiNjrOseD4gdSCHkQEzF`, slug `orderoftheredjester`; GitHub and Supabase
+targets also match. Release still requires exact-source READY preview, the
+reviewed merge, exact-merge READY production and read-only application smokes.
+Final immutable evidence is recorded in the PR; no migration is part of release.
 
 ## Exact retirement scope
 

@@ -129,5 +129,6 @@ critical step is **D3B2**, a v5-only production DDL/object/credential package wi
 actual installer acceptance and durable legacy drain/reconciliation/archive
 evidence. B1 does not complete D3B or apply a migration. D3C service/browser
 selection and DB-03A3 full cutover follow; the paper worker remains unhosted.
-Remote release of B1 awaits dedicated Dashboard Vercel login and exact target
-verification. Real trading gates are unchanged.
+Dedicated Dashboard login and all exact targets were reverified on 2026-10-06.
+B1 release requires exact-source/merge READY deployments and read-only smokes;
+immutable release evidence belongs in its PR. Real trading gates are unchanged.

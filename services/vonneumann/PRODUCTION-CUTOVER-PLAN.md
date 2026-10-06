@@ -33,8 +33,10 @@ late rollback, old-writer overlap and actual v5 projection coexistence.
 Hosted `postgres` cannot grant the fixture's auth dependencies onward. B2 must
 prove a complete v5 forward package under actual installer privileges and a
 durable legacy drain/reconciliation/archive evidence policy. B1 remains outside
-migrations/startup; D3B/D3C/A3 remain open. Dedicated Vercel login/verification is
-pending; no push, merge or cloud migration is claimed for this checkpoint.
+migrations/startup; D3B/D3C/A3 remain open. Dedicated Vercel login and all exact
+targets were reverified on 2026-10-06. Source/merge READY deployment and read-only
+smoke acceptance remain release gates; immutable evidence belongs in the PR.
+No cloud migration is included in this increment.
 
 ## Verified aggregate and catalog evidence
 
