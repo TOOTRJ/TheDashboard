@@ -2342,3 +2342,65 @@ READY preview, authorized exact-head merge, then exact-merge READY production,
 four bounded read-only smokes and scoped error logs. Immutable evidence belongs
 in the PR. A reviewed code revert is sufficient; no database/credential rollback
 is needed for this inert increment. No live funding, signing, swaps or trading.
+
+## 56. DB-03A2D3B2C3A — hosted metadata, TLS-only preflight and hosting correction
+
+**Exact targets:** fresh dedicated helper/profile metadata and local pins match
+TOOTRJ/TheDashboard/1141090963/biggrizzly11, the-dashboard/prj_wFUe9k9USVreOQcmQKNWRAVsx5fH/
+team_8iNNxiNjrOseD4gdSCHkQEzF and The Dashboard/fxpxsciltakyypunglzr/
+cqfnnaunmupdyobkyqfo. CLI resolved-project inspection also matches the project ID,
+name and owner slug; authenticated API metadata independently supplies the
+immutable team/repository IDs. No other project's contents, shared credentials,
+settings, processes or tools are changed. Prior baseline is PR49 merge
+9508e6bed91344d5e60e5c7d2321f23a4ea3bb8f.
+
+**Read-only facts:** identity-pinned experimental SSL GET reports enforcement off
+and successfully applied configuration. A bounded read-only/repeatable-read SQL
+query reports PostgreSQL 17.6, TLS capability/minimum 1.2, a management backend
+TLS 1.3/SCRAM session, max_connections 60/3 superuser reserved, default SCRAM
+password encryption, absent fresh schemas/roles/native principals and the same
+fourteen migrations. The management backend is not an actual worker direct
+session or CA/channel-binding proof. Exact-host DNS gives one public AAAA/no A;
+local macOS getaddrinfo fails and explicit IPv6 TCP reports network unavailable.
+No login, SQL or TLS bypass is attempted by this network check. Approved metadata
+only is committed; no database rows, role password hashes, unrestricted settings
+or credential values are captured. [Detailed evidence and limits](services/vonneumann/HOSTED-NATIVE-PREFLIGHT.md).
+
+**Implementation:** explicit operator tool inspects only supplied public CA PEM
+with size/content/CA/usage/duplicate/expiry checks and hashes. Its opt-in probe
+requires the reviewed file hash, pins the exact direct database host, owns one
+finite child, verifies hostname/CA/TLS and sends only SSLRequest. No database
+StartupMessage, authentication, SQL, fallback, environment credentials or default
+trust store. Eleven offline cases include real loopback TLS, wrong CA/hostname,
+plaintext refusal, safe errors and child timeout/strict output bounds. Full worker
+regression passes **1,551 tests in 359.221 seconds** with **114 expected isolated
+database skips**; the final eleven focused cases and isolated CLI synthetic-CA
+inspection pass separately after the small error-sanitization adjustment. Startup,
+SQL candidate/migrations, Python dependencies and frontend behavior are unchanged.
+
+**Hosting and credential plan:** Railway's newly documented per-service outbound
+IPv6 makes it the leading candidate; selected account/service/region/actual IPv6,
+capacity, drain and budget still need acceptance. Render's IPv4 path needs separate
+proof, not automatic pooler or paid-add-on selection. Current limited-worker tests
+use disposable administrator issuance; they do not prove hosted-like postgres
+issuance/grant/registry/revocation. C3B now makes that gap explicit. The private
+pair storage/finite expiry/recovery/new-principal rotation/revocation/canary and
+additive rollback plan retains unresolved original commands and acknowledged
+history. Server SSL enforcement off fails the planned TLS-only provisioning gate;
+client inventory and reviewed reboot/maintenance plan precede any setting change.
+
+**Remaining:** C3 stays open for project CA provenance/validity, actual worker-host
+network and limited issuer/native-session/channel-binding acceptance. No hosting
+account/service is created, no native credential provisioned, no hosted DDL,
+server SSL toggle, environment or startup path changed. The worker remains
+unhosted. Follow C3 with durable legacy evidence/archive invalidation and complete
+forward composition/catalog/history/overlap/additive rollback, then D3C/A3,
+actual source/lease/relay timing/quotas, preview isolation and HOST acceptance.
+Deep substantial research remains explicit for CA/revocation/native-library
+SBOM/security/license, connection/COMMIT/relay capacity and finite revocation
+latency. For this inert increment, rollback is a reviewed code revert only.
+
+**Release:** reviewed Dashboard PR, exact-source READY preview, authorized
+exact-head merge and exact-merge READY production/read-only smoke/error scan.
+Immutable source/merge/deployment and final regression evidence are recorded in
+the PR; no live funding/signing/swaps/trading are included.

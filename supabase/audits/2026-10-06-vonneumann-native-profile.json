@@ -1,0 +1,81 @@
+{
+  "captured_at_utc": "2026-10-06T22:38:07.042891+00:00",
+  "database_metadata": {
+    "candidate_state": {
+      "durability_schema": false,
+      "economic_role": false,
+      "native_role_count": 0,
+      "private_owner": false,
+      "read_schema": false,
+      "relay_role": false
+    },
+    "migration_versions": [
+      "20260402100000",
+      "20260402120000",
+      "20260403100000",
+      "20260403110000",
+      "20260408200000",
+      "20260408200100",
+      "20260408200200",
+      "20260408200300",
+      "20260409200000",
+      "20260409210000",
+      "20260418120000",
+      "20260930010000",
+      "20260930020000",
+      "20260930030000"
+    ],
+    "session": {
+      "authentication": "scram-sha-256:postgres",
+      "isolation": "repeatable read",
+      "lock_timeout": "1s",
+      "postgres_version": "17.6",
+      "read_only": "on",
+      "role": "postgres",
+      "session_role": "postgres",
+      "ssl": {
+        "bits": 256,
+        "cipher": "TLS_AES_256_GCM_SHA384",
+        "enabled": true,
+        "protocol": "TLSv1.3"
+      },
+      "statement_timeout": "15s",
+      "tcp": true
+    },
+    "settings": {
+      "max_connections": "60",
+      "password_encryption": "scram-sha-256",
+      "reserved_connections": "0",
+      "ssl": "on",
+      "ssl_max_protocol_version": "",
+      "ssl_min_protocol_version": "TLSv1.2",
+      "superuser_reserved_connections": "3"
+    }
+  },
+  "direct_worker_authentication": "unverified",
+  "local_network": {
+    "IPv6_tcp": "network_unavailable",
+    "authentication": "not attempted",
+    "host": "db.fxpxsciltakyypunglzr.supabase.co",
+    "location": "local macOS; not worker host",
+    "port": 5432,
+    "public_AAAA_count": 1,
+    "public_A_count": 0,
+    "resolver_getaddrinfo": "resolution failed on local machine",
+    "tls": "not attempted"
+  },
+  "project": {
+    "id": "fxpxsciltakyypunglzr",
+    "name": "The Dashboard",
+    "organization_id": "cqfnnaunmupdyobkyqfo"
+  },
+  "project_ca": "not obtained",
+  "query_path": "Supabase CLI linked query via Management API; not a worker direct connection",
+  "ssl_enforcement": {
+    "appliedSuccessfully": true,
+    "currentConfig": {
+      "database": false
+    }
+  },
+  "worker_host": "not provisioned"
+}
