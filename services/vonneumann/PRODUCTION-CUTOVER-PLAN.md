@@ -344,3 +344,12 @@ writers and wire compatible typed browser discovery/details/relay/archive, with
 old-worker overlap and additive rollback drills. DB-03A3 applies only the accepted
 complete cutover. Local contract testing is not hosted schema exposure or capacity
 acceptance; preserve all outstanding research and gating listed above.
+
+## Canonical fresh v5 component checkpoint
+
+D3B2B extracts/rehearses v5-only public admission and the fresh function/object/
+hash/capability manifest under the limited installer. Inert separate SQL economic/
+relay roles are not usable production credentials. Actual authentication/owner/run
+scope, durable legacy evidence/archive invalidation, full retirement/classifier/
+migration composition and additive post-acknowledgment rollback remain B2.
+[Contract and research](CANONICAL-V5-PACKAGE.md). D3C/A3 still gate selection/application.

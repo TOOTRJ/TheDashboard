@@ -142,3 +142,10 @@ late-failure test is not a production rollback plan after acknowledged v5
 commands. That future rollback must retain history and denied legacy writes.
 No credential creation/rotation, managed grant change, migration, worker
 deployment, signing, funding, swap or live trading is included here.
+
+## Subsequent canonical component
+
+B2B now extracts the fresh v5-only component and reuses this installer boundary
+without changing these pinned laboratory sources. Separate economic/relay SQL
+roles remain inert; real hosted credentials and full legacy composition are still
+required. [Canonical component, acceptance and remaining gates](CANONICAL-V5-PACKAGE.md).
