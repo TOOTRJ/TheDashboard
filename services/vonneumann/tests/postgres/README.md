@@ -37,8 +37,9 @@ login roles `anon`, `authenticated`, `service_role` (with BYPASSRLS). Giving the
 fixture roles LOGIN allows genuine independent connections without a superuser
 session or `SET ROLE`; their production login configuration is not modeled.
 `vn_contract_owner` has NOLOGIN, NOBYPASSRLS, and no client role memberships. This
-models the privileges under test, not the entire Supabase platform: PostgREST,
-JWT verification, realtime and managed-platform settings require later validation.
+models the privileges under test, not the entire Supabase platform. The HTTP
+fixture described below additionally tests local PostgREST/JWT behavior; hosted
+gateway authentication, realtime and managed settings still need acceptance.
 PostgreSQL retains its default `fsync=on`; a temporary filesystem still cannot
 model power loss, so this is not a crash-durability test.
 
@@ -76,3 +77,17 @@ statement timeout in addition to its client deadline. An abruptly killed Python
 runner may leave its uniquely named container; recover only that exact labeled
 container after checking that no current test process owns it. Do not use a broad
 Docker cleanup command.
+
+The HTTP-specific `IsolatedPostgREST` fixture additionally requires the installed
+`public.ecr.aws/supabase/postgrest:v14.5` image. It pins the image ID and matches the
+hosted version observed on 2026-10-05. It uses a separate labeled private bridge
+with IP masquerading disabled (Docker 29 suppresses published ports on internal
+networks), no PostgreSQL host port, a subnet-limited fake authenticator, and one
+exclusive loopback HTTP port. This is not a general egress firewall. Fake JWTs
+and a test-only opaque-key gateway connector exercise PostgREST role/schema/commit
+behavior without application keys. Nine HTTP/database tests include the actual
+v5 provider controller with fabricated literal provider responses, independent
+commit observation and original-ID recovery after a lost reply. See
+[the HTTP contract](../../COMMAND-HTTP-CONTRACT.md). Hosted gateway authentication,
+transaction-end policy, managed settings and production role defaults remain
+separate activation gates.

@@ -1,3 +1,2 @@
-# Runtime pins plus an explicit TestClient dependency; unittest is in stdlib.
+# Runtime pins; HTTPX is now an explicit runtime input. unittest is in stdlib.
 -r requirements.in
-httpx==0.28.1

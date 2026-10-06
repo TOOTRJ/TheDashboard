@@ -515,7 +515,7 @@ httptools==0.8.0 \
 httpx==0.28.1 \
     --hash=sha256:d909fcccc110f8c7faf814ca82a9a4d816bc5a6dbfea25d6591d6985b8ba59ad
     # via
-    #   -r requirements-dev.in
+    #   -r requirements.in
     #   postgrest
     #   storage3
     #   supabase
