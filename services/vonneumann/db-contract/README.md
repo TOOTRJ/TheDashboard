@@ -27,6 +27,14 @@ migration or an installation of 001. The reviewed
 denial, evidence preservation, rollback/overlap and v5 projection coexistence.
 [Contract, hosted installer findings and remaining B2 work](../LEGACY-WRITE-RETIREMENT.md).
 
+DB-03A2D3B2A adds `004_installer_boundary.sql` and a hash-pinned offline
+composition experiment. Seventeen real PostgreSQL cases prove an actual
+NOSUPERUSER postgres installation through a fixed private Auth identity bridge
+and installer-created Auth FK/ownership transfer, preserving managed Auth/API
+permissions and unrelated objects. The experiment deliberately retains the
+multi-version laboratory; it is not a production v5 packager or migration.
+[Installer contract and remaining credential/package work](../INSTALLER-BOUNDARY.md).
+
 DB-03A2C2B now also rehearses complete **bounded fresh exact engine decisions**
 through version 3 below. See [experiment, capacity measurements and remaining
 research](../EXACT-ENGINE-REHEARSAL.md). The fixture remains nondeployable and is
