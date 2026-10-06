@@ -2267,3 +2267,78 @@ The HTTP fixture explicitly acquired the official 14.5 image to match hosted met
 **Validation:** five offline artifact checks and twenty actual TLS/SCRAM PostgreSQL cases cover password/CA/hostname/plaintext failures, owner/run spoofing, capabilities/private/API/trust denial, role drift and activation, open-session expiry/revocation, lock serialization and stale snapshots, rotation/OID reuse, immutable scope, late create/batch rollback, real v5 bootstrap/relay/owner projections, limited-installer Auth/API/default/unrelated preservation, late installation rollback and namespace collision. The 31-case canonical suite is retained as a dependency regression. The ordinary worker regression passed all 1,526 discovered tests in 237.953 seconds with 113 expected isolated-database skips; the final five offline checks and twenty authentication database cases pass separately. Both late-effect cases use observed server barriers to prove execution reached the trigger before expiry. Immutable release results are recorded in the PR. No frontend/runtime dependency change requires another frontend build.
 
 **Limits and next:** the actual hosted SSL policy, project CA, native-role authentication and network profile are not yet proved. PostgreSQL TLS statistics are redacted under switched/definer roles; no broad stats permission or extension is added to work around this. Direct TLS/SCRAM is the candidate profile; session pooling needs separate authentication/state/timeout proof. Checks define statement admission/final return, not exact WAL-commit expiry; held transactions can delay revocation. B2C2 must own async connections/transactions/commit uncertainty, strict exact JSON/results, cleanup/deadlines and original-ID reconciliation through the real controller/relay. Durable legacy evidence/archive invalidation, full migration/classifier/retirement composition/overlap/post-acknowledgment rollback, D3C/A3, timing, preview isolation and hosting remain. Deep substantial research is retained for network/pooler/TLS/credential lifetimes, connection and revocation latency, retention/checkpoints and source/lease/relay costs. Code revert suffices for this inert release; no production database rollback is required.
+
+
+## 55. DB-03A2D3B2C2 — bounded native async SQL transport
+
+**Verified targets:** the dedicated GitHub helper confirms biggrizzly11/16749816,
+TOOTRJ/TheDashboard/1141090963 and push access. Fresh authenticated dedicated
+Vercel metadata and the local pin match the-dashboard/prj_wFUe9k9USVreOQcmQKNWRAVsx5fH,
+team_8iNNxiNjrOseD4gdSCHkQEzF and GitHub repository 1141090963. Supabase metadata
+and explicit local link match The Dashboard/fxpxsciltakyypunglzr, organization
+cqfnnaunmupdyobkyqfo. Identity verification uses only approved target metadata;
+no other project data/configuration or shared credential/settings were changed.
+PR48 merge c80bc7c1ee1676a9bf9c2bd93326f16d9ceec427 is the preceding verified baseline.
+
+**Implemented:** explicitly injected inert Psycopg 3.3.6/binary transport pins the
+Dashboard direct host/port/database, supplied private CA/verify-full, required
+SCRAM/channel binding and separate economic/relay principals. Inherited PG
+configuration fails closed; password, certificate/key and CRL defaults cannot
+read shared home credentials. One fresh owned connection explicitly begins,
+switches only its capability, binds one allowlisted RPC and validates capped raw
+strict JSON before explicit confirmed COMMIT. No psql subprocess, pool, retries,
+application environment lookup or startup selection. Cancellation and uncertain
+commit replies retain original IDs and owned I/O/cleanup; late connections close
+and pending/failed cleanup prevents reuse. [Complete contract, primary sources
+and limits](services/vonneumann/NATIVE-SQL-TRANSPORT.md).
+
+**Real finding:** an existing empty CRL directory enables OpenSSL CRL checking and
+rejects a CA without a CRL. The tested implementation uses an explicitly absent
+CRL file in its own private directory to suppress default home fallback; it does
+not claim CRL validation. Hosted certificate/CA lifecycle and revocation policy
+remain gated. This was found by actual TLS testing, not mocked driver behavior.
+
+**Acceptance:** fourteen ordinary cases pass. Eight real CPython 3.12/Linux ARM64
+Psycopg/libpq 18.6 cases execute beside the owned network-none PostgreSQL 17.6
+fixture. The driver/container has no host mounts/ports, is nonroot/read-only with
+bounded resources and uses a stdin-staged, hash-verified offline wheel install
+and synthetic tmpfs credentials. Only DNS is patched to fixture loopback; actual
+TLS/SCRAM, controller, repository, durable publisher, SQL and roles are exercised.
+Independent observer connections prove complete bootstrap/exact fractional-price
+paper tick/pause/reserved stop, eight latest probe projections, relay acceptance/
+ACK/outbox drain, bad CA/password and server owner/run/capability denial. Fault
+hooks around actual COMMIT prove lost reply/original-ID recovery without duplicate
+commands/provider refetch, cancelled caller ownership, real SQL lock timeout,
+pre-COMMIT rollback and recovery after a timed-out already committed reply. These
+are controlled driver fault injections, not hosted packet-loss/pooler tests.
+
+**Dependency/regression:** all existing 49 Python versions are preserved; two
+matching driver packages bring both locks to 51 pins. Clean hash installations
+pass on Darwin and Linux ARM64; pip check passes. Runtime/test pip-audit 2.10.1
+scans report zero known vulnerabilities; native-library/SBOM/licensing review
+remains for hosting. The ordinary worker regression reports **1,540 tests in
+232.695 seconds, OK with 114 expected isolated-database skips**. The eight real
+driver cases pass separately in 3.764 seconds (10.730 seconds including the host
+wrapper/setup). SQL candidates/artifacts are unchanged; their ordinary drift
+checks remain covered. No frontend runtime file/package changed. Whitespace and
+protected historical migration hash checks pass. Both fixture containers are
+removed by exact ownership-label checks. Shared/global tools/processes and the
+other agent's files are preserved.
+
+**Next:** B2C3 read-only hosted CA/SSL/network/authentication facts and scoped
+credential validation/storage/expiry/rotation/revocation/rollback plan; then B2
+durable legacy writer drain/reconciliation/archive evidence and invalidation,
+full canonical/auth/retirement/classifier/history/overlap and additive rollback
+retaining acknowledged commands. D3C/A3 complete service/browser cutover, measured
+provider/DB/lease/relay timing/quotas, preview isolation and HOST packaging/hosting
+still precede a supervised paper launch. Deep substantial research remains for
+direct IPv6 versus session pooler identity/TLS/channel binding/queue bounds,
+connection/handshake capacity, native dependency/CA maintenance and held-transaction
+revocation latency. No hosted SQL, native credential provisioning, migration,
+worker launch or live transaction occurs in this slice. B2/D3/A3 remain open.
+
+**Release/rollback:** reviewed focused PR via the Dashboard helper, exact-source
+READY preview, authorized exact-head merge, then exact-merge READY production,
+four bounded read-only smokes and scoped error logs. Immutable evidence belongs
+in the PR. A reviewed code revert is sufficient; no database/credential rollback
+is needed for this inert increment. No live funding, signing, swaps or trading.

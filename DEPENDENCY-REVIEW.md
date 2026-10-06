@@ -179,3 +179,31 @@ At review time, individual advisory pages still show placeholder fix versions su
 **Local validation:** **42/42 Node tests pass**, including authentication, probe transport/reliability, metrics rendering, and chart dependency checks. Full and production-only npm audits both report **zero known vulnerabilities**. TypeScript passes; source/test lint has **zero errors and 33 existing warnings**. A clean locked installation and default-Turbopack production build pass under the isolated official **Node 24.21.0**, generating 18/18 pages. No Python or application runtime files changed in this dependency patch.
 
 Installation and clean-install verification used public npm, empty task-specific user/global npm configuration, a dedicated temporary cache, and `--ignore-scripts`. The build copied only tracked application/configuration files plus the generated TypeScript declaration into a temporary directory, with fake application credentials and no `.env` files, then installed from the lock. This preserved the checkout's existing build output. No development server or worker was started; no cloud project, account setting, or shared CLI credential was changed by this dependency work. Deployment and authenticated browser verification remain separate release checks.
+
+
+## B2C2 native SQL driver addition (2026-10-06)
+
+Both Python inputs/locks add only `psycopg[binary]==3.3.6` and its matching
+`psycopg-binary==3.3.6`. All previous 49 package versions are preserved, yielding
+51 runtime and 51 test pins. This is a project-only dependency addition, not a
+global Python/libpq/CLI upgrade. No npm packages change. Driver selection and
+primary sources are in [NATIVE-SQL-TRANSPORT.md](services/vonneumann/NATIVE-SQL-TRANSPORT.md).
+
+Clean CPython 3.12.14 Darwin ARM64 installation of the complete hash lock and
+`pip check` pass. A separately downloaded hash-verified CPython 3.12 Linux ARM64
+wheelhouse installs offline in a nonroot, network-isolated Linux fixture and
+executes the actual TLS/SCRAM driver/controller/relay and faults. Both tested
+binary wrappers report libpq 18.6. Runtime and test lock advisory scans with
+pip-audit 2.10.1 report **zero known vulnerabilities**, using task-specific caches
+and public advisory lookups without application credentials.
+
+Psycopg's published package metadata specifies LGPL-3.0-only; retain the actual
+selected-wheel license/notice files in future HOST-02 packaging review. Python
+advisory results do not audit every bundled libpq/OpenSSL native component or
+constitute an SBOM/license/distribution review. HOST-02/B2C3 must verify the exact
+deployment architecture, native-library versions, support/security maintenance,
+notices and certificate lifecycle before hosting. Fourteen focused ordinary
+transport cases and eight real Linux database cases pass. The complete ordinary
+worker regression is recorded in configuration section 55 and release evidence
+in the PR. No hosted connection, credential provisioning or runtime selection
+is implied by installing this inert adapter.

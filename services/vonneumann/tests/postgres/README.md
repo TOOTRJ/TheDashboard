@@ -125,3 +125,17 @@ reproduction and source/dependency drift. No production credentials or configure
 database are accessed. [Scope and remaining gates](../../CANONICAL-V5-PACKAGE.md).
 
 `test_session_auth.py` authenticates independent native logins using synthetic TLS/SCRAM over loopback inside the same owned network-none container. Twenty cases verify owner/run scope, lifecycle/revocation, stale snapshots, late effects and installer rollback/preservation. Synthetic CA/password files live only in private owned tmpfs; no ports/mounts/shared secrets or hosted connections are used. Five offline package checks run without opt-in. [Contract and remaining hosted/transport gates](../../NATIVE-SESSION-AUTH.md).
+
+
+`test_native_sql.py` additionally requires the cached `python:3.12.14-slim-bookworm`
+image and an explicitly supplied absolute `DASHBOARD_NATIVE_SQL_WHEELS` directory
+containing hash-verified CPython 3.12 wheels for the image's Linux architecture.
+Set that variable for the full opt-in runner above as well, or run the focused
+command in [NATIVE-SQL-TRANSPORT.md](../../NATIVE-SQL-TRANSPORT.md). The harness never
+pulls images or fetches packages. A second owned nonroot container shares only
+the native TLS fixture's network-none namespace, with no host ports/mounts and
+an offline `--require-hashes` install. Its private tmpfs permits binary-library
+executable mappings while its image root remains read-only. Only synthetic
+fixture credentials are staged through stdin. Eight actual driver cases cover
+controller/relay, TLS/SCRAM denial and real commit/rollback/recovery faults;
+ordinary test discovery skips the host integration wrapper without opt-in.
