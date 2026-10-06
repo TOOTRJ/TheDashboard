@@ -91,3 +91,16 @@ commit observation and original-ID recovery after a lost reply. See
 [the HTTP contract](../../COMMAND-HTTP-CONTRACT.md). Hosted gateway authentication,
 transaction-end policy, managed settings and production role defaults remain
 separate activation gates.
+
+`test_legacy_retirement.py` creates a separate legacy fixture from the reviewed
+catalog snapshot, not historical migration scripts. It reproduces the measured
+93 columns, 19 constraints, 25 indexes, 18 policies, two triggers, six default
+ACL entries and authenticator membership options with synthetic two-owner rows.
+Twenty-five cases validate exact-object/column/maintenance denial, inherited and
+SET ROLE paths, preserved defaults/unrelated objects/rows/owner reads, catalog
+drift, late rollback and old-writer overlap. A coexistence case runs actual v5
+bootstrap/projections after legacy writes are retired. The current fixture's
+administrative bootstrap remains broader than hosted `postgres`; fresh read-only
+capability metadata exposes missing auth dependency grant options. No cloud
+mutation or production-ready owner creation is implied.
+See [the legacy retirement contract](../../LEGACY-WRITE-RETIREMENT.md).

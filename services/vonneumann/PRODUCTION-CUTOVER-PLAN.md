@@ -24,6 +24,20 @@ other detail-reader pagination and actual actor-specific RLS acceptance remain
 open. See configuration preflight section 48. Inventory counts below remain the
 dated pre-repair snapshot, not a new live browser observation.
 
+**DB-03A2D3B1 checkpoint (2026-10-05):** fresh sequential read-only inventory
+matches all recorded catalog/count fields. The isolated legacy retirement and
+owner-only classification pass 25 PostgreSQL cases, with source/object/grant
+manifest, column/inherited/SET ROLE/MAINTAIN denial, unrelated-object preservation,
+late rollback, old-writer overlap and actual v5 projection coexistence.
+[Contract and current installation findings](LEGACY-WRITE-RETIREMENT.md).
+Hosted `postgres` cannot grant the fixture's auth dependencies onward. B2 must
+prove a complete v5 forward package under actual installer privileges and a
+durable legacy drain/reconciliation/archive evidence policy. B1 remains outside
+migrations/startup; D3B/D3C/A3 remain open. Dedicated Vercel login and all exact
+targets were reverified on 2026-10-06. Source/merge READY deployment and read-only
+smoke acceptance remain release gates; immutable evidence belongs in the PR.
+No cloud migration is included in this increment.
+
 ## Verified aggregate and catalog evidence
 
 The [audit SQL](../../supabase/audits/vonneumann-cutover-inventory.sql) runs one
@@ -136,7 +150,7 @@ configuration. No JWT secret or unrestricted settings response was inspected.
 | `core/colony_manager.py` and risk callbacks | Process-local mutable `GenesisController`; separately persisted lifecycle | Explicit opt-in selection only after acceptance, database lease/fence authority and retained drain/settlement. |
 | `db/repository.py` / `EventPersister` | Probe births/metrics/deaths, trade opens/closes, snapshots and generation upserts are separate writes | All economic operations plus required projections/journal/outbox commit in the same command transaction. |
 | Browser `probes-supabase.ts` | D1A merged owner-bound history with validated bounded pages; other detail queries retain direct casts/unpaginated reads | Versioned validated owner-only read models and bounded pagination for all remaining detail readers. |
-| Exported `deleteAllProbes()` | Four sequential date-filtered DELETEs, no selected-run filter, leaves colonies; no current caller found | Remove the helper and deny equivalent direct mutation; replace with a reviewed run-specific archive operation. |
+| Former exported `deleteAllProbes()` | Removed in D3A; its prior four sequential date-filtered DELETEs had no selected-run filter | B1 rehearses equivalent direct-mutation denial; B2/C/A3 gate reviewed production run-specific archive and privilege cutover. |
 | `_make_dual_handler` / `server/websocket.py` | Persist one legacy event then attempt socket broadcast; send failure/zero subscribers is not durable delivery | Durable relay acceptance, stable IDs and replay/deduplication before acknowledging an outbox event. |
 
 The active worker uses `SUPABASE_SERVICE_ROLE_KEY`. Its repository serializes

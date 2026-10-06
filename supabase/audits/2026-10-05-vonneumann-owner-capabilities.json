@@ -1,0 +1,83 @@
+{
+  "authorized_target": {
+    "name": "The Dashboard",
+    "id": "fxpxsciltakyypunglzr",
+    "organization": "cqfnnaunmupdyobkyqfo"
+  },
+  "date": "2026-10-05",
+  "scope": "read-only allowed metadata; not hosted installation acceptance",
+  "inventory": {
+    "api_role_admin_or_create": [
+      {
+        "admin_memberships": 0,
+        "create_db": false,
+        "create_role": false,
+        "name": "anon",
+        "replication": false
+      },
+      {
+        "admin_memberships": 0,
+        "create_db": false,
+        "create_role": false,
+        "name": "authenticated",
+        "replication": false
+      },
+      {
+        "admin_memberships": 0,
+        "create_db": false,
+        "create_role": false,
+        "name": "authenticator",
+        "replication": false
+      },
+      {
+        "admin_memberships": 0,
+        "create_db": false,
+        "create_role": false,
+        "name": "service_role",
+        "replication": false
+      }
+    ],
+    "installation_roles": [
+      {
+        "auth_schema_usage": true,
+        "auth_schema_usage_grantable": false,
+        "auth_user_id_references": true,
+        "auth_user_id_references_grantable": false,
+        "bypass_rls": true,
+        "create_db": true,
+        "create_role": true,
+        "inherit": true,
+        "name": "postgres",
+        "set_postgres": true,
+        "superuser": false,
+        "uid_execute": true,
+        "uid_execute_grantable": false
+      },
+      {
+        "auth_schema_usage": true,
+        "auth_schema_usage_grantable": true,
+        "auth_user_id_references": true,
+        "auth_user_id_references_grantable": true,
+        "bypass_rls": true,
+        "create_db": true,
+        "create_role": true,
+        "inherit": true,
+        "name": "supabase_admin",
+        "set_postgres": true,
+        "superuser": true,
+        "uid_execute": true,
+        "uid_execute_grantable": true
+      }
+    ],
+    "private_owner_present": false,
+    "session": {
+      "executor_role": "postgres",
+      "executor_session_role": "postgres",
+      "isolation": "repeatable read",
+      "lock_timeout": "1s",
+      "postgres_version": "17.6",
+      "read_only": "on",
+      "statement_timeout": "15s"
+    }
+  }
+}

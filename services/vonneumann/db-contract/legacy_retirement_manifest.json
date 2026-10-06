@@ -1,0 +1,125 @@
+{
+  "version": 1,
+  "milestone": "DB-03A2D3B1",
+  "mode": "isolated_rehearsal_only",
+  "production_application_available": false,
+  "authorized_targets": {
+    "github": {
+      "name": "TOOTRJ/TheDashboard",
+      "id": 1141090963
+    },
+    "vercel": {
+      "name": "the-dashboard",
+      "id": "prj_wFUe9k9USVreOQcmQKNWRAVsx5fH",
+      "owner": "team_8iNNxiNjrOseD4gdSCHkQEzF"
+    },
+    "supabase": {
+      "name": "The Dashboard",
+      "id": "fxpxsciltakyypunglzr",
+      "owner": "cqfnnaunmupdyobkyqfo"
+    }
+  },
+  "sources_sha256": {
+    "legacy_catalog.sql": "adb9a26b619f679a8b54e369c7808d352ae7f136a2b15ad08ae38557e06f2e66",
+    "003_legacy_retirement.sql": "eb0b5d31f01c5dd7b9eba5a9107fd6c92c7c5ec442bc087402c65f4f193702a7"
+  },
+  "legacy_tables": [
+    "public.vn_colonies",
+    "public.vn_fitness_snapshots",
+    "public.vn_generation_stats",
+    "public.vn_probes",
+    "public.vn_trades"
+  ],
+  "revoke_roles": [
+    "PUBLIC",
+    "anon",
+    "authenticated",
+    "service_role",
+    "authenticator"
+  ],
+  "revoke_table_privileges": [
+    "INSERT",
+    "UPDATE",
+    "DELETE",
+    "TRUNCATE",
+    "REFERENCES",
+    "TRIGGER",
+    "MAINTAIN"
+  ],
+  "revoke_column_privileges": [
+    "INSERT",
+    "UPDATE",
+    "REFERENCES"
+  ],
+  "preserve": [
+    "legacy_rows",
+    "legacy_definitions",
+    "legacy_rls_policies",
+    "existing_select",
+    "unrelated_objects",
+    "postgres_defaults",
+    "supabase_admin_defaults",
+    "api_role_memberships"
+  ],
+  "new_objects": [
+    {
+      "identity": "vn_legacy",
+      "kind": "schema",
+      "owner": "vn_contract_owner",
+      "grants": {
+        "authenticated": [
+          "USAGE"
+        ]
+      }
+    },
+    {
+      "identity": "vn_legacy.classify_run(uuid)",
+      "kind": "function",
+      "owner": "vn_contract_owner",
+      "security": "definer",
+      "search_path": [
+        "pg_catalog",
+        "pg_temp"
+      ],
+      "grants": {
+        "authenticated": [
+          "EXECUTE"
+        ]
+      }
+    }
+  ],
+  "new_owner_dependencies": {
+    "vn_contract_owner": [
+      "SELECT on the five legacy tables",
+      "USAGE on auth schema",
+      "EXECUTE on auth.uid()"
+    ]
+  },
+  "session_only_helpers": [
+    "pg_temp.dashboard_legacy_review",
+    "pg_temp.vn_legacy_tables()",
+    "pg_temp.vn_legacy_catalog()"
+  ],
+  "review_limit_bytes": 262144,
+  "lock_timeout_ms": 500,
+  "statement_timeout_ms": 8000,
+  "open_gates": [
+    "v5_forward_ddl_and_complete_manifest",
+    "hosted_owner_and_worker_relay_credential_acceptance",
+    "legacy_drain_and_reconciliation_evidence_archive_policy",
+    "service_browser_selection",
+    "DB-03A3_hosted_acceptance"
+  ],
+  "owner_default_acl_changes": [
+    {
+      "role": "vn_contract_owner",
+      "schema": "vn_legacy",
+      "object_type": "functions",
+      "revoke": {
+        "PUBLIC": [
+          "EXECUTE"
+        ]
+      }
+    }
+  ]
+}
