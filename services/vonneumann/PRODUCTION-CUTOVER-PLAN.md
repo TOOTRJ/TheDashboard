@@ -314,3 +314,19 @@ CPU/capacity under actual load. The five local controller measurements do not
 establish production percentiles or safe protective exposure. Keep
 DB-03A2C2D2D2A, D3, DB-03A2D/DB-03A3 and hosting parents open until their
 individual acceptance evidence exists.
+
+## DB-03A2D3A preparation checkpoint — 2026-10-05
+
+The fresh exact-target read-only inventory still reports 8 stopped legacy colonies,
+497 probes, 807 trades and 9,837 snapshots; the fourteen-version migration ledger
+and absence of the durability schema are unchanged. D3A now rehearses atomic
+projection history, terminal cash, owner reads, durable sequenced relay/ACK/replay
+and non-destructive archive. [Detailed contract](READ-PROJECTION-CONTRACT.md).
+The old bulk-delete helper is removed, while current legacy readers and writers
+retain their existing production selection. No migration, hosted command or bot
+launch is included. D3B must prepare the complete reviewed forward object/grant
+manifest and classify legacy archive eligibility. D3C must replace all service
+writers and wire compatible typed browser discovery/details/relay/archive, with
+old-worker overlap and additive rollback drills. DB-03A3 applies only the accepted
+complete cutover. Local contract testing is not hosted schema exposure or capacity
+acceptance; preserve all outstanding research and gating listed above.

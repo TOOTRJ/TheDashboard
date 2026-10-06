@@ -245,15 +245,3 @@ function mergeColonyRuns(colonies: SavedColony[], probes: SavedProbe[]): ColonyR
   return runs.sort((a, b) => Date.parse(b.started_at) - Date.parse(a.started_at)
     || (a.run_id < b.run_id ? -1 : a.run_id > b.run_id ? 1 : 0));
 }
-
-export async function deleteAllProbes(): Promise<boolean> {
-  const db = supabase();
-  for (const [table, column] of [
-    ["vn_fitness_snapshots", "captured_at"], ["vn_trades", "created_at"],
-    ["vn_generation_stats", "started_at"], ["vn_probes", "created_at"],
-  ]) {
-    const { error } = await db.from(table).delete().gte(column, "2000-01-01");
-    if (error) throw new Error("Could not finish deleting colony data. Some records may already have been removed.");
-  }
-  return true;
-}
