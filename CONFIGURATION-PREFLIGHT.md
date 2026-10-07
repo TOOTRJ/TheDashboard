@@ -2439,7 +2439,67 @@ migration, credential or worker launch is involved.
 Dashboard repository. The initial immutable Vercel target read succeeded, but
 subsequent isolated CLI checks failed and metadata-only inspection confirmed the
 dedicated `/Users/redjester/.config/vercel-dashboard-codex/auth.json` is absent.
-No shared/default credential was used or copied. Leave the PR unmerged until the
-user signs in to that exact dedicated profile and fresh target/source/preview
-checks pass. This does not require a Railway account change or affect the local
-ignore rule. No production deployment is claimed for this intake.
+No shared/default credential was used or copied. **Resolved after the user's
+dedicated-profile login:** exact target/source preview checks passed and PR #51
+merged as 188d31014fe7425a5c602fb0d23892759a7150f4. Production
+dpl_DY6TjaNrCWn7QWDcuDbvFtbULvzP is READY, serves the-dashboard-chi.vercel.app,
+passes all four bounded read-only checks and returned zero scoped error records.
+Immutable release evidence is in PR #51. No Railway configuration, database
+mutation or worker launch occurred.
+
+## 58. DB-03A2D3B2C3B1 — limited native issuer proof offline
+
+**Baseline/targets:** PR #51 is the reviewed baseline above. Fresh dedicated CLI
+context and immutable metadata match the-dashboard/prj_wFUe9k9USVreOQcmQKNWRAVsx5fH/
+team_8iNNxiNjrOseD4gdSCHkQEzF/orderoftheredjester, TOOTRJ/TheDashboard/1141090963/
+biggrizzly11/16749816 and The Dashboard/fxpxsciltakyypunglzr/cqfnnaunmupdyobkyqfo.
+Only allowed identity metadata is inspected remotely. Unrelated projects,
+credentials, tools and processes and the protected historical migration remain
+unchanged. No hosting or linked SQL mutation is performed.
+
+**Scope:** inert, hash-pinned isolated templates compose with unchanged C1 native
+auth SQL. The actual fixture postgres login is non-superuser with measured
+Dashboard-like privileges; administrator connections only seed/observe/inject.
+Exact identity/catalog/membership checks precede pair creation. Private table
+resolution and registry insertion use the reviewed explicit owner switch rather
+than extra schema/Auth grants. One bounded transaction creates two NOLOGIN
+principals, SET-only disjoint capabilities, immutable DB-clock owner/run/OID/
+issuance bindings and finite deadlines, validates and publishes LOGIN at COMMIT.
+Caller creator/password settings restore. Synthetic SCRAM verifiers avoid
+plaintext password statements; secrets/known verifiers stay in memory/stdin/owned
+private tmpfs and are redacted from returned diagnostics, never Git or reports.
+
+**Revocation/uncertainty:** retained scope/OIDs suffice without old passwords.
+Ordered row locks, one-way binding updates and NOLOGIN are atomic; timeout is
+failure, not partial success. Post-DDL OID/name revalidation rolls back an actual
+concurrent name replacement, and real DDL-lock acceptance protects the final
+check through COMMIT. Existing unadmitted sessions fail the binding guard;
+admitted work is not preempted. Fresh immutable rotation retains original command
+readback. A reply lost after issuance COMMIT retains the exact pair and refuses
+resubmission; no fresh-pair automatic retry or compensating economics.
+[Contract, source boundary and deeper research](services/vonneumann/NATIVE-ISSUER-REHEARSAL.md).
+
+**Validation:** worker discovery passes **1,596 tests in 258.303 seconds**, with
+**152 expected opt-in database skips**. Explicit issuer/native-auth/canonical-v5/
+installer regression passes **106 real PostgreSQL cases in 174.743 seconds**.
+After the final secret-independent scope refactor, **seven ordinary cases** and
+the complete **38-case issuer suite in 44.510 seconds** pass separately. The
+existing eight real Linux native transport cases pass in 3.061 seconds inside
+their owned driver container (8.422 seconds including setup/outer test); they
+remain a separate dependency check using the older fixture issuer. Immutable
+release evidence belongs in the PR. No runtime,
+dependency lock, canonical/native-auth package, frontend or migration is changed.
+
+**Remaining/release:** only C3B1 closes. C3B requires actual managed issuer and
+selected host IPv6/project-CA/TLS/native canaries, gated secret injection and
+client/SSL-maintenance review. B2 legacy drain/reconciliation/archive evidence and
+invalidation, full composition/history/catalog/overlap and additive post-ACK
+rollback remain before D3C/A3 selection/cutover. Provider/lease/relay timing and
+quotas, preview isolation and hosting/image/capacity/drain gates precede paper
+launch. Deep substantial research remains for issuer transport/SCRAM/logging/
+uncertainty, role/registry/held-transaction lock tails, rotation/expiry operations,
+managed hooks, CA/native maintenance and aggregate capacity. Reviewed exact-source
+READY preview, authorized exact-head merge, exact-merge READY production and four
+read-only smokes/scoped error scan remain the release procedure. A code revert is
+the rollback for this inert slice; no hosted credential/object cleanup or live
+funding/signing/swaps/trading occurs.

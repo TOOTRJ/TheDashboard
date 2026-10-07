@@ -164,5 +164,10 @@ Funding, signing, swaps and live trading remain outside this work.
 
 B2C3A now captures [actual hosted metadata and a TLS-only operator preflight](HOSTED-NATIVE-PREFLIGHT.md).
 The management path's SCRAM/TLS observation is not worker authentication proof.
-The synthetic login issuer uses disposable superuser authority; actual limited
-postgres issuance/grants/registry/revocation still require C3B acceptance.
+The older C1/C2 synthetic login issuer uses disposable superuser authority and
+does not prove the actual limited issuer path.
+
+C3B1 now closes the offline limited-postgres issuer dependency with atomic
+economic/relay pair creation, real issued-login RPC acceptance and bounded
+revocation/role-replacement races. It leaves actual selected-host and managed
+platform acceptance open. [Issuer rehearsal and limits](NATIVE-ISSUER-REHEARSAL.md).
