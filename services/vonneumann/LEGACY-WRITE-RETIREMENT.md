@@ -5,6 +5,14 @@ completes the isolated legacy-retirement slice; **D3B remains open** for the
 v5 production DDL, full object manifest, credential/installation acceptance and
 evidence-backed legacy archive policy. D3C and DB-03A3 still gate application.
 
+On 2026-10-07, B2D1 adds a separate [durable evidence/archive rehearsal](LEGACY-EVIDENCE-CONTRACT.md)
+under the actual limited installer, including an Auth-compatible classifier
+composition. The original B1 source/manifest stay unchanged. The new component
+is inert and does not change this classifier's production selection; external
+evidence authenticity, full composition/rollback, service/browser and A3 remain
+gates. Later checkpoints below supersede the future-work references only for
+that tested offline component.
+
 `db-contract/003_legacy_retirement.sql` and `legacy_catalog.sql` are deliberately
 outside `supabase/migrations`. Application startup imports neither. The reviewed
 [manifest](db-contract/legacy_retirement_manifest.json) pins their SHA-256 hashes,
