@@ -26,6 +26,8 @@
 # misc
 .DS_Store
 *.pem
+# Project-local certificates and any future SSL material
+/ssl/
 
 # debug
 npm-debug.log*

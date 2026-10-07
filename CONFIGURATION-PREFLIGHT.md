@@ -2404,3 +2404,33 @@ latency. For this inert increment, rollback is a reviewed code revert only.
 exact-head merge and exact-merge READY production/read-only smoke/error scan.
 Immutable source/merge/deployment and final regression evidence are recorded in
 the PR; no live funding/signing/swaps/trading are included.
+
+## 57. Certificate intake and Railway account setup — 2026-10-07
+
+**Scope:** fresh exact GitHub/Vercel/Supabase identity metadata matches all existing
+Dashboard allowlisted targets. The authenticated Railway dashboard is inspected
+read-only: Red Jester's Projects, Trial, 30 days or $5 left, zero projects, candidate
+workspace f3fcd4b2-e424-4c6b-ac33-91196ccc96e1 from the visible project-creation link.
+No workspace/project/service/integration, plan, billing, secret or account setting
+is changed; no Railway project target or CLI/API authentication is established.
+The Trial badge does not prove Full Trial outbound networking.
+
+**Local action:** add root `/ssl/` to `.gitignore`; actual CRT and nested/future
+CRT/key paths match the rule, and `git ls-files -- ssl` is empty. The supplied
+`ssl/prod-ca-2021.crt` passes the existing offline inspector: one valid CA,
+2021-04-28T10:56:53Z through 2031-04-26T10:56:53Z. Exact PEM SHA-256 is
+700723581420dd1ac98fd7e9ac529f0ef210eadcaf87fc868a3ad7d114c2f3b7; DER SHA-256 is
+807025ad50d4ed219d2c9c7d299c004f824eb00cf7f65afef607d07b72e6cafa.
+Only hashes/dates are recorded; certificate bytes remain local. User provenance
+follows the prior exact-project download instruction, not an independently
+observed download or peer handshake. A fresh bounded fixed-host TLS-only probe
+reports dns_failed, with no database login or SQL. Actual worker-host IPv6/TLS,
+limited native issuance and scoped authentication remain C3B gates.
+
+**Validation/release:** ignore matching/tracked-file absence, offline certificate
+inspection and whitespace checks suffice for this ignore/documentation-only
+change; runtime/dependency/SQL/frontend code is unchanged. Preserve the protected
+historical migration and unrelated drafts. Use a reviewed Dashboard PR and exact
+preview/merge/production verification under standing release authorization;
+immutable evidence belongs in the PR. A code revert is the rollback; no hosted
+migration, credential or worker launch is involved.
