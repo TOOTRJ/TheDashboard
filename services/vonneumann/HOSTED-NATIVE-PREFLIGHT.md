@@ -1,8 +1,9 @@
 # Hosted native connection and credential preflight
 
-DB-03A2D3B2C3A, reviewed 2026-10-06. This completes the read-only metadata and
-TLS-only operator tooling slice. **C3 stays open:** project CA provenance,
-worker-host reachability and actual scoped native authentication are unproved.
+DB-03A2D3B2C3A, reviewed 2026-10-06; certificate intake updated 2026-10-07.
+This completes the read-only metadata and TLS-only operator tooling slice.
+**C3 stays open:** live project-CA/hostname validation, worker-host reachability
+and actual scoped native authentication are unproved.
 No provisioning runner, production SQL, credential, server configuration or
 startup selection is introduced. The worker remains unhosted.
 
@@ -48,8 +49,10 @@ encrypted connection is not a substitute.
 1. Open the exact project
    [Database Settings](https://supabase.com/dashboard/project/fxpxsciltakyypunglzr/database/settings).
    Confirm **The Dashboard** and the project reference, then download its SSL CA.
-   Keep the password and SSL toggle unchanged. The in-app browser is signed out;
-   manual download is the current missing input.
+   Keep the password and SSL toggle unchanged. **Received 2026-10-07:** the user
+   supplied `ssl/prod-ca-2021.crt` following this download instruction. Root
+   `/ssl/` is ignored by Git, including nested/future files; no contents are tracked.
+   Only public inspection metadata is recorded below; certificate bytes stay local.
 2. Keep the public CA in a project-private ignored location or approved worker
    secret-file store; never append it to shared `~/.postgres/root.crt`. Record
    download source/time, exact PEM SHA-256, each DER SHA-256 and validity range.
@@ -91,6 +94,30 @@ It reports hashes/expiry without certificate subjects or paths. This does not
 provide revocation checking or infer that every parseable root is authorized.
 The actual C2 libpq transport and SCRAM/channel-binding acceptance remain a
 separate test after scoped credentials exist.
+
+### Certificate intake — 2026-10-07
+
+The supplied file passes the explicit offline inspector: one current CA, no
+private-key/trailing/duplicate material, validity 2021-04-28T10:56:53Z through
+2031-04-26T10:56:53Z. SHA-256 of the exact PEM bytes is
+`700723581420dd1ac98fd7e9ac529f0ef210eadcaf87fc868a3ad7d114c2f3b7`;
+certificate DER SHA-256 is
+`807025ad50d4ed219d2c9c7d299c004f824eb00cf7f65afef607d07b72e6cafa`.
+Provenance is the user's response to the exact-project download instruction,
+not an independently observed portal download or successful live peer handshake.
+The fresh bounded TLS-only probe returns `dns_failed` on this computer and sends
+no database authentication or SQL. Retain the exact hash for the eventual
+selected-host preflight; obtaining the file does not close native acceptance.
+
+The authenticated Railway dashboard now shows **Red Jester's Projects**, Trial,
+30 days or $5 remaining, zero projects. Its visible new-project link identifies
+candidate workspace `f3fcd4b2-e424-4c6b-ac33-91196ccc96e1`. This is identity/setup
+metadata only: no project, service, integration, secret, plan or billing setting
+is created/changed. A browser login does not establish CLI/API authentication or
+an approved hosting target. Verify project/environment/service IDs when an
+explicit deployment is prepared. Full versus Limited Trial networking is not
+proved by the Trial badge; Railway documents restricted outbound access for a
+Limited Trial. [Railway trial policy](https://docs.railway.com/pricing/free-trial).
 
 CA maintenance should record a warning 30 days before the earliest configured
 root/observed server expiry, stop new admission at expiry, and leave unresolved
