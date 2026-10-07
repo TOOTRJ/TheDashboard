@@ -1,0 +1,167 @@
+{
+  "version": 1,
+  "milestone": "DB-03A2D3B2D1",
+  "mode": "isolated_legacy_evidence_rehearsal_only",
+  "production_application_available": false,
+  "dependencies_sha256": {
+    "legacy_catalog.sql": "adb9a26b619f679a8b54e369c7808d352ae7f136a2b15ad08ae38557e06f2e66",
+    "003_legacy_retirement.sql": "eb0b5d31f01c5dd7b9eba5a9107fd6c92c7c5ec442bc087402c65f4f193702a7"
+  },
+  "retirement_composition_sha256": "ae74c0c513355db4a1abfc40eb3417063aacfdb4d017a96ac290c2c3e1cae1c0",
+  "classifier_owner": "postgres",
+  "sources_sha256": {
+    "build.py": "4a2ffb01dee61ffc5673bcd8a6d6fdcbaac17e0f5e628cd94cffec65b3107eb6",
+    "contract.sql": "602cbfa61d858394413c7c8b44c9d07576bd04ad44470642a123d9d0f72d47ca"
+  },
+  "package_sha256": "de57bcc649e839317ace621462077033e60a4567fb1992f9573125e27aa164b4",
+  "functions": [
+    {
+      "signature": "vn_identity.legacy_rows(uuid,uuid)",
+      "sha256": "3d3b9a2473732b5202bd53d09bc1ac28bccdd4c0c8d80cfd95f5509b0f050d08"
+    },
+    {
+      "signature": "vn_identity.lock_legacy_evidence()",
+      "sha256": "bd60bc5d23523d6890e1f0149a46610b18b75fe4c511d2c05c982f628bc9d1f3"
+    },
+    {
+      "signature": "vn_legacy_evidence.archive(uuid,uuid,uuid)",
+      "sha256": "9c884672d427db208f616ee3ce238c6778beb5d3b95a790f1bff21f053353bf0"
+    },
+    {
+      "signature": "vn_legacy_evidence.attest(uuid,uuid,uuid,jsonb,jsonb)",
+      "sha256": "1f973a1a3f730ed361b2f15e31e8186b47c401835a9d3bb2fe0207f5af4f5491"
+    },
+    {
+      "signature": "vn_legacy_evidence.attestor_guard()",
+      "sha256": "a3e774006912d920e293aacd1bc5b74978026393dad92feff6c2f1bbb4b46439"
+    },
+    {
+      "signature": "vn_legacy_evidence.bump()",
+      "sha256": "835d64d41c04e97a21ebc4bff00411b1766cbc5672962d316f3c9bf5620b78db"
+    },
+    {
+      "signature": "vn_legacy_evidence.capture(uuid,uuid)",
+      "sha256": "e537904d0a98d7ac1b77268bd99ca7635431d69fc43cbd00b68b8238cb2f09e0"
+    },
+    {
+      "signature": "vn_legacy_evidence.catalog()",
+      "sha256": "3a4e8dc37dfb2108acf6edb907774cba0575249a96dff8f36f685fd6d6859244"
+    },
+    {
+      "signature": "vn_legacy_evidence.current_catalog()",
+      "sha256": "d38b8e1ad2d5a7ebdbb9ccaf1c2e7d34b92e7c7a3b4ef02513e6c81f577a4fa7"
+    },
+    {
+      "signature": "vn_legacy_evidence.hash_ok(jsonb)",
+      "sha256": "8ab498c6487abd452284add490bddeba6e58125a67731725b36934fb0b24fb23"
+    },
+    {
+      "signature": "vn_legacy_evidence.history(uuid,bigint,integer)",
+      "sha256": "952220157d40262c7769417f4dc59e83cfc38cbb51bd4aa7d05461e642746f68"
+    },
+    {
+      "signature": "vn_legacy_evidence.invalidate(uuid,uuid,text)",
+      "sha256": "ffc512edf9f0462ea3b4584fde63f71f5b04e51cb685b9736b8d7c926545373a"
+    },
+    {
+      "signature": "vn_legacy_evidence.keys(jsonb,text[])",
+      "sha256": "e396db19db8ace0ab71f2157abb6420929e451b3c63e4e7ed6aa83bb055fc20b"
+    },
+    {
+      "signature": "vn_legacy_evidence.review_status(uuid,jsonb)",
+      "sha256": "e1f2d5c83f7d8fd3a4a68c7b27f5a42e1404921cb126d9fc50ca820e907d91bc"
+    },
+    {
+      "signature": "vn_legacy_evidence.snapshot(uuid,uuid)",
+      "sha256": "9813568a057955b3f2082ac427697e43cd29ed1d9c1523720d8afdd29ac5d70f"
+    },
+    {
+      "signature": "vn_legacy_evidence.status(uuid)",
+      "sha256": "e23520b687b5c5c6b8d3146de96720a2964ee8d8fedef5ac4b8827bd52653037"
+    },
+    {
+      "signature": "vn_legacy_evidence.tables()",
+      "sha256": "293fc0ed2df0df1274afade521942acce947cbc14d87c6d8b1c06eb40ca0ea81"
+    },
+    {
+      "signature": "vn_legacy_evidence.text_ok(jsonb)",
+      "sha256": "00317e2f35e0a581ecaac07168907412c23366bca0710b608729bbc792cccd55"
+    },
+    {
+      "signature": "vn_legacy_evidence.validate_document(jsonb,jsonb)",
+      "sha256": "10378c4bb7089bcf3c319b510ba8d0d8ad5ab3aa804c5ea28e83dd26bc5a28e2"
+    }
+  ],
+  "tables": [
+    "vn_legacy_evidence.gate",
+    "vn_legacy_evidence.changes",
+    "vn_legacy_evidence.reviews",
+    "vn_legacy_evidence.invalidations",
+    "vn_legacy_evidence.archives"
+  ],
+  "indexes": [
+    {
+      "name": "legacy_reviews_scope",
+      "table": "vn_legacy_evidence.reviews"
+    },
+    {
+      "name": "legacy_invalidations_review",
+      "table": "vn_legacy_evidence.invalidations"
+    },
+    {
+      "name": "legacy_archives_scope",
+      "table": "vn_legacy_evidence.archives"
+    }
+  ],
+  "attestor_role": {
+    "name": "vn_legacy_attestor",
+    "login": false,
+    "inherit": false,
+    "superuser": false,
+    "bypassrls": false,
+    "createrole": false
+  },
+  "legacy_trigger": {
+    "name": "vn_legacy_evidence_changed",
+    "timing": "AFTER",
+    "events": [
+      "INSERT",
+      "UPDATE",
+      "DELETE",
+      "TRUNCATE"
+    ],
+    "level": "STATEMENT",
+    "enabled": "ALWAYS"
+  },
+  "legacy_tables": [
+    "vn_colonies",
+    "vn_fitness_snapshots",
+    "vn_generation_stats",
+    "vn_probes",
+    "vn_trades"
+  ],
+  "authenticated": [
+    "vn_legacy_evidence.status(uuid)",
+    "vn_legacy_evidence.archive(uuid,uuid,uuid)",
+    "vn_legacy_evidence.history(uuid,bigint,integer)"
+  ],
+  "attestor": [
+    "vn_legacy_evidence.capture(uuid,uuid)",
+    "vn_legacy_evidence.attest(uuid,uuid,uuid,jsonb,jsonb)",
+    "vn_legacy_evidence.invalidate(uuid,uuid,text)"
+  ],
+  "private_tables_exposed": false,
+  "row_limit": 50000,
+  "snapshot_byte_limit": 33554432,
+  "document_byte_limit": 65536,
+  "lock_timeout_ms": 500,
+  "statement_timeout_ms": 8000,
+  "history_page_limit": 100,
+  "exposure_limit": 200,
+  "evidence_lifetime_seconds": 86400,
+  "open_gates": [
+    "external_evidence_authenticity_and_managed_attestor_credential",
+    "complete_forward_composition_catalog_overlap_rollback",
+    "selected_service_browser_and_DB03A3_hosted_acceptance"
+  ]
+}
