@@ -2434,3 +2434,12 @@ historical migration and unrelated drafts. Use a reviewed Dashboard PR and exact
 preview/merge/production verification under standing release authorization;
 immutable evidence belongs in the PR. A code revert is the rollback; no hosted
 migration, credential or worker launch is involved.
+
+**Release blocker observed later in this intake:** PR #51 is open on the verified
+Dashboard repository. The initial immutable Vercel target read succeeded, but
+subsequent isolated CLI checks failed and metadata-only inspection confirmed the
+dedicated `/Users/redjester/.config/vercel-dashboard-codex/auth.json` is absent.
+No shared/default credential was used or copied. Leave the PR unmerged until the
+user signs in to that exact dedicated profile and fresh target/source/preview
+checks pass. This does not require a Railway account change or affect the local
+ignore rule. No production deployment is claimed for this intake.
