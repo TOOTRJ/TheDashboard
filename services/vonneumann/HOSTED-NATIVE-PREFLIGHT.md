@@ -129,7 +129,7 @@ There is currently no reviewed CRL/OCSP policy; do not claim revocation validati
 
 ## Credential issuance, storage and acceptance plan
 
-**Important missing proof:** the C1/C2 fixture creates logins with its disposable
+**Original missing proof:** the C1/C2 fixture creates logins with its disposable
 superuser before exercising non-admin sessions. It proves authentication and
 scope denial, not that hosted `postgres` can securely issue/grant/revoke the whole
 credential pair. C3B must rehearse issuance as the actual hosted-like limited
@@ -137,6 +137,13 @@ credential pair. C3B must rehearse issuance as the actual hosted-like limited
 privileges and private-owner registry insertion. Do not copy the fixture issuer
 into production or borrow `supabase_admin`/managed credentials. If the limited
 issuer cannot complete the exact procedure, stop and redesign/review that boundary.
+
+**C3B1 now supplies that offline limited-issuer rehearsal:** actual non-superuser
+postgres creates/grants/binds the exact pair atomically, preserves managed and
+unrelated state, and revokes with bounded locks and post-DDL identity checks.
+It does not supply a hosted issuer or production secret runner. Actual selected
+connection and managed-platform acceptance remain C3B gates.
+[Limited issuer evidence, race fixes and remaining research](NATIVE-ISSUER-REHEARSAL.md).
 
 The intended acceptance order after complete-package review is:
 
