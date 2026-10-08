@@ -64,7 +64,8 @@ def create_app(service=None, *, verify=require_user):
     async def scope(request, call_next):
         origin = request.headers.get('origin')
         if origin is not None and origin != ORIGIN:
-            return JSONResponse({'detail': 'Origin unavailable'}, status_code=403)
+            return JSONResponse({'detail': 'Origin unavailable'}, status_code=403,
+                                headers={'Cache-Control': 'no-store'})
         response = await call_next(request)
         response.headers['Cache-Control'] = 'no-store'
         return response

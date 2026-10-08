@@ -6,6 +6,7 @@
 !vonneumann/**/*.py
 !tools/
 !tools/native_tls_preflight.py
+!tools/native_session_canary.py
 **/__pycache__/
 **/*.pyc
 **/.env*

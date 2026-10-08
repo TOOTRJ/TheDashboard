@@ -1,0 +1,91 @@
+#!/usr/bin/env python3
+"""Exact-project Management API, using existing Supabase CLI Keychain read only.
+
+No login/logout/write, token output, credential argv, redirect or proxy fallback.
+Callers must first resolve verify(), then use a fixed permitted project path.
+"""
+from __future__ import annotations
+import base64
+import json
+import os
+from pathlib import Path
+import re
+import subprocess
+import urllib.error
+import urllib.request
+
+ROOT = Path('/Users/redjester/Projects/Next/TheDashboard')
+REF = 'fxpxsciltakyypunglzr'
+ORG = 'cqfnnaunmupdyobkyqfo'
+NAME = 'The Dashboard'
+BASE = 'https://api.supabase.com/v1/projects/' + REF
+ALLOWED = frozenset({'', '/database/query'})
+
+
+class Refused(RuntimeError):
+    pass
+
+
+def credential():
+    # Fixed official CLI profile only; never inspect another Keychain service.
+    try:
+        result = subprocess.run(['/usr/bin/security', 'find-generic-password', '-s', 'Supabase CLI',
+                                 '-a', 'supabase', '-w'], capture_output=True, timeout=10, check=False)
+        if result.returncode or len(result.stdout) > 4096:
+            raise ValueError()
+        value = result.stdout.decode('ascii').strip()
+        if value.startswith('go-keyring-base64:'):
+            value = base64.b64decode(value.removeprefix('go-keyring-base64:'), validate=True).decode('ascii')
+        elif value.startswith('go-keyring-encoded:'):
+            value = bytes.fromhex(value.removeprefix('go-keyring-encoded:')).decode('ascii')
+        if re.fullmatch(r'sbp_(?:oauth_)?[a-f0-9]{40}', value) is None:
+            raise ValueError()
+        return value
+    except Exception:
+        raise Refused('Existing Supabase CLI profile unavailable; no shared login changed') from None
+
+
+class NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, *args, **kwargs):
+        return None
+
+
+class Management:
+    def __init__(self):
+        if ROOT.resolve() != ROOT or (ROOT / 'supabase/.temp/project-ref').read_text().strip() != REF:
+            raise Refused('Dashboard linked Supabase target mismatch')
+        self._credential = credential()
+        self._verified = False
+
+    def _request(self, path, body=None):
+        if path not in ALLOWED or (path and not self._verified):
+            raise Refused('Unverified or unauthorized Supabase project path')
+        data = None if body is None else json.dumps(body).encode('utf-8')
+        request = urllib.request.Request(BASE + path, data=data, headers={
+            'Authorization': 'Bearer ' + self._credential, 'Content-Type': 'application/json',
+            'User-Agent': 'TheDashboard-Operator/1.0'}, method='GET' if body is None else 'POST')
+        try:
+            opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), NoRedirect())
+            with opener.open(request, timeout=20) as response:
+                if response.status not in (200, 201):
+                    raise ValueError()
+                raw = response.read(1048577)
+            if len(raw) > 1048576:
+                raise ValueError()
+            return json.loads(raw)
+        except Exception:
+            # An issuance error is uncertain until original-scope readback.
+            raise Refused('Supabase Management request failed; response suppressed; reconcile original operation') from None
+
+    def verify(self):
+        value = self._request('')
+        if (not isinstance(value, dict) or
+            (value.get('id'), value.get('name'), value.get('organization_id')) != (REF, NAME, ORG)):
+            raise Refused('Supabase immutable project/name/owner mismatch')
+        self._verified = True
+        return {'id': REF, 'name': NAME, 'owner': ORG}
+
+    def query(self, source, parameters=(), *, read_only=True):
+        if type(source) is not str or not source or len(source.encode()) > 65536 or type(parameters) not in (tuple, list):
+            raise Refused('Bounded query required')
+        return self._request('/database/query', {'query': source, 'parameters': list(parameters), 'read_only': read_only})
