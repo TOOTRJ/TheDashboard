@@ -87,15 +87,15 @@ function next(row: { revision: number; key: string }, after: { revision: number;
  * bounded network parser. No owner argument is sent to the database.
  */
 export async function collectProjectionPages(rpc: PageRPC, owner: string, run: string,
-  kind: ProjectionKind, external?: AbortSignal): Promise<{ throughRevision: number; records: ProjectionRow[] }> {
+  kind: ProjectionKind, external?: AbortSignal, throughRevision?: number): Promise<{ throughRevision: number; records: ProjectionRow[] }> {
   uuid(owner); uuid(run);
   if (!KINDS.has(kind)) return refuse();
+  let snapshot: number | null = throughRevision === undefined ? null : integer(throughRevision);
   const controller = new AbortController();
   const abort = () => controller.abort();
   external?.addEventListener("abort", abort, { once: true });
   if (external?.aborted) controller.abort();
   const timeout = setTimeout(abort, 8000);
-  let snapshot: number | null = null;
   let cursor = { revision: 0, key: "" };
   const records: ProjectionRow[] = [];
   try {

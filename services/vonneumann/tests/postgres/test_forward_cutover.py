@@ -77,7 +77,7 @@ class ForwardCutoverTests(unittest.TestCase):
   self.assertEqual(self.db.scalar("SELECT has_schema_privilege('vn_contract_owner','auth','USAGE');"),'f')
   self.assertEqual(self.db.scalar("SELECT has_function_privilege('vn_contract_owner','auth.uid()','EXECUTE');"),'f')
   self.assertEqual(self.admin('SELECT state FROM vn_release.state;').stdout.strip(),'closed')
-  self.assertEqual(self.admin("SELECT count(*) FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname LIKE 'vn_%';").stdout.strip(),'97')
+  self.assertEqual(self.admin("SELECT count(*) FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname LIKE 'vn_%';").stdout.strip(),'98')
   self.db.sql((fixture.HERE/'verify.sql').read_text())
  def test_closed_install_denies_even_valid_native_writer_before_mutation(self):
   self.install(open=False);before=self.retained()

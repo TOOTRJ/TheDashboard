@@ -1,0 +1,14 @@
+*
+!Dockerfile
+!requirements.txt
+!start-worker.sh
+!vonneumann/
+!vonneumann/**/*.py
+!tools/
+!tools/native_tls_preflight.py
+**/__pycache__/
+**/*.pyc
+**/.env*
+**/ssl/
+**/.claude/
+**/.codex/

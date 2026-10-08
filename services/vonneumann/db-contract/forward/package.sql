@@ -14,7 +14,7 @@ LOCK TABLE public.vn_colonies,public.vn_fitness_snapshots,public.vn_generation_s
 DO $$ DECLARE expected jsonb; legacy_review jsonb; BEGIN
  SELECT review INTO STRICT expected FROM pg_temp.dashboard_forward_review;
  IF expected IS DISTINCT FROM jsonb_build_object('version',1,'target','{"github_repository": "TOOTRJ/TheDashboard", "github_repository_id": 1141090963, "supabase_name": "The Dashboard", "supabase_org": "cqfnnaunmupdyobkyqfo", "supabase_ref": "fxpxsciltakyypunglzr", "vercel_project_id": "prj_wFUe9k9USVreOQcmQKNWRAVsx5fH", "vercel_project_name": "the-dashboard", "vercel_team_id": "team_8iNNxiNjrOseD4gdSCHkQEzF"}'::jsonb,
-   'release_sha256','84a36fd51c12969b700debcc93682517e3c329dc3e588866fb4b8e3259a01680','migration_catalog',pg_temp.vn_forward_migrations())
+   'release_sha256','5ba175e3c3f56fdbae0ae95a0573e1bc7e93ec0df30390bc8daabfc08cf23924','migration_catalog',pg_temp.vn_forward_migrations())
     OR to_regnamespace('vn_release') IS NOT NULL OR to_regnamespace('vn_access') IS NOT NULL
     OR to_regnamespace('vn_legacy') IS NOT NULL OR to_regnamespace('vn_legacy_evidence') IS NOT NULL THEN
   RAISE EXCEPTION 'forward_review_changed_or_target_mismatch' USING ERRCODE='55000';
@@ -4981,6 +4981,49 @@ DO $$ BEGIN
 END $$;
 RESET ROLE;
 
+-- Curated authenticated discovery in the existing owner-scoped read schema.
+-- PostgREST schema exposure is a separate exact-project A3 setting.
+SET LOCAL ROLE vn_contract_owner;
+CREATE INDEX runs_owner_discovery ON vn_durability.runs(user_id,id);
+CREATE FUNCTION vn_read.discover(after_id uuid DEFAULT NULL, through_id uuid DEFAULT NULL,
+ max_rows integer DEFAULT 100, max_bytes integer DEFAULT 65536) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,vn_projection,pg_temp AS $$
+DECLARE owner_id uuid:=vn_identity.owner_id(); cutoff uuid; item record;
+ result jsonb; candidate jsonb; records jsonb:='[]'::jsonb; more boolean:=false; cursor uuid;
+BEGIN
+ IF owner_id IS NULL OR max_rows IS NULL OR max_rows NOT BETWEEN 1 AND 100 OR
+    max_bytes IS NULL OR max_bytes NOT BETWEEN 512 AND 65536 THEN
+  RAISE EXCEPTION 'invalid_discovery_page' USING ERRCODE='22023'; END IF;
+ -- Discovery is a refreshable directory, not a cross-page ledger snapshot.
+ -- Detail pages separately pin authoritative revision; UUID bounds bound work.
+ SELECT id INTO cutoff FROM vn_durability.runs WHERE user_id=owner_id ORDER BY id DESC LIMIT 1;
+ cutoff:=coalesce(through_id,cutoff);
+ IF after_id IS NOT NULL AND (cutoff IS NULL OR after_id>cutoff) THEN
+  RAISE EXCEPTION 'invalid_discovery_cursor' USING ERRCODE='22023'; END IF;
+ result:=jsonb_build_object('version',1,'owner_id',owner_id,'through_id',cutoff,
+  'records',records,'has_more',false,'next_id',NULL);
+ FOR item IN SELECT r.id,r.revision,p.data,a.receipt FROM vn_durability.runs r
+  JOIN LATERAL (SELECT data FROM vn_projection.runs WHERE user_id=owner_id AND run_id=r.id
+   ORDER BY revision DESC LIMIT 1) p ON true
+  LEFT JOIN vn_projection.archives a ON a.user_id=owner_id AND a.run_id=r.id
+  WHERE r.user_id=owner_id AND r.id<=cutoff AND (after_id IS NULL OR r.id>after_id)
+  ORDER BY r.id LIMIT max_rows+1 LOOP
+  IF jsonb_array_length(records)=max_rows THEN more:=true; EXIT; END IF;
+  candidate:=jsonb_set(result,'{records}',records||jsonb_build_array(jsonb_build_object(
+   'run_id',item.id,'revision',item.revision,'data',item.data,'archive_receipt',item.receipt)));
+  candidate:=jsonb_set(candidate,'{next_id}',to_jsonb(item.id));
+  IF octet_length(candidate::text)>max_bytes THEN
+   IF records='[]'::jsonb THEN RAISE EXCEPTION 'discovery_record_exceeds_page'; END IF;
+   more:=true; EXIT; END IF;
+  records:=candidate->'records'; result:=candidate;
+ END LOOP;
+ RETURN jsonb_set(result,'{has_more}',to_jsonb(more));
+END $$;
+REVOKE ALL ON FUNCTION vn_read.discover(uuid,uuid,integer,integer)
+ FROM PUBLIC,anon,authenticated,service_role,authenticator,vn_economic,vn_relay,vn_legacy_attestor;
+GRANT EXECUTE ON FUNCTION vn_read.discover(uuid,uuid,integer,integer) TO authenticated;
+RESET ROLE;
+
 -- Additive release admission. Readback, relay, owner reads and conservative
 -- expiry interruption remain available when retired; no economic row is erased.
 CREATE SCHEMA vn_release AUTHORIZATION vn_contract_owner;
@@ -5002,7 +5045,7 @@ CREATE TABLE vn_release.operations (
 ALTER TABLE vn_release.state ENABLE ROW LEVEL SECURITY;
 ALTER TABLE vn_release.operations ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON ALL TABLES IN SCHEMA vn_release FROM PUBLIC,anon,authenticated,service_role,authenticator,vn_economic,vn_relay;
-INSERT INTO vn_release.state VALUES(true,'84a36fd51c12969b700debcc93682517e3c329dc3e588866fb4b8e3259a01680','closed',0,clock_timestamp(),
+INSERT INTO vn_release.state VALUES(true,'5ba175e3c3f56fdbae0ae95a0573e1bc7e93ec0df30390bc8daabfc08cf23924','closed',0,clock_timestamp(),
  current_setting('dashboard.forward_review')::jsonb,'{}');
 
 CREATE FUNCTION vn_release.require_open() RETURNS void LANGUAGE plpgsql VOLATILE
@@ -5466,6 +5509,7 @@ DO $$ DECLARE item record; api record; legacy_expected jsonb; BEGIN
 ('vn_projection.require_relay_acceptance()','295044afe8bd95c5573e5a0baad294d9025eb76da538687030da354e0a93692c','vn_contract_owner',NULL,false),
 ('vn_read.accept_event(uuid,uuid,uuid,integer)','93c554920853f373a84cb49728e8db1edfd1551c0789a37753f140598731c94c','vn_contract_owner','vn_relay',true),
 ('vn_read.archive_run(uuid,bigint,uuid)','0b5b8cdd104e9bb355c8c6b66d0e957da66cb21042eb6448fbefefa7790cb04c','vn_contract_owner','authenticated',true),
+('vn_read.discover(uuid,uuid,integer,integer)','167272295f6c2eadb8bc8f946140653b2b148fd4976fd016b92a5a13a7b456cc','vn_contract_owner','authenticated',true),
 ('vn_read.events(uuid,bigint,bigint,integer,integer)','7d62d492b9bfc51ff0b28fe95b72c481fe91e5fb0e86e42c551364732ade754f','vn_contract_owner','authenticated',true),
 ('vn_read.page(uuid,text,bigint,bigint,text,integer,integer)','3383561d18c60c48bfe8637f885c139c7824fd9dcd5987348029dc1d11949bdf','vn_contract_owner','authenticated',true),
 ('vn_release.catalog()','54a70a393621f95dd61a31be992a5345a7583a9557792693a1bc3c4c40f8eca7','vn_contract_owner',NULL,false),
@@ -5492,7 +5536,7 @@ DO $$ DECLARE item record; api record; legacy_expected jsonb; BEGIN
   END LOOP;
  END LOOP;
  IF (SELECT count(*) FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
-   WHERE n.nspname IN ('vn_identity','vn_access','vn_durability','vn_projection','vn_read','vn_legacy','vn_legacy_evidence','vn_release'))<>97 THEN
+   WHERE n.nspname IN ('vn_identity','vn_access','vn_durability','vn_projection','vn_read','vn_legacy','vn_legacy_evidence','vn_release'))<>98 THEN
   RAISE EXCEPTION 'unexpected_complete_forward_function';
  END IF;
  IF (SELECT count(*) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace

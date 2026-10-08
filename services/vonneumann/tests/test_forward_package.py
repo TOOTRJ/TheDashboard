@@ -6,7 +6,7 @@ class ForwardPackageTests(unittest.TestCase):
  def test_artifacts_reproduce_with_all_component_digests(self):
   sql,manifest=fixture.package()
   self.assertEqual(fixture.builder.sha(sql),manifest['package_sha256'])
-  self.assertEqual(len(manifest['functions']),97);self.assertEqual(len(manifest['tables']),26)
+  self.assertEqual(len(manifest['functions']),98);self.assertEqual(len(manifest['tables']),26)
   self.assertEqual(manifest['installed_admission'],'closed')
   self.assertFalse(manifest['production_application_available'])
  def test_economic_guard_inventory_excludes_readback_relay_and_interruption(self):

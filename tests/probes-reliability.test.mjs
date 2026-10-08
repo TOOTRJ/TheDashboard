@@ -279,6 +279,7 @@ function pageHarness(initial = {}) {
     "lucide-react": { BookOpen: "BookOpen", Dna: "Dna" },
     "@/components/auth/AuthProvider": { useAuth: () => ({ user: { id: control.userId }, session: { access_token: control.token }, loading: false }) },
     "@/components/probes/ProbesDashboard": { ProbesDashboard: "Dashboard" },
+    "@/components/probes/PaperDashboard": { PaperDashboard: "PaperDashboard" },
     "@/components/probes/ExecutionPolicyNotice": { ExecutionPolicyNotice: "ExecutionPolicyNotice" },
     "@/components/ui/skeleton": { Skeleton: "Skeleton" },
     "@/lib/probes/probes-supabase": {
@@ -297,6 +298,7 @@ function pageHarness(initial = {}) {
     "@/lib/probes/colony-config": configs,
   };
   const page = loadModule("../src/app/(dashboard)/probes/page.tsx", modules, {
+    process: { env: { NEXT_PUBLIC_VN_SERVICE_MODE: "closed" } },
     setInterval: (callback, delay) => { intervals.set(++now, { callback, delay }); return now; },
     clearInterval: (id) => intervals.delete(id),
   });
