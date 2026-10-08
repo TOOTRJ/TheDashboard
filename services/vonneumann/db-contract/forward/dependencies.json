@@ -1,0 +1,22 @@
+{
+  "003_legacy_retirement.sql": "eb0b5d31f01c5dd7b9eba5a9107fd6c92c7c5ec442bc087402c65f4f193702a7",
+  "legacy-evidence/build.py": "4a2ffb01dee61ffc5673bcd8a6d6fdcbaac17e0f5e628cd94cffec65b3107eb6",
+  "legacy-evidence/contract.sql": "602cbfa61d858394413c7c8b44c9d07576bd04ad44470642a123d9d0f72d47ca",
+  "legacy-evidence/manifest.json": "ef2f863807da8f4842b533289683a1d002f9d11f7a273f44aa9bba14a8bd6d7f",
+  "legacy-evidence/package.sql": "de57bcc649e839317ace621462077033e60a4567fb1992f9573125e27aa164b4",
+  "legacy_catalog.sql": "adb9a26b619f679a8b54e369c7808d352ae7f136a2b15ad08ae38557e06f2e66",
+  "native-issuer/boundary.sql": "db21f49a4412f516879bc48d1a54cf56619c14348b284bc7e3bd59de71ffdfdb",
+  "native-issuer/issue.sql": "68815a8abaa6d145d9f9be269d07d57c9e8583d9af00634e47d3bc24b3e8e418",
+  "native-issuer/manifest.json": "745f4e6a19561dd81012945cc5a50f3b3b07a78a58c7824407fca159488707b9",
+  "native-issuer/revoke.sql": "0539acc377d0c059248767ae9b3a3de702e4e21ba35b48c214fd713e3ebab59c",
+  "session-auth/access.sql": "3024be75ba5494ee6a805c2315ba85380de3d4251124380e05dd646681b218a7",
+  "session-auth/build.py": "cd63f5164620e7993c7284522d08ccbb9df2b91d2819d448f392aeaf4e9635c9",
+  "session-auth/manifest.json": "66526ba07bd4ebc7264cd06fe4f6eb32a07db93663572f94ccd3d27506d62438",
+  "session-auth/package.sql": "28d5c947c08f1c5a4f3a604cc68d54e35b4269c8f1cca042743d43dbc2140f14",
+  "session-auth/postconditions.sql": "3d15e2860accf6ad0b92fd5eb2e52888598d1190f87732617c76486f47270bfe",
+  "v5/build.py": "c16c27ee764868488ed3d37a8e323749f54828dc522454c389a295418c6b340b",
+  "v5/entrypoints.sql": "eb1bbd0f8e41da109cdd8187ff6bb8e14acf5f5eee92b863bf92d879058b5a21",
+  "v5/manifest.json": "ebdc1e4f23e3dd8eb9256831809235033b54ca0e67eeaea7d9fb8929c97ca1b6",
+  "v5/package.sql": "b42228db587cba11f63528f4d29fe536d9c30ab195565781a2d6dacb2940d708",
+  "v5/postconditions.sql": "1f3d48d28cde8a5acdf44bf9fd64a425be4f011da23d11a04679073ce8090c6e"
+}
