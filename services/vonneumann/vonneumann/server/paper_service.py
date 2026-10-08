@@ -12,6 +12,7 @@ from ..core.exact_lifecycle import ExactLifecycleConfig
 from ..core.provider_lifecycle import ProviderLifecycleConfig
 from ..core.provider_controller import CommandAllocation, ProviderPilotController
 from ..core.provider_runner import ProviderPilotRunner
+from ..core.provider_pilot import ProviderPilotLimits
 from ..db.command_protocol import PreparedCommand, canonical_uuid
 from ..db.command_repository import CommandRepository, UncertainCommand
 from ..db.provider_pilot_owner import ProviderPilotOwner
@@ -42,7 +43,8 @@ class PaperService:
             self.owner_id, self.run_id, asset='SOL/USD'), canonical_uuid(epoch_id))
         if type(max_ticks) is not int or not 1 <= max_ticks <= 3601:
             raise ServiceRefused('invalid_tick_budget')
-        if type(interval) is not int or not 1 <= interval <= 30 or interval * max_ticks > 3600:
+        if (type(interval) is not int or not 1 <= interval <= 30
+                or interval * max_ticks > ProviderPilotLimits.MAX_ELAPSED_QUOTE_SECONDS):
             raise ServiceRefused('invalid_pilot_duration')
         self._economic, self._relay, self._feed = economic, relay, feed
         # A restart gets a new worker identity and cannot adopt a prior receipt.
@@ -71,10 +73,13 @@ class PaperService:
             'report': None if report is None else {
                 'status': report.status, 'ticks_completed': report.ticks_completed,
                 'stop_requested': report.stop_requested,
+                'idle_renewals': report.idle_renewals,
                 'last_tick': None if not report.reports else asdict(report.reports[-1])},
             'profile': {'genes': ['ema_fast', 'ema_slow'], 'population': 8,
                 'asset': 'SOL/USD', 'interval_seconds': self._interval,
                 'max_ticks': self._ticks, 'max_replacements': 1,
+                'evaluation_seconds': 3600,
+                'completion_grace_seconds': ProviderPilotLimits.COMPLETION_GRACE_SECONDS,
                 'cost_assumptions': 'uncalibrated_scenario', 'restoration': False}}
 
     def _owned(self, operation):

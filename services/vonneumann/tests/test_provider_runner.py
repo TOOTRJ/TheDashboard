@@ -115,7 +115,76 @@ class ProviderRunnerTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase):
         for interval in (2, 3):
             with self.assertRaises(CommandAdmissionError):
                 ProviderPilotRunner(self.controller, interval_seconds=interval, max_ticks=1)
-        self.runner = ProviderPilotRunner(self.controller, interval_seconds=.01, max_ticks=1)
+        self.runner = ProviderPilotRunner(self.controller, interval_seconds=.01, max_ticks=1,
+                                         renewal_reserve_seconds=.25)
+
+    async def test_wait_and_transport_reserve_must_fit_the_short_lease(self):
+        await self.ready()
+        for reserve in (True, 0, -1, float('nan'), float('inf'), '4', 16):
+            with self.subTest(reserve=repr(reserve)), self.assertRaises(CommandAdmissionError):
+                ProviderPilotRunner(self.controller, interval_seconds=5, max_ticks=1,
+                                    renewal_reserve_seconds=reserve)
+        with self.assertRaises(CommandAdmissionError):
+            ProviderPilotRunner(self.controller, interval_seconds=116, max_ticks=1)
+
+    async def test_slow_tick_renews_once_before_wait_without_spending_an_economic_command(self):
+        await self.configured(ticks=2, interval=.01)
+        original = self.controller.tick
+        calls = 0
+        async def slow_tick():
+            nonlocal calls
+            result = await original()
+            calls += 1
+            if calls == 1:
+                # Publication/preparation consumed the completed lease budget.
+                self.age(self.repo.lease_remaining_seconds - 4.005)
+            return result
+        with patch.object(self.controller, 'tick', slow_tick):
+            report = await self.runner.run()
+        self.assertEqual(report.status, 'complete')
+        self.assertEqual(report.idle_renewals, 1)
+        self.assertEqual([row.kind for row in report.reports], ['bootstrap','tick','tick'])
+        self.assertEqual(self.feed.api_call_count, 2)
+        self.assert_unique_commands()
+
+    async def test_insufficient_dispatch_headroom_drains_without_another_provider_request(self):
+        await self.configured(ticks=2)
+        original = self.controller.tick
+        async def slow_tick():
+            result = await original()
+            self.age(117)
+            return result
+        with patch.object(self.controller, 'tick', slow_tick):
+            report = await self.runner.run()
+        self.assertEqual(report.status, 'lease_headroom_unavailable')
+        self.assertEqual(report.ticks_completed, 1)
+        self.assertEqual(report.idle_renewals, 0)
+        self.assertEqual(self.feed.api_call_count, 1)
+        self.assertNotIn(self.stop_id, self.transport.ledger)
+
+    async def test_stop_during_idle_renewal_settles_renewal_then_reserved_stop(self):
+        await self.configured(ticks=2)
+        original = self.controller.tick
+        gate = None
+        async def slow_tick():
+            nonlocal gate
+            result = await original()
+            self.age(self.repo.lease_remaining_seconds - 4.005)
+            gate = self.gate('heartbeat')
+            return result
+        with patch.object(self.controller, 'tick', slow_tick):
+            task = self.spawn(self.runner.run())
+            await self.wait_stage('heartbeat')
+            await self.entered(gate)
+            self.runner.request_stop()
+            gate.release.set()
+            report = await task
+        self.assertEqual(report.status, 'stopped')
+        self.assertEqual(report.ticks_completed, 1)
+        self.assertEqual(report.idle_renewals, 1)
+        self.assertEqual(self.feed.api_call_count, 1)
+        self.assertEqual(self.owner.installed_state.to_dict()['status'], 'stopped')
+        self.assert_unique_commands()
 
     async def test_cancel_during_long_wait_wakes_and_drains_without_another_price_request(self):
         await self.configured(ticks=2, interval=60)
@@ -128,6 +197,41 @@ class ProviderRunnerTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase):
         report = await asyncio.wait_for(self.runner.settle(), 2)
         self.assertEqual((report.status, report.ticks_completed), ('drained', 1))
         self.assertEqual(self.feed.api_call_count, count)
+        self.assertNotIn(self.stop_id, self.transport.ledger)
+
+    async def test_overslept_wait_drains_before_new_capture_or_heartbeat(self):
+        await self.configured(ticks=2)
+        async def oversleep():
+            self.age(121)
+        with patch.object(self.runner, '_wait', oversleep):
+            report = await self.runner.run()
+        self.assertEqual((report.status, report.ticks_completed), ('lease_headroom_unavailable', 1))
+        self.assertEqual(report.idle_renewals, 0)
+        self.assertEqual(self.feed.api_call_count, 1)
+        self.assertNotIn(self.stop_id, self.transport.ledger)
+
+    async def test_cancelled_idle_renewal_finishes_original_without_next_capture(self):
+        await self.configured(ticks=2)
+        original = self.controller.tick
+        gate = None
+        async def slow_tick():
+            nonlocal gate
+            result = await original()
+            self.age(self.repo.lease_remaining_seconds - 4.005)
+            gate = self.gate('heartbeat')
+            return result
+        with patch.object(self.controller, 'tick', slow_tick):
+            task = self.spawn(self.runner.run())
+            await self.wait_stage('heartbeat')
+            await self.entered(gate)
+            task.cancel()
+            with self.assertRaises(asyncio.CancelledError):
+                await task
+            self.assertFalse(gate.cancelled)
+            gate.release.set()
+            report = await self.runner.settle()
+        self.assertEqual((report.status, report.ticks_completed, report.idle_renewals), ('drained', 1, 1))
+        self.assertEqual(self.feed.api_call_count, 1)
         self.assertNotIn(self.stop_id, self.transport.ledger)
 
     async def test_cancel_during_price_read_finishes_original_capture_but_admits_no_protection(self):

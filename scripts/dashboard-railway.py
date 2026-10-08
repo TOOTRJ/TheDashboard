@@ -157,7 +157,7 @@ def export_worker(commit, destination, read=git_read):
     prefix = 'services/vonneumann/'
     required = {'Dockerfile', '.dockerignore', 'requirements.txt', 'start-worker.sh',
                 'railway.json', 'tools/native_tls_preflight.py', 'tools/native_session_canary.py',
-                'tools/provider_read_canary.py'}
+                'tools/provider_read_canary.py', 'tools/paper_controller_canary.py'}
     selected = []
     for path in paths:
         if not path.startswith(prefix): raise Refused('Unexpected worker source path')

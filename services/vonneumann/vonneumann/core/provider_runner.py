@@ -24,6 +24,7 @@ class RunnerReport:
     ticks_completed: int
     stop_requested: bool
     reports: tuple[TickReport, ...]
+    idle_renewals: int = 0
 
 
 class ProviderPilotRunner:
@@ -36,7 +37,7 @@ class ProviderPilotRunner:
     """
 
     def __init__(self, controller, *, interval_seconds, max_ticks,
-                 monotonic=time.monotonic):
+                 monotonic=time.monotonic, renewal_reserve_seconds=4.0):
         if (type(controller) is not ProviderPilotController or controller.busy
                 or controller.pending_stage is not None or controller.last_report is not None
                 or not callable(monotonic)):
@@ -47,10 +48,19 @@ class ProviderPilotRunner:
             raise OperationalAdmissionError('an explicit finite positive pilot interval is required')
         limits = controller.pilot_limits
         limits.__post_init__()
+        # The native operation has a 3s whole-operation and 1s cleanup bound.
+        # Reserve must be supplied explicitly for a different transport bound.
+        if (type(renewal_reserve_seconds) not in (int, float)
+                or not math.isfinite(renewal_reserve_seconds)
+                or not 0 < renewal_reserve_seconds <= 15
+                or interval_seconds + renewal_reserve_seconds >= controller.lease_seconds):
+            raise OperationalAdmissionError('wait and renewal reserve must fit the lease')
         if type(max_ticks) is not int or not 1 <= max_ticks <= limits.max_quotes:
             raise OperationalAdmissionError('tick budget must fit the pilot quote budget')
         self._controller = controller
         self._interval, self._max_ticks = float(interval_seconds), max_ticks
+        self._renewal_reserve = float(renewal_reserve_seconds)
+        self._idle_renewals = 0
         self._monotonic, self._last_mono = monotonic, None
         self._loop = self._task = None
         self._waiter = False
@@ -121,7 +131,8 @@ class ProviderPilotRunner:
         return self._last_mono
 
     def _report(self, status, *, finish=False):
-        report = RunnerReport(status, self._ticks, self._stop_requested, tuple(self._reports))
+        report = RunnerReport(status, self._ticks, self._stop_requested,
+                              tuple(self._reports), self._idle_renewals)
         self._last_report = report
         if finish:
             self._finished = True
@@ -145,8 +156,17 @@ class ProviderPilotRunner:
                 self._stage = 'stop'
                 return None
             return self._report('drained', finish=True)
-        if self._ticks >= self._max_ticks:
+        if self._ticks >= self._max_ticks or self._controller.pilot_completed:
             return self._report('complete', finish=True)
+        remaining = self._controller.lease_remaining_seconds
+        if remaining <= self._renewal_reserve:
+            self._drain()
+            return self._report('lease_headroom_unavailable', finish=True)
+        if remaining <= self._interval + self._renewal_reserve:
+            # The completed tick/publication owns no pending work. One serial
+            # idle renewal precedes the wait; it never races another tick.
+            self._stage = 'heartbeat'
+            return None
         self._next_due = self._clock() + self._interval
         self._stage = 'wait'
         return None
@@ -182,6 +202,11 @@ class ProviderPilotRunner:
             if stage == 'tick' and not resume and not self._controller.accepting:
                 self._drain()
                 return self._report('closed' if self._controller.closed_reason else 'drained', finish=True)
+            if (stage == 'tick' and not resume
+                    and self._controller.lease_remaining_seconds <= self._renewal_reserve):
+                # Scheduling or suspension may have overslept the checked wait.
+                self._drain()
+                return self._report('lease_headroom_unavailable', finish=True)
             try:
                 self._clock()
             except OperationalAdmissionError:
@@ -205,6 +230,27 @@ class ProviderPilotRunner:
                 raise OperationalAdmissionError('controller result differs from the owned runner stage')
             if result.status == 'pending':
                 return self._report('pending')
+            if stage == 'heartbeat':
+                self._controller_started = False
+                self._prior_controller_report = None
+                if result.status != 'complete':
+                    self._stage = None
+                    self._drain()
+                    return self._report('drained', finish=True)
+                self._idle_renewals += 1
+                self._stage = None
+                if self._draining:
+                    report = self._next()
+                    if report is not None:
+                        return report
+                    continue
+                if self._controller.lease_remaining_seconds <= self._interval + self._renewal_reserve:
+                    self._stage = None
+                    self._drain()
+                    return self._report('lease_headroom_unavailable', finish=True)
+                self._next_due = self._clock() + self._interval
+                self._stage = 'wait'
+                continue
             # Append only after the original controller operation completes.
             # Repeated pending readbacks cannot count or store it twice.
             if len(self._reports) >= self._max_ticks + 2:

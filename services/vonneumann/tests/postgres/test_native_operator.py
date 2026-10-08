@@ -27,11 +27,27 @@ class NativeOperatorTests(unittest.TestCase):
                       'issuances': self.pair.issuances, 'verifiers': self.verifiers,
                       'write_seconds': 300, 'recovery_seconds': 600, 'delay_seconds': 0}
 
-    def call(self, name, value, role='postgres', set_role=None):
+    def call(self, name, value, role='postgres', set_role=None, prefix='', suffix=''):
         # psql 17 extended-protocol bind; no secrets in the SQL statement text.
         encoded = json.dumps(value).replace("'", "''")
-        prefix = '' if set_role is None else 'SET ROLE ' + set_role + ';\n'
-        return self.db.sql(prefix + f"SELECT {operator.SCHEMA}.{name}($1::jsonb)\n\\bind '{encoded}'\n\\g\n", role=role, check=False)
+        prefix += '' if set_role is None else 'SET ROLE ' + set_role + ';\n'
+        return self.db.sql(prefix + f"SELECT {operator.SCHEMA}.{name}($1::jsonb)\n\\bind '{encoded}'\n\\g\n" + suffix, role=role, check=False)
+
+    def test_revocation_remains_available_after_open_and_retirement_without_reissuing(self):
+        result = self.call('issue', self.input)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        rows = json.loads(result.stdout)
+        revoke = {k: self.input[k] for k in ('owner', 'run', 'names', 'issuances')}
+        revoke['oids'] = [r['oid'] for r in rows]
+        for state in ('open', 'retired'):
+            # Real bounded release transition and bound revoke run atomically;
+            # roll back each drill so other tests retain the closed fixture.
+            prefix = fixture.BOUND + "DO $$ BEGIN PERFORM vn_release.transition('" + str(uuid4()) + "',0,'" + state + "','" + '7'*64 + "'); END $$; RESET ROLE;\n"
+            result = self.call('revoke', revoke, prefix=prefix, suffix='ROLLBACK;')
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertTrue(all(r['revoked'] and not r['login'] for r in json.loads(result.stdout)))
+            self.assertEqual(self.db.scalar("SELECT state FROM vn_release.state WHERE singleton;", role=fixture.ADMIN), 'closed')
+        self.logs()
 
     def logs(self):
         value = self.db._command(['logs', self.db._container_id]).stderr

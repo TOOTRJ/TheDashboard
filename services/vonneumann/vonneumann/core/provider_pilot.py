@@ -35,7 +35,12 @@ class ProviderPilotLimits:
     max_quotes: int = 3601
     max_commands: int = 4000
 
-    MAX_ELAPSED_QUOTE_SECONDS: ClassVar[int] = 3600
+    # The cohort starts on the first admitted decision and lasts one hour.
+    # A paced real feed seldom lands exactly on its ending source second.
+    # Allow one bounded minute to observe/commit completion; this does not
+    # permit a second evaluation window or increase command/payload limits.
+    COMPLETION_GRACE_SECONDS: ClassVar[int] = 60
+    MAX_ELAPSED_QUOTE_SECONDS: ClassVar[int] = base.HORIZON_SECONDS + COMPLETION_GRACE_SECONDS
     MAX_GENERATION: ClassVar[int] = 1
     MAX_SEARCH_EPOCH: ClassVar[int] = 0
     MAX_IDS: ClassVar[int] = 9

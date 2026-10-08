@@ -698,6 +698,21 @@ class CommandRepositoryTests(unittest.IsolatedAsyncioTestCase):
         await self.repo.heartbeat()
         self.assertTrue(self.repo.lease_valid)
 
+    async def test_acknowledged_remaining_time_subtracts_transport_and_margin(self):
+        await self.created()
+        self.assertEqual(self.repo.lease_remaining_seconds, 0)
+        gate = self.gate(self.heartbeat_reply())
+        caller = self.spawn(self.repo.heartbeat(lease_seconds=30))
+        await self.entered(gate)
+        self.assertEqual(self.repo.lease_remaining_seconds, 0)
+        self.clock.value = 102
+        gate.release.set()
+        await caller
+        self.assertAlmostEqual(self.repo.lease_remaining_seconds, 27.75)
+        self.clock.value = 129.75
+        self.assertEqual(self.repo.lease_remaining_seconds, 0)
+        self.assertFalse(self.repo.lease_valid)
+
     async def test_heartbeat_validates_exact_identity_revision_fence_and_shape(self):
         await self.created()
         for changes in (dict(run_id=identity()), dict(revision=2), dict(revision=True),

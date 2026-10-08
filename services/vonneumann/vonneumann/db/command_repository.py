@@ -194,10 +194,15 @@ class CommandRepository:
         return observed
 
     @property
+    def lease_remaining_seconds(self) -> float:
+        """Conservative acknowledged time; reading cannot renew or adopt a lease."""
+        if self._lease_deadline is None or self._status in ("stopped", "failed"):
+            return 0.0
+        return max(0.0, self._lease_deadline - self._now())
+
+    @property
     def lease_valid(self) -> bool:
-        return (self._lease_deadline is not None
-                and self._now() < self._lease_deadline
-                and self._status not in ("stopped", "failed"))
+        return self.lease_remaining_seconds > 0
 
     @property
     def accepting(self) -> bool:

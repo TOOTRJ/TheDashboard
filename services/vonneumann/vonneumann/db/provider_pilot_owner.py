@@ -57,6 +57,11 @@ class ProviderPilotOwner(ProviderAdmissionOwner):
         return self._limits
 
     @property
+    def lease_remaining_seconds(self):
+        self._guard()
+        return self._coordinator.lease_remaining_seconds
+
+    @property
     def owned_command_count(self):
         return len(self._used_command_ids)
 
