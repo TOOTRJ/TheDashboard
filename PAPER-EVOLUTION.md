@@ -136,6 +136,10 @@ The dashboard publishes a complete bounded snapshot at one revision; it retains
 the last complete snapshot and reports a read error if any record is malformed.
 The Railway worker computes decisions; Vercel hosts controls/history; Supabase
 stores authoritative paper records. No signing key or live swap is involved.
+Native stopped runs deliberately carry a reconciliation marker before future
+restoration. The process's unresolved-command flag is a separate signal. A
+normal completed pilot can have no unresolved command and still require a
+reviewed future restart; its completed founder scores remain valid.
 
 **Remaining acceptance and research are explicit.** One hour yields about four
 new 15-minute bars and tests mechanics, not strategy profitability or stable

@@ -1,0 +1,425 @@
+{
+  "version": 1,
+  "date": "2026-10-08",
+  "source_sha": "ed94f048643f000e355fd950fd1677f5749054da",
+  "assessment_deployment": "5bc8b58c-75ca-4110-862a-2d9191cf8539",
+  "export": {
+    "source_sha": "ed94f048643f000e355fd950fd1677f5749054da",
+    "files": 99,
+    "bytes": 1241056,
+    "manifest_sha256": "21f79ad17ef8ef24070556373cf15598b28ed60f072d2124558ab071e96609e2",
+    "credentials_included": false
+  },
+  "all_export_blobs_modes_verified": true,
+  "paper_sql_bounds_seconds": {
+    "whole": 5,
+    "connect": 2,
+    "statement": 3,
+    "commit": 0.5,
+    "cleanup": 1
+  },
+  "paper_renewal_reserve_seconds": 6,
+  "measurement": {
+    "elapsed_seconds": 218.984444,
+    "phase": "passed",
+    "loop_implementation": "uvloop",
+    "source_order": {
+      "enabled": true,
+      "discarded_total": 0,
+      "episode_discarded": 0,
+      "episode_active": false,
+      "limit_reason": null,
+      "max_consecutive_discards": 2,
+      "max_total_discards": 8,
+      "episode_seconds": 15
+    },
+    "wallet_operations": false,
+    "automatic_retry": false,
+    "positions": 0,
+    "open_positions": 0,
+    "original_command_settled": true,
+    "ticks_completed": 30,
+    "phase_seconds": {
+      "history_acquisition": {
+        "count": 2,
+        "minimum": 0.252849,
+        "median": 0.252849,
+        "maximum": 1.087592,
+        "tail_acceptance": false
+      },
+      "lease_renewal": {
+        "count": 32,
+        "minimum": 0.277512,
+        "median": 0.291083,
+        "maximum": 0.592711,
+        "tail_acceptance": false
+      },
+      "owner_submission": {
+        "count": 32,
+        "minimum": 1.061684,
+        "median": 1.254268,
+        "maximum": 2.593181,
+        "tail_acceptance": false
+      },
+      "price_acquisition": {
+        "count": 30,
+        "minimum": 0.13019,
+        "median": 0.383896,
+        "maximum": 0.869311,
+        "tail_acceptance": false
+      },
+      "publication": {
+        "count": 2,
+        "minimum": 1.277097,
+        "median": 1.277097,
+        "maximum": 4.732254,
+        "tail_acceptance": false
+      },
+      "reconciliation": {
+        "count": 1,
+        "minimum": 0.608299,
+        "median": 0.608299,
+        "maximum": 0.608299,
+        "tail_acceptance": false
+      }
+    },
+    "maximum_loop_lag_seconds": 1.187527,
+    "generation": 0,
+    "process_peak_rss_bytes": 98922496,
+    "mode": "closed-api-finite-paper",
+    "sql_errors": {
+      "commit_command": 1
+    },
+    "lost_reply_injected": true,
+    "operation_seconds": {
+      "count": 32,
+      "minimum": 1.688014,
+      "median": 1.975634,
+      "maximum": 8.71317,
+      "tail_acceptance": false
+    },
+    "accepted_quotes": 30,
+    "quota_observations": [
+      {
+        "current": 1,
+        "remaining": 99,
+        "reset": 1791490510
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791490510
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791490517
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791490526
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791490533
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791490540
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791490547
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791490554
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791490561
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791490568
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791490575
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791490582
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791490589
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791490596
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791490603
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791490610
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791490617
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791490624
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791490631
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791490638
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791490645
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791490652
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791490659
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791490666
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791490673
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791490680
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791490687
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791490694
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791490701
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791490708
+      }
+    ],
+    "owned_commands": 34,
+    "accounts": 8,
+    "process_cpu_seconds": 9.48,
+    "idle_renewals": 0,
+    "statistical_tail_acceptance": false,
+    "finite_measurement": true,
+    "api_calls": {
+      "jupiter": 30,
+      "birdeye": 2,
+      "rpc": 31
+    },
+    "sql_counts": {
+      "accept_event": 11,
+      "acknowledge_event": 11,
+      "commit_command": 33,
+      "create_run": 1,
+      "get_command": 1,
+      "heartbeat": 33,
+      "read_outbox": 2
+    },
+    "source_age_seconds": {
+      "count": 30,
+      "minimum": 2.518126,
+      "median": 6.510661,
+      "maximum": 9.805182,
+      "tail_acceptance": false
+    },
+    "sql_seconds": {
+      "accept_event": {
+        "count": 11,
+        "minimum": 0.242061,
+        "median": 0.248167,
+        "maximum": 0.265152,
+        "tail_acceptance": false
+      },
+      "acknowledge_event": {
+        "count": 11,
+        "minimum": 0.239208,
+        "median": 0.248592,
+        "maximum": 0.254401,
+        "tail_acceptance": false
+      },
+      "commit_command": {
+        "count": 33,
+        "minimum": 0.544412,
+        "median": 0.579838,
+        "maximum": 0.736606,
+        "tail_acceptance": false
+      },
+      "create_run": {
+        "count": 1,
+        "minimum": 0.798429,
+        "median": 0.798429,
+        "maximum": 0.798429,
+        "tail_acceptance": false
+      },
+      "get_command": {
+        "count": 1,
+        "minimum": 0.344193,
+        "median": 0.344193,
+        "maximum": 0.344193,
+        "tail_acceptance": false
+      },
+      "heartbeat": {
+        "count": 33,
+        "minimum": 0.276519,
+        "median": 0.290167,
+        "maximum": 0.322272,
+        "tail_acceptance": false
+      },
+      "read_outbox": {
+        "count": 2,
+        "minimum": 0.240283,
+        "median": 0.240283,
+        "maximum": 0.247691,
+        "tail_acceptance": false
+      }
+    },
+    "paper_controller_canary": 1,
+    "final_status": "stopped",
+    "final_revision": 34
+  },
+  "owned_reads": {
+    "version": 1,
+    "pair_label": "assessmentfresh",
+    "supabase": "fxpxsciltakyypunglzr",
+    "frozen_revision": 34,
+    "status": "stopped",
+    "requires_reconciliation": true,
+    "projection_rows": {
+      "runs": 34,
+      "probes": 264,
+      "trades": 0,
+      "samples": 240,
+      "evaluations": 1
+    },
+    "event_count": 11,
+    "event_cutoff": 11,
+    "contiguous_unique_events": true,
+    "cross_owner_discovery_hidden": true,
+    "denials": [
+      {
+        "actor": "other_owner",
+        "function": "page",
+        "status": 400,
+        "denied": true
+      },
+      {
+        "actor": "other_owner",
+        "function": "events",
+        "status": 400,
+        "denied": true
+      },
+      {
+        "actor": "anonymous",
+        "function": "page",
+        "status": 401,
+        "denied": true
+      },
+      {
+        "actor": "anonymous",
+        "function": "events",
+        "status": 401,
+        "denied": true
+      }
+    ],
+    "closed_controls": [
+      {
+        "authenticated_owned_user": true,
+        "path": "/v5/status",
+        "status": 503,
+        "exact_cors": true,
+        "no_store": true
+      },
+      {
+        "authenticated_owned_user": true,
+        "path": "/v5/controls",
+        "status": 503,
+        "exact_cors": true,
+        "no_store": true
+      },
+      {
+        "authenticated_owned_user": true,
+        "path": "/v5/status",
+        "status": 503,
+        "exact_cors": true,
+        "no_store": true
+      },
+      {
+        "authenticated_owned_user": true,
+        "path": "/v5/controls",
+        "status": 503,
+        "exact_cors": true,
+        "no_store": true
+      }
+    ],
+    "secret_output": false
+  },
+  "restoration": {
+    "deployment": "0d2f868e-7444-44e1-b620-e8888c4c35dd",
+    "status": "SUCCESS",
+    "mode": "closed",
+    "temporary_values_removed": 17,
+    "exact_original_variables_restored": true,
+    "same_pair_revoked_nologin": true
+  },
+  "hour_or_first_replacement_accepted": false,
+  "wallet_operations": false,
+  "other_projects_modified": false,
+  "schema_or_grants_changed": false,
+  "lost_reply_sql_error_explanation": "One commit_command error is the deliberate bootstrap lost-reply drill; get_command settles the original committed command without resubmission."
+}
