@@ -1,5 +1,24 @@
 # Dashboard audit and implementation backlog
 
+**PR76 release — 2026-10-08:** The bounded source-order and terminal-refusal
+repair is merged as `d4bc3210caeb6987acf85b7851a7bc119e78abdb`. Exact production
+`dpl_9h1RNH59MH8YA7DZjHn6xY7WTfFJ` is READY with four smokes. Its99-file
+Railway export matches all Git blobs/modes (1,240,553 bytes; manifest
+`5db1e66a66bec95c5edec1a07fa393a35f442b323531a997fc2ff0433b91540e`).
+The new thirty-price uvloop assessment passes at revision34, including original
+lost-reply reconciliation, relay, Stop and complete owned reads/isolation. Ordinary
+closed restoration `afc4ab60-d56d-441a-9e1c-a0e616bf0f7e` is SUCCESS;17 values
+are removed and its original pair is revoked/NOLOGIN.
+[Source-order assessment](supabase/audits/2026-10-08-source-order-controller-assessment.json).
+
+The selected paper SQL operation+cleanup budget is6s, while the runner's generic
+reserve remains4s for its original3s+1s transport. The paper service now explicitly
+selects6s; this reduces admission near expiry without widening the120s lease,
+provider freshness or credential lifetime.54 focused runner/service/canary cases
+pass under uvloop, including a5s lease-tail refusal. 54 cases also pass on default asyncio. The assessment/closed revocation are
+complete. Release the reserve alignment, then assess its final source before the
+actual owner hour.
+
 **Latest checkpoint — 2026-10-08, after PR75:** The paper SQL repair is merged
 as `56b382e30a18bcecb25af31550487192b75a9aaa`; exact Vercel production
 `dpl_6MiBEMk7BHZcVAj2HhmRwLcHXDwB` is READY with four smokes. The new
@@ -139,10 +158,10 @@ needs a file-backed sign-in before further release. [Fresh hosted evidence](supa
 
 **Next priorities, in order:**
 
-1. Complete and release the bounded source-order discard and pre-admission
-   refusal/Stop repair, then run the matching uvloop thirty-price assessment.
-   PR75 SQL headroom release and its new assessment are complete. Keep accepted
-   source/receipt/lease/deadline guards and original-command reconciliation.
+1. Release the paper6s renewal reserve and assess its final source. PR76
+   matching-loop assessment, complete owner reads and closed revocation pass.
+   The generic4s reserve remains appropriate to its unchanged3s+1s SQL profile.
+   PR75/PR76 releases are verified; preserve all source/receipt/lease/expiry guards.
 2. Accept the actual intended-owner supervised hour, first replacement and
    reserved stop. The thirty-price lost-reply assessment is a prerequisite only.
 3. Verify final complete browser history/replay and anonymous/other-owner isolation,
@@ -155,6 +174,8 @@ needs a file-backed sign-in before further release. [Fresh hosted evidence](supa
    block/omission distributions, timing/quota/
    billing tails, retained-position outage exposure and restoration, representative
    holdouts and calibrated fills; complete LIVE-01…07 before any real trading.
+
+- [x] **PAPER-RENEWAL-RESERVE1 — Align selected paper renewal reserve.** The selected SQL profile allows5s operation plus1s cleanup; the paper service now explicitly selects6s.54 focused runner/service/canary cases pass under uvloop, including no extra provider/renewal/economic dispatch with only5s lease tail. Generic transport/runner defaults, actual lease, expiry and source freshness remain unchanged. Complete current assessment/closed revocation, reviewed release and final-source assessment before owner hour.
 
 - [x] **PAPER-SOURCE-ORDER1 — Bound out-of-order observations and retain safe terminal control.** The actual post-SQL-repair pilot refuses a lower source block after109 prices; original terminal revision114, unchanged economics/checkpoint/events, closed restoration and revocation pass. Do not accept regressed data or rewrite its timestamps. Prepare the explicit paper policy of2 discards per episode/8 per run/15s deadline, fixed private-safe counters, one normal next paced poll, and ordinary-admission refusal with reserved Stop only before quote admission. Prove real feed watermark/ledger invariance, unchanged-receipt deadline retention, stale/time/clock/cancellation failures, exhausted budgets, lost original Stop reply and expired-lease denial. 173 focused cases pass on both default asyncio and uvloop;13 actual offline native cases pass. Exact-target PR/release and new hosted assessment/hour remain next. **Deep substantial research:** record validated rejected/current source references and regression distributions, assess provider consistency/finality and outage position exposure; do not infer a specific provider cause from the current fixed code alone.
 

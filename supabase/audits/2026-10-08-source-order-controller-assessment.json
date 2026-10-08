@@ -1,0 +1,416 @@
+{
+  "version": 1,
+  "date": "2026-10-08",
+  "source_sha": "d4bc3210caeb6987acf85b7851a7bc119e78abdb",
+  "assessment_deployment": "9c74d781-840e-4158-98ad-2d7fc69b6f02",
+  "export": {
+    "source_sha": "d4bc3210caeb6987acf85b7851a7bc119e78abdb",
+    "files": 99,
+    "bytes": 1240553,
+    "manifest_sha256": "5db1e66a66bec95c5edec1a07fa393a35f442b323531a997fc2ff0433b91540e",
+    "credentials_included": false
+  },
+  "all_export_blobs_modes_verified": true,
+  "measurement": {
+    "source_order": {
+      "enabled": true,
+      "discarded_total": 0,
+      "episode_discarded": 0,
+      "episode_active": false,
+      "limit_reason": null,
+      "max_consecutive_discards": 2,
+      "max_total_discards": 8,
+      "episode_seconds": 15
+    },
+    "accepted_quotes": 30,
+    "mode": "closed-api-finite-paper",
+    "automatic_retry": false,
+    "generation": 0,
+    "phase_seconds": {
+      "history_acquisition": {
+        "count": 1,
+        "minimum": 0.917286,
+        "median": 0.917286,
+        "maximum": 0.917286,
+        "tail_acceptance": false
+      },
+      "lease_renewal": {
+        "count": 32,
+        "minimum": 0.254213,
+        "median": 0.262002,
+        "maximum": 0.702202,
+        "tail_acceptance": false
+      },
+      "owner_submission": {
+        "count": 32,
+        "minimum": 1.098222,
+        "median": 1.208116,
+        "maximum": 2.413933,
+        "tail_acceptance": false
+      },
+      "price_acquisition": {
+        "count": 30,
+        "minimum": 0.222219,
+        "median": 0.520888,
+        "maximum": 0.916831,
+        "tail_acceptance": false
+      },
+      "publication": {
+        "count": 2,
+        "minimum": 1.117589,
+        "median": 1.117589,
+        "maximum": 4.304622,
+        "tail_acceptance": false
+      },
+      "reconciliation": {
+        "count": 1,
+        "minimum": 0.503009,
+        "median": 0.503009,
+        "maximum": 0.503009,
+        "tail_acceptance": false
+      }
+    },
+    "phase": "passed",
+    "ticks_completed": 30,
+    "api_calls": {
+      "jupiter": 30,
+      "birdeye": 1,
+      "rpc": 31
+    },
+    "paper_controller_canary": 1,
+    "sql_counts": {
+      "accept_event": 11,
+      "acknowledge_event": 11,
+      "commit_command": 33,
+      "create_run": 1,
+      "get_command": 1,
+      "heartbeat": 33,
+      "read_outbox": 2
+    },
+    "sql_errors": {
+      "commit_command": 1
+    },
+    "process_cpu_seconds": 8.59,
+    "maximum_loop_lag_seconds": 1.003229,
+    "source_age_seconds": {
+      "count": 30,
+      "minimum": 2.623588,
+      "median": 5.538402,
+      "maximum": 9.132676,
+      "tail_acceptance": false
+    },
+    "wallet_operations": false,
+    "original_command_settled": true,
+    "loop_implementation": "uvloop",
+    "elapsed_seconds": 219.466946,
+    "positions": 0,
+    "final_status": "stopped",
+    "idle_renewals": 0,
+    "operation_seconds": {
+      "count": 32,
+      "minimum": 1.706342,
+      "median": 2.045809,
+      "maximum": 7.806127,
+      "tail_acceptance": false
+    },
+    "owned_commands": 34,
+    "sql_seconds": {
+      "accept_event": {
+        "count": 11,
+        "minimum": 0.215719,
+        "median": 0.221289,
+        "maximum": 0.228416,
+        "tail_acceptance": false
+      },
+      "acknowledge_event": {
+        "count": 11,
+        "minimum": 0.215679,
+        "median": 0.221266,
+        "maximum": 0.225156,
+        "tail_acceptance": false
+      },
+      "commit_command": {
+        "count": 33,
+        "minimum": 0.517567,
+        "median": 0.584247,
+        "maximum": 1.618147,
+        "tail_acceptance": false
+      },
+      "create_run": {
+        "count": 1,
+        "minimum": 0.44983,
+        "median": 0.44983,
+        "maximum": 0.44983,
+        "tail_acceptance": false
+      },
+      "get_command": {
+        "count": 1,
+        "minimum": 0.319746,
+        "median": 0.319746,
+        "maximum": 0.319746,
+        "tail_acceptance": false
+      },
+      "heartbeat": {
+        "count": 33,
+        "minimum": 0.253455,
+        "median": 0.261031,
+        "maximum": 0.701102,
+        "tail_acceptance": false
+      },
+      "read_outbox": {
+        "count": 2,
+        "minimum": 0.224097,
+        "median": 0.224097,
+        "maximum": 0.302445,
+        "tail_acceptance": false
+      }
+    },
+    "finite_measurement": true,
+    "quota_observations": [
+      {
+        "current": 1,
+        "remaining": 99,
+        "reset": 1791486157
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791486157
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791486165
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791486172
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791486179
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791486186
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791486193
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791486200
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791486207
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791486214
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791486221
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791486228
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791486235
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791486242
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791486249
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791486256
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791486263
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791486270
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791486277
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791486285
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791486292
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791486299
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791486306
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791486314
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791486322
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791486329
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791486336
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791486343
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791486350
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791486357
+      }
+    ],
+    "lost_reply_injected": true,
+    "statistical_tail_acceptance": false,
+    "process_peak_rss_bytes": 95838208,
+    "open_positions": 0,
+    "final_revision": 34,
+    "accounts": 8
+  },
+  "owned_reads": {
+    "version": 1,
+    "pair_label": "assessmentfresh",
+    "supabase": "fxpxsciltakyypunglzr",
+    "frozen_revision": 34,
+    "status": "stopped",
+    "requires_reconciliation": true,
+    "projection_rows": {
+      "runs": 34,
+      "probes": 264,
+      "trades": 0,
+      "samples": 240,
+      "evaluations": 1
+    },
+    "event_count": 11,
+    "event_cutoff": 11,
+    "contiguous_unique_events": true,
+    "cross_owner_discovery_hidden": true,
+    "denials": [
+      {
+        "actor": "other_owner",
+        "function": "page",
+        "status": 400,
+        "denied": true
+      },
+      {
+        "actor": "other_owner",
+        "function": "events",
+        "status": 400,
+        "denied": true
+      },
+      {
+        "actor": "anonymous",
+        "function": "page",
+        "status": 401,
+        "denied": true
+      },
+      {
+        "actor": "anonymous",
+        "function": "events",
+        "status": 401,
+        "denied": true
+      }
+    ],
+    "closed_controls": [
+      {
+        "authenticated_owned_user": true,
+        "path": "/v5/status",
+        "status": 503,
+        "exact_cors": true,
+        "no_store": true
+      },
+      {
+        "authenticated_owned_user": true,
+        "path": "/v5/controls",
+        "status": 503,
+        "exact_cors": true,
+        "no_store": true
+      },
+      {
+        "authenticated_owned_user": true,
+        "path": "/v5/status",
+        "status": 503,
+        "exact_cors": true,
+        "no_store": true
+      },
+      {
+        "authenticated_owned_user": true,
+        "path": "/v5/controls",
+        "status": 503,
+        "exact_cors": true,
+        "no_store": true
+      }
+    ],
+    "secret_output": false
+  },
+  "restoration": {
+    "deployment": "afc4ab60-d56d-441a-9e1c-a0e616bf0f7e",
+    "status": "SUCCESS",
+    "mode": "closed",
+    "temporary_values_removed": 17,
+    "exact_original_variables_restored": true,
+    "same_pair_revoked_nologin": true
+  },
+  "hour_or_first_replacement_accepted": false,
+  "wallet_operations": false,
+  "other_projects_modified": false,
+  "schema_or_grants_changed": false
+}

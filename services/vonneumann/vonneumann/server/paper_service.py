@@ -21,6 +21,10 @@ from ..db.provider_pilot_owner import ProviderPilotOwner
 from ..db.relay_acceptance import DurableRelayPublisher
 from ..db.transition_coordinator import PublicationError
 
+# The selected paper SQL profile has a 5s RPC and 1s independent cleanup bound.
+# Reserve both before a paced wait or renewal; this does not lengthen the lease.
+PAPER_RENEWAL_RESERVE_SECONDS = 6.0
+
 
 class ServiceRefused(RuntimeError):
     pass
@@ -135,7 +139,8 @@ class PaperService:
             self.controller = ProviderPilotController(owner, self._feed, publisher,
                 self._allocate, lease_seconds=120, quarantine_regressions=True)
             self.runner = ProviderPilotRunner(self.controller,
-                interval_seconds=self._interval, max_ticks=self._ticks)
+                interval_seconds=self._interval, max_ticks=self._ticks,
+                renewal_reserve_seconds=PAPER_RENEWAL_RESERVE_SECONDS)
         if self._closing:
             self.runner.close_admission(); self._phase = 'drained'; return
         if self._stop_requested:

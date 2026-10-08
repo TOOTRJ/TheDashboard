@@ -222,3 +222,9 @@ invariance, next-source admission and one original reserved Stop after a feed
 refusal. Lost Stop replies/missing readback, hard-closure non-reopening and
 server lease refusal are covered. Local/native acceptance is complete; reviewed
 release and new hosted assessment/hour remain separate gates.
+
+The selected paper runner explicitly reserves6s before paced waits/renewals,
+matching the5s SQL operation plus1s independent cleanup. Generic runners retain
+the4s reserve for their3s+1s profile. Insufficient headroom drains without another
+provider request or economic command; the120s database lease remains unchanged.
+54 focused runner/service/canary cases pass under production uvloop.
