@@ -229,11 +229,10 @@ needs a file-backed sign-in before further release. [Fresh hosted evidence](supa
 
 **Next priorities, in order:**
 
-1. Make configured worker identity versus selected history explicit
-   (PAPER-UI-TARGET1), and expose versioned genes, ROI/drawdown, common windows,
-   parentage and monetary/metric bases (PAPER-UI-ASSESSMENT1). Distinguish an
-   intentionally closed worker from a failed/unverified running worker, a stopped
-   run from an unretired child account, and original settlement from future restart.
+1. Complete release/browser verification of the implemented worker-target and
+   candidate-assessment view (PAPER-UI-TARGET1 / PAPER-UI-ASSESSMENT1). Offline
+   regressions and exact-target read-only adapters pass for the actual 16-member,
+   two-window revision514 history. Keep the worker closed during this UI release.
 2. Research and implement compact/versioned multi-window checkpoints, bounded
    active state and retention, with long-duration/load/restart acceptance before
    continuous paper evolution. This one hour journals58,114,764 logical request
@@ -588,7 +587,17 @@ Research began **2026-09-30** and was updated **2026-10-06/07** in [WORKER-HOSTI
 
 **Jupiter follow-up — 2026-10-08:** Current [plans](https://developers.jup.ag/docs/portal/plans) state that all tiers use the same data freshness/latency; `/price/v3` costs one credit per request. [Rate limits](https://developers.jup.ag/docs/portal/rate-limits) remain organization-wide, with possible additional firewall limits. Verify actual effective key/path limits and portal metering against finite worker observations; a plan upgrade alone does not establish lower source age or monotonic response ordering. Research and retain validated regression magnitude/frequency evidence and source-age/timing tails before changing the present bounded discard or freshness policy.
 
-- [ ] **PAPER-UI-TARGET1 — Make configured worker and selected history explicit.** Actual owner acceptance shows that Start can begin the new configured run while the history selector retains an older failed run. The server still binds controls to the configured owner/run and original IDs, but the page does not display that configured run beside the controls. Show the verified current worker run, clearly identify when selected history differs, and select the newly acknowledged start only through an identity-checked result/discovery flow. Preserve historical selection for deliberate history browsing, frozen complete reads and original-ID settlement. Test delayed/uncertain Start, account changes, deployment turnover, stale directory responses and history selection without dispatching a command to an arbitrary selected historical run. This is operator clarity work before expanding beyond a single supervised pilot; it is not an observed unauthorized mutation.
+- [x] **PAPER-UI-TARGET1 — Make configured worker and selected history explicit.**
+  The view now shows both full run identities, flags historical selection, and
+  follows an acknowledged Start only after owner-bound discovery and a complete
+  read, preserving deliberate browsing. Account replacement remounts private
+  state; original IDs survive uncertainty and deployment turnover blocks
+  settlement on a different target. Refresh cannot unlock an in-flight command;
+  stale pre-acknowledgment worker replies cannot regress status. Two exact bounded
+  closed-service read responses identify configuration closure without claiming
+  a verified owner/run. Outage, authentication failure and unknown responses
+  remain unverified with disabled controls. Focused regressions pass; exact-source
+  production/browser verification is recorded in the release. No worker activation.
 
 - [x] **PAPER-UI-QUANTITY1 — Accept the selected ledger's exact trade quantities.**
   PR79 accepts18 decimal places without conversion or rounding, retaining amount
@@ -600,19 +609,35 @@ Research began **2026-09-30** and was updated **2026-10-06/07** in [WORKER-HOSTI
   and aborted windows, and32 events consistently on repeat read. Monetary rows
   and worker policy are unchanged. See the owner-hour audit's browser acceptance.
 
-- [ ] **PAPER-UI-ASSESSMENT1 — Show how each candidate is evaluated.** Add verified
+- [x] **PAPER-UI-ASSESSMENT1 — Show how each candidate is evaluated.** Added verified
   fast/slow EMA periods, generation, common window start/end and completion state,
   ROI, observed maximum drawdown, fitness formula/version, cost assumptions and
   parent/operation evidence to the paper view. Decode tagged genes/scores only
   for nonmonetary display; retain exact cash/quantity strings. Distinguish live
   observations from completed scores, early-terminal results from aborted
-  windows, and model selection from empirical promotion. The current paper
-  table exposes balances but not the genes; evaluation details omit ROI and
-  drawdown. Verify identity, revision, unknown/malformed evidence and old policy
-  compatibility before publishing the richer view. Research objective weight,
+  windows, and model selection from empirical promotion. Complete reads validate
+  ancestry/evaluation membership, times, finite tagged metrics and exact cost
+  strings before publication. Missing older metadata stays unavailable and
+  unrecognized policy versions are shown without assigning current semantics.
+  Actual revision514 adapters pass for all16 accounts and both windows. Retired
+  drawdown is labeled last-observed-before-replacement; the reviewed current
+  formula is explained separately from missing per-window formula metadata.
+  PAPER-ASSESSMENT-PROVENANCE1 retains that database follow-up. Research objective weight,
   elitism/diversity and equal-budget/multi-seed holdout comparisons before
   changing selection behavior. Current one-hour zero-cost mechanics acceptance
   is not economic validation.
+
+- [ ] **PAPER-ASSESSMENT-PROVENANCE1 — Persist finalized assessment provenance.**
+  Compose with the next versioned checkpoint/projection work: persist the exact
+  fitness-policy version/formula/weight, terminal score drawdown and measurement
+  basis, source/common-window identities and execution profile in a reviewed
+  forward format. Existing records must retain their original evidence and
+  explicit missing fields; do not infer final drawdown from the score or attach
+  a newer formula retroactively. Prove old/new reader compatibility, final-close
+  risk changes, early-terminal/aborted cohorts, owner/run/revision binding and
+  migration rollback before application. **Deep substantial research:** objective
+  sensitivity, cross-version comparability and compact immutable assessment
+  records. This is required before comparing results across worker-policy changes.
 
 ## Phase 7 — P2/P3: Demo honesty, remaining routes, and project quality
 
