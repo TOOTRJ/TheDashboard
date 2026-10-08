@@ -9,6 +9,12 @@ with deny_network():
 
 
 class CanaryTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase):
+    def test_measurement_preserves_original_native_first_failure_labels(self):
+        original=SimpleNamespace(first_failures={'economic':{'phase':'execute','category':'server_error',
+            'sqlstate':'57014','code':'statement_timeout'},'relay':None})
+        measured=module.MeasuredTransport(original)
+        self.assertEqual(measured.first_failures,original.first_failures)
+
     def configuration(self, **changes):
         return {'VN_SERVICE_MODE': 'closed', 'VN_PAPER_ACCEPTANCE': 'finite-controller-v1',
                 'VN_JUPITER_SOLE_CONSUMER': '1', **changes}

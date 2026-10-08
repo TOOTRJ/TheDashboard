@@ -13,6 +13,7 @@ from cryptography.hazmat.primitives import hashes,serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.x509.oid import NameOID
 from psycopg.pq import TransactionStatus
+import psycopg
 from vonneumann.db.command_sql import DashboardCommandSQLTransport,DashboardCommandSQLPair,CommandSQLError,CommandSQLBounds,HOST
 from tests.security_support import USER_A,A1
 
@@ -121,6 +122,57 @@ class SQLTransportTests(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(self.transport._io_tasks)
         self.assertEqual(self.transport._connect.await_count,1)
         self.assertEqual(self.transport.last_failure_phase,'commit')
+        self.assertEqual(self.transport.first_failure,{'phase':'commit','category':'phase_timeout',
+            'sqlstate':None,'code':'phase_timeout'})
+
+    async def test_original_server_timeout_evidence_survives_readback_cleanup_and_mutation(self):
+        class ServerTimeout(psycopg.errors.QueryCanceled):
+            @property
+            def diag(self):
+                return SimpleNamespace(message_primary='canceling statement due to statement timeout')
+        async def execute(query,*args,**kwargs):
+            if query.startswith('WITH result'): raise ServerTimeout('private SQL password arguments')
+            return await Connection.execute(self.connection,query,*args,**kwargs)
+        self.connection.execute=execute
+        self.connection.close_gate=asyncio.Event()
+        self.transport._bounds=CommandSQLBounds(cleanup_seconds=.02)
+        with self.assertRaisesRegex(CommandSQLError,'cleanup_pending_or_failed'):
+            await self.transport.rpc('get_command',self.args)
+        original={'phase':'execute','category':'server_error','sqlstate':'57014','code':'statement_timeout'}
+        self.assertEqual(self.transport.first_failure,original)
+        self.assertEqual(self.transport.last_failure_phase,'cleanup')
+        self.assertEqual(self.transport._connect.await_count,1)
+        self.assertNotIn('COMMIT',[row[0] for row in self.connection.calls])
+        self.transport.first_failure['code']='private-password'
+        self.connection.close_gate.set();await self.transport._cleanup
+        self.assertEqual(self.transport.first_failure,original)
+        self.assertNotIn('private',json.dumps(self.transport.first_failure))
+
+    async def test_first_failure_survives_successful_original_readback(self):
+        self.transport._connect=AsyncMock(side_effect=psycopg.errors.LockNotAvailable('private URL password'))
+        with self.assertRaises(CommandSQLError): await self.transport.rpc('get_command',self.args)
+        original=self.transport.first_failure
+        self.assertEqual(original['sqlstate'],'55P03')
+        self.transport._connect=AsyncMock(return_value=self.connection)
+        await self.transport.rpc('get_command',self.args)
+        self.assertEqual(self.transport.first_failure,original)
+        self.assertNotIn('private',json.dumps(original))
+
+    async def test_whole_deadline_still_bounds_several_individually_valid_phases(self):
+        self.transport._bounds=CommandSQLBounds(operation_seconds=.09,connect_seconds=.07,
+            statement_seconds=.07,commit_seconds=.05)
+        async def slow_connect(*args): await asyncio.sleep(.05);return self.connection
+        async def slow_execute(query,*args,**kwargs):
+            await asyncio.sleep(.05)
+            return await Connection.execute(self.connection,query,*args,**kwargs)
+        self.transport._connect=AsyncMock(side_effect=slow_connect)
+        self.connection.execute=slow_execute
+        with self.assertRaises(CommandSQLError): await self.transport.rpc('get_command',self.args)
+        self.assertEqual(self.transport.first_failure['category'],'operation_timeout')
+        self.assertEqual(self.transport.first_failure['sqlstate'],None)
+        self.assertEqual(self.transport._connect.await_count,1)
+        self.assertTrue(self.connection.closed)
+        self.assertNotIn('COMMIT',[row[0] for row in self.connection.calls])
 
     async def test_explicit_paper_connect_headroom_keeps_one_attempt_and_whole_operation_bound(self):
         self.transport._bounds=CommandSQLBounds(connect_seconds=1.0)

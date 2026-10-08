@@ -174,3 +174,18 @@ Production configuration additionally requires the explicit
 `VN_JUPITER_SOLE_CONSUMER=1` inventory acknowledgement and at least5s between
 runner captures. Direct offline service fixtures may use a shorter cadence;
 they do not select production.
+
+
+## Paper SQL profile and original failure evidence — 2026-10-08
+
+The selected paper service and finite controller assessment share fixed native
+bounds: connection1s, each statement/lock3s, whole RPC5s, COMMIT0.5s and
+cleanup1s. These connection-local settings address an actual hosted57014
+statement timeout; generic transport defaults remain3s/0.5s/1.5s/0.5s/1s.
+No retry, pooling, freshness/lease/expiry widening or automatic resume is added.
+The first native failure per principal remains available in authenticated status
+as `first_transport_failures`, with only allowlisted phase/category/SQLSTATE/code.
+Later readback and cleanup cannot replace it, and returned dictionaries are
+copies. Server error text, SQL/arguments, credentials and connection details are
+not retained or published. Unknown fields/codes/SQLSTATEs are suppressed.
+The canary reports the same evidence through its measurement wrapper.

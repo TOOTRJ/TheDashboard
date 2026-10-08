@@ -79,7 +79,7 @@ class PaperServiceTests(OfflineTestMixin,unittest.IsolatedAsyncioTestCase):
    with self.assertRaisesRegex(RuntimeError,'explicit_private'):
     paper_app.configured_service(environment)
    pair.assert_not_called()
- async def test_production_native_profile_has_fixed_connect_headroom_without_extending_rpc_deadline(self):
+ async def test_production_native_profile_has_fixed_paper_sql_headroom(self):
   environment={'VN_SERVICE_MODE':'paper-v5','PYTHON_DOTENV_DISABLED':'1',
     'VN_ENVIRONMENT':'production','SUPABASE_URL':'https://fxpxsciltakyypunglzr.supabase.co',
     'VN_ALLOWED_ORIGINS':paper_app.ORIGIN,'SUPABASE_PUBLISHABLE_KEY':'sb_publishable_offline_only',
@@ -92,7 +92,21 @@ class PaperServiceTests(OfflineTestMixin,unittest.IsolatedAsyncioTestCase):
   with patch('vonneumann.db.command_sql.DashboardCommandSQLPair') as pair,patch('vonneumann.market.jupiter_feed.JupiterFeed'),patch.object(paper_app,'PaperService'):
    paper_app.configured_service(environment)
    bounds=pair.call_args.kwargs['bounds']
-   self.assertEqual((bounds.connect_seconds,bounds.operation_seconds,bounds.statement_seconds,bounds.commit_seconds,bounds.cleanup_seconds),(1.0,3.0,1.5,.5,1.0))
+   self.assertEqual((bounds.connect_seconds,bounds.operation_seconds,bounds.statement_seconds,bounds.commit_seconds,bounds.cleanup_seconds),(1.0,5.0,3.0,.5,1.0))
+ async def test_first_sql_evidence_is_allowlisted_and_copied_without_private_driver_content(self):
+  valid={'phase':'execute','category':'server_error','sqlstate':'57014','code':'statement_timeout'}
+  self.transport.first_failures={'economic':valid,'relay':{**valid,'code':'https://private.invalid/?password=secret'}}
+  status=self.service.status(USER_A)
+  self.assertEqual(status['first_transport_failures'],{'economic':valid,'relay':None})
+  status['first_transport_failures']['economic']['code']='changed'
+  self.assertEqual(self.service.status(USER_A)['first_transport_failures']['economic'],valid)
+  for hostile in (None,'private-password',{**valid,'sqlstate':'secret'},
+                  {**valid,'phase':[]},{**valid,'extra':'private-password'},
+                  {**valid,'category':False}):
+   self.transport.first_failures={'economic':hostile,'relay':None}
+   safe=self.service.status(USER_A)['first_transport_failures']
+   self.assertEqual(safe,{'economic':None,'relay':None})
+   self.assertNotIn('private',json.dumps(safe))
  async def test_transport_diagnostics_are_fixed_phases_without_private_driver_content(self):
   self.transport.last_failure_phases={'economic':'connect','relay':'https://private.invalid/password'}
   status=self.service.status(USER_A)

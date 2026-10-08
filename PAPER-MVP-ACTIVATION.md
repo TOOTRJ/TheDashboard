@@ -6,6 +6,39 @@ most one replacement. A 60-second completion grace permits a paced quote to
 observe the evaluation ending. There is no signer, wallet funding, swap,
 automatic restoration, continuous multi-window operation or profitability claim.
 
+**Latest checkpoint — 2026-10-08:** PR74 is merged as
+`87d8d3c07f2cdfc61968510a37831dd0c7cda080`. Exact Vercel production
+`dpl_AXnRKgZss6UYaYUQbQm9nCfbexzd` is READY with four smokes. The same-loop
+uvloop assessment now passes thirty prices, original lost-reply reconciliation,
+relay and reserved stop at revision34. Complete owner reads and anonymous/
+other-owner denials pass; its ordinary closed restoration and pair revocation
+are verified. [Matching-loop evidence](supabase/audits/2026-10-08-matching-loop-controller-assessment.json).
+
+The real owner's fresh hour attempt reaches90 accepted prices and revision94,
+then an original economic `commit_command` is cancelled. The exact project's
+Postgres log identifies SQLSTATE57014 / statement_timeout for that original
+native principal at17:24:28.556UTC. This establishes a database statement-limit
+failure; the receipt timer repair held. One original settlement retains pending
+identity; expired provider evidence prevents later installation. The original
+native interruption applies once at revision95/fence2 with unchanged checkpoint,
+accounts, reserve and positions. Nine original candidate events remain ACKed;
+no candidate event or ACK is invented. Ordinary closed deployment
+`19a11184-e299-4265-abac-0409b5a34902` is SUCCESS;16 temporary values are
+removed, exact original variables are restored, and the pair is revoked/NOLOGIN.
+The owner's browser displays terminal revision95 and disabled controls.
+[SQL failure and recovery evidence](supabase/audits/2026-10-08-owner-pilot-sql-timeout.json).
+
+Paper-only SQL headroom is prepared: statement/lock3s, whole operation5s,
+connect1s, COMMIT0.5s and cleanup1s. General transport defaults stay unchanged.
+First native failures retain allowlisted phase/category/SQLSTATE/code without
+private driver text and survive readback/cleanup.150 focused tests pass under
+uvloop;11 actual offline Linux TLS/SCRAM tests prove the former1.5s limit
+refuses a2s lock wait, the new profile commits the original once, and over-budget
+waits roll back with original-ID retention. No freshness/lease/expiry guard,
+transaction retry, automatic resume or schema/grant change. Release and another
+matching-loop assessment precede the real hour/first-replacement acceptance.
+HOST-07 and continuous/live gates remain open.
+
 ## Exact targets and required preflight
 
 Every consequential operation must freshly verify the repository/name/immutable

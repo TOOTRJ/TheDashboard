@@ -5,7 +5,40 @@ This distinguishes tested components, deployed application behavior, and the
 integration work still required. Completing engine tests is not a hosted bot
 release or evidence of a profitable strategy.
 
-Latest hosted checkpoint 2026-10-08: PR72 is merged as
+**Latest checkpoint — 2026-10-08:** PR74 is merged as
+`87d8d3c07f2cdfc61968510a37831dd0c7cda080`. Exact Vercel production
+`dpl_AXnRKgZss6UYaYUQbQm9nCfbexzd` is READY with four smokes. The same-loop
+uvloop assessment now passes thirty prices, original lost-reply reconciliation,
+relay and reserved stop at revision34. Complete owner reads and anonymous/
+other-owner denials pass; its ordinary closed restoration and pair revocation
+are verified. [Matching-loop evidence](supabase/audits/2026-10-08-matching-loop-controller-assessment.json).
+
+The real owner's fresh hour attempt reaches90 accepted prices and revision94,
+then an original economic `commit_command` is cancelled. The exact project's
+Postgres log identifies SQLSTATE57014 / statement_timeout for that original
+native principal at17:24:28.556UTC. This establishes a database statement-limit
+failure; the receipt timer repair held. One original settlement retains pending
+identity; expired provider evidence prevents later installation. The original
+native interruption applies once at revision95/fence2 with unchanged checkpoint,
+accounts, reserve and positions. Nine original candidate events remain ACKed;
+no candidate event or ACK is invented. Ordinary closed deployment
+`19a11184-e299-4265-abac-0409b5a34902` is SUCCESS;16 temporary values are
+removed, exact original variables are restored, and the pair is revoked/NOLOGIN.
+The owner's browser displays terminal revision95 and disabled controls.
+[SQL failure and recovery evidence](supabase/audits/2026-10-08-owner-pilot-sql-timeout.json).
+
+Paper-only SQL headroom is prepared: statement/lock3s, whole operation5s,
+connect1s, COMMIT0.5s and cleanup1s. General transport defaults stay unchanged.
+First native failures retain allowlisted phase/category/SQLSTATE/code without
+private driver text and survive readback/cleanup.150 focused tests pass under
+uvloop;11 actual offline Linux TLS/SCRAM tests prove the former1.5s limit
+refuses a2s lock wait, the new profile commits the original once, and over-budget
+waits roll back with original-ID retention. No freshness/lease/expiry guard,
+transaction retry, automatic resume or schema/grant change. Release and another
+matching-loop assessment precede the real hour/first-replacement acceptance.
+HOST-07 and continuous/live gates remain open.
+
+Earlier hosted checkpoint before PR74: PR72 is merged as
 `15339871732b144ddfd2b1499ff7bd687de61703`; exact production and four smokes
 pass. Dedicated Vercel authentication is restored. The original failed two-price
 owner run is reconciled at revision6/fence2 after actual managed rollback and one
@@ -59,10 +92,10 @@ HOST-07 and continuous/live gates remain open. No wallet operation is authorized
 | Core evolutionary engine | Phase 2's 12 entries are complete. Funding, indicator/time handling, population continuity, fitness, risk controls and optimizer constraints have regression coverage. |
 | Small strategy | `ema_baseline_v1` evolves two parameters: fast and slow EMA periods. Asset, timeframe and other controls stay fixed; RSI/volume signal filters are disabled. All candidates share 61 completed warmup bars. |
 | Research evaluator | Synthetic replay, a twenty-pair exhaustive grid, cash/passive/fixed-EMA/random controls, and an equal-budget reference GA are implemented. Training-only selection and fresh chronological holdout accounts are tested. Representative historical research and calibrated fills remain open. |
-| Exact paper controller | The selected native-v5 path now passes the actual thirty-price hosted controller, lost-reply, relay and reserved-stop assessment. The real owner's start commits through the browser. Its latest hour attempt fails after two prices; fixed provider/stage diagnostics are released and the new assessment passes. The new intended-owner attempt again fails at local capture admission; the specific cause needs deliberate diagnosis before hour acceptance. |
+| Exact paper controller | The selected native-v5 path now passes the actual thirty-price hosted controller, lost-reply, relay and reserved-stop assessment. The matching-loop timer assessment passes. The real owner's fresh hour attempt reaches90 prices before an exact57014 SQL statement timeout. Original interruption preserves cash/positions/history at revision95; paper-only SQL headroom and safe native failure labels are tested and await release/hosted acceptance. The hour and first replacement remain open. |
 | Database / transports | Fifteen migrations install98 functions/26 tables; full body/catalog/grant verification passes. SSL, Railway IPv6/project-CA/hostname TLS/SCRAM/channel binding and finite owner/run/capability checks pass. Curated vn_read provides owner-only nonempty history; anonymous/private/other-owner access is denied. Release admission is OPEN at epoch1, with ordinary closed runtime restored after each assessment; a separate finite pilot scope is issued only after quiescent checks. All11,149 user-rejected old rows are deleted; Auth is retained. The original expired cash-only run is now terminal/reconciliation-required with unchanged economic/checkpoint state. No old competing writer is selected. |
 | Dashboard | Next.js16.3.8 and the selected paper-v5 interface are deployed. The real owner starts once and sees eight candidates and committed history. Worker failures are distinguished from the last committed run status; closed mode disables controls and retains history. Complete pinned reads poll independently from status. Final first-replacement/trade/evaluation/replay browser acceptance remains open. |
-| Worker / live execution | Railway's exact Dashboard service is restored to ordinary closed startup after the assessment with original variables and revoked assessment credentials. The failed intended-owner scope is terminal and revoked; specific diagnosis precedes any new deliberate finite scope. No automatic restart is permitted. The Jupiter V2 helper remains quote-only and cannot sign or execute a swap. |
+| Worker / live execution | Railway's exact Dashboard service is restored to ordinary closed startup after the assessment with original variables and revoked assessment credentials. The failed intended-owner scope is terminal and revoked; tested SQL headroom release and matching-loop assessment precede the next deliberate finite scope. No automatic restart is permitted. The Jupiter V2 helper remains quote-only and cannot sign or execute a swap. |
 
 The exact source, project/service/owner identities, US West replica, HTTPS,
 resource limits and outbound IPv6/TLS are verified. The $20/month pilot ceiling
