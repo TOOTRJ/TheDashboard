@@ -1,0 +1,75 @@
+{
+  "version": 1,
+  "date": "2026-10-08",
+  "source_sha": "15339871732b144ddfd2b1499ff7bd687de61703",
+  "pilot_deployment": "cc8a781d-ffc2-45e6-b072-bbaab8672905",
+  "browser_start_attempts": 1,
+  "real_owner_start_verified": true,
+  "before_failure": {
+    "revision": 5,
+    "status": "running",
+    "generation": 0,
+    "accepted_quotes": 2,
+    "accounts": 8,
+    "reserve_usd": "200",
+    "each_account_cash_usd": "100",
+    "open_positions": 0,
+    "events": 9,
+    "relay_events": 9,
+    "unacknowledged_events": 0
+  },
+  "failure": {
+    "phase": "failed",
+    "busy": false,
+    "revision": 5,
+    "last_controller_failure": {
+      "stage": "capture",
+      "category": "operational_admission_failed",
+      "provider_code": null,
+      "acquisition": null
+    },
+    "last_operation_failure": {
+      "stage": "service_operation",
+      "category": "operational_admission_failed",
+      "provider_code": null
+    },
+    "last_transport_failure_phases": {
+      "economic": null,
+      "relay": null
+    },
+    "admission": {
+      "controller_reason": "controller_operation_failed",
+      "owner_reason": "draining",
+      "pending_stage": null
+    }
+  },
+  "reconciliation": {
+    "deployment": "fd06d897-6d11-48d1-a17d-f993a10c8b17",
+    "original_native_interrupt_once": true,
+    "providers": 0,
+    "wallet_operations": false,
+    "revision": 6,
+    "fence": 2,
+    "status": "failed",
+    "requires_reconciliation": true,
+    "checkpoint_accounts_positions_reserve_unchanged": true,
+    "new_candidate_events": 0,
+    "new_candidate_acks": 0
+  },
+  "cleanup": {
+    "deployment": "49f95073-a427-4bad-a41a-681737382354",
+    "status": "SUCCESS",
+    "ordinary_closed": true,
+    "original_variables_restored": true,
+    "temporary_values_removed": 16,
+    "native_pair": "revoked_verified"
+  },
+  "acceptance": {
+    "real_hour": false,
+    "first_replacement": false,
+    "full_pilot": false,
+    "profitability": false,
+    "live_trading": false
+  },
+  "next": "Distinguish the fixed capture admission cause in a deliberately reviewed diagnostic attempt; no automatic restart or widened freshness/lease/expiry guards."
+}

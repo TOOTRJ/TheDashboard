@@ -238,3 +238,42 @@ cleanup without exposing provider bodies or exception text. Release and actual
 managed reconciliation are pending dedicated Dashboard Vercel sign-in. Current
 activation scope remains one supervised hour/one replacement with a reserved
 stop; HOST-07, continuous operation and every real-trading gate stay open.
+
+## Reviewed diagnostics and original maintenance accepted — 2026-10-08
+
+PR72 is merged as15339871732b144ddfd2b1499ff7bd687de61703 and exact Vercel
+production/alias/four smokes pass after dedicated file-backed sign-in. The
+original expired run's same interruption command is applied once after actual
+managed rollback and independent original absence/unchanged-state readback.
+Revision6/fence2 is failed/reconciliation-required. Checkpoint, reserve, account,
+position and candidate outbox/relay hashes are unchanged; interrupts create no
+candidate event. The real owner's browser shows terminal revision6, unavailable
+current reference equity and closed controls. Earlier pending statements above
+record the preparation stage and are superseded by this acceptance.
+
+The separate new thirty-price diagnostic assessment passes at revision34 with
+original lost-bootstrap-reply reconciliation, relay and reserved stop. Complete
+owner history/unique contiguous events and anonymous/other-owner denial pass.
+Its98-file source export matches every Git blob/mode and the manifest; one
+US West replica retains0.25CPU/500MB. Ordinary closed restoration
+eb25dc63-ac90-4f47-ba40-fc04a1acf6fb is SUCCESS,17 additions are removed and
+the assessment pair is revoked/NOLOGIN before separate intended-owner issuance.
+
+The next pilot retains one hour/one replacement, original configured browser
+start intent once, source/receipt/lease limits and reserved stop. Record safe
+fixed failure labels before cleanup; no blind restart or submission replacement.
+Keep a prompt original native interruption within its write deadline if a
+failed run's lease expires; recovery_until alone never grants that later write.
+After any uncertain outcome read back its original journal; then restore closed
+runtime and revoke only that finite pair. A failed/short pilot does not complete
+HOST-07. Continuous operation and real trading remain separate gates.
+
+
+The subsequent intended-owner attempt reproduces the local capture-admission
+failure after two prices. Original native interruption succeeds before write
+expiry with unchanged checkpoint/holdings and no new candidate event/ACK. Closed
+startup and original variable map are restored; the pair is revoked. Specific
+allowlisted capture refusal codes must be reviewed/released and used for deliberate
+diagnosis before another hour attempt. Keep original evidence; do not retry a
+failed run or widen freshness/lease/expiry guards.
+[Recorded outcome](supabase/audits/2026-10-08-owner-pilot-local-admission-failure.json).

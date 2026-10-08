@@ -1,0 +1,213 @@
+{
+  "version": 1,
+  "date": "2026-10-08",
+  "source_sha": "15339871732b144ddfd2b1499ff7bd687de61703",
+  "assessment_deployment": "308b3164-10a4-46e3-9fb2-1540f2ab44d9",
+  "worker_export": {
+    "source_sha": "15339871732b144ddfd2b1499ff7bd687de61703",
+    "files": 98,
+    "bytes": 1227875,
+    "manifest_sha256": "8a6f5df727b408ecbaf6c2be7e4207609cbc138a19fc57f1104d571054aad472",
+    "credentials_included": false,
+    "remote_operations": false
+  },
+  "all98_git_blobs_and_modes_verified": true,
+  "region": "us-west2",
+  "replicas": 1,
+  "cpu_limit": 0.25,
+  "memory_limit_bytes": 500000000,
+  "public_api": "closed",
+  "measurement": {
+    "accepted_quotes": 30,
+    "accounts": 8,
+    "api_calls": {
+      "jupiter": 30,
+      "birdeye": 1,
+      "rpc": 31
+    },
+    "automatic_retry": false,
+    "elapsed_seconds": 218.821324,
+    "final_revision": 34,
+    "final_status": "stopped",
+    "finite_measurement": true,
+    "generation": 0,
+    "idle_renewals": 0,
+    "lost_reply_injected": true,
+    "maximum_loop_lag_seconds": 1.157366,
+    "mode": "closed-api-finite-paper",
+    "open_positions": 0,
+    "operation_seconds": {
+      "count": 32,
+      "minimum": 1.85981,
+      "median": 1.995743,
+      "maximum": 8.725479,
+      "tail_acceptance": false
+    },
+    "original_command_settled": true,
+    "owned_commands": 34,
+    "paper_controller_canary": 1,
+    "phase": "passed",
+    "phase_seconds": {
+      "history_acquisition": {
+        "count": 1,
+        "minimum": 1.751429,
+        "median": 1.751429,
+        "maximum": 1.751429,
+        "tail_acceptance": false
+      },
+      "lease_renewal": {
+        "count": 32,
+        "minimum": 0.261973,
+        "median": 0.269869,
+        "maximum": 0.555672,
+        "tail_acceptance": false
+      },
+      "owner_submission": {
+        "count": 32,
+        "minimum": 1.035305,
+        "median": 1.156732,
+        "maximum": 2.251392,
+        "tail_acceptance": false
+      },
+      "price_acquisition": {
+        "count": 30,
+        "minimum": 0.370293,
+        "median": 0.545863,
+        "maximum": 0.96029,
+        "tail_acceptance": false
+      },
+      "publication": {
+        "count": 2,
+        "minimum": 1.16809,
+        "median": 1.16809,
+        "maximum": 4.350401,
+        "tail_acceptance": false
+      },
+      "reconciliation": {
+        "count": 1,
+        "minimum": 0.497304,
+        "median": 0.497304,
+        "maximum": 0.497304,
+        "tail_acceptance": false
+      }
+    },
+    "positions": 0,
+    "process_cpu_seconds": 8.21,
+    "process_peak_rss_bytes": 95055872,
+    "source_age_seconds": {
+      "count": 30,
+      "minimum": 3.367673,
+      "median": 5.524232,
+      "maximum": 8.405679,
+      "tail_acceptance": false
+    },
+    "sql_counts": {
+      "accept_event": 11,
+      "acknowledge_event": 11,
+      "commit_command": 33,
+      "create_run": 1,
+      "get_command": 1,
+      "heartbeat": 33,
+      "read_outbox": 2
+    },
+    "sql_errors": {
+      "commit_command": 1
+    },
+    "sql_seconds": {
+      "accept_event": {
+        "count": 11,
+        "minimum": 0.223685,
+        "median": 0.227189,
+        "maximum": 0.239239,
+        "tail_acceptance": false
+      },
+      "acknowledge_event": {
+        "count": 11,
+        "minimum": 0.224925,
+        "median": 0.225814,
+        "maximum": 0.234927,
+        "tail_acceptance": false
+      },
+      "commit_command": {
+        "count": 33,
+        "minimum": 0.52892,
+        "median": 0.587899,
+        "maximum": 0.950068,
+        "tail_acceptance": false
+      },
+      "create_run": {
+        "count": 1,
+        "minimum": 0.589908,
+        "median": 0.589908,
+        "maximum": 0.589908,
+        "tail_acceptance": false
+      },
+      "get_command": {
+        "count": 1,
+        "minimum": 0.308232,
+        "median": 0.308232,
+        "maximum": 0.308232,
+        "tail_acceptance": false
+      },
+      "heartbeat": {
+        "count": 33,
+        "minimum": 0.261267,
+        "median": 0.268663,
+        "maximum": 0.554959,
+        "tail_acceptance": false
+      },
+      "read_outbox": {
+        "count": 2,
+        "minimum": 0.233189,
+        "median": 0.233189,
+        "maximum": 0.233436,
+        "tail_acceptance": false
+      }
+    },
+    "statistical_tail_acceptance": false,
+    "ticks_completed": 30,
+    "wallet_operations": false
+  },
+  "quota_summary": {
+    "samples": 30,
+    "first_current": 1,
+    "first_remaining": 99,
+    "later_current": 2,
+    "later_remaining": 98,
+    "documented_window_capacity_not_established": true
+  },
+  "owner_reads": {
+    "frozen_revision": 34,
+    "runs": 34,
+    "probes": 264,
+    "trades": 0,
+    "samples": 240,
+    "evaluations": 1,
+    "short_window_unscored": true,
+    "events": 11,
+    "contiguous_unique": true,
+    "anonymous_other_owner_denied": true,
+    "closed_auth_controls_503": true
+  },
+  "configuration_reconciliation": {
+    "exact_variables_read_back": true,
+    "unchanged_closed_start_command_and_absent_new_run_proved": true,
+    "original_configuration_completed_before_first_upload": true,
+    "original_ids_and_credentials_preserved": true
+  },
+  "cleanup": {
+    "restored_deployment": "eb25dc63-ac90-4f47-ba40-fc04a1acf6fb",
+    "ordinary_closed_status": "SUCCESS",
+    "exact_original_variables_restored": true,
+    "temporary_values_removed": 17,
+    "native_pair": "revoked_verified"
+  },
+  "limits": {
+    "hour_verified": false,
+    "first_replacement_verified": false,
+    "statistical_tail_acceptance": false,
+    "profitability_evidence": false,
+    "live_wallet_operations": false,
+    "other_projects_modified": false
+  }
+}

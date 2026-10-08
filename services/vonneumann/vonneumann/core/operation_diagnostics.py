@@ -26,6 +26,17 @@ STAGES = frozenset((
     'decide_publish', 'pause_submit', 'pause_settle', 'pause_publish',
     'stop_submit', 'stop_settle', 'stop_publish', 'heartbeat', 'done',
 ))
+# Only these literal, locally defined admission errors may cross the status
+# boundary. Never serialize arbitrary exception text, even for our error type.
+ADMISSION_CODES = {
+    'provider acquisition admission is closed': 'acquisition_closed',
+    'provider owner admission is closed': 'owner_closed',
+    'controller ordinary admission is closed': 'controller_closed',
+    'controller_receipt_boundary_invalid': 'receipt_boundary_invalid',
+    'controller_price_acquisition_expired': 'price_acquisition_expired',
+    'controller_receipt_clock_did_not_advance': 'receipt_clock_not_advanced',
+    'controller_original_receipt_not_admitted': 'original_receipt_not_admitted',
+}
 
 
 @dataclass(frozen=True, slots=True)
@@ -33,9 +44,14 @@ class OperationFailure:
     stage: str
     category: str
     provider_code: str | None = None
+    admission_code: str | None = None
 
     def to_dict(self):
-        return asdict(self)
+        result = asdict(self)
+        # Keep the existing wire shape when no specific local cause is known.
+        if self.admission_code is None:
+            del result['admission_code']
+        return result
 
 
 def failure_labels(stage, error):
@@ -54,5 +70,8 @@ def failure_labels(stage, error):
     # Imports here avoid changing the provider/owner import graph.
     from ..db.rehearsal_owner import OperationalAdmissionError
     if isinstance(error, OperationalAdmissionError):
-        return OperationFailure(stage, 'operational_admission_failed')
+        args = error.args
+        message = args[0] if len(args) == 1 and type(args[0]) is str else None
+        return OperationFailure(stage, 'operational_admission_failed',
+                                admission_code=ADMISSION_CODES.get(message))
     return OperationFailure(stage, 'unexpected_exception')

@@ -1,6 +1,39 @@
 # Dashboard audit and implementation backlog
 
-**Current immediate work — 2026-10-08:** PR71 is merged as
+**Current immediate work — 2026-10-08:** [PR72](https://github.com/TOOTRJ/TheDashboard/pull/72) is merged as
+`15339871732b144ddfd2b1499ff7bd687de61703`; exact Vercel production is READY
+with four smokes. Dedicated Dashboard authentication is restored. The original
+expired cash-only run is reconciled once after an actual managed rollback and
+independent unchanged-state/absence check. Revision6/fence2 is failed and requires
+reconciliation; checkpoints, reserve, accounts, positions and candidate event
+delivery are unchanged. The real owner's browser shows the terminal version and
+disabled controls. [Managed and browser evidence](supabase/audits/2026-10-08-expired-native-run-maintenance.json).
+
+The reviewed diagnostic thirty-price assessment passes at revision34, including
+original lost-reply reconciliation, relay and reserved stop. Complete frozen
+owner reads and anonymous/other-owner denials pass. Its98-file export matches
+Git blobs/modes; one US West replica retains0.25CPU/500MB. Ordinary closed startup
+is restored and the assessment pair is revoked.
+
+The separate intended-owner hour attempt starts once through the actual browser,
+then reproduces the two-price failure at revision5. New labels locate it at
+`capture / operational_admission_failed`, with no acquisition/provider label and
+no native SQL failure phase. This does not establish a provider or quota cause.
+The original native interruption succeeds before write expiry: revision6/fence2,
+failed/reconciliation-required, unchanged checkpoint/reserve/accounts/positions,
+and no new candidate event or ACK. Ordinary closed deployment
+`49f95073-a427-4bad-a41a-681737382354` is SUCCESS,16 temporary values are removed,
+and the pilot pair is revoked/NOLOGIN. [Assessment evidence](supabase/audits/2026-10-08-diagnostic-controller-assessment.json),
+[owner attempt and cleanup](supabase/audits/2026-10-08-owner-pilot-local-admission-failure.json).
+
+Specific allowlisted capture-admission codes are prepared to distinguish closed
+admission, receipt-boundary/clock failures and acquisition expiry without exception
+text. 127 focused native-environment tests pass, including real controller receipt
+refusal and hostile error details. Release and a deliberately reviewed diagnostic
+attempt remain next. HOST-07/hour/first replacement and continuous/live gates stay
+open; no automatic restart or relaxed freshness/lease/expiry guards.
+
+**Earlier checkpoint before PR72 — 2026-10-08:** PR71 is merged as
 `a353649d1e6aba4ad0b2e3827e0bb5fdeacbd92f`; exact Vercel production was READY
 with four smokes. The new actual native controller assessment passes thirty
 prices, original lost-reply reconciliation, relay and reserved stop at revision34.
@@ -25,25 +58,25 @@ needs a file-backed sign-in before further release. [Fresh hosted evidence](supa
 
 **Next priorities, in order:**
 
-1. Complete dedicated Dashboard Vercel sign-in; verify exact project/team/source,
-   review and release the fixed diagnostic and maintenance preparation.
-2. Rehearse the exact original cash-only interruption with actual managed ROLLBACK,
-   independently prove unchanged checkpoint/accounts/positions and absent command,
-   then submit once and reconcile its journal and terminal owner projection.
-   Verify candidate outbox/relay progress is unchanged; no credential extension,
-   fabricated terminal event or automatic resume.
-3. Prepare one new finite assessment only after terminal cleanup/quiescent checks.
-   Capture the safe stage/provider code, repair the observed failure, and retain
-   source/receipt/lease/deadline guards. No blind replacement of uncertain work.
-4. Run the intended owner's supervised real hour, verify first replacement,
-   reserved stop, complete browser history/replay and owner isolation, then close
-   the worker and revoke its finite pair. Keep HOST-07 open until this passes.
-5. Research larger timing/quota/billing tails, retained-position outage exposure,
-   compact multi-window state/retention, restoration and empirical fill/strategy
-   acceptance before continuous operation or any real trading.
+1. Release specific fixed capture-admission codes and use a deliberate diagnostic
+   attempt to establish and repair the original failure. Retain original IDs,
+   source/receipt/lease/deadline guards and reconciliation evidence; no automatic
+   retry, restart or guessed provider fix.
+2. Accept the actual intended-owner supervised hour, first replacement and
+   reserved stop. The thirty-price lost-reply assessment is a prerequisite only.
+3. Verify final complete browser history/replay and anonymous/other-owner isolation,
+   then close the worker and revoke the finite pair. Keep HOST-07 open until the
+   complete bounded acceptance passes.
+4. Research and implement compact/versioned multi-window checkpoints and retention,
+   with long-duration/load acceptance before continuous paper evolution.
+5. Deep research: source-age/repeated-block/omission distributions, timing/quota/
+   billing tails, retained-position outage exposure and restoration, representative
+   holdouts and calibrated fills; complete LIVE-01…07 before any real trading.
 
-- [x] **PAPER-FAILURE-EVIDENCE1 — Prepare fixed original failure labels.** First failure retains acquisition/controller stage and allowlisted provider code/category even after work cleanup; authenticated status and finite canary expose labels without exception text, URLs, response bodies or credentials. Unknown codes become a fixed fallback; returned dictionaries cannot mutate retained evidence. Failures still drain admission and make no retry. 125 focused worker/controller/runner/service/canary cases pass. Preparation only: hosted diagnosis and release remain above.
-- [x] **PAPER-EXPIRED-MAINT1 — Prepare guarded cash-only administrative reconciliation.** The explicit operation requires the original owner/run/command/revision/fence/checkpoint/account/position hashes, exact OPEN release/catalog, revoked native bindings and no application capability login, expired running v5 scope, eight accounts and no open positions. Canonical journal/projection recording changes only terminal flags/revision/fence; checkpoints and economics remain intact. Actual isolated rollback, once-only commit/replay denial, other-owner/hash/revision/null guards, live-credential/lease denial, API/capability denial, matching-hash open-position denial and late rollback pass. The terminal owner projection is failed/reconciliation-required with unavailable reference equity; candidate outbox/relay rows are unchanged. No schema/grant/expiry change, fabricated event or ACK, restoration or liquidation. Actual managed rehearsal/apply and terminal browser readback remain above.
+- [x] **PAPER-EXPIRED-MAINT2 — Apply and read back the original expired cash-only interruption.** PR72 reviewed source, exact targets/production, actual managed rollback, independent absence/unchanged hashes and one original submission pass. Revision6/fence2 is failed/reconciliation-required; economic/checkpoint and candidate delivery hashes remain intact. The actual owner browser displays the terminal revision with unavailable current equity and disabled controls. No credential extension, invented candidate event/ACK, schema/grant change or automatic resume.
+
+- [x] **PAPER-FAILURE-EVIDENCE1 — Prepare fixed original failure labels.** First failure retains acquisition/controller stage and allowlisted provider code/category even after work cleanup; authenticated status and finite canary expose labels without exception text, URLs, response bodies or credentials. Unknown codes become a fixed fallback; returned dictionaries cannot mutate retained evidence. Failures still drain admission and make no retry. 125 focused worker/controller/runner/service/canary cases pass. PR72 release is verified; specific capture diagnosis remains above.
+- [x] **PAPER-EXPIRED-MAINT1 — Prepare guarded cash-only administrative reconciliation.** The explicit operation requires the original owner/run/command/revision/fence/checkpoint/account/position hashes, exact OPEN release/catalog, revoked native bindings and no application capability login, expired running v5 scope, eight accounts and no open positions. Canonical journal/projection recording changes only terminal flags/revision/fence; checkpoints and economics remain intact. Actual isolated rollback, once-only commit/replay denial, other-owner/hash/revision/null guards, live-credential/lease denial, API/capability denial, matching-hash open-position denial and late rollback pass. The terminal owner projection is failed/reconciliation-required with unavailable reference equity; candidate outbox/relay rows are unchanged. No schema/grant/expiry change, fabricated event or ACK, restoration or liquidation. Actual managed rehearsal/apply and terminal browser readback pass as recorded above.
 
 - [x] **UI-PAPER-READ1 — Let complete bounded v5 history finish without periodic cancellation.** Worker status and history now poll independently, ten seconds after each cycle finishes. A slow complete history read cannot be cancelled by the worker poll. v5 snapshot/directory/event reads share a60s whole-read budget; every network request retains5s/64KiB, pinned identity/revision/cursors,500-page/50,000-row limits and no partial publication. Manual refresh, selection/session change and unmount still cancel obsolete work. Twenty-four focused frontend tests, TypeScript and lint pass. Hosted final-hour browser acceptance remains HOST-07; legacy readers retain their existing budgets. Research incremental verified reads, retention/compaction and larger histories before continuous operation.
 - [x] **C3-FRESH-REHEARSAL — Prove one bound statement rolls fresh issuance back before returning.** A temporary postgres-only SECURITY INVOKER wrapper raises/catches a private sentinel after the original guarded quiescent issuer; PostgreSQL rolls roles/bindings back inside that subtransaction. A separately read absence check precedes one actual issuance with the same original inputs. Twelve actual PostgreSQL tests cover success/failure, unchanged catalog, API denial and secret-free logs. Hosted rehearsal/issuance still requires exact merged source and quiescent cloud/database preflight.
@@ -58,9 +91,29 @@ The dashboard runs Next.js **16.3.8**. The verified Supabase ledger has fifteen 
 
 ## Current MVP critical path — 2026-10-08
 
-[**MVP-READINESS.md**](MVP-READINESS.md) separates the bounded hosted paper pilot, continuous multi-window paper evolution, and later real trading. Phase 2's 12 engine entries and the two-gene EMA baseline are complete. The fifteen-migration durability package and curated owner reads are installed; the verified release remains OPEN at epoch1, but every issued native pair is revoked and Railway is restored to **ordinary closed startup**. A thirty-price native assessment and nonempty owner history pass. The separate intended-owner dashboard pilot fails at revision5 before any evaluation or replacement. Its expired committed run requires deliberate maintenance reconciliation; closed controls do not make the retained database run terminal. The live swap helper remains quote-only. Do not infer a readiness percentage from overlapping parent/child checkboxes.
+[**MVP-READINESS.md**](MVP-READINESS.md) separates the bounded hosted paper pilot,
+continuous multi-window evolution and later real trading. Phase2 and the two-gene
+EMA baseline are complete. Fifteen migrations and curated owner reads are
+installed; the verified release remains OPEN at epoch1. Every issued native pair
+is revoked and Railway is restored to ordinary closed startup. PR72 diagnostics,
+original expired cash-only maintenance, the new thirty-price native assessment,
+complete assessment owner history and original native pilot interruption pass.
+The separate real-owner hour again fails after two prices at revision5, before
+any evaluation or replacement. Its local capture-admission cause needs finer
+fixed labels and a deliberate diagnosis. All original failed runs are terminal
+and retain their economic state. The live swap helper remains quote-only.
 
-**Immediate order:** restore dedicated Dashboard Vercel authentication → release fixed failure diagnostics and reviewed maintenance preparation → rehearse and reconcile the original expired cash-only run → diagnose and repair one fresh finite assessment → supervised real hour, first replacement, reserved stop and complete owner history/replay. HOST-07 remains open. The Developer upgrade and existing key attribution are verified; Dashboard is TheOrder's only Jupiter consumer. Actual headers still do not establish the full documented paid capacity. Price acquisition retains at least five seconds between requests and no catch-up queue. The pilot uses eight candidates, one SOL/USD reference market, two EMA genes, one evaluation window and at most one replacement. Research must address measured timing/quota/billing tails, interrupted-position exposure and retention before continuous operation. A stopped/interrupted pilot retains holdings visibly; it must not silently resume or invent liquidation proceeds.
+**Immediate order:** reviewed specific admission diagnostics → establish and
+repair the observed capture failure → supervised actual hour/first replacement/
+reserved stop → complete owner history/replay and isolation → ordinary closed
+restoration/revocation. HOST-07 remains open. The Developer upgrade and existing
+key attribution are verified; Dashboard is TheOrder's only Jupiter consumer.
+Observed headers do not establish full documented paid capacity. Price acquisition
+retains at least five seconds between requests and no catch-up queue. The pilot
+uses eight candidates, one SOL/USD reference market, two EMA genes, one evaluation
+window and at most one replacement. Deep research on timing/quota/billing tails,
+interrupted positions and retention precedes continuous operation. Stopping must
+retain holdings visibly without silent resume or invented liquidation proceeds.
 
 **Earlier admission repair checkpoint (2026-10-08, superseded by the current evidence above):** acknowledged lease headroom, renewal after journal readback, a60s completion margin for the first evaluation, automatic reserved stop at the first replacement, and open/retired exact-pair credential revocation are implemented and tested locally. A deliberate finite real-controller assessment and [activation/rollback plan](PAPER-MVP-ACTIVATION.md) are prepared. Dedicated Vercel authentication currently blocks fresh exact-project verification; reauthenticate only the Dashboard profile before pushing/merging or activating. Hosted measurement, nonempty owner/interruption acceptance and the paper pilot remain unchecked.
 

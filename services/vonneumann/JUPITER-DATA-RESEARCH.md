@@ -97,3 +97,34 @@ The latest listed monthly changelog at review was August 2026; the developer-pla
 5. **P2 — Complete execution/accounting research (DATA-03, FILL-01B, RES-02, LIVE-07).** Review live fee/wallet flows, rejection, delay, uncertain outcomes and managed versus fast custom routing. Future signing remains separately gated.
 6. **P2 — Evaluate a Jupiter-only recorded-close pipeline (RES-03).** Require a reviewed close-only dataset contract, durable warmup/restarts, causal bucket boundaries, source freshness/gaps and equal-indicator results. No documented Jupiter historical endpoint currently replaces Birdeye.
 7. **P3 — Reassess continuous collection (HOST-04).** Add a collector only for justified expiring data or sustained latency research after shared quota, storage and retention budgets are established.
+
+## Freshness, quota and regional follow-up — 2026-10-08
+
+The complete index and current Price, rate-limit and latency pages were rechecked.
+Price V3 still uses last swaps, reliable-token oracle sources and reliability
+heuristics; it exposes blockId for recency and can omit an unreliable mint. The
+docs give no per-request promise of a newer observation. **Inference:** an API
+request completing quickly or a larger plan allowance cannot establish a fresh
+market mark. Preserve original source age and receipt identity on repeated
+snapshots; never refresh their clock or invent a missing price. Before selecting
+a continuously running feed, measure source-age, repeated-block and omission
+distributions separately from network latency and compare alternatives under a
+reviewed common price/currency policy.
+[Price documentation](https://developers.jup.ag/docs/price).
+
+The current limiter documentation explicitly defines reset as the oldest
+in-window request aging out and one slot opening, not a complete refill. Limits
+are per organization; headers describe the bucket applied to that path. The
+existing five-second completion-paced assessment remains far below the published
+Developer allowance, but actual observed headers still require reconciliation
+before claiming continuous capacity. Measure and budget historical warmup,
+provider retries and any future quote traffic together without probing into429.
+[Limits and header semantics](https://developers.jup.ag/docs/portal/rate-limits).
+
+Jupiter lists an Oregon/us-west-2 gateway and says all gateway regions serve the
+same surface and freshness. The existing Railway US West location is therefore
+a reasonable measured starting point, not proof of Solana execution performance
+or provider update speed. Research total provider plus database/COMMIT/relay
+latency and compare regions only in an isolated plan; a gateway-only benchmark
+cannot justify migrating the authoritative database or adopting a live executor.
+[Gateway locations](https://developers.jup.ag/docs/portal/latency).

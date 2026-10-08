@@ -5,28 +5,34 @@ This distinguishes tested components, deployed application behavior, and the
 integration work still required. Completing engine tests is not a hosted bot
 release or evidence of a profitable strategy.
 
-Latest hosted checkpoint 2026-10-08: PR71 is merged and its exact production
-source/author/project/team/alias and four smokes passed. A separately issued
-thirty-price native controller assessment now passes at revision34, including
-original lost-reply reconciliation, relay and reserved stop. Nonempty owner
-history and anonymous/other-owner denials pass. The new intended-owner pilot
-starts once through the dashboard, but fails after two prices at revision5;
-first replacement and the hour remain unaccepted. Nine events are fully relayed,
-eight cash accounts remain unchanged and there are no positions. Retained status
-shows a generic controller failure and no native transport phase; a specific
-provider/freshness cause is not established.
+Latest hosted checkpoint 2026-10-08: PR72 is merged as
+`15339871732b144ddfd2b1499ff7bd687de61703`; exact production and four smokes
+pass. Dedicated Vercel authentication is restored. The original failed two-price
+owner run is reconciled at revision6/fence2 after actual managed rollback and one
+original submission. Checkpoints, reserve, accounts, positions and candidate
+events/relay progress are unchanged. The actual owner browser shows failed,
+reconciliation required, unavailable current reference equity and closed controls.
 
-Ordinary closed Railway restoration25f88091-979d-485d-bb29-7ffc7c1fb49c is SUCCESS;
-original variables are restored and the original pair is revoked/NOLOGIN. Late
-interruption is correctly denied after its two-hour write expiry; recovery_until
-permits readback only. The original committed run still needs explicit maintenance
-reconciliation. Fixed provider/acquisition/controller/service failure labels and
-a hash-bound cash-only administrator operation are prepared and tested, awaiting
-release and actual managed rollback/apply. Dedicated file-backed Vercel sign-in
-is needed before that release. No worker is active and no wallet operation has
-been performed. HOST-07 remains open.
-[Fresh evidence](supabase/audits/2026-10-08-fresh-native-controller-and-pilot.json),
-[ordered next work](TODO.md), [activation/rollback](PAPER-MVP-ACTIVATION.md).
+The new fixed-diagnostic thirty-price assessment passes at revision34, including
+original lost-reply reconciliation, relay and reserved stop. Complete owner
+reads, anonymous/other-owner denial and closed Auth/CORS controls pass. The
+98-file worker export matches immutable Git blobs/modes; one US West replica
+retains0.25CPU/500MB limits. Ordinary closed restoration
+`eb25dc63-ac90-4f47-ba40-fc04a1acf6fb` is SUCCESS,17 temporary values are removed
+and its original native pair is revoked/NOLOGIN. These finite successes do not
+establish the real owner's hour, first replacement or statistical tail behavior.
+The separate intended-owner attempt reproduces the two-price failure. The new
+labels locate it at local capture admission; no provider cause is established.
+Original native interruption passes before write expiry at revision6/fence2 with
+unchanged economics/checkpoint and no new candidate event or ACK. Closed deployment
+`49f95073-a427-4bad-a41a-681737382354` is SUCCESS,16 temporary values are removed,
+and its pair is revoked. Specific allowlisted admission codes are now prepared;
+127 focused tests pass. Release and deliberate diagnosis remain next. HOST-07
+is open. No wallet operation is authorized.
+[Managed terminal evidence](supabase/audits/2026-10-08-expired-native-run-maintenance.json),
+[diagnostic assessment](supabase/audits/2026-10-08-diagnostic-controller-assessment.json),
+[new owner attempt](supabase/audits/2026-10-08-owner-pilot-local-admission-failure.json),
+[ordered work](TODO.md), [activation/rollback](PAPER-MVP-ACTIVATION.md).
 
 ## Current position
 
@@ -35,10 +41,10 @@ been performed. HOST-07 remains open.
 | Core evolutionary engine | Phase 2's 12 entries are complete. Funding, indicator/time handling, population continuity, fitness, risk controls and optimizer constraints have regression coverage. |
 | Small strategy | `ema_baseline_v1` evolves two parameters: fast and slow EMA periods. Asset, timeframe and other controls stay fixed; RSI/volume signal filters are disabled. All candidates share 61 completed warmup bars. |
 | Research evaluator | Synthetic replay, a twenty-pair exhaustive grid, cash/passive/fixed-EMA/random controls, and an equal-budget reference GA are implemented. Training-only selection and fresh chronological holdout accounts are tested. Representative historical research and calibrated fills remain open. |
-| Exact paper controller | The selected native-v5 path now passes the actual thirty-price hosted controller, lost-reply, relay and reserved-stop assessment. The real owner's start commits through the browser. Its latest hour attempt fails after two prices; fixed provider/stage diagnostics are prepared before another assessment. The worker is currently closed. |
-| Database / transports | Fifteen migrations install98 functions/26 tables; full body/catalog/grant verification passes. SSL, Railway IPv6/project-CA/hostname TLS/SCRAM/channel binding and finite owner/run/capability checks pass. Curated vn_read provides owner-only nonempty history; anonymous/private/other-owner access is denied. Release admission is OPEN at epoch1, while every issued native pair is revoked/NOLOGIN and runtime is closed. All11,149 user-rejected old rows are deleted; Auth is retained. One expired committed run awaits guarded cash-only maintenance reconciliation. No old competing writer is selected. |
+| Exact paper controller | The selected native-v5 path now passes the actual thirty-price hosted controller, lost-reply, relay and reserved-stop assessment. The real owner's start commits through the browser. Its latest hour attempt fails after two prices; fixed provider/stage diagnostics are released and the new assessment passes. The new intended-owner attempt again fails at local capture admission; the specific cause needs deliberate diagnosis before hour acceptance. |
+| Database / transports | Fifteen migrations install98 functions/26 tables; full body/catalog/grant verification passes. SSL, Railway IPv6/project-CA/hostname TLS/SCRAM/channel binding and finite owner/run/capability checks pass. Curated vn_read provides owner-only nonempty history; anonymous/private/other-owner access is denied. Release admission is OPEN at epoch1, with ordinary closed runtime restored after each assessment; a separate finite pilot scope is issued only after quiescent checks. All11,149 user-rejected old rows are deleted; Auth is retained. The original expired cash-only run is now terminal/reconciliation-required with unchanged economic/checkpoint state. No old competing writer is selected. |
 | Dashboard | Next.js16.3.8 and the selected paper-v5 interface are deployed. The real owner starts once and sees eight candidates and committed history. Worker failures are distinguished from the last committed run status; closed mode disables controls and retains history. Complete pinned reads poll independently from status. Final first-replacement/trade/evaluation/replay browser acceptance remains open. |
-| Worker / live execution | Railway's exact Dashboard service is restored to ordinary closed startup with original variables and revoked pilot credentials. No paper process is running; an expired database run requires explicit reconciliation. The Jupiter V2 helper remains quote-only and cannot sign or execute a swap. |
+| Worker / live execution | Railway's exact Dashboard service is restored to ordinary closed startup after the assessment with original variables and revoked assessment credentials. The failed intended-owner scope is terminal and revoked; specific diagnosis precedes any new deliberate finite scope. No automatic restart is permitted. The Jupiter V2 helper remains quote-only and cannot sign or execute a swap. |
 
 The exact source, project/service/owner identities, US West replica, HTTPS,
 resource limits and outbound IPv6/TLS are verified. The $20/month pilot ceiling
@@ -46,10 +52,11 @@ is approved. Actual installer/issuer rollback, closed migration, finite native
 sessions/revocation, owner reads/Auth/CORS,61-bar warmup and paced provider/native
 controller checks pass. These finite successes do not establish the one-hour
 pilot, interruption with positions, unattended restoration, statistical timing
-tails or economic performance. The latest failed run is preserved, runtime is
-closed, and original finite write authority is not extended. Further release
-needs dedicated Vercel sign-in; then apply the reviewed original maintenance
-reconciliation and diagnose the provider/controller failure before a new hour.
+tails or economic performance. The failed run is preserved and explicitly
+terminal; no original authority was extended. Fixed failure diagnostics are
+released, and a new assessment passes. The next separate acceptance is the real
+owner's hour and first replacement; any failure requires original reconciliation
+and evidence before another attempt.
 [Current evidence](supabase/audits/2026-10-08-fresh-native-controller-and-pilot.json),
 [setup](RAILWAY-SETUP.md), [native transport](services/vonneumann/NATIVE-SQL-TRANSPORT.md),
 [closed cutover](SUPABASE-CUTOVER.md), [hosted preflight](services/vonneumann/HOSTED-NATIVE-PREFLIGHT.md).
@@ -66,8 +73,8 @@ invent liquidation proceeds.
 
 | Order | Remaining work | Todo / acceptance |
 |---|---|---|
-| 1 | Release fixed diagnostics and reconcile the original expired run | PAPER-FAILURE-EVIDENCE1/PAPER-EXPIRED-MAINT1: dedicated Dashboard Vercel sign-in, exact-target/source review, actual original-input rollback rehearsal and once-only cash-only interruption. Prove unchanged economics/checkpoint and candidate outbox/relay progress; verify the terminal owner projection without fabricating an event or ACK. |
-| 2 | Diagnose and repair the observed controller/provider failure | The fresh thirty-price native assessment passes; the actual owner hour still fails after two prices. Capture fixed acquisition/controller/provider labels, repair the established cause and repeat one finite assessment under unchanged source/receipt/lease bounds. Do not infer a provider cause from null SQL phases. |
+| Complete prerequisite | Fixed diagnostics and original expired-run reconciliation | PAPER-FAILURE-EVIDENCE1/PAPER-EXPIRED-MAINT1: dedicated sign-in, exact-target/source/production, actual original-input rollback and once-only interruption pass. Unchanged economics/checkpoint and candidate delivery hashes and actual terminal owner browser history pass; no event or ACK is invented. |
+| 2 | Diagnose and repair the observed controller/provider failure | The fresh thirty-price native assessment passes; the owner hour reproduces a local capture-admission failure after two prices. Original native interruption, closed restoration and revocation pass. Specific capture-admission codes are prepared; release and use them in a deliberate diagnostic attempt under unchanged source/receipt/lease bounds. Do not infer a provider cause from null SQL phases. |
 | 3 | Complete workload/security/interrupt evidence for the bounded profile | DATA-01E, D2D2A, HOST-02…06/A3: retain finite source/quota/DB/relay/resource measurements, owner isolation and original-ID settlement. Complete unresolved fault/overlap/outage exposure checks. Continuous quota/tail/restart readiness remains separate. |
 | 4 | Verify complete operator and ownership flow at the final window | Actual login/start/eight-candidate/nonempty history works. Verify complete first-replacement balance/trade/evaluation history, reconnect/replay and owner isolation at the final committed revision. Costs remain uncalibrated; stop retains holdings and restart requires reconciliation. |
 | 5 | Accept the supervised one-hour pilot, then close/review | HOST-07: eight candidates, two EMA genes, one SOL/USD reference window, at most one replacement, real feeds/simulated economics and reserved stop. Record resource/quota/failure evidence, restore closed runtime and revoke the finite pair. No profitability or live-trading claim follows from this mechanical acceptance. |
