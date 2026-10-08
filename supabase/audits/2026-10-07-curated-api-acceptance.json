@@ -1,0 +1,44 @@
+{
+  "date": "2026-10-07",
+  "target": {
+    "name": "The Dashboard",
+    "ref": "fxpxsciltakyypunglzr",
+    "organization": "cqfnnaunmupdyobkyqfo"
+  },
+  "schemas": "public,graphql_public,vn_read",
+  "original_configuration_retained_privately": true,
+  "only_schema_list_changed": true,
+  "grants_changed": false,
+  "admission": "closed",
+  "paper_run_created": false,
+  "emails_sent": false,
+  "owned_temporary_auth_users": 2,
+  "checks": [
+    {
+      "check": "owned_user_0_curated_discovery",
+      "status": 200,
+      "identity_matches": true,
+      "empty_directory": true
+    },
+    {
+      "check": "owned_user_0_private_schemas",
+      "unexposed": true
+    },
+    {
+      "check": "owned_user_1_curated_discovery",
+      "status": 200,
+      "identity_matches": true,
+      "empty_directory": true
+    },
+    {
+      "check": "owned_user_1_private_schemas",
+      "unexposed": true
+    },
+    {
+      "check": "anonymous_discovery_denied",
+      "status": 401,
+      "sqlstate": "42501"
+    }
+  ],
+  "limits": "Empty-directory Auth/schema acceptance only; nonempty v5 cross-owner history and owner browser/control acceptance remain."
+}
