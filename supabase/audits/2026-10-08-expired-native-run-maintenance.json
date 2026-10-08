@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "date": "2026-10-08",
+  "source_sha": "15339871732b144ddfd2b1499ff7bd687de61703",
+  "pull_request": "https://github.com/TOOTRJ/TheDashboard/pull/72",
+  "vercel": {
+    "deployment_id": "dpl_5pdMVUcJrdhKgdrTtoqjuP53m8Rz",
+    "state": "READY",
+    "exact_source_project_team_author_alias_verified": true,
+    "read_only_smokes": 4
+  },
+  "supabase": {
+    "project_ref": "fxpxsciltakyypunglzr",
+    "owner": "cqfnnaunmupdyobkyqfo",
+    "operation": "original expired cash-only v5 administrative interruption",
+    "managed_rollback_verified": true,
+    "independent_original_absence_and_unchanged_state_verified": true,
+    "original_submission_once": true,
+    "original_receipt_verified": true,
+    "before_revision": 5,
+    "after_revision": 6,
+    "after_fence": 2,
+    "status": "failed",
+    "requires_reconciliation": true,
+    "checkpoint_accounts_positions_reserve_unchanged": true,
+    "accounts": 8,
+    "open_positions": 0,
+    "candidate_outbox_relay_progress_unchanged": true,
+    "candidate_events": 9,
+    "new_candidate_events": 0,
+    "terminal_reference_equity": "unavailable",
+    "release": "OPEN",
+    "epoch": 1,
+    "full_catalog_unchanged_verified": true,
+    "grants_schema_expiry_changes": false
+  },
+  "browser": {
+    "actual_owner_terminal_history_verified": true,
+    "revision": 6,
+    "status": "failed",
+    "reconciliation": "required",
+    "worker_controls_disabled": true,
+    "candidate_balances_retained": true,
+    "events": 9
+  },
+  "limits": {
+    "live_wallet_operations": false,
+    "automatic_resume": false,
+    "other_projects_modified": false,
+    "host_07_complete": false,
+    "new_assessment_separate": true
+  }
+}

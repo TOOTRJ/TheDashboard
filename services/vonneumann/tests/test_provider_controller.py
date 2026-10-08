@@ -387,6 +387,10 @@ class ProviderControllerTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase
         self.assertEqual(self.transport.count('commit_command'), count)
         self.assertEqual(self.feed.api_call_count, 1)
         self.assertFalse(self.controller.accepting)
+        self.assertEqual(self.controller.last_failure['admission_code'],
+                         'receipt_clock_not_advanced')
+        self.assertEqual(self.controller.last_failure['stage'], 'capture')
+        self.assertIsNone(self.controller.last_failure['acquisition'])
 
     async def test_unchanged_snapshot_is_deferred_without_refreshing_installed_age_anchor(self):
         await self.bootstrapped(); self.price(); await self.controller.tick()

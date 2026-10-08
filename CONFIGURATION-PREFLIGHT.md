@@ -3012,3 +3012,84 @@ cleanup used fresh exact provider identity checks independently. Further
 substantial research remains necessary on provider/freshness failures, late
 operator recovery and terminal status/replay, remote tails and retained-position
 outages before unattended operation or live execution.
+
+## 79. Exact diagnostic release, original terminal maintenance and fresh assessment — 2026-10-08
+
+Dedicated Dashboard file-backed Vercel sign-in passes; no shared profile or
+credential is changed. Exact GitHub repo1141090963/user16749816, Vercel
+project `prj_wFUe9k9USVreOQcmQKNWRAVsx5fH` / team `team_8iNNxiNjrOseD4gdSCHkQEzF`,
+Supabasefxpxsciltakyypunglzr/orgcqfnnaunmupdyobkyqfo and Railway project/service/
+workspace/environment are verified. PR72 headb6badaf76aa67f87979cbe4355a50fa6539a41da
+previewdpl_2St6EL6aazFtBf1aKLKtPBDTL7VH is READY. The reviewed merge
+15339871732b144ddfd2b1499ff7bd687de61703 reaches exact production
+dpl_5pdMVUcJrdhKgdrTtoqjuP53m8Rz with canonical author/repository/alias and four
+read-only smokes.125 focused worker cases and six isolated PostgreSQL cases pass.
+
+The managed original cash-only interruption uses the same previously absent
+command and original scope/hashes. Actual ROLLBACK plus independent unchanged
+readback precedes one durable application intent/submission. Original journal
+and projection reconcile revision6/fence2/failed/reconciliation-required.
+Economic/checkpoint state and candidate outbox/relay hashes are unchanged;
+current reference equity is unavailable and no candidate event/ACK is invented.
+The actual owner browser shows that terminal state and disabled controls.
+[Sanitized managed/browser evidence](supabase/audits/2026-10-08-expired-native-run-maintenance.json).
+
+A separately issued quiescent finite assessment from that merge passes30 prices,
+lost original bootstrap reply/get_command settlement,11 relay events and reserved
+stop at revision34. Complete34 run/264 probe/240 sample versions and11 unique
+contiguous events are owner-readable; other owner and anonymous reads are denied.
+Closed authenticated status/controls return503 with no-store and exact CORS.
+The one short evaluation is unscored. Source ages3.367673–8.405679s and
+218.821324s elapsed/RSS95055872/CPU8.21s are finite measurements, not tail proof.
+
+Its98 exported files/modes/blobs and8a6f5df727b408ecbaf6c2be7e4207609cbc138a19fc57f1104d571054aad472
+manifest match the immutable source. Deployment308b3164-10a4-46e3-9fb2-1540f2ab44d9
+is SUCCESS in one US West replica with0.25CPU/500MB/no restart/no overlap.
+A refused configuration response is reconciled by exact variables, unchanged
+closed start command and absent original run, then that same configuration is
+completed before its first upload. IDs/credentials/export are not replaced.
+Ordinary closed restorationeb25dc63-ac90-4f47-ba40-fc04a1acf6fb is SUCCESS; exact
+original variables match,17 additions are removed and original pair is revoked.
+[Sanitized finite assessment](supabase/audits/2026-10-08-diagnostic-controller-assessment.json).
+
+Jupiter's current index/Price/limiter/region documents were rechecked. Preserve
+source/receipt clocks on repeated blocks; a plan or network speed does not prove
+freshness. Reset opens one slot, not a full refill. Research source-age and
+repeated/omitted marks separately from gateway/network/DB/relay tails before
+continuous adoption. [Primary-source follow-up](services/vonneumann/JUPITER-DATA-RESEARCH.md#freshness-quota-and-regional-follow-up--2026-10-08).
+The next separate acceptance is the intended owner's hour/first replacement.
+HOST-07 remains open; user migration/other projects and all wallet restrictions
+are preserved.
+
+
+## 80. Intended-owner capture failure and timely original interruption — 2026-10-08
+
+The distinct reviewed98-file/source15339871732b144ddfd2b1499ff7bd687de61703
+worker deploymentcc8a781d-ffc2-45e6-b072-bbaab8672905 passes exact source/target/
+manifest/US West replica/resource checks. One browser start commits the intended
+owner scope. After two prices/revision5, authenticated fixed labels show capture /
+operational_admission_failed, acquisition null, and both native failure phases
+null. No specific provider, quota, source-age or SQL cause is established. All nine
+original candidate events are delivered/ACKed; eight accounts retain$100 each,
+reserve$200 and zero positions.
+
+The original revision/hash-bound native interruption is deliberately submitted
+once through closed recovery deploymentfd06d897-6d11-48d1-a17d-f993a10c8b17
+before the original two-hour write deadline. Receipt/journal readback and independent
+checkpoint/account/position/reserve equality pass: revision6/fence2, failed and
+reconciliation-required, zero provider/wallet calls and zero new candidate events
+or ACKs. Ordinary closed deployment49f95073-a427-4bad-a41a-681737382354 is SUCCESS,
+16 temporary values are removed, original variables match, and exact native pair
+is revoked/NOLOGIN. The actual owner browser displays terminal revision6, unavailable
+current equity, retained eight accounts and disabled controls.
+[Sanitized failure and recovery proof](supabase/audits/2026-10-08-owner-pilot-local-admission-failure.json).
+
+The existing labels cannot distinguish the different local capture refusals.
+Specific literal allowlisted admission codes are prepared without arbitrary
+exception strings or state disclosure.127 focused tests pass in the isolated
+native environment, including the real stalled-receipt controller and hostile
+unknown/nonstring/multiargument errors. An initial run in the older non-native
+environment had two native-import errors; the correct isolated native environment
+passes. All receipt/source/lease/deadline, ownership and no-retry guards remain.
+This is diagnostic preparation; release and deliberate hosted diagnosis precede
+another hour acceptance. HOST-07 and continuous/live gates remain open.
