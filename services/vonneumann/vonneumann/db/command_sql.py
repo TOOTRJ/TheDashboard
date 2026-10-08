@@ -57,8 +57,13 @@ class CommandSQLBounds:
 
 
 def paper_sql_bounds():
-    """Measured paper-only headroom; general transport defaults stay unchanged."""
-    return CommandSQLBounds(operation_seconds=5.0, connect_seconds=1.0,
+    """Paper connection headroom inside the unchanged whole RPC deadline.
+
+    DNS, TCP, TLS and SCRAM share this single attempt. The five-second whole
+    deadline still bounds all phases, even when their individual ceilings sum
+    to more; no connection/command retry or freshness extension is introduced.
+    """
+    return CommandSQLBounds(operation_seconds=5.0, connect_seconds=2.0,
                             statement_seconds=3.0, commit_seconds=.5)
 
 

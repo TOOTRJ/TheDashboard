@@ -92,7 +92,7 @@ class PaperServiceTests(OfflineTestMixin,unittest.IsolatedAsyncioTestCase):
   with patch('vonneumann.db.command_sql.DashboardCommandSQLPair') as pair,patch('vonneumann.market.jupiter_feed.JupiterFeed'),patch.object(paper_app,'PaperService'):
    paper_app.configured_service(environment)
    bounds=pair.call_args.kwargs['bounds']
-   self.assertEqual((bounds.connect_seconds,bounds.operation_seconds,bounds.statement_seconds,bounds.commit_seconds,bounds.cleanup_seconds),(1.0,5.0,3.0,.5,1.0))
+   self.assertEqual((bounds.connect_seconds,bounds.operation_seconds,bounds.statement_seconds,bounds.commit_seconds,bounds.cleanup_seconds),(2.0,5.0,3.0,.5,1.0))
  async def test_service_selects_renewal_headroom_for_actual_paper_rpc_and_cleanup(self):
   from vonneumann.server import paper_service
   from vonneumann.db.command_sql import paper_sql_bounds

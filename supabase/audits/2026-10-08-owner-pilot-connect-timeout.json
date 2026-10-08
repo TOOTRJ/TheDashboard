@@ -1,0 +1,245 @@
+{
+  "version": 1,
+  "date": "2026-10-08",
+  "source_sha": "062096ad803894f51b308e99a33982d7d45ba137",
+  "pilot_deployment": "68fda03a-8466-4baa-99d0-2620815843c9",
+  "export": {
+    "source_sha": "062096ad803894f51b308e99a33982d7d45ba137",
+    "files": 99,
+    "bytes": 1240822,
+    "manifest_sha256": "17bf31f0f85c28eb17e428bfeef3cd9b90c708926cd04bf9e523802ddacfdcf7",
+    "credentials_included": false
+  },
+  "all_export_blobs_modes_verified": true,
+  "acceptance": "not passed; hour/first replacement remain open",
+  "failure": {
+    "phase": "pending",
+    "committed_revision": 109,
+    "completed_ticks": 105,
+    "pending_stage": "protect_settle",
+    "first_transport_failures": {
+      "economic": {
+        "phase": "connect",
+        "category": "phase_timeout",
+        "sqlstate": null,
+        "code": "phase_timeout"
+      },
+      "relay": null
+    },
+    "source_order": {
+      "enabled": true,
+      "discarded_total": 0,
+      "episode_discarded": 0,
+      "episode_active": false,
+      "limit_reason": null,
+      "max_consecutive_discards": 2,
+      "max_total_discards": 8,
+      "episode_seconds": 15
+    },
+    "one_original_settle_attempt": true,
+    "one_original_stop_intent": true,
+    "evidence_guard_after_settle": "provider_evidence_expired_or_invalid",
+    "automatic_retry": false
+  },
+  "recovery": {
+    "deployment": "e85e7d6c-be20-4034-8bba-d9aa3d79fab9",
+    "terminal_revision": 110,
+    "terminal_fence": 2,
+    "status": "failed",
+    "requires_reconciliation": true,
+    "expired_before_interruption": true,
+    "checkpoint_cash_holdings_preserved": true,
+    "candidate_events_and_acknowledgments_unchanged": true,
+    "new_outbox_events": 0,
+    "provider_operations": 0,
+    "wallet_operations": false,
+    "original_interrupt_readback_verified": true
+  },
+  "final_delivery": {
+    "events": 9,
+    "relay_events": 9,
+    "unacknowledged_events": 0
+  },
+  "owner_browser": {
+    "actual_owner_authenticated": true,
+    "terminal_revision": 110,
+    "latest_candidate_balances": 8,
+    "trade_versions": 0,
+    "evaluation_windows": 0,
+    "reference_equity": "unavailable after interruption",
+    "controls_disabled": true
+  },
+  "isolation": {
+    "version": 1,
+    "source": "062096ad803894f51b308e99a33982d7d45ba137",
+    "only_original_dashboard_pilot": true,
+    "other_owner_discovery_hidden": true,
+    "checks": [
+      {
+        "actor": "other_owned_auth_user",
+        "function": "page",
+        "status": 400,
+        "denied": true
+      },
+      {
+        "actor": "other_owned_auth_user",
+        "function": "events",
+        "status": 400,
+        "denied": true
+      },
+      {
+        "actor": "other_owned_auth_user",
+        "path": "/v5/status",
+        "status": 404,
+        "denied": true,
+        "no_store": true
+      },
+      {
+        "actor": "other_owned_auth_user",
+        "path": "/v5/controls",
+        "status": 404,
+        "denied": true,
+        "no_store": true
+      },
+      {
+        "actor": "other_owned_auth_user",
+        "function": "page",
+        "status": 400,
+        "denied": true
+      },
+      {
+        "actor": "other_owned_auth_user",
+        "function": "events",
+        "status": 400,
+        "denied": true
+      },
+      {
+        "actor": "other_owned_auth_user",
+        "path": "/v5/status",
+        "status": 404,
+        "denied": true,
+        "no_store": true
+      },
+      {
+        "actor": "other_owned_auth_user",
+        "path": "/v5/controls",
+        "status": 404,
+        "denied": true,
+        "no_store": true
+      },
+      {
+        "actor": "anonymous",
+        "function": "page",
+        "status": 401,
+        "denied": true
+      },
+      {
+        "actor": "anonymous",
+        "function": "events",
+        "status": 401,
+        "denied": true
+      },
+      {
+        "actor": "anonymous",
+        "path": "/v5/status",
+        "status": 401,
+        "denied": true,
+        "no_store": true
+      },
+      {
+        "actor": "anonymous",
+        "path": "/v5/controls",
+        "status": 401,
+        "denied": true,
+        "no_store": true
+      }
+    ],
+    "economic_mutations": false,
+    "secrets_included": false
+  },
+  "capacity": {
+    "version": 1,
+    "source": "062096ad803894f51b308e99a33982d7d45ba137",
+    "scope": "only original owner/run; terminal read-only aggregate",
+    "journal": {
+      "quotes": 105,
+      "commands": 110,
+      "terminal_status": "failed",
+      "request_wire_bytes": 11971726,
+      "unique_source_blocks": 105,
+      "request_stored_column_bytes": 4773082,
+      "source_age_floor_at_receipt_seconds": {
+        "p95": 9.4184838,
+        "median": 5.477644,
+        "maximum": 12.376571,
+        "minimum": 2.329612
+      },
+      "capture_to_first_journal_wall_seconds": {
+        "p95": 1.7559484,
+        "median": 1.563994,
+        "maximum": 2.110214,
+        "minimum": 1.040806
+      }
+    },
+    "limits": "column compression bytes exclude row/index/TOAST overhead; wall capture-to-journal includes acquisition/planning/lease/SQL and is not native SQL latency"
+  },
+  "resource_metrics": {
+    "version": 1,
+    "source": "062096ad803894f51b308e99a33982d7d45ba137",
+    "deployment": "68fda03a-8466-4baa-99d0-2620815843c9",
+    "start_utc": "2026-10-08T19:38:21.943096+00:00",
+    "end_utc": "2026-10-08T19:58:42.222403+00:00",
+    "sample_seconds": 60,
+    "averaging_seconds": 60,
+    "metrics": [
+      {
+        "measurement": "CPU_USAGE",
+        "region": "us-west2-aws",
+        "samples": 19,
+        "minimum": 0.0016132333333333333,
+        "median": 0.0198431,
+        "maximum": 0.05141275
+      },
+      {
+        "measurement": "MEMORY_USAGE_GB",
+        "region": "us-west2-aws",
+        "samples": 19,
+        "minimum": 0.084054016,
+        "median": 0.087939072,
+        "maximum": 0.090302464
+      },
+      {
+        "measurement": "NETWORK_TX_GB",
+        "region": "us-west2-aws",
+        "samples": 19,
+        "minimum": 2.9257e-05,
+        "median": 0.000654942,
+        "maximum": 0.001540503
+      }
+    ],
+    "scope": "exact Dashboard project/environment/service/deployment",
+    "account_usage_or_billing_modified": false,
+    "units": "API measurement enum; CPU variants retained without inferring units"
+  },
+  "closed_restoration": {
+    "deployment": "c7d8a768-1c4e-41a0-9f8c-59901656a635",
+    "status": "SUCCESS",
+    "original_variables_match": true,
+    "temporary_values_removed": 16,
+    "native_pair_revoked_and_nologin": true
+  },
+  "proposed_repair": {
+    "paper_connect_seconds": 2,
+    "whole_operation_seconds": 5,
+    "statement_seconds": 3,
+    "commit_seconds": 0.5,
+    "cleanup_seconds": 1,
+    "paper_renewal_reserve_seconds": 6,
+    "generic_profile_unchanged": true,
+    "no_retry_or_freshness_extension": true,
+    "local_tests_each_loop": 73,
+    "real_offline_native_tests": 15,
+    "hosted_repaired_acceptance": "pending"
+  },
+  "secrets_included": false
+}

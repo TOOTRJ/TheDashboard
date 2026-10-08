@@ -3308,3 +3308,56 @@ provider freshness or credential lifetime.54 focused runner/service/canary cases
 pass under uvloop, including a5s lease-tail refusal. 54 cases also pass on default asyncio. The assessment/closed revocation are
 complete. Release the reserve alignment, then assess its final source before the
 actual owner hour.
+
+## 85. Final-source renewal-reserve release — 2026-10-08
+
+**PR77 release — 2026-10-08:** The paper6s renewal reserve is merged as
+`062096ad803894f51b308e99a33982d7d45ba137`. Exact Vercel production
+`dpl_1rLU71cobwKF4fZqyKCqThjqSdJc` is READY with four smokes.54 focused
+runner/service/canary cases pass on each event loop. The finite thirty-price
+assessment of this exact final source passes, including original lost-reply
+reconciliation, relay, Stop, full owner reads and isolation. Ordinary closed
+restoration `f28baa4b-72a3-4922-ad42-2327ca80f435` is SUCCESS;17 temporary
+values are removed and the pair is revoked/NOLOGIN. The real-owner hour remains
+next. [Final-source assessment](supabase/audits/2026-10-08-renewal-budget-controller-assessment.json). The preceding
+PR76 assessment is passed, closed and revoked. No lease, expiry, freshness,
+schema/grant or other project changes.
+
+## 86. Original owner connect timeout and finite recovery — 2026-10-08
+
+**Latest owner pilot — 2026-10-08:** Final PR77 source starts through the actual
+owner dashboard, commits105 accepted prices/revision109, and delivers nine events.
+A one-second native connection phase timeout leaves the original protection
+pending. No SQLSTATE/statement timeout or source-order discard is reported.
+One original settlement does not resume expired evidence; one Stop is latched.
+Exact-target, expired-revision/hash-bound native interruption reads back once at
+revision110/fence2 with unchanged checkpoint, cash, accounts and positions, no
+new candidate event/ACK and no provider/wallet operation. The owner browser shows
+terminal history with disabled controls and unavailable current equity. Ordinary
+closed deployment`c7d8a768-1c4e-41a0-9f8c-59901656a635` is SUCCESS;16 temporary
+values are removed, the original variable map matches, and both finite credentials
+are revoked/NOLOGIN. [Original connect-timeout evidence](supabase/audits/2026-10-08-owner-pilot-connect-timeout.json).
+
+The paper-only connection repair allows2s for the single DNS/TCP/TLS/SCRAM attempt
+inside the unchanged5s whole RPC,3s statement,0.5s COMMIT and1s cleanup budgets.
+The selected6s renewal reserve and generic defaults remain unchanged. A1.2s
+connection-delay regression fails before repair.73 focused tests pass under each
+event loop;15 real offline PostgreSQL/TLS/SCRAM cases pass, proving the old bound
+submits no command and the new bound commits the original once. No retry, pool,
+endpoint, lease, expiry, freshness, schema/grant or other-project change. Release
+and final-source hosted assessment precede any new finite owner hour. HOST-07,
+first replacement, continuous paper and every live-trading gate remain open.
+
+The original source is`062096ad803894f51b308e99a33982d7d45ba137`; pilot
+deployment`68fda03a-8466-4baa-99d0-2620815843c9` matches all99 Git blobs/modes
+and the17bf31f0f85c28eb17e428bfeef3cd9b90c708926cd04bf9e523802ddacfdcf7
+manifest. Actual source-age floors for105 accepted quotes are2.330/5.478/
+9.418/12.377s min/median/p95/max. Capture-to-first-journal wall intervals are
+1.041/1.564/1.756/2.110s; these include planning/renewal/SQL and are not native
+SQL latencies.110 journal requests contain11,971,726 JSONB text bytes and
+4,773,082 compressed column bytes, excluding row/index/TOAST overhead. Nineteen
+60s exact-deployment resource samples include running and pending time: RAM
+0.084054016–0.090302464GB; CPU_USAGE remains an API enum without proven scaling.
+The refreshed TheOrder portal attributes522 requests over24h to JohnVon and shows
+0% server errors; this is aggregate traffic across recent tests, not this pilot
+alone or proof of the documented600/60s entitlement. No billing/firewall/key change.
