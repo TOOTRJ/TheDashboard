@@ -180,10 +180,40 @@ def install_quiescent():
             "SET LOCAL transaction_timeout='10s';\n"
             + f'CREATE SCHEMA {SCHEMA} AUTHORIZATION postgres;\n'
             + f'REVOKE ALL ON SCHEMA {SCHEMA} FROM PUBLIC,anon,authenticated,service_role,authenticator,vn_economic,vn_relay;\n'
-            + quiescent_function() + 'COMMIT;\n')
+            + quiescent_function() + rehearse_quiescent_function() + 'COMMIT;\n')
+
+
+def rehearse_quiescent_function():
+    """Bound-input rehearsal rolls issuance back in a nested subtransaction.
+
+    The managed API cannot bind a multi-statement BEGIN/SELECT/ROLLBACK batch.
+    A private invoker wrapper retains only the receipt in a local variable;
+    raising the private sentinel rolls back every role/binding change before
+    returning. Errors from the real issuer are never treated as a rehearsal.
+    """
+    return f"""CREATE FUNCTION {SCHEMA}.rehearse_quiescent(input jsonb) RETURNS jsonb
+ LANGUAGE plpgsql SECURITY INVOKER AS $rehearsal$
+DECLARE result jsonb;
+BEGIN
+ BEGIN
+  result := {SCHEMA}.issue_quiescent(input);
+  RAISE EXCEPTION 'rollback_native_rehearsal' USING ERRCODE='PVR01';
+ EXCEPTION WHEN SQLSTATE 'PVR01' THEN
+  -- PL/pgSQL variables survive rollback; database changes do not.
+  NULL;
+ END;
+ RETURN result;
+ EXCEPTION WHEN OTHERS OR query_canceled OR assert_failure THEN
+  RAISE EXCEPTION 'native_rehearsal_failed' USING ERRCODE='P0001';
+END;
+$rehearsal$;
+REVOKE ALL ON FUNCTION {SCHEMA}.rehearse_quiescent(jsonb)
+ FROM PUBLIC,anon,authenticated,service_role,authenticator,vn_economic,vn_relay;
+"""
 
 
 def remove_quiescent():
     return ("BEGIN; SET LOCAL lock_timeout='500ms'; SET LOCAL statement_timeout='6s';\n"
+            + f'DROP FUNCTION {SCHEMA}.rehearse_quiescent(jsonb);\n'
             + f'DROP FUNCTION {SCHEMA}.issue_quiescent(jsonb);\n'
             + f'DROP SCHEMA {SCHEMA} RESTRICT; COMMIT;\n')

@@ -18,6 +18,8 @@ const paper=load('src/lib/probes/paper-api.ts',{'./durable-read-model':durable})
 const deferred=()=>{let resolve;const promise=new Promise(r=>{resolve=r;});return {promise,resolve};};
 function harness(options={}) {
  const hooks=[],effects=[],requests=[],reads=[];let index=0,dirty=false,tree;
+ const timers=new Map();let timerId=0,now=0;
+ const later=(fn,delay)=>{const id=++timerId;timers.set(id,{fn,at:now+delay});return id;};
  let phase=options.phase??'fresh',failed=false;
  const same=(a,b)=>a&&b&&a.length===b.length&&a.every((x,i)=>Object.is(x,b[i]));
  const memo=(fn,deps)=>{const i=index++;if(!hooks[i]||!same(hooks[i].deps,deps))hooks[i]={deps,value:fn()};return hooks[i].value;};
@@ -42,7 +44,7 @@ function harness(options={}) {
    const records=args.kind==='runs'?[{revision:2,key:run,command_id:start,data:row}]:[];
    return {version:1,owner_id:owner,run_id:run,kind:args.kind,through_revision:2,records,has_more:false,next_cursor:records.length?{revision:2,key:run}:null};
   },
-  async worker(name,args){requests.push({name,args});
+  async worker(name,args,signal){requests.push({name,args,signal});
    if(options.workerFails)throw Error('private worker failure');
    if(name==='status')return state();
    if(name==='controls')return {...state(),start_id:start,stop_id:stop};
@@ -55,7 +57,9 @@ function harness(options={}) {
   react,'react/jsx-runtime':{jsx:(type,props,key)=>({type,props,key}),jsxs:(type,props,key)=>({type,props,key})},
   '@/lib/probes/paper-api':paper,'@/lib/probes/durable-read-model':durable,
   '@/lib/probes/probes-supabase':{fetchColonyRuns:async()=>[]},
- },{process:{env:{}},crypto:{randomUUID:()=>stop},setInterval:()=>1,clearInterval(){}});
+ },{process:{env:{}},crypto:{randomUUID:()=>stop},
+  setTimeout:later,clearTimeout:id=>timers.delete(id),
+  setInterval:(fn,delay)=>later(fn,delay),clearInterval:id=>timers.delete(id)});
  let props={owner,token:'synthetic-A',apiOverride:api,legacyReader:async()=>[]};
  function render(){index=0;dirty=false;tree=PaperDashboard(props);while(effects.length)effects.shift()();}
  function nodes(node){if(!node||typeof node!=='object')return [];return [node,...[node.props?.children].flat(Infinity).flatMap(nodes)];}
@@ -66,6 +70,8 @@ function harness(options={}) {
   click(label){const b=nodes(tree).find(n=>n.type==='button'&&text(n)===label);assert.ok(b,label);assert.ok(!b.props.disabled,label+' disabled');b.props.onClick();if(dirty)render();},
   doubleClick(label){const b=nodes(tree).find(n=>n.type==='button'&&text(n)===label);assert.ok(b);b.props.onClick();b.props.onClick();if(dirty)render();},
   changeToken(){props={...props,token:'synthetic-B'};render();},
+  advance(ms){now+=ms;for(const [id,timer] of [...timers])if(timer.at<=now){timers.delete(id);timer.fn();}if(dirty)render();},
+  timerCount(){return timers.size;},
   dispose(){for(const h of hooks)h.cleanup?.();},
   text(){return text(tree);},
  };
@@ -111,4 +117,25 @@ test('failed worker identifies reconciliation separately from retained committed
  assert.match(h.text(),/Committed history may precede the failure/);
  assert.match(h.text(),/Committed revision 2/);
  assert.throws(()=>h.click('Start configured pilot'),/disabled/);h.dispose();
+});
+test('slow complete history is not cancelled by periodic worker status polling',async()=>{
+ const gate=deferred(),h=harness({readGate:gate});await h.flush();
+ const original=h.reads[0].signal;
+ h.advance(10000);await h.flush();h.advance(10000);await h.flush();
+ assert.equal(original.aborted,false);assert.equal(h.reads.length,1);
+ assert.equal(h.requests.filter(r=>r.name==='status').length,3);
+ assert.doesNotMatch(h.text(),/Committed revision/);
+ gate.resolve();await h.flush();assert.match(h.text(),/Committed revision 2/);
+ const completedReads=h.reads.length;
+ h.advance(9999);await h.flush();assert.equal(h.reads.length,completedReads);
+ h.advance(1);await h.flush();assert.ok(h.reads.length>completedReads);
+ h.dispose();assert.equal(h.timerCount(),0);
+});
+test('explicit refresh cancels a pending history cycle and keeps one replacement',async()=>{
+ const gate=deferred(),h=harness({readGate:gate});await h.flush();
+ const original=h.reads[0].signal;h.click('Refresh status and history');await h.flush();
+ assert.equal(original.aborted,true);assert.equal(h.reads.length,2);
+ assert.equal(h.reads[1].signal.aborted,false);
+ gate.resolve();await h.flush();assert.match(h.text(),/Committed revision 2/);h.dispose();
+ assert.equal(h.timerCount(),0);
 });

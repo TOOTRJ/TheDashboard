@@ -53,3 +53,20 @@ Research remains for managed-hook changes, native dependency/CA expiration and
 credential lifetime/rotation, safe parameters/logging under changed policies,
 actual connection/COMMIT tails, shared provider quotas and interruption exposure.
 Current API documentation: https://supabase.com/docs/reference/api/v1-run-a-query.
+
+## Fresh pair after terminal cleanup
+
+The separate opt-in issue_quiescent adapter requires the exact OPEN release,
+all old bindings revoked/NOLOGIN, no other application capability LOGIN, no
+active/unreconciled run and a previously unused run/binding identity. Independently
+prove the exact Railway worker is closed and credential-free before installing
+it. The trusted postgres issuer exclusion still requires the existing limited
+issuer/logging boundary. Default closed issue/install/remove bytes are unchanged.
+
+rehearse_quiescent accepts the same single bound JSON input. Its nested exception
+subtransaction invokes the real issuer then rolls every database change back;
+only a local receipt survives. Issuer errors become a fixed failure, never a
+successful rehearsal. Independently read role/binding absence before one actual
+issuance, reconcile original immutable scope/deadlines and remove both temporary
+functions/schema with RESTRICT. No password/verifier enters function DDL or logs.
+An unknown issuance outcome requires original-ID readback, not a new pair.

@@ -1,5 +1,5 @@
 /** Fixed-project, user-authenticated reads and original-ID paper controls. */
-import { collectProjectionPages, displayUSD, probeBalances, taggedFloat64, type ProjectionKind } from './durable-read-model';
+import { collectProjectionPages, displayUSD, probeBalances, taggedFloat64, HISTORY_READ_TIMEOUT_MS, type ProjectionKind } from './durable-read-model';
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const READS = new Set(['discover', 'page', 'events', 'archive_run']);
 function refuse(): never { throw new Error('Paper service data is unavailable or incompatible.'); }
@@ -62,7 +62,7 @@ async function readDeadline<T>(signal: AbortSignal, operation: (s: AbortSignal) 
   const abort = () => controller.abort();
   signal.addEventListener('abort', abort, { once: true });
   if (signal.aborted) abort();
-  const timer = setTimeout(abort, 8000);
+  const timer = setTimeout(abort, HISTORY_READ_TIMEOUT_MS);
   let cancelled!: () => void;
   const interruption = new Promise<never>((_, reject) => {
     cancelled = () => reject(new Error('Paper history request interrupted.'));

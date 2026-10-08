@@ -6,11 +6,11 @@ import ts from 'typescript';
 import * as read from '../../src/lib/probes/durable-read-model.ts';
 const owner='00000000-0000-0000-0000-000000000001',run='00000000-0000-0000-0000-000000000002',
  command='00000000-0000-0000-0000-000000000003';
-function module(fetch) {
+function module(fetch,globals={}) {
  const exports={};
  const code=ts.transpileModule(fs.readFileSync('src/lib/probes/paper-api.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
  vm.runInNewContext(code,{exports,require(name){assert.equal(name,'./durable-read-model');return read;},
-  fetch,URL,Response,TextDecoder,Uint8Array,AbortController,TextEncoder,setTimeout,clearTimeout});return exports;
+  fetch,URL,Response,TextDecoder,Uint8Array,AbortController,TextEncoder,setTimeout,clearTimeout,...globals});return exports;
 }
 function json(value,status=200){return new Response(JSON.stringify(value),{status});}
 const directory=()=>({version:1,owner_id:owner,through_id:run,records:[{run_id:run,revision:2,
@@ -73,4 +73,23 @@ test('completed evaluation scores decode tagged research floats; aborted scores 
  const aborted={...cohort,phase:'aborted',evaluations:[{...cohort.evaluations[0],status:'aborted',fitness:null}]};
  assert.equal(m.evaluationDetails({account_currency:'USD',cohort:aborted}).results[0].fitness,null);
  assert.throws(()=>m.evaluationDetails({account_currency:'USD',cohort:{...cohort,evaluations:[...cohort.evaluations,...cohort.evaluations]}}));
+});
+test('complete paginated snapshots may exceed eight seconds but have one finite sixty-second budget',async()=>{
+ for(const pages of [12,61]){
+  let now=0,id=0,calls=0;const timers=new Map();let observedSignal;
+  const advance=()=>{now+=1000;for(const [key,t] of [...timers])if(t.at<=now){timers.delete(key);t.fn();}};
+  const m=module(undefined,{setTimeout:(fn,ms)=>{timers.set(++id,{fn,at:now+ms});return id;},clearTimeout:key=>timers.delete(key)});
+  const api={read:async(name,args,signal)=>{
+   observedSignal=signal;
+   const number=args.kind==='runs'?++calls:0;
+   if(number)advance();
+   const records=number?[{revision:number,key:run,command_id:command,data:{id:run,account_currency:'USD',durability_version:5,initial_cash:'1000',reserve:'200',reference_equity:null}}]:[];
+   return {version:1,owner_id:owner,run_id:run,kind:args.kind,through_revision:pages,records,has_more:number>0&&number<pages,
+    next_cursor:records.length?{revision:number,key:run}:null};
+  }};
+  const request=m.runSnapshot(api,owner,run,new AbortController().signal);
+  if(pages===12){const snapshot=await request;assert.equal(snapshot.runs.length,12);assert.equal(snapshot.revision,12);}
+  else{await assert.rejects(request);assert.equal(calls,60);}
+  assert.equal(observedSignal.aborted,true);assert.equal(timers.size,0);
+ }
 });
