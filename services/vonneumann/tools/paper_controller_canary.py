@@ -181,6 +181,10 @@ async def assess(service):
     except Exception:
         report.update(phase='refused', code='original_operation_requires_inspection',
                       service_phase=service._phase, revision=service.repository.revision)
+        if service.controller is not None:
+            report.update(controller_closed_reason=service.controller.closed_reason,
+                owner_closed_reason=service.controller._owner.closed_reason,
+                pending_stage=service.controller.pending_stage)
         if service.runner is not None and service.runner.last_report is not None:
             result = service.runner.last_report
             report.update(runner_status=result.status, ticks_completed=result.ticks_completed,

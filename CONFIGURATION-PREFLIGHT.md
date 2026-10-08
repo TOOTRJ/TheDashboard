@@ -2773,3 +2773,47 @@ SQL, commits one original interruption ID/revision, and retains checkpoint and
 holdings. Both keep public API closed. Hosted rerun, nonempty owner isolation,
 deployment faults and the one-hour pilot remain pending; larger remote tails,
 provider credit costs and continuous/restart operation remain deeper research.
+
+## 74. Original failure drills and paper receipt lifetime repairs (2026-10-08)
+
+PR67 is merged as b363b52405a87aebc854f82721311352cc7109d9. Exact production
+dpl_AmCZKTJtwHHsfxghPmCQ1uEU1iDV is READY; four read-only smokes pass. The
+actual expired-run drill denies a fresh worker's attempt to adopt the original
+create receipt and denies an expired heartbeat. One original interruption is
+committed and freshly read back. Revision advances 2→3, fence 1→2; the exact
+checkpoint, reserve, accounts and positions hashes remain unchanged. Failed and
+requires-reconciliation are visible through the owner-only read projection.
+Two independent owned Auth sessions see nonempty owner history (eight probes,
+nine unique contiguous events) and deny other-owner page/event access; anonymous
+reads are denied. Both controls remain closed. The real signed-in owner cannot
+see either assessment run. The original assessment credentials are revoked.
+
+A separate actual hosted lost-bootstrap-response drill reconciles its retained
+original command without resubmitting bootstrap, but its first price fails before
+protection. One Jupiter, one Birdeye and two RPC calls; source age at receipt
+5.698970s, elapsed14.150002s, peakRSS97,198,080bytes. The deliberate dropped reply
+is the sole reported SQL error. This is a successful original-command recovery
+check, not full-controller or pilot acceptance. Ordinary closed restoration
+aa5c275b-48e8-44c8-b5ca-552cf297ad77 is SUCCESS with exact original variables.
+[Sanitized follow-up evidence](supabase/audits/2026-10-08-controller-followup.json).
+
+Two source repairs address this observed path and a full-window regression. A
+fractional quote receipt now waits for the next actual second inside the original
+five-second acquisition budget instead of expiring during the runner's next
+five-second cadence. It uses the same immutable capture, without refetching or
+rewriting its timestamps; oversleep, stalled/backward clocks, timeout and drain
+still refuse new submission. Installed decision/control candidates consume their
+price ticket before relay publication; protective candidates keep their ticket
+fresh until the prospective decision commits. A delayed committed replacement
+can therefore publish and reach its reserved stop without reusing a stale price.
+Pre-ACK and unknown submissions keep their freshness guards. Operator refusal
+diagnostics include fixed controller/owner reasons even before a runner report.
+
+Validation: 133 focused worker tests pass, including the full simulated one-hour
+replacement/stop with delayed publication; ten isolated actual PostgreSQL checks
+pass, including twenty real-second price admissions and original lost replies. The
+corrected hosted controller, representative remote tails, actual credits, full
+one-hour replacement and intended-owner browser acceptance remain pending.
+Further substantial research: low-resource parsing/CPU tails, lease and receipt
+headroom under outages, actual RPC/Jupiter credits, continuous windows and
+checkpoint restoration. Do not interpret these mechanical tests as profitability.

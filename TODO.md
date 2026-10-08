@@ -1,17 +1,18 @@
 # Dashboard audit and implementation backlog
 
-**Current immediate work —2026-10-08:** PR66 is merged and verified in production.
-The exact installed release is admitted at epoch1 after a rollback rehearsal;
-the public worker remains closed. The first actual controller canary committed
-bootstrap and nine events but drained before prices because consumed warmup
-history expired during relay publication. Restore succeeded and its committed
-run is preserved. Prioritize the consumed-history repair and original-run expiry/
-lost-reply drills, then actual nonempty two-owner/operator acceptance, then
-HOST-07's supervised one-hour two-EMA/eight-candidate paper pilot. Keep hosted
-acceptance boxes open until those results pass. [Measured blocker](supabase/audits/2026-10-08-controller-assessment.json),
-[activation/rollback plan](PAPER-MVP-ACTIVATION.md). Deep substantial research on
-remote tail distributions, provider credits, outage exposure, restoration and
-multi-window/retention remains required before expansion.
+**Current immediate work — 2026-10-08:** PR67 is merged and exact production is
+verified. Original expired-run interruption/new-worker denial and nonempty
+two-owner isolation pass; checkpoint and holdings are preserved, and the first
+assessment credentials are revoked. The lost-bootstrap-reply drill resolves the
+original command without replay, then exposes a fractional-price receipt timing
+bug before protection. Prioritize the bounded receipt wait and consumed-decision
+ticket fixes, corrected hosted controller acceptance, then HOST-07's supervised
+one-hour two-EMA/eight-candidate paper pilot and intended-owner browser checks.
+Public controls remain closed. Keep full hosted/pilot boxes open until actual
+results pass. [Follow-up evidence](supabase/audits/2026-10-08-controller-followup.json),
+[activation/rollback plan](PAPER-MVP-ACTIVATION.md). More deep and substantial
+research remains required on remote timing tails, provider credits, outage
+exposure, restoration and continuous evaluation before expansion.
 
 Created: 2026-09-29. Basis: the read-only project audit, isolated engine reproductions, and follow-up research on evolutionary optimization, trading systems, and Solana execution.
 

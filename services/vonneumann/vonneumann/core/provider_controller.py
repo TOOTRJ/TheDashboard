@@ -15,7 +15,7 @@ import math
 import time
 
 from .decision_inputs import DecisionInputs
-from .provider_acquisition import ProviderPriceAcquisition
+from .provider_acquisition import ACQUISITION_TIMEOUT_SECONDS, ProviderPriceAcquisition
 from ..db.command_protocol import bounded_integer, canonical_uuid
 from ..db.command_repository import CommandBusy, UncertainCommand
 from ..db.provider_pilot_owner import ProviderPilotOwner, PilotAdmissionRefused
@@ -241,6 +241,35 @@ class ProviderPilotController:
                 raise OperationalAdmissionError('controller history acquisition failed')
             return tuple(records)
 
+    async def _capture(self):
+        # A fractional receipt cannot be used until the next actual UTC second.
+        # Keep this subsecond wait inside the original acquisition budget:
+        # handing it to the five-second runner cadence expires the receipt.
+        # This admits the same document, without another provider request.
+        async with asyncio.timeout(ACQUISITION_TIMEOUT_SECONDS) as deadline:
+            ticket = await self._acquisition.capture_quote()
+            target = self._acquisition.deferred_until_second
+            if ticket is None and target is not None:
+                wall, _ = self._clocks()
+                delay = target - wall
+                if delay > 1:
+                    raise OperationalAdmissionError('controller_receipt_boundary_invalid')
+                if delay > 0:
+                    await asyncio.sleep(delay)
+                wall, _ = self._clocks()
+                if deadline.expired() or asyncio.get_running_loop().time() >= deadline.when():
+                    raise OperationalAdmissionError('controller_price_acquisition_expired')
+                if self._draining or self.closed_reason:
+                    return None
+                if wall < target:
+                    raise OperationalAdmissionError('controller_receipt_clock_did_not_advance')
+                ticket = await self._acquisition.capture_quote()
+                if ticket is None and self._acquisition.has_deferred_capture:
+                    raise OperationalAdmissionError('controller_original_receipt_not_admitted')
+            if deadline.expired() or asyncio.get_running_loop().time() >= deadline.when():
+                raise OperationalAdmissionError('controller_price_acquisition_expired')
+            return ticket
+
     async def _publish(self):
         while self._owner.pending_candidate is not None:
             delivered = await self._timed('publication', self._owner.publish_pending(
@@ -338,7 +367,7 @@ class ProviderPilotController:
                     report = self._barrier()
                     if report is not None:
                         return report
-                    work.ticket = await self._timed('price_acquisition', self._acquisition.capture_quote())
+                    work.ticket = await self._timed('price_acquisition', self._capture())
                     report = self._barrier()
                     if report is not None:
                         return report

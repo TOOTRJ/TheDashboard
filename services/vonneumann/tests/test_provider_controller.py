@@ -35,6 +35,7 @@ with deny_network():
     )
     from vonneumann.db.provider_pilot_owner import ProviderPilotOwner, PilotAdmissionRefused
     from vonneumann.db.transition_coordinator import PublicationError
+    from vonneumann.db.rehearsal_owner import OperationalAdmissionError
     from vonneumann.market import birdeye_candles, jupiter_feed, solana_time
 
 
@@ -333,19 +334,17 @@ class ProviderControllerTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase
         self.assertFalse(self.controller.accepting)
         self.assertTrue(delayed)
 
-    async def test_same_second_capture_retains_literal_document_without_refetch_or_allocation(self):
+    async def test_same_second_capture_waits_inside_tick_without_refetch_or_reanchoring(self):
         await self.bootstrapped(lookup_elapsed=0)
         self.age(.25); self.price()
-        count, allocations = self.transport.count('commit_command'), len(self.allocations)
-        first = await self.controller.tick()
+        waits = []
+        async def boundary(seconds):
+            waits.append(seconds)
+            self.age(seconds)
+        with patch.object(module.asyncio, 'sleep', side_effect=boundary):
+            report = await self.controller.tick()
         capture = self.feed._captures[SOL]
-        self.assertEqual(first.status, 'deferred')
-        self.assertEqual(self.transport.count('commit_command'), count)
-        self.assertEqual(len(self.allocations), allocations)
-        self.age(.5)
-        self.assertEqual((await self.controller.tick()).status, 'deferred')
-        self.age(.25)
-        report = await self.controller.tick()
+        self.assertEqual(waits, [.75])
         self.assertEqual(report.status, 'complete')
         self.assertEqual(report.quote_sequence, 1)
         self.assertEqual(self.feed.api_call_count, 1)
@@ -353,6 +352,41 @@ class ProviderControllerTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase
         frame = self.owner.installed_state.to_dict()['source']['last_quote']
         self.assertEqual(frame['quote']['document']['response_sha256'], capture.record.document.response_sha256)
         self.assertEqual(frame['quote']['document']['received_wall_us'], int((END + 10.25) * 1_000_000))
+
+    async def test_suspended_receipt_wait_rejects_expired_original_without_refetch(self):
+        await self.bootstrapped(lookup_elapsed=0)
+        self.age(.25); self.price()
+        count = self.transport.count('commit_command')
+        async def oversleep(_seconds): self.age(5)
+        with patch.object(module.asyncio, 'sleep', side_effect=oversleep):
+            with self.assertRaises(CommandAdmissionError): await self.controller.tick()
+        self.assertEqual(self.transport.count('commit_command'), count)
+        self.assertEqual(self.feed.api_call_count, 1)
+        self.assertFalse(self.controller.accepting)
+
+    async def test_shutdown_during_receipt_wait_prevents_protective_submission(self):
+        await self.bootstrapped(lookup_elapsed=0)
+        self.age(.25); self.price()
+        count = self.transport.count('commit_command')
+        async def drain(seconds):
+            self.controller.close_admission()
+            self.age(seconds)
+        with patch.object(module.asyncio, 'sleep', side_effect=drain):
+            report = await self.controller.tick()
+        self.assertEqual(report.status, 'drained')
+        self.assertEqual(self.transport.count('commit_command'), count)
+        self.assertEqual(self.feed.api_call_count, 1)
+
+    async def test_stalled_actual_clock_does_not_admit_or_reanchor_fractional_receipt(self):
+        await self.bootstrapped(lookup_elapsed=0)
+        self.age(.25); self.price()
+        count = self.transport.count('commit_command')
+        async def stalled(_seconds): pass
+        with patch.object(module.asyncio, 'sleep', side_effect=stalled):
+            with self.assertRaises(OperationalAdmissionError): await self.controller.tick()
+        self.assertEqual(self.transport.count('commit_command'), count)
+        self.assertEqual(self.feed.api_call_count, 1)
+        self.assertFalse(self.controller.accepting)
 
     async def test_unchanged_snapshot_is_deferred_without_refreshing_installed_age_anchor(self):
         await self.bootstrapped(); self.price(); await self.controller.tick()
@@ -525,12 +559,20 @@ class ProviderControllerTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase
         self.transport.fault('commit_command', OSError('replacement committed; reply lost'))
         with self.assertRaises(UncertainCommand): await self.controller.tick()
         original = self.owner.pending_command
+        delayed = False
+        async def slow_committed_replacement(_event):
+            nonlocal delayed
+            if not delayed and self.owner.installed_state.to_dict()['engine']['generation'] == 1:
+                delayed = True
+                self.age(6)
+        self.delivery_hook = slow_committed_replacement
         report = await self.controller.settle()
         self.assertEqual(report.status, 'complete')
         self.assertTrue(report.decision_committed)
         self.assertTrue(self.controller.pilot_completed)
         self.assertFalse(self.repo.lease_valid)  # readback itself is not renewal
         self.assertEqual(self.owner.installed_state.to_dict()['engine']['generation'], 1)
+        self.assertTrue(delayed)
         commands = [a['command_id'] for n,a in self.transport.calls if n=='commit_command']
         self.assertEqual(commands.count(original.command_id), 1)
         self.assertEqual(self.feed.api_call_count, 5)
