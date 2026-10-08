@@ -1,5 +1,37 @@
 # Dashboard audit and implementation backlog
 
+**Actual owner hour completed — 2026-10-08:** The original PR78-source pilot
+completes its common hour at revision514 with504 accepted prices, one full GA
+replacement, eight retired founders, eight equally funded children, two closed
+paper trades, no open positions, and32 contiguous acknowledged events. Exact
+cash conservation passes: total paper cash is1000.146507473480244672414802117408USD.
+The two trading founders gain0.073253736740122336207401058704USD each but rank
+below the six no-trade founders because their drawdown penalty makes fitness
+negative. This is zero-cost mechanical acceptance, not evidence of profitable
+optimization. Ordinary closed Railway deployment
+`cf05895d-adc5-427f-873e-82ad6606e5a1` is SUCCESS;16 temporary settings are
+removed, the original variable map matches, and the original finite credentials
+are revoked/NOLOGIN. The release catalog still matches OPENepoch1. The actual
+owner browser exposed the12-versus18-place quantity-reader defect; PR79 contains
+its tested repair. Final repaired production browser acceptance remains next;
+HOST-07, continuous operation and every live-trading gate remain open.
+[Owner-hour evidence](supabase/audits/2026-10-08-owner-hour-first-replacement.json).
+[Detailed probe/evolution rules](PAPER-EVOLUTION.md).
+
+**PR78 release — 2026-10-08:** The paper2s connection ceiling is merged as
+`ed94f048643f000e355fd950fd1677f5749054da`. Exact Dashboard Vercel production
+`dpl_6ZowELTEt7ARUdmCpSsDR5EhpoyL` is READY; four unauthenticated/authenticated
+smokes pass.73 focused cases pass on each loop and15 real offline native cases
+pass. Previous owner scope is terminal110, closed and revoked. The matching
+uvloop assessment of this exact final source now passes30 prices at revision34,
+including original lost-reply reconciliation, relay, reserved Stop, complete
+owner reads and isolation. Ordinary closed Railway deployment
+`0d2f868e-7444-44e1-b620-e8888c4c35dd` is SUCCESS;17 temporary settings are
+removed, the exact original variable map is restored, and the finite pair is
+revoked/NOLOGIN. The separate owner hour and first replacement remain next;
+continuous/live acceptance remains open.
+[Final-source assessment](supabase/audits/2026-10-08-connect-headroom-controller-assessment.json).
+
 **Latest owner pilot — 2026-10-08:** Final PR77 source starts through the actual
 owner dashboard, commits105 accepted prices/revision109, and delivers nine events.
 A one-second native connection phase timeout leaves the original protection
@@ -193,26 +225,31 @@ needs a file-backed sign-in before further release. [Fresh hosted evidence](supa
 
 **Next priorities, in order:**
 
-1. Review/release the paper2s single-connection headroom repair; verify exact
-   GitHub, Vercel, Supabase and Railway targets/source and production readiness.
-   The current failed scope is terminal, closed and revoked.
-2. Rehearse/issue a fresh finite assessment scope after quiescent checks, verify
-   its immutable source export, and pass the matching uvloop thirty-price native
-   lost-reply/relay/Stop/owned-read/isolation assessment. Restore closed and revoke.
-3. Start a separate actual intended-owner hour, then verify first replacement,
-   reserved Stop, full final browser history/event consistency, isolation and
-   project-scoped capacity/quota measurements. Close and revoke the original pair
-   after success or guarded interruption; keep HOST-07 open until all acceptance
-   passes. Do not substitute command IDs or extend an uncertain run's expiry.
-4. Research and implement compact/versioned multi-window checkpoints, bounded
+1. Release PR79's exact quantity-reader repair and verify the actual owner’s
+   completed revision514 history, both trades, completed founder scores,
+   unscored stopped child window, and unique event replay through the production
+   browser. The original hour/replacement/Stop and closed restoration/revocation
+   now pass; keep HOST-07 open until repaired full browser acceptance passes.
+2. Make configured worker identity versus selected history explicit
+   (PAPER-UI-TARGET1), and expose versioned genes, ROI/drawdown, common windows,
+   parentage and monetary/metric bases (PAPER-UI-ASSESSMENT1).
+3. Research and implement compact/versioned multi-window checkpoints, bounded
    active state and retention, with long-duration/load/restart acceptance before
-   continuous paper evolution.
+   continuous paper evolution. This one hour journals58,114,764 logical request
+   bytes and23,316,227 compressed column bytes; those exclude relation/index/TOAST
+   overhead and do not change application/SQL byte admission limits.
+4. Calibrate realistic fills/costs and validate the provisional objective with
+   representative longer windows, multiple seeds and equal-budget grid/random/
+   cash/buy-and-hold comparisons using held-out data. In this hour, no-trade
+   founders outrank both profitable trading founders under ROIminus2×drawdown.
+   Research activity bias, weights, elitism/diversity and ties before gene expansion.
 5. Deep substantial research: DNS/TCP/TLS/SCRAM and SQL/cleanup latency tails,
-   safe connection reuse versus finite fresh connections, source regression
-   magnitudes/frequency, provider consistency/finality/alternative semantics,
-   source-age/repeated-block/omission distributions, effective quota/billing,
-   retained-position outages/restoration, holdouts and calibrated fills. Complete
-   LIVE-01…07 before any real trading.
+   safe connection reuse, source regression magnitudes/frequency, provider
+   consistency/finality, effective quotas/billing, retained-position recovery and
+   representative source-age/fill distributions. Complete LIVE-01…07 before any
+   real trading. Eight source regressions were discarded within the current
+   limit; no regression magnitude or cause is inferred. Scoped metrics exclude
+   three unattributed aggregate series, rather than claiming their values.
 
 - [x] **PAPER-CONNECT-HEADROOM1 — Prepare measured single-connection tolerance.**
   The actual owner pilot stops advancing after105 prices because its1s connection
@@ -221,8 +258,10 @@ needs a file-backed sign-in before further release. [Fresh hosted evidence](supa
   paper connection ceiling is2s within the unchanged5s whole RPC/1s cleanup and6s
   renewal reserve.73 focused cases pass on both loops;15 real offline native cases
   pass, including delayed connection, original-ID retention, old/new comparison,
-  no duplicate submission and existing whole/statement/COMMIT bounds. Reviewed
-  release and new hosted/hour acceptance remain next. **Deep substantial
+  no duplicate submission and existing whole/statement/COMMIT bounds. PR78 release
+  and its final-source thirty-price hosted assessment, owned reads/isolation,
+  ordinary closed restoration and finite-pair revocation pass. The owner hour
+  and first replacement remain open. **Deep substantial
   research:** isolate connection phase latency, lifecycle/ownership/revocation
   implications of pooling, and failure/unknown-commit settlement with retained
   holdings before continuous operation. One observed phase timeout does not prove
@@ -532,7 +571,40 @@ Research began **2026-09-30** and was updated **2026-10-06/07** in [WORKER-HOSTI
 
 **Research follow-up — 2026-10-08 finite pilot:** Before continuous paper operation, measure command/journal growth separately from PostgreSQL compressed column bytes and total relation/index/TOAST storage. Database compression does not change the 262,144-byte application/SQL admission checks. A proposed prior-checkpoint reference must preserve one original immutable wire request for replay, verify the same owner/run/revision under the run lock, and independently bound expanded logical validation; the inner v4 model currently has its own capacity rejection. Removing the repeated before-state alone does not bound growing after-state histories, candidate accounts or positions. Investigate active-state versus immutable historical-ledger separation, sealed checkpoint/version ownership, retention pins and verified archive/recovery before deleting any referenced command. Prove lost-reply, rollback, freshness at final commit, retained Stop capacity, corruption rejection and complete source/RNG/account restoration with real offline PostgreSQL tests before proposing a new production contract. Primary sources: [PostgreSQL TOAST](https://www.postgresql.org/docs/17/storage-toast.html), [JSON operations](https://www.postgresql.org/docs/17/functions-json.html). This is a research requirement, not an implemented v6 migration or continuous-operation approval.
 
+**Connection-reuse research — 2026-10-08:** Compare the current bounded fresh connection with one explicitly owned reusable connection per capability before choosing a pool. [Psycopg pool documentation](https://www.psycopg.org/psycopg3/docs/advanced/pool.html) describes queueing, transaction cleanup and background reconnect behavior; those defaults cannot be assumed compatible with the current original-command/no-retry contract. Prove known-idle transaction status, quarantine of cancelled/unknown COMMIT connections, bounded cleanup/shutdown, separate economic/relay and owner/run identities, TLS/SCRAM/CA enforcement, binding expiry/revocation on already-connected sessions, and role/session-state reset. Benchmark complete SQL/receipt/lease timing with fault injection, not only connection establishment. The reviewed site currently identifies itself as development documentation3.3.7.dev1; the worker remains pinned to3.3.6, so verify selected released behavior and dependency maintenance before adoption. No pool/dependency/global runtime is installed or changed by this research. See also [PostgreSQL role changes](https://www.postgresql.org/docs/17/sql-alterrole.html) and [Psycopg concurrent operations](https://www.psycopg.org/psycopg3/docs/advanced/async.html).
+
 **Jupiter follow-up — 2026-10-08:** Current [plans](https://developers.jup.ag/docs/portal/plans) state that all tiers use the same data freshness/latency; `/price/v3` costs one credit per request. [Rate limits](https://developers.jup.ag/docs/portal/rate-limits) remain organization-wide, with possible additional firewall limits. Verify actual effective key/path limits and portal metering against finite worker observations; a plan upgrade alone does not establish lower source age or monotonic response ordering. Research and retain validated regression magnitude/frequency evidence and source-age/timing tails before changing the present bounded discard or freshness policy.
+
+- [ ] **PAPER-UI-TARGET1 — Make configured worker and selected history explicit.** Actual owner acceptance shows that Start can begin the new configured run while the history selector retains an older failed run. The server still binds controls to the configured owner/run and original IDs, but the page does not display that configured run beside the controls. Show the verified current worker run, clearly identify when selected history differs, and select the newly acknowledged start only through an identity-checked result/discovery flow. Preserve historical selection for deliberate history browsing, frozen complete reads and original-ID settlement. Test delayed/uncertain Start, account changes, deployment turnover, stale directory responses and history selection without dispatching a command to an arbitrary selected historical run. This is operator clarity work before expanding beyond a single supervised pilot; it is not an observed unauthorized mutation.
+
+- [ ] **PAPER-UI-QUANTITY1 — Accept the selected ledger's exact trade quantities.**
+  The v5 projection retains18 decimal places, while `tradeDetails` accepts only12.
+  An exact synthetic25USD entry at123.45 produces quantity
+  `0.202511138112596192` and makes the complete history snapshot fail before
+  repair. The local reader now accepts18 places without conversion or rounding,
+  retaining existing amount/response limits and invalid-input rejection. The
+  full-snapshot/open/closed regression fails before the repair and passes after;
+  all16 focused read/API tests, TypeScript and lint pass. Release after the active
+  original owner pilot is terminal, closed and revoked. The owner pilot then
+  reproduces the defect with two open SOL paper positions whose canonical
+  quantities have16 decimal places: the worker advances, but the browser retains
+  its last complete revision193 and reports history refresh failure. Preserve
+  that evidence and verify complete actual-owner trade/evaluation history after
+  the reviewed reader release; no database amount or worker policy is changed.
+
+- [ ] **PAPER-UI-ASSESSMENT1 — Show how each candidate is evaluated.** Add verified
+  fast/slow EMA periods, generation, common window start/end and completion state,
+  ROI, observed maximum drawdown, fitness formula/version, cost assumptions and
+  parent/operation evidence to the paper view. Decode tagged genes/scores only
+  for nonmonetary display; retain exact cash/quantity strings. Distinguish live
+  observations from completed scores, early-terminal results from aborted
+  windows, and model selection from empirical promotion. The current paper
+  table exposes balances but not the genes; evaluation details omit ROI and
+  drawdown. Verify identity, revision, unknown/malformed evidence and old policy
+  compatibility before publishing the richer view. Research objective weight,
+  elitism/diversity and equal-budget/multi-seed holdout comparisons before
+  changing selection behavior. Current one-hour zero-cost mechanics acceptance
+  is not economic validation.
 
 ## Phase 7 — P2/P3: Demo honesty, remaining routes, and project quality
 

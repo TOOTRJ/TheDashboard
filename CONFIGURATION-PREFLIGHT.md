@@ -1,5 +1,23 @@
 # Dashboard configuration and access preflight
 
+**Actual owner hour completed — 2026-10-08:** The original PR78-source pilot
+completes its common hour at revision514 with504 accepted prices, one full GA
+replacement, eight retired founders, eight equally funded children, two closed
+paper trades, no open positions, and32 contiguous acknowledged events. Exact
+cash conservation passes: total paper cash is1000.146507473480244672414802117408USD.
+The two trading founders gain0.073253736740122336207401058704USD each but rank
+below the six no-trade founders because their drawdown penalty makes fitness
+negative. This is zero-cost mechanical acceptance, not evidence of profitable
+optimization. Ordinary closed Railway deployment
+`cf05895d-adc5-427f-873e-82ad6606e5a1` is SUCCESS;16 temporary settings are
+removed, the original variable map matches, and the original finite credentials
+are revoked/NOLOGIN. The release catalog still matches OPENepoch1. The actual
+owner browser exposed the12-versus18-place quantity-reader defect; PR79 contains
+its tested repair. Final repaired production browser acceptance remains next;
+HOST-07, continuous operation and every live-trading gate remain open.
+[Owner-hour evidence](supabase/audits/2026-10-08-owner-hour-first-replacement.json).
+[Detailed probe/evolution rules](PAPER-EVOLUTION.md).
+
 Date: 2026-09-29. Scope: the local Dashboard checkout, Vercel **`the-dashboard`**, and Supabase **`The Dashboard`**. This report accompanies [TODO.md](TODO.md).
 
 **Last verified production baseline before DB-03A2D3B2C1 (2026-10-06): [PR #47](https://github.com/TOOTRJ/TheDashboard/pull/47) is merged; the production alias served READY deployment `dpl_BBoWCHdzJ2NEkA92S3SxoyJkR9PW`, built from merge `dc1e0c02d756ce4412acd79b2c7153fc12e2c985`, with four read-only application checks passed.** Sections 49–53 record transport/projection/legacy, installer and canonical fresh v5 rehearsals; section 54 records native-session authentication. Immutable release results belong in each PR. Next.js remains 16.3.8. The Python worker is unhosted; actual bounded SQL transport/hosted credential and TLS setup, durable legacy evidence/full migration, service/browser selection, hosted acceptance, production timing, safe interruption, preview isolation and hosting remain open. Only the projects pinned in [AGENTS.md](AGENTS.md) are authorized. Historical sections retain dated findings; later verified sections supersede earlier state.
@@ -3361,3 +3379,17 @@ SQL latencies.110 journal requests contain11,971,726 JSONB text bytes and
 The refreshed TheOrder portal attributes522 requests over24h to JohnVon and shows
 0% server errors; this is aggregate traffic across recent tests, not this pilot
 alone or proof of the documented600/60s entitlement. No billing/firewall/key change.
+
+**PR78 release — 2026-10-08:** The paper2s connection ceiling is merged as
+`ed94f048643f000e355fd950fd1677f5749054da`. Exact Dashboard Vercel production
+`dpl_6ZowELTEt7ARUdmCpSsDR5EhpoyL` is READY; four unauthenticated/authenticated
+smokes pass.73 focused cases pass on each loop and15 real offline native cases
+pass. Previous owner scope is terminal110, closed and revoked. The matching
+uvloop assessment of this exact final source now passes30 prices at revision34,
+including original lost-reply reconciliation, relay, reserved Stop, complete
+owner reads and isolation. Ordinary closed Railway deployment
+`0d2f868e-7444-44e1-b620-e8888c4c35dd` is SUCCESS;17 temporary settings are
+removed, the exact original variable map is restored, and the finite pair is
+revoked/NOLOGIN. The separate owner hour and first replacement remain next;
+continuous/live acceptance remains open.
+[Final-source assessment](supabase/audits/2026-10-08-connect-headroom-controller-assessment.json).

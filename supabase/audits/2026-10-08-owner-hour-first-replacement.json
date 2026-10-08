@@ -1,0 +1,470 @@
+{
+  "version": 1,
+  "date": "2026-10-08",
+  "source_sha": "ed94f048643f000e355fd950fd1677f5749054da",
+  "pilot_deployment": "cbdb77f8-ca2e-467b-88ca-141c48bce467",
+  "export": {
+    "source_sha": "ed94f048643f000e355fd950fd1677f5749054da",
+    "files": 99,
+    "bytes": 1241056,
+    "manifest_sha256": "21f79ad17ef8ef24070556373cf15598b28ed60f072d2124558ab071e96609e2",
+    "credentials_included": false
+  },
+  "all_export_blobs_modes_verified": true,
+  "terminal": {
+    "version": 1,
+    "date": "2026-10-08",
+    "source_sha": "ed94f048643f000e355fd950fd1677f5749054da",
+    "scope": "original actual-owner finite one-hour paper pilot only",
+    "status": "stopped",
+    "revision": 514,
+    "accepted_quotes": 504,
+    "generation": 1,
+    "accounts": 16,
+    "retired_founders": 8,
+    "active_offspring": 8,
+    "positions": 2,
+    "open_positions": 0,
+    "events": 32,
+    "relay_events": 32,
+    "unacknowledged_events": 0,
+    "relay_sequence_contiguous": true,
+    "initial_cash": "1000",
+    "reserve": "200.146507473480244672414802117408",
+    "final_cash": "1000.146507473480244672414802117408",
+    "net_paper_pnl": "0.146507473480244672414802117408",
+    "money_conservation_verified": true,
+    "checkpoint_bytes": 73963,
+    "window_started_at_unix": 1791491862.0,
+    "window_ends_at_unix": 1791495462.0,
+    "window_completed_at_unix": 1791495464.0,
+    "founders": [
+      {
+        "name": "Paper-0-0",
+        "ema_fast": 3,
+        "ema_slow": 20,
+        "terminal_cash": "100",
+        "roi": 0.0,
+        "max_drawdown_used": 0.0,
+        "fitness": 0.0,
+        "closed_trades": 0,
+        "reason": "window_complete"
+      },
+      {
+        "name": "Paper-0-1",
+        "ema_fast": 10,
+        "ema_slow": 17,
+        "terminal_cash": "100.073253736740122336207401058704",
+        "roi": 0.0007325373674012234,
+        "max_drawdown_used": 0.0008904165774350503,
+        "fitness": -0.0010482957874688773,
+        "closed_trades": 1,
+        "reason": "window_complete"
+      },
+      {
+        "name": "Paper-0-2",
+        "ema_fast": 5,
+        "ema_slow": 38,
+        "terminal_cash": "100",
+        "roi": 0.0,
+        "max_drawdown_used": 0.0,
+        "fitness": 0.0,
+        "closed_trades": 0,
+        "reason": "window_complete"
+      },
+      {
+        "name": "Paper-0-3",
+        "ema_fast": 4,
+        "ema_slow": 42,
+        "terminal_cash": "100",
+        "roi": 0.0,
+        "max_drawdown_used": 0.0,
+        "fitness": 0.0,
+        "closed_trades": 0,
+        "reason": "window_complete"
+      },
+      {
+        "name": "Paper-0-4",
+        "ema_fast": 12,
+        "ema_slow": 51,
+        "terminal_cash": "100",
+        "roi": 0.0,
+        "max_drawdown_used": 0.0,
+        "fitness": 0.0,
+        "closed_trades": 0,
+        "reason": "window_complete"
+      },
+      {
+        "name": "Paper-0-5",
+        "ema_fast": 7,
+        "ema_slow": 21,
+        "terminal_cash": "100.073253736740122336207401058704",
+        "roi": 0.0007325373674012234,
+        "max_drawdown_used": 0.0008904165774350503,
+        "fitness": -0.0010482957874688773,
+        "closed_trades": 1,
+        "reason": "window_complete"
+      },
+      {
+        "name": "Paper-0-6",
+        "ema_fast": 12,
+        "ema_slow": 50,
+        "terminal_cash": "100",
+        "roi": 0.0,
+        "max_drawdown_used": 0.0,
+        "fitness": 0.0,
+        "closed_trades": 0,
+        "reason": "window_complete"
+      },
+      {
+        "name": "Paper-0-7",
+        "ema_fast": 9,
+        "ema_slow": 60,
+        "terminal_cash": "100",
+        "roi": 0.0,
+        "max_drawdown_used": 0.0,
+        "fitness": 0.0,
+        "closed_trades": 0,
+        "reason": "window_complete"
+      }
+    ],
+    "offspring": [
+      {
+        "name": "Paper-1-0",
+        "ema_fast": 6,
+        "ema_slow": 60,
+        "operation": "crossover_mutation",
+        "parents": [
+          "Paper-0-3",
+          "Paper-0-7"
+        ]
+      },
+      {
+        "name": "Paper-1-1",
+        "ema_fast": 9,
+        "ema_slow": 42,
+        "operation": "crossover_mutation",
+        "parents": [
+          "Paper-0-3",
+          "Paper-0-7"
+        ]
+      },
+      {
+        "name": "Paper-1-2",
+        "ema_fast": 12,
+        "ema_slow": 20,
+        "operation": "crossover_mutation",
+        "parents": [
+          "Paper-0-0",
+          "Paper-0-4"
+        ]
+      },
+      {
+        "name": "Paper-1-3",
+        "ema_fast": 3,
+        "ema_slow": 46,
+        "operation": "crossover_mutation",
+        "parents": [
+          "Paper-0-0",
+          "Paper-0-4"
+        ]
+      },
+      {
+        "name": "Paper-1-4",
+        "ema_fast": 3,
+        "ema_slow": 51,
+        "operation": "crossover_mutation",
+        "parents": [
+          "Paper-0-0",
+          "Paper-0-4"
+        ]
+      },
+      {
+        "name": "Paper-1-5",
+        "ema_fast": 12,
+        "ema_slow": 20,
+        "operation": "crossover_mutation",
+        "parents": [
+          "Paper-0-0",
+          "Paper-0-4"
+        ]
+      },
+      {
+        "name": "Paper-1-6",
+        "ema_fast": 5,
+        "ema_slow": 51,
+        "operation": "crossover_mutation",
+        "parents": [
+          "Paper-0-2",
+          "Paper-0-4"
+        ]
+      },
+      {
+        "name": "Paper-1-7",
+        "ema_fast": 12,
+        "ema_slow": 38,
+        "operation": "crossover_mutation",
+        "parents": [
+          "Paper-0-2",
+          "Paper-0-4"
+        ]
+      }
+    ],
+    "next_cohort": "aborted/unscored after reserved Stop",
+    "selection_policy": "completed-window-generational-ga-v1",
+    "cost_assumptions": "uncalibrated zero-cost USD reference scenario",
+    "drawdown_verification": "ROI independently recomputed from exact terminal cash; scored drawdown derived from final fitness and compared with retained observed floor; final-close metric is not fully exposed by retired probe projection",
+    "wallet_operations": false,
+    "writes": false,
+    "native_terminal_requires_reconciliation": true,
+    "event_kinds": {
+      "stop": 1,
+      "birth": 8,
+      "retire": 8,
+      "founder": 8,
+      "lifecycle": 1,
+      "evaluation": 1,
+      "entry_signal": 2,
+      "cohort_liquidation": 2,
+      "evaluation_aborted": 1
+    }
+  },
+  "controller_terminal": {
+    "phase": "stopped",
+    "busy": false,
+    "revision": 514,
+    "requires_reconciliation": false,
+    "stop_requested": true,
+    "source_order": {
+      "enabled": true,
+      "discarded_total": 8,
+      "episode_discarded": 0,
+      "episode_active": false,
+      "limit_reason": null,
+      "max_consecutive_discards": 2,
+      "max_total_discards": 8,
+      "episode_seconds": 15
+    },
+    "first_transport_failures": {
+      "economic": null,
+      "relay": null
+    },
+    "last_controller_failure": null,
+    "last_operation_failure": null,
+    "report": {
+      "status": "stopped",
+      "ticks_completed": 515,
+      "stop_requested": true,
+      "idle_renewals": 0,
+      "last_tick": {
+        "kind": "stop",
+        "status": "complete",
+        "revision": 514,
+        "quote_sequence": 504,
+        "decision_committed": false,
+        "elapsed_seconds": 2.6158136096782982,
+        "phase_seconds": [
+          [
+            "lease_renewal",
+            0.280028929002583
+          ],
+          [
+            "owner_submission",
+            1.0511018810793757
+          ],
+          [
+            "publication",
+            1.2833992219530046
+          ]
+        ]
+      }
+    }
+  },
+  "capacity": {
+    "version": 1,
+    "source": "ed94f048643f000e355fd950fd1677f5749054da",
+    "scope": "only original owner/run; terminal read-only aggregate",
+    "journal": {
+      "quotes": 504,
+      "commands": 514,
+      "terminal_status": "stopped",
+      "request_wire_bytes": 58114764,
+      "unique_source_blocks": 504,
+      "request_stored_column_bytes": 23316227,
+      "source_age_floor_at_receipt_seconds": {
+        "p95": 9.5326634,
+        "median": 5.7132895,
+        "maximum": 14.705303,
+        "minimum": 1.732049
+      },
+      "capture_to_first_journal_wall_seconds": {
+        "p95": 1.8735583,
+        "median": 1.555154,
+        "maximum": 2.351236,
+        "minimum": 1.094171
+      }
+    },
+    "limits": "column compression bytes exclude row/index/TOAST overhead; wall capture-to-journal includes acquisition/planning/lease/SQL and is not native SQL latency"
+  },
+  "railway_metrics": {
+    "version": 1,
+    "source": "ed94f048643f000e355fd950fd1677f5749054da",
+    "deployment": "cbdb77f8-ca2e-467b-88ca-141c48bce467",
+    "start_utc": "2026-10-08T20:37:16.134153+00:00",
+    "end_utc": "2026-10-08T21:41:07.195458+00:00",
+    "sample_seconds": 60,
+    "averaging_seconds": 60,
+    "metrics": [
+      {
+        "measurement": "CPU_USAGE",
+        "region": "us-west2-cssv9a",
+        "samples": 64,
+        "minimum": 0.0017872333333333334,
+        "median": 0.03726834999999999,
+        "maximum": 0.05448616666666666
+      },
+      {
+        "measurement": "MEMORY_USAGE_GB",
+        "region": "us-west2-cssv9a",
+        "samples": 64,
+        "minimum": 0.077387776,
+        "median": 0.081076224,
+        "maximum": 0.08472576
+      },
+      {
+        "measurement": "NETWORK_TX_GB",
+        "region": "us-west2-cssv9a",
+        "samples": 64,
+        "minimum": 3.7678e-05,
+        "median": 0.001206798,
+        "maximum": 0.001668228
+      }
+    ],
+    "scope": "exact Dashboard project/environment/service/deployment",
+    "unattributed_aggregate_series_excluded": 3,
+    "account_usage_or_billing_modified": false,
+    "units": "API measurement enum; CPU variants retained without inferring units"
+  },
+  "closed_restoration": {
+    "deployment": {
+      "id": "cf05895d-adc5-427f-873e-82ad6606e5a1",
+      "status": "SUCCESS"
+    },
+    "source": "ed94f048643f000e355fd950fd1677f5749054da",
+    "original_variables_match": true,
+    "temporary_values_removed": 16,
+    "writes": false,
+    "api_status": 503,
+    "cache_control": "no-store",
+    "allowed_origin": "https://the-dashboard-chi.vercel.app"
+  },
+  "finite_credentials_revoked_no_login": true,
+  "isolation": {
+    "version": 1,
+    "source": "ed94f048643f000e355fd950fd1677f5749054da",
+    "only_original_dashboard_pilot": true,
+    "other_owner_discovery_hidden": true,
+    "checks": [
+      {
+        "actor": "other_owned_auth_user",
+        "function": "page",
+        "status": 400,
+        "denied": true
+      },
+      {
+        "actor": "other_owned_auth_user",
+        "function": "events",
+        "status": 400,
+        "denied": true
+      },
+      {
+        "actor": "other_owned_auth_user",
+        "path": "/v5/status",
+        "status": 404,
+        "denied": true,
+        "no_store": true
+      },
+      {
+        "actor": "other_owned_auth_user",
+        "path": "/v5/controls",
+        "status": 404,
+        "denied": true,
+        "no_store": true
+      },
+      {
+        "actor": "other_owned_auth_user",
+        "function": "page",
+        "status": 400,
+        "denied": true
+      },
+      {
+        "actor": "other_owned_auth_user",
+        "function": "events",
+        "status": 400,
+        "denied": true
+      },
+      {
+        "actor": "other_owned_auth_user",
+        "path": "/v5/status",
+        "status": 404,
+        "denied": true,
+        "no_store": true
+      },
+      {
+        "actor": "other_owned_auth_user",
+        "path": "/v5/controls",
+        "status": 404,
+        "denied": true,
+        "no_store": true
+      },
+      {
+        "actor": "anonymous",
+        "function": "page",
+        "status": 401,
+        "denied": true
+      },
+      {
+        "actor": "anonymous",
+        "function": "events",
+        "status": 401,
+        "denied": true
+      },
+      {
+        "actor": "anonymous",
+        "path": "/v5/status",
+        "status": 401,
+        "denied": true,
+        "no_store": true
+      },
+      {
+        "actor": "anonymous",
+        "path": "/v5/controls",
+        "status": 401,
+        "denied": true,
+        "no_store": true
+      }
+    ],
+    "economic_mutations": false,
+    "secrets_included": false
+  },
+  "dashboard_history_defect": {
+    "quantities_fractional_digits": [
+      16,
+      16
+    ],
+    "last_complete_revision": 193,
+    "reader_previous_fractional_limit": 12,
+    "repair_fractional_limit": 18,
+    "regression": "full snapshot with exact open/closed ledger trades",
+    "post_release_owner_browser_acceptance": "pending reviewed quantity-reader release"
+  },
+  "limitations": [
+    "One common one-hour window and one replacement only; zero-cost USD reference scenario.",
+    "Finite resource/source samples do not prove profitability, continuous operation, tail latency or monthly cost.",
+    "Controller/source-order counters are collected separately; no provider regression magnitude is inferred.",
+    "Column compression aggregates exclude table/index/TOAST overhead.",
+    "Continuous checkpoint/retention/restart and every live-trading gate remain open."
+  ],
+  "wallet_operations": false,
+  "other_projects_modified": false
+}

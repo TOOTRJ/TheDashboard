@@ -1,0 +1,87 @@
+{
+  "open": {
+    "source": "synthetic exact ledger fixture: EntryPlan(25,123.45,zero costs), ExitPlan(124); usd-reference-decimal-v2",
+    "id": "00000000-0000-0000-0000-000000000003",
+    "account_id": "00000000-0000-0000-0000-000000000001",
+    "asset": "SOL/USD",
+    "account_currency": "USD",
+    "quantity": "0.202511138112596192",
+    "closed": false,
+    "opened_at": "2026-10-08T00:00:01Z",
+    "closed_at": null,
+    "exit_reason": null,
+    "exit": null,
+    "entry": {
+      "version": "usd-reference-decimal-v2",
+      "config": {
+        "fee_bps": "0",
+        "half_spread_bps": "0",
+        "slippage_bps": "0"
+      },
+      "budget": "25",
+      "reference_price": "123.45",
+      "fill_price": "123.45",
+      "quantity": "0.202511138112596192",
+      "notional": "24.9999999999999999024",
+      "fee": "0",
+      "cash_debit": "24.9999999999999999024",
+      "residual_budget": "0.0000000000000000976"
+    }
+  },
+  "closed": {
+    "source": "synthetic exact ledger fixture: EntryPlan(25,123.45,zero costs), ExitPlan(124); usd-reference-decimal-v2",
+    "id": "00000000-0000-0000-0000-000000000003",
+    "account_id": "00000000-0000-0000-0000-000000000001",
+    "asset": "SOL/USD",
+    "account_currency": "USD",
+    "quantity": "0.202511138112596192",
+    "closed": true,
+    "opened_at": "2026-10-08T00:00:01Z",
+    "closed_at": "2026-10-08T00:15:01Z",
+    "exit_reason": "exit_signal",
+    "exit": {
+      "version": "usd-reference-decimal-v2",
+      "entry": {
+        "version": "usd-reference-decimal-v2",
+        "config": {
+          "fee_bps": "0",
+          "half_spread_bps": "0",
+          "slippage_bps": "0"
+        },
+        "budget": "25",
+        "reference_price": "123.45",
+        "fill_price": "123.45",
+        "quantity": "0.202511138112596192",
+        "notional": "24.9999999999999999024",
+        "fee": "0",
+        "cash_debit": "24.9999999999999999024",
+        "residual_budget": "0.0000000000000000976"
+      },
+      "kind": "fill",
+      "reference_price": "124",
+      "fill_price": "124",
+      "quantity": "0.202511138112596192",
+      "notional": "25.111381125961927808",
+      "fee": "0",
+      "cash_credit": "25.111381125961927808",
+      "gross_pnl": "0.1113811259619279056",
+      "net_pnl": "0.1113811259619279056"
+    },
+    "entry": {
+      "version": "usd-reference-decimal-v2",
+      "config": {
+        "fee_bps": "0",
+        "half_spread_bps": "0",
+        "slippage_bps": "0"
+      },
+      "budget": "25",
+      "reference_price": "123.45",
+      "fill_price": "123.45",
+      "quantity": "0.202511138112596192",
+      "notional": "24.9999999999999999024",
+      "fee": "0",
+      "cash_debit": "24.9999999999999999024",
+      "residual_budget": "0.0000000000000000976"
+    }
+  }
+}

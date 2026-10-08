@@ -1,5 +1,37 @@
 # Evolutionary trading bot MVP readiness
 
+**Actual owner hour completed — 2026-10-08:** The original PR78-source pilot
+completes its common hour at revision514 with504 accepted prices, one full GA
+replacement, eight retired founders, eight equally funded children, two closed
+paper trades, no open positions, and32 contiguous acknowledged events. Exact
+cash conservation passes: total paper cash is1000.146507473480244672414802117408USD.
+The two trading founders gain0.073253736740122336207401058704USD each but rank
+below the six no-trade founders because their drawdown penalty makes fitness
+negative. This is zero-cost mechanical acceptance, not evidence of profitable
+optimization. Ordinary closed Railway deployment
+`cf05895d-adc5-427f-873e-82ad6606e5a1` is SUCCESS;16 temporary settings are
+removed, the original variable map matches, and the original finite credentials
+are revoked/NOLOGIN. The release catalog still matches OPENepoch1. The actual
+owner browser exposed the12-versus18-place quantity-reader defect; PR79 contains
+its tested repair. Final repaired production browser acceptance remains next;
+HOST-07, continuous operation and every live-trading gate remain open.
+[Owner-hour evidence](supabase/audits/2026-10-08-owner-hour-first-replacement.json).
+[Detailed probe/evolution rules](PAPER-EVOLUTION.md).
+
+**PR78 release — 2026-10-08:** The paper2s connection ceiling is merged as
+`ed94f048643f000e355fd950fd1677f5749054da`. Exact Dashboard Vercel production
+`dpl_6ZowELTEt7ARUdmCpSsDR5EhpoyL` is READY; four unauthenticated/authenticated
+smokes pass.73 focused cases pass on each loop and15 real offline native cases
+pass. Previous owner scope is terminal110, closed and revoked. The matching
+uvloop assessment of this exact final source now passes30 prices at revision34,
+including original lost-reply reconciliation, relay, reserved Stop, complete
+owner reads and isolation. Ordinary closed Railway deployment
+`0d2f868e-7444-44e1-b620-e8888c4c35dd` is SUCCESS;17 temporary settings are
+removed, the exact original variable map is restored, and the finite pair is
+revoked/NOLOGIN. The separate owner hour and first replacement remain next;
+continuous/live acceptance remains open.
+[Final-source assessment](supabase/audits/2026-10-08-connect-headroom-controller-assessment.json).
+
 **Latest owner pilot — 2026-10-08:** Final PR77 source starts through the actual
 owner dashboard, commits105 accepted prices/revision109, and delivers nine events.
 A one-second native connection phase timeout leaves the original protection
@@ -180,10 +212,10 @@ HOST-07 and continuous/live gates remain open. No wallet operation is authorized
 | Core evolutionary engine | Phase 2's 12 entries are complete. Funding, indicator/time handling, population continuity, fitness, risk controls and optimizer constraints have regression coverage. |
 | Small strategy | `ema_baseline_v1` evolves two parameters: fast and slow EMA periods. Asset, timeframe and other controls stay fixed; RSI/volume signal filters are disabled. All candidates share 61 completed warmup bars. |
 | Research evaluator | Synthetic replay, a twenty-pair exhaustive grid, cash/passive/fixed-EMA/random controls, and an equal-budget reference GA are implemented. Training-only selection and fresh chronological holdout accounts are tested. Representative historical research and calibrated fills remain open. |
-| Exact paper controller | The selected native-v5 path now passes the actual thirty-price hosted controller, lost-reply, relay and reserved-stop assessment. The matching-loop timer assessment passes. The real owner's fresh hour attempt reaches90 prices before an exact57014 SQL statement timeout. Original interruption preserves cash/positions/history at revision95; paper-only SQL headroom and safe native failure labels are tested and await release/hosted acceptance. The hour and first replacement remain open. |
+| Exact paper controller | PR78-source actual-owner hour completes at revision514:504 accepted prices, one replacement, two closed trades and32 acknowledged events. Eight founders retire and eight children receive100USD each; exact conservation and ancestry pass. Matching thirty-price uvloop assessment and isolation pass. Continuous/restart/capacity acceptance remains open. |
 | Database / transports | Fifteen migrations install98 functions/26 tables; full body/catalog/grant verification passes. SSL, Railway IPv6/project-CA/hostname TLS/SCRAM/channel binding and finite owner/run/capability checks pass. Curated vn_read provides owner-only nonempty history; anonymous/private/other-owner access is denied. Release admission is OPEN at epoch1, with ordinary closed runtime restored after each assessment; a separate finite pilot scope is issued only after quiescent checks. All11,149 user-rejected old rows are deleted; Auth is retained. The original expired cash-only run is now terminal/reconciliation-required with unchanged economic/checkpoint state. No old competing writer is selected. |
-| Dashboard | Next.js16.3.8 and the selected paper-v5 interface are deployed. The real owner starts once and sees eight candidates and committed history. Worker failures are distinguished from the last committed run status; closed mode disables controls and retains history. Complete pinned reads poll independently from status. Final first-replacement/trade/evaluation/replay browser acceptance remains open. |
-| Worker / live execution | Railway's exact Dashboard service is restored to ordinary closed startup after the assessment with original variables and revoked assessment credentials. The failed intended-owner scope is terminal and revoked; tested SQL headroom release and matching-loop assessment precede the next deliberate finite scope. No automatic restart is permitted. The Jupiter V2 helper remains quote-only and cannot sign or execute a swap. |
+| Dashboard | Next.js16.3.8 and selected paper-v5 interface are deployed. Actual trades reveal that the reader rejects valid16-place quantities under its former12-place bound. PR79 accepts the ledger’s18-place strings with a failing-before/full-snapshot regression;16 focused tests, TypeScript and lint pass. Repaired production history/evaluation/replay acceptance remains next. |
+| Worker / live execution | The original hour is stopped. Exact Railway Dashboard service is ordinary closed/SUCCESS,16 temporary settings removed, original variables matched and finite pair revoked/NOLOGIN. No automatic restart is permitted. Live signing/funding/swaps remain unavailable and unauthorized. |
 
 The exact source, project/service/owner identities, US West replica, HTTPS,
 resource limits and outbound IPv6/TLS are verified. The $20/month pilot ceiling
@@ -196,7 +228,7 @@ terminal; no original authority was extended. Fixed failure diagnostics are
 released, and a new assessment passes. The next separate acceptance is the real
 owner's hour and first replacement; any failure requires original reconciliation
 and evidence before another attempt.
-[Current evidence](supabase/audits/2026-10-08-fresh-native-controller-and-pilot.json),
+[Current assessment evidence](supabase/audits/2026-10-08-connect-headroom-controller-assessment.json),
 [setup](RAILWAY-SETUP.md), [native transport](services/vonneumann/NATIVE-SQL-TRANSPORT.md),
 [closed cutover](SUPABASE-CUTOVER.md), [hosted preflight](services/vonneumann/HOSTED-NATIVE-PREFLIGHT.md).
 
@@ -213,7 +245,7 @@ invent liquidation proceeds.
 | Order | Remaining work | Todo / acceptance |
 |---|---|---|
 | Complete prerequisite | Fixed diagnostics and original expired-run reconciliation | PAPER-FAILURE-EVIDENCE1/PAPER-EXPIRED-MAINT1: dedicated sign-in, exact-target/source/production, actual original-input rollback and once-only interruption pass. Unchanged economics/checkpoint and candidate delivery hashes and actual terminal owner browser history pass; no event or ACK is invented. |
-| 2 | Diagnose and repair the observed controller/provider failure | The fresh thirty-price native assessment passes; the owner hour reproduces a local capture-admission failure after two prices. Original native interruption, closed restoration and revocation pass. PR73 diagnosis identifies a slightly early receipt-boundary wakeup; a deterministic regression fails before repair and passes after it. Release the bounded same-receipt repair and align the assessment with ordinary uvloop. Keep source/receipt/lease/deadline guards unchanged; hosted repaired acceptance is still pending. |
+| Complete prerequisite | Release and assess observed controller/transport repairs | PR74–78 are merged and exact production is verified. The final-source thirty-price uvloop assessment passes, including original lost-reply settlement, relay, reserved Stop, owned reads and isolation. Closed restoration and credential revocation pass. The owner hour remains a separate acceptance gate. |
 | 3 | Complete workload/security/interrupt evidence for the bounded profile | DATA-01E, D2D2A, HOST-02…06/A3: retain finite source/quota/DB/relay/resource measurements, owner isolation and original-ID settlement. Complete unresolved fault/overlap/outage exposure checks. Continuous quota/tail/restart readiness remains separate. |
 | 4 | Verify complete operator and ownership flow at the final window | Actual login/start/eight-candidate/nonempty history works. Verify complete first-replacement balance/trade/evaluation history, reconnect/replay and owner isolation at the final committed revision. Costs remain uncalibrated; stop retains holdings and restart requires reconciliation. |
 | 5 | Accept the supervised one-hour pilot, then close/review | HOST-07: eight candidates, two EMA genes, one SOL/USD reference window, at most one replacement, real feeds/simulated economics and reserved stop. Record resource/quota/failure evidence, restore closed runtime and revoke the finite pair. No profitability or live-trading claim follows from this mechanical acceptance. |
