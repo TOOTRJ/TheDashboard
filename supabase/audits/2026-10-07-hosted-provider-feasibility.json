@@ -1,0 +1,65 @@
+{
+  "source": "df4da5a27054b7d81ea3584e520460e050e4158e",
+  "deployment": "d6b8df39-9dee-41a5-b594-8db8f7b60421",
+  "target": {
+    "project": "38facb49-4de9-4d66-85aa-2861e0306dcf",
+    "service": "8e78ad4b-1d8f-43e7-898a-3882ac5053d7",
+    "environment": "9bbe52c6-2305-467a-bf39-8d5e1a98e4e4",
+    "region": "us-west2"
+  },
+  "measurement": {
+    "maximum_loop_lag_seconds": 0.193406,
+    "api_calls": {
+      "jupiter": 1,
+      "birdeye": 1,
+      "rpc": 2
+    },
+    "elapsed_seconds": 6.386781,
+    "price_seconds": {
+      "count": 1,
+      "minimum": 0.183992,
+      "median": 0.183992,
+      "maximum": 0.183992,
+      "tail_acceptance": false
+    },
+    "phase": "refused",
+    "process_cpu_seconds": 0.12,
+    "tail_or_shared_account_budget_acceptance": false,
+    "quota_observations": [
+      {
+        "remaining": 9,
+        "reset": 1791431916
+      }
+    ],
+    "economic_writes": false,
+    "receipt_processing_seconds": {
+      "count": 1,
+      "minimum": 0.121394,
+      "median": 0.121394,
+      "maximum": 0.121394,
+      "tail_acceptance": false
+    },
+    "process_peak_rss_bytes": 77504512,
+    "code": "shared_quota_margin_unavailable",
+    "mode": "closed",
+    "source_age_seconds": {
+      "count": 1,
+      "minimum": 5.742559,
+      "median": 5.742559,
+      "maximum": 5.742559,
+      "tail_acceptance": false
+    },
+    "history": {
+      "minutes": 915,
+      "bars": 61,
+      "elapsed_seconds": 1.201207,
+      "raw_bytes": 229141,
+      "raw_sha256": "3be756d8ea4da23b08ee868fc6b98a2db7372e74896527044b01ad8c14509c0a",
+      "null_multiplier": true
+    },
+    "wallet_operations": false,
+    "provider_read_canary": 1
+  },
+  "date": "2026-10-07",
+  "limitation": "One valid price and full warmup only. Assessment stopped when Jupiter remaining9 was below required12. No tail/shared-account budget/pilot acceptance. Provider variables removed and ordinary Auth-only closed startup restored afterward."
+}
