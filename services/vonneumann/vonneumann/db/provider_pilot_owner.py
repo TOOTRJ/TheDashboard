@@ -101,6 +101,18 @@ class ProviderPilotOwner(ProviderAdmissionOwner):
             self._history = None
         raise PilotAdmissionRefused(self._pilot_refusal)
 
+    def refuse_acquisition(self):
+        """End ordinary polling before admission; preserve only reserved stop.
+
+        This cannot reopen a hard failure or settle a pending command. The
+        controller owns this call exclusively, before any quote was admitted.
+        """
+        self._idle()
+        if (self._closed_reason is not None or self.pending_candidate is not None
+                or self._coordinator.busy):
+            self._reject('acquisition_refusal_has_retained_work')
+        self._refuse('provider_capture_failed')
+
     def _admit(self):
         self._idle()
         if self._pilot_refusal is not None:

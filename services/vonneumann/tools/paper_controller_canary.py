@@ -179,6 +179,7 @@ async def assess(service):
                 accepted_quotes=state['source']['quote_sequence'],
                 generation=state['engine']['generation'], final_status=state['status'],
                 ticks_completed=service.runner.last_report.ticks_completed,
+                source_order=service.controller.source_order_status,
                 idle_renewals=service.runner.last_report.idle_renewals,
                 owned_commands=service.controller._owner.owned_command_count,
                 accounts=len(state['accounts']), positions=len(state['positions']),
@@ -193,6 +194,7 @@ async def assess(service):
                       service_phase=service._phase, revision=service.repository.revision,
                       last_operation_failure=service.status(service.owner_id).get('last_operation_failure'),
                       first_transport_failures=service.status(service.owner_id).get('first_transport_failures'),
+                      source_order=service.status(service.owner_id).get('source_order'),
                       last_transport_failure_phases=service.status(service.owner_id).get('last_transport_failure_phases'))
         if service.controller is not None:
             report.update(controller_closed_reason=service.controller.closed_reason,

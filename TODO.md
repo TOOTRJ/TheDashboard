@@ -1,6 +1,40 @@
 # Dashboard audit and implementation backlog
 
-**Latest checkpoint — 2026-10-08:** PR74 is merged as
+**Latest checkpoint — 2026-10-08, after PR75:** The paper SQL repair is merged
+as `56b382e30a18bcecb25af31550487192b75a9aaa`; exact Vercel production
+`dpl_6MiBEMk7BHZcVAj2HhmRwLcHXDwB` is READY with four smokes. The new
+matching uvloop assessment passes thirty prices, original lost-reply readback,
+relay, reserved stop and complete owner reads/isolation at revision34. Native
+commit latency for33 samples is0.535/0.569/0.777s min/median/max. Source age
+at receipt for30 prices is1.631/5.460/9.459s. These finite samples do not prove
+hour/tail acceptance. Its ordinary closed restoration and pair revocation pass.
+[SQL-headroom assessment](supabase/audits/2026-10-08-sql-headroom-controller-assessment.json).
+
+The separate actual-owner hour attempt reaches109 accepted prices/revision113,
+then refuses `source_slot_regressed` before quote admission. There is no native
+SQL failure evidence in this attempt. Incoming/prior rejected slot values and
+provider cause were not retained; do not infer cache routing, a reorganization
+or regression magnitude. One original browser Stop drains without a terminal
+stop commit. The original native interruption applies once at revision114/fence2;
+checkpoint, accounts, reserve, positions and nine acknowledged candidate events
+remain unchanged. Ordinary closed Railway deployment
+`5b15ae73-59c2-4935-954c-2f9d2365de86` is SUCCESS,16 temporary values are
+removed, original variables restored and the pair revoked/NOLOGIN. Actual owner
+history shows failed/reconciliation required, unavailable current equity and
+disabled controls. [Source refusal and recovery](supabase/audits/2026-10-08-owner-pilot-source-refusal.json).
+
+The next repair explicitly enables bounded source-order discard only in the paper
+service/assessment: two discarded regressions per episode, eight per run and a15s
+monotonic episode deadline. Each discarded response ends that attempt; only the
+normal next paced tick may request again. Accepted watermarks/age anchors,30s
+source age,5s receipt/acquisition, lease and credential expiry remain. Only a
+recognized pre-admission feed refusal can retain the existing reserved Stop;
+ordinary admission stays closed, and clock/evidence/SQL/uncertain-work failures
+retain hard closure. No command resubmission, old-run resume or schema change.
+Local focused/native acceptance passes; reviewed release precedes another assessment
+and actual owner hour. HOST-07, first replacement and continuous/live gates remain open.
+
+**Earlier checkpoint before PR75 — 2026-10-08:** PR74 is merged as
 `87d8d3c07f2cdfc61968510a37831dd0c7cda080`. Exact Vercel production
 `dpl_AXnRKgZss6UYaYUQbQm9nCfbexzd` is READY with four smokes. The same-loop
 uvloop assessment now passes thirty prices, original lost-reply reconciliation,
@@ -105,10 +139,10 @@ needs a file-backed sign-in before further release. [Fresh hosted evidence](supa
 
 **Next priorities, in order:**
 
-1. Release the paper-only SQL headroom and fixed original SQL error evidence,
-   then rerun the thirty-price assessment on uvloop. Preserve original IDs,
-   source/receipt/lease/deadline guards and reconciliation; no automatic retry
-   or restart. PR74 matching-loop timer assessment is complete.
+1. Complete and release the bounded source-order discard and pre-admission
+   refusal/Stop repair, then run the matching uvloop thirty-price assessment.
+   PR75 SQL headroom release and its new assessment are complete. Keep accepted
+   source/receipt/lease/deadline guards and original-command reconciliation.
 2. Accept the actual intended-owner supervised hour, first replacement and
    reserved stop. The thirty-price lost-reply assessment is a prerequisite only.
 3. Verify final complete browser history/replay and anonymous/other-owner isolation,
@@ -116,11 +150,15 @@ needs a file-backed sign-in before further release. [Fresh hosted evidence](supa
    complete bounded acceptance passes.
 4. Research and implement compact/versioned multi-window checkpoints and retention,
    with long-duration/load acceptance before continuous paper evolution.
-5. Deep research: source-age/repeated-block/omission distributions, timing/quota/
+5. Deep substantial research: source ordering/regression magnitudes and rates,
+   provider consistency/finality/alternative source semantics, source-age/repeated-
+   block/omission distributions, timing/quota/
    billing tails, retained-position outage exposure and restoration, representative
    holdouts and calibrated fills; complete LIVE-01…07 before any real trading.
 
-- [x] **PAPER-SQL-HEADROOM1 — Prepare measured paper SQL bounds and private-safe first failure evidence.** Exact-project Postgres logs identify57014/statement_timeout after90 prices. Original interruption, preserved economics/delivery, closed restoration, credential removal/revocation and terminal owner browser pass. Paper-only statements3s/whole5s/connect1s/COMMIT0.5s/cleanup1s are prepared; general defaults and freshness/lease/expiry remain.150 uvloop cases and11 actual offline native cases pass, including old/new2s-lock comparison, over-budget rollback, original readback, no duplicate submission and immutable sanitized evidence. Release and hosted acceptance remain the immediate first priority. **Deep substantial research:** SQL/role/catalog/lock/COMMIT/cleanup tail distributions under larger journals, source-age interaction, incremental checkpoint/projection costs, and data retention/compaction before continuous evolution.
+- [x] **PAPER-SOURCE-ORDER1 — Bound out-of-order observations and retain safe terminal control.** The actual post-SQL-repair pilot refuses a lower source block after109 prices; original terminal revision114, unchanged economics/checkpoint/events, closed restoration and revocation pass. Do not accept regressed data or rewrite its timestamps. Prepare the explicit paper policy of2 discards per episode/8 per run/15s deadline, fixed private-safe counters, one normal next paced poll, and ordinary-admission refusal with reserved Stop only before quote admission. Prove real feed watermark/ledger invariance, unchanged-receipt deadline retention, stale/time/clock/cancellation failures, exhausted budgets, lost original Stop reply and expired-lease denial. 173 focused cases pass on both default asyncio and uvloop;13 actual offline native cases pass. Exact-target PR/release and new hosted assessment/hour remain next. **Deep substantial research:** record validated rejected/current source references and regression distributions, assess provider consistency/finality and outage position exposure; do not infer a specific provider cause from the current fixed code alone.
+
+- [x] **PAPER-SQL-HEADROOM1 — Prepare measured paper SQL bounds and private-safe first failure evidence.** Exact-project Postgres logs identify57014/statement_timeout after90 prices. Original interruption, preserved economics/delivery, closed restoration, credential removal/revocation and terminal owner browser pass. Paper-only statements3s/whole5s/connect1s/COMMIT0.5s/cleanup1s are prepared; general defaults and freshness/lease/expiry remain.150 uvloop cases and11 actual offline native cases pass, including old/new2s-lock comparison, over-budget rollback, original readback, no duplicate submission and immutable sanitized evidence. PR75 release and the new thirty-price uvloop assessment pass; the actual hour remains open after a source-order refusal. **Deep substantial research:** SQL/role/catalog/lock/COMMIT/cleanup tail distributions under larger journals, source-age interaction, incremental checkpoint/projection costs, and data retention/compaction before continuous evolution.
 
 - [x] **PAPER-RECEIPT-TIMER1 — Diagnose and prepare the early timer repair.** The actual owner diagnostic identifies the fixed receipt-clock code before any accepted quote. Original interruption/closed restoration/revocation and terminal browser revision3 pass. A deterministic real-controller case fails before repair. The bounded repair retains the original receipt/deadline and actual-clock admission, with eight wakeups and shutdown/expiry checks. Ordinary worker and assessment explicitly use uvloop.130 focused cases pass under each loop and six actual PostgreSQL cases pass. Hosted matching-loop assessment and hour acceptance remain unchecked above. Deep research remains required on receipt/source/loop/SQL timing distributions and supported long-duration profiles.
 

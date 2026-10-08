@@ -24,6 +24,7 @@ from vonneumann.db.command_protocol import PreparedCommand
 from vonneumann.db.command_repository import CommandAdmissionError, CommandBusy, CommandRepository
 from vonneumann.db.provider_owner import ProviderAdmissionOwner, ProviderQuote
 from vonneumann.market.provider_contract import ProviderSourceError
+from vonneumann.market.feed import MarketFeedError
 
 
 class FeedGate:
@@ -148,6 +149,152 @@ class ProviderAcquisitionTests(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(self.acquisition.accepting)
         self.assertFalse(self.owner.accepting)
         self.assertIsNotNone(self.owner.closed_reason)
+
+    def enable_quarantine(self):
+        self.acquisition = module.ProviderPriceAcquisition(self.feed, self.owner,
+            quarantine_regressions=True, monotonic=self.mono)
+
+    def fresh_repository(self):
+        self.transport = CommittingTransport()
+        self.repo = CommandRepository(self.transport, OWNER, RUN, WORKER, monotonic=self.mono)
+
+    async def test_default_regression_remains_fatal_without_an_explicit_paper_policy(self):
+        await self.ready(MarketFeedError('source_slot_regressed'))
+        with self.assertRaises(CommandAdmissionError):
+            await self.acquisition.capture_quote()
+        self.assert_closed()
+        self.assertEqual(self.acquisition.source_order_status['discarded_total'], 0)
+
+    async def test_quarantine_discards_one_response_per_attempt_without_changing_evidence_or_economics(self):
+        await self.ready(self.response(self.capture()))
+        self.enable_quarantine()
+        await self.accept(await self.acquisition.capture_quote())
+        state = self.owner.installed_state.to_dict()
+        calls = self.transport.count('commit_command')
+        for _ in range(2):
+            self.age(5)
+            self.feed.responses.append(MarketFeedError('source_slot_regressed'))
+            self.assertIsNone(await self.acquisition.capture_quote())
+            self.assertEqual(self.owner.installed_state.to_dict(), state)
+            self.assertEqual(self.transport.count('commit_command'), calls)
+            self.assertFalse(self.acquisition.has_deferred_capture)
+            self.assertTrue(self.acquisition.accepting)
+        self.age(1)
+        self.feed.responses.append(self.response(self.capture(block=101)))
+        ticket = await self.acquisition.capture_quote()
+        self.assertEqual((ticket.frame['sequence'], ticket.frame['quote']['block_ref']), (2, 101))
+        status = self.acquisition.source_order_status
+        self.assertEqual((status['discarded_total'], status['episode_discarded'], status['episode_active']),
+                         (2, 0, False))
+        status['discarded_total'] = 999
+        self.assertEqual(self.acquisition.source_order_status['discarded_total'], 2)
+        self.assertEqual(len(self.feed.calls), 4)
+
+    async def test_third_consecutive_regression_is_fatal_and_cannot_refetch(self):
+        await self.ready(*(MarketFeedError('source_slot_regressed') for _ in range(4)))
+        self.enable_quarantine()
+        for _ in range(2):
+            self.assertIsNone(await self.acquisition.capture_quote())
+        with self.assertRaises(CommandAdmissionError):
+            await self.acquisition.capture_quote()
+        self.assert_closed()
+        self.assertEqual(self.acquisition.source_order_status['limit_reason'], 'consecutive_limit')
+        self.assertEqual(self.acquisition.last_failure['provider_code'], 'source_slot_regressed')
+        with self.assertRaises(CommandAdmissionError):
+            await self.acquisition.capture_quote()
+        self.assertEqual(len(self.feed.calls), 3)
+
+    async def test_total_discard_budget_survives_successful_new_quotes(self):
+        await self.ready()
+        self.enable_quarantine()
+        for index in range(8):
+            self.feed.responses.append(MarketFeedError('source_slot_regressed'))
+            self.assertIsNone(await self.acquisition.capture_quote())
+            self.age(1)
+            self.feed.responses.append(self.response(self.capture(block=100+index)))
+            await self.accept(await self.acquisition.capture_quote())
+        self.feed.responses.append(MarketFeedError('source_slot_regressed'))
+        with self.assertRaises(CommandAdmissionError):
+            await self.acquisition.capture_quote()
+        self.assertEqual(self.acquisition.source_order_status['limit_reason'], 'total_limit')
+        self.assert_closed()
+
+    async def test_unchanged_receipt_cannot_reset_episode_and_expiry_prevents_another_request(self):
+        await self.ready(self.response(self.capture()))
+        self.enable_quarantine()
+        first = await self.acquisition.capture_quote()
+        await self.accept(first)
+        state = self.owner.installed_state.to_dict()
+        self.feed.responses.append(MarketFeedError('source_slot_regressed'))
+        self.assertIsNone(await self.acquisition.capture_quote())
+        self.age(10)
+        self.feed.responses.append(self.response(self.capture(
+            source_second=first.frame['quote']['estimated_source_second'])))
+        self.assertIsNone(await self.acquisition.capture_quote())
+        self.age(5)
+        count = len(self.feed.calls)
+        with self.assertRaises(CommandAdmissionError):
+            await self.acquisition.capture_quote()
+        self.assertEqual(len(self.feed.calls), count)
+        self.assertEqual(self.acquisition.source_order_status['limit_reason'], 'episode_deadline')
+        self.assertEqual(self.owner.installed_state.to_dict(), state)
+        self.assert_closed()
+
+    async def test_return_after_episode_deadline_cannot_admit_even_a_fresh_capture(self):
+        await self.ready(MarketFeedError('source_slot_regressed'))
+        self.enable_quarantine()
+        self.assertIsNone(await self.acquisition.capture_quote())
+        async def delayed():
+            self.age(15)
+            return self.response(self.capture(block=101))
+        self.feed.responses.append(delayed)
+        before = self.owner.installed_state
+        with self.assertRaises(CommandAdmissionError):
+            await self.acquisition.capture_quote()
+        self.assertIs(self.owner.installed_state, before)
+        self.assert_closed()
+
+    async def test_paper_policy_never_discards_other_errors_or_owner_source_rejections(self):
+        for code in ('price_stale', 'source_time_invalid', 'rpc_unavailable', 'price_rate_limited'):
+            self.fresh_repository()
+            await self.ready(MarketFeedError(code))
+            self.enable_quarantine()
+            with self.assertRaises(CommandAdmissionError):
+                await self.acquisition.capture_quote()
+            self.assertEqual(self.acquisition.last_failure['provider_code'], code)
+            self.assertEqual(self.acquisition.source_order_status['discarded_total'], 0)
+            self.assert_closed()
+        self.fresh_repository()
+        await self.ready(self.response(self.capture()))
+        self.enable_quarantine()
+        await self.accept(await self.acquisition.capture_quote())
+        self.age(1)
+        self.feed.responses.append(self.response(self.capture(block=99)))
+        with self.assertRaises(CommandAdmissionError):
+            await self.acquisition.capture_quote()
+        self.assertEqual(self.acquisition.source_order_status['discarded_total'], 0)
+        self.assert_closed()
+
+    async def test_deadline_wins_over_late_regression_and_invalid_clock_fails_closed(self):
+        await self.ready()
+        self.enable_quarantine()
+        async def late():
+            await asyncio.sleep(.015)
+            raise MarketFeedError('source_slot_regressed')
+        self.feed.responses.append(late)
+        with patch.object(module, 'ACQUISITION_TIMEOUT_SECONDS', .005):
+            with self.assertRaises(CommandAdmissionError):
+                await self.acquisition.capture_quote()
+        self.assertEqual(self.acquisition.source_order_status['discarded_total'], 0)
+        self.assert_closed()
+        self.fresh_repository()
+        await self.ready(MarketFeedError('source_slot_regressed'))
+        self.enable_quarantine()
+        self.acquisition._monotonic = lambda: float('nan')
+        with self.assertRaises(CommandAdmissionError):
+            await self.acquisition.capture_quote()
+        self.assertEqual(len(self.feed.calls), 0)
+        self.assert_closed()
 
     async def test_exact_capture_returns_owner_ticket_without_commands_or_legacy_float_path(self):
         capture = self.capture(price='1.000000000000000001')

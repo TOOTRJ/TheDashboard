@@ -95,6 +95,93 @@ class ProviderRunnerTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(CommandAdmissionError):
             await self.runner.run()
 
+    async def test_actual_feed_regression_defers_to_next_paced_tick_without_cursor_or_ledger_regression(self):
+        await self.ready(quarantine_regressions=True)
+        for slot in (fixture.SLOT, fixture.SLOT-1, fixture.SLOT+1):
+            self.price(slot=slot)
+        self.runner = ProviderPilotRunner(self.controller, interval_seconds=.01, max_ticks=3)
+        original = self.controller.tick
+        observations = []
+        async def observe():
+            report = await original()
+            observations.append((report, self.owner.installed_state.to_dict(),
+                                 dict(self.feed._source_slots), len(self.allocations)))
+            return report
+        with patch.object(self.controller, 'tick', observe):
+            report = await self.runner.run()
+        self.assertEqual(report.status, 'complete')
+        self.assertEqual([row.status for row in report.reports], ['complete','complete','deferred','complete'])
+        self.assertEqual([row.quote_sequence for row in report.reports], [0,1,1,2])
+        self.assertEqual(observations[0][1:], observations[1][1:])
+        self.assertEqual(observations[2][2], {fixture.SOL: fixture.SLOT+1})
+        self.assertEqual(self.feed.api_call_count, 3)
+        self.assertEqual(self.controller.source_order_status['discarded_total'], 1)
+        self.assert_unique_commands()
+
+    async def test_one_stop_after_failed_capture_settles_stage_then_commits_reserved_stop_once(self):
+        await self.configured(ticks=2, quarantine_regressions=True)
+        self.feed._session.responses[-1] = fixture.PriceResponse({}, status=429)
+        with self.assertRaises(CommandAdmissionError):
+            await self.runner.run()
+        before = self.owner.installed_state.to_dict()
+        failure = self.controller.last_failure
+        self.runner.request_stop()
+        stopped = await self.runner.settle()
+        self.assertEqual(stopped.status, 'stopped')
+        self.assertEqual([row.kind for row in stopped.reports], ['bootstrap','tick','tick','stop'])
+        self.assertEqual([row.status for row in stopped.reports], ['complete','complete','drained','complete'])
+        after = self.owner.installed_state.to_dict()
+        self.assertEqual(after['status'], 'stopped')
+        for key in ('accounts', 'positions', 'reserve'):
+            self.assertEqual(after[key], before[key])
+        self.assertEqual(after['source'], before['source'])
+        self.assertEqual(self.controller.last_failure, failure)
+        self.assertEqual(self.feed.api_call_count, 2)
+        ids = [args['command_id'] for name,args in self.transport.calls if name=='commit_command']
+        self.assertEqual(ids.count(self.stop_id), 1)
+        self.runner.request_stop()
+        self.assertIs(await self.runner.settle(), stopped)
+        self.assert_unique_commands()
+
+    async def test_stop_after_feed_refusal_retains_lost_reply_identity_and_missing_readback(self):
+        await self.configured(ticks=2, quarantine_regressions=True)
+        self.feed._session.responses[-1] = fixture.PriceResponse({}, status=429)
+        with self.assertRaises(CommandAdmissionError):
+            await self.runner.run()
+        self.runner.request_stop()
+        self.transport.fault('commit_command', OSError('reserved stop reply lost'))
+        with self.assertRaises(UncertainCommand):
+            await self.runner.settle()
+        original = self.owner.pending_command
+        self.assertEqual(original.command_id, self.stop_id)
+        self.transport.fault('get_command', None)
+        pending = await self.runner.settle()
+        self.assertEqual(pending.status, 'pending')
+        self.assertIs(self.owner.pending_command, original)
+        report = await self.runner.settle()
+        self.assertEqual(report.status, 'stopped')
+        ids = [args['command_id'] for name,args in self.transport.calls if name=='commit_command']
+        self.assertEqual(ids.count(self.stop_id), 1)
+        self.assertEqual(self.feed.api_call_count, 2)
+        self.assert_unique_commands()
+
+    async def test_expired_lease_after_feed_refusal_cannot_reopen_for_reserved_stop(self):
+        await self.configured(ticks=2, quarantine_regressions=True)
+        self.feed._session.responses[-1] = fixture.PriceResponse({}, status=429)
+        with self.assertRaises(CommandAdmissionError):
+            await self.runner.run()
+        before = self.owner.installed_state.to_dict()
+        self.age(121)
+        # This fake ledger does not implement database-time lease checks.
+        # Model the authoritative server's refusal of the expired renewal.
+        self.transport.fault('heartbeat', CommandAdmissionError('server lease expired'))
+        self.runner.request_stop()
+        with self.assertRaises(CommandAdmissionError):
+            await self.runner.settle()
+        self.assertEqual(self.owner.installed_state.to_dict(), before)
+        self.assertNotIn(self.stop_id, self.transport.ledger)
+        self.assertEqual(self.feed.api_call_count, 2)
+
     async def test_constructor_requires_explicit_finite_interval_and_bounded_integer_ticks(self):
         await self.ready(limits=ProviderPilotLimits(max_quotes=2))
         for interval in (True, 0, -1, float('nan'), float('inf'), '1', 120, 3601):

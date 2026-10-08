@@ -141,7 +141,8 @@ class ProviderControllerTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase
         if self.delivery_hook is not None:
             await self.delivery_hook(row)
 
-    async def ready(self, *, lookup_elapsed=1, limits=None, publisher=None, candle_response=None):
+    async def ready(self, *, lookup_elapsed=1, limits=None, publisher=None, candle_response=None,
+                    quarantine_regressions=False):
         config = life.ProviderLifecycleConfig(kernel.ExactLifecycleConfig(
             'genetic_algorithm', OWNER, RUN, asset='SOL/USD'), EPOCH)
         await self.repo.submit(PreparedCommand.create(OWNER, RUN, WORKER,
@@ -158,7 +159,8 @@ class ProviderControllerTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase
 
         self.controller = module.ProviderPilotController(self.owner, self.feed,
             self.publisher if publisher is None else publisher, self.allocation,
-            wall_clock=self.wall, monotonic=self.mono)
+            wall_clock=self.wall, monotonic=self.mono,
+            quarantine_regressions=quarantine_regressions)
         return self.controller
 
     async def bootstrapped(self, **options):
