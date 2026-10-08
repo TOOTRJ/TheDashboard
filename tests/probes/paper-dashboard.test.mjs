@@ -22,7 +22,7 @@ function harness(options={}) {
  const hooks=[],effects=[],requests=[],reads=[];let index=0,dirty=false,tree;
  const timers=new Map();let timerId=0,now=0;
  const later=(fn,delay)=>{const id=++timerId;timers.set(id,{fn,at:now+delay});return id;};
- let phase=options.phase??'fresh',failed=false,workerRun=options.workerRun??run,activeOwner=owner;
+ let phase=options.phase??'fresh',failed=false,workerRun=options.workerRun??run,activeOwner=owner,stopLatched=false;
  const directoryRuns=options.directoryRuns??[run];
  const same=(a,b)=>a&&b&&a.length===b.length&&a.every((x,i)=>Object.is(x,b[i]));
  const memo=(fn,deps)=>{const i=index++;if(!hooks[i]||!same(hooks[i].deps,deps))hooks[i]={deps,value:fn()};return hooks[i].value;};
@@ -33,7 +33,7 @@ function harness(options={}) {
    const value=typeof next==='function'?next(hooks[i].value):next;if(!Object.is(value,hooks[i].value)){hooks[i].value=value;dirty=true;}}];}};
  const row={id:run,durability_version:5,account_currency:'USD',initial_cash:'1000',reserve:'1000',reference_equity:null,
   status:'stopped',generation:0,open_position_count:1,requires_reconciliation:true,committed_at:'2026-10-08',source_at:null};
- const state=()=>({version:1,owner_id:activeOwner,run_id:workerRun,request_id:start,phase,stop_requested:phase==='stopped',busy:false,
+ const state=()=>({version:1,owner_id:activeOwner,run_id:workerRun,request_id:start,phase,stop_requested:stopLatched||phase==='stopped',busy:false,
   requires_reconciliation:['failed','drained','pending'].includes(phase)});
  const api={
   async read(name,args,signal){reads.push({name,args,signal});
@@ -58,7 +58,9 @@ function harness(options={}) {
    if(name==='controls')return {...state(),start_id:start,stop_id:stop};
    if(options.controlGate)await options.controlGate.promise;
    if(options.startFails&&name==='start'){phase='pending';throw Error('private transport failure');}
-   phase=name==='stop'?'stopped':'running';return state();
+   if(name==='stop')stopLatched=true;
+   if(options.stopFails&&name==='stop'){phase='pending';throw Error('lost Stop reply');}
+   phase=name==='stop'||stopLatched?'stopped':'running';return state();
   },
  };
  const {PaperDashboardSession:PaperDashboard,PaperDashboard:Outer}=load('src/components/probes/PaperDashboard.tsx',{
@@ -232,4 +234,21 @@ test('a stale status read started before command acknowledgment cannot regress t
  h.advance(10000);await h.flush();h.click('Start configured pilot');await h.flush();
  gate.resolve();await h.flush();assert.match(h.text(),/Worker: running/);
  assert.throws(()=>h.click('Start configured pilot'),/disabled/);h.dispose();
+});
+test('uncertain Stop can settle the original pending command with the reserved Start identity and preserve browsing',async()=>{
+ const h=harness({phase:'pending',stopFails:true,workerRun:newer,directoryRuns:[run,newer]});await h.flush();
+ h.click('Stop and retain holdings');await h.flush();assert.match(h.text(),/Original stop request retained/);
+ h.click('Refresh status and history');await h.flush();h.click('Settle original operation');await h.flush();
+ const requests=h.requests.filter(r=>r.args);assert.deepEqual(requests.map(r=>r.name),['stop','settle']);
+ assert.deepEqual(requests.map(r=>r.args.request_id),[stop,start]);assert.match(h.text(),/Worker: stopped/);
+ assert.match(h.text(),new RegExp('Selected history: '+run));assert.doesNotMatch(h.text(),/waiting for owner-bound discovery/);h.dispose();
+});
+test('retrying an uncertain Stop reuses its original ID and remains blocked after deployment turnover',async()=>{
+ const h=harness({stopFails:true});await h.flush();h.click('Stop and retain holdings');await h.flush();
+ h.click('Stop and retain holdings');await h.flush();
+ const requests=h.requests.filter(r=>r.name==='stop');assert.equal(requests.length,2);
+ assert.ok(requests.every(r=>r.args.request_id===stop));
+ h.changeWorker(newer);h.click('Refresh status and history');await h.flush();
+ assert.throws(()=>h.click('Stop and retain holdings'),/disabled/);
+ assert.throws(()=>h.click('Settle original operation'),/disabled/);h.dispose();
 });
