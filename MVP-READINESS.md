@@ -1,6 +1,6 @@
 # Evolutionary trading bot MVP readiness
 
-Reviewed 2026-10-06 against the current implementation and [TODO.md](TODO.md).
+Reviewed 2026-10-07 against the current implementation and [TODO.md](TODO.md).
 This distinguishes tested components, deployed application behavior, and the
 integration work still required. Completing engine tests is not a hosted bot
 release or evidence of a profitable strategy.
@@ -14,13 +14,16 @@ release or evidence of a profitable strategy.
 | Research evaluator | Synthetic replay, a twenty-pair exhaustive grid, cash/passive/fixed-EMA/random controls, and an equal-budget reference GA are implemented. Training-only selection and fresh chronological holdout accounts are tested. Representative historical research and calibrated fills remain open. |
 | Exact paper controller | An opt-in provider-bound v5 controller, command repository, lease fencing and event outbox work in offline/local database rehearsals. They are not yet selected by the production service. |
 | Database / transports | Canonical fresh v5 SQL and native SCRAM owner/run authentication are proved offline. The inert HTTP adapter and local PostgREST tests retain reconciliation/transaction evidence; the bounded native async SQL transport now proves real TLS/SCRAM controller/relay and commit recovery offline. Read-only hosted metadata and a bounded TLS-only preflight are complete; project CA, actual worker IPv6 and limited native credential issuance/authentication acceptance remain. The hosted project runs PostgREST 14.5; fresh v5 SQL is not deployed. Existing public legacy writers remain in service code. |
-| Dashboard | Next.js 16.3.8 is deployed. Selected-run targeting and complete bounded legacy history are repaired locally and released. Fresh versioned projections, detail pagination and two-owner end-to-end acceptance remain. |
+| Dashboard | Next.js 16.3.8 is deployed. Selected-run targeting and complete bounded legacy history are repaired and released. D3C now prepares the explicitly selected actual v5 view with exact balances/trade/evaluation details, legacy diagnostics, original-ID controls/archive and durable replay. Local browser/SQL owner flow passes; actual hosted adoption/two-user acceptance remains A3. |
 | Worker / live execution | The Python worker is unhosted. Runtime modes are simulation/paper. The Jupiter V2 helper requests quotes without a taker; it cannot sign or execute a swap. |
 
-The next implementation focus is the remaining B2C3 project CA/worker IPv6 and
-limited credential issuer/native-session acceptance, then the remaining DB-03A2D3
-full-package/legacy evidence/service/browser dependencies and DB-03A3's complete
-verified cutover. Detailed transport evidence lives in [NATIVE-SQL-TRANSPORT.md](services/vonneumann/NATIVE-SQL-TRANSPORT.md);
+The complete forward package/legacy evidence/additive retirement and D3C service/browser
+preparation are tested. A non-root pinned amd64 image is built and closed-mode canaries
+pass. The private empty Railway project is created; its production-scoped token is pending,
+with an approved $20/month pilot ceiling. Next is the exact closed service and selected-host
+IPv6/CA/managed issuer/native acceptance, then A3 target-specific application/exposure,
+hosted operator/failure flow and actual source/lease/quota/resource timing before the pilot.
+[Exact setup and remaining gates](RAILWAY-SETUP.md). Detailed transport evidence lives in [NATIVE-SQL-TRANSPORT.md](services/vonneumann/NATIVE-SQL-TRANSPORT.md);
 actual hosted facts, the credential/rollback plan and revised Railway IPv6 hosting
 recommendation live in [HOSTED-NATIVE-PREFLIGHT.md](services/vonneumann/HOSTED-NATIVE-PREFLIGHT.md).
 

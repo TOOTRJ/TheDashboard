@@ -760,6 +760,14 @@
       "signature": "vn_read.archive_run(uuid,bigint,uuid)"
     },
     {
+      "body_sha256": "167272295f6c2eadb8bc8f946140653b2b148fd4976fd016b92a5a13a7b456cc",
+      "ddl_sha256": "904ec9a29d5e0ab4462acb4145e32afeb49ed722fec9dee7b991e04e27424fe6",
+      "execute_role": "authenticated",
+      "owner": "vn_contract_owner",
+      "security_definer": true,
+      "signature": "vn_read.discover(uuid,uuid,integer,integer)"
+    },
+    {
       "body_sha256": "7d62d492b9bfc51ff0b28fe95b72c481fe91e5fb0e86e42c551364732ade754f",
       "ddl_sha256": "5a70b0731e911a36189bfb2694d24d35186df61055b89b3ac4b56b12a0cadcc6",
       "execute_role": "authenticated",
@@ -1091,6 +1099,12 @@
       "ddl_sha256": "d5a41a3fee32c87289f6377efc454d26b7346644fec03a53abbddce15ac90efc",
       "kind": "index",
       "name": "legacy_archives_scope"
+    },
+    {
+      "ddl": "CREATE INDEX runs_owner_discovery ON vn_durability.runs(user_id,id);",
+      "ddl_sha256": "3b739ca214890656532c6fd339d8e80936055a1abafd7274312682eefc76a5df",
+      "kind": "index",
+      "name": "runs_owner_discovery"
     }
   ],
   "open_gates": [
@@ -1098,15 +1112,15 @@
     "selected_host_managed_acceptance",
     "DB03A3_reviewed_migration"
   ],
-  "package_sha256": "fd5fcee6f4a7e9ef8ed0bc3f7cec0ca4096c09c41aeb8305c69ab3dcb9b33423",
-  "postcommit_sha256": "c2b77fe39dded66a3a61d4c806e8da538cc132f97890aeb2d72a2c0e54f7443b",
+  "package_sha256": "05bf9bfab224b693f776edcf356ba57617448607f3ebe5d86d639b7115538fd1",
+  "postcommit_sha256": "276b371a21008371e18ec34085234c21e1f429211bf98a5c4bbae39775938615",
   "production_application_available": false,
   "release_guarded_functions": [
     "vn_durability.commit_command",
     "vn_durability.create_run",
     "vn_durability.heartbeat"
   ],
-  "release_sha256": "84a36fd51c12969b700debcc93682517e3c329dc3e588866fb4b8e3259a01680",
+  "release_sha256": "5ba175e3c3f56fdbae0ae95a0573e1bc7e93ec0df30390bc8daabfc08cf23924",
   "retained_authority": [
     "get_command",
     "interrupt_expired",
@@ -1119,7 +1133,8 @@
   "rollback": "vn_release.transition(original_request_id,current_epoch,retired,evidence_sha256)",
   "sources_sha256": {
     "admission.sql": "25555ffb08faba2e5d7446a7323a59d9206eda5ba0f5f907d53eca0d03f8db8f",
-    "build.py": "16d767905eb0dc80ae57986f3b7e03393ff1090ed7b06655d066954767f60c05",
+    "browser.sql": "3d98b4d7f1715e9791278d8c9240e0a757e4cfbf05eb02094667c2ca1a5c2b6e",
+    "build.py": "275eb4890e1c84ed2d11c9d97e8fda018f9470178a1e14884cb8611a187ceba0",
     "catalog.sql": "ea171524cfa675f8ee60ac5425024f4167673d35c4df0b661214066403b30e91",
     "dependencies.json": "0da44f55816fc10b342ed82fa43e6ff4fd2746c50e35a2edd0a3beb7e618ee1c",
     "review.sql": "888f3bb2c6f40de637b92a63aa0d4458bc46dae85a95abd177a3fa2a92d9d28d"

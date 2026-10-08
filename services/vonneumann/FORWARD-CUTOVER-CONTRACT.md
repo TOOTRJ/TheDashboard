@@ -4,12 +4,15 @@ DB-03A2D3B2D2 composes the reviewed canonical v5 ledger, native identity checks,
 legacy write retirement, and durable legacy evidence in one transaction. The
 candidate lives in `db-contract/forward/`, outside `supabase/migrations`. No
 application imports or executes it. Production adoption remains conditional on
-D3C service/browser integration, C3B managed-host acceptance, and A3 review.
+D3C service/browser preparation is now implemented; C3B managed-host acceptance
+and A3 application/hosted verification remain. The browser overlay adds owner-only
+bounded run discovery and an index, both covered by the final hash/catalog oracle.
+[Service/browser contract](PAPER-SERVICE-CONTRACT.md). Admission remains closed.
 
 `build.py --check` reproduces `package.sql`, `verify.sql`, and `manifest.json`.
 `dependencies.json` pins twenty existing component sources/artifacts, including
 the unchanged native issuer/revocation templates. The final manifest enumerates
-97 callable signatures with final body/DDL hashes, owners and exact execute
+98 callable signatures with final body/DDL hashes, owners and exact execute
 roles, 26 table definitions, indexes/triggers/domain definitions, source hashes,
 the release identity and the exact Dashboard provider identities. Issuer
 templates are dependencies for separately reviewed operations; installing the

@@ -53,7 +53,7 @@ def build():
  if native_sql!=(ROOT/'session-auth/package.sql').read_text() or evidence_sql!=(ROOT/'legacy-evidence/package.sql').read_text():
   raise ValueError('Component artifact differs from builder')
  dependencies=PINNED
- sources={p:sha((HERE/p).read_text()) for p in ('build.py','dependencies.json','review.sql','admission.sql','catalog.sql')}
+ sources={p:sha((HERE/p).read_text()) for p in ('build.py','dependencies.json','review.sql','admission.sql','catalog.sql','browser.sql')}
  release_id=sha(json.dumps({'dependencies':dependencies,'sources':sources,'target':TARGET},sort_keys=True))
  preflight="""BEGIN;
 SET LOCAL lock_timeout='500ms'; SET LOCAL statement_timeout='8s';
@@ -82,7 +82,7 @@ DO $$ DECLARE expected jsonb; legacy_review jsonb; BEGIN
 END $$;
 """.replace('-- TARGET',json.dumps(TARGET,sort_keys=True)).replace('-- RELEASE_ID',release_id)
  gate=(HERE/'admission.sql').read_text().replace('-- RELEASE_ID',release_id)
- sql=preflight+inner(native_sql)+'\n'+inner(evidence.retirement())+'\n'+inner(evidence_sql)+'\n'+gate
+ sql=preflight+inner(native_sql)+'\n'+inner(evidence.retirement())+'\n'+inner(evidence_sql)+'\n'+(HERE/'browser.sql').read_text()+'\n'+gate
  guards=[];replacements=[]
  for name,m in final_functions(native_sql).items():
   if name not in {'vn_durability.create_run','vn_durability.heartbeat','vn_durability.commit_command'}: continue
@@ -101,6 +101,7 @@ END $$;
  policies={m['name']:m['execute_role'] for m in json.loads((ROOT/'v5/manifest.json').read_text())['functions']}
  for name in ('vn_identity.lock_legacy_evidence','vn_identity.legacy_rows'):policies[name]='vn_contract_owner'
  policies['vn_legacy.classify_run']='authenticated'
+ policies['vn_read.discover']='authenticated'
  for sig in evidence_manifest['authenticated']:policies[sig.split('(')[0]]='authenticated'
  for sig in evidence_manifest['attestor']:policies[sig.split('(')[0]]='vn_legacy_attestor'
  metadata=[{'signature':v5.signature(m),'body_sha256':sha(m[3]),'ddl_sha256':sha(m[0]),

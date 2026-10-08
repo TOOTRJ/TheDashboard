@@ -95,6 +95,7 @@ DO $$ DECLARE item record; api record; legacy_expected jsonb; BEGIN
 ('vn_projection.require_relay_acceptance()','295044afe8bd95c5573e5a0baad294d9025eb76da538687030da354e0a93692c','vn_contract_owner',NULL,false),
 ('vn_read.accept_event(uuid,uuid,uuid,integer)','93c554920853f373a84cb49728e8db1edfd1551c0789a37753f140598731c94c','vn_contract_owner','vn_relay',true),
 ('vn_read.archive_run(uuid,bigint,uuid)','0b5b8cdd104e9bb355c8c6b66d0e957da66cb21042eb6448fbefefa7790cb04c','vn_contract_owner','authenticated',true),
+('vn_read.discover(uuid,uuid,integer,integer)','167272295f6c2eadb8bc8f946140653b2b148fd4976fd016b92a5a13a7b456cc','vn_contract_owner','authenticated',true),
 ('vn_read.events(uuid,bigint,bigint,integer,integer)','7d62d492b9bfc51ff0b28fe95b72c481fe91e5fb0e86e42c551364732ade754f','vn_contract_owner','authenticated',true),
 ('vn_read.page(uuid,text,bigint,bigint,text,integer,integer)','3383561d18c60c48bfe8637f885c139c7824fd9dcd5987348029dc1d11949bdf','vn_contract_owner','authenticated',true),
 ('vn_release.catalog()','54a70a393621f95dd61a31be992a5345a7583a9557792693a1bc3c4c40f8eca7','vn_contract_owner',NULL,false),
@@ -121,7 +122,7 @@ DO $$ DECLARE item record; api record; legacy_expected jsonb; BEGIN
   END LOOP;
  END LOOP;
  IF (SELECT count(*) FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
-   WHERE n.nspname IN ('vn_identity','vn_access','vn_durability','vn_projection','vn_read','vn_legacy','vn_legacy_evidence','vn_release'))<>97 THEN
+   WHERE n.nspname IN ('vn_identity','vn_access','vn_durability','vn_projection','vn_read','vn_legacy','vn_legacy_evidence','vn_release'))<>98 THEN
   RAISE EXCEPTION 'unexpected_complete_forward_function';
  END IF;
  IF (SELECT count(*) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace

@@ -9,6 +9,7 @@ import { ExecutionPolicyNotice } from "@/components/probes/ExecutionPolicyNotice
 import { parseExecutionPolicy } from "@/lib/probes/execution";
 import { parseSignalPolicy, signalPolicyDescription } from "@/lib/probes/signal-profile";
 import { ProbesDashboard } from "@/components/probes/ProbesDashboard";
+import { PaperDashboard } from "@/components/probes/PaperDashboard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { fetchProbes, fetchGenerationStats, fetchColonyRuns } from "@/lib/probes/probes-supabase";
 import { useProbesWebSocket } from "@/lib/probes/websocket";
@@ -40,6 +41,9 @@ export default function ProbesPage() {
     );
   }
   // An account change unmounts all private state, pending work and subscriptions.
+  if (process.env.NEXT_PUBLIC_VN_SERVICE_MODE === 'paper-v5') {
+    return <PaperDashboard key={user.id} owner={user.id} token={session.access_token} />;
+  }
   return <AuthenticatedProbesPage key={user.id} userId={user.id} accessToken={session.access_token} />;
 }
 
