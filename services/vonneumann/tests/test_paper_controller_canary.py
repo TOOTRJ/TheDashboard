@@ -15,7 +15,7 @@ class CanaryTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase):
 
     def test_closed_explicit_scope_and_sole_consumer_are_required_before_construction(self):
         for change in ({'VN_SERVICE_MODE': 'paper-v5'}, {'VN_PAPER_ACCEPTANCE': ''},
-                       {'VN_JUPITER_SOLE_CONSUMER': '0'}):
+                       {'VN_JUPITER_SOLE_CONSUMER': '0'}, {'VN_PAPER_REPLY_DRILL': 'unknown'}):
             with patch.object(module, 'configured_service') as factory:
                 with self.assertRaises(ValueError): module.configuration(self.configuration(**change))
                 factory.assert_not_called()
@@ -31,6 +31,23 @@ class CanaryTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase):
             self.assertIs(module.configuration(environment), service)
             self.assertEqual(factory.call_args.args[0]['VN_SERVICE_MODE'], 'paper-v5')
         self.assertEqual(environment, original)
+
+    def test_existing_run_drill_requires_original_interrupt_scope_before_construction(self):
+        from uuid import uuid4
+        start, stop, interrupt = (str(uuid4()) for _ in range(3))
+        environment = self.configuration(VN_PAPER_ACCEPTANCE='finite-expired-run-v1',
+            VN_PAPER_START_ID=start, VN_PAPER_STOP_ID=stop,
+            VN_PAPER_INTERRUPT_ID=interrupt, VN_PAPER_INTERRUPT_REVISION='2')
+        for change in ({'VN_PAPER_INTERRUPT_ID': start}, {'VN_PAPER_INTERRUPT_REVISION': '1'},
+                       {'VN_PAPER_REPLY_DRILL': 'bootstrap-commit-once'}):
+            with patch.object(module, 'configured_service') as factory:
+                with self.assertRaises(ValueError): module.configuration({**environment, **change})
+                factory.assert_not_called()
+        service = SimpleNamespace(_ticks=30, _interval=5)
+        with patch.object(module, 'configured_service', return_value=service):
+            self.assertIs(module.configuration(environment), service)
+        self.assertEqual(service._acceptance_interrupt, (interrupt, 2))
+        self.assertTrue(service._acceptance_existing)
 
     async def test_instrumentation_keeps_identity_payload_result_and_single_owned_call(self):
         class Transport:
@@ -61,3 +78,17 @@ class CanaryTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase):
             self.assertEqual(calls, ['commit_command'])
             self.assertEqual(dict(measured.errors), {'commit_command': 1})
             self.assertEqual(len(measured.samples['commit_command']), 1)
+
+    async def test_explicit_lost_committed_reply_is_injected_once_without_resubmission(self):
+        calls = []
+        async def rpc(name, arguments):
+            calls.append((name, arguments))
+            return {'committed': True}
+        measured = module.MeasuredTransport(SimpleNamespace(rpc=rpc), drop_bootstrap_reply=True)
+        original = {'command_id': 'original-retained-command'}
+        with self.assertRaises(ConnectionError): await measured.rpc('commit_command', original)
+        self.assertTrue(measured.reply_dropped)
+        self.assertEqual(calls, [('commit_command', original)])
+        self.assertEqual(await measured.rpc('get_command', original), {'committed': True})
+        self.assertEqual(await measured.rpc('commit_command', {'command_id': 'next'}), {'committed': True})
+        self.assertEqual(dict(measured.errors), {'commit_command': 1})

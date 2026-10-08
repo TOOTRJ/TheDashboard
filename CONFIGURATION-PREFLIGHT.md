@@ -2734,3 +2734,42 @@ cadence guard checks pass12. Production selection explicitly requires the sole
 consumer acknowledgement and interval>=5 before native construction. The user
 has completed the deliberate scoped login; fresh remote target verification is
 being repeated before any push or activation.
+
+## 73. First hosted controller measurement and consumed-history repair (2026-10-08)
+
+The dedicated login now resolves the exact Vercel project/team. PR66 merges as
+816f3006ba0930ebb531ce1a567984033aab293c; productiondpl_8oikhTvcKt4qVrug3WyHxJ8PsRHy
+is READY with matching project/team/repository/author/source/alias and four
+read-only smokes. Full Supabase body/authority verification and fifteen migration
+versions match. Four finite owner/run economic/relay pairs are issued through
+bound private inputs while closed; the temporary invoker is removed. The original
+release transition is rehearsed under ROLLBACK, then committed once and freshly
+reconciled: open, epoch1, unchanged catalog/release digest. No schema migration
+or live transaction occurs.
+
+Railway controller assessment394e3780-c769-4c59-a3ca-d346df9c4b5b uses the merged
+97-file credential-free export, one us-west2 replica and closed public controls.
+It commits create/bootstrap and publishes/acknowledges nine original events,
+then refuses before any price request. The startup history receipt was kept as
+an admission guard throughout cumulative relay publication and expired despite
+already committed installation. Elapsed8.390702s, peakRSS99,815,424bytes; bootstrap
+SQL0.655003s; nine accept calls0.240691–0.263967s and nine ACKs0.243925–0.253273s.
+One Birdeye call, zero Jupiter/RPC captures; no SQL errors. This is evidence of
+the blocker, not accepted source/lease/paper operation.
+
+Ordinary closed deployment00f46f23-77f6-49ef-9518-63a0546f18ad is SUCCESS on the
+same exact service/source/region. All sixteen assessment-only variables are
+removed; the whole saved original variable set matches, including the preexisting
+CA. Original committed history is preserved. Finite database pairs remain scoped
+in their private journal for explicit drills/expiry/revocation; runtime removal
+is not a claim that their database logins have already been revoked.
+
+The repair consumes history freshness only after exact candidate installation.
+It preserves pre-acknowledgement history expiry and all price-ticket guards.
+An explicit lost-reply drill discards one acknowledged bootstrap response and
+reads the same retained command, without resubmission. A distinct existing-run
+drill checks new-worker command conflict and expired heartbeat on actual native
+SQL, commits one original interruption ID/revision, and retains checkpoint and
+holdings. Both keep public API closed. Hosted rerun, nonempty owner isolation,
+deployment faults and the one-hour pilot remain pending; larger remote tails,
+provider credit costs and continuous/restart operation remain deeper research.

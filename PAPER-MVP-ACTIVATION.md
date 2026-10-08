@@ -15,11 +15,33 @@ ignored owned mode-0600 journal. Source must be merged, exported through the
 allowlist, and verified at the exact Vercel deployment/production alias. Do not
 use a different profile or project when a login or metadata check fails.
 
-The current release is closed, epoch0, hash
+The original preflight release was closed, epoch0, hash
 `6b9fceb02278ef9ca978743c43dd2d0dd2cacb49b310689c016fe58d65861fb1`.
 Re-run the complete 98-function/26-table installed body/authority verifier and
 check the original migration history. No new schema migration is needed to
 select the already-installed release.
+
+2026-10-08 execution: PR66 is merged as816f3006ba0930ebb531ce1a567984033aab293c;
+its exact production deployment and four smokes pass. Four independent finite
+pairs were issued while closed (assessment, recovery drill, interruption and
+intended-owner pilot), with7200s write/86400s recovery limits. The original
+transition passed ROLLBACK, then committed open at epoch1; installed catalog
+and original receipt match. Public worker API remains closed. The first hosted
+controller assessment committed bootstrap and nine relay events, then refused
+because consumed history receipts expired during publication. Ordinary closed
+startup and the exact original variables are restored; sixteen temporary values
+are removed. Keep this original failed assessment visible for explicit
+expired-run interruption; do not adopt/restart it or call it a successful pilot.
+[Sanitized measurements](supabase/audits/2026-10-08-controller-assessment.json).
+
+The follow-up guard releases only history whose exact retained candidate is
+already acknowledged and installed. Late/unknown acknowledgements and current
+price tickets still enforce freshness. Deliberate closed-API canary modes add a
+single lost committed bootstrap reply with original-ID readback, and a separate
+existing-run drill with SQL command-conflict/expired-heartbeat denial plus one
+configured interruption ID/revision. The interruption retains checkpoint and
+holdings and publishes its original outbox. These modes do not restore a worker
+or start another run behind a failure.
 
 ## Provider and resource envelope
 

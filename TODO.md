@@ -1,5 +1,18 @@
 # Dashboard audit and implementation backlog
 
+**Current immediate work —2026-10-08:** PR66 is merged and verified in production.
+The exact installed release is admitted at epoch1 after a rollback rehearsal;
+the public worker remains closed. The first actual controller canary committed
+bootstrap and nine events but drained before prices because consumed warmup
+history expired during relay publication. Restore succeeded and its committed
+run is preserved. Prioritize the consumed-history repair and original-run expiry/
+lost-reply drills, then actual nonempty two-owner/operator acceptance, then
+HOST-07's supervised one-hour two-EMA/eight-candidate paper pilot. Keep hosted
+acceptance boxes open until those results pass. [Measured blocker](supabase/audits/2026-10-08-controller-assessment.json),
+[activation/rollback plan](PAPER-MVP-ACTIVATION.md). Deep substantial research on
+remote tail distributions, provider credits, outage exposure, restoration and
+multi-window/retention remains required before expansion.
+
 Created: 2026-09-29. Basis: the read-only project audit, isolated engine reproductions, and follow-up research on evolutionary optimization, trading systems, and Solana execution.
 
 **Phase 2 is complete through ENG-11, including ENG-03A (12 checklist entries).** ENG-05 through ENG-11 were committed and merged separately in [PR #12](https://github.com/TOOTRJ/TheDashboard/pull/12) through [PR #18](https://github.com/TOOTRJ/TheDashboard/pull/18). Final implementation merge `a7f738436de7cc9403c78943100cfce900bfdd0d` reached READY in Vercel deployment `dpl_J3ujQs6XxZp9kvfutM3mz9ZqRfB8` at [the production alias](https://the-dashboard-chi.vercel.app), with all four read-only smoke checks passed. Validation: **543 worker tests, 75 frontend tests, TypeScript, isolated production build, and zero-error lint** (33 pre-existing warnings). See [CONFIGURATION-PREFLIGHT.md](CONFIGURATION-PREFLIGHT.md) sections 19–25 for policy, research and release details. This handoff documentation PR records its own exact merge/deployment evidence.

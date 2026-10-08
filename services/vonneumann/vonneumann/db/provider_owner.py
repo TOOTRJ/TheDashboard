@@ -57,6 +57,14 @@ class ProviderAdmissionOwner(RehearsalAdmissionOwner):
             mono_us = source.clock_us(mono, upper=True)
             if self._window is not None:
                 source.check_frame(self._window.frame, wall_us=wall_us, monotonic_us=mono_us)
+            # History freshness gates the economic submission. Once the exact
+            # retained candidate is acknowledged and installed, its bars are
+            # committed state; publishing that command must not keep treating
+            # the consumed history receipt as a future acquisition window.
+            # Unknown/late replies retain the history guard until installation.
+            candidate = self._inflight_candidate
+            if candidate is not None and self.installed_state is candidate.state:
+                self._history = None
             if self._history is not None:
                 for document in self._history['documents']:
                     elapsed = (wall_us - document['received_wall_us'],
