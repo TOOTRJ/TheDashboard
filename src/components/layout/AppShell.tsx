@@ -80,14 +80,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <div className="flex items-center gap-4">
                 <span className="uppercase tracking-wider font-medium">Nexus Terminal v2.0</span>
                 <span className="hidden sm:inline text-[#00fff5]/30">•</span>
-                <span className="hidden sm:inline opacity-60">Powered by Mock Data</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="relative">
-                  <div className="h-2 w-2 rounded-full bg-[#39ff14]" />
-                  <div className="absolute inset-0 h-2 w-2 rounded-full bg-[#39ff14] animate-ping" />
-                </div>
-                <span>All Systems Operational</span>
+                <span className="hidden sm:inline opacity-60">Market ticker uses demo data</span>
               </div>
             </div>
           </footer>
