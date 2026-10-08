@@ -22,6 +22,9 @@ from tests.postgres.test_provider_controller import LiteralProviderSession
 from vonneumann.core.exact_lifecycle import ExactLifecycleConfig
 from vonneumann.core.provider_lifecycle import ProviderLifecycleConfig
 from vonneumann.core.provider_controller import CommandAllocation, ProviderPilotController
+from vonneumann.core.provider_runner import ProviderPilotRunner
+from vonneumann.db.rehearsal_owner import OperationalAdmissionError
+from tests.test_feed_reliability import Response
 from vonneumann.db.command_protocol import PreparedCommand
 from vonneumann.db.command_repository import CommandRepository, UncertainCommand, CommandAdmissionError
 from vonneumann.db.command_sql import DashboardCommandSQLPair, DashboardCommandSQLTransport, CommandSQLBounds, CommandSQLError, HOST, paper_sql_bounds
@@ -106,7 +109,7 @@ class ActualNativeSQLTests(unittest.IsolatedAsyncioTestCase):
     async def journal_count(self):
         return await self.scalar('SELECT count(*) FROM vn_durability.commands WHERE run_id=%s::uuid',(self.run_id,))
 
-    async def controller(self):
+    async def controller(self, *, quarantine_regressions=False, heartbeat=True):
         await self.repository.submit(self.create())
         self.feed=JupiterFeed(api_key='synthetic-native-fixture',
             rpc_url='https://controller-fixture.invalid/rpc',birdeye_api_key='synthetic-native-fixture')
@@ -117,9 +120,70 @@ class ActualNativeSQLTests(unittest.IsolatedAsyncioTestCase):
         def allocate(kind,generation):
             return CommandAllocation(identity(),tuple(identity() for _ in range(9)),
                 tuple((generation,f'Native-{generation}-{i}') for i in range(8)))
-        controller=ProviderPilotController(owner,self.feed,publisher,allocate,lease_seconds=120)
-        await controller.heartbeat()
+        controller=ProviderPilotController(owner,self.feed,publisher,allocate,lease_seconds=120,
+                                          quarantine_regressions=quarantine_regressions)
+        if heartbeat:
+            await controller.heartbeat()
         return owner,controller
+
+    async def test_actual_source_regression_discards_without_sql_then_new_source_commits_once(self):
+        owner,controller=await self.controller(quarantine_regressions=True)
+        self.feed._cache_ttl=0  # Each explicit test step supplies a new wire reply.
+        await controller.bootstrap()
+        first=await controller.tick()
+        self.assertEqual(first.status,'complete')
+        before=owner.installed_state.to_dict()
+        commands=await self.scalar('SELECT count(*) FROM vn_durability.commands WHERE run_id=%s::uuid',(self.run_id,))
+        slots=dict(self.feed._source_slots)
+        self.feed._session._block-=2
+        rejected=await controller.tick()
+        self.assertEqual((rejected.status,rejected.revision,rejected.quote_sequence),
+                         ('deferred',first.revision,first.quote_sequence))
+        self.assertEqual(owner.installed_state.to_dict(),before)
+        self.assertEqual(self.feed._source_slots,slots)
+        self.assertEqual(await self.scalar('SELECT count(*) FROM vn_durability.commands WHERE run_id=%s::uuid',(self.run_id,)),commands)
+        self.feed._session._block+=2
+        # The literal RPC timestamps have one-second precision. A new slot in
+        # the same timestamp second is legitimately deferred by the owner.
+        await asyncio.sleep(1.05)
+        next_quote=await controller.tick()
+        self.assertEqual((next_quote.status,next_quote.quote_sequence),('complete',2))
+        self.assertEqual(controller.source_order_status['discarded_total'],1)
+        self.assertEqual((await controller.stop()).status,'complete')
+
+    async def test_one_stop_after_pre_admission_feed_refusal_uses_real_reserved_command_once(self):
+        owner,controller=await self.controller(quarantine_regressions=True,heartbeat=False)
+        self.feed._cache_ttl=0
+        runner=ProviderPilotRunner(controller,interval_seconds=1,max_ticks=3)
+        original_get=self.feed._session.get
+        calls=0
+        def provider_get(url,**kwargs):
+            nonlocal calls
+            calls+=1
+            return original_get(url,**kwargs) if calls==1 else Response({},status=429)
+        with patch.object(self.feed._session,'get',provider_get):
+            with self.assertRaises(OperationalAdmissionError):
+                await runner.run()
+            before=owner.installed_state.to_dict()
+            self.assertIsNone(self.repository.pending)
+            self.assertEqual(owner.refusal_reason,'provider_capture_failed')
+            failure=controller.last_failure
+            runner.request_stop()
+            report=await runner.settle()
+        self.assertEqual(report.status,'stopped')
+        after=owner.installed_state.to_dict()
+        self.assertEqual((after['status'],after['revision']),('stopped',before['revision']+1))
+        for key in ('accounts','positions','reserve'):
+            self.assertEqual(after[key],before[key])
+        self.assertEqual(after['source'],before['source'])
+        self.assertEqual(controller.last_failure,failure)
+        self.assertEqual(calls,2)
+        self.assertEqual(await self.scalar('SELECT count(*) FROM vn_durability.commands WHERE run_id=%s::uuid AND id=%s::uuid',
+                                         (self.run_id,owner._reserved_stop_id)),1)
+        state=await self.scalar('SELECT engine_state FROM vn_durability.runs WHERE id=%s::uuid',(self.run_id,))
+        self.assertEqual(state,after)
+        runner.request_stop()
+        self.assertIs(await runner.settle(),report)
 
     async def test_controller_bootstrap_tick_pause_stop_and_real_relay(self):
         owner,controller=await self.controller()

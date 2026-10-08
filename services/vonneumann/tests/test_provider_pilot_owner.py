@@ -149,6 +149,25 @@ class ProviderPilotOwnerTests(unittest.IsolatedAsyncioTestCase):
             await self.owner.stop()
         self.assertEqual(self.transport.count('commit_command'), 0)
 
+    async def test_pre_admission_acquisition_refusal_ends_economics_but_preserves_original_stop(self):
+        await self.bootstrapped()
+        before = self.owner.installed_state.to_dict()
+        with self.assertRaises(module.PilotAdmissionRefused):
+            self.owner.refuse_acquisition()
+        self.assert_refused('provider_capture_failed')
+        self.assertEqual(self.owner.installed_state.to_dict(), before)
+        await self.assert_stop()
+
+    async def test_acquisition_refusal_cannot_reopen_a_hard_failure(self):
+        await self.bootstrapped()
+        self.owner.close_admission()
+        with self.assertRaises(CommandAdmissionError):
+            self.owner.refuse_acquisition()
+        self.assertIsNone(self.owner.refusal_reason)
+        self.assertFalse(self.owner.accepting)
+        self.assertFalse(self.owner.stop_available)
+        self.assertFalse(self.repo.accepting)
+
     async def test_reserved_command_identity_cannot_be_spent_on_an_ordinary_command(self):
         await self.bootstrapped()
         self.age(1); ticket = self.ticket()

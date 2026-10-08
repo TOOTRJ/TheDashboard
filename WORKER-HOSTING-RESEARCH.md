@@ -1,5 +1,43 @@
 # Python worker hosting research
 
+**Latest measured checkpoint — 2026-10-08:** Railway's exact Dashboard service,
+outbound IPv6, project-CA/hostname TLS, native SCRAM/channel binding and finite
+owner/run capability/revocation acceptance are complete. PR75's paper-only SQL
+headroom is released; the matching uvloop assessment passes30 prices, original
+lost-reply reconciliation, relay, stop and owner isolation. A separate real-owner
+attempt reaches109 accepted prices before a pre-admission source-order refusal.
+Original native interruption preserves economics/checkpoint/events at revision114;
+ordinary closed restoration and same-pair revocation pass. The hour and first
+replacement remain unaccepted. [Updated assessment](supabase/audits/2026-10-08-sql-headroom-controller-assessment.json),
+[source refusal/recovery/capacity](supabase/audits/2026-10-08-owner-pilot-source-refusal.json).
+
+Nine scoped60s samples during the first portion of that owner attempt show
+0.06978–0.07090GB memory. CPU_USAGE and network values retain their API enum
+labels; no CPU_USAGE_2 samples is unavailable data. These short samples are
+not continuous-operation billing acceptance. The official Metrics UI documents
+CPU in vCPU, but the scaling of each API CPU enum is not independently proved.
+Two metric queries failed the strict scope check; their numeric values were
+suppressed. A metadata-only check and subsequent successful query proved exact
+project/environment/service/deployment labels for the accepted samples.
+[Railway resource sizing guidance](https://docs.railway.com/guides/right-size-cpu-memory).
+
+Terminal read-only aggregation records114 commands/109 distinct accepted source
+blocks:12,420,621 bytes of JSONB request text and4,966,818 compressed request-column
+bytes over about15 minutes. Column bytes exclude row/index/TOAST overhead; wall
+capture-to-first-journal timings include parsing/planning/lease/SQL, not just SQL.
+Compact checkpoints and retention must precede continuous paper operation; these
+measurements do not justify unbounded full-checkpoint writes. [PostgreSQL size
+functions](https://www.postgresql.org/docs/17/functions-admin.html).
+
+The current0.25CPU/0.5GB limits give an arithmetic maximum sustained CPU+RAM
+resource charge near$10 per30 days at published$20/vCPU and$10/GB rates, excluding
+egress, other services, tax and provider subscriptions. Hobby's$5 minimum includes
+usage credit. This is neither an actual invoice nor an enforced account ceiling.
+[Current pricing](https://railway.com/pricing). The user's$20 pilot ceiling remains.
+Source-order handling, new hosted assessment/hour, complete final history/isolation,
+closed cleanup and resource/billing review remain next. HOST-07 and continuous/live
+trading stay open. This supersedes earlier closed-only sizing/setup notes.
+
 **Latest 2026-10-07 acceptance supersedes earlier unhosted/setup notes:** the exact Railway worker is now deployed in closed mode in one `us-west2` replica, limited to 0.25 CPU/500 MB. Its production-scoped token and all target IDs/names/owner match; HTTPS denial and actual IPv6/project-CA/hostname TLS pass. No database/provider credentials or paper run is active. Maximum sampled closed memory is 55.65 MB; active sizing/tails/quota/interruption remain unmeasured. The $20/month ceiling is approved. Current immediate dependency is exact-database client inventory before SSL-enforcement maintenance, then actual managed issuance/native authentication and A3. [Current target/evidence/remaining steps](RAILWAY-SETUP.md). The official CLI was isolated and update/telemetry/shared-file writes blocked. Current docs deprecate railway.json Config as Code with legacy support through 2026-12-01; HOST-02C records the required project-only IaC review/migration.
 
 Research dates: **2026-09-30; native-network update 2026-10-06; certificate/account intake 2026-10-07**. Scope: public primary documentation, local source and authorized read-only metadata for The Dashboard, including the user's signed-in Railway dashboard. No service was provisioned, worker credential issued or worker started. Prices are USD estimates before tax, provider API subscriptions and other usage charges. Recheck the selected plan and region before provisioning; the earlier provider comparison records its dated price basis.

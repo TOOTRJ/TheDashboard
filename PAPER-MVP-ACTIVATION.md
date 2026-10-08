@@ -6,7 +6,41 @@ most one replacement. A 60-second completion grace permits a paced quote to
 observe the evaluation ending. There is no signer, wallet funding, swap,
 automatic restoration, continuous multi-window operation or profitability claim.
 
-**Latest checkpoint — 2026-10-08:** PR74 is merged as
+**Latest checkpoint — 2026-10-08, after PR75:** The paper SQL repair is merged
+as `56b382e30a18bcecb25af31550487192b75a9aaa`; exact Vercel production
+`dpl_6MiBEMk7BHZcVAj2HhmRwLcHXDwB` is READY with four smokes. The new
+matching uvloop assessment passes thirty prices, original lost-reply readback,
+relay, reserved stop and complete owner reads/isolation at revision34. Native
+commit latency for33 samples is0.535/0.569/0.777s min/median/max. Source age
+at receipt for30 prices is1.631/5.460/9.459s. These finite samples do not prove
+hour/tail acceptance. Its ordinary closed restoration and pair revocation pass.
+[SQL-headroom assessment](supabase/audits/2026-10-08-sql-headroom-controller-assessment.json).
+
+The separate actual-owner hour attempt reaches109 accepted prices/revision113,
+then refuses `source_slot_regressed` before quote admission. There is no native
+SQL failure evidence in this attempt. Incoming/prior rejected slot values and
+provider cause were not retained; do not infer cache routing, a reorganization
+or regression magnitude. One original browser Stop drains without a terminal
+stop commit. The original native interruption applies once at revision114/fence2;
+checkpoint, accounts, reserve, positions and nine acknowledged candidate events
+remain unchanged. Ordinary closed Railway deployment
+`5b15ae73-59c2-4935-954c-2f9d2365de86` is SUCCESS,16 temporary values are
+removed, original variables restored and the pair revoked/NOLOGIN. Actual owner
+history shows failed/reconciliation required, unavailable current equity and
+disabled controls. [Source refusal and recovery](supabase/audits/2026-10-08-owner-pilot-source-refusal.json).
+
+The next repair explicitly enables bounded source-order discard only in the paper
+service/assessment: two discarded regressions per episode, eight per run and a15s
+monotonic episode deadline. Each discarded response ends that attempt; only the
+normal next paced tick may request again. Accepted watermarks/age anchors,30s
+source age,5s receipt/acquisition, lease and credential expiry remain. Only a
+recognized pre-admission feed refusal can retain the existing reserved Stop;
+ordinary admission stays closed, and clock/evidence/SQL/uncertain-work failures
+retain hard closure. No command resubmission, old-run resume or schema change.
+Local focused/native acceptance passes; reviewed release precedes another assessment
+and actual owner hour. HOST-07, first replacement and continuous/live gates remain open.
+
+**Earlier checkpoint before PR75 — 2026-10-08:** PR74 is merged as
 `87d8d3c07f2cdfc61968510a37831dd0c7cda080`. Exact Vercel production
 `dpl_AXnRKgZss6UYaYUQbQm9nCfbexzd` is READY with four smokes. The same-loop
 uvloop assessment now passes thirty prices, original lost-reply reconciliation,

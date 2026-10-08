@@ -189,3 +189,36 @@ Later readback and cleanup cannot replace it, and returned dictionaries are
 copies. Server error text, SQL/arguments, credentials and connection details are
 not retained or published. Unknown fields/codes/SQLSTATEs are suppressed.
 The canary reports the same evidence through its measurement wrapper.
+
+## Explicit paper source-order policy — 2026-10-08
+
+The selected paper service and finite canary enable bounded discard of an exact
+`MarketFeedError(source_slot_regressed)` from the feed before quote admission.
+Default acquisition/controller consumers retain fatal behavior. At most2 responses
+are discarded between admitted tickets,8 in the run, and an episode may last less
+than15 monotonic seconds. No quote/economic identity is allocated. Each discard
+returns a normal deferred tick; the runner owns its next serial paced request.
+Unchanged/fractional receipts cannot reset the episode. Only an admitted ticket
+resets the episode count/deadline; the whole-run count persists. Clock failures,
+stale data, invalid timestamps, malformed replies and deadlines are never discarded.
+Accepted source watermarks, age anchors,30s source and5s receipt/acquisition limits
+remain unchanged. Authenticated `source_order` and canary measurements contain
+only fixed counters/limits/limit labels, copied independently of the retained state.
+
+A recognized feed refusal before admission ends ordinary pilot polling with
+`provider_capture_failed`, retaining the original reserved Stop only if its existing
+owner/lease/capacity remain valid. No hard failure is reopened. Pending commands,
+publication, admitted-evidence failures, unknown exception types and invalid clocks
+retain their original settlement/hard-closure paths. One requested Stop settles
+retained refusal work before its same reserved command; missing/lost replies cannot
+cause a fresh ID or duplicate submission. A committed Stop can record an aborted,
+unscored evaluation while retaining cash/reserve/positions; native interruption
+has a different contract and does not invent candidate events or ACKs.
+
+Validation: 173 focused offline cases pass on default asyncio (51.331s) and
+production uvloop (50.119s). Thirteen actual offline Linux native TLS/SCRAM cases
+pass (15.047s; outer owned fixture20.248s), including real feed-regression/SQL
+invariance, next-source admission and one original reserved Stop after a feed
+refusal. Lost Stop replies/missing readback, hard-closure non-reopening and
+server lease refusal are covered. Local/native acceptance is complete; reviewed
+release and new hosted assessment/hour remain separate gates.

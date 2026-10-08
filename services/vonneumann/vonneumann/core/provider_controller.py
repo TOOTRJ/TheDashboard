@@ -71,7 +71,7 @@ class _Work:
 class ProviderPilotController:
     def __init__(self, owner, feed, publisher, allocate, *, lease_seconds=120,
                  wall_clock=time.time, monotonic=time.monotonic,
-                 max_events=50, max_bytes=65536):
+                 max_events=50, max_bytes=65536, quarantine_regressions=False):
         if (type(owner) is not ProviderPilotOwner or owner.busy
                 or owner.installed_state is not None or owner.pending_candidate is not None
                 or not all(callable(value) for value in
@@ -83,7 +83,8 @@ class ProviderPilotController:
         bounded_integer(max_bytes, 'page bytes', minimum=512, maximum=65536)
         self._owner, self._feed = owner, feed
         self._publisher, self._allocate = publisher, allocate
-        self._acquisition = ProviderPriceAcquisition(feed, owner)
+        self._acquisition = ProviderPriceAcquisition(feed, owner,
+            quarantine_regressions=quarantine_regressions, monotonic=monotonic)
         self._lease_seconds = lease_seconds
         self._max_events, self._max_bytes = max_events, max_bytes
         self._wall, self._monotonic = wall_clock, monotonic
@@ -96,6 +97,10 @@ class ProviderPilotController:
         self._closed_reason = None
         self._last_report = None
         self._last_failure = None
+
+    @property
+    def source_order_status(self):
+        return self._acquisition.source_order_status
 
     @property
     def last_failure(self):
@@ -361,7 +366,10 @@ class ProviderPilotController:
                         report = self._barrier()
                         if report is not None:
                             return report
-                    status = 'closed' if self.closed_reason else 'complete'
+                    state = self._owner.installed_state
+                    stopped = (work.kind == 'stop' and state is not None
+                               and state.to_dict()['status'] == 'stopped')
+                    status = 'complete' if stopped or not self.closed_reason else 'closed'
                     return self._report(status, finish=True)
                 if settlement_only or self._draining or self.closed_reason:
                     self._owner.discard_unsubmitted_evidence()
@@ -436,6 +444,9 @@ class ProviderPilotController:
         except (UncertainCommand, PublicationError):
             raise
         except PilotAdmissionRefused:
+            if self._last_failure is None and self._acquisition.last_failure is not None:
+                self._last_failure = failure_labels(work.stage,
+                    OperationalAdmissionError('provider_acquisition_failed'))
             self.close_admission()
             self._report('drained', finish=True)
             raise
@@ -566,7 +577,7 @@ class ProviderPilotController:
             if data['status'] == {'pause': 'paused', 'stop': 'stopped'}[action]:
                 report = self._last_report
                 if report is None or report.kind != action or report.revision != data['revision']:
-                    report = TickReport(action, 'closed' if self.closed_reason else 'complete',
+                    report = TickReport(action, 'complete' if action == 'stop' or not self.closed_reason else 'closed',
                         data['revision'], data['source']['quote_sequence'], False, 0.0, ())
                     self._last_report = report
                 return report

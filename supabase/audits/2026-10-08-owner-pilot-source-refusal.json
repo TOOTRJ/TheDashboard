@@ -1,0 +1,179 @@
+{
+  "version": 1,
+  "date": "2026-10-08",
+  "source_sha": "56b382e30a18bcecb25af31550487192b75a9aaa",
+  "pilot_deployment": "fe9b30c0-6752-4b82-ba1e-1933ffe33190",
+  "export": {
+    "files": 99,
+    "bytes": 1234697,
+    "manifest_sha256": "3813fbfaa17165fc9e2850d29b20f4463a38861fb8002d98f3f385d881d251d2"
+  },
+  "export_blobs_modes_verified": true,
+  "actual_owner_browser_start_attempts": 1,
+  "accepted_quotes": 109,
+  "last_good_revision": 113,
+  "generation": 0,
+  "accounts": 8,
+  "cash_per_account_usd": "100",
+  "reserve_usd": "200",
+  "open_positions": 0,
+  "evaluations": 0,
+  "failure": {
+    "phase": "drained",
+    "busy": false,
+    "revision": 113,
+    "requires_reconciliation": true,
+    "last_transport_failure_phases": {
+      "economic": null,
+      "relay": null
+    },
+    "first_transport_failures": {
+      "economic": null,
+      "relay": null
+    },
+    "last_controller_failure": {
+      "stage": "capture",
+      "category": "operational_admission_failed",
+      "provider_code": null,
+      "acquisition": {
+        "stage": "provider_capture",
+        "category": "market_feed_error",
+        "provider_code": "source_slot_regressed"
+      }
+    },
+    "last_operation_failure": {
+      "stage": "service_operation",
+      "category": "operational_admission_failed",
+      "provider_code": null
+    },
+    "admission": {
+      "controller_reason": "controller_operation_failed",
+      "owner_reason": "draining",
+      "pending_stage": null
+    },
+    "report": {
+      "status": "closed",
+      "ticks_completed": 110,
+      "stop_requested": true,
+      "idle_renewals": 0,
+      "last_tick": {
+        "kind": "tick",
+        "status": "closed",
+        "revision": 113,
+        "quote_sequence": 109,
+        "decision_committed": false,
+        "elapsed_seconds": 0.44838836789131165,
+        "phase_seconds": [
+          [
+            "lease_renewal",
+            0.294466495513916
+          ],
+          [
+            "price_acquisition",
+            0.15292486548423767
+          ]
+        ]
+      }
+    }
+  },
+  "rejected_slot_values_or_cause_known": false,
+  "native_sql_failure_observed": false,
+  "original_reserved_stop_browser_attempts": 1,
+  "old_stop_result": "drained; no reserved stop commit before expiry",
+  "original_native_interruption": {
+    "deployment": "6d063a49-ad3b-4320-9d18-09ba471b501c",
+    "before_revision": 113,
+    "after_revision": 114,
+    "after_fence": 2,
+    "terminal_status": "failed",
+    "requires_reconciliation": true,
+    "economic_checkpoint_hashes_unchanged": true,
+    "candidate_events_unchanged": true,
+    "new_candidate_events": 0,
+    "new_candidate_acks": 0
+  },
+  "terminal_owner_browser": {
+    "revision": 114,
+    "status": "failed",
+    "requires_reconciliation": true,
+    "reference_equity": "unavailable",
+    "controls_disabled": true
+  },
+  "journal_capacity": {
+    "quotes": 109,
+    "commands": 114,
+    "terminal_status": "failed",
+    "request_wire_bytes": 12420621,
+    "unique_source_blocks": 109,
+    "request_stored_column_bytes": 4966818,
+    "source_age_floor_at_receipt_seconds": {
+      "p95": 8.347103,
+      "median": 5.410383,
+      "maximum": 9.45981,
+      "minimum": 2.249881
+    },
+    "capture_to_first_journal_wall_seconds": {
+      "p95": 2.7128048,
+      "median": 2.347406,
+      "maximum": 2.872908,
+      "minimum": 1.619232
+    }
+  },
+  "journal_capacity_limits": "column compression bytes exclude row/index/TOAST overhead; wall capture-to-journal includes acquisition/planning/lease/SQL and is not native SQL latency",
+  "host_samples": {
+    "version": 1,
+    "source": "56b382e30a18bcecb25af31550487192b75a9aaa",
+    "deployment": "fe9b30c0-6752-4b82-ba1e-1933ffe33190",
+    "start_utc": "2026-10-08T18:09:03.188187+00:00",
+    "end_utc": "2026-10-08T18:17:45.920294+00:00",
+    "sample_seconds": 60,
+    "averaging_seconds": 60,
+    "metrics": [
+      {
+        "measurement": "CPU_USAGE",
+        "region": "us-west2",
+        "samples": 9,
+        "minimum": 0.030416766666666668,
+        "median": 0.05211076666666667,
+        "maximum": 0.07440813333333333
+      },
+      {
+        "measurement": "MEMORY_USAGE_GB",
+        "region": "us-west2",
+        "samples": 9,
+        "minimum": 0.069777408,
+        "median": 0.070774784,
+        "maximum": 0.07090176
+      },
+      {
+        "measurement": "NETWORK_TX_GB",
+        "region": "us-west2",
+        "samples": 9,
+        "minimum": 0.000530796,
+        "median": 0.000894361,
+        "maximum": 0.001304848
+      }
+    ],
+    "scope": "exact Dashboard project/environment/service/deployment",
+    "account_usage_or_billing_modified": false,
+    "units": "API measurement enum; CPU variants retained without inferring units"
+  },
+  "restoration": {
+    "deployment": "5b15ae73-59c2-4935-954c-2f9d2365de86",
+    "status": "SUCCESS",
+    "mode": "closed",
+    "temporary_values_removed": 16,
+    "exact_original_variable_map_restored": true,
+    "same_native_pair_revoked_nologin": true
+  },
+  "exact_targets": {
+    "github_repository_id": 1141090963,
+    "vercel_project": "prj_wFUe9k9USVreOQcmQKNWRAVsx5fH",
+    "supabase_project": "fxpxsciltakyypunglzr",
+    "railway_project": "38facb49-4de9-4d66-85aa-2861e0306dcf"
+  },
+  "schema_or_grants_changed": false,
+  "other_projects_modified": false,
+  "wallet_operations": false,
+  "hour_or_first_replacement_accepted": false
+}

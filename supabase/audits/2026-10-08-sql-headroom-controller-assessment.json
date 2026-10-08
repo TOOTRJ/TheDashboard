@@ -1,0 +1,404 @@
+{
+  "version": 1,
+  "date": "2026-10-08",
+  "source_sha": "56b382e30a18bcecb25af31550487192b75a9aaa",
+  "assessment_deployment": "5b95b96d-166e-44dc-9509-5213ae9f792d",
+  "export": {
+    "source_sha": "56b382e30a18bcecb25af31550487192b75a9aaa",
+    "files": 99,
+    "bytes": 1234697,
+    "manifest_sha256": "3813fbfaa17165fc9e2850d29b20f4463a38861fb8002d98f3f385d881d251d2",
+    "credentials_included": false
+  },
+  "all_export_blobs_modes_verified": true,
+  "measurement": {
+    "operation_seconds": {
+      "count": 32,
+      "minimum": 1.681522,
+      "median": 2.088995,
+      "maximum": 8.558776,
+      "tail_acceptance": false
+    },
+    "maximum_loop_lag_seconds": 1.047394,
+    "mode": "closed-api-finite-paper",
+    "automatic_retry": false,
+    "lost_reply_injected": true,
+    "positions": 0,
+    "idle_renewals": 0,
+    "open_positions": 0,
+    "phase_seconds": {
+      "history_acquisition": {
+        "count": 1,
+        "minimum": 1.112666,
+        "median": 1.112666,
+        "maximum": 1.112666,
+        "tail_acceptance": false
+      },
+      "lease_renewal": {
+        "count": 32,
+        "minimum": 0.274009,
+        "median": 0.285154,
+        "maximum": 0.599827,
+        "tail_acceptance": false
+      },
+      "owner_submission": {
+        "count": 32,
+        "minimum": 0.988249,
+        "median": 1.126562,
+        "maximum": 2.221147,
+        "tail_acceptance": false
+      },
+      "price_acquisition": {
+        "count": 30,
+        "minimum": 0.241782,
+        "median": 0.499001,
+        "maximum": 1.040912,
+        "tail_acceptance": false
+      },
+      "publication": {
+        "count": 2,
+        "minimum": 1.27228,
+        "median": 1.27228,
+        "maximum": 4.641751,
+        "tail_acceptance": false
+      },
+      "reconciliation": {
+        "count": 1,
+        "minimum": 0.678738,
+        "median": 0.678738,
+        "maximum": 0.678738,
+        "tail_acceptance": false
+      }
+    },
+    "final_status": "stopped",
+    "process_cpu_seconds": 8.42,
+    "generation": 0,
+    "sql_errors": {
+      "commit_command": 1
+    },
+    "statistical_tail_acceptance": false,
+    "owned_commands": 34,
+    "finite_measurement": true,
+    "accounts": 8,
+    "sql_counts": {
+      "accept_event": 11,
+      "acknowledge_event": 11,
+      "commit_command": 33,
+      "create_run": 1,
+      "get_command": 1,
+      "heartbeat": 33,
+      "read_outbox": 2
+    },
+    "elapsed_seconds": 218.310442,
+    "quota_observations": [
+      {
+        "current": 1,
+        "remaining": 99,
+        "reset": 1791482454
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791482454
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791482462
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791482469
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791482476
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791482483
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791482490
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791482497
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791482504
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791482511
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791482518
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791482525
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791482532
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791482539
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791482546
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791482553
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791482560
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791482567
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791482574
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791482581
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791482588
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791482595
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791482602
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791482609
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791482616
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791482623
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791482630
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791482637
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791482645
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791482652
+      }
+    ],
+    "loop_implementation": "uvloop",
+    "sql_seconds": {
+      "accept_event": {
+        "count": 11,
+        "minimum": 0.234425,
+        "median": 0.247282,
+        "maximum": 0.264965,
+        "tail_acceptance": false
+      },
+      "acknowledge_event": {
+        "count": 11,
+        "minimum": 0.237554,
+        "median": 0.243859,
+        "maximum": 0.254311,
+        "tail_acceptance": false
+      },
+      "commit_command": {
+        "count": 33,
+        "minimum": 0.534631,
+        "median": 0.56933,
+        "maximum": 0.776984,
+        "tail_acceptance": false
+      },
+      "create_run": {
+        "count": 1,
+        "minimum": 0.368839,
+        "median": 0.368839,
+        "maximum": 0.368839,
+        "tail_acceptance": false
+      },
+      "get_command": {
+        "count": 1,
+        "minimum": 0.410079,
+        "median": 0.410079,
+        "maximum": 0.410079,
+        "tail_acceptance": false
+      },
+      "heartbeat": {
+        "count": 33,
+        "minimum": 0.273272,
+        "median": 0.284913,
+        "maximum": 0.588829,
+        "tail_acceptance": false
+      },
+      "read_outbox": {
+        "count": 2,
+        "minimum": 0.239447,
+        "median": 0.239447,
+        "maximum": 0.240068,
+        "tail_acceptance": false
+      }
+    },
+    "accepted_quotes": 30,
+    "api_calls": {
+      "jupiter": 30,
+      "birdeye": 1,
+      "rpc": 31
+    },
+    "source_age_seconds": {
+      "count": 30,
+      "minimum": 1.630705,
+      "median": 5.460059,
+      "maximum": 9.4591,
+      "tail_acceptance": false
+    },
+    "ticks_completed": 30,
+    "final_revision": 34,
+    "paper_controller_canary": 1,
+    "wallet_operations": false,
+    "phase": "passed",
+    "process_peak_rss_bytes": 100417536,
+    "original_command_settled": true
+  },
+  "owned_reads": {
+    "version": 1,
+    "pair_label": "assessmentfresh",
+    "supabase": "fxpxsciltakyypunglzr",
+    "frozen_revision": 34,
+    "status": "stopped",
+    "requires_reconciliation": true,
+    "projection_rows": {
+      "runs": 34,
+      "probes": 264,
+      "trades": 0,
+      "samples": 240,
+      "evaluations": 1
+    },
+    "event_count": 11,
+    "event_cutoff": 11,
+    "contiguous_unique_events": true,
+    "cross_owner_discovery_hidden": true,
+    "denials": [
+      {
+        "actor": "other_owner",
+        "function": "page",
+        "status": 400,
+        "denied": true
+      },
+      {
+        "actor": "other_owner",
+        "function": "events",
+        "status": 400,
+        "denied": true
+      },
+      {
+        "actor": "anonymous",
+        "function": "page",
+        "status": 401,
+        "denied": true
+      },
+      {
+        "actor": "anonymous",
+        "function": "events",
+        "status": 401,
+        "denied": true
+      }
+    ],
+    "closed_controls": [
+      {
+        "authenticated_owned_user": true,
+        "path": "/v5/status",
+        "status": 503,
+        "exact_cors": true,
+        "no_store": true
+      },
+      {
+        "authenticated_owned_user": true,
+        "path": "/v5/controls",
+        "status": 503,
+        "exact_cors": true,
+        "no_store": true
+      },
+      {
+        "authenticated_owned_user": true,
+        "path": "/v5/status",
+        "status": 503,
+        "exact_cors": true,
+        "no_store": true
+      },
+      {
+        "authenticated_owned_user": true,
+        "path": "/v5/controls",
+        "status": 503,
+        "exact_cors": true,
+        "no_store": true
+      }
+    ],
+    "secret_output": false
+  },
+  "closed_restoration": {
+    "deployment": "39c2ef70-466d-4a79-8b4b-16dff2ed873a",
+    "status": "SUCCESS",
+    "original_variables_restored": true,
+    "temporary_values_removed": 17,
+    "pair_revoked_verified": true
+  },
+  "hour_acceptance": false,
+  "wallet_operations": false,
+  "secrets_included": false
+}

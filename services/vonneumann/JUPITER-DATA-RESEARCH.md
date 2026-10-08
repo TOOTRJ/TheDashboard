@@ -1,5 +1,22 @@
 # Jupiter and historical research data
 
+**Source-order review — 2026-10-08:** The current complete
+[documentation index](https://developers.jup.ag/docs/llms.txt),
+[Price V3 page](https://developers.jup.ag/docs/price) and
+[versioned OpenAPI](https://developers.jup.ag/docs/openapi-spec/price/v3/price.yaml)
+were checked. The OpenAPI describes `blockId` as the Solana block ID when price
+was computed; the page recommends it for recency. Neither reviewed source promises
+monotonic ordering across consecutive requests. The YAML SHA256 is
+`bc798556d98db9f5f5586cbd4deadd3c0839e167c2fffe93f8df9308acc7e029`.
+The actual worker's109-price attempt observes a lower block and refuses it; no
+rejected value/delta or cause was retained. Do not infer cache routing or a reorg.
+Bounded discard is a client policy inference, not a documented provider guarantee.
+Keep the block-ID-as-slot timestamp estimate explicit, validate accepted records,
+and research rejected/current references, finality/consistency, regression rates
+and alternatives before continuous operation. The current OHLCV requirement and
+Birdeye warmup remain; Price V3 is not historical candle data or an executable fill.
+
+
 Research and decision dates: **2026-09-30, updated 2026-10-07**. This document supports DATA-01/DATA-02/DATA-03, FILL-01B, RES-02/RES-03 and the baseline experiment in [TODO.md](../../TODO.md).
 
 **Decision: obtain small historical windows on demand and preserve immutable research snapshots. Do not build a 24/7 archive at this stage.** Fetching history and retaining an experiment's exact input are complementary: the provider supplies history; the snapshot makes repeated candidate evaluations reproducible without repeated requests. Expand collection only when a defined experiment needs evidence that cannot be recovered later.

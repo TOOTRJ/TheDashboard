@@ -83,6 +83,7 @@ class PaperService:
             'requires_reconciliation': self._phase in ('pending', 'failed', 'drained'),
             'last_transport_failure_phases': transport_phases,
             'first_transport_failures': transport_failures,
+            'source_order': None if self.controller is None else self.controller.source_order_status,
             'last_controller_failure': None if self.controller is None else self.controller.last_failure,
             'last_operation_failure': None if self._last_operation_failure is None else self._last_operation_failure.to_dict(),
             'admission': None if self.controller is None else {
@@ -132,7 +133,7 @@ class PaperService:
                                        stop_command_id=self.stop_id)
             publisher = DurableRelayPublisher(self._relay, self.owner_id, self.run_id)
             self.controller = ProviderPilotController(owner, self._feed, publisher,
-                                                     self._allocate, lease_seconds=120)
+                self._allocate, lease_seconds=120, quarantine_regressions=True)
             self.runner = ProviderPilotRunner(self.controller,
                 interval_seconds=self._interval, max_ticks=self._ticks)
         if self._closing:

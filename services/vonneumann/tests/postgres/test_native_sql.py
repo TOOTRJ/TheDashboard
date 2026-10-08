@@ -19,5 +19,5 @@ class NativeSQLIntegrationTests(unittest.TestCase):
     def test_real_driver_controller_and_fault_acceptance(self):
         result=self.driver.run()
         self.assertEqual(result.returncode,0,result.stdout+'\n'+result.stderr)
-        self.assertIn('Ran 11 tests',result.stderr)
+        self.assertIn('Ran 13 tests',result.stderr)
         sys.stderr.write(result.stderr)

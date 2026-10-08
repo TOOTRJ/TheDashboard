@@ -3219,3 +3219,71 @@ revocation. Roll back by closing the exact worker, resolving/interruption of onl
 the original operation before expiry, restoring original variables and revoking
 the same finite pair. A statement timeout is not permission to resubmit, adopt or
 resume an old run. No signer, wallet funding or live trade is authorized.
+
+## 83. Post-SQL-release source ordering and capacity checkpoint — 2026-10-08
+
+**Latest checkpoint — 2026-10-08, after PR75:** The paper SQL repair is merged
+as `56b382e30a18bcecb25af31550487192b75a9aaa`; exact Vercel production
+`dpl_6MiBEMk7BHZcVAj2HhmRwLcHXDwB` is READY with four smokes. The new
+matching uvloop assessment passes thirty prices, original lost-reply readback,
+relay, reserved stop and complete owner reads/isolation at revision34. Native
+commit latency for33 samples is0.535/0.569/0.777s min/median/max. Source age
+at receipt for30 prices is1.631/5.460/9.459s. These finite samples do not prove
+hour/tail acceptance. Its ordinary closed restoration and pair revocation pass.
+[SQL-headroom assessment](supabase/audits/2026-10-08-sql-headroom-controller-assessment.json).
+
+The separate actual-owner hour attempt reaches109 accepted prices/revision113,
+then refuses `source_slot_regressed` before quote admission. There is no native
+SQL failure evidence in this attempt. Incoming/prior rejected slot values and
+provider cause were not retained; do not infer cache routing, a reorganization
+or regression magnitude. One original browser Stop drains without a terminal
+stop commit. The original native interruption applies once at revision114/fence2;
+checkpoint, accounts, reserve, positions and nine acknowledged candidate events
+remain unchanged. Ordinary closed Railway deployment
+`5b15ae73-59c2-4935-954c-2f9d2365de86` is SUCCESS,16 temporary values are
+removed, original variables restored and the pair revoked/NOLOGIN. Actual owner
+history shows failed/reconciliation required, unavailable current equity and
+disabled controls. [Source refusal and recovery](supabase/audits/2026-10-08-owner-pilot-source-refusal.json).
+
+The next repair explicitly enables bounded source-order discard only in the paper
+service/assessment: two discarded regressions per episode, eight per run and a15s
+monotonic episode deadline. Each discarded response ends that attempt; only the
+normal next paced tick may request again. Accepted watermarks/age anchors,30s
+source age,5s receipt/acquisition, lease and credential expiry remain. Only a
+recognized pre-admission feed refusal can retain the existing reserved Stop;
+ordinary admission stays closed, and clock/evidence/SQL/uncertain-work failures
+retain hard closure. No command resubmission, old-run resume or schema change.
+Local focused/native acceptance and reviewed release precede another assessment
+and actual owner hour. HOST-07, first replacement and continuous/live gates remain open.
+
+The installed v5 release remains OPEN at epoch1 with catalog/body hash
+`6b9fceb02278ef9ca978743c43dd2d0dd2cacb49b310689c016fe58d65861fb1`,98 functions/
+26 tables and15 migration versions. Temporary original-pair issuer operations
+leave no installed schema/grant delta. Source-order code changes require no migration.
+The independently owned synthetic Auth users were refreshed for owner-read checks;
+other projects/shared credentials/profile/processes remain untouched.
+
+Terminal read-only scope records114 commands/109 unique accepted source blocks,
+12,420,621 JSONB text bytes and4,966,818 compressed request-column bytes. Neither
+measurement includes all physical row/index/TOAST overhead. The accepted quote
+age floor at receipt has min/median/p95/max2.250/5.410/8.347/9.460s. Capture-to-
+first-journal wall duration is1.619/2.347/2.713/2.873s and includes acquisition,
+planning, heartbeat and SQL; do not label it native SQL latency. Nine verified
+service/deployment-scoped60s samples show0.06978–0.07090GB RAM. No invoice or
+account-wide spending limit was read or changed. Source-order cause/distribution,
+checkpoint compaction and retention require substantial further research.
+
+Release/rollback: verify exact GitHub/Vercel/Supabase/Railway targets, review/push
+only the repair branch, prove preview/main source identity and production smokes,
+then issue a new original finite pair/run for matching uvloop assessment and owner
+hour. On refusal, preserve original commands/history; use a still-valid reserved
+Stop or reviewed once-only original interruption, restore the exact prior variable
+map/closed startup and revoke that same pair. Never extend/reopen the old run.
+
+Validation: 173 focused offline cases pass on default asyncio (51.331s) and
+production uvloop (50.119s). Thirteen actual offline Linux native TLS/SCRAM cases
+pass (15.047s; outer owned fixture20.248s), including real feed-regression/SQL
+invariance, next-source admission and one original reserved Stop after a feed
+refusal. Lost Stop replies/missing readback, hard-closure non-reopening and
+server lease refusal are covered. Local/native acceptance is complete; reviewed
+release and new hosted assessment/hour remain separate gates.
