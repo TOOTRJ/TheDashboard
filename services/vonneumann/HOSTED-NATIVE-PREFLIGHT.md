@@ -1,5 +1,7 @@
 # Hosted native connection and credential preflight
 
+**Latest selected-host acceptance — 2026-10-07:** the exact Railway service now passes actual fixed-host IPv6, supplied CA/hostname verification and TLS 1.3 in a successful closed container deployment. The bounded probe took 1.048 seconds and sent no PostgreSQL StartupMessage/login/SQL. This supersedes the earlier unhosted/network-pending notes below. Fresh management metadata still reports SSL enforcement off, no native roles/schema and fourteen migrations. Client inventory/SSL maintenance, actual managed issuer and native SCRAM/channel-binding acceptance remain open. [Current target/evidence/steps](../../RAILWAY-SETUP.md).
+
 DB-03A2D3B2C3A, reviewed 2026-10-06; certificate intake updated 2026-10-07.
 This completes the read-only metadata and TLS-only operator tooling slice.
 **C3 stays open:** live project-CA/hostname validation, worker-host reachability

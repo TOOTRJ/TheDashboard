@@ -12,8 +12,22 @@ The `codex/dashboard-security-reliability` branch has automatic Vercel Git deplo
 |---|---|---|---|
 | Vercel | `the-dashboard` | `prj_wFUe9k9USVreOQcmQKNWRAVsx5fH` | Team `team_8iNNxiNjrOseD4gdSCHkQEzF`, slug `orderoftheredjester` |
 | Supabase | `The Dashboard` | `fxpxsciltakyypunglzr` | Organization `cqfnnaunmupdyobkyqfo`, name `Valentine Jester` |
+| Railway | `The Dashboard Worker` | `38facb49-4de9-4d66-85aa-2861e0306dcf` | Workspace `f3fcd4b2-e424-4c6b-ac33-91196ccc96e1`, name `Red Jester's Projects` |
 
 Verify the exact project name, immutable ID, and owner before consequential remote operations. Stop on a mismatch; do not select a similarly named project or create a replacement. Do not modify another project, organization/team-wide configuration, shared environment variables, billing, shared credentials, domains belonging to other projects, or other repositories. Identity metadata needed to resolve the authorized target is distinct from permission to inspect another project's contents.
+
+Railway additionally pins production environment `9bbe52c6-2305-467a-bf39-8d5e1a98e4e4`
+and service `dashboard-paper-worker` / `8e78ad4b-1d8f-43e7-898a-3882ac5053d7`.
+Use `python3 scripts/dashboard-railway.py verify` and `service` for read-only checks;
+the helper reads only ignored mode-0600 `ssl/railway-project-token.txt`. Never print
+the token or upload `.env`/`ssl`; a saved `.env` copy is not a runtime credential.
+Keep the worker closed until the remaining gates in `RAILWAY-SETUP.md` pass.
+The approved $20/month pilot ceiling does not authorize billing/account-wide changes.
+Do not run shared Railway login/link or default SSH key registration. Official CLI
+5.63.4 is isolated in the task's temporary directory; project-token child environment,
+explicit target IDs, disabled automatic updates/telemetry and a sandbox denying shared
+Railway/SSH/agent/config writes were used for the closed canary. Prefer pinned API
+operations; inspect source/flags before adopting a later CLI or IaC workflow.
 
 ## Isolated CLI context
 
