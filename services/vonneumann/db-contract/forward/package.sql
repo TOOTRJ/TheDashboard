@@ -14,7 +14,7 @@ LOCK TABLE public.vn_colonies,public.vn_fitness_snapshots,public.vn_generation_s
 DO $$ DECLARE expected jsonb; legacy_review jsonb; BEGIN
  SELECT review INTO STRICT expected FROM pg_temp.dashboard_forward_review;
  IF expected IS DISTINCT FROM jsonb_build_object('version',1,'target','{"github_repository": "TOOTRJ/TheDashboard", "github_repository_id": 1141090963, "supabase_name": "The Dashboard", "supabase_org": "cqfnnaunmupdyobkyqfo", "supabase_ref": "fxpxsciltakyypunglzr", "vercel_project_id": "prj_wFUe9k9USVreOQcmQKNWRAVsx5fH", "vercel_project_name": "the-dashboard", "vercel_team_id": "team_8iNNxiNjrOseD4gdSCHkQEzF"}'::jsonb,
-   'release_sha256','5ba175e3c3f56fdbae0ae95a0573e1bc7e93ec0df30390bc8daabfc08cf23924','migration_catalog',pg_temp.vn_forward_migrations())
+   'release_sha256','6b9fceb02278ef9ca978743c43dd2d0dd2cacb49b310689c016fe58d65861fb1','migration_catalog',pg_temp.vn_forward_migrations())
     OR to_regnamespace('vn_release') IS NOT NULL OR to_regnamespace('vn_access') IS NOT NULL
     OR to_regnamespace('vn_legacy') IS NOT NULL OR to_regnamespace('vn_legacy_evidence') IS NOT NULL THEN
   RAISE EXCEPTION 'forward_review_changed_or_target_mismatch' USING ERRCODE='55000';
@@ -41,7 +41,7 @@ BEGIN
  IF current_setting('server_version_num')::integer NOT BETWEEN 170000 AND 179999 OR
     current_user<>'postgres' OR session_user<>'postgres' OR installer.rolsuper OR
     NOT installer.rolcreaterole OR NOT installer.rolcreatedb OR NOT installer.rolbypassrls OR
-    NOT installer.rolinherit OR installer.rolreplication THEN
+    NOT installer.rolinherit OR NOT installer.rolreplication THEN
   RAISE EXCEPTION 'hosted_like_installer_required';
  END IF;
  IF NOT pg_catalog.has_database_privilege(current_user,current_database(),'CREATE') OR
@@ -110,7 +110,9 @@ BEGIN
     NOT EXISTS(SELECT 1 FROM pg_catalog.pg_auth_members WHERE roleid=owner_role AND
       member=installer_role AND grantor=installer_role AND NOT admin_option AND set_option AND NOT inherit_option) OR
     pg_catalog.has_schema_privilege(owner_role,'auth','USAGE') OR
-    pg_catalog.has_function_privilege(owner_role,'auth.uid()','EXECUTE') OR
+    -- Managed Auth grants PUBLIC EXECUTE on uid(), without private-owner
+    -- schema USAGE. Preserve that ACL; reject delegation and usable Auth access.
+    pg_catalog.has_function_privilege(owner_role,'auth.uid()','EXECUTE WITH GRANT OPTION') OR
     pg_catalog.has_column_privilege(owner_role,'auth.users','id','REFERENCES') OR
     pg_catalog.has_schema_privilege(owner_role,'vn_identity','CREATE') OR
     NOT pg_catalog.has_function_privilege(owner_role,'vn_identity.owner_id()','EXECUTE') OR
@@ -5045,7 +5047,7 @@ CREATE TABLE vn_release.operations (
 ALTER TABLE vn_release.state ENABLE ROW LEVEL SECURITY;
 ALTER TABLE vn_release.operations ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON ALL TABLES IN SCHEMA vn_release FROM PUBLIC,anon,authenticated,service_role,authenticator,vn_economic,vn_relay;
-INSERT INTO vn_release.state VALUES(true,'5ba175e3c3f56fdbae0ae95a0573e1bc7e93ec0df30390bc8daabfc08cf23924','closed',0,clock_timestamp(),
+INSERT INTO vn_release.state VALUES(true,'6b9fceb02278ef9ca978743c43dd2d0dd2cacb49b310689c016fe58d65861fb1','closed',0,clock_timestamp(),
  current_setting('dashboard.forward_review')::jsonb,'{}');
 
 CREATE FUNCTION vn_release.require_open() RETURNS void LANGUAGE plpgsql VOLATILE

@@ -5,7 +5,7 @@ END IF;
 IF current_setting('server_version_num')::integer NOT BETWEEN 170000 AND 179999 OR
  session_user<>'postgres' OR current_user<>'postgres' OR
  NOT EXISTS(SELECT 1 FROM pg_roles WHERE rolname='postgres' AND NOT rolsuper AND
-   rolcreaterole AND rolcreatedb AND rolinherit AND rolbypassrls AND NOT rolreplication) THEN
+   rolcreaterole AND rolcreatedb AND rolinherit AND rolbypassrls AND rolreplication) THEN
  RAISE EXCEPTION 'limited_native_issuer_required' USING ERRCODE='42501';
 END IF;
 IF NOT EXISTS(SELECT 1 FROM pg_roles WHERE rolname='vn_contract_owner' AND NOT rolcanlogin AND

@@ -1,10 +1,10 @@
 {
   "hosted_credentials_provisioned": false,
   "mode": "isolated_limited_native_issuer_rehearsal",
-  "native_auth_sha256": "28d5c947c08f1c5a4f3a604cc68d54e35b4269c8f1cca042743d43dbc2140f14",
+  "native_auth_sha256": "0a01e7828d9a7619efd54ac9a9331e598c650429c61717183464c09f4387c5ee",
   "production_application_available": false,
   "sources_sha256": {
-    "boundary.sql": "db21f49a4412f516879bc48d1a54cf56619c14348b284bc7e3bd59de71ffdfdb",
+    "boundary.sql": "7b667e098d95ba22aa882db733a915c35b51fc2f7730f4d7442b229b01170f09",
     "issue.sql": "68815a8abaa6d145d9f9be269d07d57c9e8583d9af00634e47d3bc24b3e8e418",
     "revoke.sql": "0539acc377d0c059248767ae9b3a3de702e4e21ba35b48c214fd713e3ebab59c"
   }

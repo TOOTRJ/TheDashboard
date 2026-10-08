@@ -23,7 +23,7 @@ HOSTED_BOOTSTRAP = """
 -- initdb's OID-10 bootstrap role cannot be demoted. Rename it, then create the
 -- actual postgres login as a non-superuser instead of impersonating it with SET.
 ALTER ROLE postgres RENAME TO vn_test_bootstrap;
-CREATE ROLE postgres LOGIN NOSUPERUSER CREATEDB CREATEROLE INHERIT NOREPLICATION BYPASSRLS;
+CREATE ROLE postgres LOGIN NOSUPERUSER CREATEDB CREATEROLE INHERIT REPLICATION BYPASSRLS;
 GRANT CREATE ON DATABASE postgres TO postgres;
 GRANT USAGE,CREATE ON SCHEMA public TO postgres;
 CREATE ROLE vn_test_auth_owner NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS;
@@ -37,6 +37,8 @@ REVOKE ALL ON TABLE auth.users FROM postgres;
 REVOKE ALL ON FUNCTION auth.uid() FROM postgres;
 GRANT USAGE ON SCHEMA auth TO postgres;
 GRANT EXECUTE ON FUNCTION auth.uid() TO postgres;
+-- Actual managed Auth keeps PUBLIC EXECUTE but no private-owner schema USAGE.
+GRANT EXECUTE ON FUNCTION auth.uid() TO PUBLIC;
 GRANT REFERENCES(id) ON auth.users TO postgres;
 CREATE ROLE authenticator LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOBYPASSRLS;
 GRANT anon,authenticated,service_role TO authenticator WITH INHERIT FALSE, SET TRUE;

@@ -13,7 +13,7 @@ release or evidence of a profitable strategy.
 | Small strategy | `ema_baseline_v1` evolves two parameters: fast and slow EMA periods. Asset, timeframe and other controls stay fixed; RSI/volume signal filters are disabled. All candidates share 61 completed warmup bars. |
 | Research evaluator | Synthetic replay, a twenty-pair exhaustive grid, cash/passive/fixed-EMA/random controls, and an equal-budget reference GA are implemented. Training-only selection and fresh chronological holdout accounts are tested. Representative historical research and calibrated fills remain open. |
 | Exact paper controller | An opt-in provider-bound v5 controller, command repository, lease fencing and event outbox work in offline/local database rehearsals. They are not yet selected by the production service. |
-| Database / transports | Canonical fresh v5 SQL and native SCRAM owner/run authentication are proved offline. The inert HTTP adapter and local PostgREST tests retain reconciliation/transaction evidence; the bounded native async SQL transport now proves real TLS/SCRAM controller/relay and commit recovery offline. Read-only hosted metadata and a bounded TLS-only preflight are complete; actual selected-host IPv6/project-CA/hostname TLS now passes; server SSL enforcement/client inventory and limited native credential issuance/authentication acceptance remain. The hosted project runs PostgREST 14.5; fresh v5 SQL is not deployed. Existing public legacy writers remain in service code. |
+| Database / transports | Canonical fresh v5 SQL and native SCRAM owner/run authentication are proved offline. The inert HTTP adapter and local PostgREST tests retain reconciliation/transaction evidence; the bounded native async SQL transport now proves real TLS/SCRAM controller/relay and commit recovery offline. Read-only hosted metadata and a bounded TLS-only preflight are complete; actual selected-host IPv6/project-CA/hostname TLS now passes; SSL enforcement and client inventory are complete; managed installer/issuer/history rollback passes. Committed native credential issuance/authentication acceptance remains. The hosted project runs PostgREST 14.5; fresh v5 SQL is not deployed. Existing public legacy writers remain in service code. |
 | Dashboard | Next.js 16.3.8 is deployed. Selected-run targeting and complete bounded legacy history are repaired and released. D3C now prepares the explicitly selected actual v5 view with exact balances/trade/evaluation details, legacy diagnostics, original-ID controls/archive and durable replay. Local browser/SQL owner flow passes; actual hosted adoption/two-user acceptance remains A3. |
 | Worker / live execution | The Python worker is hosted on Railway in closed mode. No paper run is active. The Jupiter V2 helper requests quotes without a taker; it cannot sign or execute a swap. |
 
@@ -21,10 +21,14 @@ The complete forward package/legacy evidence/additive retirement and D3C service
 preparation are tested. A non-root pinned amd64 image is built and closed-mode canaries
 pass. The exact Railway service is deployed in closed mode, with its production-scoped token,
 single US West replica, HTTPS denial, resource limits and actual IPv6/CA/hostname TLS verified.
-The $20/month pilot ceiling is approved. Next is the pending exact-database client inventory
-and SSL-enforcement maintenance, actual managed issuer/native acceptance, then A3 target-specific application/exposure,
+The $20/month pilot ceiling is approved. Client inventory is resolved; exact-database
+SSL enforcement and post-reboot checks pass. Actual managed installer, issuer and
+production/history wrapper rollback rehearsals pass after three measured repairs.
+Next is reviewed A3 closed application/committed verification, actual native sessions and exposure,
 hosted operator/failure flow and actual source/lease/quota/resource timing before the pilot.
 [Exact setup and remaining gates](RAILWAY-SETUP.md). Detailed transport evidence lives in [NATIVE-SQL-TRANSPORT.md](services/vonneumann/NATIVE-SQL-TRANSPORT.md);
+The [closed cutover procedure](SUPABASE-CUTOVER.md) records the snapshot, original-outcome
+reconciliation and managed profile/Auth/deparser corrections.
 actual hosted facts, the credential/rollback plan and revised Railway IPv6 hosting
 recommendation live in [HOSTED-NATIVE-PREFLIGHT.md](services/vonneumann/HOSTED-NATIVE-PREFLIGHT.md).
 

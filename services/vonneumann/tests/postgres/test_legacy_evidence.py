@@ -52,9 +52,10 @@ TRUNCATE auth.users CASCADE; UPDATE public.legacy_evidence_test_gate SET release
 
     def test_actual_non_superuser_installer_and_preserved_auth_dependencies(self):
         self.assertEqual(self.db.scalar("SELECT rolsuper FROM pg_roles WHERE rolname='postgres';"),'f')
-        for statement in ["SELECT has_schema_privilege('vn_contract_owner','auth','USAGE');",
-                          "SELECT has_function_privilege('vn_contract_owner','auth.uid()','EXECUTE');"]:
-            self.assertEqual(self.db.scalar(statement),'f')
+        self.assertEqual(self.db.scalar("SELECT has_schema_privilege('vn_contract_owner','auth','USAGE');"),'f')
+        self.assertEqual(self.db.scalar("SELECT has_function_privilege('vn_contract_owner','auth.uid()','EXECUTE');"),'t')
+        denied=self.db.sql('SET ROLE vn_contract_owner; SELECT auth.uid();',check=False)
+        self.assertIn('42501',denied.stderr)
         self.assertEqual(self.db.scalar("SELECT has_table_privilege('vn_contract_owner','public.vn_probes','UPDATE,MAINTAIN');"),'f')
         self.assertEqual(self.db.scalar("SELECT count(*) FROM pg_trigger WHERE tgname='vn_legacy_evidence_changed' AND tgenabled='A';"),'5')
         # The composed bounded classifier works without granting managed Auth.

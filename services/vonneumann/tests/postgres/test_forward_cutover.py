@@ -4,6 +4,8 @@ import json
 import os
 import time
 import unittest
+import tempfile
+from unittest.mock import patch
 from uuid import uuid4
 from tests.postgres import harness,forward_fixture as fixture,legacy_fixture,legacy_evidence_fixture
 from tests.postgres.test_session_auth import NativeSessionAuthTests as SessionTools
@@ -44,6 +46,46 @@ class ForwardCutoverTests(unittest.TestCase):
   self.run,self.worker,self.command=(str(uuid4()) for _ in range(3))
   self.config=ProviderLifecycleConfig(ExactLifecycleConfig('genetic_algorithm',self.owner,self.run,asset='SOL/USD'),str(uuid4()))
  def admin(self,sql,**options):return self.db.sql(sql,role=fixture.ADMIN,**options)
+ def test_standalone_readonly_capture_matches_install_catalog_oracles(self):
+  root=fixture.HERE.parents[3]
+  audit=root/'supabase/audits/vonneumann-forward-review.sql'
+  value=json.loads(self.db.scalar(audit.read_text()))
+  self.assertEqual(value['read_only'],'on')
+  self.assertEqual(value['isolation'],'repeatable read')
+  legacy=json.loads(self.db.scalar(legacy_fixture.MARKER+legacy_fixture.CATALOG.read_text()+
+   'SELECT pg_temp.vn_legacy_catalog();'))
+  migrations=json.loads(self.db.scalar((fixture.HERE/'review.sql').read_text()+
+   'SELECT pg_temp.vn_forward_migrations();'))
+  self.assertEqual(value['legacy'],legacy)
+  self.assertEqual(value['migrations'],migrations)
+ def production_source(self):
+  production=fixture.builder.module('forward_production_test',fixture.HERE/'production.py')
+  value=json.loads(self.db.scalar((production.ROOT/'supabase/audits/vonneumann-forward-review.sql').read_text()))
+  manifest=json.loads((fixture.HERE/'manifest.json').read_text())
+  reviewed={'target':manifest['target'],'release_sha256':manifest['release_sha256'],
+   'migration_catalog':value['migrations'],'legacy_catalog':value['legacy']}
+  with tempfile.TemporaryDirectory() as directory:
+   path=production.Path(directory)/'review.json';path.write_text(json.dumps(reviewed))
+   with patch.object(production,'REVIEW',path):source,_=production.build()
+  operator=fixture.builder.module('forward_operator_test',production.ROOT/'scripts/dashboard-db-cutover.py')
+  return source,operator.history_wrapper(source,production.VERSION,production.NAME)
+ def test_production_wrapper_commits_closed_schema_and_exact_history_together(self):
+  before=self.legacy_rows();source,wrapped=self.production_source()
+  self.db.sql(wrapped,timeout=30)
+  self.assertEqual(before,self.legacy_rows())
+  self.assertEqual(self.admin('SELECT state FROM vn_release.state;').stdout.strip(),'closed')
+  digest=fixture.builder.sha(source)
+  self.assertEqual(self.db.scalar("SELECT encode(sha256(convert_to(statements[1],'UTF8')),'hex') "
+   "FROM supabase_migrations.schema_migrations WHERE version='20261007010000';"),digest)
+  self.db.sql((fixture.HERE/'verify.sql').read_text())
+ def test_production_wrapper_late_failure_rolls_back_schema_and_history(self):
+  before=self.legacy_rows();_,wrapped=self.production_source()
+  wrapped=wrapped.replace('INSERT INTO supabase_migrations.schema_migrations(version,name,statements)',
+   'SELECT 1/0;\nINSERT INTO supabase_migrations.schema_migrations(version,name,statements)',1)
+  result=self.db.sql(wrapped,timeout=30,check=False)
+  self.assertIn('22012',result.stderr);self.absent()
+  self.assertEqual(before,self.legacy_rows())
+  self.assertEqual(self.db.scalar("SELECT count(*) FROM supabase_migrations.schema_migrations WHERE version='20261007010000';"),'0')
  def create_sql(self):return SessionTools.create_sql(self)
  def get_sql(self):return SessionTools.get_sql(self)
  def heartbeat_sql(self):return SessionTools.heartbeat_sql(self)
@@ -75,7 +117,9 @@ class ForwardCutoverTests(unittest.TestCase):
   self.assertEqual(before,self.legacy_rows())
   self.assertEqual(self.db.scalar("SELECT rolsuper FROM pg_roles WHERE rolname='postgres';"),'f')
   self.assertEqual(self.db.scalar("SELECT has_schema_privilege('vn_contract_owner','auth','USAGE');"),'f')
-  self.assertEqual(self.db.scalar("SELECT has_function_privilege('vn_contract_owner','auth.uid()','EXECUTE');"),'f')
+  self.assertEqual(self.db.scalar("SELECT has_function_privilege('vn_contract_owner','auth.uid()','EXECUTE');"),'t')
+  denied=self.db.sql('SET ROLE vn_contract_owner; SELECT auth.uid();',check=False)
+  self.assertIn('42501',denied.stderr)
   self.assertEqual(self.admin('SELECT state FROM vn_release.state;').stdout.strip(),'closed')
   self.assertEqual(self.admin("SELECT count(*) FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname LIKE 'vn_%';").stdout.strip(),'98')
   self.db.sql((fixture.HERE/'verify.sql').read_text())

@@ -11,6 +11,7 @@ SELECT jsonb_build_object(
    'executor_role',current_user,'executor_session_role',session_user),
  'installation_roles',(SELECT jsonb_agg(jsonb_build_object('name',rolname,'superuser',rolsuper,
    'create_role',rolcreaterole,'create_db',rolcreatedb,'bypass_rls',rolbypassrls,'inherit',rolinherit,
+   'replication',rolreplication,
    'auth_schema_usage',has_schema_privilege(oid,'auth','USAGE'),
    'auth_schema_usage_grantable',has_schema_privilege(oid,'auth','USAGE WITH GRANT OPTION'),
    'uid_execute',has_function_privilege(oid,'auth.uid()','EXECUTE'),

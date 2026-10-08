@@ -42,12 +42,13 @@ UPDATE public.installer_gate SET released=false;
 DO $$ BEGIN IF EXISTS(SELECT 1 FROM pg_roles WHERE rolname='vn_contract_owner') THEN
  EXECUTE 'DROP OWNED BY vn_contract_owner'; EXECUTE 'DROP ROLE vn_contract_owner';
 END IF; END $$;
-ALTER ROLE postgres NOSUPERUSER CREATEDB CREATEROLE INHERIT NOREPLICATION BYPASSRLS;
+ALTER ROLE postgres NOSUPERUSER CREATEDB CREATEROLE INHERIT REPLICATION BYPASSRLS;
 REVOKE ALL ON SCHEMA auth FROM postgres;
 REVOKE ALL ON FUNCTION auth.uid() FROM postgres;
 REVOKE ALL(id) ON auth.users FROM postgres;
 GRANT USAGE ON SCHEMA auth TO postgres;
 GRANT EXECUTE ON FUNCTION auth.uid() TO postgres;
+GRANT EXECUTE ON FUNCTION auth.uid() TO PUBLIC;
 GRANT REFERENCES(id) ON auth.users TO postgres;
 """)
         self.before = self.unchanged_catalog()
@@ -136,7 +137,8 @@ SELECT jsonb_build_object(
     def test_private_owner_needs_no_auth_grants_or_managed_role_membership(self):
         self.install()
         self.assertEqual(self.db.scalar("SELECT NOT has_schema_privilege('vn_contract_owner','auth','USAGE') AND "
-            "NOT has_function_privilege('vn_contract_owner','auth.uid()','EXECUTE') AND "
+            "has_function_privilege('vn_contract_owner','auth.uid()','EXECUTE') AND "
+            "NOT has_function_privilege('vn_contract_owner','auth.uid()','EXECUTE WITH GRANT OPTION') AND "
             "NOT has_column_privilege('vn_contract_owner','auth.users','id','REFERENCES') AND "
             "NOT EXISTS(SELECT 1 FROM pg_auth_members WHERE member='vn_contract_owner'::regrole);"), 't')
         self.assertEqual(self.db.scalar("SELECT NOT pg_has_role('vn_contract_owner','postgres','SET') AND "
@@ -212,12 +214,28 @@ SELECT jsonb_build_object(
         self.assertIn('hosted_like_installer_required', result.stderr)
         self.assert_uninstalled()
 
+    def test_incomplete_managed_installer_profile_is_rejected(self):
+        self.admin('ALTER ROLE postgres NOREPLICATION;')
+        result = self.install(check=False)
+        self.assertIn('hosted_like_installer_required', result.stderr)
+        self.assert_uninstalled()
+
+    def test_public_auth_schema_access_is_still_rejected(self):
+        self.admin('GRANT USAGE ON SCHEMA auth TO PUBLIC;')
+        try:
+            result = self.install(check=False)
+            self.assertIn('installer_boundary_postcondition_failed', result.stderr)
+            self.assert_uninstalled()
+        finally:
+            self.admin('REVOKE USAGE ON SCHEMA auth FROM PUBLIC;')
+        self.assertEqual(self.unchanged_catalog(), self.before)
+
     def test_auth_grant_options_and_missing_dependency_are_rejected(self):
         variants = (
             'GRANT USAGE ON SCHEMA auth TO postgres WITH GRANT OPTION;',
             'GRANT EXECUTE ON FUNCTION auth.uid() TO postgres WITH GRANT OPTION;',
             'GRANT REFERENCES(id) ON auth.users TO postgres WITH GRANT OPTION;',
-            'REVOKE EXECUTE ON FUNCTION auth.uid() FROM postgres;',
+            'REVOKE EXECUTE ON FUNCTION auth.uid() FROM postgres,PUBLIC;',
         )
         for sql in variants:
             self.setUp()

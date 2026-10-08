@@ -37,6 +37,7 @@ DO $$ BEGIN IF to_regrole('vn_contract_owner') IS NOT NULL THEN
  DROP OWNED BY vn_contract_owner; DROP ROLE vn_contract_owner; END IF; END $$;
 DROP TABLE '''+', '.join('public.'+t for t in legacy_fixture.TABLES)+''' CASCADE;
 TRUNCATE auth.users CASCADE;
+DELETE FROM supabase_migrations.schema_migrations WHERE version='20261007010000';
 ''',role=ADMIN)
  db.sql(legacy_fixture.captured_legacy_schema())
  return legacy_fixture.seed_legacy_rows(canonical_fixture.CapabilityDatabase(db))

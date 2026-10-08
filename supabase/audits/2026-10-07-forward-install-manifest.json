@@ -1,0 +1,25 @@
+{
+  "api_exposed": false,
+  "credentials_provisioned": false,
+  "history_recording": "scoped operator appends exact source before COMMIT",
+  "installed_admission": "closed",
+  "migration_sha256": "7b0c2d9578641de1d0b82204cc862338ce1e4f33da477070f4e4134eb6b39e36",
+  "mode": "reviewed_dashboard_closed_install",
+  "name": "vonneumann_closed_v5",
+  "package_sha256": "9eef84d2799b94b29bf1aadf9551efb3b59c3d9328deb60cd31abbe0af38eb7f",
+  "release_sha256": "6b9fceb02278ef9ca978743c43dd2d0dd2cacb49b310689c016fe58d65861fb1",
+  "review_sha256": "c8f5e83ad7caa7a4a957b80294d9272402d47e18aaec240294e5615b92b912d4",
+  "rollback": "drain then original-ID vn_release.transition to retired; retain all history",
+  "target": {
+    "github_repository": "TOOTRJ/TheDashboard",
+    "github_repository_id": 1141090963,
+    "supabase_name": "The Dashboard",
+    "supabase_org": "cqfnnaunmupdyobkyqfo",
+    "supabase_ref": "fxpxsciltakyypunglzr",
+    "vercel_project_id": "prj_wFUe9k9USVreOQcmQKNWRAVsx5fH",
+    "vercel_project_name": "the-dashboard",
+    "vercel_team_id": "team_8iNNxiNjrOseD4gdSCHkQEzF"
+  },
+  "transaction_timeout_seconds": 25,
+  "version": "20261007010000"
+}

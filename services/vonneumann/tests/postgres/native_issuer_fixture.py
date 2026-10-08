@@ -20,7 +20,7 @@ from uuid import UUID, uuid4
 from tests.postgres import installer_fixture, session_auth_fixture
 
 DIRECTORY = Path(__file__).resolve().parents[2] / 'db-contract' / 'native-issuer'
-BASE_SHA = '28d5c947c08f1c5a4f3a604cc68d54e35b4269c8f1cca042743d43dbc2140f14'
+BASE_SHA = '0a01e7828d9a7619efd54ac9a9331e598c650429c61717183464c09f4387c5ee'
 MARKER = "SET dashboard.native_issuer_rehearsal='c3b1-isolated';\n"
 
 

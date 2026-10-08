@@ -9,7 +9,9 @@ produce a deployable v5 package or provision any production credential.
 
 The [measured Dashboard metadata](../../supabase/audits/2026-10-05-vonneumann-owner-capabilities.json)
 shows ordinary hosted `postgres` is NOSUPERUSER, CREATEROLE, CREATEDB, INHERIT and
-BYPASSRLS. It can use the Auth schema, execute `auth.uid()` and reference
+BYPASSRLS. The corrected 2026-10-07 capture also proves REPLICATION, which the
+earlier capture omitted. The fixture and installer now require the full profile.
+[Actual managed correction/acceptance](../../SUPABASE-CUTOVER.md). It can use the Auth schema, execute `auth.uid()` and reference
 `auth.users.id`, without grant options. API roles have no role-administration
 memberships or role/database creation powers. The private owner is absent.
 
