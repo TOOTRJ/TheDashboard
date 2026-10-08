@@ -7,7 +7,7 @@ from pathlib import Path
 import re
 
 HERE=Path(__file__).resolve().parent
-BASE_SHA='b42228db587cba11f63528f4d29fe536d9c30ab195565781a2d6dacb2940d708'
+BASE_SHA='738d95e37d56e2ef8e445bf4bd57414d0019dbb48f6d75e3e810580f6c15c183'
 spec=importlib.util.spec_from_file_location('session_auth_v5_dependency',HERE.parent/'v5'/'build.py')
 base=importlib.util.module_from_spec(spec)
 spec.loader.exec_module(base)

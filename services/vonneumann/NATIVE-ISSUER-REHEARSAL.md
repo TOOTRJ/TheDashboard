@@ -1,7 +1,8 @@
 # Limited native credential issuer rehearsal
 
 DB-03A2D3B2C3B1, 2026-10-07. This closes the offline limited-issuer proof within
-C3B. The worker remains unhosted; actual selected-host IPv6/TLS/native acceptance
+C3B. Subsequent actual managed rollback acceptance and corrected installer
+REPLICATION/Auth dependency facts are recorded in [SUPABASE-CUTOVER.md](../../SUPABASE-CUTOVER.md). The worker remains unhosted; actual selected-host IPv6/TLS/native acceptance
 and production secret injection remain open. No production credential is issued
 or revoked. Templates are outside migrations and startup; only the explicitly
 opted-in, owned, network-isolated PostgreSQL fixture executes them.
@@ -25,8 +26,8 @@ SET membership. [Role attributes](https://www.postgresql.org/docs/17/role-attrib
 
 ## Atomic issuance
 
-The manifest pins three templates and the unchanged native-auth package
-`28d5c947c08f1c5a4f3a604cc68d54e35b4269c8f1cca042743d43dbc2140f14`.
+The manifest pins three templates and the managed-profile-corrected native-auth package
+`0a01e7828d9a7619efd54ac9a9331e598c650429c61717183464c09f4387c5ee`.
 No privileged public RPC, stored provisioner, production runner, environment
 credential loader or DSN is introduced.
 

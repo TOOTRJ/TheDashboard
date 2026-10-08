@@ -1,0 +1,101 @@
+{
+  "api_exposed": false,
+  "date": "2026-10-07",
+  "managed_complete_forward_rollback": {
+    "independent_post_rollback_review_matches": true,
+    "pass": true,
+    "seconds": 2.877
+  },
+  "managed_installer": {
+    "bypass_rls": true,
+    "create_db": true,
+    "create_role": true,
+    "inherit": true,
+    "name": "postgres",
+    "replication": true,
+    "superuser": false
+  },
+  "managed_issuer_rollback": {
+    "acceptance": [
+      {
+        "acceptance": {
+          "canary": "managed_installer_and_issuer_rolled_back",
+          "native_roles_absent": true,
+          "new_owner_absent": true,
+          "new_schema_absent": true
+        }
+      }
+    ],
+    "elapsed_seconds": 2.014
+  },
+  "native_authentication_proved": false,
+  "package_sha256": "9eef84d2799b94b29bf1aadf9551efb3b59c3d9328deb60cd31abbe0af38eb7f",
+  "paper_run_started": false,
+  "post_reboot_dashboard_http_checks": {
+    "authenticated_zero_row_api": 200,
+    "login": 200,
+    "root": 307,
+    "unauthenticated_api": 401
+  },
+  "private_owner_canary": {
+    "auth_schema_usage": false,
+    "direct_uid_call_available": false,
+    "memberships": [
+      {
+        "admin": true,
+        "grantor": "supabase_admin",
+        "grantor_oid": "10",
+        "inherit": false,
+        "member": "postgres",
+        "set": false
+      },
+      {
+        "admin": false,
+        "grantor": "postgres",
+        "grantor_oid": "16384",
+        "inherit": false,
+        "member": "postgres",
+        "set": true
+      }
+    ],
+    "role": {
+      "rolbypassrls": false,
+      "rolcanlogin": false,
+      "rolcreatedb": false,
+      "rolcreaterole": false,
+      "rolinherit": false,
+      "rolreplication": false,
+      "rolsuper": false
+    },
+    "uid_function_execute": true
+  },
+  "private_snapshot": {
+    "bytes": 5305685,
+    "git_ignored": true,
+    "scope": "five legacy tables and original migration history; not whole Auth/database backup",
+    "sha256": "258a99bdf58f74bd0cb4a534ca5ebe7e01e0de812795809d0f3ba3d9177c9450"
+  },
+  "production_wrapper_history_rollback": [
+    {
+      "acceptance": {
+        "closed_schema_absent": true,
+        "native_owner_absent": true,
+        "new_history_absent": true
+      }
+    }
+  ],
+  "published_credentials": false,
+  "release_sha256": "6b9fceb02278ef9ca978743c43dd2d0dd2cacb49b310689c016fe58d65861fb1",
+  "ssl_enforcement": {
+    "appliedSuccessfully": true,
+    "currentConfig": {
+      "database": true
+    }
+  },
+  "ssl_update_seconds": 4.361,
+  "target": {
+    "id": "fxpxsciltakyypunglzr",
+    "name": "The Dashboard",
+    "organization": "cqfnnaunmupdyobkyqfo"
+  }
+}

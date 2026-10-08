@@ -7,19 +7,19 @@
     "legacy-evidence/manifest.json": "ef2f863807da8f4842b533289683a1d002f9d11f7a273f44aa9bba14a8bd6d7f",
     "legacy-evidence/package.sql": "de57bcc649e839317ace621462077033e60a4567fb1992f9573125e27aa164b4",
     "legacy_catalog.sql": "adb9a26b619f679a8b54e369c7808d352ae7f136a2b15ad08ae38557e06f2e66",
-    "native-issuer/boundary.sql": "db21f49a4412f516879bc48d1a54cf56619c14348b284bc7e3bd59de71ffdfdb",
+    "native-issuer/boundary.sql": "7b667e098d95ba22aa882db733a915c35b51fc2f7730f4d7442b229b01170f09",
     "native-issuer/issue.sql": "68815a8abaa6d145d9f9be269d07d57c9e8583d9af00634e47d3bc24b3e8e418",
-    "native-issuer/manifest.json": "745f4e6a19561dd81012945cc5a50f3b3b07a78a58c7824407fca159488707b9",
+    "native-issuer/manifest.json": "030aa18438b5518ef0c3f96325cd9053842c1e250c73f808f0408940769023bc",
     "native-issuer/revoke.sql": "0539acc377d0c059248767ae9b3a3de702e4e21ba35b48c214fd713e3ebab59c",
     "session-auth/access.sql": "3024be75ba5494ee6a805c2315ba85380de3d4251124380e05dd646681b218a7",
-    "session-auth/build.py": "cd63f5164620e7993c7284522d08ccbb9df2b91d2819d448f392aeaf4e9635c9",
-    "session-auth/manifest.json": "66526ba07bd4ebc7264cd06fe4f6eb32a07db93663572f94ccd3d27506d62438",
-    "session-auth/package.sql": "28d5c947c08f1c5a4f3a604cc68d54e35b4269c8f1cca042743d43dbc2140f14",
+    "session-auth/build.py": "0162f7b621a00a4d213bd4ddf68be9b469b7f19aaefc9bff3b3aa3124f27aaec",
+    "session-auth/manifest.json": "258ab6001731b3b4a43a1390a226ae5e62415036a6d0535ba821ec92cd8b4a1e",
+    "session-auth/package.sql": "0a01e7828d9a7619efd54ac9a9331e598c650429c61717183464c09f4387c5ee",
     "session-auth/postconditions.sql": "3d15e2860accf6ad0b92fd5eb2e52888598d1190f87732617c76486f47270bfe",
-    "v5/build.py": "c16c27ee764868488ed3d37a8e323749f54828dc522454c389a295418c6b340b",
+    "v5/build.py": "7051f74ebf357964c5acde67932fd4f8730308a3363a970c17bca63d4f168997",
     "v5/entrypoints.sql": "eb1bbd0f8e41da109cdd8187ff6bb8e14acf5f5eee92b863bf92d879058b5a21",
-    "v5/manifest.json": "ebdc1e4f23e3dd8eb9256831809235033b54ca0e67eeaea7d9fb8929c97ca1b6",
-    "v5/package.sql": "b42228db587cba11f63528f4d29fe536d9c30ab195565781a2d6dacb2940d708",
+    "v5/manifest.json": "7a952d0c0a1f6e5d6ebb4a5600a8a611a332bd54ccc4d41a81a593c73facdf14",
+    "v5/package.sql": "738d95e37d56e2ef8e445bf4bd57414d0019dbb48f6d75e3e810580f6c15c183",
     "v5/postconditions.sql": "1f3d48d28cde8a5acdf44bf9fd64a425be4f011da23d11a04679073ce8090c6e"
   },
   "functions": [
@@ -1112,7 +1112,7 @@
     "selected_host_managed_acceptance",
     "DB03A3_reviewed_migration"
   ],
-  "package_sha256": "05bf9bfab224b693f776edcf356ba57617448607f3ebe5d86d639b7115538fd1",
+  "package_sha256": "9eef84d2799b94b29bf1aadf9551efb3b59c3d9328deb60cd31abbe0af38eb7f",
   "postcommit_sha256": "276b371a21008371e18ec34085234c21e1f429211bf98a5c4bbae39775938615",
   "production_application_available": false,
   "release_guarded_functions": [
@@ -1120,7 +1120,7 @@
     "vn_durability.create_run",
     "vn_durability.heartbeat"
   ],
-  "release_sha256": "5ba175e3c3f56fdbae0ae95a0573e1bc7e93ec0df30390bc8daabfc08cf23924",
+  "release_sha256": "6b9fceb02278ef9ca978743c43dd2d0dd2cacb49b310689c016fe58d65861fb1",
   "retained_authority": [
     "get_command",
     "interrupt_expired",
@@ -1136,7 +1136,7 @@
     "browser.sql": "3d98b4d7f1715e9791278d8c9240e0a757e4cfbf05eb02094667c2ca1a5c2b6e",
     "build.py": "275eb4890e1c84ed2d11c9d97e8fda018f9470178a1e14884cb8611a187ceba0",
     "catalog.sql": "ea171524cfa675f8ee60ac5425024f4167673d35c4df0b661214066403b30e91",
-    "dependencies.json": "0da44f55816fc10b342ed82fa43e6ff4fd2746c50e35a2edd0a3beb7e618ee1c",
+    "dependencies.json": "2287ef8290f2be75e4005cde8c56066166cb6b35cce4ddcc490989ec86c72975",
     "review.sql": "888f3bb2c6f40de637b92a63aa0d4458bc46dae85a95abd177a3fa2a92d9d28d"
   },
   "tables": [

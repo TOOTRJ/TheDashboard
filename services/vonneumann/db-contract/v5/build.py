@@ -15,7 +15,7 @@ HERE = Path(__file__).resolve().parent
 SOURCES = {
     '001_fenced_commands.sql': '3312ccf8c28154cc35ef29aa36e66ef016b3e7e76c2a21a0e301b0b1ad30d4f2',
     '002_read_projections.sql': '7b50a45244455dcd3b076bfb60ac02a512d7e59a8c204d3932279ebad4446fe0',
-    '004_installer_boundary.sql': 'd3be3f59ef64e95bf5c78aeaf29b484a7e09e2b9f3f76a99210fa9cdac890d12',
+    '004_installer_boundary.sql': '48c3800c272789c92b18f9080882c1671e90316f47381a719d09d9732adc19fa',
 }
 ECONOMIC = {'create_run','heartbeat','commit_command','get_command','interrupt_expired'}
 RELAY = {'read_outbox','acknowledge_event','accept_event'}

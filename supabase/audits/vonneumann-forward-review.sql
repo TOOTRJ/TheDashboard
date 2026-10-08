@@ -2,6 +2,10 @@
 -- Read-only bounded metadata, no application rows/passwords/role verifiers or persistent DDL.
 BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY;
 SET LOCAL lock_timeout='1s'; SET LOCAL statement_timeout='15s';
+-- Match the session-local install oracle's deparser context exactly. Without
+-- this, identical FKs/triggers appear qualified in one capture and unqualified
+-- in the other, creating false drift after an otherwise valid installation.
+SET LOCAL search_path=pg_catalog,pg_temp;
 WITH legacy_catalog AS (
 WITH RECURSIVE
 tables AS (

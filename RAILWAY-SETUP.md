@@ -23,7 +23,7 @@ or paper run is enabled. [Health endpoint](https://dashboard-paper-worker-produc
 Hobby was observed in the account UI. Do not create a replacement or select a
 similarly named target. [Approved evidence](supabase/audits/2026-10-07-railway-closed-host.json).
 
-## Credential setup received; user input still needed
+## Credential setup and completed SSL maintenance
 
 The user saved the token in ignored `ssl/railway-project-token.txt` and `.env`
 under `RAILWAY_TOKEN`. Both copies match without values being output. The dedicated
@@ -32,16 +32,41 @@ credential source. Do not source `.env` into the shell or upload either file.
 Do not add the deployment token to the worker's runtime variables. Paper startup
 explicitly refuses Railway administrative tokens and broad Supabase keys.
 
-**Pending user input:** confirm whether a database GUI, BI tool or another app
-connects directly to **The Dashboard** database besides this Dashboard and its
-planned worker. The fresh exact-project SSL-enforcement GET remains
-`database=false`, applied successfully. Enabling enforcement restarts only this
-database. Capture the client inventory, maintenance/recovery and post-reboot checks
-before changing it; a snapshot of current sessions cannot inventory dormant clients.
-No setting was changed. [SSL enforcement guidance](https://supabase.com/docs/guides/platform/ssl-enforcement).
+The user confirmed no other known direct clients and authorized Dashboard-only
+database changes. SSL enforcement now reports `database=true` and
+`appliedSuccessfully=true`; the update completed in 4.361 seconds. Post-reboot
+management SQL/TLS, original catalog/history comparisons and four production
+dashboard HTTP checks pass. The private bot-table/history snapshot and actual
+managed rollback rehearsals are recorded in [SUPABASE-CUTOVER.md](SUPABASE-CUTOVER.md).
+There is no pending client-inventory question.
+[SSL enforcement guidance](https://supabase.com/docs/guides/platform/ssl-enforcement).
 
 Any paid subscription or account-wide billing/limit change remains user-managed.
 Service limits constrain CPU/RAM, not the account's total bill or provider costs.
+
+### Why these inputs are not all in local .env
+
+A properly parsed private `.env` can hold the Railway token; it already does.
+There is no inherent security advantage to a separate file with the same ownership
+and permissions. The helper deliberately uses one named, owned mode-0600 token
+file so it never loads unrelated app secrets, falls back to shared CLI credentials
+or depends on dotenv precedence. Two copies can drift; keep the helper's file
+authoritative until a deliberate, tested configuration change. Do not delete or
+rotate either copy implicitly.
+
+The downloaded CA is a public certificate, not a private key. Keeping its PEM in
+`ssl/prod-ca-2021.crt` preserves the standard certificate format and makes local
+trust/expiry checks straightforward. Railway already stores its contents in the
+service-specific `VN_DATABASE_CA_PEM` environment variable. Either PEM-in-env or an
+explicit certificate file works if parsing and trust validation are correct.
+
+Local `.env` does not configure Railway or Vercel automatically. Those platforms
+use their own project/service/environment variables. The deployment token belongs
+to the operator; the runtime receives only its narrow database/provider inputs.
+Project IDs are nonsecret safety pins in the scoped helpers and AGENTS.md. Moving
+them to env would still require checking the allowed immutable IDs and owner.
+Database SSL enforcement is a server policy, so adding an env variable cannot
+replace that change. Client CA/hostname verification is a separate requirement.
 
 The [official API documentation](https://docs.railway.com/integrations/api) defines
 project tokens as scoped to one project's environment. The read-only helper
@@ -100,11 +125,13 @@ actual container and then execs the normal closed entrypoint.
 1. **Closed service and selected-host TLS: complete.** Retain the pins/evidence
    above and reverify before each later operation. Keep `VN_SERVICE_MODE=closed`
    until all remaining acceptance passes.
-2. **Finish database SSL/client prerequisites and actual managed acceptance.**
-   Resolve the pending client inventory, review the exact-project maintenance,
-   verify post-reboot HTTPS/management/worker TLS, then prove the actual limited
-   installer/issuer and native scoped sessions. Never relax CA/hostname validation
-   or borrow a broad managed credential for the worker.
+2. **Finish actual committed/native managed acceptance.** The client inventory
+   is resolved by the user's confirmation. Exact-project SSL enforcement is now
+   applied, and post-reboot database/dashboard checks pass. Actual installer,
+   issuer and production/history wrapper rollback rehearsals pass after repairing
+   the managed-role/Auth/deparser mismatches. Prove committed postflight and real
+   native scoped Railway sessions next. Never relax CA/hostname validation or
+   borrow a broad managed credential for the worker. [Cutover and recovery](SUPABASE-CUTOVER.md).
 3. **C3B managed installer/issuer and A3 forward application.** Reverify The Dashboard
    Supabase ID/org, installer/auth/default/catalog/migration state and actual DDL/role
    capability. Prepare independent target/history digests, backup/recovery evidence,

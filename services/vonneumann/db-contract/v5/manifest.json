@@ -1110,7 +1110,7 @@
       "name": "require_relay_acceptance"
     }
   ],
-  "package_sha256": "b42228db587cba11f63528f4d29fe536d9c30ab195565781a2d6dacb2940d708",
+  "package_sha256": "738d95e37d56e2ef8e445bf4bd57414d0019dbb48f6d75e3e810580f6c15c183",
   "policies": [],
   "postconditions_sha256": "1f3d48d28cde8a5acdf44bf9fd64a425be4f011da23d11a04679073ce8090c6e",
   "production_application_available": false,
@@ -1129,7 +1129,7 @@
   "sources_sha256": {
     "001_fenced_commands.sql": "3312ccf8c28154cc35ef29aa36e66ef016b3e7e76c2a21a0e301b0b1ad30d4f2",
     "002_read_projections.sql": "7b50a45244455dcd3b076bfb60ac02a512d7e59a8c204d3932279ebad4446fe0",
-    "004_installer_boundary.sql": "d3be3f59ef64e95bf5c78aeaf29b484a7e09e2b9f3f76a99210fa9cdac890d12"
+    "004_installer_boundary.sql": "48c3800c272789c92b18f9080882c1671e90316f47381a719d09d9732adc19fa"
   },
   "tables": [
     "vn_durability.account_lineage",
