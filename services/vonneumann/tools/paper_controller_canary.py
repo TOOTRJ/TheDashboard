@@ -39,6 +39,10 @@ class MeasuredTransport:
         self.reply_dropped = False
         self.dropped_command_id = None
 
+    @property
+    def last_failure_phases(self):
+        return getattr(self.original, 'last_failure_phases', None)
+
     async def rpc(self, name, arguments):
         if name not in RPC_NAMES or self.calls >= 6000:
             raise ValueError('finite_rpc_budget')
@@ -180,7 +184,8 @@ async def assess(service):
         raise
     except Exception:
         report.update(phase='refused', code='original_operation_requires_inspection',
-                      service_phase=service._phase, revision=service.repository.revision)
+                      service_phase=service._phase, revision=service.repository.revision,
+                      last_transport_failure_phases=service.status(service.owner_id).get('last_transport_failure_phases'))
         if service.controller is not None:
             report.update(controller_closed_reason=service.controller.closed_reason,
                 owner_closed_reason=service.controller._owner.closed_reason,

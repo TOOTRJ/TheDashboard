@@ -183,3 +183,20 @@ schedules the next ten seconds after completion; it is never periodically aborte
 by an unrelated status poll. Explicit refresh, selection/session change and
 unmount still abort stale work. Verify the full final pilot history in the actual
 browser; offline timers are not hosted read-performance acceptance.
+
+Fresh PR70 managed rehearsal/issuance passes, then create_run refuses at0.502350s
+before any provider call. Independent original-scope readback proves zero run/
+command rows. A separate explicit ephemeral read-only command measures24 fresh
+Railway TLS/SCRAM/role/IPv6 connections:0.153557–0.251358s, with DNS0.000907–
+0.088311s. No application RPC/provider call is made. These small samples verify
+authentication and ordinary feasibility, not the earlier timeout's exact phase
+or statistical tails. The pair is revoked and original variables/closed startup
+restored; no failed start is silently retried.
+
+The selected paper profile gives connection setup1s inside the unchanged3s total
+RPC bound, retaining1.5s statement/.5s COMMIT/1s cleanup limits. The inert transport
+default remains .5s; no environment override expands authority or a deadline.
+Status and operator refusal retain only fixed connect/begin/role/execute/decode/
+commit/cleanup labels for each capability. No raw SQL/driver/credential text is
+published. Reconcile every original uncertain outcome before a fresh reviewed
+attempt; one-second connection allowance does not relax quote/source/lease guards.

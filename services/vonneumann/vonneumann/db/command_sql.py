@@ -124,6 +124,12 @@ class DashboardCommandSQLTransport:
         self._cleanup_failed=False
         self._cleanup=None
         self._io_tasks=set()
+        self._last_failure_phase=None
+
+    @property
+    def last_failure_phase(self):
+        """Fixed local phase only; no driver text, SQL arguments or credentials."""
+        return self._last_failure_phase
 
     def _bind_loop(self):
         loop=asyncio.get_running_loop()
@@ -186,6 +192,7 @@ class DashboardCommandSQLTransport:
         await ready
         connection=None
         directory=None
+        phase='connect'
         try:
             deadline=asyncio.get_running_loop().time()+self._bounds.operation_seconds
             async with asyncio.timeout(self._bounds.operation_seconds):
@@ -198,10 +205,14 @@ class DashboardCommandSQLTransport:
                 connection=await self._io(self._connect(ca_path,Path(directory.name)/'absent.crl'),self._bounds.connect_seconds)
                 if not connection.pgconn.ssl_in_use or connection.info.server_version//10000!=17:
                     raise CommandSQLError('connection_unverified')
+                phase='begin'
                 await self._io(connection.execute('BEGIN',prepare=False),self._bounds.statement_seconds)
+                phase='role'
                 await self._io(connection.execute('SET LOCAL ROLE vn_'+self._capability,prepare=False),self._bounds.statement_seconds)
+                phase='execute'
                 cursor=await self._io(connection.execute(query,params,prepare=False),self._bounds.statement_seconds)
                 row=await self._io(cursor.fetchone(),self._bounds.statement_seconds)
+                phase='decode'
                 if type(row) is not tuple or len(row)!=2:
                     raise CommandSQLError('invalid_response')
                 length,body=row
@@ -214,13 +225,16 @@ class DashboardCommandSQLTransport:
                     raise CommandSQLError('invalid_response')
                 if asyncio.get_running_loop().time()>=deadline:
                     raise CommandSQLError('operation_timed_out')
+                phase='commit'
                 await self._io(self._commit(connection),self._bounds.commit_seconds)
                 if asyncio.get_running_loop().time()>=deadline:
                     raise CommandSQLError('operation_timed_out')
                 return value
         except CommandSQLError:
+            self._last_failure_phase=phase
             raise
         except (Exception,asyncio.CancelledError):
+            self._last_failure_phase=phase
             raise CommandSQLError('operation_failed_or_uncertain') from None
         finally:
             # Cleanup outlives timeouts and caller cancellation. Retain its task
@@ -235,6 +249,7 @@ class DashboardCommandSQLTransport:
                 await asyncio.wait_for(asyncio.shield(self._cleanup),self._bounds.cleanup_seconds)
             except (Exception,asyncio.CancelledError):
                 self._cleanup_failed=True
+                self._last_failure_phase='cleanup'
                 raise CommandSQLError('cleanup_pending_or_failed') from None
 
     async def rpc(self,name:str,arguments:dict[str,Any])->Any:
@@ -283,6 +298,11 @@ class DashboardCommandSQLPair:
         self._relay=DashboardCommandSQLTransport(relay_login,relay_password,ca_pem,owner_id,run_id,'relay',bounds=bounds)
         self._closed=False
         self._close_task=None
+
+    @property
+    def last_failure_phases(self):
+        return {'economic':self._economic.last_failure_phase,
+                'relay':self._relay.last_failure_phase}
 
     async def rpc(self,name,arguments):
         if self._closed: raise CommandSQLError('closed_or_cleanup_pending')

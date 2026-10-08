@@ -71,6 +71,25 @@ class PaperServiceTests(OfflineTestMixin,unittest.IsolatedAsyncioTestCase):
    with self.assertRaisesRegex(RuntimeError,'explicit_private'):
     paper_app.configured_service(environment)
    pair.assert_not_called()
+ async def test_production_native_profile_has_fixed_connect_headroom_without_extending_rpc_deadline(self):
+  environment={'VN_SERVICE_MODE':'paper-v5','PYTHON_DOTENV_DISABLED':'1',
+    'VN_ENVIRONMENT':'production','SUPABASE_URL':'https://fxpxsciltakyypunglzr.supabase.co',
+    'VN_ALLOWED_ORIGINS':paper_app.ORIGIN,'SUPABASE_PUBLISHABLE_KEY':'sb_publishable_offline_only',
+    'VN_JUPITER_SOLE_CONSUMER':'1','VN_PAPER_INTERVAL_SECONDS':'5',
+    'VN_DATABASE_CA_PEM':'synthetic-no-network','VN_PAPER_OWNER_ID':USER_A,'VN_PAPER_RUN_ID':self.run,
+    'VN_ECONOMIC_LOGIN':'fake-economic','VN_ECONOMIC_PASSWORD':'fake-only',
+    'VN_RELAY_LOGIN':'fake-relay','VN_RELAY_PASSWORD':'fake-only',
+    'JUPITER_API_KEY':'fake-only','BIRDEYE_API_KEY':'fake-only','VN_SOLANA_RPC_URL':'https://offline.invalid',
+    'VN_PAPER_EPOCH_ID':str(uuid4()),'VN_PAPER_START_ID':self.start,'VN_PAPER_STOP_ID':self.stop,'VN_PAPER_MAX_TICKS':'30'}
+  with patch('vonneumann.db.command_sql.DashboardCommandSQLPair') as pair,patch('vonneumann.market.jupiter_feed.JupiterFeed'),patch.object(paper_app,'PaperService'):
+   paper_app.configured_service(environment)
+   bounds=pair.call_args.kwargs['bounds']
+   self.assertEqual((bounds.connect_seconds,bounds.operation_seconds,bounds.statement_seconds,bounds.commit_seconds,bounds.cleanup_seconds),(1.0,3.0,1.5,.5,1.0))
+ async def test_transport_diagnostics_are_fixed_phases_without_private_driver_content(self):
+  self.transport.last_failure_phases={'economic':'connect','relay':'https://private.invalid/password'}
+  status=self.service.status(USER_A)
+  self.assertEqual(status['last_transport_failure_phases'],{'economic':'connect','relay':None})
+  self.assertNotIn('private.invalid',json.dumps(status))
  async def test_http_auth_owner_origin_and_body_shape(self):
   async def user():return VerifiedUser(USER_A,int(time.time())+300)
   app=paper_app.create_app(self.service,verify=user)
