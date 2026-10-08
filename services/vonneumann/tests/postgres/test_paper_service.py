@@ -91,3 +91,28 @@ class PaperFlowSqlTests(unittest.IsolatedAsyncioTestCase):
   self.assertEqual(sum(n=='create_run' for n,_ in self.transport.calls),2)
   count=self.db.sql("SELECT count(*) FROM vn_durability.commands WHERE run_id='"+self.run+"' AND kind='create';",role=fixture.ADMIN).stdout.strip()
   self.assertEqual(count,'1')
+
+ async def test_lost_bootstrap_reply_reconciles_original_and_completes_without_recommit(self):
+  self.transport.drop='commit_command';self.service.start(self.ids['owner'],self.start);await self.wait()
+  self.assertEqual(self.service._phase,'pending')
+  original=self.service.repository.pending.command_id
+  self.service.settle(self.ids['owner'],self.start);await self.wait()
+  self.assertEqual(self.service._phase,'stopped')
+  calls=[args['command_id'] for name,args in self.transport.calls if name=='commit_command']
+  self.assertEqual(calls.count(original),1)
+  self.assertTrue(any(name=='get_command' and args['command_id']==original for name,args in self.transport.calls))
+  self.assertEqual(sum(name=='create_run' for name,_ in self.transport.calls),1)
+
+ async def test_committed_bootstrap_survives_six_second_publication_then_uses_fresh_quote(self):
+  original=self.transport.accept_event; held=False
+  async def delayed(arguments):
+   nonlocal held
+   result=await original(arguments)
+   if not held:
+    held=True;await asyncio.sleep(6)
+   return result
+  self.transport.accept_event=delayed
+  self.service.start(self.ids['owner'],self.start);await self.wait()
+  self.assertEqual(self.service._phase,'stopped',self.service.status(self.ids['owner']))
+  self.assertGreaterEqual(self.feed.api_call_count,1)
+  self.assertEqual(self.service.controller._owner.installed_state.to_dict()['status'],'stopped')

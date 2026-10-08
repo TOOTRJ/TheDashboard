@@ -1,0 +1,98 @@
+{
+  "version": 1,
+  "source": "816f3006ba0930ebb531ce1a567984033aab293c",
+  "assessment_deployment": "394e3780-c769-4c59-a3ca-d346df9c4b5b",
+  "measurement": {
+    "source_age_seconds": null,
+    "service_phase": "drained",
+    "phase": "refused",
+    "code": "original_operation_requires_inspection",
+    "api_calls": {
+      "jupiter": 0,
+      "birdeye": 1,
+      "rpc": 0
+    },
+    "sql_counts": {
+      "accept_event": 9,
+      "acknowledge_event": 9,
+      "commit_command": 1,
+      "create_run": 1,
+      "heartbeat": 1,
+      "read_outbox": 1
+    },
+    "mode": "closed-api-finite-paper",
+    "finite_measurement": true,
+    "automatic_retry": false,
+    "paper_controller_canary": 1,
+    "quota_observations": [],
+    "maximum_loop_lag_seconds": 1.054915,
+    "elapsed_seconds": 8.390702,
+    "process_cpu_seconds": 0.7,
+    "sql_seconds": {
+      "accept_event": {
+        "count": 9,
+        "minimum": 0.240691,
+        "median": 0.247022,
+        "maximum": 0.263967,
+        "tail_acceptance": false
+      },
+      "acknowledge_event": {
+        "count": 9,
+        "minimum": 0.243925,
+        "median": 0.247632,
+        "maximum": 0.253273,
+        "tail_acceptance": false
+      },
+      "commit_command": {
+        "count": 1,
+        "minimum": 0.655003,
+        "median": 0.655003,
+        "maximum": 0.655003,
+        "tail_acceptance": false
+      },
+      "create_run": {
+        "count": 1,
+        "minimum": 0.417918,
+        "median": 0.417918,
+        "maximum": 0.417918,
+        "tail_acceptance": false
+      },
+      "heartbeat": {
+        "count": 1,
+        "minimum": 0.343535,
+        "median": 0.343535,
+        "maximum": 0.343535,
+        "tail_acceptance": false
+      },
+      "read_outbox": {
+        "count": 1,
+        "minimum": 0.246502,
+        "median": 0.246502,
+        "maximum": 0.246502,
+        "tail_acceptance": false
+      }
+    },
+    "revision": 2,
+    "process_peak_rss_bytes": 99815424,
+    "wallet_operations": false,
+    "statistical_tail_acceptance": false,
+    "sql_errors": {}
+  },
+  "restored_closed_deployment": "00f46f23-77f6-49ef-9518-63a0546f18ad",
+  "temporary_runtime_values_removed": 16,
+  "original_runtime_variables_restored": true,
+  "database_admission": {
+    "state": "open",
+    "epoch": 1,
+    "release_sha256": "6b9fceb02278ef9ca978743c43dd2d0dd2cacb49b310689c016fe58d65861fb1"
+  },
+  "target": {
+    "supabase": "fxpxsciltakyypunglzr",
+    "railway_project": "38facb49-4de9-4d66-85aa-2861e0306dcf",
+    "railway_service": "8e78ad4b-1d8f-43e7-898a-3882ac5053d7",
+    "railway_environment": "9bbe52c6-2305-467a-bf39-8d5e1a98e4e4",
+    "region": "us-west2"
+  },
+  "accepted_paper_mvp": false,
+  "next": "Repair consumed bootstrap-history guard, then original-run expiry and lost-reply assessment"
+}

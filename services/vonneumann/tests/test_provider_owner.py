@@ -272,7 +272,7 @@ class ProviderOwnerTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.transport.count('commit_command'), 2)
         self.assert_closed()
 
-    async def test_seed_receipt_expiry_during_outbox_delivery_does_not_erase_bootstrap(self):
+    async def test_committed_seed_receipt_is_consumed_before_slow_outbox_delivery(self):
         await self.ready()
         await self.owner.bootstrap(raw_minutes(), **self.allocation(0))
         candidate = self.owner.pending_candidate
@@ -287,6 +287,22 @@ class ProviderOwnerTests(unittest.IsolatedAsyncioTestCase):
         self.assertIs(self.owner.installed_state, candidate.state)
         self.assertEqual(len(self.transport.acknowledged), 9)
         self.assertIsNone(self.owner.pending_candidate)
+        self.assertTrue(self.owner.accepting)
+        self.assertIsNone(self.owner._history)
+        self.age(1)
+        ticket = self.ticket()
+        await self.owner.protect(ticket, **self.allocation())
+        self.assertEqual(self.owner.installed_state.revision, 3)
+
+    async def test_seed_receipt_expiring_before_ack_still_closes_admission(self):
+        await self.ready()
+        gate = self.gate('commit_command')
+        task = self.spawn(self.owner.bootstrap(raw_minutes(), **self.allocation(0)))
+        await self.entered(gate); candidate = self.owner.pending_candidate
+        self.age(5); gate.release.set(); await task
+        self.assertIs(self.owner.installed_state, candidate.state)
+        await self.owner.publish_pending(self.sink)
+        self.assertEqual(len(self.transport.acknowledged), 9)
         self.assert_closed()
 
     async def test_invalid_seed_never_dispatches_economics(self):

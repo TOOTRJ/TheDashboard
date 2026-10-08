@@ -1,9 +1,22 @@
 # Evolutionary trading bot MVP readiness
 
-Reviewed 2026-10-07 against the current implementation and [TODO.md](TODO.md).
+Reviewed 2026-10-08 against the current implementation and [TODO.md](TODO.md).
 This distinguishes tested components, deployed application behavior, and the
 integration work still required. Completing engine tests is not a hosted bot
 release or evidence of a profitable strategy.
+
+Latest hosted checkpoint2026-10-08: PR66 is merged, exact production is READY
+and four read-only checks pass. The release transition is rehearsed, then
+committed open at epoch1 with unchanged installed contract. The first controller
+assessment commits bootstrap/eight accounts/nine events, but drains before
+prices because warmup-history freshness was incorrectly retained through slow
+event publication. Ordinary closed startup and original variables are restored.
+The follow-up consumes only acknowledged, installed history; price and pre-ACK
+freshness remain enforced. Explicit original lost-reply and existing-run expiry/
+new-worker denial drills precede the next assessment. No active paper MVP has
+been accepted yet. [Measurements](supabase/audits/2026-10-08-controller-assessment.json),
+[ordered activation/rollback](PAPER-MVP-ACTIVATION.md). Earlier closed-epoch0
+checkpoints below describe the preceding state and do not override this update.
 
 ## Current position
 
