@@ -3455,3 +3455,24 @@ The small follow-up labels that count as last observed and tests the distinction
 No new Start/Stop/archive, provider operation, worker redeployment or database
 mutation is used for browser acceptance. Final follow-up deployment/owner
 verification is retained in its PR release evidence.
+
+## 88. Original Stop uncertainty recovery — 2026-10-08
+
+The retained-intent review adds a necessary recovery case: a lost Stop reply or
+an acknowledged Stop latch can leave the original native command pending. The
+service's settlement endpoint intentionally uses its reserved Start ID for that
+command, even while Stop is latched. The UI now keeps the original Stop intent,
+permits only its original-ID Stop retry, and permits settlement with the reserved
+Start ID after verifying the same owner/run/start/stop binding and nonbusy
+pending/drained status. Deployment turnover blocks both paths; Stop recovery
+never auto-selects a different history run. A Stop acknowledgment must show its
+latch; no fresh request ID or restart is generated.42 focused cases, TypeScript,
+scoped lint and diff checks pass. This is a UI-only recovery repair; the server,
+SQL package, credentials, Railway closed state and wallet authorization are
+unchanged. Final exact-source release evidence is retained in the PR.
+
+PR82 head795ed713102e75eac5d42655b67eb0ff1fca4927 preview
+ dpl_Edpd4aDW5deAf5htkTyxknsReoq9 is READY. Merge
+ ccdead1835792f565105c437b1c1f2f1031e7de0 production
+ dpl_H7sU1XYQjwTicnstazCyhLaz7q9b is READY; read-only smokes are checked before
+this next release. The original migration edit remains at the recorded SHA256.

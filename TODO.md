@@ -597,6 +597,11 @@ Research began **2026-09-30** and was updated **2026-10-06/07** in [WORKER-HOSTI
   remain unverified with disabled controls. Forty focused tests pass. PR81 is
   merged with exact READY production/four smokes and actual-owner complete
   revision514 acceptance. No worker activation. [UI acceptance](supabase/audits/2026-10-08-paper-assessment-ui-acceptance.json).
+  The final control follow-up passes42 focused cases: an uncertain Stop can
+  retry only its original Stop ID or settle the worker's original pending
+  command using its reserved Start ID; both require unchanged owner/run/control
+  binding. Stop recovery preserves deliberate history browsing and remains
+  blocked after deployment turnover. No worker or live execution is activated.
 
 - [x] **PAPER-UI-QUANTITY1 — Accept the selected ledger's exact trade quantities.**
   PR79 accepts18 decimal places without conversion or rounding, retaining amount

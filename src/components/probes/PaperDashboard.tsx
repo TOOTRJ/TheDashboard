@@ -107,7 +107,7 @@ export function PaperDashboardSession({ owner, token, apiOverride, legacyReader 
     if (!api || !controls || operation.current || archive.current || !sameTarget
       || !verified.current || verified.current.run !== controls.run || verified.current.start !== controls.start
       || verified.current.stop !== controls.stop) return;
-    if (action === 'settle' && (status?.busy === true || !['pending', 'drained'].includes(String(status?.phase)) || intent.current?.action === 'stop')) return;
+    if (action === 'settle' && (status?.busy === true || !['pending', 'drained'].includes(String(status?.phase)))) return;
     if (intent.current && action !== 'settle' && action !== intent.current.action) return;
     const original = intent.current ?? { action, ...controls, browse: browse.current };
     intent.current = original;
@@ -120,9 +120,10 @@ export function PaperDashboardSession({ owner, token, apiOverride, legacyReader 
       if (!originalCredentials.active) return;
       if (!verified.current || verified.current.run !== original.run || verified.current.start !== original.start
         || verified.current.stop !== original.stop || result.request_id !== original.start) throw Error();
+      if (action === 'stop' && result.stop_requested !== true) throw Error();
       controlEpoch.current += 1;
       setStatus(result);
-      if (action !== 'stop' && browse.current === original.browse) setFollow({ run: original.run, browse: original.browse });
+      if (original.action !== 'stop' && browse.current === original.browse) setFollow({ run: original.run, browse: original.browse });
       if (['pending', 'drained'].includes(String(result.phase))) setPending(original.action);
       else { intent.current = null; setPending(null); }
       setRefresh(n => n + 1);
@@ -165,8 +166,8 @@ export function PaperDashboardSession({ owner, token, apiOverride, legacyReader 
       {status?.requires_reconciliation === true && <p role="status">The worker requires reconciliation. Committed history may precede the failure; a new worker cannot resume this run.</p>}
       <div className="flex flex-wrap gap-3">
         <button className="rounded border px-3 py-2 disabled:opacity-50" disabled={!controls || !sameTarget || !!operation.current || (pending !== null && pending !== 'start') || status?.phase !== 'fresh'} onClick={() => void command('start')}>Start configured pilot</button>
-        <button className="rounded border px-3 py-2 disabled:opacity-50" disabled={!controls || !!pending} onClick={() => void command('stop')}>Stop and retain holdings</button>
-        <button className="rounded border px-3 py-2 disabled:opacity-50" disabled={!controls || !sameTarget || !!operation.current || !['pending', 'drained'].includes(String(status?.phase)) || status?.busy === true || (pending !== null && pending !== 'start' && pending !== 'settle')} onClick={() => void command('settle')}>Settle original operation</button>
+        <button className="rounded border px-3 py-2 disabled:opacity-50" disabled={!controls || !sameTarget || !!operation.current || (pending !== null && pending !== 'stop')} onClick={() => void command('stop')}>Stop and retain holdings</button>
+        <button className="rounded border px-3 py-2 disabled:opacity-50" disabled={!controls || !sameTarget || !!operation.current || !['pending', 'drained'].includes(String(status?.phase)) || status?.busy === true || pending === 'archive'} onClick={() => void command('settle')}>Settle original operation</button>
         <button className="rounded border px-3 py-2" onClick={() => setRefresh(n => n + 1)}>Refresh status and history</button>
       </div>
       <p className="text-sm">Stopping preserves positions and cash. A restart requires reconciliation; automatic resume is unavailable.</p>
