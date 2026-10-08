@@ -277,3 +277,17 @@ allowlisted capture refusal codes must be reviewed/released and used for deliber
 diagnosis before another hour attempt. Keep original evidence; do not retry a
 failed run or widen freshness/lease/expiry guards.
 [Recorded outcome](supabase/audits/2026-10-08-owner-pilot-local-admission-failure.json).
+
+
+Latest receipt diagnosis: PR73's deliberate real-owner attempt reports the fixed
+receipt-clock refusal before accepting a quote. Original native interruption,
+terminal revision3/fence2, unchanged holdings/delivery, closed restoration and
+pair revocation are verified. A timer waking early is not evidence that the UTC
+receipt boundary passed. The bounded repair waits again for the same receipt
+inside its original acquisition deadline, with a finite wake budget and all
+shutdown/source/lease guards retained. Both ordinary startup and controller
+assessment explicitly use uvloop; require `loop_implementation: uvloop` in the
+new hosted assessment evidence. Release and repeat that assessment before the
+separately scoped real-owner hour. Do not reuse a diagnostic run/pair/start ID
+or claim short assessment success closes HOST-07. Deep timing/source/quota and
+continuous-window research remains separate.

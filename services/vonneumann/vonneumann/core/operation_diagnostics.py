@@ -36,6 +36,7 @@ ADMISSION_CODES = {
     'controller_price_acquisition_expired': 'price_acquisition_expired',
     'controller_receipt_clock_did_not_advance': 'receipt_clock_not_advanced',
     'controller_original_receipt_not_admitted': 'original_receipt_not_admitted',
+    'controller_receipt_wait_budget': 'receipt_wait_budget',
 }
 
 
