@@ -23,6 +23,7 @@ from psycopg.pq import TransactionStatus
 
 from .command_http import _arguments, _decode, MAX_RESPONSE_BYTES, CommandHTTPError
 from .command_protocol import canonical_json, canonical_uuid
+from .sql_diagnostics import SERVER_CODES, LOCAL_CODES
 
 HOST='db.fxpxsciltakyypunglzr.supabase.co'
 ECONOMIC=frozenset({'create_run','heartbeat','commit_command','get_command','interrupt_expired'})
@@ -53,6 +54,34 @@ class CommandSQLBounds:
         if any(type(v) not in (int,float) or not math.isfinite(v) or not 0<v<=15 for v in values) or \
            max(self.connect_seconds,self.statement_seconds,self.commit_seconds)>self.operation_seconds:
             raise CommandSQLError('invalid_bounds')
+
+
+def paper_sql_bounds():
+    """Measured paper-only headroom; general transport defaults stay unchanged."""
+    return CommandSQLBounds(operation_seconds=5.0, connect_seconds=1.0,
+                            statement_seconds=3.0, commit_seconds=.5)
+
+
+
+def _failure(phase,error,*,operation_expired=False):
+    """Never retain exception text, SQL arguments or arbitrary SQLSTATE values."""
+    category,code,state='unexpected_exception','unexpected_exception',None
+    if isinstance(error,psycopg.Error):
+        candidate=error.sqlstate
+        if type(candidate) is str and candidate in SERVER_CODES:
+            state=candidate; category='server_error'; code=SERVER_CODES[state]
+            if state=='57014':
+                message=error.diag.message_primary
+                if type(message) is str and message == 'canceling statement due to statement timeout':
+                    code='statement_timeout'
+    elif isinstance(error,CommandSQLError):
+        category='transport_refused'
+        code=error.code if type(error.code) is str and error.code in LOCAL_CODES else 'transport_refused'
+    elif isinstance(error,TimeoutError):
+        category=code='operation_timeout' if operation_expired else 'phase_timeout'
+    elif isinstance(error,asyncio.CancelledError):
+        category=code='operation_cancelled'
+    return {'phase':phase,'category':category,'sqlstate':state,'code':code}
 
 
 def _ambient_guard():
@@ -125,11 +154,22 @@ class DashboardCommandSQLTransport:
         self._cleanup=None
         self._io_tasks=set()
         self._last_failure_phase=None
+        self._first_failure=None
 
     @property
     def last_failure_phase(self):
         """Fixed local phase only; no driver text, SQL arguments or credentials."""
         return self._last_failure_phase
+
+    @property
+    def first_failure(self):
+        """Original fixed failure survives subsequent readback and cleanup."""
+        return None if self._first_failure is None else dict(self._first_failure)
+
+    def _record_failure(self,phase,error,*,operation_expired=False):
+        self._last_failure_phase=phase
+        if self._first_failure is None:
+            self._first_failure=_failure(phase,error,operation_expired=operation_expired)
 
     def _bind_loop(self):
         loop=asyncio.get_running_loop()
@@ -230,11 +270,11 @@ class DashboardCommandSQLTransport:
                 if asyncio.get_running_loop().time()>=deadline:
                     raise CommandSQLError('operation_timed_out')
                 return value
-        except CommandSQLError:
-            self._last_failure_phase=phase
+        except CommandSQLError as error:
+            self._record_failure(phase,error)
             raise
-        except (Exception,asyncio.CancelledError):
-            self._last_failure_phase=phase
+        except (Exception,asyncio.CancelledError) as error:
+            self._record_failure(phase,error,operation_expired=asyncio.get_running_loop().time()>=deadline)
             raise CommandSQLError('operation_failed_or_uncertain') from None
         finally:
             # Cleanup outlives timeouts and caller cancellation. Retain its task
@@ -247,9 +287,9 @@ class DashboardCommandSQLTransport:
             self._cleanup.add_done_callback(lambda t: None if t.cancelled() else t.exception())
             try:
                 await asyncio.wait_for(asyncio.shield(self._cleanup),self._bounds.cleanup_seconds)
-            except (Exception,asyncio.CancelledError):
+            except (Exception,asyncio.CancelledError) as error:
                 self._cleanup_failed=True
-                self._last_failure_phase='cleanup'
+                self._record_failure('cleanup',error)
                 raise CommandSQLError('cleanup_pending_or_failed') from None
 
     async def rpc(self,name:str,arguments:dict[str,Any])->Any:
@@ -303,6 +343,11 @@ class DashboardCommandSQLPair:
     def last_failure_phases(self):
         return {'economic':self._economic.last_failure_phase,
                 'relay':self._relay.last_failure_phase}
+
+    @property
+    def first_failures(self):
+        return {'economic':self._economic.first_failure,
+                'relay':self._relay.first_failure}
 
     async def rpc(self,name,arguments):
         if self._closed: raise CommandSQLError('closed_or_cleanup_pending')

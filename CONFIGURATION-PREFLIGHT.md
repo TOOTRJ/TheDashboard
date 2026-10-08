@@ -3152,3 +3152,70 @@ SHA256 remains `a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc
 and is excluded from this change. The repaired hosted matching-loop assessment
 and real one-hour/first-replacement/history acceptance remain next; HOST-07 stays
 open. [Sanitized evidence](supabase/audits/2026-10-08-receipt-timer-diagnosis.json).
+
+
+## 82. Matching-loop acceptance and identified SQL statement timeout — 2026-10-08
+
+**Latest checkpoint — 2026-10-08:** PR74 is merged as
+`87d8d3c07f2cdfc61968510a37831dd0c7cda080`. Exact Vercel production
+`dpl_AXnRKgZss6UYaYUQbQm9nCfbexzd` is READY with four smokes. The same-loop
+uvloop assessment now passes thirty prices, original lost-reply reconciliation,
+relay and reserved stop at revision34. Complete owner reads and anonymous/
+other-owner denials pass; its ordinary closed restoration and pair revocation
+are verified. [Matching-loop evidence](supabase/audits/2026-10-08-matching-loop-controller-assessment.json).
+
+The real owner's fresh hour attempt reaches90 accepted prices and revision94,
+then an original economic `commit_command` is cancelled. The exact project's
+Postgres log identifies SQLSTATE57014 / statement_timeout for that original
+native principal at17:24:28.556UTC. This establishes a database statement-limit
+failure; the receipt timer repair held. One original settlement retains pending
+identity; expired provider evidence prevents later installation. The original
+native interruption applies once at revision95/fence2 with unchanged checkpoint,
+accounts, reserve and positions. Nine original candidate events remain ACKed;
+no candidate event or ACK is invented. Ordinary closed deployment
+`19a11184-e299-4265-abac-0409b5a34902` is SUCCESS;16 temporary values are
+removed, exact original variables are restored, and the pair is revoked/NOLOGIN.
+The owner's browser displays terminal revision95 and disabled controls.
+[SQL failure and recovery evidence](supabase/audits/2026-10-08-owner-pilot-sql-timeout.json).
+
+Paper-only SQL headroom is prepared: statement/lock3s, whole operation5s,
+connect1s, COMMIT0.5s and cleanup1s. General transport defaults stay unchanged.
+First native failures retain allowlisted phase/category/SQLSTATE/code without
+private driver text and survive readback/cleanup.150 focused tests pass under
+uvloop;11 actual offline Linux TLS/SCRAM tests prove the former1.5s limit
+refuses a2s lock wait, the new profile commits the original once, and over-budget
+waits roll back with original-ID retention. No freshness/lease/expiry guard,
+transaction retry, automatic resume or schema/grant change. Release and another
+matching-loop assessment precede the real hour/first-replacement acceptance.
+HOST-07 and continuous/live gates remain open.
+
+The original pilot's thirteen60s service/deployment-scoped samples show memory
+0.082139136–0.082825216GB. CPU_USAGE and network measurements are retained by
+API enum; CPU_USAGE_2 returned no samples, not zero usage. These short samples
+do not establish a24/7 invoice or the approved$20 monthly ceiling. No account
+billing or shared provider settings change.
+
+The native profile sets timeouts only on its own fresh connections. PostgreSQL
+defines statement timeout from server command receipt to completion, including
+lock waits; its whole-transaction timeout is independently retained.
+[PostgreSQL17 timeout documentation](https://www.postgresql.org/docs/17/runtime-config-client.html).
+Native diagnosis reads documented SQLSTATE and diagnostic fields in memory, then
+retains only fixed allowlisted labels; raw messages/SQL/parameters/paths are never
+published. [Psycopg error diagnostics](https://www.psycopg.org/psycopg3/docs/api/errors.html).
+An unknown SQLSTATE/code gets a fixed fallback; returned copies cannot mutate the
+original evidence. The measured canary forwards that same evidence.
+
+Validation:36 initial focused cases on default asyncio; final150 cases under
+uvloop in29.007s;11 real offline Linux native cases in9.566s (outer owned
+container harness14.730s). The native driver is psycopg3.3.6/binary/libpq180006
+against PostgreSQL17. The new SQL headroom changes no installed catalog/body
+or migration. The unrelated user migration stays excluded, SHA256
+`a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc`.
+
+Release order: exact-target PR preview/main production verification → matching
+uvloop assessment → actual owner hour/first replacement/reserved stop → complete
+owner history/replay and isolation → ordinary closed restoration and same-pair
+revocation. Roll back by closing the exact worker, resolving/interruption of only
+the original operation before expiry, restoring original variables and revoking
+the same finite pair. A statement timeout is not permission to resubmit, adopt or
+resume an old run. No signer, wallet funding or live trade is authorized.

@@ -24,7 +24,7 @@ from vonneumann.core.provider_lifecycle import ProviderLifecycleConfig
 from vonneumann.core.provider_controller import CommandAllocation, ProviderPilotController
 from vonneumann.db.command_protocol import PreparedCommand
 from vonneumann.db.command_repository import CommandRepository, UncertainCommand, CommandAdmissionError
-from vonneumann.db.command_sql import DashboardCommandSQLPair, DashboardCommandSQLTransport, CommandSQLBounds, CommandSQLError, HOST
+from vonneumann.db.command_sql import DashboardCommandSQLPair, DashboardCommandSQLTransport, CommandSQLBounds, CommandSQLError, HOST, paper_sql_bounds
 from vonneumann.db.provider_pilot_owner import ProviderPilotOwner
 from vonneumann.db.relay_acceptance import DurableRelayPublisher
 from vonneumann.market.jupiter_feed import JupiterFeed
@@ -224,6 +224,28 @@ class ActualNativeSQLTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.repository.pending.command_id,command.command_id)
         with self.assertRaises(CommandAdmissionError): await self.repository.submit(self.create())
 
+    async def test_legacy_paper_limit_refuses_the_same_two_second_real_lock_wait(self):
+        await self.pair.aclose()
+        self.pair=self.make_pair(bounds=CommandSQLBounds(connect_seconds=1.0))
+        self.repository=CommandRepository(self.pair,self.owner_id,self.run_id,self.worker_id)
+        blocker=await self.admin_connect()
+        command=self.create()
+        release=None
+        async def release_lock():
+            await asyncio.sleep(2)
+            await blocker.execute('ROLLBACK')
+        try:
+            await blocker.execute('BEGIN')
+            await blocker.execute('LOCK TABLE vn_durability.runs IN ACCESS EXCLUSIVE MODE')
+            release=asyncio.create_task(release_lock())
+            with self.assertRaises(UncertainCommand): await self.repository.submit(command)
+        finally:
+            if release is not None: await release
+            await blocker.close()
+        self.assertEqual(await self.journal_count(),0)
+        self.assertEqual(self.repository.pending.command_id,command.command_id)
+        self.assertEqual(self.pair.first_failures['economic']['phase'],'execute')
+
     async def test_precommit_failure_rolls_back_actual_sql_without_acknowledgment(self):
         reached=[]
         async def before_commit(connection):
@@ -237,6 +259,63 @@ class ActualNativeSQLTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(await self.journal_count(),0)
         self.assertEqual(await self.scalar('SELECT count(*) FROM vn_durability.runs WHERE id=%s::uuid',(self.run_id,)),0)
         self.assertEqual(self.repository.pending.command_id,command.command_id)
+
+    async def test_paper_profile_commits_original_once_after_two_second_real_lock_wait(self):
+        await self.pair.aclose()
+        self.pair=self.make_pair(bounds=paper_sql_bounds())
+        self.repository=CommandRepository(self.pair,self.owner_id,self.run_id,self.worker_id)
+        blocker=await self.admin_connect()
+        command=self.create()
+        connects=0
+        original_connect=self.pair._economic._connect
+        async def connect(*args):
+            nonlocal connects
+            connects+=1
+            return await original_connect(*args)
+        async def release_lock():
+            await asyncio.sleep(2)
+            await blocker.execute('ROLLBACK')
+        release=None
+        try:
+            await blocker.execute('BEGIN')
+            await blocker.execute('LOCK TABLE vn_durability.runs IN ACCESS EXCLUSIVE MODE')
+            release=asyncio.create_task(release_lock())
+            started=time.monotonic()
+            with patch.object(self.pair._economic,'_connect',connect):
+                receipt=await self.repository.submit(command)
+            elapsed=time.monotonic()-started
+            self.assertGreater(elapsed,1.5)
+            self.assertLess(elapsed,5)
+            self.assertEqual(receipt.command.command_id,command.command_id)
+            self.assertEqual(connects,1)
+            self.assertEqual(await self.journal_count(),1)
+            self.assertIsNone(self.repository.pending)
+            self.assertIsNone(self.pair.first_failures['economic'])
+        finally:
+            if release is not None: await release
+            await blocker.close()
+
+    async def test_paper_profile_still_rolls_back_over_budget_lock_and_retains_original(self):
+        await self.pair.aclose()
+        self.pair=self.make_pair(bounds=paper_sql_bounds())
+        self.repository=CommandRepository(self.pair,self.owner_id,self.run_id,self.worker_id)
+        blocker=await self.admin_connect()
+        command=self.create()
+        try:
+            await blocker.execute('BEGIN')
+            await blocker.execute('LOCK TABLE vn_durability.runs IN ACCESS EXCLUSIVE MODE')
+            started=time.monotonic()
+            with self.assertRaises(UncertainCommand): await self.repository.submit(command)
+            self.assertLess(time.monotonic()-started,5)
+        finally: await blocker.close()
+        self.assertEqual(await self.journal_count(),0)
+        original=self.pair.first_failures['economic']
+        self.assertEqual(original['phase'],'execute')
+        self.assertIn(original['code'],('phase_timeout','statement_timeout','query_cancelled','lock_unavailable'))
+        with self.assertRaises(UncertainCommand): await self.repository.resolve_pending()
+        self.assertEqual(self.pair.first_failures['economic'],original)
+        self.assertEqual(self.repository.pending.command_id,command.command_id)
+        with self.assertRaises(CommandAdmissionError): await self.repository.submit(self.create())
 
     async def test_real_commit_reply_timeout_recovers_original_durable_command(self):
         await self.pair.aclose()

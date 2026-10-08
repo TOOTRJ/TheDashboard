@@ -1,0 +1,171 @@
+{
+  "version": 1,
+  "date": "2026-10-08",
+  "source_sha": "87d8d3c07f2cdfc61968510a37831dd0c7cda080",
+  "pilot_deployment": "b239fe5c-408d-43e1-8594-d426fef442c6",
+  "browser_start_attempts": 1,
+  "browser_settle_attempts": 1,
+  "accepted_prices": 90,
+  "generation": 0,
+  "committed_before_revision": 94,
+  "server_evidence": {
+    "logs_available": true,
+    "project": "fxpxsciltakyypunglzr",
+    "time_window": "17:23\u201317:26 UTC",
+    "original_economic_principal_only": true,
+    "events": [
+      {
+        "timestamp": "2026-10-08T17:24:28.556000",
+        "sqlstate": "57014",
+        "severity": "ERROR",
+        "fixed_code": "statement_timeout",
+        "command_rpc": 1
+      }
+    ],
+    "raw_details_included": false
+  },
+  "worker_pending_status": {
+    "version": 1,
+    "phase": "pending",
+    "busy": false,
+    "stop_requested": false,
+    "revision": 94,
+    "requires_reconciliation": true,
+    "last_transport_failure_phases": {
+      "economic": "execute",
+      "relay": null
+    },
+    "last_controller_failure": null,
+    "last_operation_failure": null,
+    "admission": {
+      "controller_reason": "provider_evidence_expired_or_invalid",
+      "owner_reason": "provider_evidence_expired_or_invalid",
+      "pending_stage": "protect_settle"
+    },
+    "report": {
+      "status": "pending",
+      "ticks_completed": 90,
+      "stop_requested": false,
+      "idle_renewals": 0,
+      "last_tick": {
+        "kind": "tick",
+        "status": "complete",
+        "revision": 94,
+        "quote_sequence": 90,
+        "decision_committed": false,
+        "elapsed_seconds": 3.211524859070778,
+        "phase_seconds": [
+          [
+            "lease_renewal",
+            0.5301419124007225
+          ],
+          [
+            "owner_submission",
+            2.1168895103037357
+          ],
+          [
+            "price_acquisition",
+            0.5607875809073448
+          ]
+        ]
+      }
+    },
+    "profile": {
+      "genes": [
+        "ema_fast",
+        "ema_slow"
+      ],
+      "population": 8,
+      "asset": "SOL/USD",
+      "interval_seconds": 5,
+      "max_ticks": 732,
+      "max_replacements": 1,
+      "evaluation_seconds": 3600,
+      "completion_grace_seconds": 60,
+      "cost_assumptions": "uncalibrated_scenario",
+      "restoration": false
+    },
+    "hosted_acceptance_required": true
+  },
+  "interruption": {
+    "deployment": "12590ab6-3a17-44f0-be6e-90d1cfbdfeef",
+    "original_operation_applied_once": true,
+    "before": {
+      "revision": 94,
+      "status": "running",
+      "fence": 1,
+      "reserve": "200"
+    },
+    "after": {
+      "revision": 95,
+      "status": "failed",
+      "fence": 2,
+      "reserve": "200"
+    },
+    "checkpoint_accounts_positions_reserve_preserved": true,
+    "candidate_events": 9,
+    "acked_candidate_events": 9,
+    "new_candidate_events": 0,
+    "new_acks": 0,
+    "provider_calls": 0,
+    "wallet_operations": false
+  },
+  "metrics": {
+    "version": 1,
+    "source": "87d8d3c07f2cdfc61968510a37831dd0c7cda080",
+    "deployment": "b239fe5c-408d-43e1-8594-d426fef442c6",
+    "start_utc": "2026-10-08T17:12:01.365503+00:00",
+    "end_utc": "2026-10-08T17:24:33.839716+00:00",
+    "sample_seconds": 60,
+    "averaging_seconds": 60,
+    "metrics": [
+      {
+        "measurement": "CPU_USAGE",
+        "region": "us-west2",
+        "samples": 13,
+        "minimum": 0.031024,
+        "median": 0.057668800000000006,
+        "maximum": 0.07354041666666668
+      },
+      {
+        "measurement": "MEMORY_USAGE_GB",
+        "region": "us-west2",
+        "samples": 13,
+        "minimum": 0.082139136,
+        "median": 0.082567168,
+        "maximum": 0.082825216
+      },
+      {
+        "measurement": "NETWORK_TX_GB",
+        "region": "us-west2",
+        "samples": 13,
+        "minimum": 0.000526318,
+        "median": 0.000905161,
+        "maximum": 0.001282525
+      }
+    ],
+    "scope": "exact Dashboard project/environment/service/deployment",
+    "account_usage_or_billing_modified": false,
+    "units": "API measurement enum; CPU variants retained without inferring units"
+  },
+  "closed_restoration": {
+    "deployment": "19a11184-e299-4265-abac-0409b5a34902",
+    "status": "SUCCESS",
+    "original_variables_restored": true,
+    "temporary_values_removed": 16,
+    "pair_revoked_verified": true
+  },
+  "owner_browser": {
+    "revision": 95,
+    "status": "failed",
+    "worker": "unverified_closed",
+    "controls_disabled": true,
+    "accounts": 8,
+    "cash_per_account": "100",
+    "reserve": "200",
+    "open_positions": 0
+  },
+  "hour_acceptance": false,
+  "automatic_retry": false,
+  "raw_credentials_queries_driver_details_included": false
+}

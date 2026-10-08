@@ -15,6 +15,7 @@ from ..core.operation_diagnostics import failure_labels
 from ..core.provider_runner import ProviderPilotRunner
 from ..core.provider_pilot import ProviderPilotLimits
 from ..db.command_protocol import PreparedCommand, canonical_uuid
+from ..db.sql_diagnostics import safe_sql_failure
 from ..db.command_repository import CommandRepository, UncertainCommand
 from ..db.provider_pilot_owner import ProviderPilotOwner
 from ..db.relay_acceptance import DurableRelayPublisher
@@ -72,12 +73,16 @@ class PaperService:
         transport_phases = None if type(native_phases) is not dict else {
             key: native_phases.get(key) if native_phases.get(key) in allowed_phases else None
             for key in ('economic', 'relay')}
+        native_failures = getattr(self._economic, 'first_failures', None)
+        transport_failures = None if type(native_failures) is not dict else {
+            key: safe_sql_failure(native_failures.get(key)) for key in ('economic', 'relay')}
         return {'version': 1, 'owner_id': self.owner_id, 'run_id': self.run_id,
             'request_id': self.start_id, 'phase': self._phase,
             'busy': self._task is not None and not self._task.done(),
             'stop_requested': self._stop_requested, 'revision': self.repository.revision,
             'requires_reconciliation': self._phase in ('pending', 'failed', 'drained'),
             'last_transport_failure_phases': transport_phases,
+            'first_transport_failures': transport_failures,
             'last_controller_failure': None if self.controller is None else self.controller.last_failure,
             'last_operation_failure': None if self._last_operation_failure is None else self._last_operation_failure.to_dict(),
             'admission': None if self.controller is None else {

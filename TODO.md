@@ -1,6 +1,39 @@
 # Dashboard audit and implementation backlog
 
-**Current immediate work — 2026-10-08:** [PR72](https://github.com/TOOTRJ/TheDashboard/pull/72) is merged as
+**Latest checkpoint — 2026-10-08:** PR74 is merged as
+`87d8d3c07f2cdfc61968510a37831dd0c7cda080`. Exact Vercel production
+`dpl_AXnRKgZss6UYaYUQbQm9nCfbexzd` is READY with four smokes. The same-loop
+uvloop assessment now passes thirty prices, original lost-reply reconciliation,
+relay and reserved stop at revision34. Complete owner reads and anonymous/
+other-owner denials pass; its ordinary closed restoration and pair revocation
+are verified. [Matching-loop evidence](supabase/audits/2026-10-08-matching-loop-controller-assessment.json).
+
+The real owner's fresh hour attempt reaches90 accepted prices and revision94,
+then an original economic `commit_command` is cancelled. The exact project's
+Postgres log identifies SQLSTATE57014 / statement_timeout for that original
+native principal at17:24:28.556UTC. This establishes a database statement-limit
+failure; the receipt timer repair held. One original settlement retains pending
+identity; expired provider evidence prevents later installation. The original
+native interruption applies once at revision95/fence2 with unchanged checkpoint,
+accounts, reserve and positions. Nine original candidate events remain ACKed;
+no candidate event or ACK is invented. Ordinary closed deployment
+`19a11184-e299-4265-abac-0409b5a34902` is SUCCESS;16 temporary values are
+removed, exact original variables are restored, and the pair is revoked/NOLOGIN.
+The owner's browser displays terminal revision95 and disabled controls.
+[SQL failure and recovery evidence](supabase/audits/2026-10-08-owner-pilot-sql-timeout.json).
+
+Paper-only SQL headroom is prepared: statement/lock3s, whole operation5s,
+connect1s, COMMIT0.5s and cleanup1s. General transport defaults stay unchanged.
+First native failures retain allowlisted phase/category/SQLSTATE/code without
+private driver text and survive readback/cleanup.150 focused tests pass under
+uvloop;11 actual offline Linux TLS/SCRAM tests prove the former1.5s limit
+refuses a2s lock wait, the new profile commits the original once, and over-budget
+waits roll back with original-ID retention. No freshness/lease/expiry guard,
+transaction retry, automatic resume or schema/grant change. Release and another
+matching-loop assessment precede the real hour/first-replacement acceptance.
+HOST-07 and continuous/live gates remain open.
+
+**Earlier checkpoint before PR74 — 2026-10-08:** [PR72](https://github.com/TOOTRJ/TheDashboard/pull/72) is merged as
 `15339871732b144ddfd2b1499ff7bd687de61703`; exact Vercel production is READY
 with four smokes. Dedicated Dashboard authentication is restored. The original
 expired cash-only run is reconciled once after an actual managed rollback and
@@ -72,10 +105,10 @@ needs a file-backed sign-in before further release. [Fresh hosted evidence](supa
 
 **Next priorities, in order:**
 
-1. Release the bounded same-receipt timer repair and rerun the thirty-price
-   assessment on the ordinary worker’s uvloop runtime. Retain original IDs,
-   source/receipt/lease/deadline guards and reconciliation evidence; no automatic
-   retry, restart or widened admission.
+1. Release the paper-only SQL headroom and fixed original SQL error evidence,
+   then rerun the thirty-price assessment on uvloop. Preserve original IDs,
+   source/receipt/lease/deadline guards and reconciliation; no automatic retry
+   or restart. PR74 matching-loop timer assessment is complete.
 2. Accept the actual intended-owner supervised hour, first replacement and
    reserved stop. The thirty-price lost-reply assessment is a prerequisite only.
 3. Verify final complete browser history/replay and anonymous/other-owner isolation,
@@ -86,6 +119,8 @@ needs a file-backed sign-in before further release. [Fresh hosted evidence](supa
 5. Deep research: source-age/repeated-block/omission distributions, timing/quota/
    billing tails, retained-position outage exposure and restoration, representative
    holdouts and calibrated fills; complete LIVE-01…07 before any real trading.
+
+- [x] **PAPER-SQL-HEADROOM1 — Prepare measured paper SQL bounds and private-safe first failure evidence.** Exact-project Postgres logs identify57014/statement_timeout after90 prices. Original interruption, preserved economics/delivery, closed restoration, credential removal/revocation and terminal owner browser pass. Paper-only statements3s/whole5s/connect1s/COMMIT0.5s/cleanup1s are prepared; general defaults and freshness/lease/expiry remain.150 uvloop cases and11 actual offline native cases pass, including old/new2s-lock comparison, over-budget rollback, original readback, no duplicate submission and immutable sanitized evidence. Release and hosted acceptance remain the immediate first priority. **Deep substantial research:** SQL/role/catalog/lock/COMMIT/cleanup tail distributions under larger journals, source-age interaction, incremental checkpoint/projection costs, and data retention/compaction before continuous evolution.
 
 - [x] **PAPER-RECEIPT-TIMER1 — Diagnose and prepare the early timer repair.** The actual owner diagnostic identifies the fixed receipt-clock code before any accepted quote. Original interruption/closed restoration/revocation and terminal browser revision3 pass. A deterministic real-controller case fails before repair. The bounded repair retains the original receipt/deadline and actual-clock admission, with eight wakeups and shutdown/expiry checks. Ordinary worker and assessment explicitly use uvloop.130 focused cases pass under each loop and six actual PostgreSQL cases pass. Hosted matching-loop assessment and hour acceptance remain unchecked above. Deep research remains required on receipt/source/loop/SQL timing distributions and supported long-duration profiles.
 
