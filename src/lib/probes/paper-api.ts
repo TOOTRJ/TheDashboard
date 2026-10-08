@@ -124,9 +124,10 @@ async function projectionSnapshot(api: PaperAPI, owner: string, run: string, sig
 export function tradeDetails(value: unknown) {
   const row = record(value), entry = record(row.entry);
   const exit = row.exit === null ? null : record(row.exit);
+  // The v5 ledger retains 18-place quantities; keep the exact string for display.
   if (row.account_currency !== 'USD' || typeof row.closed !== 'boolean' || row.closed !== (exit !== null)
     || typeof row.asset !== 'string' || typeof row.quantity !== 'string'
-    || !/^(0|[1-9]\d{0,12})(\.\d{1,12})?$/.test(row.quantity)) return refuse();
+    || !/^(0|[1-9]\d{0,12})(\.\d{1,18})?$/.test(row.quantity)) return refuse();
   return { id: identity(row.id), account: identity(row.account_id), asset: row.asset, quantity: row.quantity,
     closed: row.closed, opened: String(row.opened_at), closedAt: row.closed_at === null ? null : String(row.closed_at),
     entryPrice: displayUSD(entry.fill_price, 6), entryNotional: displayUSD(entry.notional), entryFee: displayUSD(entry.fee, 6),

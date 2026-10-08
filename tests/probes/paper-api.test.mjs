@@ -66,6 +66,26 @@ test('trade display keeps exact fees and does not invent open-position P&L',()=>
  assert.equal(closed.netPnl,'-4.06');assert.throws(()=>m.tradeDetails({...value,closed:true}));
  assert.throws(()=>m.tradeDetails({...value,entry:{...value.entry,fee:0.15}}));
 });
+test('complete snapshots accept exact 18-place ledger trade quantities without rounding them',async()=>{
+ const fixture=JSON.parse(fs.readFileSync('tests/probes/fixtures/exact-paper-trade.json','utf8'));
+ const m=module();
+ const api={read:async(name,args)=>{
+  assert.equal(name,'page');
+  const records=args.kind==='runs'?[{revision:3,key:run,command_id:command,
+   data:{id:run,account_currency:'USD',durability_version:5,initial_cash:'1000',reserve:'200',reference_equity:'1000'}}]
+   :args.kind==='trades'?[fixture.open,fixture.closed].map((data,index)=>({revision:index+2,
+    key:`${command}:0000`,command_id:command,data})):[];
+  return {version:1,owner_id:owner,run_id:run,kind:args.kind,through_revision:3,records,
+   has_more:false,next_cursor:records.length?{revision:records.at(-1).revision,key:records.at(-1).key}:null};
+ }};
+ const snapshot=await m.runSnapshot(api,owner,run,new AbortController().signal);
+ assert.equal(snapshot.revision,3);assert.equal(snapshot.trades.length,2);
+ const open=m.tradeDetails(snapshot.trades[0].data),closed=m.tradeDetails(snapshot.trades[1].data);
+ assert.equal(open.quantity,'0.202511138112596192');assert.equal(closed.quantity,open.quantity);
+ assert.equal(open.netPnl,null);assert.equal(closed.netPnl,'0.11');
+ for(const quantity of ['0.2025111381125961921','2e-1',0.2,'-0.2','01.2'])
+  assert.throws(()=>m.tradeDetails({...fixture.open,quantity}));
+});
 test('completed evaluation scores decode tagged research floats; aborted scores stay unavailable',()=>{
  const m=module();const cohort={iteration_id:'run:0',phase:'completed',member_ids:[owner],evaluations:[{
   probe_id:owner,iteration_id:'run:0',status:'completed',reason:'deadline',num_trades:2,fitness:{float64:'0x1.8000000000000p+0'}}]};
