@@ -1,0 +1,56 @@
+{
+  "date": "2026-10-07",
+  "target": {
+    "supabase_name": "The Dashboard",
+    "supabase_ref": "fxpxsciltakyypunglzr",
+    "supabase_org": "cqfnnaunmupdyobkyqfo",
+    "railway_project": "38facb49-4de9-4d66-85aa-2861e0306dcf",
+    "railway_service": "8e78ad4b-1d8f-43e7-898a-3882ac5053d7",
+    "railway_environment": "9bbe52c6-2305-467a-bf39-8d5e1a98e4e4",
+    "vercel_project": "prj_wFUe9k9USVreOQcmQKNWRAVsx5fH",
+    "github_repository_id": 1141090963
+  },
+  "source_sha": "254fed49b90583bca411938d71c588ed93fba306",
+  "canary_deployment": "da3c9776-95b9-4769-a9d8-562680bc0216",
+  "ordinary_closed_deployment": "9b6d169a-1298-4ba5-bbbb-a89483ce0b8a",
+  "proofs": [
+    {
+      "dashboard_native_canary": 1,
+      "phase": "waiting_for_original_pair_revocation",
+      "tls_verified": true,
+      "scram_verified": true,
+      "channel_binding_required": true,
+      "ipv6": true,
+      "owner_run_capability_denials": true,
+      "admission_closed": true,
+      "economic_writes": false,
+      "default_bound_samples_seconds": [
+        [
+          0.271458,
+          0.230695,
+          0.237343
+        ],
+        [
+          0.232128,
+          0.236309,
+          0.232543
+        ]
+      ]
+    },
+    {
+      "dashboard_native_canary": 1,
+      "phase": "passed",
+      "admission_closed": true,
+      "held_session_revocation": true,
+      "fresh_login_denied": true,
+      "paper_run_created": false
+    }
+  ],
+  "pair_revoked": true,
+  "runtime_canary_credentials_removed": true,
+  "temporary_adapter_removed": true,
+  "admission": "closed",
+  "paper_run_created": false,
+  "host05a_foreign_origin_no_store": true,
+  "evidence_limit": "Six read-only default-bound samples prove feasibility, not p95/p99 tails, provider timing, relay or lease/pilot acceptance."
+}

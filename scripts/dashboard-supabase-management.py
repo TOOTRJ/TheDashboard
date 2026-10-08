@@ -19,7 +19,8 @@ REF = 'fxpxsciltakyypunglzr'
 ORG = 'cqfnnaunmupdyobkyqfo'
 NAME = 'The Dashboard'
 BASE = 'https://api.supabase.com/v1/projects/' + REF
-ALLOWED = frozenset({'', '/database/query'})
+ALLOWED = {'': frozenset({'GET'}), '/database/query': frozenset({'POST'}),
+           '/postgrest': frozenset({'GET', 'PATCH'}), '/api-keys?reveal=true': frozenset({'GET'})}
 
 
 class Refused(RuntimeError):
@@ -57,13 +58,14 @@ class Management:
         self._credential = credential()
         self._verified = False
 
-    def _request(self, path, body=None):
-        if path not in ALLOWED or (path and not self._verified):
+    def _request(self, path, body=None, *, method=None):
+        method = method or ('GET' if body is None else 'POST')
+        if path not in ALLOWED or method not in ALLOWED[path] or (path and not self._verified):
             raise Refused('Unverified or unauthorized Supabase project path')
         data = None if body is None else json.dumps(body).encode('utf-8')
         request = urllib.request.Request(BASE + path, data=data, headers={
             'Authorization': 'Bearer ' + self._credential, 'Content-Type': 'application/json',
-            'User-Agent': 'TheDashboard-Operator/1.0'}, method='GET' if body is None else 'POST')
+            'User-Agent': 'TheDashboard-Operator/1.0'}, method=method)
         try:
             opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), NoRedirect())
             with opener.open(request, timeout=20) as response:
@@ -89,3 +91,17 @@ class Management:
         if type(source) is not str or not source or len(source.encode()) > 65536 or type(parameters) not in (tuple, list):
             raise Refused('Bounded query required')
         return self._request('/database/query', {'query': source, 'parameters': list(parameters), 'read_only': read_only})
+
+    def postgrest(self):
+        return self._request('/postgrest')
+
+    def expose_reads(self, expected):
+        if (expected.get('db_schema') != 'public,graphql_public' or self.postgrest() != expected):
+            raise Refused('Exact reviewed Data API configuration changed')
+        return self._request('/postgrest', {'db_schema': 'public,graphql_public,vn_read'}, method='PATCH')
+
+    def retire_read_exposure(self, expected):
+        if (expected.get('db_schema') != 'public,graphql_public' or
+            self.postgrest() != {**expected, 'db_schema': 'public,graphql_public,vn_read'}):
+            raise Refused('Exact current Data API configuration changed; review before rollback')
+        return self._request('/postgrest', {'db_schema': expected['db_schema']}, method='PATCH')
