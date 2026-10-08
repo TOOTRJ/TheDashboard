@@ -98,9 +98,11 @@ general historical range endpoint. [Detailed review and feature decisions](servi
 
 The signed-in portal confirms the user's Developer upgrade and identifies a
 fresh Dashboard Price V3 request under the existing configured key. Actual
-headers still report `current=1`, `remaining=9` and roughly ten seconds to reset,
-rather than establishing the documented Developer sixty-second capacity. No
-firewall rule matched that request. Keep this discrepancy open in DATA-01E;
+headers on the first request report `current=1`, `remaining=9` and roughly ten
+seconds to reset. Subsequent hosted requests report `current=2`, `remaining=98`.
+This shows higher observed headroom, without establishing the documented
+Developer sixty-second window/shared capacity. No firewall rule matched the
+inspected local request. Keep this discrepancy open in DATA-01E;
 do not infer quota from the badge, assume a reset replenishes a full window,
 or change account-wide settings used by another project.
 

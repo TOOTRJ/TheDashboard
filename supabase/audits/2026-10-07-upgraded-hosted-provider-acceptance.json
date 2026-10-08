@@ -1,0 +1,170 @@
+{
+  "source": "02c0e2d54b8d3d0d85848b1bc1f264899d26719d",
+  "deployment": "1697fedb-a752-49e8-ad19-dd454fe2fc89",
+  "target": {
+    "project": "38facb49-4de9-4d66-85aa-2861e0306dcf",
+    "service": "8e78ad4b-1d8f-43e7-898a-3882ac5053d7",
+    "environment": "9bbe52c6-2305-467a-bf39-8d5e1a98e4e4",
+    "region": "us-west2"
+  },
+  "measurement": {
+    "process_cpu_seconds": 0.25,
+    "provider_read_canary": 1,
+    "api_calls": {
+      "jupiter": 12,
+      "birdeye": 1,
+      "rpc": 13
+    },
+    "maximum_loop_lag_seconds": 0.228707,
+    "price_seconds": {
+      "count": 12,
+      "minimum": 0.11306,
+      "median": 0.116141,
+      "maximum": 0.1951,
+      "tail_acceptance": false
+    },
+    "tail_or_shared_account_budget_acceptance": false,
+    "process_peak_rss_bytes": 75558912,
+    "elapsed_seconds": 57.654938,
+    "quota_observations": [
+      {
+        "current": 1,
+        "remaining": 9,
+        "reset": 1791436318
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791436318
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791436323
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791436328
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791436333
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791436338
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791436343
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791436348
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791436354
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791436359
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791436364
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791436369
+      }
+    ],
+    "economic_writes": false,
+    "mode": "closed",
+    "receipt_processing_seconds": {
+      "count": 12,
+      "minimum": 0.07519,
+      "median": 0.07721,
+      "maximum": 0.125034,
+      "tail_acceptance": false
+    },
+    "history": {
+      "minutes": 915,
+      "bars": 61,
+      "elapsed_seconds": 1.138719,
+      "raw_bytes": 229131,
+      "raw_sha256": "fc6e408955343a74553b20b789d71359662ff149068c096cc1b7648af83dc3eb",
+      "null_multiplier": true
+    },
+    "phase": "passed",
+    "quota_policy": {
+      "sample_limit": 12,
+      "minimum_spacing_seconds": 5,
+      "next_request_count": 1,
+      "remaining_reserve": 2,
+      "maximum_observation_age_seconds": 10,
+      "reset_means_one_slot_not_full_window": true,
+      "account_budget_accepted": false
+    },
+    "source_age_seconds": {
+      "count": 12,
+      "minimum": 3.225096,
+      "median": 3.719044,
+      "maximum": 5.486115,
+      "tail_acceptance": false
+    },
+    "wallet_operations": false
+  },
+  "acceptance_scope": "finite read-only provider feasibility; not active lease/SQL/relay or tail/shared-account acceptance",
+  "restoration": {
+    "deployment": "9f606944-1bfd-4b2c-87bc-0855bee00117",
+    "status": "SUCCESS",
+    "source": "02c0e2d54b8d3d0d85848b1bc1f264899d26719d",
+    "start_command": "/app/start-worker.sh",
+    "mode": "closed",
+    "region": "us-west2",
+    "replicas": 1,
+    "provider_values_removed": 3,
+    "all_original_variables_equal": true,
+    "native_admin_operator_credentials_present": false,
+    "smokes": [
+      {
+        "path": "/health",
+        "status": 200,
+        "approved_origin": true,
+        "cache_control": "no-store"
+      },
+      {
+        "path": "/v5/status",
+        "status": 401,
+        "approved_origin": true,
+        "cache_control": "no-store"
+      },
+      {
+        "path": "/health",
+        "status": 403,
+        "approved_origin": false,
+        "cache_control": "no-store"
+      }
+    ]
+  },
+  "no_retry": true,
+  "review_date": "2026-10-07",
+  "fresh_targets_verified": true,
+  "source_export": {
+    "source_sha": "02c0e2d54b8d3d0d85848b1bc1f264899d26719d",
+    "files": 96,
+    "bytes": 1196340,
+    "manifest_sha256": "2f0d0dcfbe1749e91ff316ba534f0b556e2a7a8d1dfa82c0b8494d545e5efe67",
+    "credentials_included": false
+  }
+}
