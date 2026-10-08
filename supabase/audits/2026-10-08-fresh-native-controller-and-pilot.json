@@ -1,0 +1,235 @@
+{
+  "version": 1,
+  "date": "2026-10-08",
+  "source_sha": "a353649d1e6aba4ad0b2e3827e0bb5fdeacbd92f",
+  "assessment": {
+    "deployment_id": "bd5adf77-b001-4f44-8b48-6ff1fc2a3c9f",
+    "result": {
+      "phase": "passed",
+      "final_revision": 34,
+      "accepted_quotes": 30,
+      "generation": 0,
+      "final_status": "stopped",
+      "ticks_completed": 30,
+      "idle_renewals": 0,
+      "owned_commands": 34,
+      "accounts": 8,
+      "positions": 0,
+      "open_positions": 0,
+      "operation_seconds": {
+        "count": 32,
+        "minimum": 1.651242,
+        "median": 2.006698,
+        "maximum": 8.477546,
+        "tail_acceptance": false
+      },
+      "phase_seconds": {
+        "history_acquisition": {
+          "count": 1,
+          "minimum": 1.139456,
+          "median": 1.139456,
+          "maximum": 1.139456,
+          "tail_acceptance": false
+        },
+        "lease_renewal": {
+          "count": 32,
+          "minimum": 0.275477,
+          "median": 0.290272,
+          "maximum": 0.573678,
+          "tail_acceptance": false
+        },
+        "owner_submission": {
+          "count": 32,
+          "minimum": 0.925899,
+          "median": 1.073069,
+          "maximum": 2.142797,
+          "tail_acceptance": false
+        },
+        "price_acquisition": {
+          "count": 30,
+          "minimum": 0.336077,
+          "median": 0.623462,
+          "maximum": 1.013867,
+          "tail_acceptance": false
+        },
+        "publication": {
+          "count": 2,
+          "minimum": 1.216563,
+          "median": 1.216563,
+          "maximum": 4.753128,
+          "tail_acceptance": false
+        },
+        "reconciliation": {
+          "count": 1,
+          "minimum": 0.608955,
+          "median": 0.608955,
+          "maximum": 0.608955,
+          "tail_acceptance": false
+        }
+      },
+      "elapsed_seconds": 217.869222,
+      "sql_seconds": {
+        "accept_event": {
+          "count": 11,
+          "minimum": 0.240086,
+          "median": 0.247526,
+          "maximum": 0.258442,
+          "tail_acceptance": false
+        },
+        "acknowledge_event": {
+          "count": 11,
+          "minimum": 0.235352,
+          "median": 0.242525,
+          "maximum": 0.257751,
+          "tail_acceptance": false
+        },
+        "commit_command": {
+          "count": 33,
+          "minimum": 0.536026,
+          "median": 0.610558,
+          "maximum": 0.827048,
+          "tail_acceptance": false
+        },
+        "create_run": {
+          "count": 1,
+          "minimum": 0.399946,
+          "median": 0.399946,
+          "maximum": 0.399946,
+          "tail_acceptance": false
+        },
+        "get_command": {
+          "count": 1,
+          "minimum": 0.348413,
+          "median": 0.348413,
+          "maximum": 0.348413,
+          "tail_acceptance": false
+        },
+        "heartbeat": {
+          "count": 33,
+          "minimum": 0.274843,
+          "median": 0.288205,
+          "maximum": 0.321052,
+          "tail_acceptance": false
+        },
+        "read_outbox": {
+          "count": 2,
+          "minimum": 0.241301,
+          "median": 0.241301,
+          "maximum": 0.286223,
+          "tail_acceptance": false
+        }
+      },
+      "sql_counts": {
+        "accept_event": 11,
+        "acknowledge_event": 11,
+        "commit_command": 33,
+        "create_run": 1,
+        "get_command": 1,
+        "heartbeat": 33,
+        "read_outbox": 2
+      },
+      "sql_errors": {
+        "commit_command": 1
+      },
+      "source_age_seconds": {
+        "count": 30,
+        "minimum": 2.389561,
+        "median": 4.419736,
+        "maximum": 7.711426,
+        "tail_acceptance": false
+      },
+      "api_calls": {
+        "jupiter": 30,
+        "birdeye": 1,
+        "rpc": 31
+      },
+      "process_peak_rss_bytes": 100950016,
+      "process_cpu_seconds": 8.06,
+      "maximum_loop_lag_seconds": 0.951243,
+      "finite_measurement": true,
+      "statistical_tail_acceptance": false,
+      "lost_reply_injected": true,
+      "original_command_settled": true
+    },
+    "owner_reads": "34 run versions,264 probe versions,240 samples,11 contiguous relay events; other-owner/anonymous denied"
+  },
+  "intended_owner_pilot": {
+    "deployment_id": "b00e8cf9-22e0-4651-92e5-f509ed786338",
+    "start": "one browser click as TheRedJester with original configured IDs",
+    "last_committed_revision": 5,
+    "accepted_quotes": 2,
+    "generation": 0,
+    "accounts": 8,
+    "positions": 0,
+    "events": 9,
+    "relay_events": 9,
+    "unacknowledged_events": 0,
+    "failure_status": {
+      "phase": "failed",
+      "busy": false,
+      "revision": 5,
+      "requires_reconciliation": true,
+      "last_transport_failure_phases": {
+        "economic": null,
+        "relay": null
+      },
+      "admission": {
+        "controller_reason": "controller_operation_failed",
+        "owner_reason": "draining",
+        "pending_stage": null
+      },
+      "report": null,
+      "profile": {
+        "genes": [
+          "ema_fast",
+          "ema_slow"
+        ],
+        "population": 8,
+        "asset": "SOL/USD",
+        "interval_seconds": 5,
+        "max_ticks": 732,
+        "max_replacements": 1,
+        "evaluation_seconds": 3600,
+        "completion_grace_seconds": 60,
+        "cost_assumptions": "uncalibrated_scenario",
+        "restoration": false
+      }
+    },
+    "root_cause": "not retained beyond controller_operation_failed; native phases both null; no provider-specific cause asserted",
+    "expired_interruption": "original command independently absent; write expiry correctly denies late interruption",
+    "maintenance_reconciliation": "prepared; isolated rollback/guard tests pass; not applied"
+  },
+  "closed_restoration": {
+    "deployment_id": "25f88091-979d-485d-bb29-7ffc7c1fb49c",
+    "status": "SUCCESS",
+    "source_sha": "a353649d1e6aba4ad0b2e3827e0bb5fdeacbd92f",
+    "original_runtime_variables_restored": true,
+    "temporary_runtime_values_removed": 16,
+    "original_pair_state": "revoked_verified",
+    "original_oids_and_deadlines_verified": true
+  },
+  "limits": {
+    "host_07_complete": false,
+    "first_replacement_verified": false,
+    "statistical_tail_acceptance": false,
+    "profitability_evidence": false,
+    "live_wallet_operations": false,
+    "other_projects_modified": false,
+    "further_release": "dedicated Dashboard Vercel file-backed login required"
+  },
+  "local_preparation": {
+    "released": false,
+    "managed_maintenance_applied": false,
+    "worker_tests": {
+      "count": 125,
+      "passed": true,
+      "seconds": 28.79
+    },
+    "isolated_postgres_tests": {
+      "count": 6,
+      "passed": true
+    },
+    "terminal_contract": "interrupt journals failed/reconciliation-required owner projection with unavailable reference equity; candidate outbox/relay progress unchanged; no candidate event or ACK fabricated",
+    "closed_browser_readback": "controls disabled, owner history remains readable at original committed revision5/running; terminal maintenance still pending"
+  }
+}

@@ -16,6 +16,7 @@ import time
 
 from .decision_inputs import DecisionInputs
 from .provider_acquisition import ACQUISITION_TIMEOUT_SECONDS, ProviderPriceAcquisition
+from .operation_diagnostics import failure_labels
 from ..db.command_protocol import bounded_integer, canonical_uuid
 from ..db.command_repository import CommandBusy, UncertainCommand
 from ..db.provider_pilot_owner import ProviderPilotOwner, PilotAdmissionRefused
@@ -93,6 +94,14 @@ class ProviderPilotController:
         self._draining = False
         self._closed_reason = None
         self._last_report = None
+        self._last_failure = None
+
+    @property
+    def last_failure(self):
+        if self._last_failure is None:
+            return None
+        return {**self._last_failure.to_dict(),
+                'acquisition': self._acquisition.last_failure}
 
     @property
     def busy(self):
@@ -416,7 +425,9 @@ class ProviderPilotController:
             self.close_admission()
             self._report('drained', finish=True)
             raise
-        except (Exception, asyncio.CancelledError):
+        except (Exception, asyncio.CancelledError) as error:
+            if self._last_failure is None:
+                self._last_failure = failure_labels(work.stage, error)
             self._fail('controller_operation_failed')
             if (self._owner.pending_candidate is None and not self._owner.busy
                     and not self._acquisition.busy):

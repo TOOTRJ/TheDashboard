@@ -332,6 +332,42 @@ class ProviderAcquisitionTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises((CommandAdmissionError, ProviderSourceError)):
             await self.acquisition.capture_quote()
         self.assert_closed()
+        self.assertEqual(self.acquisition.last_failure['stage'], 'invalid_capture')
+
+    async def test_provider_failure_retains_fixed_code_without_message_or_repeat(self):
+        from vonneumann.market.feed import MarketFeedError
+        await self.ready(MarketFeedError('price_stale'))
+        count = self.transport.count('commit_command')
+        with self.assertRaises(CommandAdmissionError):
+            await self.acquisition.capture_quote()
+        expected = {'stage': 'provider_capture', 'category': 'market_feed_error',
+                    'provider_code': 'price_stale'}
+        self.assertEqual(self.acquisition.last_failure, expected)
+        self.assert_closed()
+        with self.assertRaises(CommandAdmissionError):
+            await self.acquisition.capture_quote()
+        self.assertEqual(self.acquisition.last_failure, expected)
+        self.assertEqual(len(self.feed.calls), 1)
+        self.assertEqual(self.transport.count('commit_command'), count)
+        self.acquisition.last_failure['provider_code'] = 'changed'
+        self.assertEqual(self.acquisition.last_failure, expected)
+
+    async def test_untrusted_error_code_and_text_cannot_enter_failure_labels(self):
+        from vonneumann.market.feed import MarketFeedError
+        await self.ready(MarketFeedError('https://private.invalid/?key=must-not-leak'))
+        with self.assertRaises(CommandAdmissionError):
+            await self.acquisition.capture_quote()
+        self.assertEqual(self.acquisition.last_failure, {
+            'stage': 'provider_capture', 'category': 'market_feed_error',
+            'provider_code': 'unclassified_provider_error'})
+        self.assertNotIn('private.invalid', str(self.acquisition.last_failure))
+
+    async def test_owner_quote_validation_retains_its_admission_stage(self):
+        await self.ready(self.response(raw_capture(mint='JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN')))
+        with self.assertRaises((CommandAdmissionError, ProviderSourceError)):
+            await self.acquisition.capture_quote()
+        self.assertEqual(self.acquisition.last_failure['stage'], 'quote_admission')
+        self.assertEqual(self.acquisition.last_failure['category'], 'operational_admission_failed')
 
     async def test_non_dict_provider_result_is_rejected_without_iterating_it(self):
         consumed = []

@@ -2954,3 +2954,61 @@ integration wrapper. The new hosted assessment remains separate acceptance.
 Further substantial research: connection/DNS/CPU startup contention,
 larger tail samples, owned persistent sessions/pooler identity and checkpoint/
 history retention before uninterrupted paper operation.
+
+## 78. Fresh native acceptance, intended-owner failure and closed cleanup (2026-10-08)
+
+PR71 merges as `a353649d1e6aba4ad0b2e3827e0bb5fdeacbd92f`; exact Vercel
+`dpl_EhC5VBhKMGaadjzCJ73E4VcVvUqb` is READY with source/repository/author/project/
+team/alias and four smokes verified. The full worker regression ran1,740 cases
+with246 expected opt-in skips. The new finite assessment
+`bd5adf77-b001-4f44-8b48-6ff1fc2a3c9f` passes30 prices/34 commands/revision34/
+stopped/generation0, with8 accounts, no positions and11 relay events/ACKs.
+Original dropped bootstrap reply settles once. Elapsed217.869s, peak process
+RSS100,950,016 bytes, CPU8.06s and maximum observed loop lag0.951243s. Quote
+source ages2.389561–7.711426s; these are finite samples, not outage percentiles.
+Owner reads return34 run versions/264 probe versions/240 samples and11 unique
+contiguous events. Other-owner and anonymous reads/controls are denied. Short
+window results remain unscored and require reconciliation. Its pair is revoked
+and the worker restored before separately issuing the intended-owner pair.
+
+Ordinary paper-v5 deployment `b00e8cf9-22e0-4651-92e5-f509ed786338` matches all97
+immutable exported files and the merged source, one US West replica and the
+0.25CPU/500MB limits. TheRedJester starts the original configured request once
+through the dashboard. Run d30cd168 reaches revision5/two accepted prices with
+8 cash accounts/no positions,9 fully relayed events, then process status fails.
+The retained status has `controller_operation_failed`, no pending stage and
+both native transport phases null. Precise provider/admission origin was lost;
+do not assert stale data, same-block conflict or a SQL timeout as its cause.
+
+The diagnostic UI call was delayed past the original two-hour write expiry.
+An explicit original interruption attempt is denied at SQL execute; independent
+readback proves its command absent and revision5 unchanged. The installed
+require_actor permits get_command until recovery_until, while interruption and
+relay calls retain expires_at. No deadline/binding was extended to bypass this.
+Ordinary closed restoration `25f88091-979d-485d-bb29-7ffc7c1fb49c` is SUCCESS;
+exact original variables match and16 pilot additions are removed. Original
+names/OIDs/deadlines reconcile revoked/NOLOGIN. Full installed catalog remains
+unchanged; other projects, shared credentials and the user's dirty migration
+are preserved. [Sanitized evidence](supabase/audits/2026-10-08-fresh-native-controller-and-pilot.json).
+
+Prepared repair: retain fixed acquisition/controller/service stage and category,
+allowlist provider codes, keep the first failure through cleanup, and expose
+only copied safe labels through authenticated status/finite refusal. No raw
+error, response, SQL, URL or credential is serialized; unknown codes are fixed.
+125 focused worker/controller/runner/service/canary cases pass. Prepared
+maintenance uses the canonical terminal journal/projection helper after
+exact release, revoked/quiescent actor, original hash/revision/fence, expired
+cash-only/eight-account checks. Isolated SQL proves actual rollback, once-only
+commit, unchanged economics/checkpoint, scope/NULL/lease/credential denial and
+late rollback. Six isolated cases also prove open-position denial, terminal owner
+projection with unavailable equity, and unchanged candidate outbox/relay rows.
+Interrupts create no candidate event; no event or ACK is fabricated. Managed rehearsal/apply
+requires the reviewed source and original intent; HOST-07 stays open.
+
+Dedicated Vercel CLI verification now times out; its exact profile has no auth.json.
+No shared credential was read/copied and no Vercel change was attempted. A new
+file-backed dedicated-profile sign-in is requested. Railway/Supabase-only safety
+cleanup used fresh exact provider identity checks independently. Further
+substantial research remains necessary on provider/freshness failures, late
+operator recovery and terminal status/replay, remote tails and retained-position
+outages before unattended operation or live execution.

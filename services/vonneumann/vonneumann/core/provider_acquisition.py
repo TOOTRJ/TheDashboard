@@ -15,6 +15,7 @@ from ..db.provider_pilot_owner import ProviderPilotOwner, PilotAdmissionRefused
 from ..db.rehearsal_owner import OperationalAdmissionError
 from ..market.jupiter_feed import PriceCapture
 from ..market.provider_contract import ProviderDeferred, clock_us
+from .operation_diagnostics import failure_labels
 
 ACQUISITION_TIMEOUT_SECONDS = 5
 
@@ -38,6 +39,12 @@ class ProviderPriceAcquisition:
         self._loop: asyncio.AbstractEventLoop | None = None
         self._waiter = False
         self._closed = False
+        self._last_failure = None
+        self._stage = 'acquisition_start'
+
+    @property
+    def last_failure(self):
+        return None if self._last_failure is None else self._last_failure.to_dict()
 
     @property
     def busy(self):
@@ -74,7 +81,9 @@ class ProviderPriceAcquisition:
         elif self._loop is not loop:
             raise OperationalAdmissionError('provider acquisition belongs to another event loop')
 
-    def _fail(self):
+    def _fail(self, error=None, stage=None):
+        if self._last_failure is None:
+            self._last_failure = failure_labels(self._stage if stage is None else stage, error)
         self._closed = True
         self._owner.close_admission()
         raise OperationalAdmissionError('provider_acquisition_failed') from None
@@ -83,19 +92,21 @@ class ProviderPriceAcquisition:
         # A dependency may suppress cancellation. Also check loop time after
         # synchronous parsing: a timeout callback cannot preempt CPU work.
         if deadline.expired() or asyncio.get_running_loop().time() >= deadline.when():
-            self._fail()
+            self._fail(TimeoutError(), 'acquisition_deadline')
 
     async def _acquire(self):
         try:
             async with asyncio.timeout(ACQUISITION_TIMEOUT_SECONDS) as deadline:
                 if self._capture is None:
+                    self._stage = 'provider_capture'
                     captures = await self._feed.get_price_captures(['SOL/USDC'])
                     if (type(captures) is not dict or set(captures) != {'SOL/USDC'}
                             or type(captures['SOL/USDC']) is not PriceCapture):
-                        self._fail()
+                        self._fail(stage='invalid_capture')
                     self._capture = captures['SOL/USDC']
                 self._deadline(deadline)
                 try:
+                    self._stage = 'quote_admission'
                     ticket = self._owner.capture_quote(self._capture)
                 except ProviderDeferred as deferred:
                     self._deadline(deadline)
@@ -111,8 +122,8 @@ class ProviderPriceAcquisition:
             self._capture = None
             self._closed = True
             raise
-        except (Exception, asyncio.CancelledError):
-            self._fail()
+        except (Exception, asyncio.CancelledError) as error:
+            self._fail(error)
 
     def _observe(self, task):
         # A cancelled waiter leaves work owned. Retrieve the exception to avoid
@@ -121,6 +132,8 @@ class ProviderPriceAcquisition:
             # Cancellation before the coroutine's first instruction bypasses
             # _acquire's exception handler. It still closes both admission gates.
             self._closed = True
+            if self._last_failure is None:
+                self._last_failure = failure_labels(self._stage, asyncio.CancelledError())
             self._owner.close_admission()
         else:
             task.exception()
@@ -136,6 +149,7 @@ class ProviderPriceAcquisition:
                 raise CommandBusy('provider owner work must settle before acquisition')
             if not self._owner.accepting:
                 raise OperationalAdmissionError('provider owner admission is closed')
+            self._stage = 'acquisition_start'
             coroutine = self._acquire()
             try:
                 self._task = asyncio.create_task(coroutine)
