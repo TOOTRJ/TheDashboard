@@ -1,20 +1,24 @@
 # Supervised paper MVP activation plan
 
 **Actual owner hour completed — 2026-10-08:** The original PR78-source pilot
-completes its common hour at revision514 with504 accepted prices, one full GA
+completes its common hour at revision 514 with 504 accepted prices, one full GA
 replacement, eight retired founders, eight equally funded children, two closed
-paper trades, no open positions, and32 contiguous acknowledged events. Exact
-cash conservation passes: total paper cash is1000.146507473480244672414802117408USD.
-The two trading founders gain0.073253736740122336207401058704USD each but rank
+paper trades, no open positions, and 32 contiguous acknowledged events. Exact
+cash conservation passes: total paper cash is 1000.146507473480244672414802117408 USD.
+The two trading founders gain 0.073253736740122336207401058704 USD each but rank
 below the six no-trade founders because their drawdown penalty makes fitness
 negative. This is zero-cost mechanical acceptance, not evidence of profitable
 optimization. Ordinary closed Railway deployment
-`cf05895d-adc5-427f-873e-82ad6606e5a1` is SUCCESS;16 temporary settings are
+`cf05895d-adc5-427f-873e-82ad6606e5a1` is SUCCESS; 16 temporary settings are
 removed, the original variable map matches, and the original finite credentials
-are revoked/NOLOGIN. The release catalog still matches OPENepoch1. The actual
-owner browser exposed the12-versus18-place quantity-reader defect; PR79 contains
-its tested repair. Final repaired production browser acceptance remains next;
-HOST-07, continuous operation and every live-trading gate remain open.
+are revoked/NOLOGIN. The release catalog still matches OPEN epoch 1. The actual
+owner browser exposed the 12-versus-18-place quantity-reader defect; PR79 contains
+its tested repair. Exact PR79 production
+`dpl_6zoCwe4MhVVFL6Tz37XWj7pXbCLt` is READY with four smokes; the actual
+owner browser now passes complete revision 514 trades/evaluations/history and a
+repeat read with unchanged 32 events. The finite pilot subgate is accepted;
+HOST-07's remaining operating/recovery gates, continuous operation and every
+live-trading gate remain open.
 [Owner-hour evidence](supabase/audits/2026-10-08-owner-hour-first-replacement.json).
 [Detailed probe/evolution rules](PAPER-EVOLUTION.md).
 
