@@ -26,9 +26,27 @@ labels locate it at local capture admission; no provider cause is established.
 Original native interruption passes before write expiry at revision6/fence2 with
 unchanged economics/checkpoint and no new candidate event or ACK. Closed deployment
 `49f95073-a427-4bad-a41a-681737382354` is SUCCESS,16 temporary values are removed,
-and its pair is revoked. Specific allowlisted admission codes are now prepared;
-127 focused tests pass. Release and deliberate diagnosis remain next. HOST-07
-is open. No wallet operation is authorized.
+and its pair is revoked. PR73 is merged as `f942c7441fba80f10cd0a63738972af7c91c831a`; exact
+Vercel production `dpl_928v7jwevnRFu3jXxAkYUDoaFnza` is READY with four
+smokes. The actual owner diagnostic starts once and identifies
+`receipt_clock_not_advanced` before the first accepted price. Original native
+interruption completes at revision3/fence2 without changing checkpoint, reserve,
+accounts, positions or candidate delivery. Ordinary closed deployment
+`e4716561-0299-4820-8fd5-c2a01e82a02c` is SUCCESS;16 additions are removed
+and its pair is revoked/NOLOGIN. The terminal owner browser shows revision3
+and disabled controls. [Timer diagnosis and cleanup](supabase/audits/2026-10-08-receipt-timer-diagnosis.json).
+
+The ordinary Uvicorn runtime selects uvloop0.22.1; the earlier assessment used
+`asyncio.run` and default asyncio. A local100-sleep probe observes two slightly
+early uvloop wakeups and zero default-loop early wakeups. The deterministic
+controller regression fails before repair. The repair waits for the actual UTC
+boundary of the same receipt, within the original deadline and eight-wakeup
+limit, preserving shutdown/source/lease/expiry guards. Both worker entrypoints
+explicitly use uvloop. Final130 focused tests pass on each loop and six actual
+PostgreSQL controller cases pass. Release and matching-loop hosted assessment
+remain next, then the actual hour/first replacement/stop/history acceptance.
+HOST-07 and continuous/live gates remain open. No wallet operation is authorized.
+
 [Managed terminal evidence](supabase/audits/2026-10-08-expired-native-run-maintenance.json),
 [diagnostic assessment](supabase/audits/2026-10-08-diagnostic-controller-assessment.json),
 [new owner attempt](supabase/audits/2026-10-08-owner-pilot-local-admission-failure.json),
@@ -74,7 +92,7 @@ invent liquidation proceeds.
 | Order | Remaining work | Todo / acceptance |
 |---|---|---|
 | Complete prerequisite | Fixed diagnostics and original expired-run reconciliation | PAPER-FAILURE-EVIDENCE1/PAPER-EXPIRED-MAINT1: dedicated sign-in, exact-target/source/production, actual original-input rollback and once-only interruption pass. Unchanged economics/checkpoint and candidate delivery hashes and actual terminal owner browser history pass; no event or ACK is invented. |
-| 2 | Diagnose and repair the observed controller/provider failure | The fresh thirty-price native assessment passes; the owner hour reproduces a local capture-admission failure after two prices. Original native interruption, closed restoration and revocation pass. Specific capture-admission codes are prepared; release and use them in a deliberate diagnostic attempt under unchanged source/receipt/lease bounds. Do not infer a provider cause from null SQL phases. |
+| 2 | Diagnose and repair the observed controller/provider failure | The fresh thirty-price native assessment passes; the owner hour reproduces a local capture-admission failure after two prices. Original native interruption, closed restoration and revocation pass. PR73 diagnosis identifies a slightly early receipt-boundary wakeup; a deterministic regression fails before repair and passes after it. Release the bounded same-receipt repair and align the assessment with ordinary uvloop. Keep source/receipt/lease/deadline guards unchanged; hosted repaired acceptance is still pending. |
 | 3 | Complete workload/security/interrupt evidence for the bounded profile | DATA-01E, D2D2A, HOST-02…06/A3: retain finite source/quota/DB/relay/resource measurements, owner isolation and original-ID settlement. Complete unresolved fault/overlap/outage exposure checks. Continuous quota/tail/restart readiness remains separate. |
 | 4 | Verify complete operator and ownership flow at the final window | Actual login/start/eight-candidate/nonempty history works. Verify complete first-replacement balance/trade/evaluation history, reconnect/replay and owner isolation at the final committed revision. Costs remain uncalibrated; stop retains holdings and restart requires reconciliation. |
 | 5 | Accept the supervised one-hour pilot, then close/review | HOST-07: eight candidates, two EMA genes, one SOL/USD reference window, at most one replacement, real feeds/simulated economics and reserved stop. Record resource/quota/failure evidence, restore closed runtime and revoke the finite pair. No profitability or live-trading claim follows from this mechanical acceptance. |

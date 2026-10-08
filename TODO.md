@@ -26,12 +26,26 @@ and no new candidate event or ACK. Ordinary closed deployment
 and the pilot pair is revoked/NOLOGIN. [Assessment evidence](supabase/audits/2026-10-08-diagnostic-controller-assessment.json),
 [owner attempt and cleanup](supabase/audits/2026-10-08-owner-pilot-local-admission-failure.json).
 
-Specific allowlisted capture-admission codes are prepared to distinguish closed
-admission, receipt-boundary/clock failures and acquisition expiry without exception
-text. 127 focused native-environment tests pass, including real controller receipt
-refusal and hostile error details. Release and a deliberately reviewed diagnostic
-attempt remain next. HOST-07/hour/first replacement and continuous/live gates stay
-open; no automatic restart or relaxed freshness/lease/expiry guards.
+PR73 is merged as `f942c7441fba80f10cd0a63738972af7c91c831a`; exact
+Vercel production `dpl_928v7jwevnRFu3jXxAkYUDoaFnza` is READY with four
+smokes. The actual owner diagnostic starts once and identifies
+`receipt_clock_not_advanced` before the first accepted price. Original native
+interruption completes at revision3/fence2 without changing checkpoint, reserve,
+accounts, positions or candidate delivery. Ordinary closed deployment
+`e4716561-0299-4820-8fd5-c2a01e82a02c` is SUCCESS;16 additions are removed
+and its pair is revoked/NOLOGIN. The terminal owner browser shows revision3
+and disabled controls. [Timer diagnosis and cleanup](supabase/audits/2026-10-08-receipt-timer-diagnosis.json).
+
+The ordinary Uvicorn runtime selects uvloop0.22.1; the earlier assessment used
+`asyncio.run` and default asyncio. A local100-sleep probe observes two slightly
+early uvloop wakeups and zero default-loop early wakeups. The deterministic
+controller regression fails before repair. The repair waits for the actual UTC
+boundary of the same receipt, within the original deadline and eight-wakeup
+limit, preserving shutdown/source/lease/expiry guards. Both worker entrypoints
+explicitly use uvloop. Final130 focused tests pass on each loop and six actual
+PostgreSQL controller cases pass. Release and matching-loop hosted assessment
+remain next, then the actual hour/first replacement/stop/history acceptance.
+HOST-07 and continuous/live gates remain open. No wallet operation is authorized.
 
 **Earlier checkpoint before PR72 — 2026-10-08:** PR71 is merged as
 `a353649d1e6aba4ad0b2e3827e0bb5fdeacbd92f`; exact Vercel production was READY
@@ -58,10 +72,10 @@ needs a file-backed sign-in before further release. [Fresh hosted evidence](supa
 
 **Next priorities, in order:**
 
-1. Release specific fixed capture-admission codes and use a deliberate diagnostic
-   attempt to establish and repair the original failure. Retain original IDs,
+1. Release the bounded same-receipt timer repair and rerun the thirty-price
+   assessment on the ordinary worker’s uvloop runtime. Retain original IDs,
    source/receipt/lease/deadline guards and reconciliation evidence; no automatic
-   retry, restart or guessed provider fix.
+   retry, restart or widened admission.
 2. Accept the actual intended-owner supervised hour, first replacement and
    reserved stop. The thirty-price lost-reply assessment is a prerequisite only.
 3. Verify final complete browser history/replay and anonymous/other-owner isolation,
@@ -72,6 +86,8 @@ needs a file-backed sign-in before further release. [Fresh hosted evidence](supa
 5. Deep research: source-age/repeated-block/omission distributions, timing/quota/
    billing tails, retained-position outage exposure and restoration, representative
    holdouts and calibrated fills; complete LIVE-01…07 before any real trading.
+
+- [x] **PAPER-RECEIPT-TIMER1 — Diagnose and prepare the early timer repair.** The actual owner diagnostic identifies the fixed receipt-clock code before any accepted quote. Original interruption/closed restoration/revocation and terminal browser revision3 pass. A deterministic real-controller case fails before repair. The bounded repair retains the original receipt/deadline and actual-clock admission, with eight wakeups and shutdown/expiry checks. Ordinary worker and assessment explicitly use uvloop.130 focused cases pass under each loop and six actual PostgreSQL cases pass. Hosted matching-loop assessment and hour acceptance remain unchecked above. Deep research remains required on receipt/source/loop/SQL timing distributions and supported long-duration profiles.
 
 - [x] **PAPER-EXPIRED-MAINT2 — Apply and read back the original expired cash-only interruption.** PR72 reviewed source, exact targets/production, actual managed rollback, independent absence/unchanged hashes and one original submission pass. Revision6/fence2 is failed/reconciliation-required; economic/checkpoint and candidate delivery hashes remain intact. The actual owner browser displays the terminal revision with unavailable current equity and disabled controls. No credential extension, invented candidate event/ACK, schema/grant change or automatic resume.
 
@@ -99,12 +115,12 @@ is revoked and Railway is restored to ordinary closed startup. PR72 diagnostics,
 original expired cash-only maintenance, the new thirty-price native assessment,
 complete assessment owner history and original native pilot interruption pass.
 The separate real-owner hour again fails after two prices at revision5, before
-any evaluation or replacement. Its local capture-admission cause needs finer
-fixed labels and a deliberate diagnosis. All original failed runs are terminal
+any evaluation or replacement. Its latest specific receipt-clock refusal is diagnosed; the bounded same-receipt
+repair passes both loops locally and awaits matching-loop hosted acceptance. All original failed runs are terminal
 and retain their economic state. The live swap helper remains quote-only.
 
-**Immediate order:** reviewed specific admission diagnostics → establish and
-repair the observed capture failure → supervised actual hour/first replacement/
+**Immediate order:** release same-receipt timing repair → matching-loop
+assessment → supervised actual hour/first replacement/
 reserved stop → complete owner history/replay and isolation → ordinary closed
 restoration/revocation. HOST-07 remains open. The Developer upgrade and existing
 key attribution are verified; Dashboard is TheOrder's only Jupiter consumer.

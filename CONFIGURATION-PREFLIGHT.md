@@ -3093,3 +3093,62 @@ environment had two native-import errors; the correct isolated native environmen
 passes. All receipt/source/lease/deadline, ownership and no-retry guards remain.
 This is diagnostic preparation; release and deliberate hosted diagnosis precede
 another hour acceptance. HOST-07 and continuous/live gates remain open.
+
+
+## 81. Specific receipt-clock diagnosis and bounded timer repair — 2026-10-08
+
+PR73 is merged as `f942c7441fba80f10cd0a63738972af7c91c831a`. Exact
+Vercel preview `dpl_E911kQ24uj4tjbFs4B62iDMQHyz1` and production
+`dpl_928v7jwevnRFu3jXxAkYUDoaFnza` are READY with pinned project/team/repo,
+source/author and canonical alias; four production smokes pass. Fresh GitHub,
+Supabase owner/project/catalog and Railway workspace/project/service checks pass.
+No other project or shared credentials/configuration change.
+
+The deliberate actual-owner diagnostic starts once from the98-file immutable
+export (1,228,954bytes; manifest
+`03040612f46f1145968c46bbac8de7118009cf6d3170e983e787c09bca7daaa3`).
+Every Git blob and mode is checked, including0555 exported startup script.
+Deployment `78593396-2066-443f-969c-9a8be5b263bf` reports the fixed
+`capture / operational_admission_failed / receipt_clock_not_advanced` label
+at revision2 before any accepted price; both native failure phases are null.
+This establishes the latest local refusal, not a provider/quota failure.
+
+After lease expiry but before the original write expiry, the original native
+interruption executes once in closed API deployment
+`021a68fe-406b-44d4-a52e-7ec01af41d55`. Revision3/fence2 is failed and
+requires reconciliation. Checkpoint/account/position/reserve hashes are unchanged:
+eight$100 cash accounts, $200 reserve and zero open positions. The nine original
+candidate events remain fully ACKed; interruption creates no candidate event or
+new ACK. Ordinary closed deployment `e4716561-0299-4820-8fd5-c2a01e82a02c`
+is SUCCESS,16 finite variables are removed, exact original map is restored and
+the pair is revoked/NOLOGIN. Actual owner history shows terminal revision3,
+unavailable current equity and disabled controls.
+
+Installed Uvicorn0.54.0 auto-loop factory selects installed uvloop0.22.1;
+the prior canary's `asyncio.run` selects default asyncio instead. A local probe
+of100 sleeps per loop finds two early uvloop wakeups (minimum−0.000182867s)
+and no early default-loop wakeups. The deterministic real-controller regression
+fails with the original receipt-clock code before repair.
+[Python delayed-callback documentation](https://docs.python.org/3/library/asyncio-eventloop.html),
+[uvloop0.22.1 early-sleep report](https://github.com/MagicStack/uvloop/issues/739)
+and the [open upstream timer fix](https://github.com/MagicStack/uvloop/pull/755)
+corroborate early timer completion. The proposed upstream fix is not installed.
+Earlier generic failures are consistent with this cause but do not independently
+establish it.
+
+The repair waits again for the same immutable receipt until the actual UTC
+boundary passes, within the original five-second acquisition deadline, eight
+wakeups and at least1ms remaining wait. Every wake rechecks actual clocks,
+shutdown and expiry. Non-progress/rollback or exhausted wake budget still drains
+admission. No refetch, timestamp rewrite, source/lease/grace widening or automatic
+restart. Startup explicitly selects uvloop; the finite controller canary uses
+`uvloop.run` and reports the fixed loop implementation. The
+[upstream uvloop helper](https://github.com/MagicStack/uvloop) documents this entrypoint.
+
+Final130 focused tests pass in28.171s with default asyncio and27.722s with
+uvloop. Six actual isolated PostgreSQL controller cases pass in29.768s. Shell
+syntax and diff whitespace checks pass. The unrelated user-edited migration
+SHA256 remains `a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc`
+and is excluded from this change. The repaired hosted matching-loop assessment
+and real one-hour/first-replacement/history acceptance remain next; HOST-07 stays
+open. [Sanitized evidence](supabase/audits/2026-10-08-receipt-timer-diagnosis.json).

@@ -1,0 +1,97 @@
+{
+  "version": 1,
+  "date": "2026-10-08",
+  "source_sha": "f942c7441fba80f10cd0a63738972af7c91c831a",
+  "vercel_production": {
+    "deployment": "dpl_928v7jwevnRFu3jXxAkYUDoaFnza",
+    "ready": true,
+    "exact_targets_source_author_alias": true,
+    "smokes_passed": 4
+  },
+  "diagnostic": {
+    "deployment": "78593396-2066-443f-969c-9a8be5b263bf",
+    "browser_start_attempts": 1,
+    "actual_owner_verified": true,
+    "accepted_quotes": 0,
+    "revision": 2,
+    "phase": "failed",
+    "last_controller_failure": {
+      "stage": "capture",
+      "category": "operational_admission_failed",
+      "provider_code": null,
+      "admission_code": "receipt_clock_not_advanced",
+      "acquisition": null
+    },
+    "native_failure_phases": {
+      "economic": null,
+      "relay": null
+    },
+    "export_files": 98,
+    "export_bytes": 1228954,
+    "export_manifest_sha256": "03040612f46f1145968c46bbac8de7118009cf6d3170e983e787c09bca7daaa3",
+    "all_git_blobs_modes_verified": true
+  },
+  "reconciliation": {
+    "deployment": "021a68fe-406b-44d4-a52e-7ec01af41d55",
+    "original_interrupt_once": true,
+    "revision_before": 2,
+    "revision_after": 3,
+    "fence_after": 2,
+    "status": "failed",
+    "requires_reconciliation": true,
+    "checkpoint_accounts_positions_reserve_unchanged": true,
+    "cash_per_account_usd": "100",
+    "accounts": 8,
+    "reserve_usd": "200",
+    "open_positions": 0,
+    "candidate_events": 9,
+    "unacknowledged_events": 0,
+    "new_candidate_events": 0,
+    "new_candidate_acks": 0,
+    "provider_calls": 0,
+    "wallet_operations": false
+  },
+  "cleanup": {
+    "deployment": "e4716561-0299-4820-8fd5-c2a01e82a02c",
+    "ordinary_closed": true,
+    "status": "SUCCESS",
+    "original_variables_restored": true,
+    "temporary_values_removed": 16,
+    "native_pair": "revoked_verified",
+    "terminal_owner_revision": 3,
+    "controls_disabled": true
+  },
+  "runtime_diagnosis": {
+    "installed_uvloop": "0.22.1",
+    "uvicorn_auto_selects_uvloop": true,
+    "previous_assessment_entrypoint": "asyncio.run",
+    "local_sleep_probe": {
+      "samples_per_loop": 100,
+      "default_asyncio_early_wakeups": 0,
+      "uvloop_early_wakeups": 2,
+      "uvloop_minimum_boundary_offset_seconds": -0.000182867
+    },
+    "deterministic_regression_failed_before_repair": true,
+    "inference": "Latest hosted refusal, local timing reproduction and differing assessment/runtime loops support early wakeup as the specific latest failure. Earlier generic failures do not independently prove the same cause."
+  },
+  "local_repair": {
+    "same_original_receipt": true,
+    "actual_clock_boundary_required": true,
+    "maximum_wakeups": 8,
+    "minimum_wait_seconds": 0.001,
+    "original_deadline_source_lease_shutdown_guards_retained": true,
+    "refetch_or_timestamp_rewrite": false,
+    "ordinary_and_assessment_loop": "uvloop",
+    "focused_default_asyncio_tests": 130,
+    "focused_uvloop_tests": 130,
+    "postgres_controller_tests": 6,
+    "hosted_repair_accepted": false
+  },
+  "acceptance": {
+    "one_hour": false,
+    "first_replacement": false,
+    "paper_mvp": false,
+    "continuous_paper": false,
+    "live_trading": false
+  }
+}

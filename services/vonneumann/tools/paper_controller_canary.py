@@ -18,6 +18,7 @@ import time
 
 import aiohttp
 import uvicorn
+import uvloop
 
 from tools.provider_read_canary import quota_headers, summary
 from vonneumann.server.paper_app import create_app, configured_service
@@ -103,7 +104,8 @@ async def assess(service):
     feed = service._feed
     report = {'paper_controller_canary': 1, 'phase': 'started',
               'mode': 'closed-api-finite-paper', 'wallet_operations': False,
-              'automatic_retry': False}
+              'automatic_retry': False,
+              'loop_implementation': 'uvloop' if isinstance(asyncio.get_running_loop(), uvloop.Loop) else 'asyncio'}
     quotas, ages, lag = [], [], []
     last_capture = None
     original_capture = feed.get_price_captures
@@ -324,4 +326,6 @@ async def main():
 
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    # Match ordinary start-worker.sh rather than assessing a different timer
+    # implementation through asyncio.run's default event loop.
+    uvloop.run(main())

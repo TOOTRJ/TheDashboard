@@ -353,6 +353,61 @@ class ProviderControllerTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase
         self.assertEqual(frame['quote']['document']['response_sha256'], capture.record.document.response_sha256)
         self.assertEqual(frame['quote']['document']['received_wall_us'], int((END + 10.25) * 1_000_000))
 
+    async def test_early_timer_wakeup_waits_for_actual_boundary_with_same_receipt(self):
+        await self.bootstrapped(lookup_elapsed=0)
+        self.age(.25); self.price()
+        waits = []
+        async def early_boundary(seconds):
+            waits.append(seconds)
+            self.age(seconds - .00025 if len(waits) == 1 else seconds)
+        with patch.object(module.asyncio, 'sleep', side_effect=early_boundary):
+            report = await self.controller.tick()
+        self.assertEqual(report.status, 'complete')
+        self.assertEqual(report.quote_sequence, 1)
+        self.assertEqual(len(waits), 2)
+        self.assertGreaterEqual(waits[1], .001)
+        self.assertEqual(self.feed.api_call_count, 1)
+        capture = self.feed._captures[SOL]
+        frame = self.owner.installed_state.to_dict()['source']['last_quote']
+        self.assertEqual(frame['quote']['document']['response_sha256'],
+                         capture.record.document.response_sha256)
+        self.assertEqual(frame['quote']['document']['received_wall_us'],
+                         int((END + 10.25) * 1_000_000))
+        self.assertGreaterEqual(frame['decision_second'], END + 11)
+        self.assertIsNone(self.controller.last_failure)
+
+    async def test_shutdown_after_early_wakeup_does_not_wait_again_or_submit_protection(self):
+        await self.bootstrapped(lookup_elapsed=0)
+        self.age(.25); self.price()
+        count = self.transport.count('commit_command')
+        waits = []
+        async def early_stop(seconds):
+            waits.append(seconds); self.age(seconds - .00025)
+            self.controller.close_admission()
+        with patch.object(module.asyncio, 'sleep', side_effect=early_stop):
+            report = await self.controller.tick()
+        self.assertEqual(report.status, 'drained')
+        self.assertEqual(len(waits), 1)
+        self.assertEqual(self.feed.api_call_count, 1)
+        self.assertEqual(self.transport.count('commit_command'), count)
+
+    async def test_repeated_early_wakeups_have_finite_budget_without_refetch_or_submission(self):
+        await self.bootstrapped(lookup_elapsed=0)
+        self.age(.25); self.price()
+        count = self.transport.count('commit_command')
+        waits = []
+        async def tiny_progress(seconds):
+            waits.append(seconds)
+            self.age(seconds - .00025 if len(waits) == 1 else .000001)
+        with patch.object(module.asyncio, 'sleep', side_effect=tiny_progress):
+            with self.assertRaises(OperationalAdmissionError):
+                await self.controller.tick()
+        self.assertEqual(len(waits), module.MAX_RECEIPT_BOUNDARY_WAKEUPS)
+        self.assertEqual(self.controller.last_failure['admission_code'], 'receipt_wait_budget')
+        self.assertEqual(self.feed.api_call_count, 1)
+        self.assertEqual(self.transport.count('commit_command'), count)
+        self.assertFalse(self.controller.accepting)
+
     async def test_suspended_receipt_wait_rejects_expired_original_without_refetch(self):
         await self.bootstrapped(lookup_elapsed=0)
         self.age(.25); self.price()

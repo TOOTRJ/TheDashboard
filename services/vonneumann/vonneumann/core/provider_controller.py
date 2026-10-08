@@ -25,6 +25,7 @@ from ..db.transition_coordinator import PublicationError
 from ..market.provider_contract import CANDLE_COMPLETION_US, clock_us
 
 HISTORY_TIMEOUT_SECONDS = 5.0
+MAX_RECEIPT_BOUNDARY_WAKEUPS = 8
 
 
 @dataclass(frozen=True, slots=True)
@@ -263,15 +264,28 @@ class ProviderPilotController:
                 delay = target - wall
                 if delay > 1:
                     raise OperationalAdmissionError('controller_receipt_boundary_invalid')
-                if delay > 0:
-                    await asyncio.sleep(delay)
-                wall, _ = self._clocks()
+                wakeups = 0
+                while wall < target:
+                    # Timer completion is not proof that the actual UTC boundary
+                    # passed. uvloop/libuv may wake a fraction of a millisecond
+                    # early. Keep waiting for this SAME receipt inside the SAME
+                    # deadline; never fetch again or alter its age anchors.
+                    if wakeups >= MAX_RECEIPT_BOUNDARY_WAKEUPS:
+                        raise OperationalAdmissionError('controller_receipt_wait_budget')
+                    previous_wall = wall
+                    await asyncio.sleep(max(target - wall, .001))
+                    wakeups += 1
+                    wall, _ = self._clocks()
+                    if deadline.expired() or asyncio.get_running_loop().time() >= deadline.when():
+                        raise OperationalAdmissionError('controller_price_acquisition_expired')
+                    if self._draining or self.closed_reason:
+                        return None
+                    if wall <= previous_wall:
+                        raise OperationalAdmissionError('controller_receipt_clock_did_not_advance')
                 if deadline.expired() or asyncio.get_running_loop().time() >= deadline.when():
                     raise OperationalAdmissionError('controller_price_acquisition_expired')
                 if self._draining or self.closed_reason:
                     return None
-                if wall < target:
-                    raise OperationalAdmissionError('controller_receipt_clock_did_not_advance')
                 ticket = await self._acquisition.capture_quote()
                 if ticket is None and self._acquisition.has_deferred_capture:
                     raise OperationalAdmissionError('controller_original_receipt_not_admitted')
