@@ -96,3 +96,85 @@ class NativeOperatorTests(unittest.TestCase):
         self.db.sql(operator.remove())
         self.assertEqual(self.db.scalar(f"SELECT to_regnamespace('{operator.SCHEMA}') IS NULL;"), 't')
         self.db.sql(operator.install())
+
+
+@unittest.skipUnless(os.environ.get(harness.OPT_IN) == '1', 'Requires isolated PostgreSQL opt-in')
+class NativeQuiescentOperatorTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.db = fixture.start(cls)
+        fixture.install(cls.db)
+        cls.db.sql("ALTER DATABASE postgres SET log_statement='ddl'; ALTER DATABASE postgres SET log_parameter_max_length_on_error=0; "
+                   "ALTER DATABASE postgres SET pgaudit.log='none';", role=fixture.ADMIN)
+        cls.db.sql(operator.install_quiescent())
+
+    def setUp(self):
+        NativeOperatorTests.setUp(self)
+
+    def call(self, value, prefix='', suffix='ROLLBACK;'):
+        return NativeOperatorTests.call(self, 'issue_quiescent', value, prefix=prefix, suffix=suffix)
+
+    def opening(self):
+        return fixture.BOUND + "DO $$ BEGIN PERFORM vn_release.transition('" + str(uuid4()) + "',0,'open','" + '7'*64 + "'); END $$; RESET ROLE;\n"
+
+    def test_open_quiescent_pair_is_finite_restricted_atomic_and_unlogged(self):
+        result = self.call(self.input, prefix=self.opening())
+        self.assertEqual(result.returncode, 0, result.stderr)
+        rows = json.loads(result.stdout)
+        self.assertEqual([r['capability'] for r in rows], ['economic', 'relay'])
+        self.assertTrue(all(r['login'] and r['revoked'] is None for r in rows))
+        self.assertEqual(self.db.scalar("SELECT state FROM vn_release.state WHERE singleton;", role=fixture.ADMIN), 'closed')
+        self.assertEqual(self.db.scalar("SELECT count(*) FROM vn_access.bindings;", role=fixture.ADMIN), '0')
+        NativeOperatorTests.logs(self)
+
+    def test_closed_release_and_existing_login_are_denied_before_role_creation(self):
+        result = self.call(self.input, prefix='BEGIN;')
+        self.assertNotEqual(result.returncode, 0)
+        leaf = 'vn_native_' + uuid4().hex
+        prefix = self.opening() + f'CREATE ROLE {leaf} LOGIN; GRANT vn_economic TO {leaf};\n'
+        result = self.call(self.input, prefix=prefix)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('native_operator_failed', result.stderr)
+        self.assertEqual(self.db.scalar(f"SELECT count(*) FROM pg_roles WHERE rolname=ANY(ARRAY['{self.pair.names[0]}','{self.pair.names[1]}']);"), '0')
+        NativeOperatorTests.logs(self)
+
+    def test_api_roles_are_denied_and_temporary_invoker_preserves_catalog(self):
+        for role in ('anon', 'authenticated', 'service_role', 'vn_economic', 'vn_relay'):
+            result = NativeOperatorTests.call(self, 'issue_quiescent', self.input, fixture.ADMIN,
+                                              set_role=role, prefix='BEGIN;', suffix='ROLLBACK;')
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn('42501', result.stderr)
+        self.db.sql((fixture.HERE / 'verify.sql').read_text())
+        self.db.sql(operator.remove_quiescent())
+        self.assertEqual(self.db.scalar(f"SELECT to_regnamespace('{operator.SCHEMA}') IS NULL;"), 't')
+        self.db.sql(operator.install_quiescent())
+
+    def test_unrevoked_binding_blocks_even_when_both_logins_are_disabled(self):
+        encoded = json.dumps(self.input).replace("'", "''")
+        prefix = ('BEGIN;\n' + operator.function('issue')
+                  + f"SELECT {operator.SCHEMA}.issue($1::jsonb)\n\\bind '{encoded}'\n\\g\n"
+                  + ''.join(f'ALTER ROLE {name} NOLOGIN;\n' for name in self.pair.names)
+                  + self.opening().removeprefix('BEGIN;'))
+        second = native_issuer_fixture.Pair.new(self.owner, str(uuid4()))
+        value = {**self.input, 'run': second.run, 'names': second.names,
+                 'issuances': second.issuances}
+        result = self.call(value, prefix=prefix)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('native_operator_failed', result.stderr)
+        self.assertEqual(self.db.scalar("SELECT count(*) FROM vn_access.bindings;", role=fixture.ADMIN), '0')
+        NativeOperatorTests.logs(self)
+
+    def test_unreconciled_run_and_reused_terminal_run_are_denied(self):
+        for status in ('starting', 'running', 'paused', 'risk_halted', 'stopped'):
+            # Expired leases do not make an unreconciled run quiescent. A
+            # terminal run is permitted to remain, but its identity is never
+            # reused for newly issued credentials.
+            run = self.run if status == 'stopped' else str(uuid4())
+            prefix = self.opening() + "SET LOCAL ROLE vn_contract_owner; " + (
+                "INSERT INTO vn_durability.runs(id,user_id,worker_id,fence,revision,lease_until,status,config,command_version,initial_cash,reserve) "
+                f"VALUES('{run}','{self.owner}','{uuid4()}',1,1,clock_timestamp()-interval '1 second','{status}','{{}}',5,1,1); RESET ROLE;\n")
+            result = self.call(self.input, prefix=prefix)
+            self.assertNotEqual(result.returncode, 0, status)
+            self.assertIn('native_operator_failed', result.stderr)
+        self.assertEqual(self.db.scalar("SELECT count(*) FROM vn_durability.runs;", role=fixture.ADMIN), '0')
+        NativeOperatorTests.logs(self)

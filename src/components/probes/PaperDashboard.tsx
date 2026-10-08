@@ -100,6 +100,7 @@ export function PaperDashboard({ owner, token, apiOverride, legacyReader = fetch
     <p className="text-sm text-muted-foreground">Two EMA genes · eight candidates · SOL/USD reference · one evaluation window. Costs are an uncalibrated scenario. Paper balances are research records.</p>
     <div className="rounded-lg border p-4 space-y-3">
       <p>Worker: {String(status?.phase ?? 'unverified')}. Stop requested: {status?.stop_requested === true ? 'yes' : 'no'}.</p>
+      {status?.requires_reconciliation === true && <p role="status">The worker requires reconciliation. Committed history may precede the failure; a new worker cannot resume this run.</p>}
       <div className="flex flex-wrap gap-3">
         <button className="rounded border px-3 py-2 disabled:opacity-50" disabled={!controls || !!pending || status?.phase !== 'fresh'} onClick={() => void command('start')}>Start configured pilot</button>
         <button className="rounded border px-3 py-2 disabled:opacity-50" disabled={!controls || !!pending} onClick={() => void command('stop')}>Stop and retain holdings</button>

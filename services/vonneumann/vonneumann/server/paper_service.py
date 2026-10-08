@@ -70,6 +70,10 @@ class PaperService:
             'busy': self._task is not None and not self._task.done(),
             'stop_requested': self._stop_requested, 'revision': self.repository.revision,
             'requires_reconciliation': self._phase in ('pending', 'failed', 'drained'),
+            'admission': None if self.controller is None else {
+                'controller_reason': self.controller.closed_reason,
+                'owner_reason': self.controller._owner.closed_reason,
+                'pending_stage': self.controller.pending_stage},
             'report': None if report is None else {
                 'status': report.status, 'ticks_completed': report.ticks_completed,
                 'stop_requested': report.stop_requested,

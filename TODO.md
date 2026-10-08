@@ -1,18 +1,18 @@
 # Dashboard audit and implementation backlog
 
-**Current immediate work — 2026-10-08:** PR67 is merged and exact production is
-verified. Original expired-run interruption/new-worker denial and nonempty
-two-owner isolation pass; checkpoint and holdings are preserved, and the first
-assessment credentials are revoked. The lost-bootstrap-reply drill resolves the
-original command without replay, then exposes a fractional-price receipt timing
-bug before protection. Prioritize the bounded receipt wait and consumed-decision
-ticket fixes, corrected hosted controller acceptance, then HOST-07's supervised
-one-hour two-EMA/eight-candidate paper pilot and intended-owner browser checks.
-Public controls remain closed. Keep full hosted/pilot boxes open until actual
-results pass. [Follow-up evidence](supabase/audits/2026-10-08-controller-followup.json),
-[activation/rollback plan](PAPER-MVP-ACTIVATION.md). More deep and substantial
-research remains required on remote timing tails, provider credits, outage
-exposure, restoration and continuous evaluation before expansion.
+**Current immediate work — 2026-10-08:** PR68 is merged and exact production
+verified. The corrected30-price native controller/lost-reply/relay/stop assessment
+passes, as do nonempty owner isolation and actual interruption. The intended-owner
+browser starts paper-v5 and displays eight candidates, but its one-hour pilot
+fails after four prices. Original interruption and closed restoration preserve
+history; all four original pairs are revoked. Prioritize repeated-snapshot receipt
+admission, fixed failure/reconciliation diagnostics and guarded quiescent fresh
+run provisioning; then repeat the supervised one-hour pilot and verify the first
+replacement/final browser history. [Controller acceptance](supabase/audits/2026-10-08-corrected-controller-acceptance.json),
+[intended-owner interruption](supabase/audits/2026-10-08-intended-owner-pilot-interruption.json).
+Keep HOST-07 open. More deep and substantial research remains required on remote
+timing tails, provider credits, outage exposure, restoration, execution calibration
+and continuous evaluation.
 
 Created: 2026-09-29. Basis: the read-only project audit, isolated engine reproductions, and follow-up research on evolutionary optimization, trading systems, and Solana execution.
 

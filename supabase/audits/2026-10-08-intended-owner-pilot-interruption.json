@@ -1,0 +1,136 @@
+{
+  "version": 1,
+  "date": "2026-10-08",
+  "source": "390fd9dc2f66735b3eddae7ae0633bc26d395c53",
+  "pilot_deployment": "48d67a40-199c-48cf-bbc4-a090f90b80f7",
+  "wallet_operations": false,
+  "browser_start_and_history_verified": true,
+  "worker_failure": {
+    "committed_revision": 7,
+    "accepted_quotes": 4,
+    "generation": 0,
+    "accounts": 8,
+    "positions": 0,
+    "initial_cash_usd": "1000",
+    "reserve_usd": "200",
+    "reserved_stop_requested": true,
+    "reserved_stop_committed": false,
+    "exact_failure_origin": "not recorded by original runtime; repeated-snapshot receipt regression reproduced offline"
+  },
+  "interruption": {
+    "expired_heartbeat_denied": true,
+    "elapsed_seconds": 2.006021,
+    "final_status": "failed",
+    "requires_reconciliation": true,
+    "paper_controller_canary": 1,
+    "restored_checkpoint": false,
+    "wallet_operations": false,
+    "phase": "passed",
+    "automatic_retry": false,
+    "mode": "closed-api-existing-run-expiry",
+    "api_calls": {
+      "jupiter": 0,
+      "birdeye": 0,
+      "rpc": 0
+    },
+    "final_revision": 8,
+    "original_interrupt_committed": true,
+    "new_process_adoption_denied": true
+  },
+  "active_control_denials": [
+    {
+      "other_owned_user": true,
+      "action": "status",
+      "status": 404,
+      "no_store": true,
+      "exact_cors": true
+    },
+    {
+      "other_owned_user": true,
+      "action": "controls",
+      "status": 404,
+      "no_store": true,
+      "exact_cors": true
+    },
+    {
+      "other_owned_user": true,
+      "action": "start",
+      "status": 404,
+      "no_store": true,
+      "exact_cors": true
+    },
+    {
+      "other_owned_user": true,
+      "action": "stop",
+      "status": 404,
+      "no_store": true,
+      "exact_cors": true
+    },
+    {
+      "other_owned_user": true,
+      "action": "settle",
+      "status": 404,
+      "no_store": true,
+      "exact_cors": true
+    },
+    {
+      "other_owned_user": true,
+      "action": "status",
+      "status": 404,
+      "no_store": true,
+      "exact_cors": true
+    },
+    {
+      "other_owned_user": true,
+      "action": "controls",
+      "status": 404,
+      "no_store": true,
+      "exact_cors": true
+    },
+    {
+      "other_owned_user": true,
+      "action": "start",
+      "status": 404,
+      "no_store": true,
+      "exact_cors": true
+    },
+    {
+      "other_owned_user": true,
+      "action": "stop",
+      "status": 404,
+      "no_store": true,
+      "exact_cors": true
+    },
+    {
+      "other_owned_user": true,
+      "action": "settle",
+      "status": 404,
+      "no_store": true,
+      "exact_cors": true
+    },
+    {
+      "path": "/v5/status",
+      "status": 401,
+      "no_store": true
+    },
+    {
+      "path": "/v5/status",
+      "status": 401,
+      "no_store": true
+    },
+    {
+      "path": "/v5/status",
+      "status": 403,
+      "no_store": true
+    },
+    {
+      "path": "/docs",
+      "status": 404,
+      "no_store": true
+    }
+  ],
+  "ordinary_closed_restoration": "e5ad7bc7-24ae-4d2c-8408-06839e973266",
+  "all_four_original_pairs_revoked": true,
+  "one_hour_replacement_accepted": false,
+  "checkpoint_cash_and_positions_independently_preserved": true
+}

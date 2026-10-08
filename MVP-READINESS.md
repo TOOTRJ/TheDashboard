@@ -5,18 +5,20 @@ This distinguishes tested components, deployed application behavior, and the
 integration work still required. Completing engine tests is not a hosted bot
 release or evidence of a profitable strategy.
 
-Latest hosted checkpoint 2026-10-08: PR67 is merged and exact production is
-READY with four smokes. Release admission is open at epoch1; public controls stay
-closed. Actual expired-run interruption/new-worker denial preserves checkpoint
-and holdings. Nonempty two-owner history reads deny cross-owner and anonymous
-access. A lost bootstrap response is resolved through its original command, but
-the first price exposes a fractional receipt timing bug before protection. The
-next repair bounds that original receipt wait inside acquisition and consumes
-installed decision tickets before relay delivery. Full-controller, intended-owner
-browser and one-hour replacement acceptance remain pending.
-[Follow-up evidence](supabase/audits/2026-10-08-controller-followup.json),
-[activation/rollback](PAPER-MVP-ACTIVATION.md). Older dated checkpoints below
-describe preceding states.
+Latest hosted checkpoint 2026-10-08: PR68 is merged and exact production is
+READY. The corrected30-price native controller, original lost-reply reconciliation,
+relay and reserved stop pass. Nonempty owner reads and actual active cross-owner
+controls are denied correctly. The intended owner starts through the dashboard
+and sees eight candidates, but the one-hour run fails after four prices. Its
+original expired-run interruption preserves checkpoint/cash/positions; all four
+initial pairs are revoked and ordinary closed startup restored. The repeated
+snapshot/consumed-receipt defect is reproduced and repaired locally; precise
+hosted failure origin was not retained by that source. Fixed admission and
+reconciliation diagnostics plus guarded quiescent fresh-run provisioning precede
+another hour. HOST-07 and first replacement remain unaccepted.
+[Controller evidence](supabase/audits/2026-10-08-corrected-controller-acceptance.json),
+[intended-owner interruption](supabase/audits/2026-10-08-intended-owner-pilot-interruption.json),
+[activation/rollback](PAPER-MVP-ACTIVATION.md).
 
 ## Current position
 

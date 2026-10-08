@@ -142,3 +142,48 @@ def remove():
     return ('BEGIN; SET LOCAL lock_timeout=\'500ms\'; SET LOCAL statement_timeout=\'6s\';\n'
             + f'DROP FUNCTION {SCHEMA}.issue(jsonb); DROP FUNCTION {SCHEMA}.revoke(jsonb);\n'
             + f'DROP SCHEMA {SCHEMA} RESTRICT; COMMIT;\n')
+
+
+def quiescent_function():
+    """A separate opt-in provisioner for a new run after terminal cleanup.
+
+    Default closed issuance and its artifact digest remain unchanged. This
+    function is temporary, unexposed, SECURITY INVOKER and postgres-only. The
+    operator must additionally verify the exact worker is credential-free and
+    closed; SQL serializes and independently proves database quiescence.
+    """
+    text = function('issue')
+    guard = "state='closed'"
+    anchor = "  RAISE EXCEPTION 'closed_reviewed_release_required' USING ERRCODE='55000';\n END IF;\n"
+    if text.count(guard) != 1 or text.count(anchor) != 1:
+        raise ValueError('Reviewed issuance guard changed')
+    checks = """
+ LOCK TABLE vn_access.bindings, vn_durability.runs IN SHARE ROW EXCLUSIVE MODE;
+ IF EXISTS(SELECT 1 FROM vn_access.bindings b LEFT JOIN pg_roles r ON r.oid=b.principal_oid
+     WHERE b.revoked_at IS NULL OR r.oid IS NULL OR r.rolcanlogin) OR
+    EXISTS(SELECT 1 FROM pg_auth_members a JOIN pg_roles r ON r.oid=a.member
+     WHERE a.roleid IN ('vn_economic'::regrole,'vn_relay'::regrole) AND r.rolcanlogin
+       AND r.oid<>'postgres'::regrole) OR
+    EXISTS(SELECT 1 FROM vn_durability.runs WHERE status IN ('starting','running','risk_halted','paused')) OR
+    EXISTS(SELECT 1 FROM vn_durability.runs WHERE id=run_id_input) OR
+    EXISTS(SELECT 1 FROM vn_access.bindings WHERE run_id=run_id_input) THEN
+  RAISE EXCEPTION 'quiescent_fresh_run_required' USING ERRCODE='55000';
+ END IF;
+"""
+    return text.replace(f'{SCHEMA}.issue(', f'{SCHEMA}.issue_quiescent(').replace(
+        guard, "state='open'").replace(anchor, anchor + checks)
+
+
+def install_quiescent():
+    """Install only the deliberate quiescent provisioner, never the default."""
+    return ("BEGIN; SET LOCAL lock_timeout='500ms'; SET LOCAL statement_timeout='6s'; "
+            "SET LOCAL transaction_timeout='10s';\n"
+            + f'CREATE SCHEMA {SCHEMA} AUTHORIZATION postgres;\n'
+            + f'REVOKE ALL ON SCHEMA {SCHEMA} FROM PUBLIC,anon,authenticated,service_role,authenticator,vn_economic,vn_relay;\n'
+            + quiescent_function() + 'COMMIT;\n')
+
+
+def remove_quiescent():
+    return ("BEGIN; SET LOCAL lock_timeout='500ms'; SET LOCAL statement_timeout='6s';\n"
+            + f'DROP FUNCTION {SCHEMA}.issue_quiescent(jsonb);\n'
+            + f'DROP SCHEMA {SCHEMA} RESTRICT; COMMIT;\n')

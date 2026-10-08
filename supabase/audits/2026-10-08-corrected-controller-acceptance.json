@@ -1,0 +1,312 @@
+{
+  "version": 1,
+  "date": "2026-10-08",
+  "source": "390fd9dc2f66735b3eddae7ae0633bc26d395c53",
+  "assessment_deployment": "c134e428-85c4-4d6f-b139-884a849bb58f",
+  "restoration_deployment": "cee0d2ab-1bbe-4ea8-aa9c-5af0e7316e1f",
+  "scope": "closed API, 30 actual provider prices; no wallet operations",
+  "measurement": {
+    "paper_controller_canary": 1,
+    "process_peak_rss_bytes": 97558528,
+    "final_status": "stopped",
+    "final_revision": 34,
+    "accepted_quotes": 30,
+    "process_cpu_seconds": 8.56,
+    "wallet_operations": false,
+    "operation_seconds": {
+      "count": 32,
+      "minimum": 1.655663,
+      "median": 1.98768,
+      "maximum": 8.425871,
+      "tail_acceptance": false
+    },
+    "open_positions": 0,
+    "sql_errors": {
+      "commit_command": 1
+    },
+    "maximum_loop_lag_seconds": 1.039463,
+    "positions": 0,
+    "idle_renewals": 0,
+    "quota_observations": [
+      {
+        "current": 1,
+        "remaining": 99,
+        "reset": 1791443112
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791443112
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791443120
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791443127
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791443134
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791443141
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791443148
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791443155
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791443162
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791443169
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791443176
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791443183
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791443190
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791443197
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791443204
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791443211
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791443218
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791443225
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791443232
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791443239
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791443246
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791443253
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791443260
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791443267
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791443274
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791443281
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791443288
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791443295
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791443302
+      },
+      {
+        "current": 2,
+        "remaining": 98,
+        "reset": 1791443309
+      }
+    ],
+    "source_age_seconds": {
+      "count": 30,
+      "minimum": 2.369964,
+      "median": 4.474398,
+      "maximum": 8.65911,
+      "tail_acceptance": false
+    },
+    "owned_commands": 34,
+    "original_command_settled": true,
+    "automatic_retry": false,
+    "sql_seconds": {
+      "accept_event": {
+        "count": 11,
+        "minimum": 0.241091,
+        "median": 0.253511,
+        "maximum": 0.257724,
+        "tail_acceptance": false
+      },
+      "acknowledge_event": {
+        "count": 11,
+        "minimum": 0.239618,
+        "median": 0.244784,
+        "maximum": 0.25446,
+        "tail_acceptance": false
+      },
+      "commit_command": {
+        "count": 33,
+        "minimum": 0.547911,
+        "median": 0.621048,
+        "maximum": 0.754256,
+        "tail_acceptance": false
+      },
+      "create_run": {
+        "count": 1,
+        "minimum": 0.497416,
+        "median": 0.497416,
+        "maximum": 0.497416,
+        "tail_acceptance": false
+      },
+      "get_command": {
+        "count": 1,
+        "minimum": 0.327761,
+        "median": 0.327761,
+        "maximum": 0.327761,
+        "tail_acceptance": false
+      },
+      "heartbeat": {
+        "count": 33,
+        "minimum": 0.276703,
+        "median": 0.289413,
+        "maximum": 0.312213,
+        "tail_acceptance": false
+      },
+      "read_outbox": {
+        "count": 2,
+        "minimum": 0.250855,
+        "median": 0.250855,
+        "maximum": 0.253333,
+        "tail_acceptance": false
+      }
+    },
+    "phase_seconds": {
+      "history_acquisition": {
+        "count": 1,
+        "minimum": 0.942835,
+        "median": 0.942835,
+        "maximum": 0.942835,
+        "tail_acceptance": false
+      },
+      "lease_renewal": {
+        "count": 32,
+        "minimum": 0.27964,
+        "median": 0.290019,
+        "maximum": 0.589736,
+        "tail_acceptance": false
+      },
+      "owner_submission": {
+        "count": 32,
+        "minimum": 1.031234,
+        "median": 1.189058,
+        "maximum": 2.308239,
+        "tail_acceptance": false
+      },
+      "price_acquisition": {
+        "count": 30,
+        "minimum": 0.183843,
+        "median": 0.518865,
+        "maximum": 0.747942,
+        "tail_acceptance": false
+      },
+      "publication": {
+        "count": 2,
+        "minimum": 1.28108,
+        "median": 1.28108,
+        "maximum": 4.807795,
+        "tail_acceptance": false
+      },
+      "reconciliation": {
+        "count": 1,
+        "minimum": 0.552899,
+        "median": 0.552899,
+        "maximum": 0.552899,
+        "tail_acceptance": false
+      }
+    },
+    "sql_counts": {
+      "accept_event": 11,
+      "acknowledge_event": 11,
+      "commit_command": 33,
+      "create_run": 1,
+      "get_command": 1,
+      "heartbeat": 33,
+      "read_outbox": 2
+    },
+    "statistical_tail_acceptance": false,
+    "accounts": 8,
+    "finite_measurement": true,
+    "lost_reply_injected": true,
+    "mode": "closed-api-finite-paper",
+    "phase": "passed",
+    "ticks_completed": 30,
+    "generation": 0,
+    "api_calls": {
+      "jupiter": 30,
+      "birdeye": 1,
+      "rpc": 31
+    },
+    "elapsed_seconds": 218.093856
+  },
+  "acceptance": "Bounded provider/controller/native-SQL/relay/stop and original lost-bootstrap-response recovery passed; one-hour replacement, intended-owner browser, continuous operation and statistical tails remain separate."
+}
