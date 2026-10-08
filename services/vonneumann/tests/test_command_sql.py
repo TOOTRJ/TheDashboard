@@ -14,7 +14,7 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.x509.oid import NameOID
 from psycopg.pq import TransactionStatus
 import psycopg
-from vonneumann.db.command_sql import DashboardCommandSQLTransport,DashboardCommandSQLPair,CommandSQLError,CommandSQLBounds,HOST
+from vonneumann.db.command_sql import DashboardCommandSQLTransport,DashboardCommandSQLPair,CommandSQLError,CommandSQLBounds,HOST,paper_sql_bounds
 from tests.security_support import USER_A,A1
 
 
@@ -186,6 +186,22 @@ class SQLTransportTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.transport._bounds.operation_seconds,3.0)
         self.assertEqual(CommandSQLBounds().connect_seconds,.5)
         self.assertIsNone(self.transport.last_failure_phase)
+
+    async def test_selected_paper_profile_admits_one_connection_after_old_one_second_boundary(self):
+        self.transport._bounds=paper_sql_bounds()
+        async def slow_connection(*args):
+            await asyncio.sleep(1.2)
+            return self.connection
+        self.transport._connect=AsyncMock(side_effect=slow_connection)
+        await self.transport.rpc('get_command',self.args)
+        self.assertEqual(self.transport._connect.await_count,1)
+        self.assertEqual([row[0] for row in self.connection.calls].count('BEGIN'),1)
+        self.assertEqual([row[0] for row in self.connection.calls].count('COMMIT'),1)
+        self.assertTrue(self.connection.closed)
+        self.assertEqual(self.transport._bounds.operation_seconds,5.0)
+        self.assertEqual(self.transport._bounds.cleanup_seconds,1.0)
+        self.assertEqual(CommandSQLBounds().connect_seconds,.5)
+        self.assertIsNone(self.transport.first_failure)
 
     async def test_late_connection_after_timeout_is_owned_and_closed(self):
         self.transport._bounds=CommandSQLBounds(connect_seconds=.01)

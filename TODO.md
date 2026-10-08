@@ -1,5 +1,40 @@
 # Dashboard audit and implementation backlog
 
+**Latest owner pilot — 2026-10-08:** Final PR77 source starts through the actual
+owner dashboard, commits105 accepted prices/revision109, and delivers nine events.
+A one-second native connection phase timeout leaves the original protection
+pending. No SQLSTATE/statement timeout or source-order discard is reported.
+One original settlement does not resume expired evidence; one Stop is latched.
+Exact-target, expired-revision/hash-bound native interruption reads back once at
+revision110/fence2 with unchanged checkpoint, cash, accounts and positions, no
+new candidate event/ACK and no provider/wallet operation. The owner browser shows
+terminal history with disabled controls and unavailable current equity. Ordinary
+closed deployment`c7d8a768-1c4e-41a0-9f8c-59901656a635` is SUCCESS;16 temporary
+values are removed, the original variable map matches, and both finite credentials
+are revoked/NOLOGIN. [Original connect-timeout evidence](supabase/audits/2026-10-08-owner-pilot-connect-timeout.json).
+
+The paper-only connection repair allows2s for the single DNS/TCP/TLS/SCRAM attempt
+inside the unchanged5s whole RPC,3s statement,0.5s COMMIT and1s cleanup budgets.
+The selected6s renewal reserve and generic defaults remain unchanged. A1.2s
+connection-delay regression fails before repair.73 focused tests pass under each
+event loop;15 real offline PostgreSQL/TLS/SCRAM cases pass, proving the old bound
+submits no command and the new bound commits the original once. No retry, pool,
+endpoint, lease, expiry, freshness, schema/grant or other-project change. Release
+and final-source hosted assessment precede any new finite owner hour. HOST-07,
+first replacement, continuous paper and every live-trading gate remain open.
+
+**PR77 release — 2026-10-08:** The paper6s renewal reserve is merged as
+`062096ad803894f51b308e99a33982d7d45ba137`. Exact Vercel production
+`dpl_1rLU71cobwKF4fZqyKCqThjqSdJc` is READY with four smokes.54 focused
+runner/service/canary cases pass on each event loop. The finite thirty-price
+assessment of this exact final source passes, including original lost-reply
+reconciliation, relay, Stop, full owner reads and isolation. Ordinary closed
+restoration `f28baa4b-72a3-4922-ad42-2327ca80f435` is SUCCESS;17 temporary
+values are removed and the pair is revoked/NOLOGIN. The real-owner hour remains
+next. [Final-source assessment](supabase/audits/2026-10-08-renewal-budget-controller-assessment.json). The preceding
+PR76 assessment is passed, closed and revoked. No lease, expiry, freshness,
+schema/grant or other project changes.
+
 **PR76 release — 2026-10-08:** The bounded source-order and terminal-refusal
 repair is merged as `d4bc3210caeb6987acf85b7851a7bc119e78abdb`. Exact production
 `dpl_9h1RNH59MH8YA7DZjHn6xY7WTfFJ` is READY with four smokes. Its99-file
@@ -158,26 +193,44 @@ needs a file-backed sign-in before further release. [Fresh hosted evidence](supa
 
 **Next priorities, in order:**
 
-1. Release the paper6s renewal reserve and assess its final source. PR76
-   matching-loop assessment, complete owner reads and closed revocation pass.
-   The generic4s reserve remains appropriate to its unchanged3s+1s SQL profile.
-   PR75/PR76 releases are verified; preserve all source/receipt/lease/expiry guards.
-2. Accept the actual intended-owner supervised hour, first replacement and
-   reserved stop. The thirty-price lost-reply assessment is a prerequisite only.
-3. Verify final complete browser history/replay and anonymous/other-owner isolation,
-   then close the worker and revoke the finite pair. Keep HOST-07 open until the
-   complete bounded acceptance passes.
-4. Research and implement compact/versioned multi-window checkpoints and retention,
-   with long-duration/load acceptance before continuous paper evolution.
-5. Deep substantial research: source ordering/regression magnitudes and rates,
-   provider consistency/finality/alternative source semantics, source-age/repeated-
-   block/omission distributions, timing/quota/
-   billing tails, retained-position outage exposure and restoration, representative
-   holdouts and calibrated fills; complete LIVE-01…07 before any real trading.
+1. Review/release the paper2s single-connection headroom repair; verify exact
+   GitHub, Vercel, Supabase and Railway targets/source and production readiness.
+   The current failed scope is terminal, closed and revoked.
+2. Rehearse/issue a fresh finite assessment scope after quiescent checks, verify
+   its immutable source export, and pass the matching uvloop thirty-price native
+   lost-reply/relay/Stop/owned-read/isolation assessment. Restore closed and revoke.
+3. Start a separate actual intended-owner hour, then verify first replacement,
+   reserved Stop, full final browser history/event consistency, isolation and
+   project-scoped capacity/quota measurements. Close and revoke the original pair
+   after success or guarded interruption; keep HOST-07 open until all acceptance
+   passes. Do not substitute command IDs or extend an uncertain run's expiry.
+4. Research and implement compact/versioned multi-window checkpoints, bounded
+   active state and retention, with long-duration/load/restart acceptance before
+   continuous paper evolution.
+5. Deep substantial research: DNS/TCP/TLS/SCRAM and SQL/cleanup latency tails,
+   safe connection reuse versus finite fresh connections, source regression
+   magnitudes/frequency, provider consistency/finality/alternative semantics,
+   source-age/repeated-block/omission distributions, effective quota/billing,
+   retained-position outages/restoration, holdouts and calibrated fills. Complete
+   LIVE-01…07 before any real trading.
 
-- [x] **PAPER-RENEWAL-RESERVE1 — Align selected paper renewal reserve.** The selected SQL profile allows5s operation plus1s cleanup; the paper service now explicitly selects6s.54 focused runner/service/canary cases pass under uvloop, including no extra provider/renewal/economic dispatch with only5s lease tail. Generic transport/runner defaults, actual lease, expiry and source freshness remain unchanged. Complete current assessment/closed revocation, reviewed release and final-source assessment before owner hour.
+- [x] **PAPER-CONNECT-HEADROOM1 — Prepare measured single-connection tolerance.**
+  The actual owner pilot stops advancing after105 prices because its1s connection
+  phase expires. Original settlement/Stop, revision110 interruption with unchanged
+  economics/delivery, closed restoration and pair revocation pass. The selected
+  paper connection ceiling is2s within the unchanged5s whole RPC/1s cleanup and6s
+  renewal reserve.73 focused cases pass on both loops;15 real offline native cases
+  pass, including delayed connection, original-ID retention, old/new comparison,
+  no duplicate submission and existing whole/statement/COMMIT bounds. Reviewed
+  release and new hosted/hour acceptance remain next. **Deep substantial
+  research:** isolate connection phase latency, lifecycle/ownership/revocation
+  implications of pooling, and failure/unknown-commit settlement with retained
+  holdings before continuous operation. One observed phase timeout does not prove
+  a specific DNS, TCP, TLS, SCRAM or provider root cause.
 
-- [x] **PAPER-SOURCE-ORDER1 — Bound out-of-order observations and retain safe terminal control.** The actual post-SQL-repair pilot refuses a lower source block after109 prices; original terminal revision114, unchanged economics/checkpoint/events, closed restoration and revocation pass. Do not accept regressed data or rewrite its timestamps. Prepare the explicit paper policy of2 discards per episode/8 per run/15s deadline, fixed private-safe counters, one normal next paced poll, and ordinary-admission refusal with reserved Stop only before quote admission. Prove real feed watermark/ledger invariance, unchanged-receipt deadline retention, stale/time/clock/cancellation failures, exhausted budgets, lost original Stop reply and expired-lease denial. 173 focused cases pass on both default asyncio and uvloop;13 actual offline native cases pass. Exact-target PR/release and new hosted assessment/hour remain next. **Deep substantial research:** record validated rejected/current source references and regression distributions, assess provider consistency/finality and outage position exposure; do not infer a specific provider cause from the current fixed code alone.
+- [x] **PAPER-RENEWAL-RESERVE1 — Align selected paper renewal reserve.** The selected SQL profile allows5s operation plus1s cleanup; the paper service now explicitly selects6s.54 focused runner/service/canary cases pass under uvloop, including no extra provider/renewal/economic dispatch with only5s lease tail. Generic transport/runner defaults, actual lease, expiry and source freshness remain unchanged. PR77 is merged and its exact production is READY. The final-source thirty-price assessment, full owned reads/isolation and ordinary closed restoration/revocation pass; the actual owner hour is in progress.
+
+- [x] **PAPER-SOURCE-ORDER1 — Bound out-of-order observations and retain safe terminal control.** The actual post-SQL-repair pilot refuses a lower source block after109 prices; original terminal revision114, unchanged economics/checkpoint/events, closed restoration and revocation pass. Do not accept regressed data or rewrite its timestamps. Prepare the explicit paper policy of2 discards per episode/8 per run/15s deadline, fixed private-safe counters, one normal next paced poll, and ordinary-admission refusal with reserved Stop only before quote admission. Prove real feed watermark/ledger invariance, unchanged-receipt deadline retention, stale/time/clock/cancellation failures, exhausted budgets, lost original Stop reply and expired-lease denial. 173 focused cases pass on both default asyncio and uvloop;13 actual offline native cases pass. PR76 is merged and its exact production is READY; both its assessment and the final PR77-source assessment are passed, closed and revoked. Actual owner hour acceptance remains open. **Deep substantial research:** record validated rejected/current source references and regression distributions, assess provider consistency/finality and outage position exposure; do not infer a specific provider cause from the current fixed code alone.
 
 - [x] **PAPER-SQL-HEADROOM1 — Prepare measured paper SQL bounds and private-safe first failure evidence.** Exact-project Postgres logs identify57014/statement_timeout after90 prices. Original interruption, preserved economics/delivery, closed restoration, credential removal/revocation and terminal owner browser pass. Paper-only statements3s/whole5s/connect1s/COMMIT0.5s/cleanup1s are prepared; general defaults and freshness/lease/expiry remain.150 uvloop cases and11 actual offline native cases pass, including old/new2s-lock comparison, over-budget rollback, original readback, no duplicate submission and immutable sanitized evidence. PR75 release and the new thirty-price uvloop assessment pass; the actual hour remains open after a source-order refusal. **Deep substantial research:** SQL/role/catalog/lock/COMMIT/cleanup tail distributions under larger journals, source-age interaction, incremental checkpoint/projection costs, and data retention/compaction before continuous evolution.
 
@@ -476,6 +529,10 @@ Research began **2026-09-30** and was updated **2026-10-06/07** in [WORKER-HOSTI
 - [ ] **NEST-05 — Validate Monte Carlo assumptions and result identity.** Monthly returns are clipped at ±8%, and input changes alter the random seed; insights/exports can combine old full Monte Carlo results with new inputs. Document distributions/tails/correlation/sequence assumptions, separate scenario identity from RNG seeds, and tag results with input/version hashes. Acceptance: stale results are never presented as current; paired scenario comparisons can use common random draws; model limitations are explicit. Sources: [Monte Carlo](src/lib/nestegg/monte-carlo.ts), [insights](src/lib/nestegg/insights-engine.ts).
 - [ ] **NEST-06 — Correct plan, portfolio-link, and browser-storage state.** A zero linked portfolio retains old savings; restoring saved plans conflicts with the linked badge; the shared browser draft key can expose one account's plan to another account on the same device. Scope drafts by user, define link/override semantics, and clear or migrate state appropriately. Acceptance: logout/login, zero portfolio, restored plans, and manual overrides show consistent provenance. Sources: [storage](src/lib/nestegg/storage.ts), [Nestegg page](src/app/(dashboard)/nestegg/page.tsx).
 - [ ] **NEST-07 — Fix export/print success reporting.** `window.open` with `noopener` can return null, leaving blank output while UI reports success. Generate a reliable export artifact or print path and report actual completion/error. Acceptance: exported values match the current input/result version, and blocked popups/failed rendering cannot produce false success. Sources: [report export](src/lib/nestegg/export-report.ts), [export menu](src/components/nestegg/NesteggExportMenu.tsx).
+
+**Research follow-up — 2026-10-08 finite pilot:** Before continuous paper operation, measure command/journal growth separately from PostgreSQL compressed column bytes and total relation/index/TOAST storage. Database compression does not change the 262,144-byte application/SQL admission checks. A proposed prior-checkpoint reference must preserve one original immutable wire request for replay, verify the same owner/run/revision under the run lock, and independently bound expanded logical validation; the inner v4 model currently has its own capacity rejection. Removing the repeated before-state alone does not bound growing after-state histories, candidate accounts or positions. Investigate active-state versus immutable historical-ledger separation, sealed checkpoint/version ownership, retention pins and verified archive/recovery before deleting any referenced command. Prove lost-reply, rollback, freshness at final commit, retained Stop capacity, corruption rejection and complete source/RNG/account restoration with real offline PostgreSQL tests before proposing a new production contract. Primary sources: [PostgreSQL TOAST](https://www.postgresql.org/docs/17/storage-toast.html), [JSON operations](https://www.postgresql.org/docs/17/functions-json.html). This is a research requirement, not an implemented v6 migration or continuous-operation approval.
+
+**Jupiter follow-up — 2026-10-08:** Current [plans](https://developers.jup.ag/docs/portal/plans) state that all tiers use the same data freshness/latency; `/price/v3` costs one credit per request. [Rate limits](https://developers.jup.ag/docs/portal/rate-limits) remain organization-wide, with possible additional firewall limits. Verify actual effective key/path limits and portal metering against finite worker observations; a plan upgrade alone does not establish lower source age or monotonic response ordering. Research and retain validated regression magnitude/frequency evidence and source-age/timing tails before changing the present bounded discard or freshness policy.
 
 ## Phase 7 — P2/P3: Demo honesty, remaining routes, and project quality
 

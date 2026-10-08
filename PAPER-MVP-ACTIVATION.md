@@ -1,10 +1,45 @@
 # Supervised paper MVP activation plan
 
+**Latest owner pilot — 2026-10-08:** Final PR77 source starts through the actual
+owner dashboard, commits105 accepted prices/revision109, and delivers nine events.
+A one-second native connection phase timeout leaves the original protection
+pending. No SQLSTATE/statement timeout or source-order discard is reported.
+One original settlement does not resume expired evidence; one Stop is latched.
+Exact-target, expired-revision/hash-bound native interruption reads back once at
+revision110/fence2 with unchanged checkpoint, cash, accounts and positions, no
+new candidate event/ACK and no provider/wallet operation. The owner browser shows
+terminal history with disabled controls and unavailable current equity. Ordinary
+closed deployment`c7d8a768-1c4e-41a0-9f8c-59901656a635` is SUCCESS;16 temporary
+values are removed, the original variable map matches, and both finite credentials
+are revoked/NOLOGIN. [Original connect-timeout evidence](supabase/audits/2026-10-08-owner-pilot-connect-timeout.json).
+
+The paper-only connection repair allows2s for the single DNS/TCP/TLS/SCRAM attempt
+inside the unchanged5s whole RPC,3s statement,0.5s COMMIT and1s cleanup budgets.
+The selected6s renewal reserve and generic defaults remain unchanged. A1.2s
+connection-delay regression fails before repair.73 focused tests pass under each
+event loop;15 real offline PostgreSQL/TLS/SCRAM cases pass, proving the old bound
+submits no command and the new bound commits the original once. No retry, pool,
+endpoint, lease, expiry, freshness, schema/grant or other-project change. Release
+and final-source hosted assessment precede any new finite owner hour. HOST-07,
+first replacement, continuous paper and every live-trading gate remain open.
+
 Prepared 2026-10-08. The scope is one SOL/USD paper reference market, two EMA
 genes, eight genetic-algorithm candidates, one 3,600-second evaluation and at
 most one replacement. A 60-second completion grace permits a paced quote to
 observe the evaluation ending. There is no signer, wallet funding, swap,
 automatic restoration, continuous multi-window operation or profitability claim.
+
+**PR77 release — 2026-10-08:** The paper6s renewal reserve is merged as
+`062096ad803894f51b308e99a33982d7d45ba137`. Exact Vercel production
+`dpl_1rLU71cobwKF4fZqyKCqThjqSdJc` is READY with four smokes.54 focused
+runner/service/canary cases pass on each event loop. The finite thirty-price
+assessment of this exact final source passes, including original lost-reply
+reconciliation, relay, Stop, full owner reads and isolation. Ordinary closed
+restoration `f28baa4b-72a3-4922-ad42-2327ca80f435` is SUCCESS;17 temporary
+values are removed and the pair is revoked/NOLOGIN. The real-owner hour remains
+next. [Final-source assessment](supabase/audits/2026-10-08-renewal-budget-controller-assessment.json). The preceding
+PR76 assessment is passed, closed and revoked. No lease, expiry, freshness,
+schema/grant or other project changes.
 
 **PR76 release — 2026-10-08:** The bounded source-order and terminal-refusal
 repair is merged as `d4bc3210caeb6987acf85b7851a7bc119e78abdb`. Exact production

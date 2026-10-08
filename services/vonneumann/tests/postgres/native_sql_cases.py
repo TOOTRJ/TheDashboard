@@ -324,6 +324,56 @@ class ActualNativeSQLTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(await self.scalar('SELECT count(*) FROM vn_durability.runs WHERE id=%s::uuid',(self.run_id,)),0)
         self.assertEqual(self.repository.pending.command_id,command.command_id)
 
+    async def test_old_one_second_connection_bound_keeps_original_unsubmitted(self):
+        await self.pair.aclose()
+        self.pair=self.make_pair(bounds=CommandSQLBounds(operation_seconds=5,
+            connect_seconds=1,statement_seconds=3,commit_seconds=.5))
+        self.repository=CommandRepository(self.pair,self.owner_id,self.run_id,self.worker_id)
+        command=self.create()
+        original_connect=self.pair._economic._connect
+        connects=0
+        async def connect(*args):
+            nonlocal connects
+            connects+=1
+            await asyncio.sleep(1.2)
+            return await original_connect(*args)
+        with patch.object(self.pair._economic,'_connect',connect):
+            with self.assertRaises(UncertainCommand): await self.repository.submit(command)
+        self.assertEqual(connects,1)
+        self.assertEqual(self.pair.first_failures['economic'],{
+            'phase':'connect','category':'phase_timeout','sqlstate':None,'code':'phase_timeout'})
+        self.assertEqual(await self.journal_count(),0)
+        self.assertEqual(await self.scalar('SELECT count(*) FROM vn_durability.runs WHERE id=%s::uuid',(self.run_id,)),0)
+        self.assertEqual(self.repository.pending.command_id,command.command_id)
+        self.assertFalse(self.pair._economic._io_tasks)
+        with self.assertRaises(CommandAdmissionError): await self.repository.submit(self.create())
+
+    async def test_paper_connection_headroom_commits_original_once_after_delay_and_real_tls(self):
+        await self.pair.aclose()
+        self.pair=self.make_pair(bounds=paper_sql_bounds())
+        self.repository=CommandRepository(self.pair,self.owner_id,self.run_id,self.worker_id)
+        command=self.create()
+        original_connect=self.pair._economic._connect
+        connects=0
+        async def connect(*args):
+            nonlocal connects
+            connects+=1
+            await asyncio.sleep(1.2)
+            return await original_connect(*args)
+        started=time.monotonic()
+        with patch.object(self.pair._economic,'_connect',connect):
+            receipt=await self.repository.submit(command)
+        elapsed=time.monotonic()-started
+        self.assertGreater(elapsed,1.2)
+        self.assertLess(elapsed,5)
+        self.assertEqual(receipt.command.command_id,command.command_id)
+        self.assertEqual(connects,1)
+        self.assertEqual(await self.journal_count(),1)
+        self.assertIsNone(self.repository.pending)
+        self.assertIsNone(self.pair.first_failures['economic'])
+        self.assertFalse(self.pair._economic._io_tasks)
+        self.assertEqual(self.pair._economic._bounds.operation_seconds,5)
+
     async def test_paper_profile_commits_original_once_after_two_second_real_lock_wait(self):
         await self.pair.aclose()
         self.pair=self.make_pair(bounds=paper_sql_bounds())
