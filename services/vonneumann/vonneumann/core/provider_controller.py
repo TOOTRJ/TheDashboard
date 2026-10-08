@@ -112,8 +112,17 @@ class ProviderPilotController:
         return self._owner.limits
 
     @property
+    def pilot_completed(self):
+        return self._owner.refusal_reason == 'pilot_completed'
+
+    @property
     def lease_seconds(self):
         return self._lease_seconds
+
+    @property
+    def lease_remaining_seconds(self):
+        self._clocks()
+        return self._owner.lease_remaining_seconds
 
     @property
     def closed_reason(self):
@@ -287,6 +296,18 @@ class ProviderPilotController:
                     work.stage = 'decision_select' if stage == 'protect_publish' else 'done'
                     continue
                 if stage == 'done':
+                    # A journal readback proves the original commit, not a
+                    # renewed lease. Publication must finish first, but normal
+                    # execution may return to the runner only with a fresh
+                    # acknowledged heartbeat. Draining settles without renewal.
+                    if (work.renewed_after_readback and not settlement_only
+                            and not self._draining and not self.closed_reason):
+                        self._normal()
+                        await self._renew()
+                        work.renewed_after_readback = False
+                        report = self._barrier()
+                        if report is not None:
+                            return report
                     status = 'closed' if self.closed_reason else 'complete'
                     return self._report(status, finish=True)
                 if settlement_only or self._draining or self.closed_reason:

@@ -82,6 +82,12 @@ class TransitionCoordinator:
         return (self._open and not self.busy and self._candidate is None
                 and self._repository.accepting and self._current())
 
+    @property
+    def lease_remaining_seconds(self):
+        if not self._open or self.busy or self._candidate is not None or not self._current():
+            return 0.0
+        return self._repository.lease_remaining_seconds
+
     def _current(self):
         revision = 1 if self._state is None else self._state.revision
         return (self._repository.revision == revision

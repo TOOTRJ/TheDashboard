@@ -340,7 +340,7 @@ class ProviderPilotOwnerTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_duration_bound_preserves_stop_after_the_supported_first_window(self):
         await self.bootstrapped(); await self.first_decision()
-        await self.offset(3602)
+        await self.offset(3662)
         count = self.transport.count('commit_command')
         with self.assertRaises(module.PilotAdmissionRefused):
             ticket = self.ticket(block=101)
@@ -580,7 +580,7 @@ class ProviderPilotOwnerTests(unittest.IsolatedAsyncioTestCase):
                 self.owner = None
                 self.stop_id = self.identity()
                 await self.bootstrapped(algorithm, low_seed=True)
-                for serial, offset in enumerate((1, 900, 901, 1800, 1801, 2700, 2701, 3600, 3601), 1):
+                for serial, offset in enumerate((1, 900, 901, 1800, 1801, 2700, 2701, 3600, 3613), 1):
                     await self.offset(offset)
                     ticket = self.ticket(block=100 + serial)
                     await self.owner.protect(ticket, **self.allocation())
@@ -591,7 +591,7 @@ class ProviderPilotOwnerTests(unittest.IsolatedAsyncioTestCase):
                             close='120' if (offset // 900) % 2 else '80',
                             wall=self.wall.value - 1, mono=self.mono.value - 1)
                     await self.owner.decide(ticket, records, **self.allocation())
-                    if offset == 3601:
+                    if offset == 3613:
                         self.assert_refused('pilot_completed')
                         self.assertFalse(self.owner.stop_available)
                     await self.owner.publish_pending(self.sink)

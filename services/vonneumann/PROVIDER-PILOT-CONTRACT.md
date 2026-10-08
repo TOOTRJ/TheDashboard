@@ -20,7 +20,7 @@ every legal price or configuration can advance indefinitely.
 | Genes and population | Existing fixed v5 profile: two EMA genes, eight members, SOL/USD |
 | Accepted quote budget | Default 3,601, configurable down to 1 |
 | Total command budget | Default 4,000, configurable down to 4; includes creation, bootstrap and the reserved stop |
-| Quote timeline | At most 3,600 seconds after the first installed protective quote |
+| Quote timeline | One 3,600-second evaluation plus at most 60 seconds to observe/commit completion after the first installed protective quote |
 | Replacement/search epoch | One replacement; no restart, resume or recovery in this pilot |
 | Per-operation allocations | At most nine UUIDs and eight bounded names |
 | Terminal allocations | Empty UUID and name tuples; one distinct reserved command ID |
@@ -170,3 +170,22 @@ journal/outbox memory and legal retention, process restart clock rebinding and
 the cumulative five-second feasibility. The pilot is not restart/restoration
 authority. Existing primary-source findings are in
 [EXACT-SOURCE-RESEARCH.md](EXACT-SOURCE-RESEARCH.md).
+
+## Hosted admission repair — 2026-10-07
+
+The runner uses conservative acknowledged remaining lease time, including the
+transport elapsed time and repository margin, rather than the configured lease
+length alone. A wait must fit with four seconds reserved for the native
+operation/cleanup bounds. One serial idle heartbeat renews short headroom;
+insufficient dispatch headroom or an overslept wait drains without a new capture.
+Cancelled callers still retain that original renewal. After uncertain command
+readback, publication finishes before a new acknowledged renewal permits normal
+execution. Journal readback itself never extends a lease.
+
+The original strict one-hour quote limit could reject the first paced quote
+after a one-hour cohort ended. The new one-minute grace permits its completion
+without changing the fixed v5 evaluation horizon, command/payload/retention caps
+or one-replacement limit. Once the owner has committed that replacement, the
+runner reports completion and the service spends its existing reserved stop;
+it does not start another cohort. Dense actual preparations for all four solvers
+now exercise completion thirteen seconds after the nominal window.

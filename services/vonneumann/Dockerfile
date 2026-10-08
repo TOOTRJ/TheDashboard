@@ -8,6 +8,7 @@ COPY vonneumann ./vonneumann
 COPY tools/native_tls_preflight.py ./tools/native_tls_preflight.py
 COPY tools/native_session_canary.py ./tools/native_session_canary.py
 COPY tools/provider_read_canary.py ./tools/provider_read_canary.py
+COPY tools/paper_controller_canary.py ./tools/paper_controller_canary.py
 COPY start-worker.sh ./start-worker.sh
 RUN chmod 0555 start-worker.sh && useradd --uid 10001 --no-create-home --shell /usr/sbin/nologin dashboard
 USER 10001:10001

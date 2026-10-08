@@ -67,7 +67,7 @@ class ProviderPilotLimitsTests(OfflineTestMixin, unittest.TestCase):
         limits = ProviderPilotLimits()
         self.assertEqual((limits.max_quotes, limits.max_commands), (3601, 4000))
         self.assertEqual((limits.MAX_ELAPSED_QUOTE_SECONDS, limits.MAX_GENERATION,
-            limits.MAX_SEARCH_EPOCH, limits.MAX_IDS, limits.MAX_NAMES), (3600, 1, 0, 9, 8))
+            limits.MAX_SEARCH_EPOCH, limits.MAX_IDS, limits.MAX_NAMES), (3660, 1, 0, 9, 8))
         config = life.ProviderLifecycleConfig(kernel.ExactLifecycleConfig(
             'genetic_algorithm', OWNER, RUN, asset='SOL/USD'), EPOCH)
         self.assertEqual(config.run_configuration()['durability_contract_version'], 5)

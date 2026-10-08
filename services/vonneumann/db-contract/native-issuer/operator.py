@@ -2,7 +2,8 @@
 
 The managed query API accepts parameters for one statement only. This adapter
 reuses the reviewed limited-installer body; it grants no additional authority.
-Install/remove while admission is closed. Never interpolate usable credentials.
+Issue while admission is closed. Exact-pair revocation remains available after
+activation or retirement. Never interpolate usable credentials.
 """
 from __future__ import annotations
 import hashlib
@@ -98,12 +99,14 @@ def function(name):
   RAISE EXCEPTION 'native_operator_or_logging_mismatch' USING ERRCODE='42501';
  END IF;
  EXECUTE 'SET LOCAL ROLE vn_contract_owner';
- IF NOT EXISTS(SELECT 1 FROM vn_release.state WHERE singleton AND state='closed'
+ IF NOT EXISTS(SELECT 1 FROM vn_release.state WHERE singleton AND -- ADMISSION_GUARD
    AND release_sha256='-- RELEASE') THEN
   RAISE EXCEPTION 'closed_reviewed_release_required' USING ERRCODE='55000';
  END IF;
  EXECUTE 'RESET ROLE';
 """.replace('-- RELEASE', RELEASE)
+    guard = guard.replace('-- ADMISSION_GUARD',
+        "state='closed'" if name == 'issue' else "state IN ('closed','open','retired')")
     if body.count('\nBEGIN\n') != 1:
         raise ValueError('Reviewed native body grammar changed')
     body = body.replace('\nBEGIN\n', '\nBEGIN\n' + guard + validation, 1)

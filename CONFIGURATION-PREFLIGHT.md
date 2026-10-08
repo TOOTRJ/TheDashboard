@@ -2673,3 +2673,53 @@ Provider-only closed deployment1697fedb-a752-49e8-ad19-dd454fe2fc89 passes915 co
 Restore ordinary `/app/start-worker.sh` and remove exactly JUPITER_API_KEY / BIRDEYE_API_KEY / VN_SOLANA_RPC_URL. The entire original variable set matches private saved originals; no native/admin/operator credential is present. Ordinary closed deployment9f606944-1bfd-4b2c-87bc-0855bee00117 SUCCESS uses the same immutable source and authoritative one us-west2 replica. Fresh exact-target/SSL/service/limit checks, health 200, anonymous status 401, disallowed origin 403 and no-store pass. [Sanitized evidence](supabase/audits/2026-10-07-upgraded-hosted-provider-acceptance.json) retains measurement and restoration. Private source/upload/original-variable journal remains mode 0600, ignored, and settled as passed_and_restored_closed. No migration, Auth/legacy data change, account-wide rule/billing change or live/paper run.
 
 DATA-01D now completes its finite compatibility/measurement scope. Immediate remaining work is D2D2A remote source/SQL/lease/relay preparation/resource headroom and DATA-01E shared quota/credit budget, followed by safe interruption/nonempty ownership/operator acceptance and HOST-07. Birdeye stays narrowly for completed historical warmup/candles; the two EMA genes stay fixed until that pilot is accepted.
+
+
+## 72. Remaining paper MVP admission repairs and finite controller assessment (2026-10-07)
+
+The user confirms no other application consumes Jupiter under TheOrder. The
+Dashboard remains the only authorized cloud target. Fresh GitHub, Vercel,
+Supabase and Railway project/name/owner/service context is pinned;
+Railway is still ordinary Auth-only closed deployment9f606944-1bfd-4b2c-87bc-0855bee00117,
+one us-west2 replica, .25CPU/500MB and no native/provider runtime credentials.
+
+Review found three defects: configured lease duration did not establish actual
+remaining wait headroom; successful journal reconciliation/publication could
+return without a renewed lease; and a strict 3,600-second pilot cutoff could
+reject the first paced quote that completes a 3,600-second evaluation. Repairs
+use conservative acknowledged remaining time and a bounded idle renewal, renew
+after readback/publication before normal admission, and allow sixty seconds
+for first-window completion while stopping at the existing one-replacement
+latch. All command/payload/retention caps and the fixed v5 horizon stay intact.
+A fourth operational issue prevented scoped credential revocation after release
+activation; the private temporary invoker now permits exact-pair revocation
+also while open/retired, while issuance remains closed-only. Isolated actual
+PostgreSQL activation/retirement/revocation rollback drills pass. No managed
+release activation or new credential issuance has occurred at this checkpoint.
+
+The deliberate finite controller canary composes ordinary configured service,
+real feed/native SQL/durable relay and reserved stop with at most thirty ticks,
+five-second minimum spacing and600s deadline. Its secret-free measurement
+wrapper retains counts/timings only and does not retry. Public API remains closed.
+Its actual hosted acceptance, interruption/nonempty ownership and supervised
+one-window pilot remain the next gates; do not mark them complete from tests.
+Deep substantial research remains for statistical remote tails, provider credit
+entitlements, restart/retention and multi-window checkpoints.
+
+Validation: the full ordinary worker discovery runs1,713 tests in254.291s, with237
+opt-in PostgreSQL cases skipped. Four separately added canary boundary tests pass;
+the selected actual PostgreSQL run passes13 cases including open/retired exact-pair
+revocation, controller ownership and the native HTTP/projection/relay flow. The
+focused worker regression run passes192 cases and the focused new tool/service/
+runner/package run passes47. Scoped operator scripts pass29 tests. No frontend
+source changed; diff/whitespace checks pass. The pre-existing dirty historical
+migration remains untouched at SHA256a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc.
+
+Current remote blocker2026-10-08: fresh GitHub/Supabase/Railway identity checks
+pass, but dedicated Vercel CLI62.0.0 reports a native credential error (positive
+errno1); the Node path cannot resolve the dedicated session either. The dedicated
+auth.json is unavailable on fresh inspection. No default/shared credential or
+profile is used. Require deliberate login to the exact Dashboard profile before
+consequential push/deployment/activation. [Reviewed activation/rollback plan](PAPER-MVP-ACTIVATION.md)
+records original-ID gates and one-way release retirement. No remote write, new
+pair, release activation, or paper run occurred in this repair checkpoint.

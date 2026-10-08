@@ -28,7 +28,7 @@ terminal checkpoint remains drained/failed/pending and requires reconciliation.
 The initial configured profile is GA, eight candidates, SOL/USD reference,
 `ema_fast`/`ema_slow`, one common evaluation window and at most one replacement.
 Integers explicitly bound interval to 1–30 seconds, accepted ticks to 1–3,601 and
-the configured duration to at most 3,600 seconds. These input bounds do not select
+the configured quote duration to at most 3,660 seconds (one hour plus a 60-second completion margin). These input bounds do not select
 a production cadence. A short smoke may stop before any completed evaluation.
 Costs are an uncalibrated scenario, not executable Solana fills.
 
@@ -150,3 +150,22 @@ tails, remote source-age semantics and candle-boundary deferral, quota/credit bi
 managed privilege hooks, Auth transport maintenance, interrupted exposure, native
 dependency/CA maintenance, retention and compact multi-window checkpoints. The first
 service intentionally cannot provide continuous evolution or automatic restoration.
+
+## Deliberate hosted controller assessment
+
+`python -m tools.paper_controller_canary` is an explicit operator entrypoint,
+not ordinary startup. It requires closed public API mode, finite-controller-v1
+selection, a confirmed sole Jupiter consumer, at most thirty ticks and a minimum
+five-second interval. The ordinary strict configured-service constructor builds
+one actual native-v5 run. The assessment measures complete controller phases,
+individual native RPC operations, actual provider calls/source ages and process
+resources through its reserved terminal stop. The public API stays closed.
+Results are finite min/median/max measurements, not statistical tail guarantees.
+Failure retains the original run/command for inspection; no automatic retry or
+new identity is admitted. Private exact-target activation, credentials, original
+operation journal and rollback review must precede selection.
+
+The temporary invoker credential operator still permits issuance only while the
+reviewed release is closed. Exact original-pair revocation is permitted while
+closed, open or retired, preserving bindings and economic history. It remains
+private, has no definer elevation, and is removed after each reviewed operation.
