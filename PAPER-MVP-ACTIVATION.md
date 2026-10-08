@@ -162,7 +162,12 @@ Its SQL additionally serializes bindings/runs, denies any unrevoked binding or
 application capability login, denies unreconciled active statuses, and rejects
 previously used run/binding IDs. Prepare fixed names, password verifiers and IDs
 in an owned0600 ignored journal; bind private inputs rather than literal SQL.
-Rehearse the same request under ROLLBACK and verify no roles/bindings appeared.
+Rehearse the same request with the bound-input rehearse_quiescent wrapper. It
+calls the real guarded issuer inside a nested subtransaction, raises/catches a
+private sentinel and returns only the tentative receipt after database rollback.
+This uses one bound statement, compatible with the managed query API; never
+interpolate a verifier to work around its multi-statement parameter limitation.
+Independently verify no roles/bindings appeared before actual issuance.
 Commit once, independently reconcile original names/OIDs/scope/deadlines, then
 remove the unexposed invoker before cloud deployment. Unknown outcomes stay
 attached to that original intent; no automatic fresh issuance or retry.
@@ -170,3 +175,11 @@ attached to that original intent; no automatic fresh issuance or retry.
 Use one finite pair at a time: assessment, cleanup/revocation, then a separately
 prepared intended-owner pilot. This does not widen worker capabilities, change
 account-wide credentials, reopen a retired release or authorize real trading.
+
+The v5 browser reader now allows60s for a complete pinned snapshot, while each
+network request retains5s/64KiB and existing identity/page/row bounds. Independent
+worker status polling continues during history acquisition. Each history cycle
+schedules the next ten seconds after completion; it is never periodically aborted
+by an unrelated status poll. Explicit refresh, selection/session change and
+unmount still abort stale work. Verify the full final pilot history in the actual
+browser; offline timers are not hosted read-performance acceptance.

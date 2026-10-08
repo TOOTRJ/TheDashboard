@@ -140,14 +140,45 @@ class NativeQuiescentOperatorTests(unittest.TestCase):
 
     def test_api_roles_are_denied_and_temporary_invoker_preserves_catalog(self):
         for role in ('anon', 'authenticated', 'service_role', 'vn_economic', 'vn_relay'):
-            result = NativeOperatorTests.call(self, 'issue_quiescent', self.input, fixture.ADMIN,
-                                              set_role=role, prefix='BEGIN;', suffix='ROLLBACK;')
-            self.assertNotEqual(result.returncode, 0)
-            self.assertIn('42501', result.stderr)
+            for operation in ('issue_quiescent', 'rehearse_quiescent'):
+                result = NativeOperatorTests.call(self, operation, self.input, fixture.ADMIN,
+                                                  set_role=role, prefix='BEGIN;', suffix='ROLLBACK;')
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn('42501', result.stderr)
         self.db.sql((fixture.HERE / 'verify.sql').read_text())
         self.db.sql(operator.remove_quiescent())
         self.assertEqual(self.db.scalar(f"SELECT to_regnamespace('{operator.SCHEMA}') IS NULL;"), 't')
         self.db.sql(operator.install_quiescent())
+
+    def test_bound_single_statement_rehearsal_rolls_back_roles_and_bindings_before_return(self):
+        # Commit the fixture's real OPEN transition; the managed API's rehearsal
+        # is just one bound SELECT, without a surrounding rollback statement.
+        self.db.sql(self.opening() + 'COMMIT;')
+        try:
+            result = NativeOperatorTests.call(self, 'rehearse_quiescent', self.input)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            rows = json.loads(result.stdout)
+            self.assertEqual([r['capability'] for r in rows], ['economic', 'relay'])
+            self.assertTrue(all(r['login'] and r['revoked'] is None for r in rows))
+            self.assertEqual(self.db.scalar("SELECT count(*) FROM vn_access.bindings;", role=fixture.ADMIN), '0')
+            self.assertEqual(self.db.scalar(f"SELECT count(*) FROM pg_roles WHERE rolname=ANY(ARRAY['{self.pair.names[0]}','{self.pair.names[1]}']);"), '0')
+            # The exact original inputs can subsequently be issued once.
+            result = self.call(self.input, prefix='BEGIN;')
+            self.assertEqual(result.returncode, 0, result.stderr)
+            NativeOperatorTests.logs(self)
+        finally:
+            # Test fixture cleanup only; hosted state is one-way and never reset.
+            self.db.sql("UPDATE vn_release.state SET state='closed',epoch=0 WHERE singleton;", role=fixture.ADMIN)
+
+    def test_rehearsal_failure_cannot_be_reported_as_success_or_leave_partial_roles(self):
+        prefix = self.opening() + f'CREATE ROLE {self.pair.names[1]} NOLOGIN;\n'
+        result = NativeOperatorTests.call(self, 'rehearse_quiescent', self.input, prefix=prefix, suffix='ROLLBACK;')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('native_rehearsal_failed', result.stderr)
+        self.assertEqual(self.db.scalar("SELECT count(*) FROM vn_access.bindings;", role=fixture.ADMIN), '0')
+        for secret in (*self.pair.passwords, *self.verifiers):
+            self.assertNotIn(secret, result.stdout + result.stderr)
+        NativeOperatorTests.logs(self)
 
     def test_unrevoked_binding_blocks_even_when_both_logins_are_disabled(self):
         encoded = json.dumps(self.input).replace("'", "''")

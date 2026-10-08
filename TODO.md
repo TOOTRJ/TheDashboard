@@ -1,18 +1,23 @@
 # Dashboard audit and implementation backlog
 
-**Current immediate work — 2026-10-08:** PR68 is merged and exact production
+**Current immediate work — 2026-10-08:** PR69 is merged and exact production
 verified. The corrected30-price native controller/lost-reply/relay/stop assessment
 passes, as do nonempty owner isolation and actual interruption. The intended-owner
 browser starts paper-v5 and displays eight candidates, but its one-hour pilot
 fails after four prices. Original interruption and closed restoration preserve
-history; all four original pairs are revoked. Prioritize repeated-snapshot receipt
-admission, fixed failure/reconciliation diagnostics and guarded quiescent fresh
-run provisioning; then repeat the supervised one-hour pilot and verify the first
+history; all four original pairs are revoked. Repeated-snapshot receipt admission,
+fixed failure/reconciliation diagnostics and guarded quiescent fresh-run issuance
+are merged in PR69; production65c5a2744343e11707b181e2e85c7d58338df3b2 is READY
+with four smokes. Complete the growing-history polling repair and bound-input
+rollback rehearsal; then repeat the supervised one-hour pilot and verify the first
 replacement/final browser history. [Controller acceptance](supabase/audits/2026-10-08-corrected-controller-acceptance.json),
 [intended-owner interruption](supabase/audits/2026-10-08-intended-owner-pilot-interruption.json).
 Keep HOST-07 open. More deep and substantial research remains required on remote
 timing tails, provider credits, outage exposure, restoration, execution calibration
 and continuous evaluation.
+
+- [x] **UI-PAPER-READ1 — Let complete bounded v5 history finish without periodic cancellation.** Worker status and history now poll independently, ten seconds after each cycle finishes. A slow complete history read cannot be cancelled by the worker poll. v5 snapshot/directory/event reads share a60s whole-read budget; every network request retains5s/64KiB, pinned identity/revision/cursors,500-page/50,000-row limits and no partial publication. Manual refresh, selection/session change and unmount still cancel obsolete work. Twenty-four focused frontend tests, TypeScript and lint pass. Hosted final-hour browser acceptance remains HOST-07; legacy readers retain their existing budgets. Research incremental verified reads, retention/compaction and larger histories before continuous operation.
+- [x] **C3-FRESH-REHEARSAL — Prove one bound statement rolls fresh issuance back before returning.** A temporary postgres-only SECURITY INVOKER wrapper raises/catches a private sentinel after the original guarded quiescent issuer; PostgreSQL rolls roles/bindings back inside that subtransaction. A separately read absence check precedes one actual issuance with the same original inputs. Twelve actual PostgreSQL tests cover success/failure, unchanged catalog, API denial and secret-free logs. Hosted rehearsal/issuance still requires exact merged source and quiescent cloud/database preflight.
 
 Created: 2026-09-29. Basis: the read-only project audit, isolated engine reproductions, and follow-up research on evolutionary optimization, trading systems, and Solana execution.
 

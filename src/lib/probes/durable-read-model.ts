@@ -7,6 +7,8 @@ export type ProjectionRow = { revision: number; command_id: string; key: string;
 export type PageArguments = { run: string; kind: ProjectionKind; through_revision: number | null;
   after_revision: number; after_key: string; max_rows: number; max_bytes: number };
 export type PageRPC = (args: PageArguments, signal: AbortSignal) => Promise<unknown>;
+/** Whole-snapshot budget; each network request retains its separate 5s limit. */
+export const HISTORY_READ_TIMEOUT_MS = 60_000;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const KINDS = new Set<ProjectionKind>(["runs", "probes", "trades", "samples", "evaluations"]);
 function refuse(): never { throw new Error("Durable history is unavailable or incompatible."); }
@@ -95,7 +97,7 @@ export async function collectProjectionPages(rpc: PageRPC, owner: string, run: s
   const abort = () => controller.abort();
   external?.addEventListener("abort", abort, { once: true });
   if (external?.aborted) controller.abort();
-  const timeout = setTimeout(abort, 8000);
+  const timeout = setTimeout(abort, HISTORY_READ_TIMEOUT_MS);
   let cursor = { revision: 0, key: "" };
   const records: ProjectionRow[] = [];
   try {

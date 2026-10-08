@@ -5,17 +5,18 @@ This distinguishes tested components, deployed application behavior, and the
 integration work still required. Completing engine tests is not a hosted bot
 release or evidence of a profitable strategy.
 
-Latest hosted checkpoint 2026-10-08: PR68 is merged and exact production is
+Latest hosted checkpoint 2026-10-08: PR69 is merged and exact production is
 READY. The corrected30-price native controller, original lost-reply reconciliation,
 relay and reserved stop pass. Nonempty owner reads and actual active cross-owner
 controls are denied correctly. The intended owner starts through the dashboard
 and sees eight candidates, but the one-hour run fails after four prices. Its
 original expired-run interruption preserves checkpoint/cash/positions; all four
 initial pairs are revoked and ordinary closed startup restored. The repeated
-snapshot/consumed-receipt defect is reproduced and repaired locally; precise
+snapshot/consumed-receipt defect is reproduced and repaired in merged PR69; precise
 hosted failure origin was not retained by that source. Fixed admission and
-reconciliation diagnostics plus guarded quiescent fresh-run provisioning precede
-another hour. HOST-07 and first replacement remain unaccepted.
+reconciliation diagnostics plus guarded quiescent fresh-run provisioning are
+released. Complete growing-history polling and bound-input rollback rehearsal
+before another hour. HOST-07 and first replacement remain unaccepted.
 [Controller evidence](supabase/audits/2026-10-08-corrected-controller-acceptance.json),
 [intended-owner interruption](supabase/audits/2026-10-08-intended-owner-pilot-interruption.json),
 [activation/rollback](PAPER-MVP-ACTIVATION.md).

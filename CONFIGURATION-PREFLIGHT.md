@@ -2880,3 +2880,38 @@ and changed-component lint pass. The isolated production build uses synthetic
 configuration. One-hour replacement and full intended-owner final history remain
 unaccepted until the new fresh run passes. Continuous operation, realistic fills,
 restart restoration and statistical timing/credit tails remain deeper research.
+
+## 76. Complete history polling and bound-input fresh-pair rehearsal (2026-10-08)
+
+PR69 is merged as65c5a2744343e11707b181e2e85c7d58338df3b2. Exact production
+dpl_J9AJevZLpKTCQUyBLuMAXVR9HDBW is READY; source/repository/author/project/team
+and production alias match, with four read-only smokes passed. Railway ordinary
+closed restoratione5ad7bc7-24ae-4d2c-8408-06839e973266 is SUCCESS. All original
+pairs remain revoked and original history retained. No new pilot is accepted.
+
+Growing v5 history previously had an8s complete-read deadline, while the
+component independently refreshed every10s and aborted its prior request. Full
+one-hour version history can require more pages than that budget permits. Worker
+status and history now poll independently, each scheduling its next cycle ten
+seconds after completion. Snapshot/directory/event and pure projection collectors
+use a60s whole-read limit. Each actual network request keeps5s/64KiB and no
+redirects/cache; owner/run/revision/cursor,500-page/50,000-row bounds, atomic
+complete publication and caller/session/selection cancellation remain intact.
+The legacy reader is unchanged. Twenty-four focused tests prove slow complete
+reads, continued status polling, explicit refresh/unmount/session cancellation,
+12s pagination success and60s total rejection without partial publication.
+
+The fresh-pair managed rehearsal now uses one bound SELECT rather than a bound
+multi-statement batch. A temporary postgres-only SECURITY INVOKER wrapper invokes
+the actual guarded quiescent provisioner, raises/catches a private sentinel and
+rolls roles/bindings back inside a nested subtransaction before returning its
+local tentative receipt. Independent absence readback precedes one actual
+issuance with the same original input. Errors cannot produce a successful receipt;
+the adapter is removed with RESTRICT. Twelve actual PostgreSQL tests pass,
+including committed single-statement rollback, subsequent exact-input issuance,
+API denial, atomic failure, catalog preservation and no password/verifier logs.
+TypeScript, changed-file lint and the isolated synthetic production build pass.
+Actual hosted fresh pair/controller/one-hour/browser flow remain separate
+acceptance checks. Further substantial research: incremental verified history,
+retention/compaction and larger read/COMMIT/provider/CPU timing tails before
+continuous operation or any strategy-quality claim.

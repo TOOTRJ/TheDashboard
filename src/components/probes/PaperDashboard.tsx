@@ -20,7 +20,6 @@ export function PaperDashboard({ owner, token, apiOverride, legacyReader = fetch
   const [historyError, setHistoryError] = React.useState<string | null>(null);
   const [pending, setPending] = React.useState<string | null>(null);
   const [refresh, setRefresh] = React.useState(0);
-  const scope = React.useRef(0);
   const archive = React.useRef<{ run: string; revision: number; request: string } | null>(null);
   const operation = React.useRef<string | null>(null);
   const credentials = React.useMemo(() => ({ active: true, owner, token }), [owner, token]);
@@ -31,14 +30,11 @@ export function PaperDashboard({ owner, token, apiOverride, legacyReader = fetch
     catch { return null; }
   }, [token, apiOverride]);
   React.useEffect(() => {
-    const timer = setInterval(() => setRefresh(n => n + 1), 10000);
-    return () => clearInterval(timer);
-  }, []);
-  React.useEffect(() => {
     if (!api) { setControls(null); setStatus(null); setWorkerError('The paper worker endpoint is not configured.'); return; }
     const client = api;
-    const controller = new AbortController(), version = ++scope.current;
-    const current = () => version === scope.current && !controller.signal.aborted;
+    const controller = new AbortController();
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const current = () => !controller.signal.aborted;
     async function worker() {
       try {
         const [rawStatus, rawControls] = await Promise.all([client.worker('status', undefined, controller.signal),
@@ -50,6 +46,19 @@ export function PaperDashboard({ owner, token, apiOverride, legacyReader = fetch
         if (current()) { setStatus(s); setControls(ids); setWorkerError(null); }
       } catch { if (current()) { setStatus(null); setControls(null); setWorkerError('Unable to verify the paper worker. Committed history is still available; controls require verified worker status.'); } }
     }
+    async function poll() {
+      await worker();
+      if (current()) timer = setTimeout(() => void poll(), 10000);
+    }
+    void poll();
+    return () => { controller.abort(); clearTimeout(timer); };
+  }, [api, owner, refresh]);
+  React.useEffect(() => {
+    if (!api) return;
+    const client = api;
+    const controller = new AbortController();
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const current = () => !controller.signal.aborted;
     async function history() {
       try {
         const [directory, old] = await Promise.all([discoverRuns(client, owner, controller.signal), legacyReader(owner, controller.signal)]);
@@ -60,8 +69,12 @@ export function PaperDashboard({ owner, token, apiOverride, legacyReader = fetch
         if (current()) { setSelected(run); setSnapshot(data); setEventCount(events.length); setHistoryError(null); }
       } catch { if (current()) setHistoryError('Unable to refresh committed history. The last complete snapshot remains shown; refresh to retry reads.'); }
     }
-    void Promise.all([worker(), history()]);
-    return () => { controller.abort(); };
+    async function poll() {
+      await history();
+      if (current()) timer = setTimeout(() => void poll(), 10000);
+    }
+    void poll();
+    return () => { controller.abort(); clearTimeout(timer); };
   }, [api, owner, selected, refresh, legacyReader]);
   React.useEffect(() => { setPending(null); archive.current = null; setSnapshot(null); setEventCount(null); setRuns([]); setLegacy([]); }, [owner]);
   async function command(action: 'start' | 'stop' | 'settle') {
