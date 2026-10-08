@@ -232,11 +232,11 @@ class ExactCandleRecordTests(OfflineTestMixin, unittest.TestCase):
         self.assertEqual((record.volume, record.volume_usd), ("0", "0"))
 
     def test_scaled_metadata_is_retained_but_explicit_profile_guard_rejects(self):
-        for multiplier in (_ABSENT, "2.500000000000000001"):
+        for multiplier in (_ABSENT, "null", "2.500000000000000001"):
             with self.subTest(multiplier=multiplier):
                 record, = candles(candle_document(row(), scaled="true", multiplier=multiplier))
                 self.assertTrue(record.is_scaled_ui_token)
-                self.assertEqual(record.multiplier, None if multiplier is _ABSENT else multiplier)
+                self.assertEqual(record.multiplier, None if multiplier is _ABSENT or multiplier == "null" else multiplier)
                 with self.assertRaises(ProviderEvidenceError):
                     record.require_unscaled()
                 self.assertEqual(record.open, "100")
@@ -245,9 +245,19 @@ class ExactCandleRecordTests(OfflineTestMixin, unittest.TestCase):
         for scaled in ("null", "1", '"false"'):
             with self.subTest(scaled=scaled), self.assertRaises(ExactRecordError):
                 candles(candle_document(row(), scaled=scaled))
-        for multiplier in ("null", "0", "-1", '"2"', "true"):
+        for multiplier in ("0", "-1", '"2"', "true"):
             with self.subTest(multiplier=multiplier), self.assertRaises(ExactRecordError):
                 candles(candle_document(row(), multiplier=multiplier))
+
+    def test_real_unscaled_null_multiplier_preserves_exact_raw_evidence(self):
+        document = candle_document(row(), multiplier="null")
+        record, = candles(document)
+        self.assertIsNone(record.multiplier)
+        self.assertFalse(record.is_scaled_ui_token)
+        self.assertIs(record.require_unscaled(), record)
+        self.assertEqual(record.open, "100")
+        self.assertIs(record.document, document)
+        self.assertIn(b'"multiplier":null', document.raw_body)
 
     def test_invalid_envelope_and_record_count_fail(self):
         for payload in (b"{}", b'{"success":false,"data":{}}',

@@ -4,6 +4,7 @@ from __future__ import annotations
 import asyncio
 from dataclasses import FrozenInstanceError
 import hashlib
+import json
 import math
 import time as real_time
 import traceback
@@ -415,6 +416,15 @@ class ProviderWindowTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase):
                     response_bytes(changes={0:{"address":MINTS["JUP/USDC"]}})):
             with self.subTest(response_hash=hashlib.sha256(raw).hexdigest()):
                 await self.failure(self.adapter(Response(raw)).get_provider_history(), "candles_invalid")
+
+    async def test_actual_unscaled_null_multiplier_seeds_complete_window(self):
+        payload = json.loads(response_bytes())
+        payload['data']['multiplier'] = None
+        raw = json.dumps(payload, separators=(',', ':')).encode()
+        rows = await self.adapter(Response(raw)).get_provider_history()
+        self.assertEqual(len(rows), 915)
+        self.assertTrue(all(row.multiplier is None and row.is_scaled_ui_token is False for row in rows))
+        self.assertEqual(rows[0].document.raw_body, raw)
 
     async def test_legacy_caches_and_cutoffs_are_preserved_on_provider_read(self):
         adapter = self.adapter(Response(response_bytes(count=2)), Response(response_bytes()))

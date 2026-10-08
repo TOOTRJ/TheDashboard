@@ -196,7 +196,9 @@ def _parse_candle_records(document: ProviderDocument, *, asset: str,
         raise _invalid()
     scaled = body["is_scaled_ui_token"]
     multiplier = None
-    if "multiplier" in body:
+    # Birdeye emits JSON null for ordinary unscaled tokens. Preserve that as
+    # absent scaling metadata; the explicit scaled-token guard still applies.
+    if body.get("multiplier") is not None:
         multiplier = decimal_text(body["multiplier"], positive=True)
     rows = body.get("items")
     if type(rows) is not list or len(rows) > MAX_CANDLE_ROWS:
