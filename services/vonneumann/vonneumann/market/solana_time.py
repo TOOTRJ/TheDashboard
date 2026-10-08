@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import time
 from collections import OrderedDict
 from urllib.parse import urlsplit
@@ -11,6 +12,20 @@ from .feed import MarketFeedError
 from .quote_freshness import source_slot
 
 MAINNET_GENESIS_HASH = "5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d"
+MAX_RPC_RESPONSE_BYTES = 65536
+
+
+def _unique(items):
+    result = {}
+    for key, value in items:
+        if key in result:
+            raise ValueError()
+        result[key] = value
+    return result
+
+
+def _invalid_constant(value):
+    raise ValueError()
 
 
 def validate_rpc_url(value: str) -> str:
@@ -59,7 +74,13 @@ class SolanaTimeResolver:
             ) as response:
                 if response.status != 200:
                     raise MarketFeedError("rpc_rate_limited" if response.status == 429 else "rpc_unavailable")
-                body = await response.json()
+                raw = bytearray()
+                async for chunk in response.content.iter_chunked(8192):
+                    if len(raw) + len(chunk) > MAX_RPC_RESPONSE_BYTES:
+                        raise MarketFeedError("rpc_invalid")
+                    raw.extend(chunk)
+                body = json.loads(raw.decode('utf-8', errors='strict'),
+                                  object_pairs_hook=_unique, parse_constant=_invalid_constant)
                 if (not isinstance(body, dict) or body.get("jsonrpc") != "2.0"
                         or type(body.get("id")) is not int or body["id"] != request_id
                         or "error" in body or "result" not in body):

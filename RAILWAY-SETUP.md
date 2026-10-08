@@ -17,7 +17,7 @@ production cadence or approval to change account-wide billing for other projects
 
 The production-scoped token and actual project/environment names and workspace
 were verified through the API on 2026-10-07. The dedicated service is now hosted
-in **closed mode**, with only mode/dotenv flags and the supplied public CA. No
+in **closed mode**, with mode/dotenv flags, the supplied public CA and explicit Dashboard Auth settings. No
 database/provider credentials, GitHub integration, billing change, native ledger
 or paper run is enabled. [Health endpoint](https://dashboard-paper-worker-production.up.railway.app/health).
 Hobby was observed in the account UI. Do not create a replacement or select a
@@ -183,3 +183,12 @@ legacy writer. Reverting code is sufficient only before schema/service activatio
 rights, aggregate direct connections and handshake/COMMIT/lease tails, actual image
 CPU/memory/drain behavior, managed privilege/issuance hooks, CA/native maintenance,
 interruption exposure, relay/history retention and compact multi-window checkpoints.
+
+
+## Closed Auth and provider acceptance checkpoint — 2026-10-07
+
+Current Auth-only worker79327b5e-69fa-471e-9565-0a34d6739ccd/source9b387967189ca9197b6a59beb2391835c78ff3c2 verifies real Dashboard user tokens through the exact Supabase Auth project. Only SUPABASE_URL, existing SUPABASE_PUBLISHABLE_KEY, VN_ENVIRONMENT=production and the exact VN_ALLOWED_ORIGINS are added. Real tokens reach the closed-service response; invalid tokens/Origin and docs are denied with no-store. The public CA is already injected as VN_DATABASE_CA_PEM. The Railway project token stays in the operator context and never enters the service.
+
+Next explicit provider-only canary uses python -m tools.provider_read_canary, still VN_SERVICE_MODE=closed. Add only the existing Jupiter/Birdeye keys and an explicit private Helius mainnet RPC URL to this service, preserving unrelated variables. It starts closed HTTP immediately and owns one finite background assessment. Twelve prices at5s spacing/90s deadline, a shared-quota margin, no retry and bounded response parsing produce only approved timing/counter/resource facts. Restore /app/start-worker.sh and remove the three provider variables after acceptance. This is read-only provider feasibility, not active SQL/lease/relay/pilot or full-tail acceptance.
+
+The actual unscaled Birdeye multiplier:null startup defect is repaired before this deployment. Current primary billing uses1credit for getBlockTime; older pages use10. Resolve actual account metering/shared quota availability before continuous operation. The $20/month hosting ceiling is a design budget; no account-wide hard limit or billing change has been applied.

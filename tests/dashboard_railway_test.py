@@ -91,7 +91,8 @@ class WorkerExportTests(unittest.TestCase):
  def test_export_excludes_operator_files_and_normalizes_nonroot_modes_under_strict_umask(self):
   commit='a'*40
   paths=['Dockerfile','.dockerignore','requirements.txt','start-worker.sh','railway.json',
-   'tools/native_tls_preflight.py','vonneumann/server/paper_app.py','ssl/private.pem','.env',
+   'tools/native_tls_preflight.py','tools/native_session_canary.py','tools/provider_read_canary.py',
+   'vonneumann/server/paper_app.py','ssl/private.pem','.env',
    'tests/test_app.py','.claude/settings.json','vonneumann/__pycache__/app.pyc']
   def read(args):
    if args[0]=='rev-parse':return (commit+'\n').encode()
@@ -101,7 +102,7 @@ class WorkerExportTests(unittest.TestCase):
    dest=Path(parent.replace('_','-')+'-export');old=os.umask(0o077)
    try:
     result=helper.export_worker(commit,dest,read)
-    self.assertEqual(result['files'],7)
+    self.assertEqual(result['files'],9)
     self.assertEqual(dest.stat().st_mode & 0o777,0o700)
     self.assertEqual((dest/'vonneumann/server').stat().st_mode & 0o777,0o755)
     self.assertEqual((dest/'vonneumann/server/paper_app.py').stat().st_mode & 0o777,0o644)

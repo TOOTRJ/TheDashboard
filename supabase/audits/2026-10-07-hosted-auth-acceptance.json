@@ -1,0 +1,93 @@
+{
+  "deployment": "79327b5e-69fa-471e-9565-0a34d6739ccd",
+  "source": "9b387967189ca9197b6a59beb2391835c78ff3c2",
+  "checks": [
+    {
+      "check": "owned_user_0_/v5/status",
+      "status": 503,
+      "closed_after_valid_auth": true,
+      "exact_cors": true,
+      "no_store": true,
+      "elapsed_seconds": 0.299955
+    },
+    {
+      "check": "owned_user_0_/v5/controls",
+      "status": 503,
+      "closed_after_valid_auth": true,
+      "exact_cors": true,
+      "no_store": true,
+      "elapsed_seconds": 0.264441
+    },
+    {
+      "check": "owned_user_1_/v5/status",
+      "status": 503,
+      "closed_after_valid_auth": true,
+      "exact_cors": true,
+      "no_store": true,
+      "elapsed_seconds": 0.198739
+    },
+    {
+      "check": "owned_user_1_/v5/controls",
+      "status": 503,
+      "closed_after_valid_auth": true,
+      "exact_cors": true,
+      "no_store": true,
+      "elapsed_seconds": 0.168269
+    },
+    {
+      "check": "/health",
+      "authenticated": false,
+      "foreign_origin": false,
+      "status": 200,
+      "no_store": true,
+      "elapsed_seconds": 0.137484
+    },
+    {
+      "check": "/v5/status",
+      "authenticated": false,
+      "foreign_origin": false,
+      "status": 401,
+      "no_store": true,
+      "elapsed_seconds": 0.142107
+    },
+    {
+      "check": "/v5/status",
+      "authenticated": false,
+      "foreign_origin": false,
+      "status": 401,
+      "no_store": true,
+      "elapsed_seconds": 0.259779
+    },
+    {
+      "check": "/v5/status",
+      "authenticated": false,
+      "foreign_origin": true,
+      "status": 403,
+      "no_store": true,
+      "elapsed_seconds": 0.131578
+    },
+    {
+      "check": "/docs",
+      "authenticated": false,
+      "foreign_origin": false,
+      "status": 404,
+      "no_store": true,
+      "elapsed_seconds": 0.112405
+    },
+    {
+      "check": "exact_origin_preflight",
+      "status": 200,
+      "elapsed_seconds": 0.129662
+    }
+  ],
+  "mode": "closed",
+  "paper_run_created": false,
+  "target": {
+    "railway_project": "38facb49-4de9-4d66-85aa-2861e0306dcf",
+    "railway_service": "8e78ad4b-1d8f-43e7-898a-3882ac5053d7",
+    "supabase_project": "fxpxsciltakyypunglzr"
+  },
+  "date": "2026-10-07",
+  "owner_browser": "Authenticated pre-existing owner; legacy saved history visible; v5 selection remains pending",
+  "limits": "Closed Auth/CORS/HTTPS acceptance only. No active controls, nonempty v5 history, provider/DB tails or pilot acceptance."
+}

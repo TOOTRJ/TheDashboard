@@ -7,6 +7,7 @@
 !tools/
 !tools/native_tls_preflight.py
 !tools/native_session_canary.py
+!tools/provider_read_canary.py
 **/__pycache__/
 **/*.pyc
 **/.env*

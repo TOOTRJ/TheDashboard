@@ -158,6 +158,33 @@ class QuoteSourceFeedTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase):
         self.assertIs(await feed.get_tick(SOL), tick)
         self.assertEqual(len(feed._session.calls), 3)
 
+    async def test_rpc_stream_is_bounded_before_allocating_the_full_body(self):
+        feed = self.feed(price_body({SOL: (100, 77)}))
+        class OversizedResponse(Response):
+            delivered = 0
+            async def iter_chunked(self, size):
+                for _ in range(100):
+                    self.delivered += size
+                    yield b' ' * size
+            async def json(self):
+                raise AssertionError('RPC must consume bounded bytes')
+        response = OversizedResponse()
+        feed._session.rpc_transform = lambda request, body: response
+        await self.failure(feed.get_ticks([SOL]), 'rpc_invalid')
+        self.assertEqual(response.delivered, solana.MAX_RPC_RESPONSE_BYTES + 8192)
+        self.assertEqual(feed._source_time._cache, {})
+        self.assertEqual(feed._captures, {})
+
+    async def test_rpc_duplicate_keys_invalid_utf8_and_constants_reject(self):
+        for raw in (b'{"jsonrpc":"2.0","id":1,"result":1,"result":2}',
+                    b'{"jsonrpc":"2.0","id":1,"result":"\xff"}',
+                    b'{"jsonrpc":"2.0","id":1,"result":NaN}'):
+            with self.subTest(body_hash=__import__('hashlib').sha256(raw).hexdigest()):
+                feed = self.feed(price_body({SOL: (100, 77)}))
+                feed._session.rpc_transform = lambda request, body: Response(raw)
+                await self.failure(feed.get_ticks([SOL]), 'rpc_invalid')
+                self.assertEqual(feed._source_time._cache, {})
+
     async def test_receipt_precedes_rpc_and_final_validation_includes_lookup_latency(self):
         feed = self.feed(price_body({SOL: (100, 77)}), times={77: int(self.clock.wall) - 29})
         async def latency(_request):

@@ -74,8 +74,7 @@ class LiteralProviderSession:
             result = int(time.time()) - 1
         else:
             raise AssertionError('Unexpected literal source-time method')
-        # SolanaTimeResolver consumes response.json(); preserve the literal
-        # response wire before decoding, just as the fake HTTP layer would.
+        # Preserve the literal response wire for the bounded RPC stream parser.
         raw = json.dumps({'jsonrpc': '2.0', 'id': request['id'], 'result': result},
                          separators=(',', ':')).encode()
         self.raw_documents.append(raw)
