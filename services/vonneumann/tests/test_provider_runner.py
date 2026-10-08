@@ -249,6 +249,23 @@ class ProviderRunnerTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.feed.api_call_count, 1)
         self.assertNotIn(self.stop_id, self.transport.ledger)
 
+    async def test_paper_rpc_and_cleanup_reserve_drains_before_a_five_second_lease_tail(self):
+        await self.ready()
+        self.price(); self.price(slot=fixture.SLOT+1)
+        self.runner = ProviderPilotRunner(self.controller,interval_seconds=.01,max_ticks=2,
+                                         renewal_reserve_seconds=6.0)
+        original = self.controller.tick
+        async def consumed_headroom():
+            report = await original()
+            self.age(self.repo.lease_remaining_seconds - 5.0)
+            return report
+        with patch.object(self.controller,'tick',consumed_headroom):
+            report = await self.runner.run()
+        self.assertEqual((report.status,report.ticks_completed),('lease_headroom_unavailable',1))
+        self.assertEqual(report.idle_renewals,0)
+        self.assertEqual(self.feed.api_call_count,1)
+        self.assertNotIn(self.stop_id,self.transport.ledger)
+
     async def test_stop_during_idle_renewal_settles_renewal_then_reserved_stop(self):
         await self.configured(ticks=2)
         original = self.controller.tick

@@ -3287,3 +3287,24 @@ invariance, next-source admission and one original reserved Stop after a feed
 refusal. Lost Stop replies/missing readback, hard-closure non-reopening and
 server lease refusal are covered. Local/native acceptance is complete; reviewed
 release and new hosted assessment/hour remain separate gates.
+
+## 84. Paper renewal budget alignment — 2026-10-08
+
+**PR76 release — 2026-10-08:** The bounded source-order and terminal-refusal
+repair is merged as `d4bc3210caeb6987acf85b7851a7bc119e78abdb`. Exact production
+`dpl_9h1RNH59MH8YA7DZjHn6xY7WTfFJ` is READY with four smokes. Its99-file
+Railway export matches all Git blobs/modes (1,240,553 bytes; manifest
+`5db1e66a66bec95c5edec1a07fa393a35f442b323531a997fc2ff0433b91540e`).
+The new thirty-price uvloop assessment passes at revision34, including original
+lost-reply reconciliation, relay, Stop and complete owned reads/isolation. Ordinary
+closed restoration `afc4ab60-d56d-441a-9e1c-a0e616bf0f7e` is SUCCESS;17 values
+are removed and its original pair is revoked/NOLOGIN.
+[Source-order assessment](supabase/audits/2026-10-08-source-order-controller-assessment.json).
+
+The selected paper SQL operation+cleanup budget is6s, while the runner's generic
+reserve remains4s for its original3s+1s transport. The paper service now explicitly
+selects6s; this reduces admission near expiry without widening the120s lease,
+provider freshness or credential lifetime.54 focused runner/service/canary cases
+pass under uvloop, including a5s lease-tail refusal. 54 cases also pass on default asyncio. The assessment/closed revocation are
+complete. Release the reserve alignment, then assess its final source before the
+actual owner hour.

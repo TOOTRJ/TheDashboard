@@ -93,6 +93,15 @@ class PaperServiceTests(OfflineTestMixin,unittest.IsolatedAsyncioTestCase):
    paper_app.configured_service(environment)
    bounds=pair.call_args.kwargs['bounds']
    self.assertEqual((bounds.connect_seconds,bounds.operation_seconds,bounds.statement_seconds,bounds.commit_seconds,bounds.cleanup_seconds),(1.0,5.0,3.0,.5,1.0))
+ async def test_service_selects_renewal_headroom_for_actual_paper_rpc_and_cleanup(self):
+  from vonneumann.server import paper_service
+  from vonneumann.db.command_sql import paper_sql_bounds
+  self.service._closing=True
+  with patch.object(paper_service,'ProviderPilotOwner'),patch.object(paper_service,'DurableRelayPublisher'),patch.object(paper_service,'ProviderPilotController'),patch.object(paper_service,'ProviderPilotRunner') as runner:
+   await self.service._after_create()
+   bounds=paper_sql_bounds()
+   self.assertEqual(runner.call_args.kwargs['renewal_reserve_seconds'],bounds.operation_seconds+bounds.cleanup_seconds)
+  self.service.runner=None
  async def test_first_sql_evidence_is_allowlisted_and_copied_without_private_driver_content(self):
   valid={'phase':'execute','category':'server_error','sqlstate':'57014','code':'statement_timeout'}
   self.transport.first_failures={'economic':valid,'relay':{**valid,'code':'https://private.invalid/?password=secret'}}
