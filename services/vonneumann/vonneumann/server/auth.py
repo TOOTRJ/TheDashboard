@@ -21,6 +21,7 @@ from fastapi import Header, HTTPException
 from ..config import SUPABASE_AUTH_API_KEY, SUPABASE_URL, VN_REQUIRE_HTTPS
 
 AUTH_TIMEOUT_SECONDS = 5.0
+MAX_AUTH_RESPONSE_BYTES = 65536
 MAX_ACCESS_TOKEN_BYTES = 16_384
 MAX_SAFE_TIMESTAMP = 2**53 - 1
 
@@ -90,7 +91,19 @@ async def verify_token_with_provider(token: str) -> dict:
                     raise _unauthorized()
                 if response.status != 200:
                     raise _auth_unavailable()
-                data = await response.json()
+                body = bytearray()
+                async for chunk in response.content.iter_chunked(8192):
+                    if len(body) + len(chunk) > MAX_AUTH_RESPONSE_BYTES:
+                        raise _auth_unavailable()
+                    body.extend(chunk)
+                def unique(items):
+                    value = {}
+                    for key, item in items:
+                        if key in value:
+                            raise ValueError()
+                        value[key] = item
+                    return value
+                data = json.loads(body.decode('utf-8', errors='strict'), object_pairs_hook=unique)
                 if not isinstance(data, dict):
                     raise _auth_unavailable()
                 return data

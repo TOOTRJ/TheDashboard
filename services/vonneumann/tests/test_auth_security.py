@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import time
 import unittest
 from unittest.mock import AsyncMock, patch
@@ -17,10 +18,13 @@ with deny_network():
 
 
 class FakeResponse:
-    def __init__(self, status=200, body=None, error=None):
+    def __init__(self, status=200, body=None, error=None, raw=None):
         self.status = status
         self.body = {"id": USER_A} if body is None else body
         self.error = error
+        self.raw = raw
+        self.content = self
+        self.bytes_delivered = 0
 
     async def __aenter__(self):
         return self
@@ -28,10 +32,14 @@ class FakeResponse:
     async def __aexit__(self, *args):
         return False
 
-    async def json(self):
+    async def iter_chunked(self, size):
         if self.error:
             raise self.error
-        return self.body
+        raw = json.dumps(self.body).encode() if self.raw is None else self.raw
+        for at in range(0, len(raw), size):
+            chunk = raw[at:at + size]
+            self.bytes_delivered += len(chunk)
+            yield chunk
 
 
 class FakeSession:
@@ -104,6 +112,21 @@ class ProviderVerificationTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCa
                 await auth.verify_access_token(token_for(expires_at=int(time.time()) + 999999))
         self.assertEqual(caught.exception.status_code, 401)
         self.assertEqual(len(session.calls), 1)
+
+    async def test_oversize_auth_profile_stream_stops_at_finite_limit(self):
+        response = FakeResponse(raw=b' ' * (auth.MAX_AUTH_RESPONSE_BYTES * 4))
+        with patch.object(auth.aiohttp, 'ClientSession', return_value=FakeSession(response)):
+            with self.assertRaises(HTTPException) as caught:
+                await auth.verify_access_token(token_for())
+        self.assertEqual(caught.exception.status_code, 503)
+        self.assertLessEqual(response.bytes_delivered, auth.MAX_AUTH_RESPONSE_BYTES + 8192)
+
+    async def test_duplicate_identity_and_invalid_utf8_fail_closed(self):
+        for raw in (b'{"id":"' + USER_A.encode() + b'","id":"' + USER_B.encode() + b'"}', b'{"id":"\xff"}'):
+            with patch.object(auth.aiohttp, 'ClientSession', return_value=FakeSession(FakeResponse(raw=raw))):
+                with self.assertRaises(HTTPException) as caught:
+                    await auth.verify_access_token(token_for())
+            self.assertEqual(caught.exception.status_code, 503)
 
     async def test_claims_must_match_verified_provider_identity_and_expiry(self):
         invalid_tokens = (
