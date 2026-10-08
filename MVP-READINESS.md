@@ -27,8 +27,12 @@ production/history wrapper rollback rehearsals pass after three measured repairs
 Closed application/committed verification, actual finite native sessions and curated exposure now pass.
 Hosted real-token Auth/CORS checks pass, and the existing owner sees the selected closed paper page.
 The actual Birdeye null-multiplier defect is repaired; hosted warmup and one price capture pass,
-but the finite provider assessment stops on remaining quota 9 below its required margin of 12.
-Next is actual Jupiter plan/shared-use clarification, further source/lease/relay/resource timing,
+but the first finite provider assessment stopped on a whole-sample quota margin.
+The Developer upgrade and Dashboard key attribution are now verified. Actual
+headers still differ from the documented paid quota; DATA-01E remains open.
+The revised closed probe checks the next paced request plus explicit reserve,
+not all twelve future requests as a burst. Its new actual acceptance is pending.
+Next is finite provider timing, effective/shared quota clarification and source/lease/relay/resource timing,
 then hosted nonempty operator/ownership/failure acceptance before the bounded pilot.
 [Exact setup and remaining gates](RAILWAY-SETUP.md). Detailed transport evidence lives in [NATIVE-SQL-TRANSPORT.md](services/vonneumann/NATIVE-SQL-TRANSPORT.md);
 The [closed cutover procedure](SUPABASE-CUTOVER.md) records the snapshot, original-outcome
@@ -48,7 +52,7 @@ invent liquidation proceeds.
 
 | Order | Remaining work | Todo / acceptance |
 |---|---|---|
-| 1 | Resolve shared quotas and establish an operationally valid cadence | DATA-01D, DB-03A2C2D2D2A, HOST-03/04: verify the actual Jupiter plan/shared allowance and Birdeye entitlements/credit cost; finish finite source-age/receipt, remote DB/preparation/relay/lease and CPU/memory measurements. Prove renewal headroom and choose bounds from measurements. The short provider probe stopped on its quota guard; it establishes compatibility and feasibility only. |
+| 1 | Resolve shared quotas and establish an operationally valid cadence | DATA-01D/01E, DB-03A2C2D2D2A, HOST-03/04: the Developer plan/key is verified; resolve the remaining effective-quota discrepancy/shared allowance and Birdeye entitlements/credit cost; finish finite source-age/receipt, remote DB/preparation/relay/lease and CPU/memory measurements. Prove renewal headroom and choose bounds from measurements. Run the revised finite closed provider probe and preserve its limits; twelve samples establish feasibility, not tails or continuous quota readiness. |
 | 2 | Prepare and accept the one active worker path | DB-03A2D3C/DB-03A3: finite owner/run credentials, exact native writer/relay binding, full body/grant equality, compatible reads and explicit reviewed admission. Retire every competing legacy startup/status/risk/control writer. Closed schema/TLS/native/Auth/curated/empty-browser acceptance is complete; nonempty hosted operation remains. |
 | 3 | Prove security and safe interruption under deployment faults | DB-03/SVC-02, HOST-02 through HOST-06, SEC-03, DEPLOY-01: stale-worker fencing, locks, late/lost replies, overlapping releases, timeout/cancellation and SIGTERM/SIGKILL. Retain and reconcile original commands and holdings, verify readiness/drain and actual resource/cost limits. Use an explicitly isolated test plan; Vercel previews share the production database and are not test isolation. Automatic resume is a separate gate. |
 | 4 | Verify the complete operator and ownership flow | UI/ACCEPT gates: browser login → exact selected run → start/pause/stop → accepted commands → committed balance/trade/equity history → reconnect/replay. Two users cannot read/control one another's runs. Display source age, assumed costs, interruption and retained holdings honestly. Static demo market/connection labels are corrected; an empty closed view does not prove active trading. |

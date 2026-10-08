@@ -31,8 +31,19 @@ class ClosedProviderCanaryTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCa
 
     def test_quota_allowlist_does_not_export_headers(self):
         self.assertEqual(module.quota_headers({'Authorization': 'secret',
-            'x-ratelimit-limit': '60', 'x-ratelimit-remaining': '-1',
-            'x-ratelimit-reset': 'bad'}), {'limit': 60, 'remaining': -1})
+            'x-ratelimit-current': '1', 'x-ratelimit-limit': '60',
+            'x-ratelimit-remaining': '-1',
+            'x-ratelimit-reset': 'bad'}), {'current': 1, 'limit': 60, 'remaining': -1})
+
+    def test_next_request_budget_requires_explicit_recent_remaining_headroom(self):
+        for remaining in (None, -1, 0, 1, 2, True, '9'):
+            with self.subTest(remaining=remaining):
+                self.assertFalse(module.quota_has_headroom(
+                    {'remaining': remaining}, received=1, now=6))
+        self.assertTrue(module.quota_has_headroom({'remaining': 3}, received=1, now=6))
+        for received, now in ((None, 6), (7, 6), (1, 12)):
+            self.assertFalse(module.quota_has_headroom(
+                {'remaining': 9}, received=received, now=now))
 
     async def test_actual_assessment_closes_resources_after_failure_without_retry(self):
         instances = []
@@ -96,7 +107,7 @@ class ClosedProviderCanaryTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCa
             async def get_price_captures(self, assets):
                 self.api_call_count += 1
                 params = SimpleNamespace(url=SimpleNamespace(host='api.jup.ag', path='/price/v3'),
-                    response=SimpleNamespace(headers={'x-ratelimit-remaining': '11'}))
+                    response=SimpleNamespace(headers={'x-ratelimit-remaining': '2'}))
                 await self._session._trace_configs[0].on_request_end.send(self._session, None, params)
                 return {'SOL/USDC': SimpleNamespace(evidence=SimpleNamespace(
                     source_age_at_receipt=1, received_monotonic=time.monotonic()))}
@@ -108,6 +119,35 @@ class ClosedProviderCanaryTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCa
         self.assertEqual(report['phase'], 'refused')
         self.assertEqual(report['price_seconds']['count'], 1)
         self.assertEqual(instances[0].api_call_count, 1)
+        self.assertTrue(instances[0]._session.closed)
+
+    async def test_paced_samples_do_not_require_the_whole_burst_budget(self):
+        instances = []
+        class FakeFeed:
+            api_call_count = 0
+            def __init__(self, **keys):
+                self._candles = SimpleNamespace(api_call_count=1)
+                self._source_time = SimpleNamespace(api_call_count=1)
+                instances.append(self)
+            async def get_provider_history(self):
+                doc = SimpleNamespace(raw_body=b'{}', response_sha256='0'*64)
+                return (SimpleNamespace(document=doc, multiplier=None),)*915
+            async def get_price_captures(self, assets):
+                self.api_call_count += 1
+                params = SimpleNamespace(url=SimpleNamespace(host='api.jup.ag', path='/price/v3'),
+                    response=SimpleNamespace(headers={'x-ratelimit-current': '1',
+                        'x-ratelimit-remaining': '9', 'x-ratelimit-reset': '123'}))
+                await self._session._trace_configs[0].on_request_end.send(self._session, None, params)
+                return {'SOL/USDC': SimpleNamespace(evidence=SimpleNamespace(
+                    source_age_at_receipt=1, received_monotonic=time.monotonic()))}
+            async def close(self):
+                await self._session.close()
+        with redirect_stdout(io.StringIO()), patch.object(module, 'INTERVAL', 0):
+            report = await module.assess(('fake-secret',)*3, feed_factory=FakeFeed)
+        self.assertEqual(report['phase'], 'passed')
+        self.assertEqual(report['price_seconds']['count'], 12)
+        self.assertEqual(instances[0].api_call_count, 12)
+        self.assertFalse(report['quota_policy']['account_budget_accepted'])
         self.assertTrue(instances[0]._session.closed)
 
 
