@@ -200,3 +200,41 @@ Status and operator refusal retain only fixed connect/begin/role/execute/decode/
 commit/cleanup labels for each capability. No raw SQL/driver/credential text is
 published. Reconcile every original uncertain outcome before a fresh reviewed
 attempt; one-second connection allowance does not relax quote/source/lease guards.
+
+## Current fresh-run result and expired-authority handling — 2026-10-08
+
+PR71's newly issued finite30-price assessment passes complete native controller,
+original reply reconciliation, relay and stop. A separate real-owner dashboard
+start fails after two prices at revision5; no first replacement is accepted.
+Eight accounts/no positions/nine ACKed events remain. Native failure phases are
+null and the controller retains only a generic error; do not invent a root cause.
+Closed restoration25f88091-979d-485d-bb29-7ffc7c1fb49c is SUCCESS, original variables
+match, and the finite pair is revoked/NOLOGIN.
+
+Expiry is operation-specific: the installed recovery deadline permits original
+get_command readback, not an interruption or relay write after expires_at. A late
+native interruption is independently proved absent. Do not extend/rewrite the
+original binding or pretend that a recovery deadline is fresh write authority.
+The original run remains an expired committed running record until explicit
+administrative reconciliation is reviewed/rehearsed/applied.
+
+The prepared cash-only maintenance operation is outside startup/migrations. It
+requires the exact project/release/catalog, revoked/quiescent actors, original
+owner/run/command/revision/fence and checkpoint/account/position hashes, an expired
+v5 run with eight accounts and no open positions. Rehearse the same original
+input with ROLLBACK and independently verify unchanged state/absent journal;
+record submission intent durably before one application. Read back that original
+receipt after any uncertain outcome. Canonical journal/projection recording
+preserves economic state and creates the failed/reconciliation-required owner
+version with unavailable reference equity. The installed interrupt contract does
+not create candidate outbox events; existing candidate events and relay progress
+remain unchanged. Do not fabricate a terminal event, relay ACK, liquidation,
+checkpoint adoption or strategy evaluation. Do not activate
+another run until explicit terminal cleanup and quiescence are proved.
+
+Fixed acquisition/controller/service stage and allowlisted provider diagnostics
+are prepared for the next assessment. These preserve the first failure through
+cleanup without exposing provider bodies or exception text. Release and actual
+managed reconciliation are pending dedicated Dashboard Vercel sign-in. Current
+activation scope remains one supervised hour/one replacement with a reserved
+stop; HOST-07, continuous operation and every real-trading gate stay open.

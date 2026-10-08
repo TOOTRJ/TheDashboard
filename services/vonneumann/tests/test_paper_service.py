@@ -53,6 +53,14 @@ class PaperServiceTests(OfflineTestMixin,unittest.IsolatedAsyncioTestCase):
   self.assertEqual(result['phase'],'pending');self.assertTrue(result['requires_reconciliation'])
   self.assertNotIn('synthetic-secret',json.dumps(result));await self.service.close()
   self.assertTrue(self.transport.closed);self.assertTrue(self.feed.closed)
+ async def test_failed_operation_before_controller_creation_has_fixed_private_safe_labels(self):
+  async def failed():raise RuntimeError('https://private.invalid/?key=must-not-leak')
+  self.service._owned(failed);await self.service._task
+  status=self.service.status(USER_A)
+  self.assertEqual(status['phase'],'failed');self.assertTrue(status['requires_reconciliation'])
+  self.assertEqual(status['last_operation_failure'],{'stage':'service_operation','category':'unexpected_exception','provider_code':None})
+  self.assertIsNone(status['last_controller_failure'])
+  self.assertNotIn('private.invalid',json.dumps(status))
  async def test_closed_selection_and_private_configuration_fail_without_reads(self):
   with patch.dict(os.environ,{'VN_SERVICE_MODE':'closed'},clear=True):self.assertIsNone(paper_app.configured_service())
   with patch.dict(os.environ,{'VN_SERVICE_MODE':'paper-v5'},clear=True),self.assertRaisesRegex(RuntimeError,'explicit_private'):

@@ -11,6 +11,7 @@ from uuid import uuid4
 from ..core.exact_lifecycle import ExactLifecycleConfig
 from ..core.provider_lifecycle import ProviderLifecycleConfig
 from ..core.provider_controller import CommandAllocation, ProviderPilotController
+from ..core.operation_diagnostics import failure_labels
 from ..core.provider_runner import ProviderPilotRunner
 from ..core.provider_pilot import ProviderPilotLimits
 from ..db.command_protocol import PreparedCommand, canonical_uuid
@@ -53,6 +54,7 @@ class PaperService:
         self._interval, self._ticks = interval, max_ticks
         self._task = None
         self._phase = 'fresh'
+        self._last_operation_failure = None
         self._result = None
         self._stop_requested = self._closing = False
         self._command = None
@@ -76,6 +78,8 @@ class PaperService:
             'stop_requested': self._stop_requested, 'revision': self.repository.revision,
             'requires_reconciliation': self._phase in ('pending', 'failed', 'drained'),
             'last_transport_failure_phases': transport_phases,
+            'last_controller_failure': None if self.controller is None else self.controller.last_failure,
+            'last_operation_failure': None if self._last_operation_failure is None else self._last_operation_failure.to_dict(),
             'admission': None if self.controller is None else {
                 'controller_reason': self.controller.closed_reason,
                 'owner_reason': self.controller._owner.closed_reason,
@@ -104,8 +108,10 @@ class PaperService:
                 self._phase = 'drained'
                 if self.runner is not None: self.runner.close_admission()
                 raise
-            except Exception:
+            except Exception as error:
                 # Driver/provider exception text may include URLs or secrets.
+                if self._last_operation_failure is None:
+                    self._last_operation_failure = failure_labels('service_operation', error)
                 self._phase = 'failed'
                 if self.runner is not None: self.runner.close_admission()
         self._task = asyncio.create_task(run())

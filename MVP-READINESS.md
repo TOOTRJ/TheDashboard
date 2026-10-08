@@ -5,26 +5,28 @@ This distinguishes tested components, deployed application behavior, and the
 integration work still required. Completing engine tests is not a hosted bot
 release or evidence of a profitable strategy.
 
-Latest hosted checkpoint 2026-10-08: PR69/70 are merged and exact production is
-READY. The corrected30-price native controller, original lost-reply reconciliation,
-relay and reserved stop pass. Nonempty owner reads and actual active cross-owner
-controls are denied correctly. The intended owner starts through the dashboard
-and sees eight candidates, but the one-hour run fails after four prices. Its
-original expired-run interruption preserves checkpoint/cash/positions; all four
-initial pairs are revoked and ordinary closed startup restored. The repeated
-snapshot/consumed-receipt defect is reproduced and repaired in merged PR69; precise
-hosted failure origin was not retained by that source. Fixed admission and
-reconciliation diagnostics plus guarded quiescent fresh-run provisioning are
-released, as are completion-paced history polling and bound-input rehearsal.
-Actual fresh issuance/rehearsal passes, but its assessment refuses create_run
-at0.502350s before providers or database rows. Twenty-four actual read-only
-TLS/SCRAM/role/IPv6 connections pass in0.154–0.251s. Precise original failure
-phase is unknown; guarded connection headroom and fixed phase diagnostics precede
-the next assessment. All original/fresh pairs are revoked and ordinary closed
-startup restored. HOST-07 and first replacement remain unaccepted.
-[Controller evidence](supabase/audits/2026-10-08-corrected-controller-acceptance.json),
-[intended-owner interruption](supabase/audits/2026-10-08-intended-owner-pilot-interruption.json),
-[activation/rollback](PAPER-MVP-ACTIVATION.md).
+Latest hosted checkpoint 2026-10-08: PR71 is merged and its exact production
+source/author/project/team/alias and four smokes passed. A separately issued
+thirty-price native controller assessment now passes at revision34, including
+original lost-reply reconciliation, relay and reserved stop. Nonempty owner
+history and anonymous/other-owner denials pass. The new intended-owner pilot
+starts once through the dashboard, but fails after two prices at revision5;
+first replacement and the hour remain unaccepted. Nine events are fully relayed,
+eight cash accounts remain unchanged and there are no positions. Retained status
+shows a generic controller failure and no native transport phase; a specific
+provider/freshness cause is not established.
+
+Ordinary closed Railway restoration25f88091-979d-485d-bb29-7ffc7c1fb49c is SUCCESS;
+original variables are restored and the original pair is revoked/NOLOGIN. Late
+interruption is correctly denied after its two-hour write expiry; recovery_until
+permits readback only. The original committed run still needs explicit maintenance
+reconciliation. Fixed provider/acquisition/controller/service failure labels and
+a hash-bound cash-only administrator operation are prepared and tested, awaiting
+release and actual managed rollback/apply. Dedicated file-backed Vercel sign-in
+is needed before that release. No worker is active and no wallet operation has
+been performed. HOST-07 remains open.
+[Fresh evidence](supabase/audits/2026-10-08-fresh-native-controller-and-pilot.json),
+[ordered next work](TODO.md), [activation/rollback](PAPER-MVP-ACTIVATION.md).
 
 ## Current position
 
@@ -33,34 +35,24 @@ startup restored. HOST-07 and first replacement remain unaccepted.
 | Core evolutionary engine | Phase 2's 12 entries are complete. Funding, indicator/time handling, population continuity, fitness, risk controls and optimizer constraints have regression coverage. |
 | Small strategy | `ema_baseline_v1` evolves two parameters: fast and slow EMA periods. Asset, timeframe and other controls stay fixed; RSI/volume signal filters are disabled. All candidates share 61 completed warmup bars. |
 | Research evaluator | Synthetic replay, a twenty-pair exhaustive grid, cash/passive/fixed-EMA/random controls, and an equal-budget reference GA are implemented. Training-only selection and fresh chronological holdout accounts are tested. Representative historical research and calibrated fills remain open. |
-| Exact paper controller | An opt-in provider-bound v5 controller, command repository, lease fencing and event outbox work in offline/local database rehearsals. They are not yet selected by the production service. |
-| Database / transports | Canonical fresh v5 SQL and native SCRAM owner/run authentication are proved offline. The inert HTTP adapter and local PostgREST tests retain reconciliation/transaction evidence; the bounded native async SQL transport now proves real TLS/SCRAM controller/relay and commit recovery offline. Read-only hosted metadata and a bounded TLS-only preflight are complete; actual selected-host IPv6/project-CA/hostname TLS now passes; SSL enforcement and client inventory are complete; managed installer/issuer/history rollback passes, and the closed production migration is applied and independently verified. Actual finite native pair issuance/authentication, owner/run/capability denial and held-session/fresh-login revocation pass on Railway; credentials are removed and ordinary closed startup restored. Provider/relay/lease/tail/interruption acceptance remains. The hosted project runs PostgREST 14.5; fresh v5 SQL is installed with closed admission at epoch0 and fifteen migration versions. All 11,149 user-rejected old bot rows are now deleted after reviewed guarded cleanup and rollback rehearsal; fifteen migration versions, schema and Auth remain. Only curated vn_read is exposed, with two owned Auth/empty-directory and anonymous/private-schema denials verified. The existing owner sees the selected closed paper interface and empty history; nonempty v5/control acceptance remains. Existing public legacy writers remain in service code and must not become a second active writer. |
-| Dashboard | Next.js 16.3.8 is deployed. Selected-run targeting and complete bounded legacy history are repaired and released. D3C now prepares the explicitly selected actual v5 view with exact balances/trade/evaluation details, legacy diagnostics, original-ID controls/archive and durable replay. Local browser/SQL owner flow passes. The production paper interface is selected and the existing owner sees zero legacy runs, empty new history and disabled controls while the worker stays closed. Actual nonempty/control/two-user acceptance remains A3. |
-| Worker / live execution | The Python worker is hosted on Railway in closed mode. No paper run is active. The Jupiter V2 helper requests quotes without a taker; it cannot sign or execute a swap. |
+| Exact paper controller | The selected native-v5 path now passes the actual thirty-price hosted controller, lost-reply, relay and reserved-stop assessment. The real owner's start commits through the browser. Its latest hour attempt fails after two prices; fixed provider/stage diagnostics are prepared before another assessment. The worker is currently closed. |
+| Database / transports | Fifteen migrations install98 functions/26 tables; full body/catalog/grant verification passes. SSL, Railway IPv6/project-CA/hostname TLS/SCRAM/channel binding and finite owner/run/capability checks pass. Curated vn_read provides owner-only nonempty history; anonymous/private/other-owner access is denied. Release admission is OPEN at epoch1, while every issued native pair is revoked/NOLOGIN and runtime is closed. All11,149 user-rejected old rows are deleted; Auth is retained. One expired committed run awaits guarded cash-only maintenance reconciliation. No old competing writer is selected. |
+| Dashboard | Next.js16.3.8 and the selected paper-v5 interface are deployed. The real owner starts once and sees eight candidates and committed history. Worker failures are distinguished from the last committed run status; closed mode disables controls and retains history. Complete pinned reads poll independently from status. Final first-replacement/trade/evaluation/replay browser acceptance remains open. |
+| Worker / live execution | Railway's exact Dashboard service is restored to ordinary closed startup with original variables and revoked pilot credentials. No paper process is running; an expired database run requires explicit reconciliation. The Jupiter V2 helper remains quote-only and cannot sign or execute a swap. |
 
-The complete forward package/legacy evidence/additive retirement and D3C service/browser
-preparation are tested. A non-root pinned amd64 image is built and closed-mode canaries
-pass. The exact Railway service is deployed in closed mode, with its production-scoped token,
-single US West replica, HTTPS denial, resource limits and actual IPv6/CA/hostname TLS verified.
-The $20/month pilot ceiling is approved. Client inventory is resolved; exact-database
-SSL enforcement and post-reboot checks pass. Actual managed installer, issuer and
-production/history wrapper rollback rehearsals pass after three measured repairs.
-Closed application/committed verification, actual finite native sessions and curated exposure now pass.
-Hosted real-token Auth/CORS checks pass, and the existing owner sees the selected closed paper page.
-The actual Birdeye null-multiplier defect is repaired. The revised hosted finite
-provider assessment passes 61 warmup bars and 12 paced price/RPC captures, with
-source ages3.23–5.49s and process peak75.6MB. Ordinary Auth-only closed deployment
-9f606944-1bfd-4b2c-87bc-0855bee00117 restores exact original variables and removes
-all temporary provider values. DATA-01D is complete within this finite scope.
-The Developer upgrade and Dashboard key attribution are verified; quota headers
-shift from 9 to 98 remaining, but effective/shared window-budget acceptance remains
-DATA-01E. Next is full source/SQL/lease/relay/resource timing, then hosted nonempty
-operator/ownership/failure acceptance before the bounded pilot.
-[Exact setup and remaining gates](RAILWAY-SETUP.md). Detailed transport evidence lives in [NATIVE-SQL-TRANSPORT.md](services/vonneumann/NATIVE-SQL-TRANSPORT.md);
-The [closed cutover procedure](SUPABASE-CUTOVER.md) records the snapshot, original-outcome
-reconciliation and managed profile/Auth/deparser corrections.
-actual hosted facts, the credential/rollback plan and revised Railway IPv6 hosting
-recommendation live in [HOSTED-NATIVE-PREFLIGHT.md](services/vonneumann/HOSTED-NATIVE-PREFLIGHT.md).
+The exact source, project/service/owner identities, US West replica, HTTPS,
+resource limits and outbound IPv6/TLS are verified. The $20/month pilot ceiling
+is approved. Actual installer/issuer rollback, closed migration, finite native
+sessions/revocation, owner reads/Auth/CORS,61-bar warmup and paced provider/native
+controller checks pass. These finite successes do not establish the one-hour
+pilot, interruption with positions, unattended restoration, statistical timing
+tails or economic performance. The latest failed run is preserved, runtime is
+closed, and original finite write authority is not extended. Further release
+needs dedicated Vercel sign-in; then apply the reviewed original maintenance
+reconciliation and diagnose the provider/controller failure before a new hour.
+[Current evidence](supabase/audits/2026-10-08-fresh-native-controller-and-pilot.json),
+[setup](RAILWAY-SETUP.md), [native transport](services/vonneumann/NATIVE-SQL-TRANSPORT.md),
+[closed cutover](SUPABASE-CUTOVER.md), [hosted preflight](services/vonneumann/HOSTED-NATIVE-PREFLIGHT.md).
 
 ## First hosted paper MVP: ordered critical path
 
@@ -74,12 +66,11 @@ invent liquidation proceeds.
 
 | Order | Remaining work | Todo / acceptance |
 |---|---|---|
-| 1 | Resolve shared quotas and establish an operationally valid cadence | DATA-01E, DB-03A2C2D2D2A, HOST-03/04: finite provider timing and the Developer plan/key are verified; resolve the remaining effective-quota discrepancy/shared allowance and Birdeye entitlements/credit cost; finish finite source-age/receipt, remote DB/preparation/relay/lease and CPU/memory measurements. Prove renewal headroom and choose bounds from measurements. The revised twelve-sample closed provider probe passes; preserve its finite scope and do not treat it as tail or continuous quota readiness. |
-| 2 | Prepare and accept the one active worker path | DB-03A2D3C/DB-03A3: finite owner/run credentials, exact native writer/relay binding, full body/grant equality, compatible reads and explicit reviewed admission. Retire every competing legacy startup/status/risk/control writer. Closed schema/TLS/native/Auth/curated/empty-browser acceptance is complete; nonempty hosted operation remains. |
-| 3 | Prove security and safe interruption under deployment faults | DB-03/SVC-02, HOST-02 through HOST-06, SEC-03, DEPLOY-01: stale-worker fencing, locks, late/lost replies, overlapping releases, timeout/cancellation and SIGTERM/SIGKILL. Retain and reconcile original commands and holdings, verify readiness/drain and actual resource/cost limits. Use an explicitly isolated test plan; Vercel previews share the production database and are not test isolation. Automatic resume is a separate gate. |
-| 4 | Verify the complete operator and ownership flow | UI/ACCEPT gates: browser login → exact selected run → start/pause/stop → accepted commands → committed balance/trade/equity history → reconnect/replay. Two users cannot read/control one another's runs. Display source age, assumed costs, interruption and retained holdings honestly. Static demo market/connection labels are corrected; an empty closed view does not prove active trading. |
-| 5 | Run and review the bounded hosted paper pilot | HOST-07: eight candidates, two EMA genes, one market/window and at most one replacement; real feeds with simulated monetary execution. Record source age, resources, quota/cost, failures and shutdown. Review evidence before continuous operation or strategy-quality claims. |
-
+| 1 | Release fixed diagnostics and reconcile the original expired run | PAPER-FAILURE-EVIDENCE1/PAPER-EXPIRED-MAINT1: dedicated Dashboard Vercel sign-in, exact-target/source review, actual original-input rollback rehearsal and once-only cash-only interruption. Prove unchanged economics/checkpoint and candidate outbox/relay progress; verify the terminal owner projection without fabricating an event or ACK. |
+| 2 | Diagnose and repair the observed controller/provider failure | The fresh thirty-price native assessment passes; the actual owner hour still fails after two prices. Capture fixed acquisition/controller/provider labels, repair the established cause and repeat one finite assessment under unchanged source/receipt/lease bounds. Do not infer a provider cause from null SQL phases. |
+| 3 | Complete workload/security/interrupt evidence for the bounded profile | DATA-01E, D2D2A, HOST-02…06/A3: retain finite source/quota/DB/relay/resource measurements, owner isolation and original-ID settlement. Complete unresolved fault/overlap/outage exposure checks. Continuous quota/tail/restart readiness remains separate. |
+| 4 | Verify complete operator and ownership flow at the final window | Actual login/start/eight-candidate/nonempty history works. Verify complete first-replacement balance/trade/evaluation history, reconnect/replay and owner isolation at the final committed revision. Costs remain uncalibrated; stop retains holdings and restart requires reconciliation. |
+| 5 | Accept the supervised one-hour pilot, then close/review | HOST-07: eight candidates, two EMA genes, one SOL/USD reference window, at most one replacement, real feeds/simulated economics and reserved stop. Record resource/quota/failure evidence, restore closed runtime and revoke the finite pair. No profitability or live-trading claim follows from this mechanical acceptance. |
 
 For an **unattended continuously evolving paper MVP**, add compact/versioned
 multi-window checkpoint commands (DB-03A2C2D2D3), supported larger profiles and

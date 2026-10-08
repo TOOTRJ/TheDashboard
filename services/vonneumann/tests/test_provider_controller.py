@@ -855,6 +855,28 @@ class ProviderControllerTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase
         self.assertEqual(self.transport.count('commit_command'), count)
         self.assertEqual(self.feed.api_call_count, 0)
 
+    async def test_failed_provider_stage_survives_finished_work_without_secret_text(self):
+        import json
+        from vonneumann.market.feed import MarketFeedError
+        await self.bootstrapped()
+        count = self.transport.count('commit_command')
+        async def failed_capture(_assets):
+            raise MarketFeedError('rpc_unavailable')
+        self.feed.get_price_captures = failed_capture
+        with self.assertRaises(CommandAdmissionError):
+            await self.controller.tick()
+        self.assertIsNone(self.controller.pending_stage)
+        self.assertEqual(self.controller.last_failure, {
+            'stage': 'capture', 'category': 'operational_admission_failed',
+            'provider_code': None, 'acquisition': {
+                'stage': 'provider_capture', 'category': 'market_feed_error',
+                'provider_code': 'rpc_unavailable'}})
+        self.assertEqual(self.transport.count('commit_command'), count)
+        self.assertFalse(self.controller.accepting)
+        self.assertNotIn(SECRET, json.dumps(self.controller.last_failure))
+        self.controller.last_failure['acquisition']['provider_code'] = 'changed'
+        self.assertEqual(self.controller.last_failure['acquisition']['provider_code'], 'rpc_unavailable')
+
     async def test_cross_loop_settle_preserves_cancelled_callers_original_task(self):
         await self.bootstrapped()
         gate = ReadGate(price_body({SOL: '101'}, slot=SLOT)); self.gates.append(gate)
