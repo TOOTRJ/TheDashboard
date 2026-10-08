@@ -22,7 +22,11 @@ from vonneumann.server.paper_app import create_app
 SAMPLES = 12
 INTERVAL = 5
 DEADLINE = 90
-QUOTA_MARGIN = 12
+# Each sample owns one request, spaced at least five seconds apart. Reserving
+# every future sample in the current window incorrectly assumes a burst. This
+# observed-header reserve is only for a finite read probe, not account admission.
+QUOTA_RESERVE = 2
+QUOTA_OBSERVATION_MAX_AGE = 10
 
 
 def configuration(env):
@@ -44,11 +48,18 @@ def configuration(env):
 def quota_headers(headers):
     """Only small numeric quota facts; never headers, URLs, bodies or credentials."""
     value = {}
-    for key in ('x-ratelimit-limit', 'x-ratelimit-remaining', 'x-ratelimit-reset'):
+    for key in ('x-ratelimit-current', 'x-ratelimit-limit',
+                'x-ratelimit-remaining', 'x-ratelimit-reset'):
         item = headers.get(key)
         if isinstance(item, str) and len(item) <= 20 and item.lstrip('-').isdigit():
             value[key.removeprefix('x-ratelimit-')] = int(item)
     return value
+
+
+def quota_has_headroom(observation, *, received, now):
+    remaining = observation.get('remaining')
+    return (type(remaining) is int and remaining >= 1 + QUOTA_RESERVE
+            and received is not None and 0 <= now-received <= QUOTA_OBSERVATION_MAX_AGE)
 
 
 def summary(samples):
@@ -65,11 +76,14 @@ async def assess(keys, *, feed_factory=JupiterFeed):
     report = {'provider_read_canary': 1, 'phase': 'started', 'mode': 'closed',
               'economic_writes': False, 'wallet_operations': False}
     clocks, ages, receipt, quotas, lag = [], [], [], [], []
+    quota_received = None
     trace = aiohttp.TraceConfig()
     async def ended(session, context, params):
+        nonlocal quota_received
         # Only the actual Jupiter price path updates this quota observation.
         if params.url.host == 'api.jup.ag' and params.url.path == '/price/v3':
             quotas.append(quota_headers(params.response.headers))
+            quota_received = time.monotonic()
     trace.on_request_end.append(ended)
     feed._session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=5),
         trust_env=False, trace_configs=[trace])
@@ -94,7 +108,8 @@ async def assess(keys, *, feed_factory=JupiterFeed):
                 'raw_sha256': rows[0].document.response_sha256,
                 'null_multiplier': all(row.multiplier is None for row in rows)}
             for index in range(SAMPLES):
-                if quotas and quotas[-1].get('remaining', QUOTA_MARGIN) < QUOTA_MARGIN:
+                if index and (not quotas or not quota_has_headroom(
+                        quotas[-1], received=quota_received, now=time.monotonic())):
                     raise MarketFeedError('shared_quota_margin_unavailable')
                 before = time.monotonic()
                 cap = (await feed.get_price_captures(['SOL/USDC']))['SOL/USDC']
@@ -119,6 +134,11 @@ async def assess(keys, *, feed_factory=JupiterFeed):
             price_seconds=summary(clocks), source_age_seconds=summary(ages),
             receipt_processing_seconds=summary(receipt),
             quota_observations=quotas,
+            quota_policy={'sample_limit': SAMPLES, 'minimum_spacing_seconds': INTERVAL,
+                'next_request_count': 1, 'remaining_reserve': QUOTA_RESERVE,
+                'maximum_observation_age_seconds': QUOTA_OBSERVATION_MAX_AGE,
+                'reset_means_one_slot_not_full_window': True,
+                'account_budget_accepted': False},
             api_calls={'jupiter': feed.api_call_count,
                 'birdeye': feed._candles.api_call_count, 'rpc': feed._source_time.api_call_count},
             process_peak_rss_bytes=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss*1024,

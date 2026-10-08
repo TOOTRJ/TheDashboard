@@ -1,0 +1,52 @@
+{
+  "review_date": "2026-10-07",
+  "documentation_index": "https://developers.jup.ag/docs/llms.txt",
+  "specifications": [
+    {
+      "api": "Price V3",
+      "url": "https://developers.jup.ag/docs/openapi-spec/price/v3/price.yaml",
+      "bytes": 3154,
+      "sha256": "bc798556d98db9f5f5586cbd4deadd3c0839e167c2fffe93f8df9308acc7e029",
+      "runtime_endpoint": "https://api.jup.ag/price/v3",
+      "general_historical_range_endpoint_documented": false,
+      "createdAt_semantics": "mint creation; not price observation time"
+    },
+    {
+      "api": "Tokens V2",
+      "url": "https://developers.jup.ag/docs/openapi-spec/tokens/v2/tokens.yaml",
+      "bytes": 15639,
+      "sha256": "a1ba94ded9c4cc2a4afe1d20c675bf09e50e4e388f2dffd1042f1ef348837535",
+      "search_endpoint": "https://api.jup.ag/tokens/v2/search",
+      "rolling_statistics_are_candle_history": false
+    },
+    {
+      "api": "Swap V2",
+      "url": "https://developers.jup.ag/docs/openapi-spec/swap/v2/swap.yaml",
+      "bytes": 31368,
+      "sha256": "76daa0a94d51cb8ca2488b2cfae22f3ba7dab05444615c7169ce7893cb0ddd67",
+      "quote_only_runtime_endpoint": "https://api.jup.ag/swap/v2/order",
+      "taker_supplied": false,
+      "execute_enabled": false,
+      "wallet_total_amount_fields_location": "execute response",
+      "priceImpact_units": "percentage points"
+    }
+  ],
+  "account_observation": {
+    "developer_plan_active": true,
+    "existing_dashboard_key_matches_local_configuration": true,
+    "fresh_price_request_attributed_to_that_key": true,
+    "price_request_credits": 1,
+    "matching_firewall_rule": false,
+    "observed_current": 1,
+    "observed_remaining": 9,
+    "documented_developer_requests_per_60_seconds": 600,
+    "effective_capacity_accepted": false,
+    "continuous_shared_budget_accepted": false
+  },
+  "operations": {
+    "provider_settings_changed": false,
+    "billing_changed": false,
+    "wallet_operations": false,
+    "economic_writes": false
+  }
+}

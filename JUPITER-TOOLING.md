@@ -1,6 +1,6 @@
 # Jupiter tools for The Dashboard
 
-Reviewed 2026-09-30. This setup supports development/research for
+Reviewed 2026-09-30; endpoint/tool reassessment 2026-10-07. This setup supports development/research for
 `TOOTRJ/TheDashboard`; it adds no application dependencies or trading execution.
 
 ## Installed
@@ -76,7 +76,47 @@ contract. Follow current official documentation and the root `AGENTS.md`:
   after an uncertain transaction result.
 - Future accounting must distinguish V2 wallet flows `totalInputAmount` /
   `totalOutputAmount` from route amounts `inputAmountResult` / `outputAmountResult`.
-  Skill examples that return only route amounts do not establish net wallet P&L.
+  Those wallet totals belong to the execute response. Skill examples that return
+  only route amounts do not establish net wallet P&L.
+
+## Current index and contracts (2026-10-07)
+
+The complete [llms.txt index](https://developers.jup.ag/docs/llms.txt) was fetched
+before selecting current endpoint pages. Actual versioned Price V3, Tokens V2
+and Swap V2 YAML files were retrieved and hashed in the
+[review manifest](services/vonneumann/jupiter-api-review-20261007.json).
+Use those URLs: the older unversioned Swap YAML link still returns a legacy V1
+contract; analogous old unversioned Price/Tokens links are unavailable. Preserve
+the pinned upstream skill text and apply these project overrides.
+
+Runtime source already uses `api.jup.ag/price/v3` and quote-only
+`api.jup.ag/swap/v2/order`. No deprecated Jupiter host/V1/Ultra runtime call was
+found. Price `createdAt` is token creation, not price freshness; `blockId` remains
+the required source reference. Current Tokens rolling statistics do not provide
+historical candles. Neither the reviewed index nor Price schema documents a
+general historical range endpoint. [Detailed review and feature decisions](services/vonneumann/JUPITER-DATA-RESEARCH.md).
+
+The signed-in portal confirms the user's Developer upgrade and identifies a
+fresh Dashboard Price V3 request under the existing configured key. Actual
+headers still report `current=1`, `remaining=9` and roughly ten seconds to reset,
+rather than establishing the documented Developer sixty-second capacity. No
+firewall rule matched that request. Keep this discrepancy open in DATA-01E;
+do not infer quota from the badge, assume a reset replenishes a full window,
+or change account-wide settings used by another project.
+
+New useful research surfaces include key permissions/request-credit logs,
+Tokens audit/liquidity fields, managed Swap V2 execution and optional transaction
+V1 support. Beta `/build?mode=fast` is a later measured live-routing alternative,
+with different route/fee tradeoffs. Trigger V2 needs a separate custody/order
+model; RFQ streaming and AMM test-kit tools serve liquidity/DEX integrators.
+None solves this pilot's historical warmup requirement.
+
+The user's AI-tool excerpt distinguishes documentation from operations. Local
+skills/index are sufficient for this HTTP-adapter development, with the existing
+two-tool documentation MCP as an optional research aid. The current conversation
+does not expose those MCP calls, so official HTTP documentation was used without
+changing any agent configuration. No CLI, trading MCP, wallet kit or broad
+installer is required for the paper MVP.
 
 ## Reviewed and deferred
 
