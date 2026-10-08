@@ -229,27 +229,25 @@ needs a file-backed sign-in before further release. [Fresh hosted evidence](supa
 
 **Next priorities, in order:**
 
-1. Complete release/browser verification of the implemented worker-target and
-   candidate-assessment view (PAPER-UI-TARGET1 / PAPER-UI-ASSESSMENT1). Offline
-   regressions and exact-target read-only adapters pass for the actual 16-member,
-   two-window revision514 history. Keep the worker closed during this UI release.
-2. Research and implement compact/versioned multi-window checkpoints, bounded
+1. Research and implement compact/versioned multi-window checkpoints, bounded
    active state and retention, with long-duration/load/restart acceptance before
-   continuous paper evolution. This one hour journals58,114,764 logical request
+   continuous paper evolution. Include finalized assessment provenance
+   (PAPER-ASSESSMENT-PROVENANCE1) in that reviewed forward-format work.
+   This one hour journals58,114,764 logical request
    bytes and23,316,227 compressed column bytes; those exclude relation/index/TOAST
    overhead and do not change application/SQL byte admission limits.
-3. Calibrate realistic fills/costs and validate the provisional objective with
+2. Calibrate realistic fills/costs and validate the provisional objective with
    representative longer windows, multiple seeds and equal-budget grid/random/
    cash/buy-and-hold comparisons using held-out data. In this hour, no-trade
    founders outrank both profitable trading founders under ROIminus2×drawdown.
    Research activity bias, weights, elitism/diversity and ties before gene expansion.
-4. Deep substantial research: DNS/TCP/TLS/SCRAM and SQL/cleanup latency tails,
+3. Deep substantial research: DNS/TCP/TLS/SCRAM and SQL/cleanup latency tails,
    safe connection reuse, source regression magnitudes/frequency, provider
    consistency/finality, effective quotas/billing, retained-position recovery and
    representative source-age/fill distributions. Eight source regressions were
    discarded within the current limit; no regression magnitude or cause is
    inferred. Scoped metrics exclude three unattributed aggregate series.
-5. Complete LIVE-01…07 after paper acceptance and research before any real
+4. Complete LIVE-01…07 after paper acceptance and research before any real
    trading. This completed finite pilot grants no wallet/signing/swap authority.
 
 - [x] **PAPER-HOUR-FIRSTREPLACEMENT1 — Accept the first finite actual-owner hour.**
@@ -596,8 +594,9 @@ Research began **2026-09-30** and was updated **2026-10-06/07** in [WORKER-HOSTI
   stale pre-acknowledgment worker replies cannot regress status. Two exact bounded
   closed-service read responses identify configuration closure without claiming
   a verified owner/run. Outage, authentication failure and unknown responses
-  remain unverified with disabled controls. Focused regressions pass; exact-source
-  production/browser verification is recorded in the release. No worker activation.
+  remain unverified with disabled controls. Forty focused tests pass. PR81 is
+  merged with exact READY production/four smokes and actual-owner complete
+  revision514 acceptance. No worker activation. [UI acceptance](supabase/audits/2026-10-08-paper-assessment-ui-acceptance.json).
 
 - [x] **PAPER-UI-QUANTITY1 — Accept the selected ledger's exact trade quantities.**
   PR79 accepts18 decimal places without conversion or rounding, retaining amount
@@ -620,16 +619,19 @@ Research began **2026-09-30** and was updated **2026-10-06/07** in [WORKER-HOSTI
   strings before publication. Missing older metadata stays unavailable and
   unrecognized policy versions are shown without assigning current semantics.
   Actual revision514 adapters pass for all16 accounts and both windows. Retired
-  drawdown is labeled last-observed-before-replacement; the reviewed current
+  drawdown, peak and closed-trade counts are labeled last-observed-before-replacement; the reviewed current
   formula is explained separately from missing per-window formula metadata.
-  PAPER-ASSESSMENT-PROVENANCE1 retains that database follow-up. Research objective weight,
+  PAPER-ASSESSMENT-PROVENANCE1 retains that database follow-up. PR81 actual-owner
+  production acceptance covers all16 accounts, parentage, completed founder
+  scores and aborted unscored children. A follow-up clarifies the observed count
+  label when the final evaluation includes a later liquidation. Research objective weight,
   elitism/diversity and equal-budget/multi-seed holdout comparisons before
   changing selection behavior. Current one-hour zero-cost mechanics acceptance
   is not economic validation.
 
 - [ ] **PAPER-ASSESSMENT-PROVENANCE1 — Persist finalized assessment provenance.**
   Compose with the next versioned checkpoint/projection work: persist the exact
-  fitness-policy version/formula/weight, terminal score drawdown and measurement
+  fitness-policy version/formula/weight, terminal score drawdown, final closed-trade count and measurement
   basis, source/common-window identities and execution profile in a reviewed
   forward format. Existing records must retain their original evidence and
   explicit missing fields; do not infer final drawdown from the score or attach

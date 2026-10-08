@@ -3433,3 +3433,25 @@ acceptance accompany the PR release. Rollback is a reviewed frontend revert;
 there is no database rollback or worker reopening requirement. The historical
 migration edit remains untouched at SHA256
  a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc.
+
+**PR81 release and actual-owner acceptance:** Head
+ e97ee84edd35c5bbd1031c4e3516fe57f76c4a1e preview
+ dpl_5MT7Rz6zRFcCPKW3n4vsTxH71E3i is READY with verified project/team/repo/author.
+The dedicated-profile CLI62 curl command forwards --global-config/--cwd through
+its curl-like parser; native curl rejects the global-config option before an
+HTTP request. No default profile, OIDC pull, protection change or global upgrade
+is used to work around it. This is a local preview-smoke limitation; the preview
+build and the forty focused offline cases pass.
+
+PR81 merges as2ca66b035e7a790956c514ebd497e4082e66be76. Exact production
+ dpl_9AtV28Zd9hiCD81QM2atjZbCtKcv is READY on the canonical alias, with all
+four read-only smokes passing. The signed-in owner reads revision514 completely:
+16 accounts/genes, eight retired founders/eight retained children,2 closed
+positions/4 trade versions,32 events, completed and aborted windows,0 fee/
+slippage/half-spread, actual parent roles/operations,0.0733% recorded ROI and
+-0.001048 fitness for the two trading founders. The founder last observation
+counts0 closed trades before liquidation; its completed evaluation counts1.
+The small follow-up labels that count as last observed and tests the distinction.
+No new Start/Stop/archive, provider operation, worker redeployment or database
+mutation is used for browser acceptance. Final follow-up deployment/owner
+verification is retained in its PR release evidence.

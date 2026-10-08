@@ -22,7 +22,7 @@
         "numerator": "9",
         "denominator": "10000"
       },
-      "closed_trades": 1,
+      "closed_trades": 0,
       "account_currency": "USD",
       "lineage": {
         "version": 1,
