@@ -1,0 +1,19 @@
+{
+  "rollback_rehearsal_passed": true,
+  "elapsed_seconds": 2.132542,
+  "target": "fxpxsciltakyypunglzr",
+  "legacy_rows_unchanged": true,
+  "external_dependents": false,
+  "v5_runs": 0,
+  "admission": "closed",
+  "original_source_sha256": "671260101efce09d83783f31511b564d6c8f7958edce93f5787714b41c00d379",
+  "date": "2026-10-07",
+  "row_counts": {
+    "vn_colonies": 8,
+    "vn_probes": 497,
+    "vn_trades": 807,
+    "vn_fitness_snapshots": 9837,
+    "vn_generation_stats": 0
+  },
+  "stage": "rollback rehearsal only; actual deletion pending reviewed source merge"
+}
