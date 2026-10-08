@@ -63,7 +63,9 @@ class PaperServiceTests(OfflineTestMixin,unittest.IsolatedAsyncioTestCase):
   app=paper_app.create_app(self.service,verify=user)
   async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app),base_url='https://paper.invalid') as client:
    self.assertEqual((await client.get('/health')).status_code,200)
-   self.assertEqual((await client.get('/v5/status',headers={'Origin':'https://evil.invalid'})).status_code,403)
+   rejected=await client.get('/v5/status',headers={'Origin':'https://evil.invalid'})
+   self.assertEqual(rejected.status_code,403)
+   self.assertEqual(rejected.headers.get('cache-control'),'no-store')
    r=await client.get('/v5/controls');self.assertEqual(r.json()['start_id'],self.start)
    for payload in [{'request_id':self.start,'mode':'live'},{'request_id':str(uuid4())}]:
     self.assertIn((await client.post('/v5/start',json=payload)).status_code,(409,422))

@@ -72,7 +72,7 @@ def artifacts():
     return builder, source, manifest
 
 
-def targets():
+def targets(*, require_credential_free=True):
     g = json_command(['python3', 'scripts/dashboard-github.py', 'verify'])
     if (g.get('login'), g.get('user_id'), g.get('repository'), g.get('repository_id')) != (
         'biggrizzly11', 16749816, 'TOOTRJ/TheDashboard', 1141090963):
@@ -109,7 +109,9 @@ def targets():
         {'service': railway.SERVICE, 'environment': railway.ENVIRONMENT, 'project': railway.PROJECT})['variables']
     if (variables.get('VN_SERVICE_MODE') != 'closed' or
         variables.get('VN_DOTENV_DISABLED') != '1' or
-        any(key in variables for key in ('VN_ECONOMIC_PASSWORD', 'VN_RELAY_PASSWORD', 'RAILWAY_TOKEN', 'SUPABASE_SERVICE_ROLE_KEY'))):
+        any(key in variables for key in ('RAILWAY_TOKEN', 'RAILWAY_API_TOKEN', 'SUPABASE_SERVICE_ROLE_KEY',
+                                        'SUPABASE_SECRET_KEY', 'SUPABASE_DB_PASSWORD')) or
+        (require_credential_free and any(key in variables for key in ('VN_ECONOMIC_PASSWORD', 'VN_RELAY_PASSWORD')))):
         raise Refused('Verified closed credential-free worker required')
     return {'github': g, 'vercel': {'id': PROJECT, 'name': 'the-dashboard', 'owner': TEAM},
             'supabase': {'id': REF, 'name': 'The Dashboard', 'owner': ORG, 'ssl_enforced': True},

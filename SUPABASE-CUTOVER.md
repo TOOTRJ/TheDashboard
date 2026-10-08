@@ -95,3 +95,10 @@ two-gene, eight-candidate SOL/USD paper pilot within the approved budget.
 Deep substantial research remains on managed hooks, secret/issuer log handling,
 credential rotation, real latency tails, shared provider billing/quota and
 retention/compact checkpoints. No live wallet/signing/swaps are included.
+
+
+## Actual committed application — 2026-10-07
+
+The closed migration is applied after PR57 merge and exact production deployment verification. Fresh complete functions/tables/ACL/release and exact original migration source history match. Release6b9fceb02278ef9ca978743c43dd2d0dd2cacb49b310689c016fe58d65861fb1 remains closed at epoch0. All legacy rows and fourteen original history records are unchanged; total history is fifteen versions. Private original outcome is committed_and_verified_closed. [Approved postflight](supabase/audits/2026-10-07-closed-install-acceptance.json).
+
+This retires legacy raw API writes while preserving read history. Native credential publication, owner-only curated API exposure, hosted user/worker acceptance, admission and finite paper pilot remain separate operations. A managed logging/parameter constraint is addressed by the next [bound native operator](services/vonneumann/NATIVE-CREDENTIAL-OPERATIONS.md); it does not change the installed durable contract.

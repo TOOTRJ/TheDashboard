@@ -1,0 +1,34 @@
+{
+  "acceptance": {
+    "admission": "closed",
+    "epoch": 0,
+    "fresh_catalog_verified": true,
+    "original_history_matches": true,
+    "release_sha256": "6b9fceb02278ef9ca978743c43dd2d0dd2cacb49b310689c016fe58d65861fb1"
+  },
+  "gates": {
+    "admission": "closed",
+    "independent_review_matches": true,
+    "private_snapshot_matches": true,
+    "reviewed_source_merged": true
+  },
+  "legacy_rows_unchanged": true,
+  "merge_sha": "0d42b5a528b71a963dd70c86152e000d9cb3936f",
+  "migration_sha256": "7b0c2d9578641de1d0b82204cc862338ce1e4f33da477070f4e4134eb6b39e36",
+  "original_migration_rows_unchanged": true,
+  "production_deployment": "dpl_xgpVhZaKfDfciVKD9jahPJVzYnBX",
+  "source_pr": "https://github.com/TOOTRJ/TheDashboard/pull/57",
+  "status": "committed_and_verified_closed",
+  "target": {
+    "github_repository": "TOOTRJ/TheDashboard",
+    "github_repository_id": 1141090963,
+    "supabase_name": "The Dashboard",
+    "supabase_org": "cqfnnaunmupdyobkyqfo",
+    "supabase_ref": "fxpxsciltakyypunglzr",
+    "vercel_project_id": "prj_wFUe9k9USVreOQcmQKNWRAVsx5fH",
+    "vercel_project_name": "the-dashboard",
+    "vercel_team_id": "team_8iNNxiNjrOseD4gdSCHkQEzF"
+  },
+  "total_migration_versions": 15,
+  "version": "20261007010000"
+}
