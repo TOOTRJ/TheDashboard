@@ -206,19 +206,19 @@ class ProviderAcquisitionTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(second.frame['sequence'], 2)
         self.assertEqual(len(self.feed.calls), 3)
 
-    async def test_repeated_unchanged_provider_receipts_cannot_extend_the_accepted_window(self):
+    async def test_repeated_unchanged_provider_receipts_cannot_extend_source_age(self):
         await self.ready(self.response(self.capture()))
         first = await self.acquisition.capture_quote()
         await self.accept(first)
         original = self.owner.installed_state.to_dict()['source']
-        for _ in range(3):
-            self.age(1)
+        for _ in range(4):
+            self.age(7)
             self.feed.responses.append(self.response(self.capture(
                 source_second=first.frame['quote']['estimated_source_second'])))
             self.assertIsNone(await self.acquisition.capture_quote())
             self.assertEqual(self.owner.installed_state.to_dict()['source'], original)
             self.assertFalse(self.acquisition.has_deferred_capture)
-        self.age(1)
+        self.age(.001)
         self.feed.responses.append(self.response(self.capture(
             source_second=first.frame['quote']['estimated_source_second'])))
         with self.assertRaises(CommandAdmissionError):

@@ -2817,3 +2817,66 @@ one-hour replacement and intended-owner browser acceptance remain pending.
 Further substantial research: low-resource parsing/CPU tails, lease and receipt
 headroom under outages, actual RPC/Jupiter credits, continuous windows and
 checkpoint restoration. Do not interpret these mechanical tests as profitability.
+
+## 75. Corrected controller acceptance, intended-owner interruption and fresh-run provisioning (2026-10-08)
+
+PR68 merges as390fd9dc2f66735b3eddae7ae0633bc26d395c53; production
+dpl_7DgLJ11pywRWtyE7L6muzhNVLdya is READY with exact source/owner/repository/alias
+and four smokes. Railwayc134e428-85c4-4d6f-b139-884a849bb58f completes the real
+closed-API assessment:30 accepted quotes,34 owned commands,revision34, stopped,
+eight accounts and eleven accepted/ACKed events. The dropped bootstrap response
+resolves through the original command; its deliberate drop is the sole SQL error.
+Elapsed218.093856s; source age2.369964–8.659110s; commit SQL0.547911–0.754256s;
+maximum whole operation8.425871s including bootstrap/reconciliation/publication;
+peakRSS97,558,528bytes, CPU8.56s, maximum loop lag1.039463s. Headers mostly show
+current2/remaining98; this does not prove the documented maximum paid capacity.
+Nonempty owner projections include34 run versions,264 probe versions,240 samples
+and eleven unique contiguous events; other-owner and anonymous reads are denied.
+The short stopped evaluation remains unscored/requires reconciliation.
+[Controller evidence](supabase/audits/2026-10-08-corrected-controller-acceptance.json).
+
+Ordinary intended-owner paper-v5 deployment48d67a40-199c-48cf-bbc4-a090f90b80f7
+is SUCCESS with the same source/export/region. TheRedJester sees a verified fresh
+worker and starts its original configured pilot through the real dashboard.
+The worker fails after four accepted quotes at revision7; the browser correctly
+retains eight candidate balances and original committed history. Two independent
+other users are denied status/control/start/stop/settle (404); missing/invalid
+Auth401, foreign-Origin403 and docs404, all no-store. Original stop is requested
+but not falsely claimed committed after the lease expires. The actual expiry
+drill denies new-worker adoption/old heartbeat, commits the original interruption
+at revision8 and preserves the checkpoint/holdings. Closed restoration is applied
+and all four original pairs are revoked; no failed run is restored or reused.
+[Interruption evidence](supabase/audits/2026-10-08-intended-owner-pilot-interruption.json).
+
+The original service did not retain the precise failure origin. A full literal
+provider/controller regression reproduces a failure when Jupiter returns the same
+block after a normal seven-second wait: make_frame revalidates the consumed old
+receipt's five-second deadline. This is a confirmed code defect and plausible
+explanation of the hosted failure, not proof of its unrecorded response. The
+repair validates the new response receipt and carries the original source-age
+floor, then defers without economics or refreshing accepted anchors. Source age
+still expires at30s; backwards clocks, stale new receipts, changed same-block
+prices and pending protective-ticket guards remain enforced. Jupiter's current
+[Price V3 documentation](https://developers.jup.ag/docs/price) describes last-swap
+pricing and blockId for recency; another request does not guarantee a new block.
+Authenticated status now exposes only fixed admission reasons; the dashboard
+separately labels worker reconciliation versus last committed history.
+
+A separate temporary postgres-only SECURITY INVOKER issue_quiescent path allows
+one new finite pair only for the open, exact reviewed release after cleanup.
+The operator must prove closed credential-free runtime and exact cloud targets.
+SQL locks bindings/runs, requires every old binding revoked/NOLOGIN, denies other
+capability logins and starting/running/paused/risk-halted runs, and rejects prior
+run/binding identities. The preexisting trusted postgres installer is excluded
+from the application-login check only after its existing strict issuer/logging
+guard passes. Original default closed issuance/install/remove bytes stay intact.
+No release/catalog/schema migration, permission expansion, credential rotation
+or runtime admin key is needed. Rollback rehearses original bound inputs; commit
+occurs once and is independently reconciled, followed by adapter removal.
+
+Validation:157 focused worker tests, ten controller/service PostgreSQL checks,
+ten native-operator PostgreSQL checks, fourteen focused frontend tests, TypeScript
+and changed-component lint pass. The isolated production build uses synthetic
+configuration. One-hour replacement and full intended-owner final history remain
+unaccepted until the new fresh run passes. Continuous operation, realistic fills,
+restart restoration and statistical timing/credit tails remain deeper research.

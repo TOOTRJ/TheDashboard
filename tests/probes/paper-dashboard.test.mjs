@@ -28,7 +28,8 @@ function harness(options={}) {
    const value=typeof next==='function'?next(hooks[i].value):next;if(!Object.is(value,hooks[i].value)){hooks[i].value=value;dirty=true;}}];}};
  const row={id:run,durability_version:5,account_currency:'USD',initial_cash:'1000',reserve:'1000',reference_equity:null,
   status:'stopped',generation:0,open_position_count:1,requires_reconciliation:true,committed_at:'2026-10-08',source_at:null};
- const state=()=>({version:1,owner_id:owner,run_id:run,phase,stop_requested:phase==='stopped',busy:false});
+ const state=()=>({version:1,owner_id:owner,run_id:run,phase,stop_requested:phase==='stopped',busy:false,
+  requires_reconciliation:['failed','drained','pending'].includes(phase)});
  const api={
   async read(name,args,signal){reads.push({name,args,signal});
    if(options.readGate)await options.readGate.promise;
@@ -103,4 +104,11 @@ test('worker outage still publishes owner-bound committed history and blocks con
  const h=harness({workerFails:true});await h.flush();
  assert.match(h.text(),/Committed revision 2/);assert.match(h.text(),/Unable to verify the paper worker/);
  assert.doesNotMatch(h.text(),/private worker failure/);assert.throws(()=>h.click('Start configured pilot'),/disabled/);h.dispose();
+});
+test('failed worker identifies reconciliation separately from retained committed history',async()=>{
+ const h=harness({phase:'failed'});await h.flush();
+ assert.match(h.text(),/The worker requires reconciliation/);
+ assert.match(h.text(),/Committed history may precede the failure/);
+ assert.match(h.text(),/Committed revision 2/);
+ assert.throws(()=>h.click('Start configured pilot'),/disabled/);h.dispose();
 });

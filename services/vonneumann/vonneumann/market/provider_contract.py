@@ -343,7 +343,10 @@ def make_frame(capture, *, prior_source, epoch, wall_now, monotonic_now):
             _fail()
         if quote["block_ref"] == old["block_ref"]:
             if quote["price"] == old["price"] and quote["estimated_source_second"] == old["estimated_source_second"]:
-                check_frame(prior, wall_us=wall_us, monotonic_us=mono_us)
+                # The installed frame's receipt is consumed evidence, not a
+                # prospective action ticket. The new receipt was checked above
+                # with its carried source-age floor. Deferral must not re-age
+                # the consumed receipt or refresh the accepted source anchors.
                 raise ProviderDeferred('unchanged_quote')
             _fail()
         if second <= prior["decision_second"]:

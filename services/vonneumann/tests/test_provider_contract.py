@@ -191,11 +191,17 @@ class ProviderSourceContractTests(OfflineTestMixin, unittest.TestCase):
         prior = state_source(self.frame())
         cases = ((raw_capture(wall=WALL + 28, mono=MONO + 28), WALL + 29, MONO + 29),
                  (raw_capture(wall=WALL, mono=MONO), WALL + 1, MONO - 2),
-                 (raw_capture(wall=WALL + 4, mono=MONO + 4), WALL + 5, MONO + 5))
+                 (raw_capture(wall=WALL, mono=MONO), WALL + 5, MONO + 5))
         for capture, wall, mono in cases:
             with self.subTest(wall=wall), self.assertRaises(source.ProviderSourceError) as caught:
                 self.frame(capture, prior, wall=wall, mono=mono)
             self.assertNotIsInstance(caught.exception, source.ProviderDeferred)
+
+    def test_fresh_unchanged_receipt_defers_after_installed_receipt_is_consumed(self):
+        prior = state_source(self.frame())
+        with self.assertRaises(source.ProviderDeferred):
+            self.frame(raw_capture(wall=WALL + 7, mono=MONO + 7), prior,
+                       wall=WALL + 7, mono=MONO + 7)
 
     def test_later_block_carries_conservative_age_floor_across_unequal_clock_elapsed(self):
         first = self.frame(raw_capture(age_floor=20.0))

@@ -402,6 +402,17 @@ class ProviderControllerTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase
         self.assertEqual(len(self.allocations), allocations)
         self.assertEqual(self.feed.api_call_count, 2)
 
+    async def test_repeated_snapshot_after_normal_wait_does_not_reuse_consumed_ticket(self):
+        await self.bootstrapped(); self.price(); await self.controller.tick()
+        before = self.owner.installed_state.to_dict()['source']
+        self.age(7); self.price()
+        count = self.transport.count('commit_command')
+        report = await self.controller.tick()
+        self.assertEqual(report.status, 'deferred')
+        self.assertEqual(self.owner.installed_state.to_dict()['source'], before)
+        self.assertEqual(self.transport.count('commit_command'), count)
+        self.assertTrue(self.controller.accepting)
+
     async def test_cancelled_caller_during_price_read_retains_whole_tick_and_rejects_overlap(self):
         await self.bootstrapped()
         gate = ReadGate(price_body({SOL: '101'}, slot=SLOT))

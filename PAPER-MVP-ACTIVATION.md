@@ -146,3 +146,27 @@ strategy/fill results. The single supervised pilot does not close those tasks.
 Sources checked2026-10-08: [Jupiter organization quotas](https://developers.jup.ag/docs/portal/rate-limits),
 [Railway resource pricing](https://docs.railway.com/pricing),
 [Helius credit schedule](https://www.helius.dev/docs/billing/credits).
+
+## Fresh supervised run after terminal cleanup
+
+All four original pairs were used, their failed runs explicitly interrupted and
+all credentials revoked. Reuse no original run/start/stop/epoch/credential identity.
+The corrected30-price controller passes, but the first intended-owner hour does
+not. A further supervised attempt requires newly prepared immutable private
+intent and fresh finite economic/relay pair.
+
+The separate temporary issue_quiescent provisioner is reviewed for this case.
+Default closed issuance stays intact. Freshly prove exact targets, the closed
+credential-free worker, installed catalog/hash/epoch and original terminal runs.
+Its SQL additionally serializes bindings/runs, denies any unrevoked binding or
+application capability login, denies unreconciled active statuses, and rejects
+previously used run/binding IDs. Prepare fixed names, password verifiers and IDs
+in an owned0600 ignored journal; bind private inputs rather than literal SQL.
+Rehearse the same request under ROLLBACK and verify no roles/bindings appeared.
+Commit once, independently reconcile original names/OIDs/scope/deadlines, then
+remove the unexposed invoker before cloud deployment. Unknown outcomes stay
+attached to that original intent; no automatic fresh issuance or retry.
+
+Use one finite pair at a time: assessment, cleanup/revocation, then a separately
+prepared intended-owner pilot. This does not widen worker capabilities, change
+account-wide credentials, reopen a retired release or authorize real trading.
