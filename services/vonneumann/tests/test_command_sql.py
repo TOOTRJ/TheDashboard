@@ -120,6 +120,20 @@ class SQLTransportTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(self.connection.closed)
         self.assertFalse(self.transport._io_tasks)
         self.assertEqual(self.transport._connect.await_count,1)
+        self.assertEqual(self.transport.last_failure_phase,'commit')
+
+    async def test_explicit_paper_connect_headroom_keeps_one_attempt_and_whole_operation_bound(self):
+        self.transport._bounds=CommandSQLBounds(connect_seconds=1.0)
+        async def slow_connection(*args):
+            await asyncio.sleep(.55)
+            return self.connection
+        self.transport._connect=AsyncMock(side_effect=slow_connection)
+        await self.transport.rpc('get_command',self.args)
+        self.assertEqual(self.transport._connect.await_count,1)
+        self.assertEqual(self.connection.calls[-1][0],'COMMIT')
+        self.assertEqual(self.transport._bounds.operation_seconds,3.0)
+        self.assertEqual(CommandSQLBounds().connect_seconds,.5)
+        self.assertIsNone(self.transport.last_failure_phase)
 
     async def test_late_connection_after_timeout_is_owned_and_closed(self):
         self.transport._bounds=CommandSQLBounds(connect_seconds=.01)
@@ -134,6 +148,7 @@ class SQLTransportTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(self.connection.closed)
         self.assertFalse(self.transport._io_tasks)
         self.assertEqual(self.connection.calls,[])
+        self.assertEqual(self.transport.last_failure_phase,'connect')
 
     async def test_only_original_command_readback_accepts_sql_null(self):
         self.connection.body=None
@@ -151,6 +166,7 @@ class SQLTransportTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaisesRegex(CommandSQLError,'cleanup_pending_or_failed'):
             await self.transport.rpc('get_command',self.args)
         self.assertFalse(self.transport._cleanup.done())
+        self.assertEqual(self.transport.last_failure_phase,'cleanup')
         with self.assertRaisesRegex(CommandSQLError,'closed_or_cleanup_pending'):
             await self.transport.rpc('get_command',self.args)
         self.connection.close_gate.set();await self.transport._cleanup

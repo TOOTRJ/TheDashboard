@@ -1,0 +1,336 @@
+{
+  "version": 1,
+  "date": "2026-10-08",
+  "source_sha": "096405b238aa4ba8b7d08df40bf437f87d1eda97",
+  "github": {
+    "repository": "TOOTRJ/TheDashboard",
+    "id": 1141090963
+  },
+  "vercel": {
+    "project": "prj_wFUe9k9USVreOQcmQKNWRAVsx5fH",
+    "production": "dpl_8fbCeBeyQsQKj1v6ettGXRzwgVuA",
+    "exact_alias_and_four_smokes_passed": true
+  },
+  "supabase": {
+    "ref": "fxpxsciltakyypunglzr",
+    "release_state": "open",
+    "epoch": 1,
+    "catalog_unchanged": true,
+    "managed_bound_rehearsal_rolled_back": true,
+    "original_fresh_pair_issued_verified": true,
+    "original_fresh_pair_revoked_verified": true,
+    "original_run_and_command_counts": [
+      0,
+      0
+    ]
+  },
+  "railway": {
+    "project": "38facb49-4de9-4d66-85aa-2861e0306dcf",
+    "environment": "9bbe52c6-2305-467a-bf39-8d5e1a98e4e4",
+    "service": "8e78ad4b-1d8f-43e7-898a-3882ac5053d7",
+    "assessment_deployment": "2c08f809-c0bd-4f60-9718-f057a98e81ab",
+    "read_only_probe_deployment": "258d7962-0cfa-44b5-ad9f-a681c94a6dd9",
+    "restored_closed_deployment": "b459f38f-7614-4687-9533-c177c9d081b3",
+    "original_variables_restored": true,
+    "probe_secret_additions_removed": 6,
+    "region": {
+      "us-west2": {
+        "numReplicas": 1
+      }
+    }
+  },
+  "assessment": {
+    "automatic_retry": false,
+    "phase": "refused",
+    "api_calls": {
+      "jupiter": 0,
+      "birdeye": 0,
+      "rpc": 0
+    },
+    "service_phase": "pending",
+    "wallet_operations": false,
+    "sql_counts": {
+      "create_run": 1
+    },
+    "code": "original_operation_requires_inspection",
+    "quota_observations": [],
+    "source_age_seconds": null,
+    "paper_controller_canary": 1,
+    "statistical_tail_acceptance": false,
+    "sql_errors": {
+      "create_run": 1
+    },
+    "process_cpu_seconds": 0.05,
+    "process_peak_rss_bytes": 95993856,
+    "sql_seconds": {
+      "create_run": {
+        "count": 1,
+        "minimum": 0.50235,
+        "median": 0.50235,
+        "maximum": 0.50235,
+        "tail_acceptance": false
+      }
+    },
+    "finite_measurement": true,
+    "mode": "closed-api-finite-paper",
+    "maximum_loop_lag_seconds": 0.044663,
+    "elapsed_seconds": 0.553106,
+    "revision": 0
+  },
+  "diagnostic": {
+    "economic_writes": false,
+    "runtime_limits_changed": false,
+    "dashboard_native_connect_canary": 1,
+    "phase": "passed",
+    "providers_called": false,
+    "diagnostic_connect_limit_seconds": 3,
+    "samples": [
+      {
+        "capability": "economic",
+        "sample": 1,
+        "connect_seconds": 0.251358,
+        "verified": true,
+        "dns_seconds": [
+          0.088311
+        ],
+        "total_seconds": 0.342737
+      },
+      {
+        "capability": "economic",
+        "sample": 2,
+        "connect_seconds": 0.160588,
+        "verified": true,
+        "dns_seconds": [
+          0.000986
+        ],
+        "total_seconds": 0.244975
+      },
+      {
+        "capability": "economic",
+        "sample": 3,
+        "connect_seconds": 0.160521,
+        "verified": true,
+        "dns_seconds": [
+          0.001415
+        ],
+        "total_seconds": 0.245142
+      },
+      {
+        "capability": "economic",
+        "sample": 4,
+        "connect_seconds": 0.163967,
+        "verified": true,
+        "dns_seconds": [
+          0.001012
+        ],
+        "total_seconds": 0.252104
+      },
+      {
+        "capability": "economic",
+        "sample": 5,
+        "connect_seconds": 0.173026,
+        "verified": true,
+        "dns_seconds": [
+          0.000907
+        ],
+        "total_seconds": 0.257744
+      },
+      {
+        "capability": "economic",
+        "sample": 6,
+        "connect_seconds": 0.162383,
+        "verified": true,
+        "dns_seconds": [
+          0.001904
+        ],
+        "total_seconds": 0.247631
+      },
+      {
+        "capability": "economic",
+        "sample": 7,
+        "connect_seconds": 0.163897,
+        "verified": true,
+        "dns_seconds": [
+          0.001428
+        ],
+        "total_seconds": 0.248625
+      },
+      {
+        "capability": "economic",
+        "sample": 8,
+        "connect_seconds": 0.162093,
+        "verified": true,
+        "dns_seconds": [
+          0.001254
+        ],
+        "total_seconds": 0.243588
+      },
+      {
+        "capability": "economic",
+        "sample": 9,
+        "connect_seconds": 0.161354,
+        "verified": true,
+        "dns_seconds": [
+          0.001203
+        ],
+        "total_seconds": 0.247474
+      },
+      {
+        "capability": "economic",
+        "sample": 10,
+        "connect_seconds": 0.166505,
+        "verified": true,
+        "dns_seconds": [
+          0.001053
+        ],
+        "total_seconds": 0.252831
+      },
+      {
+        "capability": "economic",
+        "sample": 11,
+        "connect_seconds": 0.161431,
+        "verified": true,
+        "dns_seconds": [
+          0.001619
+        ],
+        "total_seconds": 0.244982
+      },
+      {
+        "capability": "economic",
+        "sample": 12,
+        "connect_seconds": 0.153557,
+        "verified": true,
+        "dns_seconds": [
+          0.001229
+        ],
+        "total_seconds": 0.235129
+      },
+      {
+        "capability": "relay",
+        "sample": 1,
+        "connect_seconds": 0.157884,
+        "verified": true,
+        "dns_seconds": [
+          0.002049
+        ],
+        "total_seconds": 0.240893
+      },
+      {
+        "capability": "relay",
+        "sample": 2,
+        "connect_seconds": 0.162952,
+        "verified": true,
+        "dns_seconds": [
+          0.00184
+        ],
+        "total_seconds": 0.24627
+      },
+      {
+        "capability": "relay",
+        "sample": 3,
+        "connect_seconds": 0.180741,
+        "verified": true,
+        "dns_seconds": [
+          0.001964
+        ],
+        "total_seconds": 0.269263
+      },
+      {
+        "capability": "relay",
+        "sample": 4,
+        "connect_seconds": 0.162053,
+        "verified": true,
+        "dns_seconds": [
+          0.001154
+        ],
+        "total_seconds": 0.244198
+      },
+      {
+        "capability": "relay",
+        "sample": 5,
+        "connect_seconds": 0.160954,
+        "verified": true,
+        "dns_seconds": [
+          0.002498
+        ],
+        "total_seconds": 0.245842
+      },
+      {
+        "capability": "relay",
+        "sample": 6,
+        "connect_seconds": 0.165272,
+        "verified": true,
+        "dns_seconds": [
+          0.001045
+        ],
+        "total_seconds": 0.249795
+      },
+      {
+        "capability": "relay",
+        "sample": 7,
+        "connect_seconds": 0.163153,
+        "verified": true,
+        "dns_seconds": [
+          0.002114
+        ],
+        "total_seconds": 0.246557
+      },
+      {
+        "capability": "relay",
+        "sample": 8,
+        "connect_seconds": 0.17935,
+        "verified": true,
+        "dns_seconds": [
+          0.001248
+        ],
+        "total_seconds": 0.266364
+      },
+      {
+        "capability": "relay",
+        "sample": 9,
+        "connect_seconds": 0.162025,
+        "verified": true,
+        "dns_seconds": [
+          0.002443
+        ],
+        "total_seconds": 0.250532
+      },
+      {
+        "capability": "relay",
+        "sample": 10,
+        "connect_seconds": 0.168419,
+        "verified": true,
+        "dns_seconds": [
+          0.005242
+        ],
+        "total_seconds": 0.25594
+      },
+      {
+        "capability": "relay",
+        "sample": 11,
+        "connect_seconds": 0.174349,
+        "verified": true,
+        "dns_seconds": [
+          0.006608
+        ],
+        "total_seconds": 0.263292
+      },
+      {
+        "capability": "relay",
+        "sample": 12,
+        "connect_seconds": 0.159397,
+        "verified": true,
+        "dns_seconds": [
+          0.001042
+        ],
+        "total_seconds": 0.245619
+      }
+    ],
+    "raw_diagnostics_suppressed": true
+  },
+  "diagnostic_source_sha256": "d0808e06b4cb99efd88a696ada282465ad486bb6bbf5062b7365126ea796a299",
+  "failure_interpretation": "create_run failed at 0.502350 seconds; precise original phase was not retained. Connection timeout is an inference, not established by the subsequent short measurements.",
+  "one_hour_pilot_accepted": false,
+  "live_trading": false,
+  "secret_material_retained": false
+}

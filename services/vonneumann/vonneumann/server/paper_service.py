@@ -65,11 +65,17 @@ class PaperService:
     def status(self, owner):
         self._authorize(owner)
         report = None if self.runner is None else self.runner.last_report
+        native_phases = getattr(self._economic, 'last_failure_phases', None)
+        allowed_phases = (None, 'connect', 'begin', 'role', 'execute', 'decode', 'commit', 'cleanup')
+        transport_phases = None if type(native_phases) is not dict else {
+            key: native_phases.get(key) if native_phases.get(key) in allowed_phases else None
+            for key in ('economic', 'relay')}
         return {'version': 1, 'owner_id': self.owner_id, 'run_id': self.run_id,
             'request_id': self.start_id, 'phase': self._phase,
             'busy': self._task is not None and not self._task.done(),
             'stop_requested': self._stop_requested, 'revision': self.repository.revision,
             'requires_reconciliation': self._phase in ('pending', 'failed', 'drained'),
+            'last_transport_failure_phases': transport_phases,
             'admission': None if self.controller is None else {
                 'controller_reason': self.controller.closed_reason,
                 'owner_reason': self.controller._owner.closed_reason,

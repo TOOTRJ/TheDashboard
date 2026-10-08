@@ -2915,3 +2915,42 @@ Actual hosted fresh pair/controller/one-hour/browser flow remain separate
 acceptance checks. Further substantial research: incremental verified history,
 retention/compaction and larger read/COMMIT/provider/CPU timing tails before
 continuous operation or any strategy-quality claim.
+
+## 77. Actual bound rehearsal, no-write startup refusal and native connection diagnosis (2026-10-08)
+
+PR70 merges as096405b238aa4ba8b7d08df40bf437f87d1eda97; exact production
+dpl_8fbCeBeyQsQKj1v6ettGXRzwgVuA is READY with verified repository/author/project/
+team/alias and four smokes. Actual managed bound-input rehearsal rolls the new
+pair back; independent role/binding absence passes. Actual once-only issuance
+reconciles immutable scope/deadlines and temporary adapter removal/catalog.
+
+Railway2c08f809-c0bd-4f60-9718-f057a98e81ab refuses its first create_run in
+0.502350s, before any provider call. Independent original-scope readback proves
+zero run/command rows. The source did not record the original failing phase.
+Connection timeout at the .5s limit is an inference, not an established cause.
+A separately reviewed ephemeral read-only start command, hash retained in the
+evidence, uses the same immutable export and original finite pair. It makes no
+application RPC/economic write/provider call. Railway258d7962-0cfa-44b5-ad9f-
+a681c94a6dd9 measures24 fresh TLS/SCRAM/channel-binding/role/read-only/IPv6
+connections:0.153557–0.251358s, median0.162668s; DNS0.000907–0.088311s. Diagnostic
+observation permits3s connection time without changing runtime bounds. All
+sessions close. These finite samples do not establish p95/p99 or outage tails.
+The original pair is revoked/NOLOGIN; ordinary closed restorationb459f38f-7614-
+4687-9533-c177c9d081b3 is SUCCESS with six diagnostic additions removed and
+exact original variables. Original four earlier pairs remain revoked.
+[Sanitized evidence](supabase/audits/2026-10-08-native-connect-diagnosis.json).
+
+The selected paper profile now allocates1s to connect inside the unchanged3s
+whole RPC deadline;1.5s statement/.5s COMMIT/1s cleanup and the inert .5s default
+remain. Fixed local failure phases distinguish connect/begin/role/execute/decode/
+commit/cleanup through authenticated status and operator refusal without raw
+exceptions/SQL/URLs/keys. Unknown writes still require original-ID settlement;
+late connections/cleanup remain owned and no automatic retry is introduced.
+One hundred focused worker/transport/service/controller/canary tests and ten
+actual PostgreSQL controller/service checks pass, including .55s mocked setup,
+late connection/COMMIT/cleanup diagnostics, exact production bounds and safe
+status. Eight actual binary TLS/driver cases also pass through one isolated host
+integration wrapper. The new hosted assessment remains separate acceptance.
+Further substantial research: connection/DNS/CPU startup contention,
+larger tail samples, owned persistent sessions/pooler identity and checkpoint/
+history retention before uninterrupted paper operation.

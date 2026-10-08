@@ -28,7 +28,7 @@ def configured_service(environment=None):
         or any(env.get(k) for k in ('SUPABASE_SERVICE_ROLE_KEY',
             'SUPABASE_SECRET_KEY', 'RAILWAY_TOKEN', 'RAILWAY_API_TOKEN'))):
         raise RuntimeError('explicit_private_paper_configuration_required')
-    from ..db.command_sql import DashboardCommandSQLPair
+    from ..db.command_sql import DashboardCommandSQLPair, CommandSQLBounds
     from ..market.jupiter_feed import JupiterFeed
     try:
         interval = int(env['VN_PAPER_INTERVAL_SECONDS'])
@@ -38,7 +38,8 @@ def configured_service(environment=None):
         owner, run = env['VN_PAPER_OWNER_ID'], env['VN_PAPER_RUN_ID']
         pair = DashboardCommandSQLPair(env['VN_ECONOMIC_LOGIN'],
             env['VN_ECONOMIC_PASSWORD'], env['VN_RELAY_LOGIN'],
-            env['VN_RELAY_PASSWORD'], ca, owner, run)
+            env['VN_RELAY_PASSWORD'], ca, owner, run,
+            bounds=CommandSQLBounds(connect_seconds=1.0))
         provider_keys = tuple(env[k] for k in
             ('JUPITER_API_KEY', 'BIRDEYE_API_KEY', 'VN_SOLANA_RPC_URL'))
         if not all(provider_keys): raise ValueError()

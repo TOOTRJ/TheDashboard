@@ -1,6 +1,6 @@
 # Dashboard audit and implementation backlog
 
-**Current immediate work — 2026-10-08:** PR69 is merged and exact production
+**Current immediate work — 2026-10-08:** PR69/70 are merged and exact production
 verified. The corrected30-price native controller/lost-reply/relay/stop assessment
 passes, as do nonempty owner isolation and actual interruption. The intended-owner
 browser starts paper-v5 and displays eight candidates, but its one-hour pilot
@@ -8,8 +8,15 @@ fails after four prices. Original interruption and closed restoration preserve
 history; all four original pairs are revoked. Repeated-snapshot receipt admission,
 fixed failure/reconciliation diagnostics and guarded quiescent fresh-run issuance
 are merged in PR69; production65c5a2744343e11707b181e2e85c7d58338df3b2 is READY
-with four smokes. Complete the growing-history polling repair and bound-input
-rollback rehearsal; then repeat the supervised one-hour pilot and verify the first
+with four smokes. Growing-history polling and the bound-input rollback rehearsal
+are released in PR70. Actual managed rehearsal/issuance passed, but the fresh
+assessment refused create_run at0.502350s; independent readback proves zero run/
+command writes. A read-only24-connection Railway probe passes TLS/SCRAM/roles/
+IPv6 in0.153557–0.251358s; the original failure phase was not retained, so a
+connection timeout remains an inference. Its original pair is revoked and exact
+closed variables restored. Release a fixed one-second paper connection allowance
+within the unchanged3s total RPC budget and fixed failure-phase diagnostics,
+then repeat hosted assessment and the supervised hour. Verify the first
 replacement/final browser history. [Controller acceptance](supabase/audits/2026-10-08-corrected-controller-acceptance.json),
 [intended-owner interruption](supabase/audits/2026-10-08-intended-owner-pilot-interruption.json).
 Keep HOST-07 open. More deep and substantial research remains required on remote
