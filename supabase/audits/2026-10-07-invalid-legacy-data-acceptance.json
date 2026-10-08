@@ -1,0 +1,54 @@
+{
+  "date": "2026-10-07",
+  "target": "fxpxsciltakyypunglzr",
+  "operation": "user-authorized invalid pre-existing bot data cleanup",
+  "state": "committed_and_verified",
+  "source_sha256": "671260101efce09d83783f31511b564d6c8f7958edce93f5787714b41c00d379",
+  "source_commit": "b1debdd5604198dcceac55514f1de2b9df275419",
+  "merge_commit": "b814cb0deb11a90aa0a6133a74451790049fe1b6",
+  "pull_request": "https://github.com/TOOTRJ/TheDashboard/pull/62",
+  "deleted_rows": {
+    "vn_probes": 497,
+    "vn_trades": 807,
+    "vn_colonies": 8,
+    "vn_generation_stats": 0,
+    "vn_fitness_snapshots": 9837
+  },
+  "postflight": {
+    "row_counts": {
+      "vn_colonies": 0,
+      "vn_probes": 0,
+      "vn_trades": 0,
+      "vn_fitness_snapshots": 0,
+      "vn_generation_stats": 0
+    },
+    "catalog_and_history_verified": true,
+    "admission": "closed",
+    "epoch": 0
+  },
+  "migration_versions": 15,
+  "schema_auth_grants_and_migration_history_modified": false,
+  "private_original_backup_retained": true,
+  "production": {
+    "id": "dpl_6BgKm2V4o63P2aXv5RNXvDszaV2x",
+    "state": "READY",
+    "read_only_smokes": 4
+  },
+  "browser": {
+    "url": "https://the-dashboard-chi.vercel.app/probes",
+    "existing_owner_login_retained": true,
+    "selected_interface": "paper-v5",
+    "legacy_runs": 0,
+    "v5_runs": 0,
+    "history_error_displayed": false,
+    "start_stop_settle_disabled": true,
+    "worker_status": "unverified; ordinary worker deliberately closed",
+    "active_paper_acceptance": false
+  },
+  "railway": {
+    "deployment": "56e0a351-ac64-4c24-a998-6bc8c7fc0eb4",
+    "state": "SUCCESS",
+    "mode": "closed",
+    "temporary_provider_variables_removed": true
+  }
+}

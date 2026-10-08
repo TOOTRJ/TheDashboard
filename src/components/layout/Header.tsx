@@ -90,7 +90,7 @@ function MarketTicker() {
             <Signal className="h-3 w-3 text-[#39ff14] opacity-50" />
           </div>
         </div>
-        <span className="uppercase tracking-wider font-medium">Live</span>
+        <span className="uppercase tracking-wider font-medium">Demo prices</span>
       </div>
       <div className="flex items-center gap-5">
         {prices.slice(0, 4).map((item, index) => (
@@ -177,14 +177,6 @@ export function Header({ onOpenMobileNav }: { onOpenMobileNav: () => void }) {
         <MarketTicker />
         
         <div className="flex items-center gap-3 slide-left">
-          <div className="hidden sm:flex items-center gap-2 rounded-full border border-[#39ff14]/30 bg-[#39ff14]/5 px-3 py-1.5 transition-all duration-300 hover:bg-[#39ff14]/10 hover:border-[#39ff14]/50">
-            <div className="relative">
-              <div className="h-2 w-2 rounded-full bg-[#39ff14]" />
-              <div className="absolute inset-0 h-2 w-2 rounded-full bg-[#39ff14] animate-ping" />
-            </div>
-            <span className="text-xs text-[#39ff14] uppercase tracking-wider font-bold">Connected</span>
-          </div>
-          
           <Button 
             variant="outline" 
             size="icon" 

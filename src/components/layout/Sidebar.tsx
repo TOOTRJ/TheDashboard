@@ -149,11 +149,7 @@ function MarketStatus() {
       
       <div className="relative">
         <div className="flex items-center gap-2 text-xs mb-3">
-          <div className="relative">
-            <div className="h-2 w-2 rounded-full bg-[#39ff14]" />
-            <div className="absolute inset-0 h-2 w-2 rounded-full bg-[#39ff14] animate-ping" />
-          </div>
-          <span className="text-[#39ff14] uppercase tracking-wider font-bold">Markets Live</span>
+          <span className="text-muted-foreground uppercase tracking-wider font-bold">Demo markets</span>
         </div>
         
         <div className="grid grid-cols-2 gap-3">

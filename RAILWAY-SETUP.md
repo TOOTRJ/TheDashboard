@@ -195,3 +195,12 @@ The actual unscaled Birdeye multiplier:null startup defect is repaired before th
 
 
 The actual provider-only assessment stopped on its shared-quota guard after accepting61warmupbars and one valid price. Ordinary Auth-only closed deployment56e0a351-ac64-4c24-a998-6bc8c7fc0eb4 replaces it; all three provider variables are removed. The legacy API region field is null; the exact resolved deployment's multiRegionConfig is the authoritative one-us-west2-replica evidence. Jupiter plan/shared allowance needs clarification before a new deliberate measurement. No margin reduction, automatic retry, plan purchase or billing change is implied.
+
+
+## Clean history and closed browser selection — 2026-10-07
+
+PR62 applies only the user-rejected old bot data cleanup after review and rollback rehearsal. All five legacy tables are freshly empty, the installed catalog and fifteen migration entries are unchanged, and the existing login account remains. The production paper view now uses the exact Railway HTTPS origin and owner-only Supabase vn_read directory. Its empty history and disabled start/stop/settle controls are verified in the existing owner's browser. The ordinary closed Railway service returns its deliberate closed-service response after valid Auth; active/nonempty browser flow and the finite pilot are still pending.
+
+The local .env contains RAILWAY_TOKEN and currently matches the dedicated ignored mode-0600 operator token file. A carefully parsed private .env could serve as the single canonical source; a separate file is not inherently safer. This helper currently uses the dedicated file to avoid dotenv precedence and loading unrelated credentials. Prefer one documented source over permanent duplicate copies. No shared login or other agent's credentials need changing.
+
+The Supabase CA certificate is public, but ssl also contains private operator tokens and original-outcome records, so the entire directory remains ignored. Local PEM files make certificate hash/expiry verification explicit. The hosted worker already receives the CA contents in VN_DATABASE_CA_PEM, not the macOS file path. A local .env does not configure cloud environments; the exact Railway service and Vercel project have separate environment stores. Never put the Railway deployment token in the worker or browser. Native worker credentials must remain narrowly scoped and finite; operation journals retain original IDs/deadlines/outcomes that a flat .env cannot replace. Supabase's server-side SSL enforcement is separate from the client's CA/hostname verification.
