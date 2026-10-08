@@ -109,7 +109,9 @@ def reconcile(client, record):
              "'deadline_matches',r.rolvaliduntil=b.recovery_until) ORDER BY b.capability) AS receipt "
              "FROM vn_access.bindings b JOIN pg_roles r ON r.oid=b.principal_oid "
              f"WHERE b.issuance_id IN ({ids}); ROLLBACK;")
-    result = client.query(query)
+    # Management read_only=True rejects transaction/SET ROLE statements before
+    # execution. This explicit BEGIN READ ONLY still enforces read-only SQL.
+    result = client.query(query, read_only=False)
     if len(result) != 1 or result[0].get('receipt') is None:
         raise cutover.Refused('Original native pair not committed; no automatic issuance retry')
     rows = result[0]['receipt']

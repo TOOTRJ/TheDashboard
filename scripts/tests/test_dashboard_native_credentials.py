@@ -42,7 +42,9 @@ class NativeCredentialOperatorTests(unittest.TestCase):
                  'name': record['names'][i], 'oid': 30001 + i, 'capability': ('economic', 'relay')[i],
                  'restricted': True, 'deadline_matches': True, 'revoked': None, 'login': True} for i in range(2)]
         class Client:
-            def query(self, sql):
+            def query(self, sql, *, read_only):
+                if read_only or 'BEGIN READ ONLY;' not in sql or not sql.endswith('ROLLBACK;'):
+                    raise AssertionError('Private readback must use an explicit read-only transaction')
                 for secret in record['passwords'] + record['verifiers']:
                     if secret in sql: raise AssertionError('Private material in readback SQL')
                 return [{'receipt': rows}]
@@ -66,6 +68,19 @@ class NativeCredentialOperatorTests(unittest.TestCase):
         with patch.object(value, '_request', return_value={'id': management.REF, 'name': 'Other', 'organization_id': management.ORG}):
             with self.assertRaises(management.Refused): value.verify()
         self.assertFalse(value._verified)
+
+    def test_curated_exposure_changes_only_reviewed_schema_list(self):
+        value = management.Management.__new__(management.Management)
+        old = {'db_schema': 'public,graphql_public', 'db_extra_search_path': 'public, extensions', 'max_rows': 1000}
+        with patch.object(value, 'postgrest', return_value=old), patch.object(value, '_request') as request:
+            value.expose_reads(old)
+            request.assert_called_once_with('/postgrest', {'db_schema': 'public,graphql_public,vn_read'}, method='PATCH')
+        with patch.object(value, 'postgrest', return_value={**old, 'max_rows': 42}), patch.object(value, '_request') as request:
+            with self.assertRaises(management.Refused): value.expose_reads(old)
+            request.assert_not_called()
+        with patch.object(value, 'postgrest', return_value={**old, 'db_schema': 'public,graphql_public,vn_read'}), patch.object(value, '_request') as request:
+            value.retire_read_exposure(old)
+            request.assert_called_once_with('/postgrest', {'db_schema': old['db_schema']}, method='PATCH')
 
 
 if __name__ == '__main__': unittest.main()
