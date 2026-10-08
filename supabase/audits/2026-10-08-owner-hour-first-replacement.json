@@ -456,7 +456,7 @@
     "reader_previous_fractional_limit": 12,
     "repair_fractional_limit": 18,
     "regression": "full snapshot with exact open/closed ledger trades",
-    "post_release_owner_browser_acceptance": "pending reviewed quantity-reader release"
+    "post_release_owner_browser_acceptance": "passed complete actual-owner revision514 trade/evaluation/history and repeat read on verified PR79 production"
   },
   "limitations": [
     "One common one-hour window and one replacement only; zero-cost USD reference scenario.",
@@ -466,5 +466,32 @@
     "Continuous checkpoint/retention/restart and every live-trading gate remain open."
   ],
   "wallet_operations": false,
-  "other_projects_modified": false
+  "other_projects_modified": false,
+  "owner_browser_acceptance": {
+    "version": 1,
+    "date": "2026-10-08",
+    "source_sha": "330c9720df13a1094d9a40784aebcd0f812ec5fd",
+    "vercel_deployment": "dpl_6zoCwe4MhVVFL6Tz37XWj7pXbCLt",
+    "authenticated_actual_owner_browser": true,
+    "frozen_revision": 514,
+    "generation": 1,
+    "status": "stopped",
+    "candidate_accounts": 16,
+    "retired_founders": 8,
+    "fresh_children": 8,
+    "open_positions": 0,
+    "closed_positions": 2,
+    "trade_versions": 4,
+    "quantity_exact_string": "0.2277209530421948",
+    "completed_windows": 1,
+    "aborted_unscored_windows": 1,
+    "durable_events": 32,
+    "repeat_read_same_revision_and_counts": true,
+    "history_refresh_error_absent": true,
+    "worker_controls_disabled_after_closed_restoration": true,
+    "four_production_smokes_passed": true,
+    "browser_event_uniqueness_evidence": "native contiguous/unique delivery verified; client complete event reader validates event identity and uniqueness before publication; repeat browser read retains32 events",
+    "wallet_operations": false,
+    "secrets_included": false
+  }
 }

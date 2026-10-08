@@ -1,20 +1,24 @@
 # Dashboard configuration and access preflight
 
 **Actual owner hour completed — 2026-10-08:** The original PR78-source pilot
-completes its common hour at revision514 with504 accepted prices, one full GA
+completes its common hour at revision 514 with 504 accepted prices, one full GA
 replacement, eight retired founders, eight equally funded children, two closed
-paper trades, no open positions, and32 contiguous acknowledged events. Exact
-cash conservation passes: total paper cash is1000.146507473480244672414802117408USD.
-The two trading founders gain0.073253736740122336207401058704USD each but rank
+paper trades, no open positions, and 32 contiguous acknowledged events. Exact
+cash conservation passes: total paper cash is 1000.146507473480244672414802117408 USD.
+The two trading founders gain 0.073253736740122336207401058704 USD each but rank
 below the six no-trade founders because their drawdown penalty makes fitness
 negative. This is zero-cost mechanical acceptance, not evidence of profitable
 optimization. Ordinary closed Railway deployment
-`cf05895d-adc5-427f-873e-82ad6606e5a1` is SUCCESS;16 temporary settings are
+`cf05895d-adc5-427f-873e-82ad6606e5a1` is SUCCESS; 16 temporary settings are
 removed, the original variable map matches, and the original finite credentials
-are revoked/NOLOGIN. The release catalog still matches OPENepoch1. The actual
-owner browser exposed the12-versus18-place quantity-reader defect; PR79 contains
-its tested repair. Final repaired production browser acceptance remains next;
-HOST-07, continuous operation and every live-trading gate remain open.
+are revoked/NOLOGIN. The release catalog still matches OPEN epoch 1. The actual
+owner browser exposed the 12-versus-18-place quantity-reader defect; PR79 contains
+its tested repair. Exact PR79 production
+`dpl_6zoCwe4MhVVFL6Tz37XWj7pXbCLt` is READY with four smokes; the actual
+owner browser now passes complete revision 514 trades/evaluations/history and a
+repeat read with unchanged 32 events. The finite pilot subgate is accepted;
+HOST-07's remaining operating/recovery gates, continuous operation and every
+live-trading gate remain open.
 [Owner-hour evidence](supabase/audits/2026-10-08-owner-hour-first-replacement.json).
 [Detailed probe/evolution rules](PAPER-EVOLUTION.md).
 
@@ -3191,7 +3195,7 @@ identity; expired provider evidence prevents later installation. The original
 native interruption applies once at revision95/fence2 with unchanged checkpoint,
 accounts, reserve and positions. Nine original candidate events remain ACKed;
 no candidate event or ACK is invented. Ordinary closed deployment
-`19a11184-e299-4265-abac-0409b5a34902` is SUCCESS;16 temporary values are
+`19a11184-e299-4265-abac-0409b5a34902` is SUCCESS; 16 temporary values are
 removed, exact original variables are restored, and the pair is revoked/NOLOGIN.
 The owner's browser displays terminal revision95 and disabled controls.
 [SQL failure and recovery evidence](supabase/audits/2026-10-08-owner-pilot-sql-timeout.json).
@@ -3352,7 +3356,7 @@ Exact-target, expired-revision/hash-bound native interruption reads back once at
 revision110/fence2 with unchanged checkpoint, cash, accounts and positions, no
 new candidate event/ACK and no provider/wallet operation. The owner browser shows
 terminal history with disabled controls and unavailable current equity. Ordinary
-closed deployment`c7d8a768-1c4e-41a0-9f8c-59901656a635` is SUCCESS;16 temporary
+closed deployment`c7d8a768-1c4e-41a0-9f8c-59901656a635` is SUCCESS; 16 temporary
 values are removed, the original variable map matches, and both finite credentials
 are revoked/NOLOGIN. [Original connect-timeout evidence](supabase/audits/2026-10-08-owner-pilot-connect-timeout.json).
 

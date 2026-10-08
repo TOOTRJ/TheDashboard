@@ -1,20 +1,24 @@
 # Dashboard audit and implementation backlog
 
 **Actual owner hour completed — 2026-10-08:** The original PR78-source pilot
-completes its common hour at revision514 with504 accepted prices, one full GA
+completes its common hour at revision 514 with 504 accepted prices, one full GA
 replacement, eight retired founders, eight equally funded children, two closed
-paper trades, no open positions, and32 contiguous acknowledged events. Exact
-cash conservation passes: total paper cash is1000.146507473480244672414802117408USD.
-The two trading founders gain0.073253736740122336207401058704USD each but rank
+paper trades, no open positions, and 32 contiguous acknowledged events. Exact
+cash conservation passes: total paper cash is 1000.146507473480244672414802117408 USD.
+The two trading founders gain 0.073253736740122336207401058704 USD each but rank
 below the six no-trade founders because their drawdown penalty makes fitness
 negative. This is zero-cost mechanical acceptance, not evidence of profitable
 optimization. Ordinary closed Railway deployment
-`cf05895d-adc5-427f-873e-82ad6606e5a1` is SUCCESS;16 temporary settings are
+`cf05895d-adc5-427f-873e-82ad6606e5a1` is SUCCESS; 16 temporary settings are
 removed, the original variable map matches, and the original finite credentials
-are revoked/NOLOGIN. The release catalog still matches OPENepoch1. The actual
-owner browser exposed the12-versus18-place quantity-reader defect; PR79 contains
-its tested repair. Final repaired production browser acceptance remains next;
-HOST-07, continuous operation and every live-trading gate remain open.
+are revoked/NOLOGIN. The release catalog still matches OPEN epoch 1. The actual
+owner browser exposed the 12-versus-18-place quantity-reader defect; PR79 contains
+its tested repair. Exact PR79 production
+`dpl_6zoCwe4MhVVFL6Tz37XWj7pXbCLt` is READY with four smokes; the actual
+owner browser now passes complete revision 514 trades/evaluations/history and a
+repeat read with unchanged 32 events. The finite pilot subgate is accepted;
+HOST-07's remaining operating/recovery gates, continuous operation and every
+live-trading gate remain open.
 [Owner-hour evidence](supabase/audits/2026-10-08-owner-hour-first-replacement.json).
 [Detailed probe/evolution rules](PAPER-EVOLUTION.md).
 
@@ -225,31 +229,40 @@ needs a file-backed sign-in before further release. [Fresh hosted evidence](supa
 
 **Next priorities, in order:**
 
-1. Release PR79's exact quantity-reader repair and verify the actual owner’s
-   completed revision514 history, both trades, completed founder scores,
-   unscored stopped child window, and unique event replay through the production
-   browser. The original hour/replacement/Stop and closed restoration/revocation
-   now pass; keep HOST-07 open until repaired full browser acceptance passes.
-2. Make configured worker identity versus selected history explicit
+1. Make configured worker identity versus selected history explicit
    (PAPER-UI-TARGET1), and expose versioned genes, ROI/drawdown, common windows,
-   parentage and monetary/metric bases (PAPER-UI-ASSESSMENT1).
-3. Research and implement compact/versioned multi-window checkpoints, bounded
+   parentage and monetary/metric bases (PAPER-UI-ASSESSMENT1). Distinguish an
+   intentionally closed worker from a failed/unverified running worker, a stopped
+   run from an unretired child account, and original settlement from future restart.
+2. Research and implement compact/versioned multi-window checkpoints, bounded
    active state and retention, with long-duration/load/restart acceptance before
    continuous paper evolution. This one hour journals58,114,764 logical request
    bytes and23,316,227 compressed column bytes; those exclude relation/index/TOAST
    overhead and do not change application/SQL byte admission limits.
-4. Calibrate realistic fills/costs and validate the provisional objective with
+3. Calibrate realistic fills/costs and validate the provisional objective with
    representative longer windows, multiple seeds and equal-budget grid/random/
    cash/buy-and-hold comparisons using held-out data. In this hour, no-trade
    founders outrank both profitable trading founders under ROIminus2×drawdown.
    Research activity bias, weights, elitism/diversity and ties before gene expansion.
-5. Deep substantial research: DNS/TCP/TLS/SCRAM and SQL/cleanup latency tails,
+4. Deep substantial research: DNS/TCP/TLS/SCRAM and SQL/cleanup latency tails,
    safe connection reuse, source regression magnitudes/frequency, provider
    consistency/finality, effective quotas/billing, retained-position recovery and
-   representative source-age/fill distributions. Complete LIVE-01…07 before any
-   real trading. Eight source regressions were discarded within the current
-   limit; no regression magnitude or cause is inferred. Scoped metrics exclude
-   three unattributed aggregate series, rather than claiming their values.
+   representative source-age/fill distributions. Eight source regressions were
+   discarded within the current limit; no regression magnitude or cause is
+   inferred. Scoped metrics exclude three unattributed aggregate series.
+5. Complete LIVE-01…07 after paper acceptance and research before any real
+   trading. This completed finite pilot grants no wallet/signing/swap authority.
+
+- [x] **PAPER-HOUR-FIRSTREPLACEMENT1 — Accept the first finite actual-owner hour.**
+  Exact PR78 source completes504 accepted observations, one common founder
+  window, one GA replacement and reserved Stop at revision514. Eight original
+  scores, valid offspring/fixed controls/ancestry, exact cash conservation and32
+  contiguous acknowledged events pass. Two positions are closed; new child
+  scores remain unavailable after Stop. Isolation, scoped finite measurements,
+  ordinary closed restoration,16-value removal and original pair revocation pass.
+  PR79 repairs the quantity reader; its exact production/four smokes and actual
+  owner full trade/evaluation/repeat history read pass. This finite mechanical
+  subgate does not close HOST-07's remaining cost/recovery/continuous gates.
 
 - [x] **PAPER-CONNECT-HEADROOM1 — Prepare measured single-connection tolerance.**
   The actual owner pilot stops advancing after105 prices because its1s connection
@@ -577,20 +590,15 @@ Research began **2026-09-30** and was updated **2026-10-06/07** in [WORKER-HOSTI
 
 - [ ] **PAPER-UI-TARGET1 — Make configured worker and selected history explicit.** Actual owner acceptance shows that Start can begin the new configured run while the history selector retains an older failed run. The server still binds controls to the configured owner/run and original IDs, but the page does not display that configured run beside the controls. Show the verified current worker run, clearly identify when selected history differs, and select the newly acknowledged start only through an identity-checked result/discovery flow. Preserve historical selection for deliberate history browsing, frozen complete reads and original-ID settlement. Test delayed/uncertain Start, account changes, deployment turnover, stale directory responses and history selection without dispatching a command to an arbitrary selected historical run. This is operator clarity work before expanding beyond a single supervised pilot; it is not an observed unauthorized mutation.
 
-- [ ] **PAPER-UI-QUANTITY1 — Accept the selected ledger's exact trade quantities.**
-  The v5 projection retains18 decimal places, while `tradeDetails` accepts only12.
-  An exact synthetic25USD entry at123.45 produces quantity
-  `0.202511138112596192` and makes the complete history snapshot fail before
-  repair. The local reader now accepts18 places without conversion or rounding,
-  retaining existing amount/response limits and invalid-input rejection. The
-  full-snapshot/open/closed regression fails before the repair and passes after;
-  all16 focused read/API tests, TypeScript and lint pass. Release after the active
-  original owner pilot is terminal, closed and revoked. The owner pilot then
-  reproduces the defect with two open SOL paper positions whose canonical
-  quantities have16 decimal places: the worker advances, but the browser retains
-  its last complete revision193 and reports history refresh failure. Preserve
-  that evidence and verify complete actual-owner trade/evaluation history after
-  the reviewed reader release; no database amount or worker policy is changed.
+- [x] **PAPER-UI-QUANTITY1 — Accept the selected ledger's exact trade quantities.**
+  PR79 accepts18 decimal places without conversion or rounding, retaining amount
+  and response limits and invalid-input rejection. The exact full-snapshot/open/
+  closed regression fails before repair and passes after;16 focused read/API
+  tests, TypeScript and lint pass. The actual owner's two16-place quantities
+  formerly froze complete history at revision193. Exact production is READY and
+  now renders revision514, both closed positions, four trade versions, completed
+  and aborted windows, and32 events consistently on repeat read. Monetary rows
+  and worker policy are unchanged. See the owner-hour audit's browser acceptance.
 
 - [ ] **PAPER-UI-ASSESSMENT1 — Show how each candidate is evaluated.** Add verified
   fast/slow EMA periods, generation, common window start/end and completion state,
