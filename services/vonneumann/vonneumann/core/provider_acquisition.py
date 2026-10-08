@@ -14,7 +14,7 @@ from ..db.provider_owner import ProviderAdmissionOwner
 from ..db.provider_pilot_owner import ProviderPilotOwner, PilotAdmissionRefused
 from ..db.rehearsal_owner import OperationalAdmissionError
 from ..market.jupiter_feed import PriceCapture
-from ..market.provider_contract import ProviderDeferred
+from ..market.provider_contract import ProviderDeferred, clock_us
 
 ACQUISITION_TIMEOUT_SECONDS = 5
 
@@ -47,6 +47,17 @@ class ProviderPriceAcquisition:
     @property
     def has_deferred_capture(self):
         return self._capture is not None
+
+    @property
+    def deferred_until_second(self):
+        """Earliest actual second for the retained original receipt."""
+        if self._capture is None:
+            return None
+        received = clock_us(self._capture.record.document.received_at)
+        second = (received + 999_999) // 1_000_000
+        state = self._owner.installed_state
+        prior = None if state is None else state.to_dict()['source']['last_quote']
+        return second if prior is None else max(second, prior['decision_second'] + 1)
 
     @property
     def accepting(self):

@@ -367,9 +367,11 @@ class ProviderControllerSqlTests(PostgresContractTestCase, unittest.IsolatedAsyn
                 active_rpc -= 1
 
         self.transport.rpc = tracked_rpc
-        # Twenty paced attempts span actual seconds even when their original
-        # fractional receipts defer. No test clock or provider timestamp moves.
-        report = await asyncio.wait_for(runner.run(), 12)
+        # Each fractional receipt is now admitted within its owned tick at the
+        # next actual second. Twenty real accepted ticks need twenty seconds;
+        # the former 12s bound only worked by counting deferred attempts.
+        # No test clock or provider timestamp moves.
+        report = await asyncio.wait_for(runner.run(), 35)
         self.assertEqual((report.status, report.ticks_completed, report.stop_requested),
                          ('complete', 20, False))
         self.assertEqual(len(report.reports), 21)

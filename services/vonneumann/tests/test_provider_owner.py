@@ -305,6 +305,23 @@ class ProviderOwnerTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(self.transport.acknowledged), 9)
         self.assert_closed()
 
+    async def test_installed_no_event_decision_consumes_ticket_before_next_quote(self):
+        await self.bootstrapped(); self.age(1)
+        ticket = self.ticket()
+        await self.owner.protect(ticket, **self.allocation()); await self.owner.publish_pending(self.sink)
+        await self.owner.decide(ticket, **self.allocation())
+        candidate = self.owner.installed_state
+        await self.owner.publish_pending(self.sink)
+        self.age(6)
+        self.assertIs(self.owner.installed_state, candidate)
+        self.assertIsNone(self.owner._window)
+        self.assertIsNone(self.owner._accepted_quote)
+        self.assertTrue(self.owner.accepting)
+        self.age(1)
+        fresh = self.ticket(block=101)
+        await self.owner.protect(fresh, **self.allocation())
+        self.assertEqual(self.owner.installed_state.to_dict()['source']['quote_sequence'], 2)
+
     async def test_invalid_seed_never_dispatches_economics(self):
         await self.ready()
         with self.assertRaises((CommandAdmissionError, ProviderSourceError)):

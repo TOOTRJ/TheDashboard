@@ -5,18 +5,18 @@ This distinguishes tested components, deployed application behavior, and the
 integration work still required. Completing engine tests is not a hosted bot
 release or evidence of a profitable strategy.
 
-Latest hosted checkpoint2026-10-08: PR66 is merged, exact production is READY
-and four read-only checks pass. The release transition is rehearsed, then
-committed open at epoch1 with unchanged installed contract. The first controller
-assessment commits bootstrap/eight accounts/nine events, but drains before
-prices because warmup-history freshness was incorrectly retained through slow
-event publication. Ordinary closed startup and original variables are restored.
-The follow-up consumes only acknowledged, installed history; price and pre-ACK
-freshness remain enforced. Explicit original lost-reply and existing-run expiry/
-new-worker denial drills precede the next assessment. No active paper MVP has
-been accepted yet. [Measurements](supabase/audits/2026-10-08-controller-assessment.json),
-[ordered activation/rollback](PAPER-MVP-ACTIVATION.md). Earlier closed-epoch0
-checkpoints below describe the preceding state and do not override this update.
+Latest hosted checkpoint 2026-10-08: PR67 is merged and exact production is
+READY with four smokes. Release admission is open at epoch1; public controls stay
+closed. Actual expired-run interruption/new-worker denial preserves checkpoint
+and holdings. Nonempty two-owner history reads deny cross-owner and anonymous
+access. A lost bootstrap response is resolved through its original command, but
+the first price exposes a fractional receipt timing bug before protection. The
+next repair bounds that original receipt wait inside acquisition and consumes
+installed decision tickets before relay delivery. Full-controller, intended-owner
+browser and one-hour replacement acceptance remain pending.
+[Follow-up evidence](supabase/audits/2026-10-08-controller-followup.json),
+[activation/rollback](PAPER-MVP-ACTIVATION.md). Older dated checkpoints below
+describe preceding states.
 
 ## Current position
 

@@ -1,0 +1,129 @@
+{
+  "version": 1,
+  "date": "2026-10-08",
+  "source": "b363b52405a87aebc854f82721311352cc7109d9",
+  "wallet_operations": false,
+  "public_api": "closed",
+  "expiry_measurement": {
+    "phase": "passed",
+    "automatic_retry": false,
+    "restored_checkpoint": false,
+    "final_status": "failed",
+    "new_process_adoption_denied": true,
+    "api_calls": {
+      "jupiter": 0,
+      "birdeye": 0,
+      "rpc": 0
+    },
+    "original_interrupt_committed": true,
+    "paper_controller_canary": 1,
+    "expired_heartbeat_denied": true,
+    "requires_reconciliation": true,
+    "elapsed_seconds": 1.950044,
+    "final_revision": 3,
+    "mode": "closed-api-existing-run-expiry",
+    "wallet_operations": false
+  },
+  "lost_reply_measurement": {
+    "source_age_seconds": {
+      "count": 1,
+      "minimum": 5.69897,
+      "median": 5.69897,
+      "maximum": 5.69897,
+      "tail_acceptance": false
+    },
+    "mode": "closed-api-finite-paper",
+    "automatic_retry": false,
+    "finite_measurement": true,
+    "sql_seconds": {
+      "accept_event": {
+        "count": 9,
+        "minimum": 0.224508,
+        "median": 0.228873,
+        "maximum": 0.232878,
+        "tail_acceptance": false
+      },
+      "acknowledge_event": {
+        "count": 9,
+        "minimum": 0.224586,
+        "median": 0.225567,
+        "maximum": 0.22987,
+        "tail_acceptance": false
+      },
+      "commit_command": {
+        "count": 1,
+        "minimum": 0.598681,
+        "median": 0.598681,
+        "maximum": 0.598681,
+        "tail_acceptance": false
+      },
+      "create_run": {
+        "count": 1,
+        "minimum": 0.351768,
+        "median": 0.351768,
+        "maximum": 0.351768,
+        "tail_acceptance": false
+      },
+      "get_command": {
+        "count": 1,
+        "minimum": 0.303728,
+        "median": 0.303728,
+        "maximum": 0.303728,
+        "tail_acceptance": false
+      },
+      "heartbeat": {
+        "count": 4,
+        "minimum": 0.264877,
+        "median": 0.266969,
+        "maximum": 0.277501,
+        "tail_acceptance": false
+      },
+      "read_outbox": {
+        "count": 1,
+        "minimum": 0.229185,
+        "median": 0.229185,
+        "maximum": 0.229185,
+        "tail_acceptance": false
+      }
+    },
+    "process_cpu_seconds": 0.72,
+    "process_peak_rss_bytes": 97198080,
+    "lost_reply_injected": true,
+    "sql_counts": {
+      "accept_event": 9,
+      "acknowledge_event": 9,
+      "commit_command": 1,
+      "create_run": 1,
+      "get_command": 1,
+      "heartbeat": 4,
+      "read_outbox": 1
+    },
+    "wallet_operations": false,
+    "original_command_settled": true,
+    "paper_controller_canary": 1,
+    "api_calls": {
+      "jupiter": 1,
+      "birdeye": 1,
+      "rpc": 2
+    },
+    "elapsed_seconds": 14.150002,
+    "sql_errors": {
+      "commit_command": 1
+    },
+    "maximum_loop_lag_seconds": 1.022533,
+    "service_phase": "failed",
+    "phase": "refused",
+    "code": "original_operation_requires_inspection",
+    "quota_observations": [
+      {
+        "current": 1,
+        "remaining": 99,
+        "reset": 1791442024
+      }
+    ],
+    "revision": 2,
+    "statistical_tail_acceptance": false
+  },
+  "acceptance": "Original interruption and lost bootstrap reply are proved; full controller and one-hour pilot are not yet accepted.",
+  "checkpoint_and_economics_preserved": true
+}

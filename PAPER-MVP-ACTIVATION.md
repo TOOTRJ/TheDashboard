@@ -43,6 +43,15 @@ configured interruption ID/revision. The interruption retains checkpoint and
 holdings and publishes its original outbox. These modes do not restore a worker
 or start another run behind a failure.
 
+Follow-up: the actual original expired-run drill passes without restoring a
+checkpoint. Nonempty two-owner reads are isolated; the first assessment pair is
+revoked. The actual lost-bootstrap-reply drill resolves the original command,
+then fails before protection because a fractional receipt waited for the normal
+poll cadence. Its run is explicitly interrupted through the original revision
+and separately revoked. Ordinary closed restoration and original variables are
+verified. Corrected hosted acceptance must pass before the intended-owner pilot;
+keep its unused original finite pair separate from assessment identities.
+
 ## Provider and resource envelope
 
 The user confirms Dashboard is TheOrder's only Jupiter consumer. Use a single
