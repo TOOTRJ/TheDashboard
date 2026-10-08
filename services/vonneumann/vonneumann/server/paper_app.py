@@ -23,6 +23,7 @@ def configured_service(environment=None):
         or env.get('VN_ENVIRONMENT') != 'production'
         or env.get('SUPABASE_URL') != 'https://fxpxsciltakyypunglzr.supabase.co'
         or env.get('VN_ALLOWED_ORIGINS') != ORIGIN
+        or env.get('VN_JUPITER_SOLE_CONSUMER') != '1'
         or not env.get('SUPABASE_PUBLISHABLE_KEY', '').startswith('sb_publishable_')
         or any(env.get(k) for k in ('SUPABASE_SERVICE_ROLE_KEY',
             'SUPABASE_SECRET_KEY', 'RAILWAY_TOKEN', 'RAILWAY_API_TOKEN'))):
@@ -30,6 +31,9 @@ def configured_service(environment=None):
     from ..db.command_sql import DashboardCommandSQLPair
     from ..market.jupiter_feed import JupiterFeed
     try:
+        interval = int(env['VN_PAPER_INTERVAL_SECONDS'])
+        if interval < 5:
+            raise ValueError('paper_cadence_budget_required')
         ca = env['VN_DATABASE_CA_PEM'].encode('ascii')
         owner, run = env['VN_PAPER_OWNER_ID'], env['VN_PAPER_RUN_ID']
         pair = DashboardCommandSQLPair(env['VN_ECONOMIC_LOGIN'],
@@ -43,7 +47,7 @@ def configured_service(environment=None):
         return PaperService(pair, pair, feed, owner_id=owner, run_id=run,
             epoch_id=env['VN_PAPER_EPOCH_ID'], start_id=env['VN_PAPER_START_ID'],
             stop_id=env['VN_PAPER_STOP_ID'],
-            interval=int(env['VN_PAPER_INTERVAL_SECONDS']),
+            interval=interval,
             max_ticks=int(env['VN_PAPER_MAX_TICKS']))
     except Exception:
         raise RuntimeError('invalid_private_paper_configuration') from None

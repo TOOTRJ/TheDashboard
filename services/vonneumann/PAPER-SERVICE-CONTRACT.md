@@ -169,3 +169,8 @@ The temporary invoker credential operator still permits issuance only while the
 reviewed release is closed. Exact original-pair revocation is permitted while
 closed, open or retired, preserving bindings and economic history. It remains
 private, has no definer elevation, and is removed after each reviewed operation.
+
+Production configuration additionally requires the explicit
+`VN_JUPITER_SOLE_CONSUMER=1` inventory acknowledgement and at least5s between
+runner captures. Direct offline service fixtures may use a shorter cadence;
+they do not select production.

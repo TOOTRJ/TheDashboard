@@ -2723,3 +2723,14 @@ profile is used. Require deliberate login to the exact Dashboard profile before
 consequential push/deployment/activation. [Reviewed activation/rollback plan](PAPER-MVP-ACTIVATION.md)
 records original-ID gates and one-way release retirement. No remote write, new
 pair, release activation, or paper run occurred in this repair checkpoint.
+
+Follow-up regression: lost first-replacement replies settle the committed original
+and publication without trying normal readmission through the completed-pilot
+latch; the reserved stop performs its own renewal. The literal provider/adapters
+and real sealed candidates exercise a full hour with five accepted quotes and
+immutable overlapping candles; no replacement/price is repeated. Focused
+controller/runner/service/canary checks pass76 tests, and production inventory/
+cadence guard checks pass12. Production selection explicitly requires the sole
+consumer acknowledgement and interval>=5 before native construction. The user
+has completed the deliberate scoped login; fresh remote target verification is
+being repeated before any push or activation.

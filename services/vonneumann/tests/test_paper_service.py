@@ -58,6 +58,19 @@ class PaperServiceTests(OfflineTestMixin,unittest.IsolatedAsyncioTestCase):
   with patch.dict(os.environ,{'VN_SERVICE_MODE':'paper-v5'},clear=True),self.assertRaisesRegex(RuntimeError,'explicit_private'):
    paper_app.configured_service()
   self.assertEqual(self.transport.calls,[])
+ async def test_production_cadence_and_consumer_inventory_reject_before_native_construction(self):
+  environment={'VN_SERVICE_MODE':'paper-v5','PYTHON_DOTENV_DISABLED':'1',
+    'VN_ENVIRONMENT':'production','SUPABASE_URL':'https://fxpxsciltakyypunglzr.supabase.co',
+    'VN_ALLOWED_ORIGINS':paper_app.ORIGIN,'SUPABASE_PUBLISHABLE_KEY':'sb_publishable_offline_only',
+    'VN_JUPITER_SOLE_CONSUMER':'1','VN_PAPER_INTERVAL_SECONDS':'4'}
+  with patch('vonneumann.db.command_sql.DashboardCommandSQLPair') as pair:
+   with self.assertRaisesRegex(RuntimeError,'invalid_private'):
+    paper_app.configured_service(environment)
+   pair.assert_not_called()
+   environment.update(VN_PAPER_INTERVAL_SECONDS='5',VN_JUPITER_SOLE_CONSUMER='0')
+   with self.assertRaisesRegex(RuntimeError,'explicit_private'):
+    paper_app.configured_service(environment)
+   pair.assert_not_called()
  async def test_http_auth_owner_origin_and_body_shape(self):
   async def user():return VerifiedUser(USER_A,int(time.time())+300)
   app=paper_app.create_app(self.service,verify=user)

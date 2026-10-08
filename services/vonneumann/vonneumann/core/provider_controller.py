@@ -301,7 +301,8 @@ class ProviderPilotController:
                     # execution may return to the runner only with a fresh
                     # acknowledged heartbeat. Draining settles without renewal.
                     if (work.renewed_after_readback and not settlement_only
-                            and not self._draining and not self.closed_reason):
+                            and not self._draining and not self.closed_reason
+                            and not self.pilot_completed):
                         self._normal()
                         await self._renew()
                         work.renewed_after_readback = False

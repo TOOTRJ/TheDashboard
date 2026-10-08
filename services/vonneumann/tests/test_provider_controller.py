@@ -505,6 +505,41 @@ class ProviderControllerTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase
         self.assertEqual(len(self.transport.acknowledged), 9)
         self.assertFalse(self.controller.busy)
 
+    async def test_lost_first_replacement_reply_completes_terminal_pilot_without_normal_readmission(self):
+        from tests.test_exact_provider_feeds import Number
+        def history(end, first=False):
+            if first: return self.history_values(end=end)
+            return response_bytes(end, count=30, changes={i: {f: Number('150')
+                for f in ('o','h','l','c')} for i in range(30)})
+        await self.bootstrapped(candle_response=CandleResponse(self.history_values(seed=True)))
+        self.price(value='80'); await self.controller.tick()
+        for index, offset in enumerate((900, 1800, 2700), 1):
+            await self.advance_to(END + offset + 15)
+            self.feed._candles._session.responses.append(CandleResponse(history(END+offset, first=index==1)))
+            self.price(slot=SLOT+index, value='150'); await self.controller.tick()
+        await self.advance_to(END+3615)
+        self.feed._candles._session.responses.append(CandleResponse(history(END+3600)))
+        self.price(slot=SLOT+4, value='150')
+        async def unchanged(result, _arguments): return result
+        self.transport.fault('commit_command', unchanged)  # acknowledged protection
+        self.transport.fault('commit_command', OSError('replacement committed; reply lost'))
+        with self.assertRaises(UncertainCommand): await self.controller.tick()
+        original = self.owner.pending_command
+        report = await self.controller.settle()
+        self.assertEqual(report.status, 'complete')
+        self.assertTrue(report.decision_committed)
+        self.assertTrue(self.controller.pilot_completed)
+        self.assertFalse(self.repo.lease_valid)  # readback itself is not renewal
+        self.assertEqual(self.owner.installed_state.to_dict()['engine']['generation'], 1)
+        commands = [a['command_id'] for n,a in self.transport.calls if n=='commit_command']
+        self.assertEqual(commands.count(original.command_id), 1)
+        self.assertEqual(self.feed.api_call_count, 5)
+        # Explicit reserved stop renews its own terminal path, without another
+        # price, normal-admission attempt or evolutionary command.
+        self.assertEqual((await self.controller.stop()).status, 'complete')
+        self.assertEqual(self.owner.installed_state.to_dict()['status'], 'stopped')
+        self.assertEqual(self.feed.api_call_count, 5)
+
     async def test_callback_failure_retains_same_event_and_bootstrap_stage_without_recommit(self):
         failures = 1
         async def publish(row):
