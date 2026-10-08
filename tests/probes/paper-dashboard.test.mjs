@@ -205,6 +205,8 @@ test('richer view labels candidate evidence, completed scores and aborted childr
  assert.match(h.text(),/3 \/ 20/);assert.match(h.text(),/generation 1/);
  assert.match(h.text(),/crossover_mutation/);assert.match(h.text(),/genetic_parent\s*:\s*Synthetic-0-0/);
  assert.match(h.text(),/Observed maximum drawdown 0.0900%/);
+ assert.match(h.text(),/last observed closed-trade count 0/);
+ assert.match(h.text(),/fitness -0.001100 · 1 trades/);
  assert.match(h.text(),/last_observed_before_replacement/);assert.match(h.text(),/Retained, worker not running/);
  assert.match(h.text(),/Recorded ROI 0.0700% · fitness -0.001100/);
  assert.match(h.text(),/Recorded ROI unavailable · fitness unavailable/);
