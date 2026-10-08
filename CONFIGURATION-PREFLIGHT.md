@@ -3397,3 +3397,39 @@ removed, the exact original variable map is restored, and the finite pair is
 revoked/NOLOGIN. The separate owner hour and first replacement remain next;
 continuous/live acceptance remains open.
 [Final-source assessment](supabase/audits/2026-10-08-connect-headroom-controller-assessment.json).
+
+## 87. Paper operator identity and assessment view — 2026-10-08
+
+Exact GitHub repository1141090963/TOOTRJ/TheDashboard, Vercel
+prj_wFUe9k9USVreOQcmQKNWRAVsx5fH/the-dashboard/team_8iNNxiNjrOseD4gdSCHkQEzF,
+and Supabase fxpxsciltakyypunglzr/The Dashboard/cqfnnaunmupdyobkyqfo are
+reverified. The actual owner-hour revision514 records pass read-only adapter
+verification:16 candidate accounts, completed/aborted common windows, expected
+window/scoring/selection versions and usd-reference-decimal-v2 execution with
+zero fee/slippage/half-spread strings. No database/grant/configuration change,
+credential issuance, worker activation or wallet action is part of this slice.
+Railway remains ordinary closed on cf05895d-adc5-427f-873e-82ad6606e5a1.
+
+The UI binds the visible control identity to verified status plus control IDs,
+flags different selected history, follows a Start only after verified discovery
+and complete reads, and preserves deliberate browsing and original settlement
+identity. Account replacement remounts private state; refresh cannot clear an
+in-flight lock; stale pre-command worker polls cannot regress acknowledged
+status. Configuration closure requires both bounded status/controls reads to
+return the exact documented503 closed response; it does not establish an owner
+or configured run. Authentication failures/outages remain unverified.
+
+Genes/ROI/fitness are finite nonmonetary binary64 views; cash, quantity and cost
+strings remain exact. Candidate/evaluation membership, lineage references,
+common times and completion counts are validated before publishing the complete
+revision. Missing older metadata remains unavailable; unknown policies are
+identified without assigning newer semantics. Retired observed drawdown can
+precede the final close. The current reviewed provisional formula is displayed
+separately from the absent per-window formula version/final-score drawdown;
+PAPER-ASSESSMENT-PROVENANCE1 requires a reviewed forward format for those fields.
+Forty focused reader/component regressions, TypeScript and scoped lint pass.
+Exact-source preview/production verification and actual-owner read-only browser
+acceptance accompany the PR release. Rollback is a reviewed frontend revert;
+there is no database rollback or worker reopening requirement. The historical
+migration edit remains untouched at SHA256
+ a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc.

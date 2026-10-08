@@ -148,8 +148,14 @@ backlog requires realistic cost/fill calibration, longer representative windows,
 multiple seeds, held-out data, equal-budget grid/random/baseline comparisons,
 diversity/elitism and objective-weight evaluation. Continuous operation also
 needs bounded versioned checkpoints/retention, restart/recovery and measured
-quota/cost/resource tails. The dashboard still needs the configured worker versus
-selected-history distinction and richer assessment/lineage details. See
+quota/cost/resource tails. The dashboard now distinguishes its configured worker
+from selected history and exposes genes, common-window times, recorded ROI and
+fitness, observed drawdown, scenario costs and lineage. A closed worker does not
+mean its retained accounts are actively trading. Retired drawdown is the last
+observed value before replacement and can precede final liquidation. These older
+window records do not persist the fitness formula/version or independent final
+score drawdown; the current reviewed formula is explained separately, without
+re-scoring history. Versioned finalized provenance remains a follow-up. See
 [TODO.md](TODO.md), [MVP readiness](MVP-READINESS.md), and the dated pilot audits
 for actual progress and limitations.
 

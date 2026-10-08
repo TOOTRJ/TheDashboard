@@ -1,5 +1,21 @@
 # Evolutionary trading bot MVP readiness
 
+**Operator/assessment view implemented — 2026-10-08:** The Dashboard now makes
+configured worker and selected history identities explicit, preserves deliberate
+browsing and original control IDs, distinguishes explicit configuration closure
+from an unverified worker, and labels retained children without implying they
+are trading. Candidate genes, generation, observed risk and ancestry accompany
+the exact balances; completed/aborted common windows show times, recorded ROI,
+fitness, selection policy and exact scenario cost settings. Forty focused tests
+and the read-only actual revision514 adapters pass (16 accounts/two windows).
+Exact-source production/browser verification accompanies the release. There is
+no worker activation or database change in this slice. Per-window formula
+metadata and independent final-score drawdown were not recorded in the older
+projection; missing provenance stays explicit and has its own forward-format
+todo. The next implementation priority is compact/versioned active state,
+checkpoints and retention with longer-duration/restart proof, followed by cost,
+objective, holdout and operating acceptance. Continuous/live gates stay open.
+
 **Actual owner hour completed — 2026-10-08:** The original PR78-source pilot
 completes its common hour at revision 514 with 504 accepted prices, one full GA
 replacement, eight retired founders, eight equally funded children, two closed

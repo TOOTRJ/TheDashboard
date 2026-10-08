@@ -12,7 +12,7 @@ function module(fetch,globals={}) {
  vm.runInNewContext(code,{exports,require(name){assert.equal(name,'./durable-read-model');return read;},
   fetch,URL,Response,TextDecoder,Uint8Array,AbortController,TextEncoder,setTimeout,clearTimeout,...globals});return exports;
 }
-function json(value,status=200){return new Response(JSON.stringify(value),{status});}
+function json(value,status=200){return new Response(JSON.stringify(value),{status,headers:{'Content-Type':'application/json'}});}
 const directory=()=>({version:1,owner_id:owner,through_id:run,records:[{run_id:run,revision:2,
  data:{id:run,account_currency:'USD',durability_version:5},archive_receipt:null}],next_id:run,has_more:false});
 test('pinned read URL and user token; worker calls contain only original control ID',async()=>{
@@ -28,6 +28,18 @@ test('pinned read URL and user token; worker calls contain only original control
 test('oversized, redirected, invalid UTF-8 and failed responses never expose raw content',async()=>{
  for(const response of [new Response('secret',{status:401}),new Response('x'.repeat(65537)),new Response(new Uint8Array([255])),new Response('not json')]){
   const m=module(async()=>response);await assert.rejects(m.paperAPI('x','y','https://worker.invalid').read('page',{}),e=>!e.message.includes('secret'));
+ }
+});
+test('only bounded exact closed read responses expose the safe closed state',async()=>{
+ const m=module(async()=>json({detail:'Paper service is closed'},503));
+ const api=m.paperAPI('x','y','https://worker.invalid');
+ for(const name of ['status','controls'])await assert.rejects(api.worker(name),e=>e instanceof m.PaperWorkerClosedError);
+ for(const action of [()=>api.read('page',{}),()=>api.worker('start',{request_id:command})])
+  await assert.rejects(action,e=>!(e instanceof m.PaperWorkerClosedError));
+ for(const response of [json({detail:'Authentication service unavailable'},503),json({detail:'Paper service is closed',extra:true},503),
+  json({detail:'Paper service is closed'},401),new Response(JSON.stringify({detail:'Paper service is closed'}),{status:503}),
+  json({detail:'x'.repeat(65536)},503)]){
+  const n=module(async()=>response);await assert.rejects(n.paperAPI('x','y','https://worker.invalid').worker('status'),e=>!(e instanceof n.PaperWorkerClosedError));
  }
 });
 test('owner-bound discovery validates cutoff, ordering and archive identity',async()=>{
@@ -87,8 +99,8 @@ test('complete snapshots accept exact 18-place ledger trade quantities without r
   assert.throws(()=>m.tradeDetails({...fixture.open,quantity}));
 });
 test('completed evaluation scores decode tagged research floats; aborted scores stay unavailable',()=>{
- const m=module();const cohort={iteration_id:'run:0',phase:'completed',member_ids:[owner],evaluations:[{
-  probe_id:owner,iteration_id:'run:0',status:'completed',reason:'deadline',num_trades:2,fitness:{float64:'0x1.8000000000000p+0'}}]};
+ const m=module();const cohort={iteration_id:`${run}:0`,phase:'completed',member_ids:[owner],evaluations:[{
+  probe_id:owner,iteration_id:`${run}:0`,status:'completed',reason:'deadline',num_trades:2,fitness:{float64:'0x1.8000000000000p+0'}}]};
  assert.equal(m.evaluationDetails({account_currency:'USD',cohort}).results[0].fitness,1.5);
  const aborted={...cohort,phase:'aborted',evaluations:[{...cohort.evaluations[0],status:'aborted',fitness:null}]};
  assert.equal(m.evaluationDetails({account_currency:'USD',cohort:aborted}).results[0].fitness,null);
@@ -111,5 +123,70 @@ test('complete paginated snapshots may exceed eight seconds but have one finite 
   if(pages===12){const snapshot=await request;assert.equal(snapshot.runs.length,12);assert.equal(snapshot.revision,12);}
   else{await assert.rejects(request);assert.equal(calls,60);}
   assert.equal(observedSignal.aborted,true);assert.equal(timers.size,0);
+ }
+});
+const assessment=JSON.parse(fs.readFileSync('tests/probes/fixtures/paper-assessment.json','utf8'));
+test('assessment decodes exact genes, observed drawdown, ancestry, costs and comparable windows',()=>{
+ const m=module();const founder=m.probeDetails(assessment.probes[0]),child=m.probeDetails(assessment.probes[8]);
+ assert.deepEqual(JSON.parse(JSON.stringify(founder.genes)),{fast:3,slow:20});
+ assert.equal(founder.balance.terminalCash,'100.07');assert.equal(founder.drawdown,'0.0900%');
+ assert.equal(founder.balance.metricsBasis,'last_observed_before_replacement');
+ assert.equal(child.generation,1);assert.equal(child.lineage.sources[0].id,founder.balance.id);
+ const complete=m.evaluationDetails(assessment.evaluations[0]),abort=m.evaluationDetails(assessment.evaluations[1]);
+ assert.equal(complete.started,10000);assert.equal(complete.ends,13600);assert.equal(complete.horizon,3600);
+ assert.equal(complete.results[0].roi,.0007);assert.equal(complete.results[0].fitness,-.0011);
+ assert.equal(abort.results[0].roi,null);assert.equal(abort.results[0].eligible,false);
+ assert.equal(m.executionDetails(assessment.execution_policy).fee,'0');
+});
+test('early terminal score survives an aborted cohort but is withheld from selection',()=>{
+ const m=module(),row=structuredClone(assessment.evaluations[1]);
+ const result=row.cohort.evaluations[0];Object.assign(result,{status:'completed',reason:'drawdown',
+  roi:{float64:'-0x1.999999999999ap-3'},fitness:{float64:'-0x1.3333333333334p-1'},
+  terminated_at:{float64:'0x1.a91p+13'}});row.cohort.completed_count=1;
+ const r=m.evaluationDetails(row).results[0];assert.equal(r.early,true);assert.equal(r.eligible,false);
+ assert.equal(r.status,'completed');assert.ok(r.fitness<0);
+});
+test('missing historical metadata stays unavailable and unknown policy versions are not rewritten',()=>{
+ const m=module(),row=structuredClone(assessment.evaluations[0]);
+ row.cohort.policy.version='future-window-v9';row.scoring_policy='future-score-v2';
+ assert.equal(m.evaluationDetails(row).windowPolicy,'future-window-v9');
+ const old=m.probeDetails({id:command,account_currency:'USD',initial_cash:'100',economic_cash:'0',retired:true,
+  terminal_cash:'99.999999999999999999',equity:null,equity_basis:'terminal_frozen',metrics_basis:'last_observed_before_replacement'});
+ assert.equal(old.genes,null);assert.equal(old.drawdown,null);assert.equal(old.lineage,null);
+});
+test('malformed genes, ancestry, costs and cohort records reject publication',()=>{
+ const m=module();
+ for(const change of [p=>p.genome.ema_fast='NaN',p=>p.genome.ema_fast='0x1.8p+0',p=>p.generation=3,
+  p=>p.lineage.child_id=run,p=>p.max_drawdown.denominator='0',p=>p.lineage.sources=[{role:'genetic_parent',ordinal:0,source_id:p.id}]]){
+  const p=structuredClone(assessment.probes[0]);change(p);assert.throws(()=>m.probeDetails(p));
+ }
+ for(const change of [e=>e.cohort.member_ids[1]=e.cohort.member_ids[0],e=>e.cohort.evaluations.pop(),
+  e=>e.cohort.completed_count=0,e=>e.cohort.evaluations[0].roi={float64:'inf'},
+  e=>e.cohort.evaluations[0].window_ends_at=null,e=>e.cohort.evaluations[0].cohort_complete=false,
+  e=>e.cohort.ends_at=e.cohort.started_at]){
+  const e=structuredClone(assessment.evaluations[0]);change(e);assert.throws(()=>m.evaluationDetails(e));
+ }
+ for(const fee_bps of [0,'1e2','-1','10000','1.0000001'])
+  assert.throws(()=>m.executionDetails({...assessment.execution_policy,config:{...assessment.execution_policy.config,fee_bps}}));
+ for(const change of [p=>p.lineage.sources[0].role='wrong_role',p=>p.lineage.sources[1].ordinal=0,p=>p.genome.parent_ids.pop()]){
+  const p=structuredClone(assessment.probes[8]);change(p);assert.throws(()=>m.probeDetails(p));
+ }
+});
+test('complete assessment snapshot checks source ancestry and evaluation membership at its pinned revision',async()=>{
+ const m=module();
+ function api(fixture){return {read:async(name,args)=>{
+  assert.equal(name,'page');const data=args.kind==='runs'?[{id:run,account_currency:'USD',durability_version:5,
+   initial_cash:'1000',reserve:'200',reference_equity:'1000.07',execution_policy:fixture.execution_policy}]
+   :args.kind==='probes'?fixture.probes:args.kind==='evaluations'?fixture.evaluations:[];
+  const records=data.map(d=>({revision:2,key:args.kind==='evaluations'?d.cohort.iteration_id:d.id,command_id:command,data:d}));
+  return {version:1,owner_id:owner,run_id:run,kind:args.kind,through_revision:2,records,has_more:false,
+   next_cursor:records.length?{revision:2,key:records.at(-1).key}:null};
+ }};}
+ const complete=await m.runSnapshot(api(assessment),owner,run,new AbortController().signal);
+ assert.equal(complete.probes.length,16);assert.equal(complete.evaluations.length,2);assert.equal(complete.revision,2);
+ for(const change of [f=>{f.probes.pop();},f=>{f.probes[8].lineage.source_iteration_id='foreign:0';},
+  f=>{f.evaluations[0].cohort.iteration_id='foreign:0';},f=>{f.probes[0].max_drawdown.numerator='10001';}]){
+  const f=structuredClone(assessment);change(f);
+  await assert.rejects(m.runSnapshot(api(f),owner,run,new AbortController().signal));
  }
 });
