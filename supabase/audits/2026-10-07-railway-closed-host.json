@@ -1,0 +1,254 @@
+{
+  "failed_first_canary": {
+    "cause": "non-root read denied by exported file/directory modes",
+    "database_probe_started": false,
+    "deployment_id": "6449485c-a651-4754-be1e-5c23816f8cfc",
+    "status": "FAILED"
+  },
+  "https_smokes": [
+    {
+      "foreign_origin": false,
+      "no_store": true,
+      "path": "/health",
+      "status": 200
+    },
+    {
+      "foreign_origin": false,
+      "no_store": true,
+      "path": "/v5/status",
+      "status": 401
+    },
+    {
+      "foreign_origin": false,
+      "no_store": true,
+      "path": "/colonies",
+      "status": 404
+    },
+    {
+      "foreign_origin": false,
+      "no_store": true,
+      "path": "/docs",
+      "status": 404
+    },
+    {
+      "foreign_origin": true,
+      "no_store": false,
+      "path": "/health",
+      "status": 403
+    }
+  ],
+  "independent_metadata_review": {
+    "encoding": "Python JSON sorted keys and compact separators; not a PostgreSQL jsonb::text digest",
+    "legacy_catalog_review_sha256": "711649d2fe9aa716a5f0ef90259db37d3471f1094038e6a65122cc0537ded643",
+    "legacy_table_count": 5,
+    "migration_count": 14,
+    "migration_statement_review_sha256": "fb48eb1305388e7daeaa702e461823901ededf513856ab79ca300cf054d9ebd7",
+    "persistent_objects_created": false,
+    "read_only": true
+  },
+  "live_execution_authorized": false,
+  "observed_utc": "2026-10-08T01:40:16.645078+00:00",
+  "operator_date": "2026-10-07",
+  "preliminary_closed_metrics": {
+    "end": "2026-10-08T01:33:16.228518+00:00",
+    "start": "2026-10-08T01:25:16.228518+00:00",
+    "summary": [
+      {
+        "maximum": 0.029888916666666668,
+        "mean": 0.003627974074074074,
+        "measurement": "CPU_USAGE",
+        "samples": 9
+      },
+      {
+        "maximum": 0.055648256,
+        "mean": 0.024728917333333336,
+        "measurement": "MEMORY_USAGE_GB",
+        "samples": 9
+      },
+      {
+        "maximum": 3.036e-06,
+        "mean": 6.288888888888889e-07,
+        "measurement": "NETWORK_TX_GB",
+        "samples": 9
+      }
+    ]
+  },
+  "railway": {
+    "billing_changed": false,
+    "deployment": {
+      "export_manifest_sha256": "3ebb7c046ca05b39b6937637d4bc0426d23d2bb9decf90b622cd4671343346c1",
+      "id": "d2946105-6ed6-4adc-bf63-23adab188c4a",
+      "image_digest": "sha256:17775f045f39325e81750821224afb4ffa14f41b68733e9ece2a8c2d28c9dc4a",
+      "source_sha": "9837eb1af2a226b5ee4aa46a0f07731783216306",
+      "status": "SUCCESS"
+    },
+    "environment": {
+      "id": "9bbe52c6-2305-467a-bf39-8d5e1a98e4e4",
+      "name": "production"
+    },
+    "github_integration_added": false,
+    "mode": "closed",
+    "project": {
+      "id": "38facb49-4de9-4d66-85aa-2861e0306dcf",
+      "name": "The Dashboard Worker"
+    },
+    "public_origin": "https://dashboard-paper-worker-production.up.railway.app",
+    "runtime_credentials_present": false,
+    "service": {
+      "id": "8e78ad4b-1d8f-43e7-898a-3882ac5053d7",
+      "name": "dashboard-paper-worker"
+    },
+    "settings": {
+      "builder": "DOCKERFILE",
+      "cpu_limit": 0.25,
+      "drain_seconds": 30,
+      "health": "/health",
+      "health_timeout_seconds": 60,
+      "ipv6": true,
+      "memory_limit_bytes": 500000000,
+      "overlap_seconds": 0,
+      "region": "us-west2",
+      "replicas": 1,
+      "restart": "NEVER",
+      "sleep": false
+    },
+    "workspace": {
+      "id": "f3fcd4b2-e424-4c6b-ac33-91196ccc96e1",
+      "name": "Red Jester's Projects"
+    }
+  },
+  "remaining": [
+    "client inventory and SSL-enforcement maintenance",
+    "actual managed installer/issuer",
+    "native SCRAM/channel-binding/owner/run acceptance",
+    "closed forward migration and fresh-session verification",
+    "curated schema exposure and hosted two-user browser flow",
+    "actual provider/SQL/COMMIT/relay/lease/quota/resource/interruption acceptance",
+    "finite two-gene eight-candidate paper pilot"
+  ],
+  "ssl_enforcement": {
+    "appliedSuccessfully": true,
+    "currentConfig": {
+      "database": false
+    }
+  },
+  "supabase_profile": {
+    "candidate_state": {
+      "durability_schema": false,
+      "economic_role": false,
+      "native_role_count": 0,
+      "private_owner": false,
+      "read_schema": false,
+      "relay_role": false
+    },
+    "client_inventory": [
+      {
+        "application_category": "postgrest",
+        "connections": 2,
+        "role_category": "authenticator",
+        "transport": "tls"
+      },
+      {
+        "application_category": "supavisor",
+        "connections": 1,
+        "role_category": "pgbouncer",
+        "transport": "plaintext"
+      },
+      {
+        "application_category": "other_application",
+        "connections": 1,
+        "role_category": "postgres",
+        "transport": "tls"
+      },
+      {
+        "application_category": "other_application",
+        "connections": 1,
+        "role_category": "supabase_admin",
+        "transport": "plaintext"
+      },
+      {
+        "application_category": "unnamed",
+        "connections": 1,
+        "role_category": "supabase_admin",
+        "transport": "tls"
+      }
+    ],
+    "migration_versions": [
+      "20260402100000",
+      "20260402120000",
+      "20260403100000",
+      "20260403110000",
+      "20260408200000",
+      "20260408200100",
+      "20260408200200",
+      "20260408200300",
+      "20260409200000",
+      "20260409210000",
+      "20260418120000",
+      "20260930010000",
+      "20260930020000",
+      "20260930030000"
+    ],
+    "session": {
+      "authentication": "scram-sha-256:postgres",
+      "isolation": "repeatable read",
+      "lock_timeout": "1s",
+      "postgres_version": "17.6",
+      "read_only": "on",
+      "role": "postgres",
+      "session_role": "postgres",
+      "ssl": {
+        "bits": 256,
+        "cipher": "TLS_AES_256_GCM_SHA384",
+        "enabled": true,
+        "protocol": "TLSv1.3"
+      },
+      "statement_timeout": "15s",
+      "tcp": true
+    },
+    "settings": {
+      "max_connections": "60",
+      "password_encryption": "scram-sha-256",
+      "reserved_connections": "0",
+      "ssl": "on",
+      "ssl_max_protocol_version": "",
+      "ssl_min_protocol_version": "TLSv1.2",
+      "superuser_reserved_connections": "3"
+    }
+  },
+  "target": {
+    "github": {
+      "id": 1141090963,
+      "repository": "TOOTRJ/TheDashboard"
+    },
+    "supabase": {
+      "id": "fxpxsciltakyypunglzr",
+      "name": "The Dashboard",
+      "organization": "cqfnnaunmupdyobkyqfo"
+    },
+    "vercel": {
+      "id": "prj_wFUe9k9USVreOQcmQKNWRAVsx5fH",
+      "name": "the-dashboard",
+      "team": "team_8iNNxiNjrOseD4gdSCHkQEzF"
+    }
+  },
+  "tls_only": {
+    "authentication": "not tested",
+    "ca_sha256_pem": "700723581420dd1ac98fd7e9ac529f0ef210eadcaf87fc868a3ad7d114c2f3b7",
+    "cipher_bits": 256,
+    "dns_families": [
+      "IPv6"
+    ],
+    "elapsed_seconds": 1.048,
+    "host": "db.fxpxsciltakyypunglzr.supabase.co",
+    "peer_not_after_utc": "2031-03-09T19:54:45+00:00",
+    "peer_sha256_der": "ddb70cb3b060d7c891e519e86784225a3c3f8cea995ab32921dfe824dadacba5",
+    "port": 5432,
+    "scram_channel_binding": "not tested",
+    "selected_family": "IPv6",
+    "startup_message_sent": false,
+    "tls_verified": true,
+    "tls_version": "TLSv1.3"
+  },
+  "version": 1
+}
