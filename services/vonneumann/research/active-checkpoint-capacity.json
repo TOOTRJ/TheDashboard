@@ -1,0 +1,150 @@
+{
+  "exclusions": [
+    "operations/events/input evidence",
+    "before checkpoint/reference",
+    "create/heartbeat/relay/stop",
+    "server retention/ACKs",
+    "SQL storage/index/TOAST",
+    "native admission",
+    "optimizer restoration",
+    "sustained latency/throughput/cost"
+  ],
+  "format": "ga-active-checkpoint-research-v1",
+  "hash_policy": "component-canonical-json-utf8-sha256-v1",
+  "interpretation": "checkpoint format comparison only; hypothetical writes assume validated previous components remain available",
+  "limits": "unchanged original v5 generation, identity, source and command limits",
+  "measurement_basis": "existing PostgreSQL-spacing byte-admission estimate; hashes use canonical UTF-8 JSON",
+  "scope": "admitted existing sparse/dense GA captures; skipped intermediate price seconds",
+  "software": {
+    "numpy": "2.5.3",
+    "python": "3.12.14"
+  },
+  "source_model_version": 5,
+  "synthetic": true,
+  "traces": [
+    {
+      "admitted_v5_candidates": 51,
+      "dense": false,
+      "generation_checkpoints": [
+        {
+          "active_accounts": 8,
+          "active_bytes": 51236,
+          "active_open_positions": 0,
+          "changed_components": 11,
+          "generation": 0,
+          "manifest_bytes": 14647,
+          "source_accounts": 8,
+          "source_positions": 0
+        },
+        {
+          "active_accounts": 8,
+          "active_bytes": 54273,
+          "active_open_positions": 0,
+          "changed_components": 10,
+          "generation": 1,
+          "manifest_bytes": 15783,
+          "source_accounts": 16,
+          "source_positions": 8
+        },
+        {
+          "active_accounts": 8,
+          "active_bytes": 53790,
+          "active_open_positions": 0,
+          "changed_components": 10,
+          "generation": 2,
+          "manifest_bytes": 15779,
+          "source_accounts": 24,
+          "source_positions": 10
+        },
+        {
+          "active_accounts": 8,
+          "active_bytes": 54106,
+          "active_open_positions": 0,
+          "changed_components": 10,
+          "generation": 3,
+          "manifest_bytes": 15775,
+          "source_accounts": 32,
+          "source_positions": 13
+        }
+      ],
+      "maxima": {
+        "hypothetical_checkpoint_write_bytes": 58018,
+        "manifest_bytes": 19889,
+        "open_positions": 8,
+        "resolved_active_bytes": 56638
+      },
+      "original_completed_generation": 3,
+      "original_rejection": null,
+      "totals": {
+        "captures_without_changed_components": 46,
+        "changed_components": 43,
+        "full_after_state_bytes": 3423057,
+        "hypothetical_checkpoint_write_bytes": 1029677,
+        "manifest_bytes": 827920,
+        "resolved_active_bytes": 2751429
+      }
+    },
+    {
+      "admitted_v5_candidates": 51,
+      "dense": true,
+      "generation_checkpoints": [
+        {
+          "active_accounts": 8,
+          "active_bytes": 51236,
+          "active_open_positions": 0,
+          "changed_components": 11,
+          "generation": 0,
+          "manifest_bytes": 14647,
+          "source_accounts": 8,
+          "source_positions": 0
+        },
+        {
+          "active_accounts": 8,
+          "active_bytes": 54275,
+          "active_open_positions": 0,
+          "changed_components": 10,
+          "generation": 1,
+          "manifest_bytes": 15785,
+          "source_accounts": 16,
+          "source_positions": 16
+        },
+        {
+          "active_accounts": 8,
+          "active_bytes": 53794,
+          "active_open_positions": 0,
+          "changed_components": 10,
+          "generation": 2,
+          "manifest_bytes": 15783,
+          "source_accounts": 24,
+          "source_positions": 32
+        },
+        {
+          "active_accounts": 8,
+          "active_bytes": 54112,
+          "active_open_positions": 0,
+          "changed_components": 10,
+          "generation": 3,
+          "manifest_bytes": 15781,
+          "source_accounts": 32,
+          "source_positions": 48
+        }
+      ],
+      "maxima": {
+        "hypothetical_checkpoint_write_bytes": 58020,
+        "manifest_bytes": 19991,
+        "open_positions": 8,
+        "resolved_active_bytes": 58481
+      },
+      "original_completed_generation": 3,
+      "original_rejection": null,
+      "totals": {
+        "captures_without_changed_components": 46,
+        "changed_components": 43,
+        "full_after_state_bytes": 4075990,
+        "hypothetical_checkpoint_write_bytes": 1101121,
+        "manifest_bytes": 899364,
+        "resolved_active_bytes": 2822873
+      }
+    }
+  ]
+}

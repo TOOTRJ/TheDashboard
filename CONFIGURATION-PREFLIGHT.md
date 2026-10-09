@@ -3541,3 +3541,46 @@ Railway read-only verification matches the allowed project/workspace/environment
 its ordinary closed service/deployment is not changed. The original migration
 edit retains the recorded SHA256. No production database or worker change is
 part of this research. Draft status does not suppress normal Git preview behavior.
+
+## 90. Bounded typed GA checkpoint foundation — 2026-10-08
+
+The restored dedicated Vercel profile rechecks the exact project/name/immutable
+team, along with GitHub TOOTRJ/TheDashboard/repository1141090963/user16749816 and
+Supabase The Dashboard/fxpxsciltakyypunglzr/organizationcqfnnaunmupdyobkyqfo. After
+the scoped fetch, codex/dashboard-active-checkpoint-format begins from released
+main23fffe097ced369b07499e980acde85c3a2aa019. The existing user migration edit is
+preserved at SHA256a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc.
+
+PAPER-COMPACT-02A adds only an offline owned-candidate capture/typed-component
+format, focused tests, deterministic size artifact and documentation. There is
+no production import/routing, native version, builder/manifest/source change,
+database read/write/migration/grant, Railway operation or quota/billing action.
+The original v5 candidate is independently revalidated before capture and stays
+unchanged with all historical accounts/positions/used IDs. The active view keeps
+every current cohort account including early terminals and every open holding.
+Configuration/genome/optimizer/cohort blocks are bound to owner/run/kind/entity/
+generation with explicit canonical-UTF8 hashes distinct from PostgreSQL JSONB.
+Full readback and original-projection equality precede use as research evidence;
+a pure component diff never proves server retention, commit or authority.
+
+Two network-denied synthetic GA traces capture51 original admitted candidates
+each, with three replacements and no original rejection. Final active sizes are
+54,106/54,112 bytes; maxima56,638/58,481. Components remain exactly11 and current
+accounts exactly8; open positions never exceed8.46 of51 captures per trace reuse
+all components. The size artifact excludes complete economic/source command
+evidence, transport references, relay/heartbeat/stop, server availability and
+storage/index/TOAST/throughput/cost. No continuous-operation inference is made.
+Generation3, source/EMA4,096 and all other v5 guards remain unchanged. Many-window
+model acceptance, durable historical uniqueness, finalized assessment provenance,
+canonical SQL/native admission, decoder and pinned retention remain open.
+
+Tests cover source-exact current evidence, early death then abort, detached/frozen
+captures, original-holding omission, component reuse versus absent dependencies,
+complete typed scope/hash/slot bindings, rehashed gene substitution, malformed
+recursive patch refusal, pre-resolution aggregate and structural work limits,
+unchanged generation/watermark caps and v5/v6 runtime refusal. Canonical/forward
+package checks accompany the focused suite. Final validated test counts, source,
+preview and production evidence stay in the associated PR. Rollback is a reviewed
+code/docs revert with no production research schema or compact command to delete.
+The final focused suite passes33 cases:20 active-format, six checkpoint-reference
+and seven unchanged canonical/forward-package cases. Parsing and diff checks pass.

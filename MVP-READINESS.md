@@ -1,5 +1,20 @@
 # Evolutionary trading bot MVP readiness
 
+**Active-checkpoint format foundation — 2026-10-08:** PAPER-COMPACT-02A captures
+admitted GA evidence into a bounded eight-member/eight-open-position projection
+and eleven flat immutable components. Sparse/dense traces retain exact current
+economics, early-terminal membership, source, risk, genes and optimizer evidence;
+both stop at the unchanged v5 generation3 limit. Final resolved active sizes are
+54,106/54,112 bytes, compared with110,027 full source after-state bytes in the
+dense case.46 of51 captures in each trace change no component; availability must
+still be proven by complete readback and future native retention checks. These
+are format measurements, not full-command/storage/hosting savings. Historical
+rows/ID scans and all production limits remain in v5. PAPER-COMPACT-02 stays open
+for02B's new model, atomic finalized provenance and many-window acceptance, then
+03's durable SQL/native contract,04's exact restoration and05's pinned retention/
+hosted proof. No database or Railway runtime change or activation is part of
+this foundation. [Format and acceptance](services/vonneumann/ACTIVE-CHECKPOINT-FORMAT.md).
+
 **Compact checkpoint research — 2026-10-08:** PAPER-COMPACT-01 implements an
 offline reference codec and actual PostgreSQL17 lock/replay/rollback experiment.
 The dedicated Vercel Dashboard profile login is restored and exact project
