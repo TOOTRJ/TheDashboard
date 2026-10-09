@@ -233,6 +233,9 @@ needs a file-backed sign-in before further release. [Fresh hosted evidence](supa
    active state and retention, with long-duration/load/restart acceptance before
    continuous paper evolution. Include finalized assessment provenance
    (PAPER-ASSESSMENT-PROVENANCE1) in that reviewed forward-format work.
+   PAPER-COMPACT-01 completes the offline reference prototype and measurements;
+   implement PAPER-COMPACT-02…05 in order. The research transport is not installed
+   or accepted by the production worker and does not close this priority.
    This one hour journals58,114,764 logical request
    bytes and23,316,227 compressed column bytes; those exclude relation/index/TOAST
    overhead and do not change application/SQL byte admission limits.
@@ -633,6 +636,73 @@ Research began **2026-09-30** and was updated **2026-10-06/07** in [WORKER-HOSTI
   elitism/diversity and equal-budget/multi-seed holdout comparisons before
   changing selection behavior. Current one-hour zero-cost mechanics acceptance
   is not economic validation.
+
+- [x] **PAPER-COMPACT-01 — Research and prove checkpoint-reference transport offline.**
+  Offline research acceptance is complete. The dedicated Vercel profile login
+  is restored and exact Dashboard targets are reverified; PR84 retains the final
+  source/deployment and release evidence. This research does not activate a worker.
+  A detached immutable prototype omits only the repeated before-state, binds
+  owner/run/revision and an opaque PostgreSQL17 checkpoint hash, and reconstructs
+  every original v5 transition byte without changing model/wire admission. Eight
+  deterministic sparse/dense solver traces measure47.54–48.22% fewer logical
+  request bytes. Actual storage/hosting/latency savings are not measured; the SQL
+  experiment deliberately retains both journals. Dense GA still carries32
+  accounts/48 positions/80 used IDs and110,027 after-state bytes at generation3.
+  PSO/CMA keep their original inner rejection. The owned network-none PostgreSQL
+  experiment proves lock-time revalidation, original wire replay after advance,
+  expiry readback, scope/ACL denials, independent wire/expanded bounds, corrupt
+  economics/source rejection, late journal rollback and freshness/lease loss
+  during added journal work. All29 distinct focused model/capacity/PostgreSQL/
+  package cases pass. No production schema/grant, runtime command version,
+  cap increase, restore decoder, retention deletion or worker activation.
+  [Design and next format](services/vonneumann/COMPACT-CHECKPOINT-DESIGN.md),
+  [synthetic measurements](services/vonneumann/research/checkpoint-reference-capacity.json).
+
+- [ ] **PAPER-COMPACT-02 — Implement a bounded GA active-state/component format.**
+  Version the model/configuration separately from old v5 runs. Keep exactly the
+  eight current cohort accounts (including early-terminal members until deadline),
+  at most eight open positions, current risk/pending decisions/indicators/source
+  cursor and bounded typed component references. Retired nonmember accounts and
+  closed positions remain immutable historical ledger rows. Avoid resending
+  unchanged configuration/genes/optimizer/RNG blocks and remove historical
+  used-ID scans from active state only after durable uniqueness is independently
+  enforced. Bound resolved aggregate bytes/fanout/work without recursive chains
+  or generic JSON patches. Include PAPER-ASSESSMENT-PROVENANCE1's atomic finalized
+  metrics. Acceptance: many dense/sparse windows stay bounded with exact cash,
+  all live ledger holdings/members accounted for, and no omitted early terminal,
+  identity reuse, retrospective score conversion or silently wrapped watermark.
+
+- [ ] **PAPER-COMPACT-03 — Prepare the reviewed forward SQL/native contract.**
+  Journal each original compact request once, retain/pin immutable dependencies,
+  independently bind prior checkpoint under the run lock, validate all resolved
+  model/economic/source evidence, and project history atomically. Update the
+  current full-before/after journal projection dependency through an explicit
+  new format. Prove original-ID replay/readback, lock/late effects, source/lease
+  freshness at final transaction boundary, reserved Stop capacity, rollback and
+  owner/native capability isolation with the limited installer. Prepare closed
+  writer-drain/catalog validation, canonical manifest, old/new reader
+  compatibility and evidence-preserving rollback before exact-target migration.
+  The research SQL wrapper is not a candidate production migration.
+
+- [ ] **PAPER-COMPACT-04 — Implement and accept explicit checkpoint restoration.**
+  Begin with the reviewed GA-only two-EMA profile. The current optimizer encoder
+  is not a decoder and ExactState remains bootstrap-only. Decode only pinned
+  allowlisted types/dependencies/policies, preserving RNG, order/aliases,
+  cohort genomes/results, source epoch/watermark, indicators, risk, balances and
+  pending decisions. Verify the entire next prepared wire against uninterrupted
+  execution across mid-window, early-terminal, replacement, stopped and uncertain
+  commit boundaries. Reconcile original pending commands/holdings before any
+  separately authorized lease/activation; loading state never grants authority.
+
+- [ ] **PAPER-COMPACT-05 — Prove pinned retention and hosted multi-window operation.**
+  Design archival/receipt lookup and dependency pins before deleting referenced
+  commands or components. Prove owner-bound manifest integrity, readback and
+  restoration, original-ID lookup, relay/ACK and pending Stop safety. Choose
+  retention/storage budgets from measured table/index/TOAST and workload growth.
+  After02…04, verify the exact closed hosted package and run bounded long-duration,
+  load/restart/held-position acceptance before continuous operation. **Deep
+  substantial research:** typed deltas/component addressing, archive policy,
+  version maintenance, validation/lock/TOAST timing tails and empirical budgets.
 
 - [ ] **PAPER-ASSESSMENT-PROVENANCE1 — Persist finalized assessment provenance.**
   Compose with the next versioned checkpoint/projection work: persist the exact

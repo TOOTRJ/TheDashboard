@@ -1,0 +1,545 @@
+{
+  "database_storage_savings_measured": false,
+  "reference_hash": "fixed-length placeholder; not a server receipt",
+  "runtime_or_admission_changed": false,
+  "scope": "synthetic offline prepared transitions only",
+  "software": {
+    "candidate": "bounded-exact-rehearsal-v1",
+    "cmaes": "0.13.1",
+    "database_hash_policy": "postgres17-jsonb-sha256-v1",
+    "model": "bounded-exact-lifecycle-v1",
+    "numpy": "2.5.3",
+    "python": "3.12.14",
+    "transport": "checkpoint-reference-research-v1"
+  },
+  "throughput_measured": false,
+  "traces": [
+    {
+      "accepted_commands": 51,
+      "algorithm": "genetic_algorithm",
+      "dense": false,
+      "final": {
+        "accounts": 32,
+        "after_state_bytes": 76596,
+        "component_bytes": {
+          "accounts": 3256,
+          "cohort": 966,
+          "ema": 4037,
+          "last_evaluation": 6372,
+          "members": 8040,
+          "optimizer": 31962,
+          "positions": 11895,
+          "source": 6558,
+          "used_ids": 1800
+        },
+        "expanded_validation_bytes": 162965,
+        "generation": 3,
+        "original_payload_bytes": 162965,
+        "original_request_bytes": 163238,
+        "positions": 13,
+        "reference_payload_bytes": 88313,
+        "reference_request_bytes": 88586,
+        "revision": 52,
+        "used_ids": 45
+      },
+      "logical_request_bytes_saved": 3330154,
+      "maximum_expanded_validation_bytes": 162965,
+      "maximum_reference_payload_bytes": 88313,
+      "original_admission": {
+        "algorithm": "genetic_algorithm",
+        "bootstrap_bytes": 80426,
+        "completed_generation": 3,
+        "dense": false,
+        "maximum_bytes": 162965,
+        "maximum_operations": 16,
+        "rejection": null,
+        "replacements": [
+          {
+            "accounts": 16,
+            "bytes": 141898,
+            "generation": 1,
+            "operations": 16,
+            "positions": 8
+          },
+          {
+            "accounts": 24,
+            "bytes": 154835,
+            "generation": 2,
+            "operations": 16,
+            "positions": 10
+          },
+          {
+            "accounts": 32,
+            "bytes": 162965,
+            "generation": 3,
+            "operations": 16,
+            "positions": 13
+          }
+        ]
+      },
+      "original_logical_request_bytes": 6970811,
+      "reference_logical_request_bytes": 3640657
+    },
+    {
+      "accepted_commands": 51,
+      "algorithm": "differential_evolution",
+      "dense": false,
+      "final": {
+        "accounts": 32,
+        "after_state_bytes": 80579,
+        "component_bytes": {
+          "accounts": 3256,
+          "cohort": 966,
+          "ema": 4037,
+          "last_evaluation": 9292,
+          "members": 8280,
+          "optimizer": 32780,
+          "positions": 11895,
+          "source": 6558,
+          "used_ids": 1800
+        },
+        "expanded_validation_bytes": 172688,
+        "generation": 3,
+        "original_payload_bytes": 172688,
+        "original_request_bytes": 172961,
+        "positions": 13,
+        "reference_payload_bytes": 93558,
+        "reference_request_bytes": 93831,
+        "revision": 52,
+        "used_ids": 45
+      },
+      "logical_request_bytes_saved": 3444666,
+      "maximum_expanded_validation_bytes": 172688,
+      "maximum_reference_payload_bytes": 93558,
+      "original_admission": {
+        "algorithm": "differential_evolution",
+        "bootstrap_bytes": 80522,
+        "completed_generation": 3,
+        "dense": false,
+        "maximum_bytes": 172688,
+        "maximum_operations": 16,
+        "rejection": null,
+        "replacements": [
+          {
+            "accounts": 16,
+            "bytes": 145634,
+            "generation": 1,
+            "operations": 16,
+            "positions": 8
+          },
+          {
+            "accounts": 24,
+            "bytes": 163587,
+            "generation": 2,
+            "operations": 16,
+            "positions": 10
+          },
+          {
+            "accounts": 32,
+            "bytes": 172688,
+            "generation": 3,
+            "operations": 16,
+            "positions": 13
+          }
+        ]
+      },
+      "original_logical_request_bytes": 7207842,
+      "reference_logical_request_bytes": 3763176
+    },
+    {
+      "accepted_commands": 51,
+      "algorithm": "particle_swarm",
+      "dense": false,
+      "final": {
+        "accounts": 32,
+        "after_state_bytes": 103676,
+        "component_bytes": {
+          "accounts": 3256,
+          "cohort": 966,
+          "ema": 4037,
+          "last_evaluation": 6749,
+          "members": 8080,
+          "optimizer": 51943,
+          "positions": 18300,
+          "source": 6558,
+          "used_ids": 2080
+        },
+        "expanded_validation_bytes": 218286,
+        "generation": 3,
+        "original_payload_bytes": 218286,
+        "original_request_bytes": 218559,
+        "positions": 20,
+        "reference_payload_bytes": 116080,
+        "reference_request_bytes": 116353,
+        "revision": 52,
+        "used_ids": 52
+      },
+      "logical_request_bytes_saved": 4450126,
+      "maximum_expanded_validation_bytes": 218286,
+      "maximum_reference_payload_bytes": 116080,
+      "original_admission": {
+        "algorithm": "particle_swarm",
+        "bootstrap_bytes": 99787,
+        "completed_generation": 3,
+        "dense": false,
+        "maximum_bytes": 218286,
+        "maximum_operations": 16,
+        "rejection": null,
+        "replacements": [
+          {
+            "accounts": 16,
+            "bytes": 181924,
+            "generation": 1,
+            "operations": 16,
+            "positions": 8
+          },
+          {
+            "accounts": 24,
+            "bytes": 202669,
+            "generation": 2,
+            "operations": 16,
+            "positions": 13
+          },
+          {
+            "accounts": 32,
+            "bytes": 218286,
+            "generation": 3,
+            "operations": 16,
+            "positions": 20
+          }
+        ]
+      },
+      "original_logical_request_bytes": 9252929,
+      "reference_logical_request_bytes": 4802803
+    },
+    {
+      "accepted_commands": 51,
+      "algorithm": "cma_es",
+      "dense": false,
+      "final": {
+        "accounts": 32,
+        "after_state_bytes": 103851,
+        "component_bytes": {
+          "accounts": 3256,
+          "cohort": 966,
+          "ema": 4037,
+          "last_evaluation": 5791,
+          "members": 10040,
+          "optimizer": 60520,
+          "positions": 9150,
+          "source": 6558,
+          "used_ids": 1800
+        },
+        "expanded_validation_bytes": 218343,
+        "generation": 3,
+        "original_payload_bytes": 218343,
+        "original_request_bytes": 218616,
+        "positions": 10,
+        "reference_payload_bytes": 116002,
+        "reference_request_bytes": 116275,
+        "revision": 52,
+        "used_ids": 45
+      },
+      "logical_request_bytes_saved": 4523894,
+      "maximum_expanded_validation_bytes": 218343,
+      "maximum_reference_payload_bytes": 116002,
+      "original_admission": {
+        "algorithm": "cma_es",
+        "bootstrap_bytes": 95549,
+        "completed_generation": 3,
+        "dense": false,
+        "maximum_bytes": 218343,
+        "maximum_operations": 17,
+        "rejection": null,
+        "replacements": [
+          {
+            "accounts": 16,
+            "bytes": 187056,
+            "generation": 1,
+            "operations": 17,
+            "positions": 8
+          },
+          {
+            "accounts": 24,
+            "bytes": 214051,
+            "generation": 2,
+            "operations": 17,
+            "positions": 9
+          },
+          {
+            "accounts": 32,
+            "bytes": 218343,
+            "generation": 3,
+            "operations": 17,
+            "positions": 10
+          }
+        ]
+      },
+      "original_logical_request_bytes": 9381416,
+      "reference_logical_request_bytes": 4857522
+    },
+    {
+      "accepted_commands": 51,
+      "algorithm": "genetic_algorithm",
+      "dense": true,
+      "final": {
+        "accounts": 32,
+        "after_state_bytes": 110027,
+        "component_bytes": {
+          "accounts": 3256,
+          "cohort": 966,
+          "ema": 4040,
+          "last_evaluation": 6372,
+          "members": 8040,
+          "optimizer": 31962,
+          "positions": 43920,
+          "source": 6561,
+          "used_ids": 3200
+        },
+        "expanded_validation_bytes": 234635,
+        "generation": 3,
+        "original_payload_bytes": 234635,
+        "original_request_bytes": 234908,
+        "positions": 48,
+        "reference_payload_bytes": 129664,
+        "reference_request_bytes": 129937,
+        "revision": 52,
+        "used_ids": 80
+      },
+      "logical_request_bytes_saved": 3949656,
+      "maximum_expanded_validation_bytes": 234635,
+      "maximum_reference_payload_bytes": 129664,
+      "original_admission": {
+        "algorithm": "genetic_algorithm",
+        "bootstrap_bytes": 80426,
+        "completed_generation": 3,
+        "dense": true,
+        "maximum_bytes": 234635,
+        "maximum_operations": 24,
+        "rejection": null,
+        "replacements": [
+          {
+            "accounts": 16,
+            "bytes": 161990,
+            "generation": 1,
+            "operations": 24,
+            "positions": 16
+          },
+          {
+            "accounts": 24,
+            "bytes": 201671,
+            "generation": 2,
+            "operations": 24,
+            "positions": 32
+          },
+          {
+            "accounts": 32,
+            "bytes": 234635,
+            "generation": 3,
+            "operations": 24,
+            "positions": 48
+          }
+        ]
+      },
+      "original_logical_request_bytes": 8307811,
+      "reference_logical_request_bytes": 4358155
+    },
+    {
+      "accepted_commands": 51,
+      "algorithm": "differential_evolution",
+      "dense": true,
+      "final": {
+        "accounts": 32,
+        "after_state_bytes": 114010,
+        "component_bytes": {
+          "accounts": 3256,
+          "cohort": 966,
+          "ema": 4040,
+          "last_evaluation": 9292,
+          "members": 8280,
+          "optimizer": 32780,
+          "positions": 43920,
+          "source": 6561,
+          "used_ids": 3200
+        },
+        "expanded_validation_bytes": 244358,
+        "generation": 3,
+        "original_payload_bytes": 244358,
+        "original_request_bytes": 244631,
+        "positions": 48,
+        "reference_payload_bytes": 134909,
+        "reference_request_bytes": 135182,
+        "revision": 52,
+        "used_ids": 80
+      },
+      "logical_request_bytes_saved": 4064168,
+      "maximum_expanded_validation_bytes": 244358,
+      "maximum_reference_payload_bytes": 134909,
+      "original_admission": {
+        "algorithm": "differential_evolution",
+        "bootstrap_bytes": 80522,
+        "completed_generation": 3,
+        "dense": true,
+        "maximum_bytes": 244358,
+        "maximum_operations": 24,
+        "rejection": null,
+        "replacements": [
+          {
+            "accounts": 16,
+            "bytes": 165726,
+            "generation": 1,
+            "operations": 24,
+            "positions": 16
+          },
+          {
+            "accounts": 24,
+            "bytes": 210423,
+            "generation": 2,
+            "operations": 24,
+            "positions": 32
+          },
+          {
+            "accounts": 32,
+            "bytes": 244358,
+            "generation": 3,
+            "operations": 24,
+            "positions": 48
+          }
+        ]
+      },
+      "original_logical_request_bytes": 8544842,
+      "reference_logical_request_bytes": 4480674
+    },
+    {
+      "accepted_commands": 50,
+      "algorithm": "particle_swarm",
+      "dense": true,
+      "final": {
+        "accounts": 24,
+        "after_state_bytes": 126160,
+        "component_bytes": {
+          "accounts": 2440,
+          "cohort": 966,
+          "ema": 4040,
+          "last_evaluation": 6749,
+          "members": 8832,
+          "optimizer": 51921,
+          "positions": 40064,
+          "source": 6561,
+          "used_ids": 2880
+        },
+        "expanded_validation_bytes": 254189,
+        "generation": 2,
+        "original_payload_bytes": 254189,
+        "original_request_bytes": 254462,
+        "positions": 48,
+        "reference_payload_bytes": 128349,
+        "reference_request_bytes": 128622,
+        "revision": 51,
+        "used_ids": 72
+      },
+      "logical_request_bytes_saved": 4829082,
+      "maximum_expanded_validation_bytes": 256247,
+      "maximum_reference_payload_bytes": 134445,
+      "original_admission": {
+        "algorithm": "particle_swarm",
+        "bootstrap_bytes": 99787,
+        "completed_generation": 2,
+        "dense": true,
+        "maximum_bytes": 256247,
+        "maximum_operations": 24,
+        "rejection": {
+          "generation": 2,
+          "message": "whole lifecycle candidate exceeds payload capacity; splitting is forbidden",
+          "offset": 10801,
+          "positions": 48,
+          "repeated_rejection_preserves_owned_state": true,
+          "serialized_payload_bytes": {
+            "4": 262546
+          }
+        },
+        "replacements": [
+          {
+            "accounts": 16,
+            "bytes": 202016,
+            "generation": 1,
+            "operations": 24,
+            "positions": 16
+          },
+          {
+            "accounts": 24,
+            "bytes": 243775,
+            "generation": 2,
+            "operations": 24,
+            "positions": 32
+          }
+        ]
+      },
+      "original_logical_request_bytes": 10064114,
+      "reference_logical_request_bytes": 5235032
+    },
+    {
+      "accepted_commands": 34,
+      "algorithm": "cma_es",
+      "dense": true,
+      "final": {
+        "accounts": 16,
+        "after_state_bytes": 119370,
+        "component_bytes": {
+          "accounts": 1632,
+          "cohort": 966,
+          "ema": 4042,
+          "last_evaluation": 5791,
+          "members": 10792,
+          "optimizer": 60469,
+          "positions": 25424,
+          "source": 6561,
+          "used_ids": 1960
+        },
+        "expanded_validation_bytes": 240606,
+        "generation": 1,
+        "original_payload_bytes": 240606,
+        "original_request_bytes": 240879,
+        "positions": 32,
+        "reference_payload_bytes": 121556,
+        "reference_request_bytes": 121829,
+        "revision": 35,
+        "used_ids": 49
+      },
+      "logical_request_bytes_saved": 2999110,
+      "maximum_expanded_validation_bytes": 242664,
+      "maximum_reference_payload_bytes": 127652,
+      "original_admission": {
+        "algorithm": "cma_es",
+        "bootstrap_bytes": 95549,
+        "completed_generation": 1,
+        "dense": true,
+        "maximum_bytes": 242664,
+        "maximum_operations": 25,
+        "rejection": {
+          "generation": 1,
+          "message": "whole provider lifecycle candidate exceeds payload capacity; splitting is forbidden",
+          "offset": 7201,
+          "positions": 32,
+          "repeated_rejection_preserves_owned_state": true,
+          "serialized_payload_bytes": {
+            "4": 248760,
+            "5": 262797
+          }
+        },
+        "replacements": [
+          {
+            "accounts": 16,
+            "bytes": 207148,
+            "generation": 1,
+            "operations": 25,
+            "positions": 16
+          }
+        ]
+      },
+      "original_logical_request_bytes": 6308499,
+      "reference_logical_request_bytes": 3309389
+    }
+  ],
+  "version": 1
+}

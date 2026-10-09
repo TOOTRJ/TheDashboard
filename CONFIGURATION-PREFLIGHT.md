@@ -3476,3 +3476,68 @@ PR82 head795ed713102e75eac5d42655b67eb0ff1fca4927 preview
  ccdead1835792f565105c437b1c1f2f1031e7de0 production
  dpl_H7sU1XYQjwTicnstazCyhLaz7q9b is READY; read-only smokes are checked before
 this next release. The original migration edit remains at the recorded SHA256.
+
+## 89. Offline compact checkpoint reference research — 2026-10-08
+
+Before this slice, the helper verifies GitHub TOOTRJ/TheDashboard/repository
+1141090963/user16749816, Vercel the-dashboard/prj_wFUe9k9USVreOQcmQKNWRAVsx5fH/
+team_8iNNxiNjrOseD4gdSCHkQEzF, and Supabase The Dashboard/fxpxsciltakyypunglzr/
+cqfnnaunmupdyobkyqfo. A codex/dashboard-checkpoint-reference branch begins from
+verified main8587c381f53174abca86cf7d5c4e1e9b3f399ae6. The pre-existing migration
+edit is preserved at SHA256
+a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc.
+
+The research codec/SQL are outside runtime command routing and production
+builders/migrations/manifests. SQL requires an offline fixture marker and grants
+no caller access; synthetic fixture setup grants only its economic capability.
+The disposable PostgreSQL17 container uses the existing local Colima Unix socket,
+pinned cached image, no network/host ports/secrets/mounts and owned cleanup only.
+No Supabase write, credential issuance, native release/grant change, Railway
+operation, quota/billing change, wallet operation or other-project edit occurs.
+
+Eight deterministic synthetic traces compare actual PreparedCommand encoding
+against immutable checkpoint-reference payloads. Logical request reduction is
+47.54–48.22%; source/model/admission and rejected-state purity remain unchanged.
+Dense GA after-state remains110,027 bytes with32 accounts,48 positions and80
+used IDs at generation3. Compact wire and expanded model limits are separately
+256KiB; no compression estimate changes admission. The research SQL retains
+both journals, so it adds fixture storage rather than demonstrating storage
+savings. No sustainable polling, network latency or hosted cost is inferred.
+
+Pure capture/model/capacity tests and actual PostgreSQL lock/rollback tests cover
+complete evidence preservation, noncanonical or changed binding denial, original
+wire replay after run advance, readback after expiry, old command-version refusal,
+late journal failure, lock-delayed authority/checkpoint changes, inner model
+corruption, independent wire/expanded bounds, and final freshness/lease expiry
+during extra journal work. The remaining forward active-state/SQL/decoder/pinned
+retention/hosted acceptance stages are explicit PAPER-COMPACT-02…05 dependencies.
+Finalized assessment provenance is specified, not retroactively added to old rows.
+Validation passes29 distinct focused cases:11 pure codec/model/capacity,
+11 actual isolated PostgreSQL across the initial/final-source expiry batches,
+and seven unchanged canonical/forward package checks. Source parse and diff
+checks pass. The six codec cases are rerun after final envelope-key validation.
+Research details and exact reproducible counts are in
+services/vonneumann/COMPACT-CHECKPOINT-DESIGN.md and
+services/vonneumann/research/checkpoint-reference-capacity.json. Rollback is a
+reviewed code/docs revert; no production research schema exists to roll back.
+Exact-source PR build/production verification accompanies release in its PR body.
+
+**Release checkpoint — 2026-10-08 local / 2026-10-09 UTC:** Research implementation
+774e7aa702971d824e396db9978da78d81863994 is reviewed in PR84. After exact-project
+403 and a CLI runtime diagnostic, the dedicated file-profile device login
+completes successfully. The new login is saved only under
+/Users/redjester/.config/vercel-dashboard-codex; inherited Vercel token/org/project
+variables are removed and update checks disabled only in each Dashboard child.
+No cause is inferred for the earlier403. No default/shared profile or credential
+is copied, changed or used. GitHub repository/user, Vercel project/immutable team
+and Supabase project/organization are freshly verified against every allowed ID.
+CLI62 resolved project inspection returns the correct project ID/name and owner
+slug; its output omits the immutable team ID, which is independently verified
+through the project API. Preview dpl_7ycPKhVBczUTHrive1dfCaFJHAi5 is READY at
+7fe9c9b25fc8f9aad9a070f7c8b8dfa317f9638d with the exact project/team/repository/source
+and biggrizzly11 author. Final-head preview and production checks accompany
+release in PR84's body. Protected preview HTTP checks are not claimed.
+Railway read-only verification matches the allowed project/workspace/environment;
+its ordinary closed service/deployment is not changed. The original migration
+edit retains the recorded SHA256. No production database or worker change is
+part of this research. Draft status does not suppress normal Git preview behavior.

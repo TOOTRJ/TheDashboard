@@ -1,5 +1,21 @@
 # Evolutionary trading bot MVP readiness
 
+**Compact checkpoint research — 2026-10-08:** PAPER-COMPACT-01 implements an
+offline reference codec and actual PostgreSQL17 lock/replay/rollback experiment.
+The dedicated Vercel Dashboard profile login is restored and exact project
+targets are reverified. PR84 retains the final source/deployment release evidence.
+Eight deterministic synthetic sparse/dense traces reduce logical request bytes
+by47.54–48.22%; they do not measure storage, throughput or hosting savings.
+Dense GA still retains32 accounts/48 positions/80 IDs at generation3 and PSO/CMA
+retain their inner capacity rejection. The wrapper keeps both journals and is
+not a deployable migration. Wire and expanded validation limits remain256KiB.
+The next ordered stages are bounded GA active/component state with finalized
+assessment provenance, canonical SQL/native admission, explicit exact restoration,
+then pinned retention and hosted multi-window acceptance. No production database,
+grants, Railway runtime/capabilities or live execution changes are made by this
+research. The worker remains closed; continuous/live gates remain open.
+[Design, measurements and acceptance](services/vonneumann/COMPACT-CHECKPOINT-DESIGN.md).
+
 **Operator/assessment view released — 2026-10-08:** PR81 is merged as
 `2ca66b035e7a790956c514ebd497e4082e66be76`. Exact production
 `dpl_9AtV28Zd9hiCD81QM2atjZbCtKcv` is READY with four read-only smokes.
