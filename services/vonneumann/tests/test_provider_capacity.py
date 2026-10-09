@@ -29,7 +29,7 @@ def _payload_size(payload):
                           allow_nan=False, separators=(', ', ': ')).encode('utf-8'))
 
 
-def capacity_trace(algorithm, *, dense):
+def capacity_trace(algorithm, *, dense, observer=None):
     """Prepare real owned transitions and validate every accepted command.
 
     Audit the actual serialization before its existing cap rejection; this
@@ -63,6 +63,8 @@ def capacity_trace(algorithm, *, dense):
             raise AssertionError('Candidate and actual command capacity differ')
         result['maximum_bytes'] = max(result['maximum_bytes'], measured)
         result['maximum_operations'] = max(result['maximum_operations'], len(candidate.operations))
+        if observer is not None:
+            observer(candidate, command)
         return candidate
 
     with deny_network(), patch.object(base, '_json', side_effect=audit):
