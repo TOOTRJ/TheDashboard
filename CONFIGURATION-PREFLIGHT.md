@@ -3584,3 +3584,61 @@ preview and production evidence stay in the associated PR. Rollback is a reviewe
 code/docs revert with no production research schema or compact command to delete.
 The final focused suite passes33 cases:20 active-format, six checkpoint-reference
 and seven unchanged canonical/forward-package cases. Parsing and diff checks pass.
+
+## 91. Fresh offline GA model and finalized provenance — 2026-10-08
+
+The preflight verifies GitHub TOOTRJ/TheDashboard repository1141090963 as
+biggrizzly11/user16749816; Vercel the-dashboard/prj_wFUe9k9USVreOQcmQKNWRAVsx5fH
+under team_8iNNxiNjrOseD4gdSCHkQEzF; Supabase The Dashboard/fxpxsciltakyypunglzr
+under cqfnnaunmupdyobkyqfo. The local Vercel pins and linked Supabase reference
+match. The Dashboard-only Git helper refreshed main; this branch starts from
+fc41cb5ff92ae70a41ec5d86d1037cbe953a1cfc. Dedicated Vercel credentials are used
+without shared-profile changes. Railway read-only verification also matches The
+Dashboard Worker/project38facb49-4de9-4d66-85aa-2861e0306dcf, production environment
+9bbe52c6-2305-467a-bf39-8d5e1a98e4e4, workspacef3fcd4b2-e424-4c6b-ac33-91196ccc96e1
+and dashboard-paper-worker/service8e78ad4b-1d8f-43e7-898a-3882ac5053d7. Deployment
+cf05895d-adc5-427f-873e-82ad6606e5a1 is unchanged/SUCCESS with one replica, vCPU0.25,
+500,000,000-byte memory and restartNEVER; the ordinary worker remains closed.
+
+PAPER-COMPACT-02B1 adds a separate offline fresh GA model, deterministic tests,
+measurement artifact and documentation. Current state holds eight accounts/
+members and at most eight open positions. Historical closed/retired/birth rows,
+identity allocations and complete finalized assessment provenance travel in one
+sealed per-candidate history boundary. Post-liquidation scores include exact
+cash, final risk/drawdown and closed-trade count before optimizer selection and
+retirement; early terminal snapshots freeze until deadline; interruptions publish
+no scores. The credential-free ledger reexecutes original owned preparation and
+separately reconciles exact cash/holding operations before publishing state and
+history. This does not replace independent SQL validation, durable identity
+constraints, native commit receipts/capabilities or restoration.
+
+Two network-denied synthetic sparse/dense traces complete32 common windows and
+755 candidates each, with256 finalized assessments and256 retired accounts each;
+history contains221/512 closed positions and485/776 identities. The active model
+stays at eight current accounts, while the complete candidate remains inside the
+unchanged262,144-byte ceiling. Final size/test evidence is recorded in the model
+artifact and PR. A compatibility trace compares every operation and current
+member/economic/EMA/risk/cohort/optimizer field with the original lifecycle through
+three windows. Explicit overflow/payload rejection preserves Stop; names retain
+signed-32-bit generation bounds and timestamps retain2^40. No old model is
+converted, no v5 cap is changed, and no old missing metric is inferred or rescored.
+
+02B2 remains for component/provider binding and cross-language source/counter/
+Stop budgets;03 for independent atomic database/native admission and readers;
+04/05 for restoration, dependency retention and closed hosted acceptance. The
+02A v5 capture remains unchanged and is not a decoder for this model. There is
+no production import/routing/configuration or catalog manifest change, Supabase
+write/migration/grant, Railway deployment/variables/capability change, billing
+operation, retention deletion, live execution or activation. The user-owned
+migration remains excluded and preserved at SHA256
+a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc. Rollback is a
+reviewed code/docs revert with no research database objects to remove. Exact
+source, preview and production release checks remain in the associated PR.
+
+Final acceptance passes50 distinct focused cases (49-case combined suite plus
+one runtime refusal case):16 fresh-model, one runtime boundary,20 active-format,
+six checkpoint-reference and seven unchanged canonical/forward-package cases.
+All three new Python files parse and diff checks pass. Sparse/dense maximum active
+bytes are48,983/48,999, final active bytes44,817/44,833 and maximum complete candidate
+bytes149,776/168,484. These are credential-free synthetic prepared-byte measurements,
+not hosted storage/latency/cost, provider validity or continuous-operation proof.

@@ -1,5 +1,22 @@
 # Evolutionary trading bot MVP readiness
 
+**Fresh GA scoring/model boundary — 2026-10-08:** PAPER-COMPACT-02B1 implements
+a separately versioned offline eight-member GA model and complete per-candidate
+history boundary. Final assessments record cash, drawdown, final closed count,
+policy/execution and source/common-window identities after liquidation and before
+selection/retirement. Early-terminal evidence freezes to deadline; interruptions
+withhold all scores. Sparse/dense traces complete32 windows/755 candidates each
+and256 finalized assessments each, retaining all current holdings and exact cash.
+The mandatory simulation ledger retains historical identities outside active
+state, reexecutes original preparation and independently replays cash/holdings;
+it is not durable SQL admission or bounded retained storage. Counter overflow
+and complete-payload failures preserve a reserved Stop. The next task is02B2's
+component/provider binding and native source/counter specification, followed by
+03's transactional native/database contract,04's exact restoration and05's
+retention/hosted acceptance. Production still uses unchanged v5 limits and the
+worker remains closed. No database writes, Railway change or live transaction.
+[Fresh model and remaining gates](services/vonneumann/GA-ACTIVE-MODEL.md).
+
 **Active-checkpoint format foundation — 2026-10-08:** PAPER-COMPACT-02A captures
 admitted GA evidence into a bounded eight-member/eight-open-position projection
 and eleven flat immutable components. Sparse/dense traces retain exact current
