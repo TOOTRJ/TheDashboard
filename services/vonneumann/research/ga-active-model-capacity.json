@@ -1,0 +1,63 @@
+{
+  "assessment": "ga-finalized-assessment-research-v1",
+  "command": "ga-active-transition-research-v1",
+  "excluded": [
+    "native reference/components and SQL admission",
+    "provider provenance/clock freshness",
+    "original-command IDs/receipts, transport and heartbeat/relay/Stop overhead",
+    "database tables/indexes/TOAST, retained history and simulation ledger memory",
+    "hosted cost, throughput, latency, restart/decoder and profitability"
+  ],
+  "limits": {
+    "complete_candidate_bytes": 262144,
+    "current_accounts": 8,
+    "open_positions": 8
+  },
+  "measurement_scope": "actual prepared full active before/after plus operations, events, input evidence and per-command history; PostgreSQL-spaced JSON bound",
+  "model": "ga-active-model-research-v1",
+  "population": 8,
+  "software": {
+    "python": "3.12.14"
+  },
+  "source": "deterministic synthetic observations, no network or production credentials",
+  "traces": [
+    {
+      "accepted_candidates": 755,
+      "closed_positions": 221,
+      "completed_windows": 32,
+      "dense": false,
+      "final_accounts": 8,
+      "final_active_bytes": 44817,
+      "final_candle_count": 189,
+      "final_positions": 0,
+      "final_quote_sequence": 377,
+      "finalized_assessments": 256,
+      "historical_identities": 485,
+      "maximum_active_bytes": 48983,
+      "maximum_command_bytes": 149776,
+      "maximum_history_bytes": 39545,
+      "maximum_positions": 8,
+      "requested_windows": 32,
+      "retired_accounts": 256
+    },
+    {
+      "accepted_candidates": 755,
+      "closed_positions": 512,
+      "completed_windows": 32,
+      "dense": true,
+      "final_accounts": 8,
+      "final_active_bytes": 44833,
+      "final_candle_count": 189,
+      "final_positions": 0,
+      "final_quote_sequence": 377,
+      "finalized_assessments": 256,
+      "historical_identities": 776,
+      "maximum_active_bytes": 48999,
+      "maximum_command_bytes": 168484,
+      "maximum_history_bytes": 46224,
+      "maximum_positions": 8,
+      "requested_windows": 32,
+      "retired_accounts": 256
+    }
+  ]
+}

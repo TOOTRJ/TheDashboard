@@ -694,6 +694,9 @@ Research began **2026-09-30** and was updated **2026-10-06/07** in [WORKER-HOSTI
   [Format, measured limits and remaining gates](services/vonneumann/ACTIVE-CHECKPOINT-FORMAT.md).
 
 - [ ] **PAPER-COMPACT-02B — Implement the fresh versioned GA model and finalized provenance.**
+  The fresh offline model/provenance and32-window acceptance are implemented
+  in02B1 below. This task remains open for02B2's component/provider binding and
+  native counter/source decisions before03's independent durable admission.
   Build on02A without treating its v5 projection as a decoder or implicitly
   changing old runs. Capture the complete PAPER-ASSESSMENT-PROVENANCE1 record at
   scoring time before liquidation/retirement/replacement loses its original
@@ -705,6 +708,41 @@ Research began **2026-09-30** and was updated **2026-10-06/07** in [WORKER-HOSTI
   Version monotonic source/counter bounds and reserved Stop overflow behavior
   explicitly. **Deep substantial research:** minimal GA/RNG components, invalidation
   frequency, compact assessment provenance and cross-version comparability.
+
+- [x] **PAPER-COMPACT-02B1 — Implement the fresh offline GA model and atomic assessment boundary.**
+  A separately named GA state/candidate/configuration keeps eight current members
+  and accounts, up to eight open positions and current risk/EMA/cohort/optimizer.
+  Its complete candidate emits closed fills, birth/retirement member snapshots,
+  identities and finalized assessments as one immutable history delta. Scores
+  capture final liquidation fees, cash, peak/drawdown and closed-trade count
+  before selection/retirement; early-terminal metrics freeze until the common
+  deadline and interrupted records withhold all scores. The mandatory offline
+  ledger reexecutes original preparation and separately reconciles cash/holdings
+  before publishing any simulated history; it rejects missing/changed records,
+  history ID reuse, foreign/stale state and omitted holdings. Two sparse/dense
+  traces complete32 windows/755 candidates each,256 assessments/retirements each,
+  and221/512 closed fills while active accounts remain eight.
+  Maximum active bytes are48,983/48,999 and complete candidate bytes149,776/
+  168,484. Fifty distinct focused model/format/runtime/package cases pass.
+  Original v4 operation/solver behavior matches through three windows; v5/package limits
+  remain unchanged. Explicit counter overflow and whole-payload rejection keep
+  Stop available, including the final reserved revision. This is no SQL/native
+  admission, production ID-scan removal, provider adapter, decoder or activation.
+  [Model, metrics and remaining gates](services/vonneumann/GA-ACTIVE-MODEL.md).
+
+- [ ] **PAPER-COMPACT-02B2 — Bind the fresh model to components and provider evidence.**
+  Adapt02A's typed slots/resolver to the separately versioned fresh model; keep
+  the existing v5-only capture unchanged. Preserve authoritative provider
+  documents, source epoch/sequence/clock checks and complete current-ledger
+  reconciliation. Specify canonical bigint transport versus JavaScript numeric
+  limits, generation/name bounds, original command identity and reserved native
+  Stop budgets. Prove full resolved model and aggregate command bounds across
+  many windows, early death, interruption and unchanged-block reuse. The
+  simulation ledger remains a test oracle;03 must independently enforce durable
+  uniqueness, lineage, economics and assessment/history completeness atomically.
+  **Deep substantial research:** minimize GA/cohort/RNG components only after
+  next-command equivalence; measure real-provider invalidation and SQL/storage
+  workload and test fitness/cost sensitivity and cross-policy comparability.
 
 - [ ] **PAPER-COMPACT-03 — Prepare the reviewed forward SQL/native contract.**
   Journal each original compact request once, retain/pin immutable dependencies,
@@ -739,6 +777,9 @@ Research began **2026-09-30** and was updated **2026-10-06/07** in [WORKER-HOSTI
   version maintenance, validation/lock/TOAST timing tails and empirical budgets.
 
 - [ ] **PAPER-ASSESSMENT-PROVENANCE1 — Persist finalized assessment provenance.**
+  The02B1 fresh offline model now captures complete finalized/withheld records
+  at scoring time. Production persistence, native enforcement and old/new
+  database/UI readers remain pending in02B2/03; this task stays open.
   Compose with the next versioned checkpoint/projection work: persist the exact
   fitness-policy version/formula/weight, terminal score drawdown, final closed-trade count and measurement
   basis, source/common-window identities and execution profile in a reviewed
