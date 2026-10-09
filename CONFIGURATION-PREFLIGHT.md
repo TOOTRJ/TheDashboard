@@ -3521,3 +3521,18 @@ services/vonneumann/COMPACT-CHECKPOINT-DESIGN.md and
 services/vonneumann/research/checkpoint-reference-capacity.json. Rollback is a
 reviewed code/docs revert; no production research schema exists to roll back.
 Exact-source PR build/production verification accompanies release in its PR body.
+
+**Release checkpoint:** Research implementation774e7aa702971d824e396db9978da78d81863994
+is pushed as draft PR84. The dedicated Vercel file profile subsequently returns
+403 Forbidden for the exact project API; CLI62 project inspection also fails.
+Its auth file exists, so absence versus expiry versus account permission is not
+inferred from403. A fresh isolated device sign-in is started for
+/Users/redjester/.config/vercel-dashboard-codex, with inherited Vercel token/org/
+project variables removed and file storage/update checks scoped to that child.
+No default/shared profile or token is copied, changed or used. Merge and exact
+deployment verification await restored access and successful target recheck.
+GitHub/Supabase identities are independently reverified, and Railway verify/service
+matches the exact allowed project/workspace/environment/service with unchanged
+ordinary deploymentcf05895d-adc5-427f-873e-82ad6606e5a1/SUCCESS. The PR remains draft;
+normal branch preview behavior is not suppressed by draft status. No production
+database or worker change is part of this research. Release evidence stays in PR84.

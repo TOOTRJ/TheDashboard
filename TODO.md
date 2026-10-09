@@ -638,6 +638,8 @@ Research began **2026-09-30** and was updated **2026-10-06/07** in [WORKER-HOSTI
   is not economic validation.
 
 - [x] **PAPER-COMPACT-01 — Research and prove checkpoint-reference transport offline.**
+  PR84 is draft; final release verification/merge awaits the dedicated Vercel
+  profile sign-in after exact-project403. Offline research acceptance is complete.
   A detached immutable prototype omits only the repeated before-state, binds
   owner/run/revision and an opaque PostgreSQL17 checkpoint hash, and reconstructs
   every original v5 transition byte without changing model/wire admission. Eight
