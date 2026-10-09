@@ -3642,3 +3642,84 @@ All three new Python files parse and diff checks pass. Sparse/dense maximum acti
 bytes are48,983/48,999, final active bytes44,817/44,833 and maximum complete candidate
 bytes149,776/168,484. These are credential-free synthetic prepared-byte measurements,
 not hosted storage/latency/cost, provider validity or continuous-operation proof.
+
+## 92. Fresh provider GA components and deeper research — 2026-10-08
+
+Read-only target verification again matches GitHub TOOTRJ/TheDashboard,
+repository1141090963 and biggrizzly11/user16749816; Vercel the-dashboard,
+prj_wFUe9k9USVreOQcmQKNWRAVsx5fH under team_8iNNxiNjrOseD4gdSCHkQEzF;
+Supabase The Dashboard/fxpxsciltakyypunglzr under cqfnnaunmupdyobkyqfo. The canonical
+origin and local Vercel/Supabase pins match. Branch
+codex/dashboard-provider-components starts from verified main
+710674e078bc71d2b4ca9700e92ccc06b8b5f888. Dedicated CLI credentials/profiles are used;
+no shared login, global config/runtime/dependency or another agent's work changes.
+
+Railway metadata again matches The Dashboard Worker,
+project38facb49-4de9-4d66-85aa-2861e0306dcf,
+workspacef3fcd4b2-e424-4c6b-ac33-91196ccc96e1, production environment
+9bbe52c6-2305-467a-bf39-8d5e1a98e4e4 and service
+dashboard-paper-worker/8e78ad4b-1d8f-43e7-898a-3882ac5053d7. Existing deployment
+cf05895d-adc5-427f-873e-82ad6606e5a1 remains SUCCESS; one replica, vCPU0.25,
+memory500,000,000 and restartNEVER are unchanged. This slice does not deploy,
+change variables/capabilities or activate the closed worker.
+
+PAPER-COMPACT-02B2 completes the offline format/model milestone with separate
+provider-source/model/checkpoint/component versions. Authoritative owned provider
+captures are parsed before source staging; original document identities, receipt
+clocks, source epoch/order/freshness/age floor and completed-bar rules survive
+assessment provenance. Manifests do not prove provider authenticity/raw-response
+availability. Complete owned captures preserve current accounts/holdings, pending
+decisions, risk, EMA, all GA/cohort/RNG evidence and terminal snapshots. Complete
+typed resolution audits bounded numeric/schema/scope/hash/generation and
+optimizer/phenotype mirrors; it constructs no runtime object or authority.
+
+All numeric JSON is explicitly tagged for canonical cross-language transport.
+Actual Node parse/stringify preserves signed bigint revisions, unsigned64 slots,
+binary64 values and negative zero. Ordinary commands fit a proposed192KiB ceiling;
+Stop retains an extra64KiB margin inside256KiB and the final signed-bigint revision.
+Native reserved row/lock/lease/receipt/transport behavior remains03's obligation.
+Each original compact request includes its UUID, prior reference, manifest,
+changed blocks and complete operations/history/evidence/events. All complete
+dependencies/resolved state remain separately bounded and required at readback.
+Component diffs do not prove retention/ACK, and opaque references grant no authority.
+
+Sparse/dense literal-provider traces each complete32 windows,515 candidates and
+256 finalized assessments, with221/512 closed positions. Maximum resolved bytes
+are60,895/60,927; complete compact request maxima145,567/159,934; full candidate
+maxima185,736/205,244. Both retain eight accounts and at most eight held positions;
+481 of515 candidates reuse all eleven components. Mandatory simulation admission
+reexecutes the original preparation and separately reconciles exact cash/holdings/
+closed/retired history before publishing. Early-terminal, interruption, history
+tamper, source/counter overflow, missing/foreign/rehashed components and production
+version refusal are covered. Independent durable SQL validation is still pending.
+
+Deep research rechecks the full official Jupiter documentation index and current
+Price/Swap/portal contracts; examines Python/DEAP continuation, Freqtrade bias
+checks, Hummingbot connector limitations and primary DSR/PBO papers. A disposable
+network-none PostgreSQL17.6 toy schema measures the same dense51-row trace:
+2,236,416 full journal bytes versus1,261,568 compact journal/component/pin total
+bytes, including indexes/TOAST (43.59% reduction). Warm query diagnostics exclude
+full detoast/validation/locks/transport/COMMIT and are not hosted latency evidence.
+Eight fresh single-window fee/quote scenarios quantify drawdown/cash ranking;
+weight sensitivity is arithmetic diagnostic, not changed-policy selection replay.
+[Report and remaining deeper experiments](services/vonneumann/GA-DEEP-RESEARCH.md).
+
+03 remains next for locked native/database admission, durable uniqueness,
+lineage/history/economics, final source/lease freshness, original-ID replay,
+retention pins/readers and rollback.04/05 gate explicit exact restoration,
+minimal-state proof, safe retention and closed hosted acceptance. Old v5 capture/
+limits and old incomplete scores remain unchanged. No production research import,
+schema/catalog manifest/migration/grant, retention deletion, paid provider market
+request, account-wide/billing change or live execution occurs. The only database
+writes are to the owned disposable local fixture, which is removed after use.
+The user-owned migration remains preserved/excluded at SHA256
+a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc. Rollback is a code/docs
+revert; there are no hosted research objects or configurations to roll back.
+Final source/test/preview/production smoke evidence is retained in the associated PR.
+
+Final validation passes88 distinct focused cases: the87-case combined provider
+component/model/unchanged-format/source/canonical/forward-package suite and one
+separate final-source-sequence overflow case. All six owned Python files parse;
+diff checks pass. The actual Node numeric round trip is included. PostgreSQL
+physical measurements and eight fresh cost/quote scenarios are reproduced in
+the committed research artifact. No production dependency/package hash changes.

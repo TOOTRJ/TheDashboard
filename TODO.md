@@ -658,9 +658,10 @@ Research began **2026-09-30** and was updated **2026-10-06/07** in [WORKER-HOSTI
   [Design and next format](services/vonneumann/COMPACT-CHECKPOINT-DESIGN.md),
   [synthetic measurements](services/vonneumann/research/checkpoint-reference-capacity.json).
 
-- [ ] **PAPER-COMPACT-02 — Implement a bounded GA active-state/component format.**
-  The offline format foundation is complete as02A below; this parent task stays
-  open for the separately versioned fresh model/provenance and many-window proof.
+- [x] **PAPER-COMPACT-02 — Implement a bounded GA active-state/component format.**
+  Offline format/model/provider acceptance is complete in02A/02B1/02B2 below.
+  Production adoption remains gated by03's independent durable admission,
+  04's explicit restoration and05's retention/closed hosted acceptance.
   Version the model/configuration separately from old v5 runs. Keep exactly the
   eight current cohort accounts (including early-terminal members until deadline),
   at most eight open positions, current risk/pending decisions/indicators/source
@@ -693,10 +694,10 @@ Research began **2026-09-30** and was updated **2026-10-06/07** in [WORKER-HOSTI
   seven unchanged canonical/forward package checks), Python parsing and diff checks.
   [Format, measured limits and remaining gates](services/vonneumann/ACTIVE-CHECKPOINT-FORMAT.md).
 
-- [ ] **PAPER-COMPACT-02B — Implement the fresh versioned GA model and finalized provenance.**
-  The fresh offline model/provenance and32-window acceptance are implemented
-  in02B1 below. This task remains open for02B2's component/provider binding and
-  native counter/source decisions before03's independent durable admission.
+- [x] **PAPER-COMPACT-02B — Implement the fresh versioned GA model and finalized provenance.**
+  The fresh offline model/provenance, component/provider binding and32-window
+  acceptance are implemented in02B1/02B2 below. Native counter/source/Stop
+  research budgets are explicit;03 must prove their actual durable enforcement.
   Build on02A without treating its v5 projection as a decoder or implicitly
   changing old runs. Capture the complete PAPER-ASSESSMENT-PROVENANCE1 record at
   scoring time before liquidation/retirement/replacement loses its original
@@ -730,21 +731,41 @@ Research began **2026-09-30** and was updated **2026-10-06/07** in [WORKER-HOSTI
   admission, production ID-scan removal, provider adapter, decoder or activation.
   [Model, metrics and remaining gates](services/vonneumann/GA-ACTIVE-MODEL.md).
 
-- [ ] **PAPER-COMPACT-02B2 — Bind the fresh model to components and provider evidence.**
-  Adapt02A's typed slots/resolver to the separately versioned fresh model; keep
-  the existing v5-only capture unchanged. Preserve authoritative provider
-  documents, source epoch/sequence/clock checks and complete current-ledger
-  reconciliation. Specify canonical bigint transport versus JavaScript numeric
-  limits, generation/name bounds, original command identity and reserved native
-  Stop budgets. Prove full resolved model and aggregate command bounds across
-  many windows, early death, interruption and unchanged-block reuse. The
-  simulation ledger remains a test oracle;03 must independently enforce durable
-  uniqueness, lineage, economics and assessment/history completeness atomically.
-  **Deep substantial research:** minimize GA/cohort/RNG components only after
-  next-command equivalence; measure real-provider invalidation and SQL/storage
-  workload and test fitness/cost sensitivity and cross-policy comparability.
+- [x] **PAPER-COMPACT-02B2 — Bind the fresh model to components and provider evidence.**
+  A separately versioned provider GA model preserves original document identities,
+  source epoch/sequence/age/clock/candle checks and the mandatory complete
+  simulation-ledger boundary. Eleven typed components resolve the exact owned
+  model; malformed/missing/foreign/stale/substituted evidence fails closed.
+  Tagged canonical integer/binary64 transport survives actual Node JSON round
+  trips, including bigint revisions and unsigned64 block references. Generation
+  and clock bounds remain explicit; final revision is Stop-only and a proposed
+  64KiB margin preserves a256KiB complete Stop research budget. Full compact
+  requests bind original UUID/prior checkpoint and include all history/operations/
+  events/input evidence, charging changed blocks plus separately bounded complete
+  resolution. Sparse/dense traces complete32 windows/515 candidates and256
+  assessments each, with maximum resolved bytes60,895/60,927 and complete compact
+  request bytes145,567/159,934. Quote-only updates reuse all eleven blocks.
+  Actual isolated PostgreSQL17 storage for the three-window dense fixture charges
+  component/pin indexes/TOAST:2,236,416 full-layout bytes versus1,261,568 compact
+  bytes (43.59% reduction), not hosted cost/throughput proof. Eight fresh fee/quote
+  scenarios and weight diagnostics reproduce profitable probes ranking below
+  cash under the drawdown penalty. [Implementation and deeper research](services/vonneumann/GA-DEEP-RESEARCH.md),
+  [capacity](services/vonneumann/research/provider-ga-capacity.json),
+  [SQL and fitness measurements](services/vonneumann/research/provider-ga-deep-research.json).
+  **Remaining deep substantial research:** minimal GA/RNG removal only after04's
+  next-command equivalence; actual provider invalidation/quota/source-age metrics,
+  larger retained SQL/WAL/validation/lock workloads, fresh full multi-policy
+  selection replays and representative baseline/holdout/multiple-testing work.
+  No native command/admission, production cap change, decoder, archive deletion,
+  migration or activation.03 independently enforces durable uniqueness, lineage,
+  economics, history completeness, dependency retention and native Stop budgets.
 
 - [ ] **PAPER-COMPACT-03 — Prepare the reviewed forward SQL/native contract.**
+  **Research constraint from02B2:** stable source/EMA partition and dependency-safe
+  journal retention/rate budgets need review before the contract is finalized.
+  The one-window quote-only fixture means conditionally imply4.29GB/day logical
+  JSON at two accepted commands/second; this is not observed hosted throughput
+  or physical storage. A bounded active checkpoint alone is insufficient.
   Journal each original compact request once, retain/pin immutable dependencies,
   independently bind prior checkpoint under the run lock, validate all resolved
   model/economic/source evidence, and project history atomically. Update the
