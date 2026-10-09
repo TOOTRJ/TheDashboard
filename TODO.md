@@ -659,6 +659,8 @@ Research began **2026-09-30** and was updated **2026-10-06/07** in [WORKER-HOSTI
   [synthetic measurements](services/vonneumann/research/checkpoint-reference-capacity.json).
 
 - [ ] **PAPER-COMPACT-02 — Implement a bounded GA active-state/component format.**
+  The offline format foundation is complete as02A below; this parent task stays
+  open for the separately versioned fresh model/provenance and many-window proof.
   Version the model/configuration separately from old v5 runs. Keep exactly the
   eight current cohort accounts (including early-terminal members until deadline),
   at most eight open positions, current risk/pending decisions/indicators/source
@@ -671,6 +673,38 @@ Research began **2026-09-30** and was updated **2026-10-06/07** in [WORKER-HOSTI
   metrics. Acceptance: many dense/sparse windows stay bounded with exact cash,
   all live ledger holdings/members accounted for, and no omitted early terminal,
   identity reuse, retrospective score conversion or silently wrapped watermark.
+
+- [x] **PAPER-COMPACT-02A — Implement the offline bounded typed checkpoint foundation.**
+  An owned/admitted v5 GA capture preserves exact reserve, all eight current
+  members/accounts (including early terminals), up to eight open positions,
+  risk, pending decisions, indicators and source. Eleven immutable flat typed
+  components bind owner/run/kind/entity/generation and explicit canonical UTF-8
+  hashes. Complete readback rejects missing/extra/foreign/stale/substituted
+  blocks, including a valid rehashed genotype inconsistent with frozen optimizer
+  evidence. A price-only capture reuses all eleven components; a diff is not an
+  ACK or retention proof. Two real sparse/dense traces cover51 admitted candidates
+  each and the original three replacements. Final resolved active bytes are
+  54,106/54,112; maxima are56,638/58,481 with eight current accounts and at most
+  eight open positions while source history grows to32 accounts/13 or48 positions.
+  This is a checkpoint-format comparison, not full-command/storage/cost savings.
+  Historical rows/used IDs remain in the unchanged v5 source; generation/source/
+  owner caps are not lifted. No native command, restoration or production use.
+  Final validation passes33 focused cases (20 active-format, six reference and
+  seven unchanged canonical/forward package checks), Python parsing and diff checks.
+  [Format, measured limits and remaining gates](services/vonneumann/ACTIVE-CHECKPOINT-FORMAT.md).
+
+- [ ] **PAPER-COMPACT-02B — Implement the fresh versioned GA model and finalized provenance.**
+  Build on02A without treating its v5 projection as a decoder or implicitly
+  changing old runs. Capture the complete PAPER-ASSESSMENT-PROVENANCE1 record at
+  scoring time before liquidation/retirement/replacement loses its original
+  context; include final-close risk/fees, early-terminal freeze and interrupted
+  withholding. Establish a bounded ledger boundary and prove many dense/sparse
+  windows, exact cash and complete held positions. Historical uniqueness and
+  lineage/closed-fill completeness require independently enforced durable
+  admission in03 before removal of runtime used-ID scans or production use.
+  Version monotonic source/counter bounds and reserved Stop overflow behavior
+  explicitly. **Deep substantial research:** minimal GA/RNG components, invalidation
+  frequency, compact assessment provenance and cross-version comparability.
 
 - [ ] **PAPER-COMPACT-03 — Prepare the reviewed forward SQL/native contract.**
   Journal each original compact request once, retain/pin immutable dependencies,
