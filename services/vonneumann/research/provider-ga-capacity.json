@@ -1,0 +1,100 @@
+{
+  "excluded": [
+    "durable admission",
+    "restore",
+    "real-provider workload",
+    "hosted latency/cost",
+    "profitability"
+  ],
+  "format": "ga-provider-checkpoint-research-v1",
+  "model": "ga-provider-model-research-v1",
+  "scope": "literal synthetic provider responses; complete offline candidates and compact requests",
+  "traces": [
+    {
+      "assessments": 256,
+      "candidates": 515,
+      "changes_by_kind": {
+        "cohort": 34,
+        "configuration": 1,
+        "genome": 264,
+        "optimizer": 34
+      },
+      "changes_by_phase": {
+        "bootstrap": {
+          "11": 1
+        },
+        "decision": {
+          "0": 224,
+          "10": 32,
+          "2": 1
+        },
+        "protective": {
+          "0": 257
+        }
+      },
+      "closed_positions": 221,
+      "component_body_maxima": {
+        "cohort": 953,
+        "configuration": 2220,
+        "genome": 756,
+        "optimizer": 39875
+      },
+      "dense": false,
+      "ema_count": 189,
+      "final_generation": 32,
+      "max_compact_command_bytes": 145567,
+      "max_full_candidate_bytes": 185736,
+      "max_manifest_bytes": 21890,
+      "max_resolved_bytes": 60895,
+      "source_sequence": 257,
+      "total_compact_command_bytes": 16152421,
+      "total_full_candidate_bytes": 63542524,
+      "unique_component_bytes": 1680162,
+      "unique_components": 333,
+      "windows": 32
+    },
+    {
+      "assessments": 256,
+      "candidates": 515,
+      "changes_by_kind": {
+        "cohort": 34,
+        "configuration": 1,
+        "genome": 264,
+        "optimizer": 34
+      },
+      "changes_by_phase": {
+        "bootstrap": {
+          "11": 1
+        },
+        "decision": {
+          "0": 224,
+          "10": 32,
+          "2": 1
+        },
+        "protective": {
+          "0": 257
+        }
+      },
+      "closed_positions": 512,
+      "component_body_maxima": {
+        "cohort": 953,
+        "configuration": 2220,
+        "genome": 756,
+        "optimizer": 39875
+      },
+      "dense": true,
+      "ema_count": 189,
+      "final_generation": 32,
+      "max_compact_command_bytes": 159934,
+      "max_full_candidate_bytes": 205244,
+      "max_manifest_bytes": 21926,
+      "max_resolved_bytes": 60927,
+      "source_sequence": 257,
+      "total_compact_command_bytes": 17257752,
+      "total_full_candidate_bytes": 65018736,
+      "unique_component_bytes": 1680162,
+      "unique_components": 333,
+      "windows": 32
+    }
+  ]
+}

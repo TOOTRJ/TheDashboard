@@ -1,5 +1,37 @@
 # Evolutionary trading bot MVP readiness
 
+**Provider/component boundary and deeper research — 2026-10-08:**
+PAPER-COMPACT-02B2 completes the offline bounded GA format/model milestone02.
+Original provider document identities and source clocks/epochs survive finalized
+assessment and early-terminal freeze. Eleven scoped typed components resolve
+the exact owned state; canonical tagged numbers preserve bigint/unsigned64 and
+binary64 values through JavaScript. Sparse/dense32-window traces each pass515
+commands/256 finalized assessments, keeping eight accounts and all open holdings.
+Maximum complete compact request sizes are145,567/159,934 bytes below the proposed
+ordinary192KiB ceiling; the final revision and an extra64KiB envelope margin are
+reserved for Stop. These research budgets need native SQL/transport enforcement.
+
+Actual local PostgreSQL17 storage, including component/dependency indexes and
+TOAST, falls from2,236,416 to1,261,568 bytes in the three-window dense toy layout.
+This43.59% reduction is not a hosted cost estimate or native admission proof.
+One-window quote-only means conditionally imply4.29GB/day logical journals at
+two accepted commands/second; that rate is not observed/proven. Stable source/
+EMA partition and dependency-safe journal retention need review before03's
+contract is finalized. Bounded active state alone does not bound history growth.
+Fresh cost/drawdown fixtures reproduce a positive-ROI probe scoring below cash;
+the provisional objective remains unchanged. Keep the two EMA genes and full
+optimizer/RNG evidence until restoration/next-command equivalence is proven.
+[Detailed research, source citations and remaining experiments](services/vonneumann/GA-DEEP-RESEARCH.md).
+
+**Next ordered work:**03's reviewed locked SQL/native contract with independent
+economics/history/lineage, original-ID replay and complete dependency pins;
+04's explicit exact restoration;05's retention and closed hosted multi-window
+acceptance. Production assessment persistence/readers and statistical validation
+stay open. The Railway worker remains closed and production v5 limits unchanged.
+This release changes research code/docs only; it performs no Supabase migration
+or worker configuration/activation. No user hosting setup is needed for03's
+offline implementation. Live funding/signing/swaps remain outside authorization.
+
 **Fresh GA scoring/model boundary — 2026-10-08:** PAPER-COMPACT-02B1 implements
 a separately versioned offline eight-member GA model and complete per-candidate
 history boundary. Final assessments record cash, drawdown, final closed count,
