@@ -3723,3 +3723,76 @@ separate final-source-sequence overflow case. All six owned Python files parse;
 diff checks pass. The actual Node numeric round trip is included. PostgreSQL
 physical measurements and eight fresh cost/quote scenarios are reproduced in
 the committed research artifact. No production dependency/package hash changes.
+
+## 93. Stable candle/EMA partition and journal budgets — 2026-10-09
+
+GitHub verification matches TOOTRJ/TheDashboard/repository1141090963 and
+biggrizzly11/user16749816 with push access. Canonical origin remains pinned.
+Fresh fetch confirms main b16e1ca19ec06f213fb6f7096a04fa798c5d29b2; the local review
+branch is codex/dashboard-stable-checkpoint. Supabase metadata matches
+The Dashboard/fxpxsciltakyypunglzr under cqfnnaunmupdyobkyqfo; the local project-ref
+remains exact. Railway metadata matches The Dashboard Worker,
+38facb49-4de9-4d66-85aa-2861e0306dcf under workspace
+f3fcd4b2-e424-4c6b-ac33-91196ccc96e1, production environment
+9bbe52c6-2305-467a-bf39-8d5e1a98e4e4. No remote data/configuration writes occur.
+
+Vercel's local project pins still identify the-dashboard,
+prj_wFUe9k9USVreOQcmQKNWRAVsx5fH and team_8iNNxiNjrOseD4gdSCHkQEzF. The dedicated
+profile's API verification fails and its auth file is now absent. A device login
+was started using only /Users/redjester/.config/vercel-dashboard-codex with inherited
+Vercel token/org/project removed and automatic checks disabled. User sign-in is
+pending. Do not claim fresh Vercel cloud target/deployment verification, push a
+deploying branch or merge until that exact profile is restored and the target
+check passes. No shared/default credentials, link, environment pull, global
+tool upgrade or other agent's configuration is used. Final release evidence
+belongs in the associated PR after authenticated verification.
+
+PAPER-COMPACT-03A implements separately versioned thirteen-slot research
+checkpoint/component/transport formats; v1 and production v5 remain unchanged.
+Completed source bars and EMA are explicit generation-zero stable blocks;
+quote updates reuse them, completed candles replace them and unchanged blocks
+survive generation changes. Complete bounded expansion uses the original
+provider-state validator and matches owned state/original command evidence.
+No GA/RNG/genes/source/holding/history removal, decoder, receipt or admission
+authority is introduced. Native SQL must independently prove the canonical
+tagged numeric/hash boundary and complete transition checks.
+
+Forty-three focused tests pass, including ten partition tests and33 unchanged
+active/reference/canonical/forward cases. Stop with eight held positions retains
+holdings/cash and aborts assessments without selection or imaginary exits.
+Sparse/dense32-window comparisons each preserve515 candidates/256 assessments,
+with maximum complete compact requests135,705/150,040 bytes and exact resolved
+state60,895/60,927 bytes. Complete original operations/history/evidence/events
+are unchanged under tagged numeric comparison. All three owned Python files
+parse and diff checks pass.
+
+Actual network-none PostgreSQL17.6 fixtures include all component/pin indexes
+and TOAST. The51-command dense fixture uses full/v1/v2 layout bytes
+2,236,416/1,261,568/1,130,496; the129-command quote-only fixture uses
+5,070,848/2,326,528/1,499,136. V2 saves10.39%/35.56% against v1 respectively.
+Both refuse referenced component deletion and preserve stored rows after that
+refusal. One hundred warm server samples per query force JSONB materialization;
+they exclude native validation, contention, TLS/COMMIT/WAL/relay and hosted tails.
+Toy digest-only keys are not production scope/privilege/limited-installer proof.
+Both uniquely owned fixtures are removed; no shared Docker pruning or changes.
+[Artifact](services/vonneumann/research/partitioned-checkpoint-capacity.json).
+
+Logical journal planning remains substantial:32-window sample means conditionally
+imply2.62/3.01GB/day with two commands per accepted fresh frame at1Hz, before
+additional effects. The selected v5 pilot skips no-op decisions; this is not an
+observed hosted cadence, physical growth or bill. No128MiB limit/rate/retention
+policy is configured. [Journal design](services/vonneumann/JOURNAL-RETENTION-DESIGN.md)
+pins original-ID replay, scoped dependencies, independent final source/lease
+checks, native Stop reserves, archive readback before pin release and retained
+uniqueness/receipt evidence. Remaining substantial research includes retained
+WAL/lock/COMMIT/TOAST workloads, binary digest/pin layouts, actual provider
+invalidation and scoped archive costs/rights/cleanup races.
+
+03 stays next for reviewed native/SQL admission and old/new readers;04/05 still
+gate explicit exact restoration, safe retention and closed hosted acceptance.
+The Railway worker remains closed. No production imports/package/catalog hash,
+Supabase migration/schema/data/grant, Railway deployment/variables/capabilities,
+paid market request, archive deletion, billing or live execution changes occur.
+The user-owned migration remains excluded/preserved at SHA256
+a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc. Rollback is a
+reviewed code/docs revert; no hosted research objects exist to roll back.

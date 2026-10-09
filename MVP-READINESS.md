@@ -1,5 +1,35 @@
 # Evolutionary trading bot MVP readiness
 
+**Stable partition and journal budget review — 2026-10-09:**
+PAPER-COMPACT-03A implements a separate thirteen-slot research format that
+references completed candles and EMA evidence. It preserves the entire GA/RNG
+state, source epoch/clocks, current holdings and immutable original command
+history. Quote-only updates reuse the blocks; completed candles replace both
+stable blocks. Forty-three focused tests pass, including Stop with eight held
+positions: existing Stop retains those positions and withholds interrupted
+scores. It does not claim liquidation or permit restart.
+
+The actual local PostgreSQL quote-heavy toy layout (64 fresh frames/129 commands)
+uses5,070,848 bytes for full journals,2,326,528 for the eleven-slot compact layout,
+and1,499,136 for the thirteen-slot layout, including component/pin indexes and
+TOAST. The dense three-window layout uses2,236,416/1,261,568/1,130,496 bytes.
+Sparse/dense32-window traces each preserve515 candidates/256 assessments, with
+maximum complete requests135,705/150,040 bytes. These are fixture measurements,
+not a production storage bill or throughput benchmark. Conditional rate arithmetic still produces substantial journal
+growth; there is no configured128MiB limit or selected0.1/0.2/1Hz rate.
+[Journal requirements and deeper research](services/vonneumann/JOURNAL-RETENTION-DESIGN.md),
+[capacity artifact](services/vonneumann/research/partitioned-checkpoint-capacity.json).
+
+The immediate next priority remains03's independent locked SQL/native contract:
+canonical numeric/hash validation, complete economic/history/lineage admission,
+original-ID replay/readback, all dependency pins, final source/lease checks and
+native Stop/resource reserves. Then04 proves explicit exact restoration;05
+proves safe retention and closed hosted multi-window operation. Production
+assessment persistence/readers remain part of that work. The worker stays closed.
+No Supabase migration, Railway deployment/variables or live execution occurs in
+this research slice. Vercel release verification requires the dedicated Dashboard
+profile to be signed in; no shared profile is used.
+
 **Provider/component boundary and deeper research — 2026-10-08:**
 PAPER-COMPACT-02B2 completes the offline bounded GA format/model milestone02.
 Original provider document identities and source clocks/epochs survive finalized

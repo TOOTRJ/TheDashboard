@@ -409,3 +409,117 @@ The reusable-connection study already recorded in TODO remains separate:
 prove idle/session/role cleanup, unknown-COMMIT quarantine, TLS/SCRAM and
 already-connected expiry/revocation before adopting a pool. This slice neither
 installs a pool nor relaxes the current original-command/no-retry transport.
+
+## Stable source/EMA partition and journal budgets — 2026-10-09
+
+PAPER-COMPACT-03A adds `ga-provider-checkpoint-research-v2`, its own typed
+component/transport formats and thirteen explicit flat slots. The previous
+eleven-slot format, provider model, all genes and full optimizer/RNG evidence
+remain unchanged. Two generation-zero slots hold completed source bars and
+EMA state. A quote-only update reuses both; a completed candle changes both;
+cohort replacement reuses them if their contents did not change. Generation
+zero does not certify freshness. Current frame/receipt/sequence/source epoch,
+holdings, pending decisions and frozen terminal metrics remain in the manifest.
+Every original command retains its original UUID, operations, immutable history,
+evidence and events, plus its prior manifest digest and changed components.
+
+The bounded adapter validates all thirteen scope/hash/type/reference slots and
+complete aggregate before expanding into the existing provider checkpoint
+validator. That validator audits full source/EMA correspondence and GA/economic
+mirrors; capture additionally matches the owned original state. Complete command
+evidence is compared through canonical tagged numeric bytes, preserving binary64
+values as well as integer identities. This preserves exact continuation evidence
+without a decoder or runtime grant. It is a correctness prototype; repeated
+validation/encoding and adapter allocations are not a fast native implementation.
+Native/SQL must prove its own canonical numeric/hash boundary and independent
+transition validation. Hashes do not authenticate a provider response or ensure
+its raw archive remains available.
+
+Forty-three focused tests pass: ten new partition tests, twenty unchanged active
+format tests, six reference tests and seven canonical/forward package tests.
+They cover missing/foreign/duplicate/old-format blocks, rehashed inconsistent
+source/EMA, exact prior and original-ID transport, full aggregate capacity,
+detachment, candle/replacement reuse and production version refusal. Stop with
+eight held positions preserves those positions and cash, aborts assessments
+without scoring and creates no fictional closed fills under the existing policy.
+No operator may interpret stopped holdings as liquidated or restart authority.
+
+The same synthetic sparse/dense32-window traces each complete515 candidates and
+256 assessments with221/512 closed positions. Every resolved state and original
+command evidence matches v1. Maximum resolved state remains60,895/60,927 bytes;
+maximum v2 manifest is12,020 bytes; complete request maxima135,705/150,040 bytes
+(v1:145,567/159,934). Total request wire bytes fall22.93%/21.52% to
+12,448,392/13,544,539. Retaining all historical stable blocks increases unique
+components from333 to591 and their wire bytes to3,064,369/3,067,441. Component
+reuse does not make historical component storage free or prove server readback.
+[Full capacity artifact](research/partitioned-checkpoint-capacity.json).
+
+Actual disposable PostgreSQL17.6 toy tables compare all three layouts using the
+same accepted offline candidate stream. Each compact layout includes every
+checkpoint dependency pin, component table, indexes and TOAST:
+
+| Workload | Full journal bytes | Eleven-slot layout bytes | Thirteen-slot layout bytes | v2 reduction from v1 |
+| --- | ---: | ---: | ---: | ---: |
+| Three dense windows /51 commands | 2,236,416 | 1,261,568 | 1,130,496 | 10.39% |
+|64 sequential fresh frames /129 commands, no completed candle | 5,070,848 | 2,326,528 | 1,499,136 | 35.56% |
+
+Both actual PostgreSQL fixtures refuse deletion of a referenced component and
+retain every row after that refusal. They use digest-only toy keys, not the
+proposed composite owner/run keys, and do not prove native installer/privilege
+isolation, receipts or archiving. All fixtures have no network/ports/production
+credentials and are removed after measurement.
+
+One hundred warm server samples per query force JSONB text materialization.
+Dense v1/v2 journal p95 is5,155.7/4,171.05 microseconds; all-dependency p95 is
+228.25/263.70 microseconds. Quote-only journal p95 is7,370.3/4,353.35 microseconds;
+all-dependency p95 is326.25/348.10 microseconds. The extra component lookup costs
+more in these fixtures even though journal materialization costs less. These are
+local warm fixed-order diagnostics; no independent model validation, contention,
+TLS, COMMIT, WAL, relay or hosted tails are measured. PostgreSQL can keep large
+values compressed/out-of-line and defer materialization, so simple `SELECT body`
+was not sufficient for the earlier timing diagnostic.
+[PostgreSQL TOAST](https://www.postgresql.org/docs/17/storage-toast.html).
+
+Rate arithmetic remains conditional, not a production cadence. The32-window
+quote-only sample means imply v2 logical journals of2.62/3.01GB per day at one
+accepted fresh frame/second and two accepted commands/frame, before candle/
+replacement/Stop/projection/archive/receipt/WAL/backup work. The64-frame quote
+fixture instead implies1.79GB/day, illustrating state/workload sensitivity.
+For the illustrative128MiB logical budget,32-window means exhaust it in
+73.76/64.21 minutes at that rate. There is no configured128MiB database limit,
+selected rate or demonstrated worker/provider throughput. The existing selected
+pilot skips no-op decisions; the hypothetical two-command cadence is not a
+measurement of its deployed journal growth. Actual bounded pilot scheduling,
+held-position source age and whole native validation must be measured before
+changing rate or duration. Never lower protective frequency merely to fit this
+arithmetic or treat logical bytes as physical storage/billing.
+
+The next contract journals an original compact request once, pins all dependencies,
+uses durable uniqueness/lineage/receipts instead of active-state history scans,
+reserves native Stop/reconciliation resources and checks final source/lease age
+after all transactional work. Keep current, pending, uncertain, recovery,
+unacknowledged relay and unverified archive dependencies pinned. Archive bytes
+must be read back and verified before releasing hot pins; original-ID lookup
+and UUID uniqueness must survive archiving. Deletion is not a storage policy by
+itself: dead tuples and physical reuse/vacuum need measurement.
+[Journal and retention design](JOURNAL-RETENTION-DESIGN.md),
+[PostgreSQL vacuuming](https://www.postgresql.org/docs/17/routine-vacuuming.html).
+
+**Deep substantial research remains:** larger retained native SQL/WAL/lock/COMMIT/
+TOAST workloads, binary digest and pin-index layout, actual stable-block/provider
+invalidation and source age, scoped archive costs/readback/rights and cleanup
+races. Explicit exact restoration still precedes minimal RNG removal; full fresh
+cost/objective/multi-seed/baseline/holdout research remains separately open.
+No Supabase migration, hosted schema/configuration, Railway deployment, paid
+market request, billing change, archive deletion or activation occurs here.
+
+Reproduce from the project root with the isolated worker environment and dotenv
+disabled, without application credentials:
+
+```sh
+PYTHONPATH=services/vonneumann PYTHON_DOTENV_DISABLED=1 PYTHONDONTWRITEBYTECODE=1 python -m unittest tests.test_partitioned_checkpoint tests.test_active_checkpoint tests.test_checkpoint_reference tests.test_canonical_v5_package tests.test_forward_package -v
+DASHBOARD_ISOLATED_POSTGRES_TESTS=1 PYTHONPATH=services/vonneumann PYTHON_DOTENV_DISABLED=1 PYTHONDONTWRITEBYTECODE=1 python -m tests.measure_partitioned_checkpoint --measure
+```
+
+The measurement requires the already cached pinned PostgreSQL image and the
+local Colima/Docker Unix daemon. It never installs or prunes shared tooling.
