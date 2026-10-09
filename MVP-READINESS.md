@@ -2,8 +2,8 @@
 
 **Compact checkpoint research — 2026-10-08:** PAPER-COMPACT-01 implements an
 offline reference codec and actual PostgreSQL17 lock/replay/rollback experiment.
-PR84 is draft; merge/deployment verification awaits restored access to the
-dedicated Vercel Dashboard profile after its exact-project check returns403.
+The dedicated Vercel Dashboard profile login is restored and exact project
+targets are reverified. PR84 retains the final source/deployment release evidence.
 Eight deterministic synthetic sparse/dense traces reduce logical request bytes
 by47.54–48.22%; they do not measure storage, throughput or hosting savings.
 Dense GA still retains32 accounts/48 positions/80 IDs at generation3 and PSO/CMA
