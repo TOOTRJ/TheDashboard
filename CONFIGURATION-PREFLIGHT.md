@@ -3747,6 +3747,15 @@ check passes. No shared/default credentials, link, environment pull, global
 tool upgrade or other agent's configuration is used. Final release evidence
 belongs in the associated PR after authenticated verification.
 
+Release preflight update: the user's fresh device approval completed and saved
+the dedicated Dashboard login. Read-only API verification now matches Vercel
+the-dashboard/prj_wFUe9k9USVreOQcmQKNWRAVsx5fH under
+team_8iNNxiNjrOseD4gdSCHkQEzF, including repository1141090963 and the local pins.
+GitHub and Supabase exact identity checks also pass again. The earlier login
+block is resolved; proceed only with this verified Dashboard context. Preview,
+merge-source, exact production/alias and read-only smoke evidence will be
+retained in the associated PR without modifying hosted worker/database settings.
+
 PAPER-COMPACT-03A implements separately versioned thirteen-slot research
 checkpoint/component/transport formats; v1 and production v5 remain unchanged.
 Completed source bars and EMA are explicit generation-zero stable blocks;
