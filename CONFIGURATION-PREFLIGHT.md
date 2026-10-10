@@ -3805,3 +3805,72 @@ paid market request, archive deletion, billing or live execution changes occur.
 The user-owned migration remains excluded/preserved at SHA256
 a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc. Rollback is a
 reviewed code/docs revert; no hosted research objects exist to roll back.
+
+## 94. Independent SQL numeric/hash boundary — 2026-10-09
+
+The restored dedicated Dashboard Vercel login passes fresh project identity API
+checks. GitHub remains TOOTRJ/TheDashboard/repository1141090963 under verified
+biggrizzly11/user16749816; Vercel is the-dashboard/prj_wFUe9k9USVreOQcmQKNWRAVsx5fH
+under team_8iNNxiNjrOseD4gdSCHkQEzF; Supabase is
+The Dashboard/fxpxsciltakyypunglzr under cqfnnaunmupdyobkyqfo. No shared/default
+credential/profile, environment pull, link or other project is used.
+
+PR88 is merged as117d1d405107482a33a384c4d03a23c914226f8d; the merge tree matches
+tested head ba368c6858c43a39562dd302b7c48f0703f452c7. Exact preview
+dpl_8RbhwZzrerf5sxM7R8XKSEXPD8Jk is READY; exact production
+dpl_F2GvAveiW7CTsSNHJNQ3dJ2M3gQx is READY under the pinned project/team/repository
+with biggrizzly11 attribution. The canonical alias serves that deployment and
+four read-only smokes pass: login200, anonymous dashboard307/login, private
+API401 and authenticated zero-row API200/success/empty data. Evidence is retained
+on [PR88](https://github.com/TOOTRJ/TheDashboard/pull/88).
+
+The next branch codex/dashboard-native-numeric-wire starts from that verified
+merge. PAPER-COMPACT-03B1 creates an offline-only private SQL research schema
+with four invoker functions and no tables/client grants in the artifact. An
+explicit fixture marker, UTF8 server and standard-conforming SQL strings are
+required before installation. A real limited synthetic installer owns all
+objects; fixed pg_catalog search path and PUBLIC denial are checked. Only the
+synthetic auditor gets fixture grants; browser/service-role/relay fail and the
+auditor cannot create schemas. This is not the future production installer,
+RLS, command/economic admission, native capability or restart authority.
+
+The independent SQL walk reproduces canonical tagged numeric UTF-8 bytes before
+JSONB conversion and hashes them with built-in byte SHA256. Duplicate/escaped
+duplicate keys, alternate order/spacing/escapes, null/invalid Unicode, untagged
+numbers, reserved collisions, noncanonical/nonfinite tags and over-budget input
+fail. Global byte/node/depth/container/string budgets propagate across siblings.
+Signed256-bit decimal values remain exact; binary64 sign/exponent/fraction bits
+produce identical eight-byte IEEE-754 output without a rounded floating JSON
+conversion, including negative zero, normal/subnormal limits and finite maximum.
+Field-specific source/counter/Stop bounds remain independent future checks.
+
+Eleven actual PostgreSQL17.6 cases and seven unchanged canonical/forward package
+checks pass (18 distinct cases). Comparisons cover509 finite binary64 values,
+256 seeded mixed documents,19 complete owned commands and13 final components.
+The Python file parses; diff checks pass. SQL source SHA256 is
+adc7dbe2ce3ef51d860b8c09430a24759522cb7284dc73e40804dbd8880675b1,
+pinned in the [measurement artifact](services/vonneumann/research/native-numeric-wire-measurements.json).
+The owned network-none/no-port/no-secret fixture is removed after acceptance.
+
+Thirty warm server samples per request force full audit evaluation with a
+PL/pgSQL wire variable and generic plans. An initial immutable literal timing
+method was rejected because it folded validation into a constant; only corrected
+measurements are retained. p95 is3.235ms for9,192-byte quote,58.874ms for128,635-byte
+bootstrap and54.869ms for149,024-byte replacement. These exclude transport,
+run locks, model/economic/source/lineage admission, journal/pins/projections,
+final source/lease checks, COMMIT/WAL/relay and hosted tails. They establish no
+production cadence or final freshness acceptance.
+
+03 remains open for locked typed dependency/prior resolution, independent full
+admission, original-ID replay/readback, retained lineage/history/pins, native
+Stop/resource reserves and old/new projections/readers.04/05 still gate exact
+restoration, safe retention and closed hosted multi-window operation. Remaining
+substantial research is documented in
+[the boundary report](services/vonneumann/NATIVE-NUMERIC-WIRE.md).
+No production import/package/catalog hash, Supabase schema/migration/data/grant,
+Railway deployment/variables/capability, paid market request, archive deletion,
+billing or live execution changes occur. The worker remains closed. The user
+migration remains excluded/preserved at SHA256
+a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc. Rollback is a code/docs
+revert; no hosted research objects exist. Exact release evidence for this branch
+will be retained in its PR.

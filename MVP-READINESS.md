@@ -1,5 +1,28 @@
 # Evolutionary trading bot MVP readiness
 
+**Independent SQL numeric/hash boundary — 2026-10-09:** PR88's stable partition
+is merged as117d1d405107482a33a384c4d03a23c914226f8d. Exact production
+dpl_F2GvAveiW7CTsSNHJNQ3dJ2M3gQx is READY and its canonical alias/four read-only
+smokes pass. The dedicated Dashboard Vercel login is restored.
+
+PAPER-COMPACT-03B1 now proves the canonical tagged numeric/hash boundary in actual
+isolated PostgreSQL17. It rejects duplicate/noncanonical/oversized evidence,
+preserves exact256-bit integers and IEEE-754 bits, and matches Python for509
+finite values,256 mixed documents,19 complete owned commands and13 components.
+Eleven SQL cases and seven unchanged package checks pass with the limited fixture
+installer and client denial. Warm full-audit p95 is3.235ms for a small quote and
+54.869–58.874ms for large replacement/bootstrap requests; this excludes economic
+admission, locks, journal/projections, final freshness and COMMIT/hosted latency.
+[Proof and remaining work](services/vonneumann/NATIVE-NUMERIC-WIRE.md).
+
+03 stays open. Next implement locked typed dependency/prior resolution and the
+independent model/economic/source/history/lineage contract, original-ID replay,
+all pins, native Stop reserves and final-boundary source/lease checks. Then04
+proves exact restoration and05 safe retention/hosted operation. This slice
+installs no hosted functions, changes no native package/grants and grants no
+runtime authority. The Railway worker remains closed and live trading gates
+remain open. No user setup is needed for the next offline work.
+
 **Stable partition and journal budget review — 2026-10-09:**
 PAPER-COMPACT-03A implements a separate thirteen-slot research format that
 references completed candles and EMA evidence. It preserves the entire GA/RNG

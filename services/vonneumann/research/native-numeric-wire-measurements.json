@@ -1,0 +1,60 @@
+{
+  "complete_commands": 19,
+  "date": "2026-10-09",
+  "final_components": 13,
+  "identity": {
+    "image": "public.ecr.aws/supabase/postgres:17.6.1.095",
+    "image_id": "sha256:965e2dfb5a23a0d6541b6106541e777b303656ebabd4e878746b189d550c0a66",
+    "network": "none",
+    "postgres_version": "17.6"
+  },
+  "installer": "actual synthetic NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOBYPASSRLS fixture role",
+  "limits": {
+    "bytes": 262144,
+    "container_entries": 4096,
+    "depth": 64,
+    "integer_bits": 256,
+    "nodes": 20000,
+    "string_utf8_bytes": 16384
+  },
+  "production_grants_or_install": false,
+  "scope": "independent canonical tagged numeric wire and SHA256 only; no transition/admission/restart authority",
+  "sql_sha256": "adc7dbe2ce3ef51d860b8c09430a24759522cb7284dc73e40804dbd8880675b1",
+  "tables_in_installed_artifact": 0,
+  "timing_exclusions": [
+    "transport/TLS",
+    "run locks/contention",
+    "economic/source/lineage admission",
+    "journal/pins/projections",
+    "final source/lease recheck",
+    "COMMIT/WAL/relay",
+    "hosted tails"
+  ],
+  "timing_method": "PL/pgSQL wire variable and force_generic_plan prevent immutable literal constant folding; each sample evaluates the complete audit",
+  "warm_server_audit_timings": [
+    {
+      "kind": "bootstrap",
+      "maximum_us": 60478,
+      "p50_us": 54998.5,
+      "p95_us": 58874.049999999996,
+      "samples": 30,
+      "wire_bytes": 128635
+    },
+    {
+      "kind": "quote",
+      "maximum_us": 3950,
+      "p50_us": 3177,
+      "p95_us": 3234.6,
+      "samples": 30,
+      "wire_bytes": 9192
+    },
+    {
+      "kind": "replacement",
+      "maximum_us": 56347,
+      "p50_us": 52875,
+      "p95_us": 54869.2,
+      "samples": 30,
+      "wire_bytes": 149024
+    }
+  ]
+}
