@@ -760,12 +760,36 @@ Research began **2026-09-30** and was updated **2026-10-06/07** in [WORKER-HOSTI
   migration or activation.03 independently enforces durable uniqueness, lineage,
   economics, history completeness, dependency retention and native Stop budgets.
 
+- [x] **PAPER-COMPACT-03A — Partition stable evidence and review journal budgets.**
+  A separate thirteen-slot research format references completed source bars and
+  EMA evidence without removing genes, RNG, holdings, source or finalized history.
+  Quote-only commands reuse all blocks; candle admission changes both stable
+  blocks; generation changes preserve unchanged stable evidence. Full state and
+  original command evidence match the eleven-slot format. Forty-three focused
+  format/Stop/unchanged-package tests pass. An actual isolated PostgreSQL quote-only
+  fixture (64 fresh frames/129 commands) charges all indexes/TOAST/dependency pins:
+  full layout5,070,848 bytes, eleven-slot layout2,326,528, thirteen-slot1,499,136.
+  The dense three-window fixture uses2,236,416/1,261,568/1,130,496 bytes respectively.
+  Sparse/dense32-window traces each preserve515 candidates/256 assessments;
+  maximum complete requests are135,705/150,040 bytes. These are toy layout and
+  synthetic wire measurements, not hosted cost/native admission. Stop retains
+  all eight held positions and unscored interrupted assessments under the existing
+  policy. [Capacity evidence](services/vonneumann/research/partitioned-checkpoint-capacity.json)
+  and [journal/retention requirements](services/vonneumann/JOURNAL-RETENTION-DESIGN.md).
+  **Deep substantial research:** retained native validation/lock/COMMIT/WAL/TOAST
+  tails, binary digest/pin indexing, real provider invalidation and archive
+  rights/readback/cost; no minimal RNG removal before04. The128MiB logical-budget
+  example and0.1/0.2/1Hz arithmetic are planning only, not configured limits/rates.
+  No native admission, durable archive deletion, migration or activation.
+
 - [ ] **PAPER-COMPACT-03 — Prepare the reviewed forward SQL/native contract.**
-  **Research constraint from02B2:** stable source/EMA partition and dependency-safe
-  journal retention/rate budgets need review before the contract is finalized.
-  The one-window quote-only fixture means conditionally imply4.29GB/day logical
-  JSON at two accepted commands/second; this is not observed hosted throughput
-  or physical storage. A bounded active checkpoint alone is insufficient.
+  **Constraint reviewed by03A:** adopt a reviewed stable partition and enforce
+  dependency-safe journal retention/rate/Stop budgets before finalization.
+  Smaller requests still grow with every accepted command. The old one-window
+  fixture's conditional4.29GB/day is retained as historical planning evidence;
+  new measured planning is in03A. Neither establishes hosted throughput or cost.
+  A bounded active checkpoint alone is insufficient. Prove the independent
+  canonical tagged numeric/hash boundary; PostgreSQL JSONB text is not its wire.
   Journal each original compact request once, retain/pin immutable dependencies,
   independently bind prior checkpoint under the run lock, validate all resolved
   model/economic/source evidence, and project history atomically. Update the

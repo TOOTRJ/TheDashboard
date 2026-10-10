@@ -1,0 +1,488 @@
+{
+  "conditional_journal_planning": [
+    {
+      "budget_status": "128 MiB is an illustrative logical journal planning budget, not a configured database limit or approved retention policy; never delete dependencies/identity evidence on a timer",
+      "conditional_rates": [
+        {
+          "accepted_frames_per_second": 0.1,
+          "commands_per_second": 0.2,
+          "v1_logical_bytes_per_day": 432762973.7743191,
+          "v2_logical_bytes_per_day": 262017460.85603112,
+          "v2_minutes_to_128_mib_logical": 737.6360632171633
+        },
+        {
+          "accepted_frames_per_second": 0.2,
+          "commands_per_second": 0.4,
+          "v1_logical_bytes_per_day": 865525947.5486382,
+          "v2_logical_bytes_per_day": 524034921.71206224,
+          "v2_minutes_to_128_mib_logical": 368.81803160858163
+        },
+        {
+          "accepted_frames_per_second": 1,
+          "commands_per_second": 2,
+          "v1_logical_bytes_per_day": 4327629737.743191,
+          "v2_logical_bytes_per_day": 2620174608.5603113,
+          "v2_minutes_to_128_mib_logical": 73.76360632171632
+        }
+      ],
+      "limits": "fixture sample means, not observed scheduling, steady workload, hosted throughput or physical cost; excludes candles/replacements/Stop/projections/raw archive/receipts/WAL/backup",
+      "quote_only_phase_means": {
+        "decision": {
+          "samples": 96,
+          "v1": 28264.9375,
+          "v2": 18383.083333333332
+        },
+        "protective": {
+          "samples": 257,
+          "v1": 21823.36964980545,
+          "v2": 11943.01167315175
+        }
+      },
+      "wire_bytes_per_two_command_tick": {
+        "v1": 50088.30714980545,
+        "v2": 30326.095006485084
+      }
+    },
+    {
+      "budget_status": "128 MiB is an illustrative logical journal planning budget, not a configured database limit or approved retention policy; never delete dependencies/identity evidence on a timer",
+      "conditional_rates": [
+        {
+          "accepted_frames_per_second": 0.1,
+          "commands_per_second": 0.2,
+          "v1_logical_bytes_per_day": 472168788.0933852,
+          "v2_logical_bytes_per_day": 301011877.8210117,
+          "v2_minutes_to_128_mib_logical": 642.0794080256351
+        },
+        {
+          "accepted_frames_per_second": 0.2,
+          "commands_per_second": 0.4,
+          "v1_logical_bytes_per_day": 944337576.1867704,
+          "v2_logical_bytes_per_day": 602023755.6420234,
+          "v2_minutes_to_128_mib_logical": 321.03970401281754
+        },
+        {
+          "accepted_frames_per_second": 1,
+          "commands_per_second": 2,
+          "v1_logical_bytes_per_day": 4721687880.933852,
+          "v2_logical_bytes_per_day": 3010118778.210117,
+          "v2_minutes_to_128_mib_logical": 64.20794080256351
+        }
+      ],
+      "limits": "fixture sample means, not observed scheduling, steady workload, hosted throughput or physical cost; excludes candles/replacements/Stop/projections/raw archive/receipts/WAL/backup",
+      "quote_only_phase_means": {
+        "decision": {
+          "samples": 96,
+          "v1": 32197.145833333332,
+          "v2": 22291.458333333332
+        },
+        "protective": {
+          "samples": 257,
+          "v1": 22452.019455252917,
+          "v2": 12547.879377431907
+        }
+      },
+      "wire_bytes_per_two_command_tick": {
+        "v1": 54649.16528858625,
+        "v2": 34839.33771076524
+      }
+    }
+  ],
+  "date": "2026-10-09",
+  "excluded": [
+    "runtime restoration",
+    "native admission",
+    "migration",
+    "activation",
+    "profitability",
+    "hosted performance"
+  ],
+  "format": "ga-provider-checkpoint-research-v2",
+  "python": "3.12.14",
+  "quote_only_storage": {
+    "conditional_journal_planning": {
+      "budget_status": "128 MiB is an illustrative logical journal planning budget, not a configured database limit or approved retention policy; never delete dependencies/identity evidence on a timer",
+      "conditional_rates": [
+        {
+          "accepted_frames_per_second": 0.1,
+          "commands_per_second": 0.2,
+          "v1_logical_bytes_per_day": 345911235.00000006,
+          "v2_logical_bytes_per_day": 179435715.00000003,
+          "v2_minutes_to_128_mib_logical": 1077.1185007399445
+        },
+        {
+          "accepted_frames_per_second": 0.2,
+          "commands_per_second": 0.4,
+          "v1_logical_bytes_per_day": 691822470.0000001,
+          "v2_logical_bytes_per_day": 358871430.00000006,
+          "v2_minutes_to_128_mib_logical": 538.5592503699722
+        },
+        {
+          "accepted_frames_per_second": 1,
+          "commands_per_second": 2,
+          "v1_logical_bytes_per_day": 3459112350.0,
+          "v2_logical_bytes_per_day": 1794357150.0,
+          "v2_minutes_to_128_mib_logical": 107.71185007399446
+        }
+      ],
+      "limits": "fixture sample means, not observed scheduling, steady workload, hosted throughput or physical cost; excludes candles/replacements/Stop/projections/raw archive/receipts/WAL/backup",
+      "quote_only_phase_means": {
+        "decision": {
+          "samples": 63,
+          "v1": 20025.444444444445,
+          "v2": 10391.444444444445
+        },
+        "protective": {
+          "samples": 64,
+          "v1": 20010.578125,
+          "v2": 10376.578125
+        }
+      },
+      "wire_bytes_per_two_command_tick": {
+        "v1": 40036.022569444445,
+        "v2": 20768.022569444445
+      }
+    },
+    "identity": {
+      "image_id": "sha256:965e2dfb5a23a0d6541b6106541e777b303656ebabd4e878746b189d550c0a66",
+      "network": "none",
+      "postgres": "PostgreSQL 17.6 on aarch64-unknown-linux-gnu, compiled by gcc (GCC) 15.2.0, 64-bit",
+      "schema": "isolated toy tables; no production admission or limited-role proof"
+    },
+    "layout_total_bytes": {
+      "full": 5070848,
+      "v1": 2326528,
+      "v2": 1499136
+    },
+    "referenced_component_delete_refused": true,
+    "relations": {
+      "full_journal": {
+        "heap_bytes": 16384,
+        "indexes_bytes": 16384,
+        "rows": 129,
+        "table_including_toast_bytes": 5054464,
+        "total_bytes": 5070848
+      },
+      "v1_components": {
+        "heap_bytes": 16384,
+        "indexes_bytes": 16384,
+        "rows": 13,
+        "table_including_toast_bytes": 106496,
+        "total_bytes": 122880
+      },
+      "v1_dependencies": {
+        "heap_bytes": 204800,
+        "indexes_bytes": 229376,
+        "rows": 1419,
+        "table_including_toast_bytes": 237568,
+        "total_bytes": 466944
+      },
+      "v1_journal": {
+        "heap_bytes": 16384,
+        "indexes_bytes": 16384,
+        "rows": 129,
+        "table_including_toast_bytes": 1720320,
+        "total_bytes": 1736704
+      },
+      "v2_components": {
+        "heap_bytes": 16384,
+        "indexes_bytes": 16384,
+        "rows": 15,
+        "table_including_toast_bytes": 114688,
+        "total_bytes": 131072
+      },
+      "v2_dependencies": {
+        "heap_bytes": 237568,
+        "indexes_bytes": 253952,
+        "rows": 1677,
+        "table_including_toast_bytes": 270336,
+        "total_bytes": 524288
+      },
+      "v2_journal": {
+        "heap_bytes": 16384,
+        "indexes_bytes": 16384,
+        "rows": 129,
+        "table_including_toast_bytes": 827392,
+        "total_bytes": 843776
+      }
+    },
+    "storage_limits": "indexes/TOAST/full checkpoint dependency pins included; no legacy duplicate journal/projections/source raw archive/receipt/archive/backup/WAL",
+    "timing_limits": "forces JSONB detoast/text materialization; excludes independent model validation, contention, TLS/transport, COMMIT/relay, WAL and hosted tail latency",
+    "trace": {
+      "assessments": 0,
+      "candidates": 129,
+      "changed_blocks_by_phase": {
+        "bootstrap": {
+          "13": 1
+        },
+        "decision": {
+          "0": 63,
+          "2": 1
+        },
+        "protective": {
+          "0": 64
+        }
+      },
+      "closed_positions": 0,
+      "dense": true,
+      "final_generation": 0,
+      "max_command_bytes": 128635,
+      "max_manifest_bytes": 7797,
+      "max_resolved_bytes": 54601,
+      "total_v1_wire_bytes": 2730299,
+      "total_v2_wire_bytes": 1497999,
+      "unique_component_bytes": 101217,
+      "unique_components": 15,
+      "windows": 0
+    },
+    "warm_server_detoast_diagnostics": [
+      {
+        "kind": "v1_all_dependencies_detoast",
+        "p50_us": 247.5,
+        "p95_us": 326.25,
+        "samples": 100
+      },
+      {
+        "kind": "v1_journal_detoast",
+        "p50_us": 7197.5,
+        "p95_us": 7370.3,
+        "samples": 100
+      },
+      {
+        "kind": "v2_all_dependencies_detoast",
+        "p50_us": 274,
+        "p95_us": 348.09999999999997,
+        "samples": 100
+      },
+      {
+        "kind": "v2_journal_detoast",
+        "p50_us": 4163,
+        "p95_us": 4353.35,
+        "samples": 100
+      }
+    ],
+    "workload": "64 fresh quote-only frames/129 commands"
+  },
+  "storage": {
+    "conditional_journal_planning": {
+      "budget_status": "128 MiB is an illustrative logical journal planning budget, not a configured database limit or approved retention policy; never delete dependencies/identity evidence on a timer",
+      "conditional_rates": [
+        {
+          "accepted_frames_per_second": 0.1,
+          "commands_per_second": 0.2,
+          "v1_logical_bytes_per_day": 470117452.8000001,
+          "v2_logical_bytes_per_day": 298938662.40000004,
+          "v2_minutes_to_128_mib_logical": 646.532391522469
+        },
+        {
+          "accepted_frames_per_second": 0.2,
+          "commands_per_second": 0.4,
+          "v1_logical_bytes_per_day": 940234905.6000001,
+          "v2_logical_bytes_per_day": 597877324.8000001,
+          "v2_minutes_to_128_mib_logical": 323.2661957612345
+        },
+        {
+          "accepted_frames_per_second": 1,
+          "commands_per_second": 2,
+          "v1_logical_bytes_per_day": 4701174528.0,
+          "v2_logical_bytes_per_day": 2989386624.0,
+          "v2_minutes_to_128_mib_logical": 64.65323915224691
+        }
+      ],
+      "limits": "fixture sample means, not observed scheduling, steady workload, hosted throughput or physical cost; excludes candles/replacements/Stop/projections/raw archive/receipts/WAL/backup",
+      "quote_only_phase_means": {
+        "decision": {
+          "samples": 9,
+          "v1": 32148.222222222223,
+          "v2": 22234.222222222223
+        },
+        "protective": {
+          "samples": 25,
+          "v1": 22263.52,
+          "v2": 12365.16
+        }
+      },
+      "wire_bytes_per_two_command_tick": {
+        "v1": 54411.74222222222,
+        "v2": 34599.38222222222
+      }
+    },
+    "identity": {
+      "image_id": "sha256:965e2dfb5a23a0d6541b6106541e777b303656ebabd4e878746b189d550c0a66",
+      "network": "none",
+      "postgres": "PostgreSQL 17.6 on aarch64-unknown-linux-gnu, compiled by gcc (GCC) 15.2.0, 64-bit",
+      "schema": "isolated toy tables; no production admission or limited-role proof"
+    },
+    "layout_total_bytes": {
+      "full": 2236416,
+      "v1": 1261568,
+      "v2": 1130496
+    },
+    "referenced_component_delete_refused": true,
+    "relations": {
+      "full_journal": {
+        "heap_bytes": 8192,
+        "indexes_bytes": 16384,
+        "rows": 51,
+        "table_including_toast_bytes": 2220032,
+        "total_bytes": 2236416
+      },
+      "v1_components": {
+        "heap_bytes": 57344,
+        "indexes_bytes": 16384,
+        "rows": 43,
+        "table_including_toast_bytes": 188416,
+        "total_bytes": 204800
+      },
+      "v1_dependencies": {
+        "heap_bytes": 81920,
+        "indexes_bytes": 106496,
+        "rows": 561,
+        "table_including_toast_bytes": 114688,
+        "total_bytes": 221184
+      },
+      "v1_journal": {
+        "heap_bytes": 8192,
+        "indexes_bytes": 16384,
+        "rows": 51,
+        "table_including_toast_bytes": 819200,
+        "total_bytes": 835584
+      },
+      "v2_components": {
+        "heap_bytes": 65536,
+        "indexes_bytes": 16384,
+        "rows": 69,
+        "table_including_toast_bytes": 294912,
+        "total_bytes": 311296
+      },
+      "v2_dependencies": {
+        "heap_bytes": 98304,
+        "indexes_bytes": 114688,
+        "rows": 663,
+        "table_including_toast_bytes": 131072,
+        "total_bytes": 245760
+      },
+      "v2_journal": {
+        "heap_bytes": 8192,
+        "indexes_bytes": 16384,
+        "rows": 51,
+        "table_including_toast_bytes": 557056,
+        "total_bytes": 573440
+      }
+    },
+    "storage_limits": "indexes/TOAST/full checkpoint dependency pins included; no legacy duplicate journal/projections/source raw archive/receipt/archive/backup/WAL",
+    "timing_limits": "forces JSONB detoast/text materialization; excludes independent model validation, contention, TLS/transport, COMMIT/relay, WAL and hosted tail latency",
+    "trace": {
+      "assessments": 24,
+      "candidates": 51,
+      "changed_blocks_by_phase": {
+        "bootstrap": {
+          "13": 1
+        },
+        "decision": {
+          "0": 9,
+          "10": 3,
+          "2": 13
+        },
+        "protective": {
+          "0": 25
+        }
+      },
+      "closed_positions": 48,
+      "dense": true,
+      "final_generation": 3,
+      "max_command_bytes": 149024,
+      "max_manifest_bytes": 11981,
+      "max_resolved_bytes": 60891,
+      "total_v1_wire_bytes": 1801822,
+      "total_v2_wire_bytes": 1436726,
+      "unique_component_bytes": 379424,
+      "unique_components": 69,
+      "windows": 3
+    },
+    "warm_server_detoast_diagnostics": [
+      {
+        "kind": "v1_all_dependencies_detoast",
+        "p50_us": 208,
+        "p95_us": 228.24999999999997,
+        "samples": 100
+      },
+      {
+        "kind": "v1_journal_detoast",
+        "p50_us": 5041,
+        "p95_us": 5155.7,
+        "samples": 100
+      },
+      {
+        "kind": "v2_all_dependencies_detoast",
+        "p50_us": 240,
+        "p95_us": 263.69999999999993,
+        "samples": 100
+      },
+      {
+        "kind": "v2_journal_detoast",
+        "p50_us": 4087,
+        "p95_us": 4171.05,
+        "samples": 100
+      }
+    ],
+    "workload": "three dense windows/51 commands"
+  },
+  "traces": [
+    {
+      "assessments": 256,
+      "candidates": 515,
+      "changed_blocks_by_phase": {
+        "bootstrap": {
+          "13": 1
+        },
+        "decision": {
+          "0": 96,
+          "10": 32,
+          "2": 129
+        },
+        "protective": {
+          "0": 257
+        }
+      },
+      "closed_positions": 221,
+      "dense": false,
+      "final_generation": 32,
+      "max_command_bytes": 135705,
+      "max_manifest_bytes": 12020,
+      "max_resolved_bytes": 60895,
+      "total_v1_wire_bytes": 16152421,
+      "total_v2_wire_bytes": 12448392,
+      "unique_component_bytes": 3064369,
+      "unique_components": 591,
+      "windows": 32
+    },
+    {
+      "assessments": 256,
+      "candidates": 515,
+      "changed_blocks_by_phase": {
+        "bootstrap": {
+          "13": 1
+        },
+        "decision": {
+          "0": 96,
+          "10": 32,
+          "2": 129
+        },
+        "protective": {
+          "0": 257
+        }
+      },
+      "closed_positions": 512,
+      "dense": true,
+      "final_generation": 32,
+      "max_command_bytes": 150040,
+      "max_manifest_bytes": 12020,
+      "max_resolved_bytes": 60927,
+      "total_v1_wire_bytes": 17257752,
+      "total_v2_wire_bytes": 13544539,
+      "unique_component_bytes": 3067441,
+      "unique_components": 591,
+      "windows": 32
+    }
+  ]
+}
