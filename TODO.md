@@ -782,6 +782,24 @@ Research began **2026-09-30** and was updated **2026-10-06/07** in [WORKER-HOSTI
   example and0.1/0.2/1Hz arithmetic are planning only, not configured limits/rates.
   No native admission, durable archive deletion, migration or activation.
 
+- [x] **PAPER-COMPACT-03B1 — Prove the independent SQL numeric/hash boundary.**
+  Guarded offline PostgreSQL17 functions independently validate exact UTF-8
+  canonical tagged JSON before JSONB conversion, reject duplicate keys and enforce
+  full byte/node/depth/container/string/integer budgets. Signed256-bit integers,
+  booleans and canonical binary64 bits (including negative zero/subnormals) match
+  Python;509 finite values,256 mixed documents,19 complete commands and13 final
+  components are checked. Eleven actual SQL cases and seven unchanged package
+  checks pass with a real limited installer, invoker ownership and browser/
+  service-role/relay denial. Corrected30-sample warm audit p95 is3.235ms quote,
+  58.874ms bootstrap and54.869ms replacement; no integrated/hosted cadence claim.
+  [Boundary, remaining research and reproduction](services/vonneumann/NATIVE-NUMERIC-WIRE.md).
+  No command/economic admission, runtime decoder, tables/client grants in the
+  artifact, Supabase migration or activation. Field-specific source/counter/Stop
+  bounds remain03's obligation. **Deep substantial research:** complete retained
+  SQL/lock/COMMIT/WAL/TOAST tails, bounded parser allocation/cross-version maintenance
+  and binary-digest/pin layouts.03B2 next resolves typed components under the run
+  lock and independently validates exact prior/scope/hash/slot/model evidence.
+
 - [ ] **PAPER-COMPACT-03 — Prepare the reviewed forward SQL/native contract.**
   **Constraint reviewed by03A:** adopt a reviewed stable partition and enforce
   dependency-safe journal retention/rate/Stop budgets before finalization.
@@ -789,7 +807,9 @@ Research began **2026-09-30** and was updated **2026-10-06/07** in [WORKER-HOSTI
   fixture's conditional4.29GB/day is retained as historical planning evidence;
   new measured planning is in03A. Neither establishes hosted throughput or cost.
   A bounded active checkpoint alone is insufficient. Prove the independent
-  canonical tagged numeric/hash boundary; PostgreSQL JSONB text is not its wire.
+  canonical tagged numeric/hash boundary (03B1 offline proof complete); PostgreSQL
+  JSONB text is not its wire. Next resolve every typed dependency under the run
+  lock, bind the exact prior, and independently validate scope/slot/model evidence.
   Journal each original compact request once, retain/pin immutable dependencies,
   independently bind prior checkpoint under the run lock, validate all resolved
   model/economic/source evidence, and project history atomically. Update the
