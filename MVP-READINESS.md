@@ -1,5 +1,28 @@
 # Evolutionary trading bot MVP readiness
 
+**Locked checkpoint dependency resolution — 2026-10-11:** PR89's numeric boundary
+is merged as d362266430a38072506b4546d708696dbb437573 and its exact production
+deployment/alias/read-only checks passed. Fresh GitHub/Vercel/Supabase target
+checks match the authorized Dashboard IDs and owners.
+
+PAPER-COMPACT-03B2 now independently resolves the thirteen-slot canonical wire
+under an owner/run lock, binds the exact prior, checks embedded scopes, complete
+typed slots/member/generation/cohort/model identity, and charges retained byte
+budgets before decoding. Both checkpoint expansions match Python for35 complete
+commands across two replacements.17 actual SQL and17 unchanged format/package
+cases pass, including stale-prior and serialization races, component locks,
+limited installer/client denial and Stop with eight held positions.
+[Boundary and measurements](services/vonneumann/NATIVE-LOCKED-CHECKPOINT.md).
+
+This resolver only returns primitive evidence and writes no durable state.
+03B3 is next: independently enforce complete economic/source/history/lineage/
+optimizer/cohort semantics before composing03's original-ID journal/receipt/
+dependency-pin/projection/final-freshness/Stop-resource contract.04 still gates
+exact restoration and05 safe retention/hosted acceptance. The small quote wire
+still requires retained state resolution, so full-contract latency and cost
+remain substantial research. No hosted migration or worker activation occurs;
+the Railway worker remains closed. No additional worker/database setup is needed.
+
 **Independent SQL numeric/hash boundary — 2026-10-09:** PR88's stable partition
 is merged as117d1d405107482a33a384c4d03a23c914226f8d. Exact production
 dpl_F2GvAveiW7CTsSNHJNQ3dJ2M3gQx is READY and its canonical alias/four read-only

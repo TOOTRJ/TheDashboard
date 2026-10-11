@@ -3874,3 +3874,69 @@ migration remains excluded/preserved at SHA256
 a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc. Rollback is a code/docs
 revert; no hosted research objects exist. Exact release evidence for this branch
 will be retained in its PR.
+
+## 95. Locked typed checkpoint dependency resolution — 2026-10-11
+
+Fresh isolated preflight checks match GitHub TOOTRJ/TheDashboard, repository
+1141090963, authenticated biggrizzly11/user16749816; Vercel the-dashboard,
+prj_wFUe9k9USVreOQcmQKNWRAVsx5fH under team_8iNNxiNjrOseD4gdSCHkQEzF;
+and Supabase The Dashboard, fxpxsciltakyypunglzr under cqfnnaunmupdyobkyqfo.
+The checkout starts from PR89 merge d362266430a38072506b4546d708696dbb437573.
+Its exact production/alias/read-only release proof is retained in PR89.
+
+PAPER-COMPACT-03B2 independently binds the exact canonical prior revision/hash
+after the owner/run lock returns. The private offline resolver audits supplied
+and retained original component bytes, embedded scopes, complete thirteen-slot
+membership, generation/cohort/model identity and immutable configuration.
+It charges original retained byte aggregates before materialization, orders
+component locks deterministically and uses shared locks through the transaction.
+The original command hash and both full expanded canonical checkpoints are
+returned as primitive evidence. The resolver changes no table.
+
+The guarded artifact creates two fixture tables and seven private functions
+under an actual limited synthetic installer. Only resolve_request is a definer
+function; fixed pg_catalog search paths and explicit schema names are verified.
+Only the synthetic auditor receives fixture resolver execution; direct tables/
+helpers/schema creation and browser/service-role/relay calls fail. Privileged
+fixture seeding is separate test code and is not a native commit protocol.
+
+Seventeen actual network-none PostgreSQL17.6 cases and17 unchanged format/
+canonical/forward-package checks pass. Both expanded states match Python byte
+for byte through35 commands/two replacements. Real races exercise changed prior
+after a lock wait, Repeatable Read serialization failure and deletion/update
+blocking through transaction end. Other cases include malformed scope/types/
+slots/generation/prior, complete retained capacity, immutable configuration and
+Stop preserving eight positions and unscored aborted assessments.
+
+Thirty warm full-resolution samples use a wire variable/generic plans and a
+fixed synthetic prior. Final p95 is154.497ms for9,192-byte quote,174.045ms for
+128,635-byte bootstrap and275.025ms for149,024-byte replacement. Even a small
+wire still resolves full retained state. These include uncontended locks and
+both expansions but exclude full semantic admission, contended waits,
+journal/pin/projection effects, final lease/source checks, COMMIT/WAL/TLS/relay
+and hosted tails. SQL/image/source hashes and measurements are recorded in
+[the artifact](services/vonneumann/research/locked-checkpoint-measurements.json).
+The incomplete old temporary Python directory was replaced with a new isolated
+task-local environment using the existing hash-locked development requirements;
+pip check passes and global runtimes/packages/configuration are preserved.
+
+03B3 now gates independent complete model/economic/source/history/lineage
+admission. Original journal/receipt/identity/pin/projection integration, final
+freshness, native Stop resources, installer/catalog/old-new-reader rehearsal,
+exact restoration and safe retention/hosted acceptance remain open.
+[Boundary and deeper research](services/vonneumann/NATIVE-LOCKED-CHECKPOINT.md).
+There is no hosted migration/schema/data/grant/package change, Railway deploy/
+variable/capability change, paid market call, archive deletion, billing or live
+execution. The worker remains closed. The user-owned migration is preserved/
+excluded at SHA256 a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc.
+Rollback is a reviewed code/docs revert with no hosted research objects.
+Exact preview/merge/production/read-only release evidence will be retained in
+the PR rather than generating a second documentation-only deployment.
+
+Release re-verification later in this session failed through the dedicated
+Vercel profile; private CLI output was suppressed. GitHub and exact Railway
+project/environment/workspace/service checks still pass. No dedicated auth file
+is present, and no default/shared credential fallback is permitted. Restore and
+verify the exact Dashboard profile before pushing/merging this release if it
+cannot authenticate. This is a release-verification dependency, not a reason
+to activate the worker or change another project's credentials.
