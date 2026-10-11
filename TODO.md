@@ -797,8 +797,37 @@ Research began **2026-09-30** and was updated **2026-10-06/07** in [WORKER-HOSTI
   artifact, Supabase migration or activation. Field-specific source/counter/Stop
   bounds remain03's obligation. **Deep substantial research:** complete retained
   SQL/lock/COMMIT/WAL/TOAST tails, bounded parser allocation/cross-version maintenance
-  and binary-digest/pin layouts.03B2 next resolves typed components under the run
-  lock and independently validates exact prior/scope/hash/slot/model evidence.
+  and binary-digest/pin layouts.03B2's offline locked resolution proof follows;
+  complete semantic/native admission remains03.
+
+- [x] **PAPER-COMPACT-03B2 — Resolve typed dependencies under the exact prior lock.**
+  Guarded offline PostgreSQL resolves all13 original tagged components and expands
+  both checkpoints independently. The locked owner/run prior is bound to exact
+  canonical revision/hash; supplied blocks cannot repair lost prior evidence.
+  Embedded scopes, unique typed slots, all eight members, generation/cohort/model
+  identity and immutable configuration are checked. Full retained byte budgets
+  are charged before decoding; sorted shared component locks hold through the
+  transaction.35 commands/two replacements match Python byte for byte.17 SQL
+  and17 unchanged format/package cases pass, including real lock-wait/serialization
+  races, limited installer/client denial and Stop preserving eight positions.
+  The resolver writes nothing; fixture seeding is privileged test code.
+  [Binding, measurements and remaining research](services/vonneumann/NATIVE-LOCKED-CHECKPOINT.md).
+  No economics/source/history admission, receipts, durable pins, runtime decoder,
+  Supabase migration or activation. **Deep substantial research:** complete retained
+  validation/lock/COMMIT/WAL/TOAST tails, safe immutable-component validation reuse,
+  serialization/unknown-commit recovery, durable pin/resource/archival ordering
+  and representative hosted workload cost. Small wire alone does not prove cheap
+  validation; preserve RNG and source evidence until04.
+
+- [ ] **PAPER-COMPACT-03B3 — Independently enforce the resolved transition semantics.**
+  Depends on03B1/03B2. Define the new GA model's exact SQL contract for cash/holdings,
+  risk/lifecycle, source clocks/epochs/watermarks/candle contiguity and EMA equality,
+  complete optimizer/cohort continuation and finalized/withheld assessment/history/
+  allocated-ID/lineage evidence. Reject wire-valid but economically/source-invalid
+  transitions before effects, including reordered/missing/invented history and
+  reused historical UUIDs. Do not label the new model as an old v5 command or use
+  client-generated hashes as semantic authority. Compose with03's original journal/
+  receipt/pin/projection/final-freshness/Stop-reserve and limited-installer contract.
 
 - [ ] **PAPER-COMPACT-03 — Prepare the reviewed forward SQL/native contract.**
   **Constraint reviewed by03A:** adopt a reviewed stable partition and enforce
@@ -808,8 +837,8 @@ Research began **2026-09-30** and was updated **2026-10-06/07** in [WORKER-HOSTI
   new measured planning is in03A. Neither establishes hosted throughput or cost.
   A bounded active checkpoint alone is insufficient. Prove the independent
   canonical tagged numeric/hash boundary (03B1 offline proof complete); PostgreSQL
-  JSONB text is not its wire. Next resolve every typed dependency under the run
-  lock, bind the exact prior, and independently validate scope/slot/model evidence.
+  JSONB text is not its wire.03B2 proves locked typed dependency/prior resolution
+  offline. Next03B3 independently validates complete transition semantics.
   Journal each original compact request once, retain/pin immutable dependencies,
   independently bind prior checkpoint under the run lock, validate all resolved
   model/economic/source evidence, and project history atomically. Update the

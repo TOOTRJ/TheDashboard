@@ -34,8 +34,10 @@ assessment fields remain explicitly missing, without rescoring or backfilling.
 The hash policy is canonical tagged UTF-8 wire SHA256. PostgreSQL `jsonb::text`
 is not that encoding. The implementation must prove the actual cross-language
 canonicalizer, bounded numeric decoder, duplicate-key handling and bytes-to-JSON
-binding before accepting a client digest. The current Python adapter validates
-lossless expansion; it is not an independent SQL implementation. Whether the
+binding before accepting a client digest.03B1 independently proves tagged numeric/
+hash validation and03B2 proves locked prior/dependency/slot expansion in guarded
+offline SQL. Complete economic/source/history/native admission and durable pins
+remain open. Whether the
 production store retains canonical bytes, JSONB or both changes physical cost:
 the toy measurement stores JSONB only and cannot price an unimplemented layout.
 

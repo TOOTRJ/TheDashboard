@@ -1,0 +1,60 @@
+{
+  "complete_commands": 35,
+  "component_slots": 13,
+  "date": "2026-10-11",
+  "generations_replaced": 2,
+  "identity": {
+    "image": "public.ecr.aws/supabase/postgres:17.6.1.095",
+    "image_id": "sha256:965e2dfb5a23a0d6541b6106541e777b303656ebabd4e878746b189d550c0a66",
+    "network": "none",
+    "postgres_version": "17.6"
+  },
+  "numeric_sql_sha256": "adc7dbe2ce3ef51d860b8c09430a24759522cb7284dc73e40804dbd8880675b1",
+  "production_grants_or_install": false,
+  "scope": "offline read-only locked prior/component/slot/model-identity resolution only",
+  "sql_sha256": "40973039c4ec1fd0af8a2836818ab75db60b6e75ec41e2f217adc078d2863542",
+  "tables_in_installed_artifact": 2,
+  "timing_exclusions": [
+    "transport/TLS",
+    "contended lock wait",
+    "full economic/source/history/lineage admission",
+    "journal/dependency-pin/projection writes",
+    "final source/lease recheck",
+    "COMMIT/WAL/relay",
+    "hosted tails"
+  ],
+  "timing_method": "30 full volatile resolver calls with a PL/pgSQL wire variable and force_generic_plan; unchanged synthetic prior between calls",
+  "warm_server_resolution_timings": [
+    {
+      "following_dependency_bytes": 66685,
+      "following_resolved_bytes": 60749,
+      "kind": "bootstrap",
+      "maximum_us": 176390,
+      "p50_us": 167954,
+      "p95_us": 174045,
+      "request_bytes": 128635,
+      "samples": 30
+    },
+    {
+      "following_dependency_bytes": 67591,
+      "following_resolved_bytes": 61655,
+      "kind": "quote",
+      "maximum_us": 168817,
+      "p50_us": 147857.5,
+      "p95_us": 154496.5,
+      "request_bytes": 9192,
+      "samples": 30
+    },
+    {
+      "following_dependency_bytes": 71144,
+      "following_resolved_bytes": 65208,
+      "kind": "replacement",
+      "maximum_us": 276985,
+      "p50_us": 262949,
+      "p95_us": 275024.5,
+      "request_bytes": 149024,
+      "samples": 30
+    }
+  ],
+  "writes_by_resolver": 0
+}
