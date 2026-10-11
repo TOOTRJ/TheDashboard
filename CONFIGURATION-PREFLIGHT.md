@@ -3933,10 +3933,7 @@ Rollback is a reviewed code/docs revert with no hosted research objects.
 Exact preview/merge/production/read-only release evidence will be retained in
 the PR rather than generating a second documentation-only deployment.
 
-Release re-verification later in this session failed through the dedicated
-Vercel profile; private CLI output was suppressed. GitHub and exact Railway
-project/environment/workspace/service checks still pass. No dedicated auth file
-is present, and no default/shared credential fallback is permitted. Restore and
-verify the exact Dashboard profile before pushing/merging this release if it
-cannot authenticate. This is a release-verification dependency, not a reason
-to activate the worker or change another project's credentials.
+The user completed a fresh device login to the dedicated Dashboard Vercel
+profile. Fresh release re-verification now matches the exact GitHub, Vercel and
+Supabase IDs and owners above; Railway project/environment/workspace checks also
+pass. No default/shared credential fallback or unrelated project change was used.
