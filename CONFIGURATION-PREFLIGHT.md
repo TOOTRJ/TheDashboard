@@ -4577,13 +4577,12 @@ worker run is not claimed for these test fixture edits. Actual GitHub-hosted
 acceptance will be recorded in the scoped PR. Local helpers are not claimed as
 Linux/container acceptance; QA-01A remains open until all three hosted jobs pass.
 
-The dedicated Dashboard credential verifies the exact account/repository and
-continues to allow existing PR operations, but GitHub rejects this new workflow
-push for workflow-file permission. The user has been asked to add only Workflows
-read/write to the existing Dashboard-specific token without changing repository
-selection, shared credentials or organization-wide policy. No CI PR or merge has
-occurred. All implementation files are committed locally on the codex branch;
-publishing and the real hosted jobs await this one setup step.
+The first workflow-file push was rejected for permission. The user updated only
+the existing Dashboard-specific token; fresh account/repository and exact
+GitHub/Vercel/Supabase/Railway target verification pass, and the codex branch push
+now succeeds. Shared credentials, organization-wide policy and production
+operator files are unchanged by this task. The PR and all three real hosted
+jobs precede merge; first-run Linux/image/SQL acceptance is still pending.
 
 Privacy PR101 merge 67366aa1a212346a773225e858d55ccc30ef2e95 has the same tree as
 head 7952b7cd5672b00e74db5c4eefff0ce5d66814de. Exact production

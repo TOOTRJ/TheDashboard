@@ -14,12 +14,12 @@ gate. The first actual GitHub-hosted amd64 run must pass before QA-01A closes; l
 helper tests do not prove image pulling, runner installation or Linux execution.
 No production credential or Vercel/Supabase/Railway login is required.
 
-Publication is currently blocked by GitHub's rejection of the dedicated Dashboard
-token's workflow-file push. The user must add `Workflows: Read and write` to that
-existing token, retaining its selection of only `TOOTRJ/TheDashboard` and the
-existing organization approval policy. GitHub documents this separate [workflow
-write capability](https://docs.github.com/en/rest/authentication/permissions-required-for-fine-grained-personal-access-tokens#repository-permissions-for-workflows). No shared login or token has been changed,
-and the CI branch has not been published or merged. Workflow results can be read
+The initial workflow-file push was rejected for permission. The user updated the
+existing dedicated Dashboard token; exact account/repository verification and the
+codex branch push now succeed. No shared login, credential rotation or
+organization-wide policy change was performed by this task. GitHub documents the
+separate [workflow write capability](https://docs.github.com/en/rest/authentication/permissions-required-for-fine-grained-personal-access-tokens#repository-permissions-for-workflows).
+The CI PR's three hosted jobs remain required before merge. Workflow results can be read
 through the existing authorized Dashboard browser; additional token permissions
 for unrelated checks are not required for this setup step.
 

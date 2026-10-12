@@ -11,9 +11,9 @@ reviewed implementation section. NEST-06A account/session isolation is now imple
 QA-01B real browser acceptance and NEST-05A same-account result identity remain open.
 QA-01A's three secret-free jobs and explicit local commands are implemented;
 first actual GitHub-hosted Linux execution is still a separate acceptance gate.
-GitHub rejected publication of the new workflow because the dedicated Dashboard
-token needs `Workflows: Read and write`; only that existing repository-specific
-token permission is pending. The three repaired application/security slices are
+The user updated the dedicated Dashboard token's workflow permission; exact
+identity verification and the codex branch push now succeed. All three hosted
+jobs must pass before QA-01A closes. The three repaired application/security slices are
 already merged and production-verified.
 
 This section is the authoritative priority/dependency view. Dated checkpoints
