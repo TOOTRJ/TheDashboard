@@ -1,5 +1,43 @@
 # Dependency security review — current advisory review 2026-10-12
 
+## Implemented advisory repair — 2026-10-12
+
+The lockfile now updates only source-map-js1.2.1→1.2.2, including its official
+registry integrity. Existing Next/config16.3.8, React19.2.8 and unrelated optional
+SWC/platform metadata stay unchanged. A clean isolated `npm ci --ignore-scripts`
+passes without modifying this checkout's node_modules. The new bounded regression
+fails against1.2.1 and passes against1.2.2: enormous/invalid indexed source-map
+section offsets are rejected before mapping work, while valid mapping survives.
+
+Fresh public-registry scans of the repaired lock report **zero production
+advisories** and **five high development graph entries from one braces advisory**.
+The scanner's Next14 downgrade is not adopted. Braces3.0.3 has no published fix;
+its exact Next ESLint plugin→fast-glob→micromatch→braces chain is development-only.
+The reviewed lint invocation uses fixed source/test inputs and a bounded process;
+no application endpoint supplies glob patterns to this chain. This is a scoped
+reachability assessment, not removal of the vulnerability or a sandbox for
+untrusted JavaScript lint configuration.
+
+[security/advisory-exceptions.json](security/advisory-exceptions.json) records
+only GHSA-vfj7-8cjw-p6xm, exact dev package/version paths, review2026-10-12 and
+expiry2026-10-26. Re-review with the October14 security release or upstream patch,
+whichever comes first. [The check](scripts/check-advisories.mjs) runs full and
+production public scans with empty separate npm configs, a task cache and no
+inherited app/registry tokens. It requires clean production and fails closed on
+new advisories, changed versions/runtime paths, scanner errors, expired policy,
+misbound leaves, cycles/duplicate edges or work-budget overflow. Accepted dev
+findings remain visible in its report; they are never called zero vulnerabilities.
+
+Security-only snapshot checks: **183 Node tests**, TypeScript and an isolated
+fake-configuration production build pass. Broad lint has zero errors; the33
+existing warnings are retained after new unused bindings are removed. Five
+advisory-policy cases include the independently found leaf-binding/work-budget
+regressions. No lifecycle install hook, broad forced upgrade, application/provider
+credential or cloud data change was used. SEC-05A closes its reviewed repair/
+bounded-exception scope after release; SEC-05/05B remain open for October14 and
+other dependency/platform maintenance. The older audit-review counts below are
+historical, not the repaired graph.
+
 ## Current findings — 2026-10-12
 
 Fresh public-registry `npm audit --json` scans of the unchanged lock report
