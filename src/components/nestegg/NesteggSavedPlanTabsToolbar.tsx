@@ -5,6 +5,7 @@ import { Bookmark, Copy, Loader2, Pencil, Save, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { useAuth } from "@/components/auth/AuthProvider";
+import type { createNesteggWorkspaceScope } from "@/lib/nestegg/session-scope";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -25,6 +26,7 @@ import {
 import { cn } from "@/lib/utils";
 
 type Props = {
+  workspaceScope: ReturnType<typeof createNesteggWorkspaceScope>;
   inputs: NesteggInputs;
   marketScenario: NesteggScenarioId;
   cloudScenarios: SavedNesteggScenario[];
@@ -44,6 +46,7 @@ type Props = {
 };
 
 export function NesteggSavedPlanTabsToolbar({
+  workspaceScope,
   inputs,
   marketScenario,
   cloudScenarios,
@@ -79,53 +82,75 @@ export function NesteggSavedPlanTabsToolbar({
 
   React.useEffect(() => {
     if (saveNewOpen) {
-      window.setTimeout(() => document.getElementById("nestegg-new-plan-name")?.focus(), 0);
+      const request = workspaceScope.capture();
+      const timer = window.setTimeout(() => { if (request.isCurrent()) document.getElementById("nestegg-new-plan-name")?.focus(); }, 0);
+      return () => window.clearTimeout(timer);
     }
-  }, [saveNewOpen]);
+  }, [saveNewOpen, workspaceScope]);
 
   const handleSaveNew = async () => {
-    if (!user) {
-      toast.error("Sign in to save scenarios");
-      return;
+    const request = workspaceScope.capture();
+    if (!request.isCurrent() || user?.id !== request.ownerId) return;
+    try {
+      const row = await insertNesteggScenarioToSupabase(newPlanName, inputs, marketScenario, request);
+      if (!request.isCurrent()) return;
+      if (!row) {
+        toast.error("Could not save", {
+          description:
+            "Ensure the nestegg_scenarios table exists in Supabase (see supabase/migrations).",
+        });
+        return;
+      }
+      setNewPlanName("");
+      setSaveNewOpen(false);
+      onCloudSaved(row);
+      await onRefreshCloud();
+      if (!request.isCurrent()) return;
+      toast.success("New plan saved", { description: row.name });
+    } catch {
+      if (request.isCurrent()) toast.error("Unable to complete the saved-plan operation");
     }
-    const row = await insertNesteggScenarioToSupabase(newPlanName, inputs, marketScenario);
-    if (!row) {
-      toast.error("Could not save", {
-        description:
-          "Ensure the nestegg_scenarios table exists in Supabase (see supabase/migrations).",
-      });
-      return;
-    }
-    setNewPlanName("");
-    setSaveNewOpen(false);
-    onCloudSaved(row);
-    await onRefreshCloud();
-    toast.success("New plan saved", { description: row.name });
   };
 
   const handleDelete = async (id: string) => {
-    const ok = await deleteNesteggScenarioFromSupabase(id);
-    if (ok) {
-      await onCloudScenarioDeleted(id);
-      toast.message("Scenario removed");
-      setDeleteTarget(null);
-    } else {
-      toast.error("Delete failed");
+    const request = workspaceScope.capture();
+    if (!request.isCurrent()) return;
+    try {
+      const ok = await deleteNesteggScenarioFromSupabase(id, request);
+      if (!request.isCurrent()) return;
+      if (ok) {
+        await onCloudScenarioDeleted(id);
+        if (!request.isCurrent()) return;
+        toast.message("Scenario removed");
+        setDeleteTarget(null);
+      } else {
+        toast.error("Delete failed");
+      }
+    } catch {
+      if (request.isCurrent()) toast.error("Unable to complete the saved-plan operation");
     }
   };
 
   const handleRenameSave = async (id: string) => {
-    const next = await updateNesteggScenarioNameInSupabase(id, editName);
-    if (!next) {
-      toast.error("Rename failed");
-      return;
+    const request = workspaceScope.capture();
+    if (!request.isCurrent()) return;
+    try {
+      const next = await updateNesteggScenarioNameInSupabase(id, editName, request);
+      if (!request.isCurrent()) return;
+      if (!next) {
+        toast.error("Rename failed");
+        return;
+      }
+      setEditingId(null);
+      await onRefreshCloud();
+      if (!request.isCurrent()) return;
+      if (activeSavedScenarioId === id) {
+        onLoadScenario(next);
+      }
+      toast.success("Renamed", { description: next.name });
+    } catch {
+      if (request.isCurrent()) toast.error("Unable to complete the saved-plan operation");
     }
-    setEditingId(null);
-    await onRefreshCloud();
-    if (activeSavedScenarioId === id) {
-      onLoadScenario(next);
-    }
-    toast.success("Renamed", { description: next.name });
   };
 
   if (!user && !authLoading) {
