@@ -35,14 +35,17 @@ class PortableGAModelTests(OfflineTestMixin,unittest.TestCase):
             cls.traces.append((seed,metrics,last,capture,ledger,samples));cls.samples.extend(samples)
         if os.environ.get('DASHBOARD_PORTABLE_MODEL_MEASURE')=='1':
             files=('vonneumann/core/integer_period_mutation.py','vonneumann/core/strategies/genetic_algorithm.py',
+                'vonneumann/research/exact_configuration.py',
                 'vonneumann/research/provider_portable_ga_model.py','vonneumann/research/provider_portable_checkpoint.py','vonneumann/research/portable_partitioned_checkpoint.py')
             artifact={'date':'2026-10-12','model':model.MODEL_FORMAT,'operator':mutation.VERSION,
                 'transport':cp.TRANSPORT_FORMAT,'scope':'three seeds/four synthetic windows each; owned in-process model and capture only',
+                'previous_measurement_sha256':hashlib.sha256((ROOT/'research/portable-ga-model-measurements.json').read_bytes()).hexdigest(),
+                'repair':'PAPER-COMPACT-TYPE1; configuration validation only; canonical model/operator/wire policies unchanged',
                 'traces':[{'seed':seed,'metrics':metrics} for seed,metrics,*_ in cls.traces],
                 'source_sha256':{name:hashlib.sha256((ROOT/name).read_bytes()).hexdigest() for name in files},
                 'independent_complete_sql_validation':False,'native_admission':False,'restoration_authority':False,
                 'hosted_activation':False,'performance_calibration':False}
-            (ROOT/'research/portable-ga-model-measurements.json').write_text(json.dumps(artifact,indent=2,sort_keys=True)+'\n')
+            (ROOT/'research/portable-ga-model-type-repair-measurements.json').write_text(json.dumps(artifact,indent=2,sort_keys=True)+'\n')
 
     def test_ordinary_ga_import_does_not_load_the_portable_operator(self):
         env={'PATH':os.environ['PATH'],'PYTHONPATH':str(ROOT),'PYTHON_DOTENV_DISABLED':'1','PYTHONDONTWRITEBYTECODE':'1'}
@@ -59,9 +62,18 @@ class PortableGAModelTests(OfflineTestMixin,unittest.TestCase):
                 'compact_sha256':hashlib.sha256(w).hexdigest(),'phase':c.transition['evidence']['kind']}))
             self.assertEqual(actual,row['commands'])
         self.assertEqual(sum(len(t['commands']) for t in baseline['traces']),70)
+        repair=json.loads((ROOT/'research/configuration-type-repair-measurements.json').read_text())
         for name in ('provider_ga_model.py','provider_checkpoint.py','partitioned_checkpoint.py'):
+            path='vonneumann/research/'+name
+            expected=baseline['source_before'][path]
+            if name=='provider_ga_model.py':
+                # The original artifact stays historical. Only the exactly
+                # source-bound TYPE1 rejection repair may replace this validator.
+                self.assertEqual(repair['source_before'][path],expected)
+                self.assertEqual(repair['compatibility_decision'],'same_versions_canonical_wires_unchanged_stricter_rejection_only')
+                expected=repair['source_sha256'][path]
             self.assertEqual(hashlib.sha256((ROOT/'vonneumann/research'/name).read_bytes()).hexdigest(),
-                baseline['source_before']['vonneumann/research/'+name])
+                expected)
 
     def test_three_seeds_four_complete_windows_have_fixed_genes_and_actual_parentage(self):
         operations=set();total=0

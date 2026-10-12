@@ -27,6 +27,7 @@ from ..core.search_random import SearchRandomStreams
 from ..core.signal_profile import EMA_WARMUP_BARS, ema_crossing
 from ..core.evolution import FITNESS_POLICY
 from . import provider_source as source
+from .exact_configuration import ConfigurationFormatError, validate_configuration
 from ..core.provider_lifecycle import evidence_clocks
 
 ExactObservation = base.ExactObservation
@@ -122,6 +123,11 @@ class GACandidate:
                     or value['transition']['after'] != self.state.to_dict()
                     or type(self._payload_bytes) is not int or self._payload_bytes != size):
                 raise ValueError()
+            # Reject malformed configuration even when bool/int aliases make
+            # the ordinary state comparison appear equal.
+            _configuration(value['transition']['after'])
+            if value['transition']['before'] is not None:
+                _configuration(value['transition']['before'])
         except (ValueError, KeyError, TypeError, UnicodeError):
             raise ExactRehearsalError('GA candidate evidence differs from its state') from None
         if size > base.MAX_PAYLOAD_BYTES:
@@ -441,16 +447,23 @@ class GAConfig(base.ExactRehearsalConfig):
                 'rehearsal': self.to_dict()}
 
 
+# A trusted default supplies the exact reviewed shape, never caller scalar values.
+_CONFIGURATION_TEMPLATE_WIRE = base._json(GAConfig('genetic_algorithm',
+    '00000000-0000-0000-0000-000000000000', '00000000-0000-0000-0000-000000000000',
+    asset='SOL/USD').to_dict())
+
+
 def _configuration(data):
     value = data['engine']['config']
-    if (value.get('profile') != PROFILE or value.get('code_version') != CODE_VERSION
-            or type(value.get('lifecycle_policy')) is not dict):
-        raise ExactRehearsalError('only fresh GA active research state is supported')
+    try:
+        validate_configuration(value, _CONFIGURATION_TEMPLATE_WIRE)
+    except ConfigurationFormatError:
+        raise ExactRehearsalError('unsupported exact configuration types/policy') from None
     config = GAConfig(value['strategy'], data['owner_id'], data['run_id'],
         value['asset'], value['initial_cash'], value['seed_capital'], value['search_seed'],
         DecimalExecutionConfig.from_dict(value['execution']['config']),
         value['lifecycle_policy']['account_loss_bps'], value['source_policy']['epoch'])
-    if config.to_dict() != value:
+    if base._json(config.to_dict()) != base._json(value):
         raise ExactRehearsalError('unsupported exact lifecycle policy')
     return config
 

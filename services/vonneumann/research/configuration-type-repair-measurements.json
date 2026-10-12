@@ -1,0 +1,106 @@
+{
+  "activation_authority": false,
+  "compatibility_decision": "same_versions_canonical_wires_unchanged_stricter_rejection_only",
+  "compatibility_scope": "Original research v1/v2 headers, operator, software, canonical configuration and wire semantics stay unchanged. Incorrectly typed evidence is rejected, never normalized or reinterpreted.",
+  "credentials_used": false,
+  "database_or_docker_access": false,
+  "date": "2026-10-12",
+  "environment": {
+    "machine": "arm64",
+    "network_denied": true,
+    "platform": "Darwin",
+    "python": "3.12.14"
+  },
+  "format": "dashboard-research-config-type-repair-v1",
+  "historical_defect_artifact": "2026-10-12-config-type-review.json",
+  "historical_defect_artifact_sha256": "ad301372e0c8a32b01f32c418b57b5213056a465d812c5ec6f6fb3bb36033341",
+  "hosted_reads_or_writes": false,
+  "native_admission": false,
+  "restoration_authority": false,
+  "results": [
+    {
+      "actual": {
+        "accepted": false,
+        "error": "CommandValidationError"
+      },
+      "checkpoint_format": "ga-provider-checkpoint-research-v2",
+      "checkpoint_module": "vonneumann.research.partitioned_checkpoint",
+      "configuration_component_sha256_after": "7217172b2e7724659ceee45d1172c2cb644b259c40c40b63d8e003229b14dbdd",
+      "configuration_component_sha256_before": "48b78e98989ad32107633c85db8b68d29a83603012a5a157b64eb219ea2d9449",
+      "configuration_reconstruction": {
+        "accepted": false,
+        "error": "ExactRehearsalError"
+      },
+      "configuration_scalar_leaves": 61,
+      "expected": "CommandValidationError: noncanonical policy scalar type",
+      "field": "engine.config.lifecycle_policy.max_lifespan_seconds",
+      "model_format": "ga-provider-model-research-v1",
+      "model_module": "vonneumann.research.provider_ga_model",
+      "original": {
+        "type": "int",
+        "value": 0
+      },
+      "profile": "ema-ga-provider-research-v1",
+      "simulation_ledger_accepted_commands": 0,
+      "substitution": {
+        "type": "bool",
+        "value": false
+      }
+    },
+    {
+      "actual": {
+        "accepted": false,
+        "error": "CommandValidationError"
+      },
+      "checkpoint_format": "ga-portable-provider-checkpoint-research-v2",
+      "checkpoint_module": "vonneumann.research.portable_partitioned_checkpoint",
+      "configuration_component_sha256_after": "89501a0c154f468906d457ee53b940296282bed50e4f20b39f2adaee98de44ab",
+      "configuration_component_sha256_before": "8e8d7db843b4e7c6f83bcadec1b924699908af782dc7b90e76aad0902d8933df",
+      "configuration_reconstruction": {
+        "accepted": false,
+        "error": "ExactRehearsalError"
+      },
+      "configuration_scalar_leaves": 80,
+      "expected": "CommandValidationError: noncanonical policy scalar type",
+      "field": "engine.config.lifecycle_policy.max_lifespan_seconds",
+      "model_format": "ga-portable-provider-model-research-v2",
+      "model_module": "vonneumann.research.provider_portable_ga_model",
+      "original": {
+        "type": "int",
+        "value": 0
+      },
+      "profile": "ema-ga-portable-provider-research-v2",
+      "simulation_ledger_accepted_commands": 0,
+      "substitution": {
+        "type": "bool",
+        "value": false
+      }
+    }
+  ],
+  "scope": "Credential-free owned bootstrap/capture and primitive configuration refusal; no complete SQL or hosted admission",
+  "source_before": {
+    "tests/security_support.py": "d0ff1adaa35cd4dab046fae2ead824a0ee51cae0a1e501096a040c08cf8b7783",
+    "tests/test_provider_contract.py": "ce6f725e164c73a63fa362204a899c67b86da76d4b73c0ff6a7647883aeaca8f",
+    "vonneumann/db/command_protocol.py": "95640ce87d4151d58ca75f4c139c0fa8ff1f1ba24adffe479321c5f9068ee0d8",
+    "vonneumann/research/numeric_wire.py": "2c26477e4c4fa1910319605981a64b82e7d0b67c1cbe69a92c492374aed05015",
+    "vonneumann/research/partitioned_checkpoint.py": "4752288ddaba3835270701253874b246522c5e760a602d616c862f37f42d1aa7",
+    "vonneumann/research/portable_partitioned_checkpoint.py": "cb682e2acbddc321e4f282c23d69e22ab32b599162873d0e44fd87ea30407985",
+    "vonneumann/research/provider_checkpoint.py": "877b511ac97425dc66d1bbb255f74541c7b51053daed29acc7196ecf406c97c7",
+    "vonneumann/research/provider_ga_model.py": "5ea9a848027c050ef196345bd517ada7f11dd4ceaab4b287211cc00cd3dade81",
+    "vonneumann/research/provider_portable_checkpoint.py": "cc897d41c55882113e02c295c355b7be8bc620a442667df5add5d33fadbd10c8",
+    "vonneumann/research/provider_portable_ga_model.py": "3458b0956d7beb137d173a5883ce028d89e9cbbdc7260ad6db32b5ca1f1a2d75"
+  },
+  "source_sha256": {
+    "tests/measure_configuration_type_repair.py": "ff9391bd2ef3f83cdb37d9704e594e358212ec25d6037005ec194153cf25bdb6",
+    "tests/test_portable_ga_model.py": "81a927f02fa8a0d18bbb393bb37c0097d9eec309b1b35d4aef3834bd33caec70",
+    "tests/test_research_configuration_types.py": "2c26fe0806f5b6edecb4a5709af2c2539f11cfca7a585a94be022b66fc334d3e",
+    "vonneumann/research/exact_configuration.py": "d8b26b2045f051df0300de3ae159c7d9b3ff5c71e774379d633e6faca5b39b64",
+    "vonneumann/research/partitioned_checkpoint.py": "4752288ddaba3835270701253874b246522c5e760a602d616c862f37f42d1aa7",
+    "vonneumann/research/portable_partitioned_checkpoint.py": "cb682e2acbddc321e4f282c23d69e22ab32b599162873d0e44fd87ea30407985",
+    "vonneumann/research/provider_checkpoint.py": "877b511ac97425dc66d1bbb255f74541c7b51053daed29acc7196ecf406c97c7",
+    "vonneumann/research/provider_ga_model.py": "4343e38c9ccf864144abbb843e1b4936b2441954ade42c573c986dbc1d87f242",
+    "vonneumann/research/provider_portable_checkpoint.py": "cc897d41c55882113e02c295c355b7be8bc620a442667df5add5d33fadbd10c8",
+    "vonneumann/research/provider_portable_ga_model.py": "e53486d35be4fdf642df85c33c9b9c278a82ba2016905a60e6870e59ae5df9ec"
+  },
+  "task": "PAPER-COMPACT-TYPE1"
+}

@@ -4467,3 +4467,37 @@ docs are staged. Other parallel TYPE1/privacy/CI drafts and the user migration
 are excluded. MigrationSHA256a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc
 is unchanged. Exact preview/head/merge/production proof will be recorded in the
 scoped PR; rollback is a reviewed lock/guard/docs revert, not a database action.
+
+
+## 105. Exact research configuration type enforcement — 2026-10-12
+
+PAPER-COMPACT-TYPE1 repairs both research provider GA reconstruction boundaries
+and original before/after candidate guards. Trusted immutable templates require
+plain exact dictionaries/keys/list lengths/scalar types/policies before caller
+configuration construction; canonical JSON bytes reject normalization. Eight
+reviewed string settings vary under the existing range/economic checks. Custom
+keys are refused before their equality methods can touch trusted keys. No RNG,
+ledger identity, trading, native/SQL/runtime selection or restoration authority
+is added. [Contract and compatibility](services/vonneumann/CONFIGURATION-TYPE-REPAIR.md).
+
+Six type tests pass (423 scalar substitutions,29 rehashed cases, unsupported key
+callback refusal,state/RNG/ledger/Stop invariance and alternate canonical inputs).
+Nine portable/legacy cases pass, preserving every70 original v1 wire pairs and
+three seeds/four windows/201commands/96assessments and offspring per trace.
+Twenty-two package regressions pass:37 relevant offline cases,zero skips. Current
+repair and portable measurement artifacts bind10/6 final source hashes; the
+original defect artifact remains ad301372e0c8a32b01f32c418b57b5213056a465d812c5ec6f6fb3bb36033341.
+Canonical model/policy/software/transport headers remain unchanged because this
+rejects out-of-contract inputs without conversion or altered canonical semantics.
+Legacy validator source changes are separately hash-bound, not disguised as the
+old source. Independent full v2 SQL B2B,atomic native effects,restore/retention and
+closed hosted acceptance remain subsequent gates; Railway stays closed.
+
+Security PR99 is merged e3de2513b9a5e65a5623575b7fda8e5580f66dcc with identical
+reviewed tree. Exact productiondpl_H7D6J8wAiPp2oT5eVoRzkNsXxbWF READY/current
+canonical alias passes all four read-only probes. Fresh Dashboard target IDs
+remain pinned. This worker slice excludes parallel privacy/CI drafts and the
+unchanged user migrationSHAa62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc.
+No hosted mutation/capability/provider/billing/wallet operation. Rollback is a
+reviewed code/docs revert; invalid aliases are not valid restored evidence.
+Exact source/merge/production proof will be recorded in the scoped PR.
