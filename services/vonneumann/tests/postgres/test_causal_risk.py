@@ -252,7 +252,7 @@ class CausalRiskSqlTests(unittest.TestCase):
           SELECT p.proname,r.rolname AS owner,p.prosecdef,p.proconfig FROM pg_proc p
           JOIN pg_namespace n ON n.oid=p.pronamespace JOIN pg_roles r ON r.oid=p.proowner
           WHERE n.nspname='vn_causal_research' ORDER BY p.proname)x;"""))
-        self.assertEqual(len(rows),14)
+        self.assertEqual(len(rows),15)
         self.assertTrue(all(r['owner']==INSTALLER and r['proconfig']==['search_path=pg_catalog'] for r in rows))
         self.assertEqual([r['proname'] for r in rows if r['prosecdef']],['validate_request'])
         for role in ('anon','authenticated','service_role','vn_economic_relay'):

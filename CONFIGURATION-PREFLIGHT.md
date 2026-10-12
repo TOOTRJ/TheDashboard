@@ -4116,3 +4116,66 @@ SHA256 a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc.
 Rollback is a reviewed code/docs revert with no hosted research objects.
 Exact preview/merge/production/read-only release evidence will be recorded in
 the PR; shared credentials/configuration and other projects are preserved.
+
+## 99. Independent assessments and common-window replay — 2026-10-11
+
+PR93 merged as af8f51cf5a7d311cae5aabcd52e037f90d10e8f0; exact READY production,
+canonical alias and all four read-only release probes passed. Before this change's
+release, fresh read-only target verification confirms GitHub TOOTRJ/TheDashboard
+ID 1141090963/account biggrizzly11 ID 16749816, Vercel the-dashboard
+prj_wFUe9k9USVreOQcmQKNWRAVsx5fH/team_8iNNxiNjrOseD4gdSCHkQEzF, and Supabase
+The Dashboard fxpxsciltakyypunglzr/org cqfnnaunmupdyobkyqfo. Railway still matches
+The Dashboard Worker/project 38facb49-4de9-4d66-85aa-2861e0306dcf, production
+environment 9bbe52c6-2305-467a-bf39-8d5e1a98e4e4, Red Jester's Projects/workspace
+f3fcd4b2-e424-4c6b-ac33-91196ccc96e1 and dashboard-paper-worker/service
+8e78ad4b-1d8f-43e7-898a-3882ac5053d7. Deployment
+cf05895d-adc5-427f-873e-82ad6606e5a1 remains SUCCESS with the same resource/settings
+metadata; no Railway changes are made. Metadata is distinct from hosted pilot
+or runtime trading acceptance.
+
+PAPER-COMPACT-03B3C1 now derives reduced cash ROI/exact binary64 fitness,
+pre-retirement terminal freeze, pre-abort risk/control captures, post-liquidation
+common-deadline records, original revision/time/source/window/policy provenance,
+ordered displayed cohort/results and exactly one completion/abort event at the
+actual replayed operation boundary. Abort withholds scores, including previously
+frozen local scores, and Stop retains holdings with no paid data or mark refresh.
+Callable wrappers strip private detached capture marks. Eleven actual SQL cases
+(ten semantic and one timing) pass across 165 complete owned commands and 160 exact
+fitness comparisons; twelve causal/risk regressions and seven unchanged canonical/
+forward package checks pass. Adversarial records first pass economics/source/
+causal validation before assessment rejection. Private installer ownership, ten
+assessment/fifteen causal functions, fixed pg_catalog paths, auditor-only final
+wrapper execution, client/helper/table denial and unchanged rows are checked.
+
+Ten warm full-wrapper calls per case include three dependency resolutions:
+p95 bootstrap 1011.586 ms, quote 474.529 ms, replacement 827.904 ms,
+early terminal 970.755 ms, risk 844.671 ms, frozen completion 965.740 ms,
+held Stop 802.548 ms. Exclusions include optimizer/RNG/lineage semantics, contended
+waits, native journal/global identity insertion/pins/projections, final source/
+lease checks, COMMIT/WAL/TLS/relay and hosted tails. No throughput/budget or
+profitability acceptance is claimed. [The artifact](services/vonneumann/research/assessment-transition-measurements.json)
+binds six installed sources/image and also records the unused legacy reference
+source digest. Assessment SHA256:
+6af9cec6722c53e2995de01d75d62deab63381d407313939123cc41e8590dde3;
+current causal capture SHA256:
+6132cedbe15d3d88997bfafc319cee08848bb9c38b4c9be86d8ee284644aab37.
+Earlier timing artifacts retain their original installed snapshots.
+
+03B3C2 remains next: complete optimizer graph/mirrors/software/aliases/map order,
+namespaced seed/MT19937/draw continuation, stable tournament ties, crossover/
+mutation/repair, genotype controls and actual ordered ancestry.03/04/05 still gate
+native effects, exact restoration, retention and closed hosted acceptance.
+[Research and implementation limits](services/vonneumann/NATIVE-ASSESSMENT-TRANSITION.md)
+include pinned CPython seeding/sampling/Gaussian behavior, cross-platform math and
+resource bounds, a separately versioned portable integer-period operator if
+needed, objective/holdout/multi-seed/multiple-testing evidence, one verified
+resolution, immutable validation reuse and full native/hosted timing tails.
+
+No hosted schema/data/grant/migration/native package, Railway deploy/variables/
+capability, paid API request, archive deletion, billing or live execution change.
+No additional user setup is needed. The worker stays closed. Preserve the
+user-owned colonies migration at SHA256
+a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc.
+Rollback is a reviewed code/docs revert with no hosted research objects. Exact
+preview/merge/production/read-only evidence will be recorded in the PR; shared
+credentials/configuration and other projects remain untouched.

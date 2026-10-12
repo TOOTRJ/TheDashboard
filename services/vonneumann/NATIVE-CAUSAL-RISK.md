@@ -4,6 +4,15 @@ Reviewed 2026-10-11. PAPER-COMPACT-03B3B2 completes03B3B's offline source/causal
 risk milestone for the separately versioned GA provider model. It adds no native
 admission, durable effects, checkpoint decoder or runtime trading authority.
 
+**Follow-on03B3C1:** the current replay also keeps private derived capture marks
+for early terminal, risk/control abort and common-deadline finalization. They are
+stripped from callable wrapper results and validated by
+[the assessment layer](NATIVE-ASSESSMENT-TRANSITION.md). The fixture now owns
+fifteen private functions. The acceptance/timing/source hash below records the
+original PR93 snapshot; current composed acceptance and all installed digests
+are recorded in the assessment report/artifact. Optimizer/RNG/selection/lineage
+and native effects remain outside this replay.
+
 ## Ordered independent replay
 
 The private validator first binds the original canonical request and locked

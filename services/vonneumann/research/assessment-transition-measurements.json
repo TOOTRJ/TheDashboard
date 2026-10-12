@@ -1,0 +1,91 @@
+{
+  "complete_commands": 165,
+  "date": "2026-10-11",
+  "identity": {
+    "image": "public.ecr.aws/supabase/postgres:17.6.1.095",
+    "image_id": "sha256:965e2dfb5a23a0d6541b6106541e777b303656ebabd4e878746b189d550c0a66",
+    "network": "none",
+    "postgres_version": "17.6"
+  },
+  "production_grants_or_install": false,
+  "scope": "economics/source/causal/risk/assessments/common-window; optimizer/RNG/lineage pending",
+  "sql_sha256": {
+    "assessment_transition.sql": "6af9cec6722c53e2995de01d75d62deab63381d407313939123cc41e8590dde3",
+    "causal_risk.sql": "6132cedbe15d3d88997bfafc319cee08848bb9c38b4c9be86d8ee284644aab37",
+    "checkpoint_reference.sql": "18a322859674b9d78ddc9212dfa9cb0595eaa216e8c165c3c30f1c88a682de2f",
+    "economic_transition.sql": "c12a98685b4f20bc7ceaa3a31995b527379fba505bc1a59ecaf8c54143ef5801",
+    "locked_checkpoint.sql": "40973039c4ec1fd0af8a2836818ab75db60b6e75ec41e2f217adc078d2863542",
+    "numeric_wire.sql": "adc7dbe2ce3ef51d860b8c09430a24759522cb7284dc73e40804dbd8880675b1",
+    "source_transition.sql": "4f1c5b506fa2e9253cd3e7940f9b4d9f429d81561f73a4676ca8db7c3450cede"
+  },
+  "tables_in_new_artifact": 0,
+  "timing_exclusions": [
+    "transport/TLS",
+    "contended locks",
+    "optimizer/RNG/lineage semantics",
+    "native journal/identity insertion/pins/projections",
+    "final source/lease boundary",
+    "COMMIT/WAL/relay",
+    "hosted tails"
+  ],
+  "timing_method": "10 volatile full wrapper calls; generic plans; unchanged fixture prior; three resolutions",
+  "warm_server_validation_timings": [
+    {
+      "kind": "bootstrap",
+      "maximum_us": 1023300,
+      "p50_us": 987796,
+      "p95_us": 1011585.6,
+      "samples": 10,
+      "wire_bytes": 128635
+    },
+    {
+      "kind": "quote",
+      "maximum_us": 475780,
+      "p50_us": 452542,
+      "p95_us": 474529.45,
+      "samples": 10,
+      "wire_bytes": 9192
+    },
+    {
+      "kind": "replacement",
+      "maximum_us": 831675,
+      "p50_us": 810195,
+      "p95_us": 827904,
+      "samples": 10,
+      "wire_bytes": 149024
+    },
+    {
+      "kind": "early_terminal",
+      "maximum_us": 970975,
+      "p50_us": 958143.5,
+      "p95_us": 970755.4,
+      "samples": 10,
+      "wire_bytes": 134029
+    },
+    {
+      "kind": "risk_trip",
+      "maximum_us": 847437,
+      "p50_us": 831535.5,
+      "p95_us": 844670.85,
+      "samples": 10,
+      "wire_bytes": 140391
+    },
+    {
+      "kind": "frozen_completion",
+      "maximum_us": 966329,
+      "p50_us": 947491,
+      "p95_us": 965739.5,
+      "samples": 10,
+      "wire_bytes": 137902
+    },
+    {
+      "kind": "held_stop",
+      "maximum_us": 803945,
+      "p50_us": 787951.5,
+      "p95_us": 802548.2,
+      "samples": 10,
+      "wire_bytes": 106885
+    }
+  ],
+  "writes_by_validator": 0
+}
