@@ -1,5 +1,65 @@
 # Evolutionary trading bot MVP readiness
 
+## Authoritative current status — 2026-10-12
+
+The supervised, zero-cost paper hour is accepted. The original owner run reached
+revision 514 with 504 accepted prices, one GA replacement, eight equally funded
+children, two closed trades and 32 contiguous acknowledged events. The repaired
+owner history and repeat read passed. This proves a finite mechanical pilot;
+continuous evolution, exact process restoration and strategy performance remain
+unaccepted. [Original evidence](supabase/audits/2026-10-08-owner-hour-first-replacement.json).
+
+PR96 and [PR97](https://github.com/TOOTRJ/TheDashboard/pull/97) are merged. The
+current reviewed source baseline is `67cff30`; PR97 production
+`dpl_ASo5z4Zc6APWsUPseQVrvw52Aici` was verified READY with its canonical alias
+and four read-only release probes. The dedicated Dashboard sign-in saved; the
+older PR96 login request is resolved. The root review freshly reverified this exact baseline deployment and all four
+read-only probes; the historical owner-hour acceptance was not repeated.
+
+The portable integer-mutation model, versioned checkpoint and compact transport
+are built as offline research code. Source-bound synthetic tests and independent
+SQL mutation-primitive comparisons pass. This review reproduced a strict
+configuration defect: Python boolean/integer equality permits some incorrectly
+typed configuration values to match the expected dictionary. Repair and test
+that boundary before the full independent version 2 SQL proof. The portable model
+is therefore **built with a known validation repair pending**, not fully validated
+or selected by the hosted writer. Native version 2 admission, restored execution,
+retention and hosted activation are not implemented by PR97.
+
+Railway remains at ordinary closed deployment
+`cf05895d-adc5-427f-873e-82ad6606e5a1`, with the original variable map restored and
+finite credentials revoked/NOLOGIN after the hour. Supabase's installed selected
+paper contract is the earlier v5 package; the new research validators are not a
+production migration. No live funding, signing or swaps are available or authorized.
+
+| Order | Remaining gate | Dependency and acceptance |
+| --- | --- | --- |
+| 1 | Repair strict portable configuration validation | Reject boolean/integer substitutions, wrong types, unknown/missing fields and rehashed invalid configurations before construction or admission. Recheck unchanged legacy behavior. |
+| 2 | Complete independent original version 2 SQL semantics | PAPER-COMPACT-03B3C2B2B follows the repair. Bind complete policy/configuration/wire/prior chain; derive selection, mutation, genomes, lineage, economics, source, risk and assessments independently. Reject consistent-looking forged periods. |
+| 3 | Implement the atomic native compact contract | PAPER-COMPACT-03 follows complete semantics: original-ID receipts/replay, component pins, allocated identities, journal/history/outbox/provenance, final lease/source checks, installer/capability isolation and reserved Stop resources. |
+| 4 | Prove exact restoration and safe retention | PAPER-COMPACT-04 then PAPER-COMPACT-05: decode pinned state and match the full next wire; settle uncertain original commands; verify dependency-safe archives/readback before hot pruning. Measure physical storage and filled-budget Stop behavior. |
+| 5 | Join new-version dashboard and closed deployment acceptance | Compatible owner-only old/new history, assessments, ancestry, precision and controls must pass alongside native/package/rollback tests. Reverify exact targets before a reviewed closed migration/deployment. |
+| 6 | Accept bounded multi-window operation and fault/load behavior | After the preceding gates and measured provider/resource budgets, prove repeated windows, held-position interruption, process kill/overlap/recovery, original-ID settlement, complete owner replay and closed cleanup. Continuous operation needs an explicitly accepted operating profile. |
+
+Security/dependency review and secret-free CI; dashboard/API honesty and privacy;
+representative data, fill and objective research; and project-only Railway
+maintenance can proceed in parallel. Restoration/retention design can start early,
+but final acceptance depends on stable versioned native contracts. Empirical
+multi-seed held-out grid/random/cash/passive/GA comparisons remain required before
+trusting rankings or adding genes. The broader app/Nestegg audit is a separate
+parallel closeout lane; a paper-bot milestone does not complete the entire dashboard.
+
+Use [TODO.md](TODO.md) for the actionable dependency order and
+[CONFIGURATION-PREFLIGHT.md](CONFIGURATION-PREFLIGHT.md) for recorded releases.
+Keep the two-gene, eight-member, single SOL/USD reference profile. More genes,
+assets, libraries and live execution do not precede these correctness gates.
+
+## Historical implementation checkpoints
+
+The dated notes below preserve the evidence and limitations at each checkpoint.
+Their descriptions of a next task, pending login or failed pilot are historical;
+the current status and gate order above supersede them.
+
 **Explicit portable model and compact transport — 2026-10-12:** PR96 is merged as
 23692fe5dc727c8b71e25b41daee752b7a65f2d2. Exact Dashboard preview and production
 are READY; canonical alias and all four read-only probes pass. Fresh GitHub/Vercel/
@@ -40,10 +100,9 @@ complete offspring/configuration/transition validation. ParentB/C2/C remain open
 Then03 atomic native effects/forward migration,04 exact restoration and05 retention/
 closed hosted acceptance. Longer-window fill/objective/baseline calibration still
 gates continuous paper operation. Live trading remains outside authorization.
-Release checkpoint: the offline B1 work is in open PR96. Exact latest-head preview,
-merge and production verification are pending a renewed sign-in to the dedicated
-Dashboard Vercel profile; its auth file is absent and CLI verification fails.
-The requested sign-in is the only current user setup dependency.
+Historical release checkpoint: B1 initially awaited the dedicated Dashboard
+sign-in while PR96 was open. That request is resolved; PR96 and PR97 are merged
+and their recorded release checks passed. See the authoritative current status.
 
 **Optimizer graph, selection RNG and parentage — 2026-10-12:** PR94 is merged as
 a2d646e306946a1267ac21609aff42447a37a289 with exact production/canonical-alias/
@@ -553,7 +612,7 @@ HOST-07 and continuous/live gates remain open. No wallet operation is authorized
 [new owner attempt](supabase/audits/2026-10-08-owner-pilot-local-admission-failure.json),
 [ordered work](TODO.md), [activation/rollback](PAPER-MVP-ACTIVATION.md).
 
-## Current position
+## Selected v5 bounded-pilot acceptance — historical release scope
 
 | Area | Status and practical meaning |
 |---|---|
@@ -565,24 +624,22 @@ HOST-07 and continuous/live gates remain open. No wallet operation is authorized
 | Dashboard | Next.js16.3.8 and selected paper-v5 interface are deployed. Actual trades reveal that the reader rejects valid16-place quantities under its former12-place bound. PR79 accepts the ledger’s18-place strings with a failing-before/full-snapshot regression;16 focused tests, TypeScript and lint pass. Exact PR79 production/four smokes and actual-owner complete revision514 history, trades, both evaluation windows and repeat event read pass. |
 | Worker / live execution | The original hour is stopped. Exact Railway Dashboard service is ordinary closed/SUCCESS,16 temporary settings removed, original variables matched and finite pair revoked/NOLOGIN. No automatic restart is permitted. Live signing/funding/swaps remain unavailable and unauthorized. |
 
-The exact source, project/service/owner identities, US West replica, HTTPS,
-resource limits and outbound IPv6/TLS are verified. The $20/month pilot ceiling
-is approved. Actual installer/issuer rollback, closed migration, finite native
-sessions/revocation, owner reads/Auth/CORS,61-bar warmup and paced provider/native
-controller checks pass. These finite successes do not establish the one-hour
-pilot, interruption with positions, unattended restoration, statistical timing
-tails or economic performance. The failed run is preserved and explicitly
-terminal; no original authority was extended. Fixed failure diagnostics are
-released, and a new assessment passes. The next separate acceptance is the real
-owner's hour and first replacement; any failure requires original reconciliation
-and evidence before another attempt.
+The original one-hour pilot and first replacement are accepted at revision514,
+including complete repaired owner history and ordinary closed cleanup. Earlier
+failed runs remain terminal with their economic evidence preserved; no original
+authority was extended. The exact selected-project installer/issuer rollback,
+closed migration, native sessions/revocation, owner Auth/CORS,61-bar warmup and
+paced controller evidence belong to that finite v5 scope. They do not establish
+portable version2 admission, interruption with retained positions, unattended
+restoration, statistical timing tails or economic performance. The $20/month
+pilot ceiling remains a design constraint, not authority for account-wide changes.
 [Current assessment evidence](supabase/audits/2026-10-08-connect-headroom-controller-assessment.json),
 [setup](RAILWAY-SETUP.md), [native transport](services/vonneumann/NATIVE-SQL-TRANSPORT.md),
 [closed cutover](SUPABASE-CUTOVER.md), [hosted preflight](services/vonneumann/HOSTED-NATIVE-PREFLIGHT.md).
 
-## First hosted paper MVP: ordered critical path
+## Historical first hosted paper MVP plan — finite hour accepted
 
-The proposed first MVP is a **supervised bounded pilot**, with eight candidates,
+The accepted first pilot is a **supervised bounded pilot**, with eight candidates,
 one SOL/USD reference market, two EMA genes, one evaluation window and at most
 one replacement. It has no restart/resume capability. Current conservative caps
 are 3,601 accepted quotes, 3,600 quote seconds and 4,000 total commands; the
@@ -590,13 +647,13 @@ terminal stop has reserved capacity. These caps do not establish a one-second
 production cadence. A stop retains positions and reports them; it does not
 invent liquidation proceeds.
 
-| Order | Remaining work | Todo / acceptance |
+| Order at that stage | Original gate | Evidence / remaining scope |
 |---|---|---|
 | Complete prerequisite | Fixed diagnostics and original expired-run reconciliation | PAPER-FAILURE-EVIDENCE1/PAPER-EXPIRED-MAINT1: dedicated sign-in, exact-target/source/production, actual original-input rollback and once-only interruption pass. Unchanged economics/checkpoint and candidate delivery hashes and actual terminal owner browser history pass; no event or ACK is invented. |
 | Complete prerequisite | Release and assess observed controller/transport repairs | PR74–78 are merged and exact production is verified. The final-source thirty-price uvloop assessment passes, including original lost-reply settlement, relay, reserved Stop, owned reads and isolation. Closed restoration and credential revocation pass. The separate actual-owner hour and repaired production browser acceptance now pass; broader operating/recovery/continuous gates remain open. |
 | 3 | Complete workload/security/interrupt evidence for the bounded profile | DATA-01E, D2D2A, HOST-02…06/A3: retain finite source/quota/DB/relay/resource measurements, owner isolation and original-ID settlement. Complete unresolved fault/overlap/outage exposure checks. Continuous quota/tail/restart readiness remains separate. |
-| 4 | Verify complete operator and ownership flow at the final window | Actual login/start/eight-candidate/nonempty history works. Verify complete first-replacement balance/trade/evaluation history, reconnect/replay and owner isolation at the final committed revision. Costs remain uncalibrated; stop retains holdings and restart requires reconciliation. |
-| 5 | Accept the supervised one-hour pilot, then close/review | HOST-07: eight candidates, two EMA genes, one SOL/USD reference window, at most one replacement, real feeds/simulated economics and reserved stop. Record resource/quota/failure evidence, restore closed runtime and revoke the finite pair. No profitability or live-trading claim follows from this mechanical acceptance. |
+| 4 | Verify complete operator and ownership flow at the final window | Complete revision514 balance/trade/evaluation history and repeat32-event read pass after PR79's precision repair. Broader two-user/multi-window/retained-position fault acceptance remains separate. Costs remain uncalibrated and restart requires reconciliation. |
+| 5 | Accept the supervised one-hour pilot, then close/review | The finite HOST-07 subgate is accepted: eight candidates, two EMA genes, one SOL/USD window, one replacement, real feeds and simulated zero-cost economics. Original variables were restored and the finite pair revoked. Operating/recovery/continuous gates remain open; no profitability or live-trading claim follows. |
 
 For an **unattended continuously evolving paper MVP**, add compact/versioned
 multi-window checkpoint commands (DB-03A2C2D2D3), supported larger profiles and

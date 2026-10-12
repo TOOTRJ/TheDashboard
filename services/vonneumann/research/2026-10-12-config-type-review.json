@@ -1,0 +1,96 @@
+{
+  "activation_authority": false,
+  "credentials_used": false,
+  "database_or_docker_access": false,
+  "environment": {
+    "bytecode_writes_disabled": true,
+    "dotenv_disabled": true,
+    "machine": "arm64",
+    "network_denied": true,
+    "platform": "Darwin",
+    "python": "3.12.14"
+  },
+  "format": "dashboard-research-config-type-review-v1",
+  "hosted_reads_or_writes": false,
+  "native_admission": false,
+  "procedure": [
+    "Bootstrap a fresh research candidate using GAConfig, seed_bundle(), source_inputs(WALL), and SimulationLedger without accepting it.",
+    "Capture and resolve the complete owned candidate using the matching partitioned checkpoint version.",
+    "Copy only the configuration component body and replace lifecycle_policy.max_lifespan_seconds integer 0 with boolean False.",
+    "Create a new correctly scoped configuration TypedComponent with generation 0; replace its manifest reference with the new hash.",
+    "Resolve the complete manifest/components with the original owner/run and candidate revision.",
+    "Record accepted boolean False despite the pinned policy requiring integer 0; never construct restored runtime state or accept a command."
+  ],
+  "recommendation": "Require type-preserving canonical configuration equality and adversarial boolean/integer scalar tests before complete v2 SQL/native admission.",
+  "reproduce_command": "PYTHONDONTWRITEBYTECODE=1 PYTHON_DOTENV_DISABLED=1 /private/tmp/dashboard-locked-worker/bin/python /private/tmp/dashboard-config-type-review.py",
+  "reproducer_sha256": "6db396275cd7021f07bc10056c88759c9236cb2a431b882a28fc402e8bcc406d",
+  "restoration_authority": false,
+  "results": [
+    {
+      "actual": {
+        "accepted": true,
+        "resolved_type": "bool",
+        "resolved_value": false
+      },
+      "checkpoint_format": "ga-provider-checkpoint-research-v2",
+      "checkpoint_module": "vonneumann.research.partitioned_checkpoint",
+      "configuration_component_sha256_after": "7217172b2e7724659ceee45d1172c2cb644b259c40c40b63d8e003229b14dbdd",
+      "configuration_component_sha256_before": "48b78e98989ad32107633c85db8b68d29a83603012a5a157b64eb219ea2d9449",
+      "expected": "CommandValidationError: noncanonical policy scalar type",
+      "field": "engine.config.lifecycle_policy.max_lifespan_seconds",
+      "model_format": "ga-provider-model-research-v1",
+      "model_module": "vonneumann.research.provider_ga_model",
+      "original": {
+        "type": "int",
+        "value": 0
+      },
+      "profile": "ema-ga-provider-research-v1",
+      "simulation_ledger_accepted_commands": 0,
+      "substitution": {
+        "type": "bool",
+        "value": false
+      }
+    },
+    {
+      "actual": {
+        "accepted": true,
+        "resolved_type": "bool",
+        "resolved_value": false
+      },
+      "checkpoint_format": "ga-portable-provider-checkpoint-research-v2",
+      "checkpoint_module": "vonneumann.research.portable_partitioned_checkpoint",
+      "configuration_component_sha256_after": "89501a0c154f468906d457ee53b940296282bed50e4f20b39f2adaee98de44ab",
+      "configuration_component_sha256_before": "8e8d7db843b4e7c6f83bcadec1b924699908af782dc7b90e76aad0902d8933df",
+      "expected": "CommandValidationError: noncanonical policy scalar type",
+      "field": "engine.config.lifecycle_policy.max_lifespan_seconds",
+      "model_format": "ga-portable-provider-model-research-v2",
+      "model_module": "vonneumann.research.provider_portable_ga_model",
+      "original": {
+        "type": "int",
+        "value": 0
+      },
+      "profile": "ema-ga-portable-provider-research-v2",
+      "simulation_ledger_accepted_commands": 0,
+      "substitution": {
+        "type": "bool",
+        "value": false
+      }
+    }
+  ],
+  "review_date": "2026-10-12",
+  "root_cause": "Ordinary Python dictionary equality treats False and 0 as equal in each model configuration reconstruction check.",
+  "runtime_or_test_source_changes": false,
+  "scope": "Fresh credential-free in-process research bootstrap/capture/resolution; no admission or hosted authority",
+  "source_sha256": {
+    "tests/security_support.py": "d0ff1adaa35cd4dab046fae2ead824a0ee51cae0a1e501096a040c08cf8b7783",
+    "tests/test_provider_contract.py": "ce6f725e164c73a63fa362204a899c67b86da76d4b73c0ff6a7647883aeaca8f",
+    "vonneumann/db/command_protocol.py": "95640ce87d4151d58ca75f4c139c0fa8ff1f1ba24adffe479321c5f9068ee0d8",
+    "vonneumann/research/numeric_wire.py": "2c26477e4c4fa1910319605981a64b82e7d0b67c1cbe69a92c492374aed05015",
+    "vonneumann/research/partitioned_checkpoint.py": "4752288ddaba3835270701253874b246522c5e760a602d616c862f37f42d1aa7",
+    "vonneumann/research/portable_partitioned_checkpoint.py": "cb682e2acbddc321e4f282c23d69e22ab32b599162873d0e44fd87ea30407985",
+    "vonneumann/research/provider_checkpoint.py": "877b511ac97425dc66d1bbb255f74541c7b51053daed29acc7196ecf406c97c7",
+    "vonneumann/research/provider_ga_model.py": "5ea9a848027c050ef196345bd517ada7f11dd4ceaab4b287211cc00cd3dade81",
+    "vonneumann/research/provider_portable_checkpoint.py": "cc897d41c55882113e02c295c355b7be8bc620a442667df5add5d33fadbd10c8",
+    "vonneumann/research/provider_portable_ga_model.py": "3458b0956d7beb137d173a5883ce028d89e9cbbdc7260ad6db32b5ca1f1a2d75"
+  }
+}

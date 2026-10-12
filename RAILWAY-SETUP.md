@@ -4,6 +4,32 @@ The user approved a **$20/month ceiling for the initial paper pilot** on 2026-10
 This is a spending constraint, not a selected paid subscription, resource estimate,
 production cadence or approval to change account-wide billing for other projects.
 
+## Authoritative worker status — 2026-10-12
+
+The service is provisioned and remains in ordinary **closed mode** at deployment
+`cf05895d-adc5-427f-873e-82ad6606e5a1`. The original owner hour completed at
+revision 514 with 504 prices, one replacement, eight funded children, two closed
+trades and 32 acknowledged events. The repaired complete owner history and repeat
+read passed. All 16 temporary settings were removed, the original variable map
+restored, and finite native credentials revoked/NOLOGIN. This is accepted finite
+zero-cost mechanical evidence; no continuously evolving worker is running.
+[Hour and closed cleanup](supabase/audits/2026-10-08-owner-hour-first-replacement.json).
+
+PR96 and PR97 are merged; reviewed source `67cff30` and PR97 Vercel production
+`dpl_ASo5z4Zc6APWsUPseQVrvw52Aici` have recorded READY/canonical-alias/four-probe
+checks, freshly repeated read-only by the root reviewer. Exact Railway target and
+unchanged service settings also match; no active workload was restarted. The new
+portable model/compact transport is offline research code. A reproduced
+boolean/integer configuration-type defect needs repair before complete independent
+version 2 SQL validation. The new model is not fully validated, installed as a
+native writer, restored from durable checkpoints or enabled on Railway.
+
+Keep the service closed until the ordered gates below pass. Security/CI,
+data/fill/objective research, app/API correctness and project-only maintenance can
+proceed in parallel. None grants live funding, signing or swap authority. Earlier
+dated setup and canary notes below preserve historical evidence; they do not
+reopen completed account, native-session or first-hour setup questions.
+
 ## Exact target
 
 | Scope | Name | Immutable ID |
@@ -13,10 +39,10 @@ production cadence or approval to change account-wide billing for other projects
 | Environment | production | `9bbe52c6-2305-467a-bf39-8d5e1a98e4e4` |
 | Service | dashboard-paper-worker | `8e78ad4b-1d8f-43e7-898a-3882ac5053d7` |
 | Region / replicas | US West / one | `us-west2` |
-| Healthy closed deployment | SUCCESS | `d2946105-6ed6-4adc-bf63-23adab188c4a` |
+| Last verified ordinary closed deployment | SUCCESS | `cf05895d-adc5-427f-873e-82ad6606e5a1` |
 
 The production-scoped token and actual project/environment names and workspace
-were verified through the API on 2026-10-07. The dedicated service is now hosted
+were verified through the scoped helper and subsequent release checks. The service is hosted
 in **closed mode**, with mode/dotenv flags, the supplied public CA and explicit Dashboard Auth settings. No
 database/provider credentials, GitHub integration, billing change, native ledger
 or paper run is enabled. [Health endpoint](https://dashboard-paper-worker-production.up.railway.app/health).
@@ -96,7 +122,7 @@ and configuration directories. The current CLI's SSH command can register shared
 account keys; it was not used. A bounded TLS-only startup command probes inside the
 actual container and then execs the normal closed entrypoint.
 
-## Closed hosted acceptance — 2026-10-07
+## Historical closed hosted acceptance — 2026-10-07
 
 - Source `9837eb1af2a226b5ee4aa46a0f07731783216306`, 94 allowlisted files,
   1,179,683 bytes; normalized export manifest SHA-256
@@ -109,8 +135,8 @@ actual container and then execs the normal closed entrypoint.
   child; it is one observation, not a native connection percentile or cadence.
   No PostgreSQL StartupMessage, login, SQL or SCRAM/channel-binding test was sent.
 - Hosted HTTPS: health 200, unauthenticated status 401, legacy colonies/docs 404,
-  foreign Origin 403. Normal responses have `Cache-Control: no-store`; the early
-  foreign-origin rejection currently lacks that header and is recorded for repair.
+  foreign Origin 403. At this checkpoint the early foreign-origin rejection
+  lacked `Cache-Control: no-store`; HOST-05A subsequently repaired and verified it.
 - Nine minute-spaced closed-service samples: maximum memory 0.055648256 GB,
   maximum CPU 0.029888917 vCPU. Startup/failed-canary samples are included; these
   do not size the active controller or database/provider workload.
@@ -120,63 +146,68 @@ actual container and then execs the normal closed entrypoint.
   This is an arithmetic resource estimate, not an enforced $20 total spending cap.
   [Railway pricing](https://docs.railway.com/pricing).
 
-## Ordered work after scoped access
+## Ordered remaining gates for the new paper profile
 
-1. **Closed service and selected-host TLS: complete.** Retain the pins/evidence
-   above and reverify before each later operation. Keep `VN_SERVICE_MODE=closed`
-   until all remaining acceptance passes.
-2. **Finish actual committed/native managed acceptance.** The client inventory
-   is resolved by the user's confirmation. Exact-project SSL enforcement is now
-   applied, and post-reboot database/dashboard checks pass. Actual installer,
-   issuer and production/history wrapper rollback rehearsals pass after repairing
-   the managed-role/Auth/deparser mismatches. Prove committed postflight and real
-   native scoped Railway sessions next. Never relax CA/hostname validation or
-   borrow a broad managed credential for the worker. [Cutover and recovery](SUPABASE-CUTOVER.md).
-3. **C3B managed installer/issuer and A3 forward application.** Reverify The Dashboard
-   Supabase ID/org, installer/auth/default/catalog/migration state and actual DDL/role
-   capability. Prepare independent target/history digests, backup/recovery evidence,
-   writer drain and additive retirement procedure. Apply only the reviewed complete
-   forward candidate in a bounded transaction, initially closed; verify final and
-   fresh-session post-COMMIT manifest. The package remains outside migrations until
-   this target-specific execution/history wrapper is reviewed. Do not run a blind
-   `db push`, apply the historical local draft or borrow broader managed credentials.
-4. **Credentials and curated browser reads.** After package prerequisites, issue one
-   private economic/relay pair bound to the chosen owner/run and finite validity.
-   Prove actual SCRAM/verify-full/channel binding/owner/capability canaries. Inject
-   only into the exact private worker service. Expose only `vn_read` for authenticated
-   curated reads; never expose core/access/owner schemas or raw tables. Recheck owner
-   and second-user browser/API/database denial through hosted TLS. Configure Vercel
-   public worker origin/mode only on the allowed project and reviewed environment;
-   previews still share production DB and are not safe integration-test sandboxes.
-5. **Measure and launch a finite paper pilot.** Source-age/lease/SQL/COMMIT/relay/browser
-   tails, resource use, shared provider quotas, expiry/revocation, SIGTERM/SIGKILL,
-   restart refusal, overlap and additive retirement must pass before active selection.
-   Begin with a short explicit smoke, then extend only within the one-window cap and
-   $20/month ceiling supported by measurements. A spending hard stop is an interruption,
-   not proof that open holdings were reconciled. Live funding/signing/swaps stay disabled.
+1. **Repair strict configuration types, then prove complete version 2 semantics.**
+   Reject boolean/integer substitutions and other invalid complete configurations;
+   compose independent SQL selection/mutation, lineage, economics, source, risk,
+   assessments and original same-version prior-chain checks. Offline primitive
+   agreement is insufficient for native admission.
+2. **Prepare the atomic native compact package.** Original-ID receipt/replay,
+   dependency pins, identity uniqueness, journal/history/outbox/provenance, final
+   source/lease checks and reserved Stop capacity must pass with limited grants.
+   Prepare old/new reader compatibility and evidence-preserving rollback before
+   any reviewed forward migration. Never relax TLS or use a broad managed key.
+3. **Prove exact restoration and dependency-safe retention.** Verify the full
+   next prepared wire, original uncertain-command settlement, held positions,
+   archive/readback/lookup and filled-budget Stop behavior before hot pruning.
+   Loading a checkpoint does not grant a lease or activate the worker.
+4. **Join closed deployment and dashboard compatibility.** Reverify exact
+   project/workspace/environment/service and Supabase/Vercel targets; use only
+   reviewed allowlisted source, explicit private settings and finite scoped
+   credentials. Validate installed catalog/history after COMMIT, non-root image,
+   TLS/Auth/owner denial and old/new browser history/control/ancestry. Preserve
+   complete owner history while writes remain closed. Preview credentials still
+   share production Supabase; they are not a write-test sandbox.
+5. **Measure and accept bounded multi-window operation.** Source-age/lease/SQL/
+   COMMIT/relay tails, resource/storage/provider budgets, expiry/revocation,
+   SIGTERM/SIGKILL, overlapping workers, lost replies and held-position recovery
+   must pass for the selected supported profile. Run a bounded acceptance before
+   continuous operation, retaining closed cleanup and original-ID reconciliation.
+   Calibrate costs/objectives and multi-seed holdouts before trusting rankings.
+   A spending stop does not reconcile holdings; the $20 ceiling grants no billing
+   authority and live funding/signing/swaps remain disabled.
+
+Research/security/CI, app/API privacy/honesty and infrastructure-maintenance work
+can proceed independently. Restoration and retention design may start earlier,
+but their final acceptance depends on frozen native/checkpoint contracts. Keep
+Supabase linked operations and consequential deployment/credential changes
+sequential under the repository's target and isolation rules.
 
 The reviewed [config-as-code reference](https://docs.railway.com/config-as-code/reference)
 supports the Dockerfile/health/restart/overlap/drain fields in the worker's
 `railway.json`. It does not prove the deployed service has applied them; inspect the
 resolved exact deployment and its image/commit before acceptance.
-Current documentation marks Config as Code deprecated, with legacy support through
-**2026-12-01**. The actual deployment does resolve this file correctly, but migrate
-to reviewed project-only Infrastructure as Code before that deadline. Reconcile
+The official IaC page was rechecked on **2026-10-12**: existing legacy
+`railway.json`/`railway.toml` files stop being read on **2026-12-01**. Plan and
+review the project-only migration before that cutoff, preserving the existing
+service and secrets; implementation remains HOST-02C. The actual closed deployment
+still resolves its file, which does not prove future compatibility. Reconcile
 API-versus-file builder enums: the API's Builder enum lacks DOCKERFILE, while the
 resolved file deployment uses it. Do not copy unsupported API flags from examples.
 [Current migration guidance](https://docs.railway.com/infrastructure-as-code).
 
 ## Hosting roles and rollback
 
-Vercel hosts the dashboard/Auth UI. Railway will run one supervised Python paper
+Vercel hosts the dashboard/Auth UI. Railway hosts one closed Python paper
 service. Supabase stores fenced command journals, exact accounts/positions,
 checkpoints, curated read history, relay identities and archive receipts. Durable
 database records outlive an HTTP connection or worker process. There is no automatic
 resume; the operator reconciles an interrupted run before any future operation.
 
-If acceptance fails, keep/return the worker to closed mode and leave public v5
-selection disabled. After acknowledged commands, use original-ID admission
-retirement and retain DB records/readback; do not drop schemas/rows or restore the
+If acceptance fails, keep/return the worker to closed mode with native write
+admission closed and complete owner history readable. After acknowledged commands,
+use original-ID admission retirement and retain DB records/readback; do not drop schemas/rows or restore the
 legacy writer. Reverting code is sufficient only before schema/service activation.
 
 **Further substantial research:** provider quota/billing conflicts and retention
@@ -185,11 +216,11 @@ CPU/memory/drain behavior, managed privilege/issuance hooks, CA/native maintenan
 interruption exposure, relay/history retention and compact multi-window checkpoints.
 
 
-## Closed Auth and provider acceptance checkpoint — 2026-10-07
+## Historical closed Auth and provider acceptance checkpoint — 2026-10-07
 
-Current Auth-only worker79327b5e-69fa-471e-9565-0a34d6739ccd/source9b387967189ca9197b6a59beb2391835c78ff3c2 verifies real Dashboard user tokens through the exact Supabase Auth project. Only SUPABASE_URL, existing SUPABASE_PUBLISHABLE_KEY, VN_ENVIRONMENT=production and the exact VN_ALLOWED_ORIGINS are added. Real tokens reach the closed-service response; invalid tokens/Origin and docs are denied with no-store. The public CA is already injected as VN_DATABASE_CA_PEM. The Railway project token stays in the operator context and never enters the service.
+At this checkpoint, Auth-only worker79327b5e-69fa-471e-9565-0a34d6739ccd/source9b387967189ca9197b6a59beb2391835c78ff3c2 verifies real Dashboard user tokens through the exact Supabase Auth project. Only SUPABASE_URL, existing SUPABASE_PUBLISHABLE_KEY, VN_ENVIRONMENT=production and the exact VN_ALLOWED_ORIGINS are added. Real tokens reach the closed-service response; invalid tokens/Origin and docs are denied with no-store. The public CA is already injected as VN_DATABASE_CA_PEM. The Railway project token stays in the operator context and never enters the service.
 
-Next explicit provider-only canary uses python -m tools.provider_read_canary, still VN_SERVICE_MODE=closed. Add only the existing Jupiter/Birdeye keys and an explicit private Helius mainnet RPC URL to this service, preserving unrelated variables. It starts closed HTTP immediately and owns one finite background assessment. Twelve prices at5s spacing/90s deadline, a shared-quota margin, no retry and bounded response parsing produce only approved timing/counter/resource facts. Restore /app/start-worker.sh and remove the three provider variables after acceptance. This is read-only provider feasibility, not active SQL/lease/relay/pilot or full-tail acceptance.
+The subsequent provider-only canary used python -m tools.provider_read_canary, still VN_SERVICE_MODE=closed. Its reviewed plan added only the existing Jupiter/Birdeye keys and an explicit private Helius mainnet RPC URL to this service, preserving unrelated variables. It started closed HTTP immediately and owned one finite background assessment. Twelve prices at5s spacing/90s deadline, a quota margin, no retry and bounded response parsing produced approved timing/counter/resource facts. Restoring /app/start-worker.sh and removing the three provider variables was part of acceptance. This was provider feasibility, not full-tail acceptance; its later completion is recorded below.
 
 The actual unscaled Birdeye multiplier:null startup defect is repaired before this deployment. Current primary billing uses1credit for getBlockTime; older pages use10. Resolve actual account metering/shared quota availability before continuous operation. The $20/month hosting ceiling is a design budget; no account-wide hard limit or billing change has been applied.
 
@@ -197,7 +228,7 @@ The actual unscaled Birdeye multiplier:null startup defect is repaired before th
 The actual provider-only assessment stopped on its shared-quota guard after accepting61warmupbars and one valid price. Ordinary Auth-only closed deployment56e0a351-ac64-4c24-a998-6bc8c7fc0eb4 replaces it; all three provider variables are removed. The legacy API region field is null; the exact resolved deployment's multiRegionConfig is the authoritative one-us-west2-replica evidence. Jupiter plan/shared allowance needs clarification before a new deliberate measurement. No margin reduction, automatic retry, plan purchase or billing change is implied.
 
 
-## Clean history and closed browser selection — 2026-10-07
+## Historical clean history and closed browser selection — 2026-10-07
 
 PR62 applies only the user-rejected old bot data cleanup after review and rollback rehearsal. All five legacy tables are freshly empty, the installed catalog and fifteen migration entries are unchanged, and the existing login account remains. The production paper view now uses the exact Railway HTTPS origin and owner-only Supabase vn_read directory. Its empty history and disabled start/stop/settle controls are verified in the existing owner's browser. The ordinary closed Railway service returns its deliberate closed-service response after valid Auth; active/nonempty browser flow and the finite pilot are still pending.
 
@@ -206,7 +237,7 @@ The local .env contains RAILWAY_TOKEN and currently matches the dedicated ignore
 The Supabase CA certificate is public, but ssl also contains private operator tokens and original-outcome records, so the entire directory remains ignored. Local PEM files make certificate hash/expiry verification explicit. The hosted worker already receives the CA contents in VN_DATABASE_CA_PEM, not the macOS file path. A local .env does not configure cloud environments; the exact Railway service and Vercel project have separate environment stores. Never put the Railway deployment token in the worker or browser. Native worker credentials must remain narrowly scoped and finite; operation journals retain original IDs/deadlines/outcomes that a flat .env cannot replace. Supabase's server-side SSL enforcement is separate from the client's CA/hostname verification.
 
 
-## Revised provider measurement accepted; ordinary closed worker restored (2026-10-07)
+## Historical revised provider acceptance and closed restoration — 2026-10-07
 
 PR64 merge02c0e2d54b8d3d0d85848b1bc1f264899d26719d corrects the finite canary's burst-budget assumption, using recent explicit headroom for one next request plus two reserved slots. This is a reviewed finite-read fix, not an active controller relaxation or approval of account-wide capacity. The user's Developer plan is verified; existing key attribution/one-credit Price V3 request/no matching firewall are proved read-only.
 
