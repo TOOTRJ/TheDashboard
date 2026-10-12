@@ -1,5 +1,29 @@
 # Evolutionary trading bot MVP readiness
 
+**Optimizer graph, selection RNG and parentage — 2026-10-12:** PR94 is merged as
+a2d646e306946a1267ac21609aff42447a37a289 with exact production/canonical-alias/
+read-only checks passed. Fresh Dashboard GitHub/Vercel/Supabase names, immutable
+IDs and owners match; Railway project/environment/workspace remains correct.
+
+PAPER-COMPACT-03B3C2A independently checks the allowlisted graph/software/types/
+aliases/order, cohort/genome/result/selection mirrors, two-EMA controls, exact
+founders/restart clones, unchanged ordinary genes/names, namespaced MT19937 state
+and draws, stable tournament ties, crossover/asset consumption and full recorded
+birth parentage. All 12 actual SQL cases pass over 165 commands, 60 state/word
+vectors and 42 namespace/random/sample expressions; seven unchanged native-package
+cases pass. Warm quote p95 is 592.044 ms with three resolutions; replacement
+p95 is 967.632 ms. [Proof and research](services/vonneumann/NATIVE-OPTIMIZER-SELECTION.md).
+
+**The full gate is still open.** Completed offspring Gaussian mutation is not yet
+independently derived. A test demonstrates that a changed in-range offspring
+period with consistent mirrors can pass this partial layer; mutation/restoration
+authority explicitly remains false.03B3C2B is next: exact per-child mutation,
+Gaussian cache/math/rounding proof or an explicitly reviewed new portable operator
+version. Parent03B3C2/03B3C stay open;03 native effects/migration,04 restoration
+and05 retention/closed hosted acceptance remain ordered dependencies. No native
+package/grant/runtime imports this research wrapper. No hosted migration or worker
+change, paid data call or live execution. No new user setup is needed now.
+
 **Independent assessments and common windows — 2026-10-11:** PR93 is merged as
 af8f51cf5a7d311cae5aabcd52e037f90d10e8f0 and its exact production/canonical alias/
 read-only release checks passed. Fresh Dashboard GitHub/Vercel/Supabase target

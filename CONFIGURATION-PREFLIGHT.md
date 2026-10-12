@@ -4179,3 +4179,59 @@ a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc.
 Rollback is a reviewed code/docs revert with no hosted research objects. Exact
 preview/merge/production/read-only evidence will be recorded in the PR; shared
 credentials/configuration and other projects remain untouched.
+
+## 100. Optimizer graph, deterministic selection RNG and recorded parentage — 2026-10-12
+
+PR94 merged as a2d646e306946a1267ac21609aff42447a37a289; exact READY production,
+canonical alias and all four read-only release probes passed. Fresh read-only
+verification still matches GitHub TOOTRJ/TheDashboard ID 1141090963/account
+biggrizzly11 ID 16749816; Vercel the-dashboard/prj_wFUe9k9USVreOQcmQKNWRAVsx5fH /
+team_8iNNxiNjrOseD4gdSCHkQEzF; Supabase The Dashboard/fxpxsciltakyypunglzr /
+cqfnnaunmupdyobkyqfo. Railway still matches The Dashboard Worker/project
+38facb49-4de9-4d66-85aa-2861e0306dcf, production environment
+9bbe52c6-2305-467a-bf39-8d5e1a98e4e4 and Red Jester's Projects/workspace
+f3fcd4b2-e424-4c6b-ac33-91196ccc96e1. No shared credentials/configuration changes.
+
+PAPER-COMPACT-03B3C2A adds three guarded research SQL sources and 22 private fixed-
+search-path functions. Exact schema/software/types/aliases/order and cohort/
+genome/result/selection mirrors, fixed profile, founder/restart/ordinary gene/name
+controls, SHA256-namespaced MT19937 state/draws, rejection/pool sampling, stable
+fitness ties, crossover/fixed-asset draw consumption, full selection metadata,
+recorded birth roles/order/versions/iteration/ordinals/parents and name allocations
+are independently derived. All 12 actual SQL cases pass over 165 complete owned
+commands, 60 seed/state/word vectors and 42 namespace/random/sample expressions;
+seven unchanged canonical/forward-package cases pass. Adversarial changes first
+pass assessment validation, then fail this layer. Private installer ownership,
+auditor-only final definer execution, client/helper/table denial and unchanged
+rows pass. Owned pinned PostgreSQL 17.6/no-network/no-port/no-mount/no-secret
+fixtures are removed after testing.
+
+**Remaining boundary:** completed offspring Gaussian mutation remains unproved.
+A changed in-range offspring period with consistent mirrors can pass this partial
+layer; a test requires explicit false completed-mutation/restoration authority.
+No native package/grant/runtime imports this wrapper. Parent03B3C2 and03B3C remain
+open. Next03B3C2B must derive per-child mutation decisions/streams, Gaussian cache,
+exact math/rate/strength, half-up/clamp output and asset-mutation consumption, or
+use an explicitly reviewed portable integer-period operator under a new model
+version while preserving old evidence. Deep research includes adjacent rounding/
+clamp boundaries, the actual pinned worker/database math libraries and bounded
+resource behavior. No tolerance/client attestation may substitute for the proof.
+
+Ten full warm-wrapper calls per case include three locked resolutions. P95:
+bootstrap 1082.162 ms, quote 592.044 ms, replacement 967.632 ms,
+early terminal 1161.741 ms, restart 935.450 ms and held Stop 947.407 ms.
+[The artifact](services/vonneumann/research/optimizer-transition-measurements.json)
+binds the actual image and nine installed source hashes. Completed mutation,
+contended waits, native journal/ID insertion/pins/projections, final source/lease
+checks, COMMIT/WAL/TLS/relay and hosted tails remain excluded. No live cadence,
+profitability or hosting-budget acceptance. [Proof and research](services/vonneumann/NATIVE-OPTIMIZER-SELECTION.md).
+
+03 native atomic effects/migration,04 exact next-wire restoration and05 retention/
+closed hosted acceptance remain ordered dependencies. Keep full continuation
+and alias/RNG evidence. No hosted schema/data/grant/migration/native package,
+Railway deployment/variables/capability, paid market request, archive deletion,
+billing or live execution change. The worker remains closed and no new setup is
+needed from the user. The user-owned colonies migration remains excluded at
+SHA256 a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc.
+Rollback is a reviewed code/docs revert; no hosted research objects exist. Exact
+preview/merge/production/read-only evidence will be recorded in the PR.
