@@ -897,6 +897,40 @@ Research began **2026-09-30** and was updated **2026-10-06/07** in [WORKER-HOSTI
   evidence until04 proves exact restoration. Compose with03B3B and03's atomic
   history/journal/identity/pin/projection/receipt boundary before migration.
 
+- [x] **PAPER-COMPACT-03B3C1 — Derive assessments and common-window transitions.**
+  Replay the precise pre-retirement terminal, pre-abort risk/control and
+  post-liquidation deadline capture points. Derive reduced cash ROI, independently
+  rounded binary64 fitness, frozen/withheld economics, original revision/source
+  identities, policies and ordered evaluation/results. Require exactly one
+  complete finalized/withheld batch; preserve original early-terminal scores.
+  Prove composed SQL acceptance, adversarial records that first pass causal
+  checks, limited private ownership, unchanged durable rows and complete timings.
+  Complete offline: 11 actual SQL cases (10 semantic and one measurement),
+  165 complete commands and 160 independent exact fitness cases pass. Finalized,
+  withheld/frozen records and exactly one ordered completion/abort event derive
+  from actual replay marks. Twelve causal regressions and seven unchanged native
+  package checks pass. Warm quote p95 is 474.529 ms with three resolutions;
+  native effects/final source/lease/COMMIT/hosted tails remain unmeasured.
+  No hosted migration, decoder, native capability or worker activation.
+  [Implementation and remaining research](services/vonneumann/NATIVE-ASSESSMENT-TRANSITION.md).
+
+- [ ] **PAPER-COMPACT-03B3C2 — Bind complete optimizer graph, RNG and actual lineage.**
+  Follow 03B3C1 with independent allowlisted graph/field/software/order/alias
+  validation and semantic cohort/genome/result mirrors. Derive namespaced seeds,
+  exact Python 3.12.14 MT19937 state and ordered draw consumption; bind tournament
+  sampling/stable fitness ties, crossover/assets, per-child mutation and repair,
+  complete offspring controls, selected sources and actual ordered ancestry.
+  Validate bootstrap, ordinary unchanged strategy, completed replacement and
+  interrupted restart; reject invented RNG/parents/genes/results even when
+  money/source/risk/assessment checks pass. Preserve full continuation evidence
+  until04. **Deep substantial research:** pinned CPython sampling/seed/Gaussian
+  behavior, cross-platform mathematical boundaries, rejection/resource bounds,
+  semantic aliases/map order, objective sensitivity and meaningful holdout,
+  multi-seed/multiple-testing/window/trade evidence. Do not widen the active
+  two-EMA gene profile while proving this gate. If exact existing Gaussian
+  portability cannot be justified, evaluate a separately versioned portable
+  integer-period mutation operator; never silently reinterpret old evidence.
+
 - [ ] **PAPER-COMPACT-03 — Prepare the reviewed forward SQL/native contract.**
   **Constraint reviewed by03A:** adopt a reviewed stable partition and enforce
   dependency-safe journal retention/rate/Stop budgets before finalization.

@@ -14,6 +14,18 @@ LANGUAGE sql IMMUTABLE SET search_path=pg_catalog AS $function$
   'num_trades',value->'num_trades','peak_equity',value->'peak_equity','max_drawdown',value->'max_drawdown','terminal',value->'terminal')
 $function$;
 
+-- Detached replay marks for the next private assessment validator. These are
+-- derived here, never supplied by the request and never returned by the client
+-- wrapper. Keep the original pre-retirement/pre-abort capture boundaries.
+CREATE FUNCTION vn_causal_research.capture_finalization(ctx jsonb,reason text,aborted boolean) RETURNS jsonb
+LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+BEGIN
+ IF ctx#>'{trace,finalized}'<>'null'::jsonb THEN
+  RAISE EXCEPTION 'causal_duplicate_finalization' USING ERRCODE='22023'; END IF;
+ RETURN jsonb_set(ctx,'{trace,finalized}',jsonb_build_object('members',ctx->'members',
+  'accounts',ctx->'accounts','holdings',ctx->'holdings','reason',reason,'aborted',aborted,'operation_index',ctx->'index'));
+END $function$;
+
 CREATE FUNCTION vn_causal_research.allocate(ctx jsonb,identity jsonb) RETURNS jsonb
 LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
 DECLARE i integer:=(ctx->>'allocation')::integer;
@@ -91,6 +103,9 @@ BEGIN
  FOR row IN SELECT * FROM jsonb_each(ctx->'members') LOOP
   IF row.value#>>'{pending,action}'='entry' THEN ctx:=jsonb_set(ctx,ARRAY['members',row.key,'pending'],'null'); END IF;
  END LOOP;
+ IF ctx->>'phase' NOT IN ('aborted','completed') THEN
+  ctx:=vn_causal_research.capture_finalization(ctx,'risk_halted',true);
+ END IF;
  ctx:=jsonb_set(ctx,'{lifecycle,restart_required}','true');
  ctx:=ctx||jsonb_build_object('phase','aborted','status','risk_halted');
  RETURN vn_causal_research.consume(ctx,'lifecycle','risk_halt',NULL,NULL,'null','null','risk_halted');
@@ -150,6 +165,10 @@ BEGIN
  IF equity*10000>peak*8000 THEN RETURN ctx; END IF;
  ctx:=vn_causal_research.close_position(ctx,identity,'death_liquidation');
  ctx:=jsonb_set(ctx,ARRAY['members',identity,'terminal'],jsonb_build_object('reason','drawdown','at',ctx->'at','cash',ctx#>ARRAY['accounts',identity,'cash']));
+ IF ctx->>'phase'='evaluating' THEN
+  ctx:=jsonb_set(ctx,ARRAY['trace','frozen',identity],jsonb_build_object('member',ctx#>ARRAY['members',identity],
+    'account',ctx#>ARRAY['accounts',identity],'holding',ctx#>ARRAY['holdings',identity]));
+ END IF;
  RETURN vn_causal_research.retire(ctx,identity,'terminal');
 END $function$;
 
@@ -230,7 +249,8 @@ BEGIN
       request#>ARRAY['evidence','inputs','ids',pointer::text] IS DISTINCT FROM to_jsonb(id) THEN
     RAISE EXCEPTION 'causal_bootstrap_allocation_or_reason' USING ERRCODE='22023'; END IF;
   END LOOP;
-  RETURN jsonb_build_object('phase','warming','risk',expected_risk,'replaced',false,'restart',false);
+  RETURN jsonb_build_object('phase','warming','risk',expected_risk,'replaced',false,'restart',false,
+    'trace',jsonb_build_object('frozen','{}'::jsonb,'finalized',NULL));
  END IF;
  IF previous->>'status' NOT IN ('running','paused','risk_halted') THEN RAISE EXCEPTION 'causal_terminal_prior' USING ERRCODE='22023'; END IF;
  maps:=vn_economic_research.state(previous); members:=maps->'members'; accounts:=maps->'accounts';
@@ -239,7 +259,8 @@ BEGIN
  ctx:=jsonb_build_object('members',members,'accounts',accounts,'holdings',holdings,'ids',ids,'reserve',previous->'reserve',
    'lifecycle',previous#>'{engine,lifecycle}','following_lifecycle',following#>'{engine,lifecycle}',
    'status',previous->'status','phase',previous#>'{engine,cohort,phase}',
-   'index',0,'allocation',0,'retired','[]'::jsonb,'operations',request->'operations','actions',request#>'{evidence,actions}',
+   'index',0,'allocation',0,'retired','[]'::jsonb,'trace',jsonb_build_object('frozen','{}'::jsonb,'finalized',NULL),
+   'operations',request->'operations','actions',request#>'{evidence,actions}',
    'inputs',request#>'{evidence,inputs}','price',request#>'{evidence,observation,price}','at',vn_source_research.tag(at),
    'loss_bps',(policy->>'account_loss_bps')::integer);
  gen:=vn_dependency_research.counter(previous#>'{engine,generation}',0,2147483647);
@@ -302,6 +323,7 @@ BEGIN
    ELSE
     IF gen>=2147483647 OR vn_causal_research.equity(ctx)<vn_economic_research.units(cfg->'seed_capital',36)*8 THEN
      RAISE EXCEPTION 'causal_replacement_capacity' USING ERRCODE='22023'; END IF;
+    IF replacement THEN ctx:=vn_causal_research.capture_finalization(ctx,'window_complete',false); END IF;
     SELECT jsonb_agg(v->'id' ORDER BY ordinal) INTO next_ids FROM jsonb_array_elements(following#>'{engine,members}') WITH ORDINALITY a(v,ordinal);
     FOR row IN SELECT v FROM jsonb_array_elements(next_ids) a(v) LOOP ctx:=vn_causal_research.allocate(ctx,row); END LOOP;
     FOR row IN SELECT v FROM jsonb_array_elements(ids) a(v) LOOP
@@ -340,7 +362,10 @@ BEGIN
   ELSIF request#>'{evidence,control,trip_id}' IS DISTINCT FROM 'null'::jsonb THEN RAISE EXCEPTION 'causal_unexpected_trip_ack' USING ERRCODE='22023'; END IF;
   IF control IN ('pause','stop') THEN
    ctx:=jsonb_set(ctx,'{lifecycle,restart_required}','true');
-   IF ctx->>'phase' NOT IN ('aborted','completed') THEN ctx:=ctx||jsonb_build_object('phase','aborted'); END IF;
+   IF ctx->>'phase' NOT IN ('aborted','completed') THEN
+    ctx:=vn_causal_research.capture_finalization(ctx,CASE control WHEN 'pause' THEN 'paused' ELSE 'stopped' END,true);
+    ctx:=ctx||jsonb_build_object('phase','aborted');
+   END IF;
   END IF;
   FOR row IN SELECT v FROM jsonb_array_elements(ids) a(v) LOOP ctx:=jsonb_set(ctx,ARRAY['members',row#>>'{}','pending'],'null'); END LOOP;
   IF control IN ('resume','recover') THEN ctx:=jsonb_set(ctx,'{lifecycle,signals_after}',ctx->'at'); END IF;
@@ -368,7 +393,7 @@ BEGIN
  FOR row IN SELECT v FROM jsonb_array_elements(request#>'{history,retired_accounts}') a(v) LOOP expected:=expected||jsonb_build_array(vn_causal_research.member_projection(row->'member')); END LOOP;
  IF expected IS DISTINCT FROM ctx->'retired' THEN RAISE EXCEPTION 'causal_retired_member_mismatch' USING ERRCODE='22023'; END IF;
  RETURN jsonb_build_object('phase',ctx->'phase','risk',ctx#>'{lifecycle,risk}','replaced',replacement,'restart',restart,
-  'retired_member_evidence',ctx->'retired');
+  'retired_member_evidence',ctx->'retired','trace',ctx->'trace');
 END $function$;
 
 CREATE FUNCTION vn_causal_research.validate_request(owner_id uuid,run_id uuid,wire text) RETURNS jsonb
@@ -378,7 +403,7 @@ BEGIN
  source:=vn_source_research.validate_request(owner_id,run_id,wire);
  resolved:=vn_dependency_research.resolve_request(owner_id,run_id,wire);
  causal:=vn_causal_research.transition(wire::jsonb,(resolved#>>'{prior,wire}')::jsonb,(resolved#>>'{following,wire}')::jsonb);
- RETURN source||jsonb_build_object('format','ga-causal-risk-validation-research-v1','causal_evidence',causal,
+ RETURN source||jsonb_build_object('format','ga-causal-risk-validation-research-v1','causal_evidence',causal-'trace',
    'scope','economics-identities-source-indicators-causal-trading-and-risk-only');
 END $function$;
 REVOKE ALL ON ALL FUNCTIONS IN SCHEMA vn_causal_research FROM PUBLIC;

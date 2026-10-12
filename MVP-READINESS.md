@@ -1,5 +1,28 @@
 # Evolutionary trading bot MVP readiness
 
+**Independent assessments and common windows — 2026-10-11:** PR93 is merged as
+af8f51cf5a7d311cae5aabcd52e037f90d10e8f0 and its exact production/canonical alias/
+read-only release checks passed. Fresh Dashboard GitHub/Vercel/Supabase target
+names, immutable IDs and owners match; Railway project/environment/workspace/
+service and unchanged deployment/resource settings still match.
+
+PAPER-COMPACT-03B3C1 independently derives exact ROI/fitness, frozen terminal and
+withheld interrupted records, revision/source/policy/window provenance, ordered
+displayed cohort/results and the single assessment event at its actual operation
+boundary. Eleven SQL cases pass over 165 complete commands and 160 independent
+fitness cases; twelve causal/risk regressions and seven unchanged native-package
+checks pass. [Proof and further research](services/vonneumann/NATIVE-ASSESSMENT-TRANSITION.md).
+
+Next 03B3C2 still gates complete optimizer graph/software/aliases/map order,
+cohort/genome/result mirrors, seeded RNG/draws/stable selection, genotype controls
+and actual lineage.03 then gates atomic native journal/receipt/identity/pins/
+history/final source/lease/Stop resources;04 exact restoration and05 safe retention/
+closed hosted acceptance follow. Full validation quote p95 is 474.529 ms, including
+three resolutions; the remaining semantics/effects/COMMIT/hosted tails are
+excluded. Native performance/budget and trading profitability remain unproved.
+No hosted migration or worker change. No user setup is needed now; the worker
+remains closed and no live execution is authorized.
+
 **Independent causal trading and risk replay — 2026-10-11:** PR92's source/EMA
 boundary is merged as1c61cdabae4ee0deecd0ae591f4d5bda242a2731 and exact production/
 alias/read-only release checks passed. Fresh Dashboard GitHub/Vercel/Supabase
