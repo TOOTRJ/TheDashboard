@@ -20,7 +20,11 @@ native package and hosted worker remain unchanged. [Findings and implementation 
 complete offspring/configuration/transition validation. ParentB/C2/C remain open.
 Then03 atomic native effects/forward migration,04 exact restoration and05 retention/
 closed hosted acceptance. Longer-window fill/objective/baseline calibration still
-gates continuous paper operation. No live trading authority or new user setup.
+gates continuous paper operation. Live trading remains outside authorization.
+Release checkpoint: the offline B1 work is in open PR96. Exact latest-head preview,
+merge and production verification are pending a renewed sign-in to the dedicated
+Dashboard Vercel profile; its auth file is absent and CLI verification fails.
+The requested sign-in is the only current user setup dependency.
 
 **Optimizer graph, selection RNG and parentage — 2026-10-12:** PR94 is merged as
 a2d646e306946a1267ac21609aff42447a37a289 with exact production/canonical-alias/

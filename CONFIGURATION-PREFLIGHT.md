@@ -4238,6 +4238,14 @@ preview/merge/production/read-only evidence will be recorded in the PR.
 
 ## 101. Gaussian portability research and integer mutation proposal — 2026-10-12
 
+**Release checkpoint:** offline research/tests are complete in
+[PR96](https://github.com/TOOTRJ/TheDashboard/pull/96), still open. After earlier
+valid exact-target checks, the dedicated Vercel profile's auth file is absent and
+CLI API verification fails with a local runtime error. A fresh file-backed login
+to that exact profile is requested under AGENTS.md. No shared/default credentials
+or alternate upload is used. Keep PR96 unmerged until its latest-head preview is
+verified, then perform authorized merge and exact production/alias/read-only probes.
+
 PR95 source91603afb0d04cc4e0ef807140d10c4f15565acc7 merged as
 9f032238f5b7f5292f0bbf61fcf7468ddb74a4f2. Exact preview
  dpl_2QRM7Gf3LyPiwDe8xBnTQqXUa5vo and production
