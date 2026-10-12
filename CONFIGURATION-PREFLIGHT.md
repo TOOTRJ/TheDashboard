@@ -4536,7 +4536,7 @@ Railway stays closed. Privacy PR source/merge/production proof follows in its PR
 ## 107. Secret-free verification infrastructure — 2026-10-12
 
 QA-01A now has three independent GitHub-hosted Ubuntu jobs with full reviewed
-action pins and Node24.19.0/CPython3.12.14. Read-only checkout does not persist
+action pins and Node 24.19.0 / CPython 3.12.14. Read-only checkout does not persist
 credentials; no application secret, hosted environment, deployment or artifact
 upload is configured. Frontend tests/types/scoped lint/advisories and a tracked
 fresh fake-configuration build are required. Ordinary discovery explicitly
@@ -4549,7 +4549,7 @@ preparation refuses local/self-hosted or wrong-repository contexts.
 Fifteen Python helper regressions and six Node isolation cases pass. An actual
 sanitized import reproduced an implicit macOS encoding-key mismatch; fixed C
 locale/UTF-8 settings and the exact benign macOS key repair it without admitting
-arbitrary environment variables. Offline/SQL child deadlines1500/2400s leave
+arbitrary environment variables. Offline/SQL child deadlines of 1500/2400s leave
 300/600s beneath the job ceilings. Independent review also required every
 advertised check/install/consistency command and rejected filtered PR/main/manual
 triggers and removed gates. The first actual isolated build exposed production
@@ -4557,22 +4557,40 @@ npm's omission of dev build tools; explicit include=dev and its regression repai
 this without enabling lifecycle hooks or using private configuration.
 
 The repo-local dependency installation now matches the reviewed lock, including
-source-map-js1.2.2, using separate empty npm configs/cache and no lifecycle hooks.
+source-map-js 1.2.2, using separate empty npm configs/cache and no lifecycle hooks.
 No global package/tool or other-agent file/process/cache is changed. Fresh tracked
-frontend TypeScript also passes before generated Next files exist. All210 Node
-cases, TypeScript, scoped lint (zero errors,32 existing warnings), the full/production
+frontend TypeScript also passes before generated Next files exist. All 210 Node
+cases, TypeScript, scoped lint (zero errors, 32 existing warnings), the full/production
 advisory guard (five reviewed dev entries/zero production) and the corrected actual
-fresh fake-configuration production build pass. Complete sanitized worker discovery
-is running; its final result and actual GitHub-hosted acceptance will be recorded
-in this scoped PR. Local helpers are not claimed as Linux/container acceptance;
-QA-01A remains open until all three hosted jobs pass.
+fresh fake-configuration production build pass. Complete sanitized discovery reports
+2088 cases in 1287.086s: all 1630 executed worker cases pass, with 414 explicit SQL
+opt-in skip records (399 methods and 15 class setup skips). Its only error is an
+older repository export fixture missing the already required controller canary.
+That fixture and a refusal-before-output regression are repaired. Older operator
+fixtures now use bounded test-only source/import/staging injection, with real
+process/network/private-read denial and scoped patch restoration. A relocated
+checkout copies only explicitly admitted public sources/artifacts. Production
+helper targets/credentials/staging constants and bytes remain unchanged. All 66
+affected repository/helper cases pass again under the same sanitized environment.
+A second complete
+worker run is not claimed for these test fixture edits. Actual GitHub-hosted
+acceptance will be recorded in the scoped PR. Local helpers are not claimed as
+Linux/container acceptance; QA-01A remains open until all three hosted jobs pass.
 
-Privacy PR101 merge67366aa1a212346a773225e858d55ccc30ef2e95 has the same tree as
-head7952b7cd5672b00e74db5c4eefff0ce5d66814de. Exact production
+The dedicated Dashboard credential verifies the exact account/repository and
+continues to allow existing PR operations, but GitHub rejects this new workflow
+push for workflow-file permission. The user has been asked to add only Workflows
+read/write to the existing Dashboard-specific token without changing repository
+selection, shared credentials or organization-wide policy. No CI PR or merge has
+occurred. All implementation files are committed locally on the codex branch;
+publishing and the real hosted jobs await this one setup step.
+
+Privacy PR101 merge 67366aa1a212346a773225e858d55ccc30ef2e95 has the same tree as
+head 7952b7cd5672b00e74db5c4eefff0ce5d66814de. Exact production
 dpl_DaBCLfxgwLDXx1VFYni3GyFbmAMR is READY/current canonical alias and passes all
 four read-only release probes. Dashboard GitHub/Vercel/Supabase IDs and owners
 match fresh verification. Railway remains closed; no migration, hosted economic
 data/grant/capability, provider, billing or wallet operation is performed.
-The user's migration SHA256a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc
+The user's migration SHA256 a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc
 and all unrelated drafts are preserved/excluded. Rollback is a reviewed code/docs
 revert; disabling the new workflow does not substitute for required checks.

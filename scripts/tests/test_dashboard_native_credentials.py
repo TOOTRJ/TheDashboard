@@ -16,11 +16,16 @@ def load(name, path):
     return value
 
 
-operator = load('native_credential_operator_test', ROOT / 'scripts/dashboard-native-credentials.py')
-management = load('management_isolation_test', ROOT / 'scripts/dashboard-supabase-management.py')
+fixture = load('dashboard_native_fixture', ROOT / 'scripts/tests/operator_fixture.py')
+operator = fixture.load('native_credential_operator_test', 'scripts/dashboard-native-credentials.py')
+management = fixture.load('management_isolation_test', 'scripts/dashboard-supabase-management.py')
 
 
 class NativeCredentialOperatorTests(unittest.TestCase):
+    def setUp(self):
+        scope = fixture.scope(); scope.__enter__()
+        self.addCleanup(scope.__exit__, None, None, None)
+
     def test_prepared_original_cannot_be_replaced(self):
         with tempfile.TemporaryDirectory() as directory:
             folder = Path(directory)

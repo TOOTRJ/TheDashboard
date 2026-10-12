@@ -10,9 +10,18 @@ uses `pull_request_target` or `workflow_run` to execute fork code. Feature pushe
 do not duplicate PR jobs. Concurrency cancels a superseded run for the same PR/ref.
 
 This is verification infrastructure, not a completed hosted or live acceptance
-gate. The first actual GitHub-hosted amd64 run must pass after release; local
+gate. The first actual GitHub-hosted amd64 run must pass before QA-01A closes; local
 helper tests do not prove image pulling, runner installation or Linux execution.
 No production credential or Vercel/Supabase/Railway login is required.
+
+Publication is currently blocked by GitHub's rejection of the dedicated Dashboard
+token's workflow-file push. The user must add `Workflows: Read and write` to that
+existing token, retaining its selection of only `TOOTRJ/TheDashboard` and the
+existing organization approval policy. GitHub documents this separate [workflow
+write capability](https://docs.github.com/en/rest/authentication/permissions-required-for-fine-grained-personal-access-tokens#repository-permissions-for-workflows). No shared login or token has been changed,
+and the CI branch has not been published or merged. Workflow results can be read
+through the existing authorized Dashboard browser; additional token permissions
+for unrelated checks are not required for this setup step.
 
 PR/manual triggers have no path/type/branch filters, and main pushes have only
 the main-branch filter. The capability validator requires every advertised Node,
@@ -125,6 +134,28 @@ failure/owned cleanup, skip accounting and mandatory-SQL denial, registry/platfo
 identity, and workflow privilege/trigger/bypass changes. Full hosted CI remains
 pending until GitHub executes all three required jobs. The workflow capability
 check is part of ordinary helper test discovery.
+
+The complete sanitized local run reported 2,088 cases in 1,287.086 seconds. All
+1,630 executed worker cases passed; it separately reported 414 SQL opt-in skip
+records (399 methods and 15 class setup skips). Its only error was an older
+repository export fixture missing the already required controller canary. The
+positive fixture and a missing-canary refusal regression repair that test; the
+production exporter is unchanged. After the associated portability repair, all
+66 repository/helper cases pass again with zero skips. This is the full worker
+result plus a complete rerun of the changed helper scope, not a second clean
+monolithic run or actual Linux/PostgreSQL acceptance.
+
+Older operator tests assumed macOS import and staging paths. Their bounded
+[test-only loader](scripts/tests/operator_fixture.py) admits six reviewed public
+source paths, checks and substitutes only the exact pinned ROOT assignment in
+memory, and scopes nested imports and pure artifact reads to the fixture checkout.
+It denies real subprocess/urllib activity and repository-private file reads and
+restores its patches. The relocated-checkout case copies only an explicit public
+source/artifact list. Railway export fixtures inject only their owned temporary
+staging comparison; default invalid-destination refusal remains unpatched. No
+production operator source, target, credential handling or staging constant is
+changed. These fixtures test the current admitted helpers, not a general Python
+sandbox or real cloud behavior.
 
 ```sh
 node --test scripts/tests/check-build.test.mjs

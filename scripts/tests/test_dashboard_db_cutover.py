@@ -7,12 +7,16 @@ import unittest
 from unittest.mock import patch
 
 PATH = Path(__file__).resolve().parents[1] / 'dashboard-db-cutover.py'
-SPEC = importlib.util.spec_from_file_location('dashboard_db_operator_tests', PATH)
-operator = importlib.util.module_from_spec(SPEC)
-SPEC.loader.exec_module(operator)
+FIXTURE_SPEC = importlib.util.spec_from_file_location('dashboard_db_fixture', PATH.parent / 'tests/operator_fixture.py')
+fixture = importlib.util.module_from_spec(FIXTURE_SPEC); FIXTURE_SPEC.loader.exec_module(fixture)
+operator = fixture.load('dashboard_db_operator_tests', 'scripts/dashboard-db-cutover.py')
 
 
 class ClosedMigrationOperatorTests(unittest.TestCase):
+    def setUp(self):
+        scope = fixture.scope(); scope.__enter__()
+        self.addCleanup(scope.__exit__, None, None, None)
+
     def test_artifacts_reproduce_and_preserve_closed_admission(self):
         builder, source, manifest = operator.artifacts()
         self.assertEqual(manifest['installed_admission'], 'closed')

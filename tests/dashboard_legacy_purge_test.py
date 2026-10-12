@@ -5,13 +5,17 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-ROOT = Path('/Users/redjester/Projects/Next/TheDashboard')
-spec = importlib.util.spec_from_file_location('purge_operator_test', ROOT/'scripts/dashboard-legacy-purge.py')
-module = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(module)
+ROOT = Path(__file__).resolve().parents[1]
+spec = importlib.util.spec_from_file_location('dashboard_purge_fixture', ROOT/'scripts/tests/operator_fixture.py')
+fixture = importlib.util.module_from_spec(spec); spec.loader.exec_module(fixture)
+module = fixture.load('purge_operator_test', 'scripts/dashboard-legacy-purge.py')
 
 
 class LegacyPurgeTests(unittest.TestCase):
+    def setUp(self):
+        scope = fixture.scope(); scope.__enter__()
+        self.addCleanup(scope.__exit__, None, None, None)
+
     def record(self):
         return {'state': 'prepared', 'digests': {table: {'count': 1, 'md5': 'a'*32}
                 for table in module.TABLES}}
@@ -69,7 +73,7 @@ class LegacyPurgeTests(unittest.TestCase):
         self.assertEqual(record['state'], 'prepared')
 
     def test_private_snapshot_refuses_symlinks_or_loose_modes(self):
-        with tempfile.TemporaryDirectory(prefix='dashboard-purge-test-', dir='/private/tmp') as directory:
+        with tempfile.TemporaryDirectory(prefix='dashboard-purge-test-') as directory:
             path = Path(directory)/'snapshot.json'
             path.write_text('{}')
             os.chmod(path, 0o644)
