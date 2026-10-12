@@ -966,6 +966,10 @@ Research began **2026-09-30** and was updated **2026-10-06/07** in [WORKER-HOSTI
   111 noise-bit differences and zero period differences in4852 random/boundary
   inputs, then4612 noise-bit and145 period differences in71582 targeted boundary
   inputs. These are synthetic inputs, not reachable-seed/prod failure rates.
+  Follow-up exact declared Linux amd64 worker-base math comparison covers149080
+  inputs and finds227 bit/two period differences; read-only expressions confirm
+  both differing periods on the exact Dashboard Supabase database. Source/image/
+  Dockerfile hashes are retained; no hosted data/schema/function writes.
   Separately versioned integer triangular mutation has4128 equal full Python/SQL
   traces plus16 maximum-counter/interior traces; three SQL cases pass with bad
   input/guard/client denial. No legacy model or native package changes. Distribution,
@@ -981,7 +985,7 @@ Research began **2026-09-30** and was updated **2026-10-06/07** in [WORKER-HOSTI
   bounds from fresh genesis or an accepted semantic chain. Keep two active genes
   and full continuation evidence. CloseB only when complete semantics pass, before
  03 native effects/migration,04 restoration and05 retention/closed hosted acceptance.
-  **Deep substantial research:** actual Linux worker math/legacy reachable seeds,
+  **Deep substantial research:** actual deployed-worker math/legacy reachable seeds,
   integer radii/rates/clamping/no-op/diversity bias, full tails and equal-budget
   matched-seed held-out baseline comparisons. Portability is not performance proof.
 

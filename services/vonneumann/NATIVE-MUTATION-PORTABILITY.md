@@ -36,8 +36,7 @@ retain exact inputs and noise bits for representative mismatches.
 
 These are **synthetic uniform inputs**, not a corpus of accepted commands or a
 proof that a configured namespaced seed reaches a mismatch. Counts are not
-production failure rates. The Linux worker's Python math library was not compared
-here. The experiment does establish that straightforward PostgreSQL Gaussian
+production failure rates. The initial experiment does establish that straightforward PostgreSQL Gaussian
 substitution cannot be assumed equivalent to the tested macOS reference.
 Tolerance would allow a different genome and is not an exact validation repair.
 
@@ -49,6 +48,40 @@ the isolated locked environment, repository PYTHONPATH and
 `python -m tests.measure_gaussian_compatibility random` or `boundaries`.
 Only an owned fixture is created; no network, ports, application mounts or secrets
 are attached. Its temporary math function and container disappear on cleanup.
+
+### Follow-up with the exact declared Linux worker base
+
+The installed amd64 image matches the exact Dockerfile base digest. Its CPython
+3.12.14 uses glibc2.36. It runs as a non-root user with no network, ports, mounts,
+application secrets or writable root filesystem. This tests the declared base,
+not the full deployed Railway image or an actual hosted execution.
+
+The first76,434 inputs yield two noise-bit differences and no period differences
+between the Linux worker base and owned PostgreSQL. A second set of72,646 inputs
+constructs adjacent boundaries using Linux's own math, including the two angles
+that produced those noise differences. Across149,080 total inputs there are227
+noise-bit differences and **two different integer periods**:
+
+| Slow-period input, starting at60, strength6.75, cached variate | Worker base | Owned PostgreSQL | Dashboard Supabase |
+| --- | ---: | ---: | ---: |
+| angle uniform0.5336203798921629, radius uniform0.9530070765745594 | 57 | 56 | 56 |
+| angle uniform0.9295600311517099, radius uniform0.9201622665644099 | 54 | 53 | 53 |
+
+Read-only Management API queries first verify The Dashboard/fxpxsciltakyypunglzr/
+cqfnnaunmupdyobkyqfo. `version()` reports PostgreSQL17.6/aarch64/GCC13.2.0. Three
+fixed synthetic expressions, including these two cases, return the same bits and
+periods as the owned fixture; no tables, functions, schema or data are changed.
+This confirms these math examples on the allowed database. It still does not
+prove reachable seeds, accepted transitions or a production failure rate.
+
+[The worker comparison artifact](research/gaussian-worker-compatibility-measurements.json)
+binds both image identities, the Dockerfile, input generator and reproducer hashes.
+Reproduce with the same isolated opt-in environment and
+`python -m tests.measure_worker_gaussian_compatibility`. The
+[hosted read-only probe](research/gaussian-hosted-read-only-probe.json) records its
+exact query, target, runtime and results without credentials. The current library
+comparison supports an integer-only versioned contract; actual deployed-image/
+platform upgrades and complete reachable-seed semantics remain separate gates.
 
 ## Proposed portable operator
 
@@ -112,7 +145,7 @@ The installed production package and legacy model are unchanged.
 3. Complete03 atomic journal/receipt/ID/pins/history/final source/lease integration,
    then04 exact next-wire restoration and05 retention/closed hosted acceptance.
    Prepare forward migration, validation and rollback before hosted installation.
-4. Deep substantial research: run actual pinned Linux worker/SQL comparisons,
+4. Deep substantial research: extend comparison to the actual deployed worker,
    investigate reachable legacy boundary seeds if retaining the Gaussian model,
    and measure full validator/resource tails. Compare proposed radii and mutation
    rates under matched seeds, equal data/budgets, grid/random/cash/buy-and-hold

@@ -7,6 +7,9 @@ still match.03B3C2B1's offline experiment finds145 different integer EMA periods
 across71582 constructed Gaussian rounding-boundary inputs between macOS Python
 and pinned Linux PostgreSQL. These are synthetic inputs, not production failure
 rates or proven reachable seeds. Direct Gaussian substitution is not justified.
+Follow-up on the exact declared Linux worker base finds two period differences
+in149080 synthetic inputs; both are confirmed by read-only math expressions on
+the verified Dashboard Supabase database. No schema/data/function writes.
 
 A separately versioned integer triangular mutation proposal passes4128 complete
 Python/SQL traces plus16 maximum-counter/interior traces, with three SQL cases

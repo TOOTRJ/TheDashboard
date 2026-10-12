@@ -4252,9 +4252,20 @@ cached Gaussian variates, actual strengths and clamp/half-up conversion.
 4852 random/boundary inputs yield111 noise-bit differences and no integer-period
 changes;71582 constructed adjacent-boundary inputs yield4612 bit differences and
 145 different EMA periods. Synthetic input counts are not production failure
-rates, accepted command evidence or proven reachable search seeds. Actual Linux
-worker Python math is a remaining comparison. Reproducers/artifacts bind the
+rates, accepted command evidence or proven reachable search seeds. Reproducers/artifacts bind the
 platform, image and source hash. No tolerance substitutes for an exact phenotype.
+
+Follow-up compares the exact declared amd64 Python3.12.14/glibc2.36 worker base
+with owned PostgreSQL. Across149080 inputs, including72646 boundaries generated
+with Linux math and two suspect angles,227 noise bits and two integer periods
+differ. On those constructed slow-period cases the worker yields57/54 while the
+owned fixture yields56/53. Fresh Management API exact-project verification followed
+by version() and three fixed read-only math expressions confirms56/53 and identical
+fixture noise bits on The Dashboard Supabase17.6/aarch64/GCC13.2.0. No tables,
+functions, schema or data writes. This tests the declared base, not a full deployed
+Railway execution, and still does not prove reachable seeds or failure rates.
+Offline reproducibility/artifacts bind the source, input generator, Dockerfile and
+both image identities; the separate hosted probe retains its query and target.
 
 The separately versioned ema-period-triangular-integer-research-v1 proposal uses
 integer53-bit mutation decisions, two bounded draws per mutated gene, triangular
@@ -4273,7 +4284,7 @@ versions and complete independent offspring/header/configuration/selection/linea
 semantics from fresh genesis or an accepted chain. Preserve old evidence and full
 continuation state. Then03 atomic native effects/migration,04 exact restoration
 and05 retention/closed hosted acceptance. Deep research retains actual Linux math,
-legacy reachable boundaries, mutation radii/rates/clamping/no-op/diversity effects,
+legacy reachable boundaries, deployed worker/image upgrades, mutation radii/rates/clamping/no-op/diversity effects,
 full resource tails and matched-seed held-out equal-budget baselines. Mechanical
 portability is not profitability or live-cadence evidence.
 
