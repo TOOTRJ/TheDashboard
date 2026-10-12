@@ -1,0 +1,81 @@
+{
+  "complete_commands": 150,
+  "date": "2026-10-11",
+  "identity": {
+    "image": "public.ecr.aws/supabase/postgres:17.6.1.095",
+    "image_id": "sha256:965e2dfb5a23a0d6541b6106541e777b303656ebabd4e878746b189d550c0a66",
+    "network": "none",
+    "postgres_version": "17.6"
+  },
+  "production_grants_or_install": false,
+  "scope": "offline independent economics/identities/source/indicators/causal actions/risk; no assessment/optimizer/lineage/commit authority",
+  "sql_sha256": {
+    "causal_risk.sql": "e3f19debaa251f73fe5b0f4ff1528a5693753a3c4ae710762d336acd10ffb4b0",
+    "economic_transition.sql": "c12a98685b4f20bc7ceaa3a31995b527379fba505bc1a59ecaf8c54143ef5801",
+    "locked_checkpoint.sql": "40973039c4ec1fd0af8a2836818ab75db60b6e75ec41e2f217adc078d2863542",
+    "numeric_wire.sql": "adc7dbe2ce3ef51d860b8c09430a24759522cb7284dc73e40804dbd8880675b1",
+    "source_transition.sql": "4f1c5b506fa2e9253cd3e7940f9b4d9f429d81561f73a4676ca8db7c3450cede"
+  },
+  "tables_in_new_artifact": 0,
+  "timing_exclusions": [
+    "transport/TLS",
+    "contended locks",
+    "assessment/optimizer/RNG/lineage semantics",
+    "journal/identity reservation/pins/projections",
+    "final source/lease boundary",
+    "COMMIT/WAL/relay",
+    "hosted tails"
+  ],
+  "timing_method": "10 full volatile wrapper calls with wire variable/generic plans; unchanged fixture prior; includes three resolutions",
+  "warm_server_validation_timings": [
+    {
+      "kind": "bootstrap",
+      "maximum_us": 999205,
+      "p50_us": 969153,
+      "p95_us": 989980,
+      "samples": 10,
+      "wire_bytes": 128635
+    },
+    {
+      "kind": "quote",
+      "maximum_us": 472642,
+      "p50_us": 447950,
+      "p95_us": 469678.3,
+      "samples": 10,
+      "wire_bytes": 9192
+    },
+    {
+      "kind": "replacement",
+      "maximum_us": 806892,
+      "p50_us": 797219,
+      "p95_us": 805821.45,
+      "samples": 10,
+      "wire_bytes": 149024
+    },
+    {
+      "kind": "risk_trip",
+      "maximum_us": 849165,
+      "p50_us": 812233.5,
+      "p95_us": 842613.45,
+      "samples": 10,
+      "wire_bytes": 140391
+    },
+    {
+      "kind": "recovery",
+      "maximum_us": 583663,
+      "p50_us": 565118,
+      "p95_us": 577214.5,
+      "samples": 10,
+      "wire_bytes": 14267
+    },
+    {
+      "kind": "held_stop",
+      "maximum_us": 817179,
+      "p50_us": 792153,
+      "p95_us": 814776.9,
+      "samples": 10,
+      "wire_bytes": 106885
+    }
+  ],
+  "writes_by_validator": 0
+}

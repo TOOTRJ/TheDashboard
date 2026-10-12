@@ -1,5 +1,27 @@
 # Evolutionary trading bot MVP readiness
 
+**Independent causal trading and risk replay — 2026-10-11:** PR92's source/EMA
+boundary is merged as1c61cdabae4ee0deecd0ae591f4d5bda242a2731 and exact production/
+alias/read-only release checks passed. Fresh Dashboard GitHub/Vercel/Supabase
+IDs and owners still match. PAPER-COMPACT-03B3B2 now independently replays causal
+signals, ordered protective/ordinary fills, original account-loss latch/recovery,
+member peak/exact drawdown/terminal and control/replacement/restart outcomes.
+Thirteen actual SQL and seven unchanged canonical/forward-package checks pass;
+150 complete commands include threshold edges, expired signals, duplicate
+decisions, recovery with eight holdings and Stop retaining holdings. Adversarial
+commands pass source/economic checks before causal rejection.
+[Proof and measurements](services/vonneumann/NATIVE-CAUSAL-RISK.md).
+
+03B3B is complete offline. Next03B3C must independently derive assessments,
+frozen/withheld/final metrics, exact fitness, complete optimizer/RNG/cohort
+continuation, stable selection and actual lineage. The parent03B3 and03 native
+atomic journal/receipt/identity/pin/projection/final-freshness/Stop boundary remain
+open, followed by04 exact restoration and05 safe retention/closed hosted
+acceptance. Full-wrapper warm quote p95 is469.678ms including three resolutions;
+it excludes those remaining semantics, native effects, COMMIT and hosted tails.
+No hosted migration or Railway change occurs. No worker setup is needed now;
+the worker remains closed and no live execution is authorized.
+
 **Independent source and exact EMA semantics — 2026-10-11:** PR91's economic
 boundary is merged as a8ce47dad1de18751301aa6f8fc7fde44dd19c94 and exact production/
 canonical-alias/read-only release checks passed. Fresh GitHub/Vercel/Supabase
