@@ -993,7 +993,7 @@ Research began **2026-09-30** and was updated **2026-10-06/07** in [WORKER-HOSTI
   Separate version2 profile/model/code/lifecycle/assessment/components/checkpoint/
   compact headers bind integer operator/policy. Existing model/checkpoint sources
   and70 legacy full/compact wire pairs remain unchanged; default GA stays Gaussian
-  and ordinary import does not load the new operator. Eight focused tests cover
+  and ordinary import does not load the new operator. Nine focused tests cover
   three seeds/four windows each,201 commands/96 assessments/96 offspring, both
   mating branches, full recorded parentage, fixed controls, common founders and
   first-window strategy draws, rehashed config failures, mixed-version denial,

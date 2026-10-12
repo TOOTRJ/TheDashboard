@@ -29,8 +29,8 @@ from ..db.command_protocol import (
 from ..db.provider_protocol import validate_transition
 from .checkpoint_reference import jsonb_text_bytes
 
-FORMAT = 'ga-portable-provider-checkpoint-research-v2'
-COMPONENT_FORMAT = 'ga-portable-provider-component-research-v2'
+FORMAT = 'ga-portable-provider-checkpoint-base-research-v2'
+COMPONENT_FORMAT = 'ga-portable-provider-component-base-research-v2'
 HASH_POLICY = 'tagged-numeric-json-utf8-sha256-research-v1'
 MAX_MANIFEST_BYTES = 65536
 MAX_COMPONENT_BYTES = 196608
@@ -604,7 +604,7 @@ def _lifecycle_state(state):
 
 
 
-TRANSPORT_FORMAT = 'ga-portable-provider-compact-command-research-v2'
+TRANSPORT_FORMAT = 'ga-portable-provider-compact-command-base-research-v2'
 STOP_RESERVE_BYTES = 65536  # extra capacity below the ordinary 192 KiB command cap
 ORDINARY_COMMAND_BYTES = MAX_RESOLVED_BYTES - STOP_RESERVE_BYTES
 

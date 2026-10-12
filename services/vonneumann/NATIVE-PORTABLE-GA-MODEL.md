@@ -15,9 +15,10 @@ fixed asset/no mutation draw, epoch/event limits and rejection/word budgets.
 Configuration reconstruction requires the complete pinned dictionary; an unknown
 or missing field/policy cannot quietly select a different operator.
 
-The old provider model and checkpoint source files are unchanged. The new model
-and checkpoint are reviewed version forks of the PR96 implementations, retaining
+The old provider model, base checkpoint and stable-partition source files are unchanged. The new model
+and checkpoint adapters are reviewed version forks of the PR96 implementations, retaining
 the same economics, source provenance, causal/risk/lifecycle/assessment behavior,
+stable thirteen-slot candle/EMA partition,
 fanout, original-wire replay, capture checks and Stop capacity. Their intentional
 differences are the explicit headers, pinned mutation policy, operator selection,
 strategy-counter increment bounds and new kernel binding. This avoids mutable shared globals or runtime monkeypatches
@@ -43,10 +44,10 @@ Gaussian distribution/draw consumption cannot be relabeled as this operator.
 
 ## Actual acceptance and limits
 
-Eight focused offline model tests pass:
+Nine focused offline model tests pass:
 
 - Seventy legacy full-candidate and compact-wire pairs remain byte-for-byte
-  identical for two sparse and two dense windows. Both old source files retain
+  identical for two sparse and two dense windows. All three old source files retain
   their original hashes. This is finite regression evidence, not an exhaustive
   proof of every possible legacy input.
 - Three search seeds, including maximum uint64, each complete four actual
@@ -62,7 +63,8 @@ Eight focused offline model tests pass:
 - Pause/resume/restart keeps original ordered phenotypes, advances the search
   epoch, resets the mutation event and preserves the new version. Stop prepares
   without provider acquisition and accepts through the owned simulation ledger.
-  Unknown selectors fail without advancing the strategy RNG; ordinary import
+  Quote and all twelve replacement commands retain stable candle/EMA references
+  without retransmitting either unchanged dependency. Unknown selectors fail without advancing the strategy RNG; ordinary import
   does not load the operator. Mutation-event/restart-epoch increments refuse at
   the policy maximum; the retained terminal value cannot roll over into a new batch.
 
@@ -71,7 +73,7 @@ per-seed complete-command/capture sizes and explicit false independent-SQL/nativ
 restoration/hosted/performance authority. Input prices/candles are synthetic;
 provider authenticity, real workload, throughput, hosted latency/cost and trading
 performance are excluded.
-Across these traces, maximum compact request size is159843 bytes, resolved capture
+Across these traces, maximum compact request size is149896 bytes, resolved capture
 61537 bytes and full candidate206324 bytes. Complete compact requests fit the
 196608-byte ordinary cap; this finite measurement is not a durable journal or
 hosted throughput/latency claim.

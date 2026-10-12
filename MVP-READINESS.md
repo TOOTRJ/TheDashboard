@@ -6,7 +6,7 @@ are READY; canonical alias and all four read-only probes pass. Fresh GitHub/Verc
 Supabase/Railway identities match. The dedicated Dashboard sign-in saved correctly.
 
 03B3C2B2A integrates the integer operator under separate version2 model/config/
-assessment/lifecycle/component/checkpoint/transport headers. Eight focused cases
+assessment/lifecycle/component/checkpoint/transport headers. Nine focused cases
 cover201 commands across three seeds/four windows,96 offspring and assessments,
 both mating modes, fixed controls/parentage, common founders/strategy draws,
 version/config denial, restart and data-free Stop. Seventy old full/compact wire

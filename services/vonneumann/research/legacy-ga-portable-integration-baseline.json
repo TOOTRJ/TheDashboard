@@ -3,6 +3,7 @@
   "scope": "v1 synthetic sparse/dense two-window byte-regression corpus before portable integration; not profitability or hosted evidence",
   "source_before": {
     "vonneumann/core/strategies/genetic_algorithm.py": "19c384e83fa85bac69f5429d82eccedb0766226516c1688f04936d2195ff9b06",
+    "vonneumann/research/partitioned_checkpoint.py": "4752288ddaba3835270701253874b246522c5e760a602d616c862f37f42d1aa7",
     "vonneumann/research/provider_checkpoint.py": "877b511ac97425dc66d1bbb255f74541c7b51053daed29acc7196ecf406c97c7",
     "vonneumann/research/provider_ga_model.py": "5ea9a848027c050ef196345bd517ada7f11dd4ceaab4b287211cc00cd3dade81"
   },

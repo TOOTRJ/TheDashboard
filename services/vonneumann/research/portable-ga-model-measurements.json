@@ -11,7 +11,8 @@
   "source_sha256": {
     "vonneumann/core/integer_period_mutation.py": "6dd653e4f4d6eecf309d7c5974951afc87f170b72456da521d03e30dd2fd92b2",
     "vonneumann/core/strategies/genetic_algorithm.py": "dd4ee9ac03f1d5db5fc899361f40c95207eef24d9d5ef8a070d5f720e4c744f5",
-    "vonneumann/research/provider_portable_checkpoint.py": "abdf41c0f2cecf3dba0205dd7382fb89f58d44521fc62d0b6c5bbedc699a33e9",
+    "vonneumann/research/portable_partitioned_checkpoint.py": "cb682e2acbddc321e4f282c23d69e22ab32b599162873d0e44fd87ea30407985",
+    "vonneumann/research/provider_portable_checkpoint.py": "cc897d41c55882113e02c295c355b7be8bc620a442667df5add5d33fadbd10c8",
     "vonneumann/research/provider_portable_ga_model.py": "3458b0956d7beb137d173a5883ce028d89e9cbbdc7260ad6db32b5ca1f1a2d75"
   },
   "traces": [
@@ -22,17 +23,19 @@
         "changes_by_kind": {
           "cohort": 6,
           "configuration": 1,
+          "ema": 17,
           "genome": 40,
-          "optimizer": 6
+          "optimizer": 6,
+          "source_bars": 17
         },
         "changes_by_phase": {
           "bootstrap": {
-            "11": 1
+            "13": 1
           },
           "decision": {
-            "0": 28,
+            "0": 12,
             "10": 4,
-            "2": 1
+            "2": 17
           },
           "protective": {
             "0": 33
@@ -42,21 +45,23 @@
         "component_body_maxima": {
           "cohort": 952,
           "configuration": 2975,
+          "ema": 3769,
           "genome": 755,
-          "optimizer": 39826
+          "optimizer": 39826,
+          "source_bars": 6472
         },
         "dense": true,
         "ema_count": 77,
         "final_generation": 4,
-        "max_compact_command_bytes": 159374,
+        "max_compact_command_bytes": 149435,
         "max_full_candidate_bytes": 205868,
-        "max_manifest_bytes": 21944,
+        "max_manifest_bytes": 12001,
         "max_resolved_bytes": 61537,
         "source_sequence": 33,
-        "total_compact_command_bytes": 2338177,
+        "total_compact_command_bytes": 1857495,
         "total_full_candidate_bytes": 8435350,
-        "unique_component_bytes": 290604,
-        "unique_components": 53,
+        "unique_component_bytes": 473825,
+        "unique_components": 87,
         "windows": 4
       },
       "seed": "0"
@@ -68,17 +73,19 @@
         "changes_by_kind": {
           "cohort": 6,
           "configuration": 1,
+          "ema": 17,
           "genome": 40,
-          "optimizer": 6
+          "optimizer": 6,
+          "source_bars": 17
         },
         "changes_by_phase": {
           "bootstrap": {
-            "11": 1
+            "13": 1
           },
           "decision": {
-            "0": 28,
+            "0": 12,
             "10": 4,
-            "2": 1
+            "2": 17
           },
           "protective": {
             "0": 33
@@ -88,21 +95,23 @@
         "component_body_maxima": {
           "cohort": 952,
           "configuration": 2975,
+          "ema": 3769,
           "genome": 755,
-          "optimizer": 39823
+          "optimizer": 39823,
+          "source_bars": 6472
         },
         "dense": true,
         "ema_count": 77,
         "final_generation": 4,
-        "max_compact_command_bytes": 159843,
+        "max_compact_command_bytes": 149896,
         "max_full_candidate_bytes": 206324,
-        "max_manifest_bytes": 21944,
+        "max_manifest_bytes": 12001,
         "max_resolved_bytes": 61534,
         "source_sequence": 33,
-        "total_compact_command_bytes": 2339281,
+        "total_compact_command_bytes": 1858599,
         "total_full_candidate_bytes": 8440514,
-        "unique_component_bytes": 290870,
-        "unique_components": 53,
+        "unique_component_bytes": 474091,
+        "unique_components": 87,
         "windows": 4
       },
       "seed": "1"
@@ -114,17 +123,19 @@
         "changes_by_kind": {
           "cohort": 6,
           "configuration": 1,
+          "ema": 17,
           "genome": 40,
-          "optimizer": 6
+          "optimizer": 6,
+          "source_bars": 17
         },
         "changes_by_phase": {
           "bootstrap": {
-            "11": 1
+            "13": 1
           },
           "decision": {
-            "0": 28,
+            "0": 12,
             "10": 4,
-            "2": 1
+            "2": 17
           },
           "protective": {
             "0": 33
@@ -134,21 +145,23 @@
         "component_body_maxima": {
           "cohort": 952,
           "configuration": 2994,
+          "ema": 3769,
           "genome": 755,
-          "optimizer": 39759
+          "optimizer": 39759,
+          "source_bars": 6472
         },
         "dense": true,
         "ema_count": 77,
         "final_generation": 4,
-        "max_compact_command_bytes": 159384,
+        "max_compact_command_bytes": 149445,
         "max_full_candidate_bytes": 205926,
-        "max_manifest_bytes": 21944,
+        "max_manifest_bytes": 12001,
         "max_resolved_bytes": 61407,
         "source_sequence": 33,
-        "total_compact_command_bytes": 2337022,
+        "total_compact_command_bytes": 1856340,
         "total_full_candidate_bytes": 8427967,
-        "unique_component_bytes": 290365,
-        "unique_components": 53,
+        "unique_component_bytes": 473586,
+        "unique_components": 87,
         "windows": 4
       },
       "seed": "18446744073709551615"

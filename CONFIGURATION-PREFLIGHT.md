@@ -4324,14 +4324,14 @@ PAPER-COMPACT-03B3C2B2A integrates ema-period-triangular-integer-v1 under explic
 new portable version2 profile/code/model/lifecycle/assessment and component/
 checkpoint/transport headers. The pinned complete mutation policy and reconstruction
 bind domains/radii/rates/decision/step/clamp/fixed asset/counter/draw bounds. The
-old model/checkpoint sources retain their original hashes. New private modules are
+old model/base checkpoint/stable partition sources retain their original hashes. New private modules are
 reviewed version forks with those header/policy/kernel/operator and strategy-counter
 increment-bound differences;
 no mutable shared model globals or monkeypatching. Default GA remains Gaussian and
 ordinary import does not load the operator. Genome periods must be exactly integral
 before conversion; fractional/bool/nonfinite inputs cannot be rounded into validity.
 
-All eight focused offline model cases pass. Seventy legacy full-candidate/compact
+All nine focused offline model cases pass. Seventy legacy full-candidate/compact
 wire hash pairs remain identical. Three seeds/four complete synthetic windows each
 produce201 commands,96 assessments/offspring and both mating modes with recorded
 parentage/fixed controls; common founders and first-window strategy draws match
@@ -4341,7 +4341,7 @@ phenotypes; Stop needs no provider fetch. Unknown selector failure preserves RNG
 Mutation-event/restart-epoch increments refuse at the policy maximum without
 counter rollover; new-batch refusal preserves RNG and existing Stop capacity.
 The three-seed measurement binds actual source hashes and false independent complete
-SQL/native/restoration/hosted/performance authority. Maximum compact request159843
+SQL/native/restoration/hosted/performance authority. Maximum compact request149896
 bytes, resolved capture61537 and full candidate206324. These are synthetic finite
 sizes within current caps, not hosted cadence/cost/latency or profitability evidence.
 
@@ -4349,7 +4349,10 @@ Fifty-eight SQL/fork/evidence/real-lineage/all-four-solver rehearsal/canonical/f
 package regressions pass. Three actual SQL cases also compare the new versioned
 core operator with all4128 independent proposal traces;16 additional proposal traces
 and guard/client denial pass. The source-bound primitive artifact now includes the
-core hash. No complete-model SQL wrapper or native grant/runtime format is installed.
+core hash. The separate portable partition adapter preserves thirteen typed slots, stable
+candle/EMA dependencies and lossless expansion. Quote and all twelve replacements
+retain unchanged candle/EMA references without retransmission. No complete-model
+SQL wrapper or native grant/runtime format is installed.
 Owned pinned PostgreSQL/no-network/no-port/no-application-mount/no-secret fixtures
 are removed after testing. AST/source-hash/diff checks and the preserved user
 migration SHA pass.

@@ -19,7 +19,7 @@ from vonneumann.research import numeric_wire as numbers
 from vonneumann.research import provider_ga_model as legacy
 from vonneumann.research import provider_checkpoint as old_cp
 from vonneumann.research import provider_portable_ga_model as model
-from vonneumann.research import provider_portable_checkpoint as cp
+from vonneumann.research import portable_partitioned_checkpoint as cp
 
 ROOT=Path(__file__).resolve().parents[1]
 
@@ -35,7 +35,7 @@ class PortableGAModelTests(OfflineTestMixin,unittest.TestCase):
             cls.traces.append((seed,metrics,last,capture,ledger,samples));cls.samples.extend(samples)
         if os.environ.get('DASHBOARD_PORTABLE_MODEL_MEASURE')=='1':
             files=('vonneumann/core/integer_period_mutation.py','vonneumann/core/strategies/genetic_algorithm.py',
-                'vonneumann/research/provider_portable_ga_model.py','vonneumann/research/provider_portable_checkpoint.py')
+                'vonneumann/research/provider_portable_ga_model.py','vonneumann/research/provider_portable_checkpoint.py','vonneumann/research/portable_partitioned_checkpoint.py')
             artifact={'date':'2026-10-12','model':model.MODEL_FORMAT,'operator':mutation.VERSION,
                 'transport':cp.TRANSPORT_FORMAT,'scope':'three seeds/four synthetic windows each; owned in-process model and capture only',
                 'traces':[{'seed':seed,'metrics':metrics} for seed,metrics,*_ in cls.traces],
@@ -59,7 +59,7 @@ class PortableGAModelTests(OfflineTestMixin,unittest.TestCase):
                 'compact_sha256':hashlib.sha256(w).hexdigest(),'phase':c.transition['evidence']['kind']}))
             self.assertEqual(actual,row['commands'])
         self.assertEqual(sum(len(t['commands']) for t in baseline['traces']),70)
-        for name in ('provider_ga_model.py','provider_checkpoint.py'):
+        for name in ('provider_ga_model.py','provider_checkpoint.py','partitioned_checkpoint.py'):
             self.assertEqual(hashlib.sha256((ROOT/'vonneumann/research'/name).read_bytes()).hexdigest(),
                 baseline['source_before']['vonneumann/research/'+name])
 
@@ -106,6 +106,23 @@ class PortableGAModelTests(OfflineTestMixin,unittest.TestCase):
             new_selection=[c.history['selection'] for c in snapshots if c.history['selection'] is not None][0]
             old_selection=[c.history['selection'] for c in legacy_snapshots if c.history['selection'] is not None][0]
             new_selection.pop('mutation_operator');self.assertEqual(new_selection,old_selection)
+
+    def test_quote_and_replacement_keep_stable_candle_indicator_dependencies(self):
+        replacements=0
+        for _,_,_,_,_,samples in self.traces:
+            previous=None
+            for candidate,capture,wire in samples:
+                self.assertEqual(len(capture.components),13)
+                stable={r['kind']:r for r in capture.to_dict()['components'] if r['kind'] in ('source_bars','ema')}
+                self.assertEqual(set(stable),{'source_bars','ema'})
+                self.assertTrue(all(r['generation']==0 for r in stable.values()))
+                body=numbers.decode(wire)
+                if previous is not None and candidate.transition['evidence']['inputs']['provider']['history'] is None:
+                    self.assertEqual(stable,previous)
+                    self.assertFalse(any(c['kind'] in ('source_bars','ema') for c in body['components']))
+                    if candidate.history['selection'] is not None:replacements+=1
+                previous=stable
+        self.assertEqual(replacements,12)
 
     def test_versions_and_owned_classes_cannot_mix(self):
         new,new_cp,_=self.samples[0]
