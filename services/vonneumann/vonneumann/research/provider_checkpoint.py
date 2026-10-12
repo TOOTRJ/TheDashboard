@@ -534,7 +534,15 @@ def _source_state(state):
                  and engine['ema'] == provider._seed_ema(src['bars']), 'Bootstrap source differs')
     for member in engine['members']:
         frozen = member['assessment']
-        _require((frozen is None) == (member['terminal'] is None), 'Early terminal snapshot differs')
+        # A risk halt aborts the cohort BEFORE protective liquidation/retirement.
+        # Members that become terminal afterward have no scored evaluation to
+        # freeze. Earlier scored terminals must retain their original snapshot.
+        scored_terminal = any(row['probe_id'] == member['id']
+            and row['status'] == 'completed' and row['reason'] == 'drawdown'
+            for row in engine['cohort']['evaluations'])
+        _require((frozen is not None) == scored_terminal
+                 and (frozen is None or member['terminal'] is not None),
+                 'Early terminal snapshot differs')
         if frozen is not None:
             _require(frozen['closed_trade_count'] == member['num_trades']
                      and frozen['max_drawdown'] == member['max_drawdown']

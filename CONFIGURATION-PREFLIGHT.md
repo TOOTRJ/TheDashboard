@@ -3937,3 +3937,65 @@ The user completed a fresh device login to the dedicated Dashboard Vercel
 profile. Fresh release re-verification now matches the exact GitHub, Vercel and
 Supabase IDs and owners above; Railway project/environment/workspace checks also
 pass. No default/shared credential fallback or unrelated project change was used.
+
+## 96. Independent exact economics and allocated identities — 2026-10-11
+
+Fresh isolated target verification matches GitHub TOOTRJ/TheDashboard,
+repository1141090963 and biggrizzly11/user16749816; Vercel the-dashboard,
+prj_wFUe9k9USVreOQcmQKNWRAVsx5fH under team_8iNNxiNjrOseD4gdSCHkQEzF;
+Supabase The Dashboard/fxpxsciltakyypunglzr under cqfnnaunmupdyobkyqfo.
+Railway The Dashboard Worker/project38facb49-4de9-4d66-85aa-2861e0306dcf,
+production9bbe52c6-2305-467a-bf39-8d5e1a98e4e4 and workspace
+f3fcd4b2-e424-4c6b-ac33-91196ccc96e1 also match. The base is PR90 merge
+4d044183f831c53e44e5db631298f4087db022c2; exact release evidence remains in PR90.
+
+PAPER-COMPACT-03B3A adds guarded offline independent exact cash/holding/fill/cost
+and economic-history replay after03B2 binds the locked prior. It validates the
+USD-reference decimal policy and integer-unit rounding, original entry/cost
+bindings, one-quarter budget, ordered operations/events/actions, complete
+economic snapshots, generation births, terminal cash and closed-trade counts.
+A private globally unique identity fixture validates owner/run/kind/birth
+revision and prior shared locks. The validator changes no rows and reserves no
+new UUIDs; atomic native unique insertion/recovery is still pending.
+
+The risk fixture exposed an overly strict Python research capture rule:
+cohort abort can precede terminal retirement, so a later unscored terminal has
+no scored snapshot. Capture now requires a frozen snapshot exactly for a retained
+completed drawdown evaluation. Earlier scored terminal snapshots remain mandatory
+and frozen through Stop; later unscored terminals cannot invent one. Four direct
+regressions cover both directions. Generator/scoring/native v5 state is unchanged.
+
+Fifteen actual isolated PostgreSQL17.6 and21 Python capture/format/canonical/
+forward-package cases pass. Ninety-three complete owned commands cover traded
+windows, fractional costs, risk/terminal retirement, controls/restart and Stop
+with eight holdings.128 seeded fractional entry/exit pairs compare independent
+integer arithmetic. Adversarial cases reject altered/omitted/reordered balances,
+fills, snapshots, allocations and financial events, double closes, held-position
+retirement, reused/wrong-scope/kind/future identities, frozen terminal mutation
+and reserved trade-counter exhaustion. Limited synthetic installer ownership,
+fixed pg_catalog search paths, one private table/nine functions, auditor-only
+wrapper execution and browser/service-role/relay/direct-helper denial pass.
+Owned network-none/no-port/no-mount/no-secret fixtures are removed afterward.
+
+Thirty warm full-wrapper samples per case include resolution, economics and
+catalog checks, with p95 quote160.377ms, bootstrap179.307ms, replacement283.386ms,
+risk trip286.770ms and held Stop284.560ms. These exclude full source/risk/
+assessment/optimizer/lineage semantics, contended waits, journal/ID reservation/
+pin/projection effects, final freshness/lease, COMMIT/WAL/TLS/relay and hosted
+tails. Source/image hashes are bound in
+[the measurement artifact](services/vonneumann/research/economic-transition-measurements.json).
+
+03B3 stays open:03B3B's source/EMA/causality/risk/lifecycle rules are next;
+03B3C's assessment/optimizer/cohort/selection/lineage rules follow before03's
+native composition, original-ID recovery, final freshness, Stop resources and
+installer/readers/rollback rehearsal.04/05 still gate exact restoration and
+safe retention/hosted acceptance. Remaining substantial research is documented
+in [the economic report](services/vonneumann/NATIVE-ECONOMIC-TRANSITION.md).
+
+No hosted schema/data/grant/migration/native package change, Railway deploy/
+variable/capability change, market API request, archive deletion, billing or live
+execution occurs. The worker remains closed. The user-owned migration is
+preserved/excluded at SHA256
+a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc.
+Rollback is a reviewed code/docs revert. Exact preview/merge/production/read-only
+release verification is retained in the PR.
