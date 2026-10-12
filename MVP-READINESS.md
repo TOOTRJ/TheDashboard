@@ -1,5 +1,31 @@
 # Evolutionary trading bot MVP readiness
 
+**Mutation portability finding and proposal — 2026-10-12:** PR95 is merged as
+9f032238f5b7f5292f0bbf61fcf7468ddb74a4f2; its exact production and canonical alias
+are READY and all four read-only release probes pass. Dashboard target identities
+still match.03B3C2B1's offline experiment finds145 different integer EMA periods
+across71582 constructed Gaussian rounding-boundary inputs between macOS Python
+and pinned Linux PostgreSQL. These are synthetic inputs, not production failure
+rates or proven reachable seeds. Direct Gaussian substitution is not justified.
+Follow-up on the exact declared Linux worker base finds two period differences
+in149080 synthetic inputs; both are confirmed by read-only math expressions on
+the verified Dashboard Supabase database. No schema/data/function writes.
+
+A separately versioned integer triangular mutation proposal passes4128 complete
+Python/SQL traces plus16 maximum-counter/interior traces, with three SQL cases
+covering invalid inputs, installation guard and client denial. The old model,
+native package and hosted worker remain unchanged. [Findings and implementation gates](services/vonneumann/NATIVE-MUTATION-PORTABILITY.md).
+
+**Next is03B3C2B2:** explicit new model/config/operator versions and independent
+complete offspring/configuration/transition validation. ParentB/C2/C remain open.
+Then03 atomic native effects/forward migration,04 exact restoration and05 retention/
+closed hosted acceptance. Longer-window fill/objective/baseline calibration still
+gates continuous paper operation. Live trading remains outside authorization.
+Release checkpoint: the offline B1 work is in open PR96. Exact latest-head preview,
+merge and production verification are pending a renewed sign-in to the dedicated
+Dashboard Vercel profile; its auth file is absent and CLI verification fails.
+The requested sign-in is the only current user setup dependency.
+
 **Optimizer graph, selection RNG and parentage — 2026-10-12:** PR94 is merged as
 a2d646e306946a1267ac21609aff42447a37a289 with exact production/canonical-alias/
 read-only checks passed. Fresh Dashboard GitHub/Vercel/Supabase names, immutable

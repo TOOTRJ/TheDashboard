@@ -1,0 +1,39 @@
+{
+  "date": "2026-10-12",
+  "query": "WITH inputs(i,a,b,sigma,lo,hi,old,cached) AS (VALUES\n(0,'0.3734184904561133'::float8,'0.9697689883942827'::float8,'1.3499999999999999'::float8,3,12,12,false),\n(1,'0.5336203798921629'::float8,'0.9530070765745594'::float8,'6.75'::float8,15,60,60,true),\n(2,'0.9295600311517099'::float8,'0.9201622665644099'::float8,'6.75'::float8,15,60,60,true)\n),angles AS (SELECT *,a*'6.283185307179586'::float8 AS angle,sqrt('-2.0'::float8*ln('1.0'::float8-b)) AS radius FROM inputs),\nnoise AS (SELECT *, '0.0'::float8+(CASE WHEN cached THEN sin(angle) ELSE cos(angle) END*radius)*sigma AS n FROM angles)\nSELECT i,encode(float8send(n),'hex') AS noise_bits,floor(least(hi::float8,greatest(lo::float8,old::float8+n))+'0.5'::float8)::integer AS period FROM noise ORDER BY i;",
+  "query_sha256": "2121daf193eeea490e038dc4d1af717f8b32ef2017b01a21c442c02f856560ae",
+  "read_only": true,
+  "results": [
+    {
+      "i": 0,
+      "noise_bits": "c004000000000001",
+      "period": 10
+    },
+    {
+      "i": 1,
+      "noise_bits": "c00c00000000000a",
+      "period": 56
+    },
+    {
+      "i": 2,
+      "noise_bits": "c01a000000000005",
+      "period": 53
+    }
+  ],
+  "runtime": [
+    {
+      "version": "PostgreSQL 17.6 on aarch64-unknown-linux-gnu, compiled by gcc (GCC) 13.2.0, 64-bit"
+    }
+  ],
+  "scope": "three synthetic mathematical expressions only; no tables/functions/schema/data changes, no seed reachability or hosted worker execution proof",
+  "target": {
+    "id": "fxpxsciltakyypunglzr",
+    "name": "The Dashboard",
+    "owner": "cqfnnaunmupdyobkyqfo"
+  },
+  "worker_base_periods": [
+    10,
+    57,
+    54
+  ]
+}

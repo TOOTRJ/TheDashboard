@@ -1,0 +1,81 @@
+{
+  "bit_examples": [
+    {
+      "cached": false,
+      "index": 5,
+      "kind": "random",
+      "postgres_bits": "bfeb0d09300e527c",
+      "python_bits": "bfeb0d09300e527d"
+    },
+    {
+      "cached": false,
+      "index": 145,
+      "kind": "random",
+      "postgres_bits": "bff052b3c575ca9d",
+      "python_bits": "bff052b3c575ca9e"
+    },
+    {
+      "cached": false,
+      "index": 264,
+      "kind": "random",
+      "postgres_bits": "3ffafc5f3729300b",
+      "python_bits": "3ffafc5f3729300d"
+    },
+    {
+      "cached": false,
+      "index": 266,
+      "kind": "random",
+      "postgres_bits": "bfdf6ac5adab42b0",
+      "python_bits": "bfdf6ac5adab42af"
+    },
+    {
+      "cached": false,
+      "index": 341,
+      "kind": "random",
+      "postgres_bits": "bff982982eab6221",
+      "python_bits": "bff982982eab6223"
+    },
+    {
+      "cached": false,
+      "index": 343,
+      "kind": "random",
+      "postgres_bits": "bff5ef87b05245f2",
+      "python_bits": "bff5ef87b05245f0"
+    },
+    {
+      "cached": false,
+      "index": 389,
+      "kind": "random",
+      "postgres_bits": "3ff43cdb0c877c7b",
+      "python_bits": "3ff43cdb0c877c7a"
+    },
+    {
+      "cached": false,
+      "index": 396,
+      "kind": "random",
+      "postgres_bits": "3fdf93dcf5df2335",
+      "python_bits": "3fdf93dcf5df2334"
+    }
+  ],
+  "boundary_cases": 756,
+  "cases": 4852,
+  "date": "2026-10-12",
+  "identity": {
+    "image": "public.ecr.aws/supabase/postgres:17.6.1.095",
+    "image_id": "sha256:965e2dfb5a23a0d6541b6106541e777b303656ebabd4e878746b189d550c0a66",
+    "network": "none",
+    "postgres_version": "17.6"
+  },
+  "noise_bit_mismatches": 111,
+  "period_examples": [],
+  "period_mismatches": 0,
+  "platform": {
+    "machine": "arm64",
+    "system": "Darwin"
+  },
+  "profile": "random",
+  "prototype_sha256": "36d38d5b2a52545ac7089ee95c30600dc14a045a284106c7bb768a1ac7cc9224",
+  "python": "3.12.14",
+  "random_cases": 4096,
+  "scope": "synthetic uniform inputs; numeric compatibility only; not owned command/seed reachability or native authority"
+}

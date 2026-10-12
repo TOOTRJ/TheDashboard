@@ -1,0 +1,105 @@
+{
+  "cases": 149080,
+  "date": "2026-10-12",
+  "dockerfile_sha256": "d601b1a720b9da4fd3642189883fed0efb7f4a23347cc0aa20c8e3a1fac8fc3e",
+  "initial_cases": 76434,
+  "input_generator_sha256": "36d38d5b2a52545ac7089ee95c30600dc14a045a284106c7bb768a1ac7cc9224",
+  "mac_worker_noise_mismatches": 9571,
+  "mac_worker_period_mismatches": 296,
+  "noise_examples": [
+    {
+      "index": 3995,
+      "postgres_bits": "c0059272087c98ad",
+      "worker_bits": "c0059272087c98ac"
+    },
+    {
+      "index": 4523,
+      "postgres_bits": "c0179a39795bfd10",
+      "worker_bits": "c0179a39795bfd0f"
+    },
+    {
+      "index": 88047,
+      "postgres_bits": "bfdffffffffffffd",
+      "worker_bits": "bfdffffffffffffc"
+    },
+    {
+      "index": 88048,
+      "postgres_bits": "bfdfffffffffffff",
+      "worker_bits": "bfdffffffffffffd"
+    },
+    {
+      "index": 88050,
+      "postgres_bits": "bfe0000000000001",
+      "worker_bits": "bfe0000000000000"
+    },
+    {
+      "index": 88052,
+      "postgres_bits": "bfe0000000000003",
+      "worker_bits": "bfe0000000000002"
+    },
+    {
+      "index": 88054,
+      "postgres_bits": "bff7fffffffe47d3",
+      "worker_bits": "bff7fffffffe47d2"
+    },
+    {
+      "index": 88055,
+      "postgres_bits": "bff7fffffffeca81",
+      "worker_bits": "bff7fffffffeca80"
+    }
+  ],
+  "period_examples": [
+    {
+      "index": 148848,
+      "inputs": [
+        0.5336203798921629,
+        0.9530070765745594,
+        6.75,
+        15,
+        60,
+        60,
+        true,
+        "worker-boundary"
+      ],
+      "postgres_period": 56,
+      "worker_period": 57
+    },
+    {
+      "index": 148952,
+      "inputs": [
+        0.9295600311517099,
+        0.9201622665644099,
+        6.75,
+        15,
+        60,
+        60,
+        true,
+        "worker-boundary"
+      ],
+      "postgres_period": 53,
+      "worker_period": 54
+    }
+  ],
+  "postgres": {
+    "image": "public.ecr.aws/supabase/postgres:17.6.1.095",
+    "image_id": "sha256:965e2dfb5a23a0d6541b6106541e777b303656ebabd4e878746b189d550c0a66",
+    "network": "none",
+    "postgres_version": "17.6"
+  },
+  "scope": "exact installed worker base, not hosted Railway image/execution; synthetic inputs, not seed reachability",
+  "source_sha256": "0665ea4f3f90dcd5f3e116dbc3e912b48dab91893cd560f736a59875edd0e8e8",
+  "worker_base": {
+    "architecture": "amd64",
+    "image_id": "sha256:1aaa65a85fda306ffb8b910824d4e93bdce61e212c7e87168123ea3073b41a1a",
+    "libc": [
+      "glibc",
+      "2.36"
+    ],
+    "machine": "x86_64",
+    "python": "3.12.14",
+    "reference": "python:3.12.14-slim-bookworm@sha256:1aaa65a85fda306ffb8b910824d4e93bdce61e212c7e87168123ea3073b41a1a"
+  },
+  "worker_boundary_cases": 72646,
+  "worker_postgres_noise_mismatches": 227,
+  "worker_postgres_period_mismatches": 2
+}

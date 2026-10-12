@@ -961,6 +961,34 @@ Research began **2026-09-30** and was updated **2026-10-06/07** in [WORKER-HOSTI
   pure entrypoint before03's native journal/receipt/ID/pin/history/freshness/lease
   integration. Retain full continuation evidence until04 restoration proof.
 
+- [x] **PAPER-COMPACT-03B3C2B1 — Research Gaussian portability and prove an integer proposal.**
+  Reproducible macOS CPython3.12.14/owned Linux PostgreSQL17.6 comparison finds
+  111 noise-bit differences and zero period differences in4852 random/boundary
+  inputs, then4612 noise-bit and145 period differences in71582 targeted boundary
+  inputs. These are synthetic inputs, not reachable-seed/prod failure rates.
+  Follow-up exact declared Linux amd64 worker-base math comparison covers149080
+  inputs and finds227 bit/two period differences; read-only expressions confirm
+  both differing periods on the exact Dashboard Supabase database. Source/image/
+  Dockerfile hashes are retained; no hosted data/schema/function writes.
+  Separately versioned integer triangular mutation has4128 equal full Python/SQL
+  traces plus16 maximum-counter/interior traces; three SQL cases pass with bad
+  input/guard/client denial. No legacy model or native package changes. Distribution,
+  rates and draw consumption differ and are explicitly versioned. ParentB/C2/C
+  stay open. [Findings, proposal and further research](services/vonneumann/NATIVE-MUTATION-PORTABILITY.md).
+
+- [ ] **PAPER-COMPACT-03B3C2B2 — Integrate and independently validate the new portable model.**
+  Introduce explicit model/config/operator versions without relabeling old evidence.
+  Bind complete headers/configuration/search/strategy/software/counters; compose
+  actual per-child integer mutation with exact selection, mirrors and lineage.
+  Reject valid-looking forged periods; prove multi-window real replacements,
+  sexual/asexual draws, ordinary commands, restart/interruption and resource/Stop
+  bounds from fresh genesis or an accepted semantic chain. Keep two active genes
+  and full continuation evidence. CloseB only when complete semantics pass, before
+ 03 native effects/migration,04 restoration and05 retention/closed hosted acceptance.
+  **Deep substantial research:** actual deployed-worker math/legacy reachable seeds,
+  integer radii/rates/clamping/no-op/diversity bias, full tails and equal-budget
+  matched-seed held-out baseline comparisons. Portability is not performance proof.
+
 - [ ] **PAPER-COMPACT-03 — Prepare the reviewed forward SQL/native contract.**
   **Constraint reviewed by03A:** adopt a reviewed stable partition and enforce
   dependency-safe journal retention/rate/Stop budgets before finalization.
