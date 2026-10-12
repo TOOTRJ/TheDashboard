@@ -5,6 +5,7 @@ import { Bookmark, Copy, Loader2, Pencil, Save, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { useAuth } from "@/components/auth/AuthProvider";
+import type { createNesteggWorkspaceScope } from "@/lib/nestegg/session-scope";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -24,6 +25,7 @@ import {
 } from "@/lib/nestegg/scenarios-supabase";
 
 type Props = {
+  workspaceScope: ReturnType<typeof createNesteggWorkspaceScope>;
   inputs: NesteggInputs;
   marketScenario: NesteggScenarioId;
   onLoadScenario: (row: SavedNesteggScenario) => void;
@@ -37,6 +39,7 @@ type Props = {
 };
 
 export function NesteggScenariosManager({
+  workspaceScope,
   inputs,
   marketScenario,
   onLoadScenario,
@@ -60,64 +63,91 @@ export function NesteggScenariosManager({
   }, [open, onRefreshCloud]);
 
   const handleSave = async () => {
-    if (!user) {
-      toast.error("Sign in to save scenarios");
-      return;
+    const request = workspaceScope.capture();
+    if (!request.isCurrent() || user?.id !== request.ownerId) return;
+    try {
+      const row = await insertNesteggScenarioToSupabase(name, inputs, marketScenario, request);
+      if (!request.isCurrent()) return;
+      if (!row) {
+        toast.error("Could not save", {
+          description:
+            "Ensure the nestegg_scenarios table exists in Supabase (see supabase/migrations).",
+        });
+        return;
+      }
+      setName("");
+      setOpen(false);
+      onCloudSaved(row);
+      await onRefreshCloud();
+      if (!request.isCurrent()) return;
+      toast.success("Scenario saved", { description: row.name });
+    } catch {
+      if (request.isCurrent()) toast.error("Unable to complete the saved-plan operation");
     }
-    const row = await insertNesteggScenarioToSupabase(name, inputs, marketScenario);
-    if (!row) {
-      toast.error("Could not save", {
-        description:
-          "Ensure the nestegg_scenarios table exists in Supabase (see supabase/migrations).",
-      });
-      return;
-    }
-    setName("");
-    setOpen(false);
-    onCloudSaved(row);
-    await onRefreshCloud();
-    toast.success("Scenario saved", { description: row.name });
   };
 
   const handleDeleteCloud = async (id: string) => {
-    const ok = await deleteNesteggScenarioFromSupabase(id);
-    if (ok) {
-      await onCloudScenarioDeleted(id);
-      toast.message("Scenario removed");
-    } else {
-      toast.error("Delete failed");
+    const request = workspaceScope.capture();
+    if (!request.isCurrent()) return;
+    try {
+      const ok = await deleteNesteggScenarioFromSupabase(id, request);
+      if (!request.isCurrent()) return;
+      if (ok) {
+        await onCloudScenarioDeleted(id);
+        if (!request.isCurrent()) return;
+        toast.message("Scenario removed");
+      } else {
+        toast.error("Delete failed");
+      }
+    } catch {
+      if (request.isCurrent()) toast.error("Unable to complete the saved-plan operation");
     }
   };
 
   const handleDuplicate = async (row: SavedNesteggScenario) => {
-    if (!user) return;
-    const label = `${row.name} (copy)`.slice(0, 120);
-    const created = await insertNesteggScenarioToSupabase(
-      label,
-      row.inputs,
-      row.marketScenario
-    );
-    if (!created) {
-      toast.error("Could not duplicate");
-      return;
+    const request = workspaceScope.capture();
+    if (!request.isCurrent() || user?.id !== request.ownerId) return;
+    try {
+      const label = `${row.name} (copy)`.slice(0, 120);
+      const created = await insertNesteggScenarioToSupabase(
+        label,
+        row.inputs,
+        row.marketScenario, request
+      );
+      if (!request.isCurrent()) return;
+      if (!created) {
+        toast.error("Could not duplicate");
+        return;
+      }
+      onCloudSaved(created);
+      await onRefreshCloud();
+      if (!request.isCurrent()) return;
+      toast.success("Duplicated", { description: created.name });
+    } catch {
+      if (request.isCurrent()) toast.error("Unable to complete the saved-plan operation");
     }
-    onCloudSaved(created);
-    await onRefreshCloud();
-    toast.success("Duplicated", { description: created.name });
   };
 
   const handleRenameSave = async (id: string) => {
-    const next = await updateNesteggScenarioNameInSupabase(id, editName);
-    if (!next) {
-      toast.error("Rename failed");
-      return;
+    const request = workspaceScope.capture();
+    if (!request.isCurrent()) return;
+    try {
+      const next = await updateNesteggScenarioNameInSupabase(id, editName, request);
+      if (!request.isCurrent()) return;
+      if (!next) {
+        toast.error("Rename failed");
+        return;
+      }
+      setEditingId(null);
+      await onRefreshCloud();
+      if (!request.isCurrent()) return;
+      if (activeSavedScenarioId === id) {
+        onLoadScenario(next);
+      }
+      toast.success("Renamed", { description: next.name });
+    } catch {
+      if (request.isCurrent()) toast.error("Unable to complete the saved-plan operation");
     }
-    setEditingId(null);
-    await onRefreshCloud();
-    if (activeSavedScenarioId === id) {
-      onLoadScenario(next);
-    }
-    toast.success("Renamed", { description: next.name });
   };
 
   return (

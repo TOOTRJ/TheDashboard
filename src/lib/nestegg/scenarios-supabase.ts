@@ -1,6 +1,7 @@
-import { createClient } from "@/lib/supabase/client";
+import { getNesteggDataClient as scopedClient } from "./scoped-client";
 import type { NesteggInputs, NesteggScenarioId, SavedNesteggScenario } from "./types";
 import { normalizeNesteggInputs } from "./constants";
+import type { NesteggRequestScope } from "./session-scope";
 
 type Row = {
   id: string;
@@ -24,122 +25,72 @@ function rowToSaved(r: Row): SavedNesteggScenario {
   };
 }
 
-export async function fetchNesteggScenariosFromSupabase(): Promise<SavedNesteggScenario[]> {
-  const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return [];
-
-  const { data, error } = await supabase
-    .from("nestegg_scenarios")
-    .select("id,user_id,name,inputs,market_scenario,updated_at")
-    .order("updated_at", { ascending: false });
-
-  if (error || !data) {
-    console.warn("nestegg_scenarios fetch:", error?.message ?? "no data");
+export async function fetchNesteggScenariosFromSupabase(scope: NesteggRequestScope): Promise<SavedNesteggScenario[]> {
+  const supabase = await scopedClient(scope);
+  if (!supabase) {
+    if (scope.isCurrent()) throw new Error("Current Nestegg session is unavailable");
     return [];
   }
-
+  const { data, error } = await supabase.from("nestegg_scenarios")
+    .select("id,user_id,name,inputs,market_scenario,updated_at")
+    .eq("user_id", scope.ownerId).order("updated_at", { ascending: false });
+  if (!scope.isCurrent()) return [];
+  if (error || !data || (data as Row[]).some(row => row.user_id !== scope.ownerId)) {
+    throw new Error("Saved Nestegg plans are unavailable");
+  }
   return (data as Row[]).map(rowToSaved);
 }
 
 export async function insertNesteggScenarioToSupabase(
-  name: string,
-  inputs: NesteggInputs,
-  marketScenario: NesteggScenarioId
+  name: string, inputs: NesteggInputs, marketScenario: NesteggScenarioId,
+  scope: NesteggRequestScope
 ): Promise<SavedNesteggScenario | null> {
-  const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return null;
-
-  const payload = {
-    user_id: user.id,
-    name: name.trim() || "Untitled",
+  const supabase = await scopedClient(scope);
+  if (!supabase) return null;
+  const { data, error } = await supabase.from("nestegg_scenarios").insert({
+    user_id: scope.ownerId, name: name.trim() || "Untitled",
     inputs: normalizeNesteggInputs(inputs) as unknown as Record<string, unknown>,
-    market_scenario: marketScenario,
-    updated_at: new Date().toISOString(),
-  };
-
-  const { data, error } = await supabase
-    .from("nestegg_scenarios")
-    .insert(payload)
-    .select("id,user_id,name,inputs,market_scenario,updated_at")
-    .single();
-
-  if (error || !data) {
-    console.warn("nestegg_scenarios insert:", error?.message);
-    return null;
-  }
+    market_scenario: marketScenario, updated_at: new Date().toISOString(),
+  }).select("id,user_id,name,inputs,market_scenario,updated_at").single();
+  if (!scope.isCurrent() || error || !data || data.user_id !== scope.ownerId) return null;
   return rowToSaved(data as Row);
 }
 
-export async function deleteNesteggScenarioFromSupabase(id: string): Promise<boolean> {
-  const supabase = createClient();
-  const { error } = await supabase.from("nestegg_scenarios").delete().eq("id", id);
-  if (error) {
-    console.warn("nestegg_scenarios delete:", error.message);
-    return false;
-  }
-  return true;
+export async function deleteNesteggScenarioFromSupabase(id: string, scope: NesteggRequestScope): Promise<boolean> {
+  const supabase = await scopedClient(scope);
+  if (!supabase) return false;
+  const { error } = await supabase.from("nestegg_scenarios").delete()
+    .eq("id", id).eq("user_id", scope.ownerId);
+  return scope.isCurrent() && !error;
 }
 
 export async function updateNesteggScenarioInSupabase(
-  id: string,
-  inputs: NesteggInputs,
-  marketScenario: NesteggScenarioId,
-  options?: { name?: string }
+  id: string, inputs: NesteggInputs, marketScenario: NesteggScenarioId,
+  options: { name?: string } | undefined, scope: NesteggRequestScope
 ): Promise<SavedNesteggScenario | null> {
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return null;
-
-  const normalized = normalizeNesteggInputs(inputs) as unknown as Record<string, unknown>;
+  const supabase = await scopedClient(scope);
+  if (!supabase) return null;
   const payload: Record<string, unknown> = {
-    inputs: normalized,
-    market_scenario: marketScenario,
-    updated_at: new Date().toISOString(),
+    inputs: normalizeNesteggInputs(inputs) as unknown as Record<string, unknown>,
+    market_scenario: marketScenario, updated_at: new Date().toISOString(),
   };
-  if (options?.name !== undefined) {
-    payload.name = options.name.trim() || "Untitled";
-  }
-
-  const { data, error } = await supabase
-    .from("nestegg_scenarios")
-    .update(payload)
-    .eq("id", id)
-    .eq("user_id", user.id)
-    .select("id,user_id,name,inputs,market_scenario,updated_at")
-    .single();
-
-  if (error || !data) {
-    console.warn("nestegg_scenarios update:", error?.message);
-    return null;
-  }
+  if (options?.name !== undefined) payload.name = options.name.trim() || "Untitled";
+  const { data, error } = await supabase.from("nestegg_scenarios").update(payload)
+    .eq("id", id).eq("user_id", scope.ownerId)
+    .select("id,user_id,name,inputs,market_scenario,updated_at").single();
+  if (!scope.isCurrent() || error || !data || data.user_id !== scope.ownerId) return null;
   return rowToSaved(data as Row);
 }
 
 export async function updateNesteggScenarioNameInSupabase(
-  id: string,
-  name: string
+  id: string, name: string, scope: NesteggRequestScope
 ): Promise<SavedNesteggScenario | null> {
-  const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return null;
-
-  const { data, error } = await supabase
-    .from("nestegg_scenarios")
-    .update({
-      name: name.trim() || "Untitled",
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", id)
-    .select("id,user_id,name,inputs,market_scenario,updated_at")
-    .single();
-
-  if (error || !data) {
-    console.warn("nestegg_scenarios update:", error?.message);
-    return null;
-  }
+  const supabase = await scopedClient(scope);
+  if (!supabase) return null;
+  const { data, error } = await supabase.from("nestegg_scenarios")
+    .update({ name: name.trim() || "Untitled", updated_at: new Date().toISOString() })
+    .eq("id", id).eq("user_id", scope.ownerId)
+    .select("id,user_id,name,inputs,market_scenario,updated_at").single();
+  if (!scope.isCurrent() || error || !data || data.user_id !== scope.ownerId) return null;
   return rowToSaved(data as Row);
 }

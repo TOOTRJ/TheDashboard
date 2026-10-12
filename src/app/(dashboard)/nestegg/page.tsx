@@ -5,6 +5,8 @@ import { toast } from "sonner";
 import { FlaskConical, PiggyBank, SlidersHorizontal } from "lucide-react";
 
 import { useAuth } from "@/components/auth/AuthProvider";
+import { sessionIdentity } from "@/lib/auth/session-guard";
+import { createNesteggWorkspaceScope } from "@/lib/nestegg/session-scope";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -116,11 +118,33 @@ const LIGHT_MC_DEBOUNCE_MS = 800;
 const FULL_MC_PATHS = 1100;
 
 export default function NesteggPage() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, session, loading } = useAuth();
+  const identity = sessionIdentity(session?.access_token);
+  const ownerId = user?.id ?? null;
+  // Session comparison stays internal; React keys never contain a bearer token.
+  const boundary = React.useMemo(() => ownerId && identity ? {
+    key: crypto.randomUUID(), scope: createNesteggWorkspaceScope(ownerId, identity),
+  } : null, [ownerId, identity]);
+  if (loading) return <p role="status">Checking your Nestegg session…</p>;
+  if (!user || !session || session.user.id !== user.id) {
+    return <p role="status">Sign in to access your Nestegg workspace.</p>;
+  }
+  // Replacing an account or login session retires all inputs, child views and exports before paint.
+  if (!boundary) return <p role="status">Sign in to access your Nestegg workspace.</p>;
+  return <NesteggWorkspace key={boundary.key} ownerId={user.id} workspaceScope={boundary.scope} />;
+}
+
+export function NesteggWorkspace({ ownerId, workspaceScope }: {
+  ownerId: string; workspaceScope: ReturnType<typeof createNesteggWorkspaceScope>;
+}) {
+  const user = React.useMemo(() => ({ id: ownerId }), [ownerId]);
   const [inputs, setInputs] = React.useState<NesteggInputs>(DEFAULT_NESTEGG_INPUTS);
   const [scenario, setScenario] = React.useState<NesteggScenarioId>("base");
   const [compareOverlay, setCompareOverlay] = React.useState(false);
   const [hydrated, setHydrated] = React.useState(false);
+  const [hydrationError, setHydrationError] = React.useState(false);
+  const [hydrationAttempt, setHydrationAttempt] = React.useState(0);
+  const [storageUnavailable, setStorageUnavailable] = React.useState(false);
   const [cloudScenarios, setCloudScenarios] = React.useState<SavedNesteggScenario[]>([]);
   const [cloudRefreshing, setCloudRefreshing] = React.useState(false);
   const [activeSavedScenario, setActiveSavedScenario] = React.useState<ActiveSaved | null>(null);
@@ -148,26 +172,32 @@ export default function NesteggPage() {
   const fullMcInputsKeyRef = React.useRef<string | null>(null);
   const fullAnalysisCancelRef = React.useRef<(() => void) | null>(null);
 
+  React.useLayoutEffect(() => {
+    workspaceScope.activate();
+    return () => { workspaceScope.dispose(); fullAnalysisCancelRef.current?.(); };
+  }, [workspaceScope]);
+
   const activeSavedRef = React.useRef<ActiveSaved | null>(null);
   React.useEffect(() => {
     activeSavedRef.current = activeSavedScenario;
   }, [activeSavedScenario]);
 
   const refreshCloudScenarios = React.useCallback(async () => {
-    if (!user) {
-      setCloudScenarios([]);
-      return;
-    }
+    const request = workspaceScope.capture();
+    if (!request.isCurrent()) return;
     setCloudRefreshing(true);
     try {
-      const rows = await fetchNesteggScenariosFromSupabase();
-      setCloudScenarios(rows);
+      const rows = await fetchNesteggScenariosFromSupabase(request);
+      if (request.isCurrent()) setCloudScenarios(rows);
+    } catch {
+      if (request.isCurrent()) toast.error("Unable to refresh saved plans");
     } finally {
-      setCloudRefreshing(false);
+      if (request.isCurrent()) setCloudRefreshing(false);
     }
-  }, [user]);
+  }, [workspaceScope]);
 
   const applySavedRow = React.useCallback((row: SavedNesteggScenario) => {
+    if (!workspaceScope.isCurrent()) return;
     const normalized = normalizeNesteggInputs(row.inputs);
     setInputs(normalized);
     setScenario(row.marketScenario);
@@ -177,7 +207,7 @@ export default function NesteggPage() {
       name: row.name,
     });
     setActiveSavedScenario({ id: row.id, name: row.name });
-  }, []);
+  }, [workspaceScope]);
 
   React.useEffect(() => {
     if (!activeSavedScenario) {
@@ -189,90 +219,56 @@ export default function NesteggPage() {
   }, [activeSavedScenario?.id]);
 
   React.useEffect(() => {
-    if (authLoading) return;
-    let cancelled = false;
-
-    (async () => {
-      if (user) {
+    const request = workspaceScope.capture();
+    if (!request.isCurrent()) return;
+    setHydrationError(false);
+    void (async () => {
+      try {
         const [rows, portfolioTotal, goalData] = await Promise.all([
-          fetchNesteggScenariosFromSupabase(),
-          fetchPortfolioTotal(),
-          fetchPortfolioGoal(),
+          fetchNesteggScenariosFromSupabase(request), fetchPortfolioTotal(request), fetchPortfolioGoal(request),
         ]);
-        if (cancelled) return;
+        if (!request.isCurrent()) return;
+        const saved = loadNesteggDraft(ownerId);
+        setStorageUnavailable(saved.unavailable);
+        const d = saved.draft;
+        const hasPortfolio = portfolioTotal > 0;
         setPortfolioGoal(goalData.goal);
         setPortfolioGoalYear(goalData.goalYear);
         setCloudScenarios(rows);
-        const hasPortfolio = portfolioTotal > 0;
-
         if (rows.length > 0) {
           const latest = rows[0];
           const normalized = normalizeNesteggInputs(latest.inputs);
-          const withPortfolio = hasPortfolio
-            ? { ...normalized, currentSavings: portfolioTotal }
-            : normalized;
+          const withPortfolio = hasPortfolio ? { ...normalized, currentSavings: portfolioTotal } : normalized;
           setInputs(withPortfolio);
           setScenario(latest.marketScenario);
           setActiveSavedScenario({ id: latest.id, name: latest.name });
-          setLoadedBaseline({
-            inputs: withPortfolio,
-            marketScenario: latest.marketScenario,
-            name: latest.name,
-          });
-          const d = loadNesteggDraft();
+          setLoadedBaseline({ inputs: withPortfolio, marketScenario: latest.marketScenario, name: latest.name });
           setCompareOverlay(d?.compareOverlay ?? false);
         } else {
-          const d = loadNesteggDraft();
-          if (d) {
-            const withPortfolio = hasPortfolio
-              ? { ...d.inputs, currentSavings: portfolioTotal }
-              : d.inputs;
-            setInputs(withPortfolio);
-            setScenario(d.marketScenario);
-            setCompareOverlay(d.compareOverlay);
-          } else {
-            setInputs({
-              ...DEFAULT_NESTEGG_INPUTS,
-              currentSavings: hasPortfolio ? portfolioTotal : 0,
-            });
-            setScenario("base");
-            setCompareOverlay(false);
-          }
+          const next = d ?? defaultDraftState();
+          setInputs({ ...next.inputs, currentSavings: hasPortfolio ? portfolioTotal : d?.inputs.currentSavings ?? 0 });
+          setScenario(next.marketScenario);
+          setCompareOverlay(next.compareOverlay);
           setActiveSavedScenario(null);
           setLoadedBaseline(null);
         }
         setPortfolioLinked(hasPortfolio);
-      } else {
-        const d = loadNesteggDraft();
-        if (d) {
-          setInputs(d.inputs);
-          setScenario(d.marketScenario);
-          setCompareOverlay(d.compareOverlay);
-        }
-        setCloudScenarios([]);
-        setActiveSavedScenario(null);
-        setLoadedBaseline(null);
-        setPortfolioLinked(false);
+        setHydrated(true);
+      } catch {
+        if (request.isCurrent()) setHydrationError(true);
       }
-      setHydrated(true);
     })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [user, authLoading]);
+  }, [ownerId, workspaceScope, hydrationAttempt]);
 
   React.useEffect(() => {
     if (!hydrated) return;
+    const request = workspaceScope.capture();
     const id = window.setTimeout(() => {
-      saveNesteggDraft({
-        inputs,
-        marketScenario: scenario,
-        compareOverlay,
-      });
+      if (!request.isCurrent()) return;
+      setStorageUnavailable(!saveNesteggDraft(ownerId, { inputs, marketScenario: scenario, compareOverlay }));
     }, 400);
     return () => window.clearTimeout(id);
-  }, [inputs, scenario, compareOverlay, hydrated]);
+  }, [ownerId, workspaceScope, inputs, scenario, compareOverlay, hydrated]);
 
   /* ── Derived / memoized projection data ── */
 
@@ -294,6 +290,8 @@ export default function NesteggPage() {
   /* ── Light MC effect — runs automatically, debounced after first run ── */
 
   React.useEffect(() => {
+    if (!hydrated) return;
+    const request = workspaceScope.capture();
     const scenarioInputsForMc = applyScenarioToInputs(inputs, scenario);
     let cancelled = false;
 
@@ -303,10 +301,10 @@ export default function NesteggPage() {
         paths: LIGHT_MC_PATHS,
         chunkSize: LIGHT_MC_PATHS,
       }).then((mc) => {
-        if (cancelled) return;
+        if (cancelled || !request.isCurrent()) return;
         setLightMc(mc);
         setLightMcRunning(false);
-      });
+      }).catch(() => { if (!cancelled && request.isCurrent()) setLightMcRunning(false); });
     };
 
     if (lightMcFirstRunRef.current) {
@@ -321,13 +319,15 @@ export default function NesteggPage() {
       window.clearTimeout(timer);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- monteCarloDepsKey
-  }, [monteCarloDepsKey]);
+  }, [monteCarloDepsKey, hydrated, workspaceScope]);
 
   /* ── Full MC — triggered by user clicking "Run full analysis" ── */
 
   const fullMcStale = fullMc !== null && fullMcInputsKeyRef.current !== monteCarloDepsKey;
 
   const runFullAnalysis = React.useCallback(async () => {
+    const request = workspaceScope.capture();
+    if (!hydrated || !request.isCurrent()) return;
     fullAnalysisCancelRef.current?.();
     let cancelled = false;
     fullAnalysisCancelRef.current = () => { cancelled = true; };
@@ -342,13 +342,13 @@ export default function NesteggPage() {
       const main = await runMonteCarloBatched(scenarioInputsForMc, scenario, {
         paths: FULL_MC_PATHS,
         chunkSize: 100,
-        onProgress: (f) => { if (!cancelled) setFullMcProgress(f); },
+        onProgress: (f) => { if (!cancelled && request.isCurrent()) setFullMcProgress(f); },
       });
-      if (cancelled) return;
+      if (cancelled || !request.isCurrent()) return;
       setFullMc(main);
 
       const compare = await runMonteCarloScenarioComparisonBatched(inputs, SCENARIO_LABELS);
-      if (cancelled) return;
+      if (cancelled || !request.isCurrent()) return;
       setFullCompareRows(compare);
 
       const conservative = await runMonteCarloBatched(
@@ -356,16 +356,18 @@ export default function NesteggPage() {
         "conservative",
         { paths: 320, chunkSize: 160 }
       );
-      if (cancelled) return;
+      if (cancelled || !request.isCurrent()) return;
       setFullConservativeMc(conservative);
 
       fullMcInputsKeyRef.current = currentKey;
+    } catch {
+      if (!cancelled && request.isCurrent()) toast.error("Unable to complete the analysis");
     } finally {
-      if (!cancelled) {
+      if (!cancelled && request.isCurrent()) {
         setFullMcRunning(false);
       }
     }
-  }, [inputs, scenario, monteCarloDepsKey]);
+  }, [inputs, scenario, monteCarloDepsKey, hydrated, workspaceScope]);
 
   /* ── Insights (require full MC) ── */
 
@@ -513,7 +515,12 @@ export default function NesteggPage() {
 
   const handleCloudScenarioDeleted = React.useCallback(
     async (deletedId: string) => {
-      const rows = await fetchNesteggScenariosFromSupabase();
+      const request = workspaceScope.capture();
+      if (!request.isCurrent()) return;
+      let rows: SavedNesteggScenario[];
+      try { rows = await fetchNesteggScenariosFromSupabase(request); }
+      catch { if (request.isCurrent()) toast.error("Unable to refresh saved plans"); return; }
+      if (!request.isCurrent()) return;
       setCloudScenarios(rows);
       if (activeSavedRef.current?.id !== deletedId) return;
       if (rows[0]) {
@@ -521,7 +528,9 @@ export default function NesteggPage() {
         toast.message("Switched to your latest saved plan", { description: rows[0].name });
         return;
       }
-      const d = loadNesteggDraft();
+      const saved = loadNesteggDraft(ownerId);
+      setStorageUnavailable(saved.unavailable);
+      const d = saved.draft;
       if (d) {
         setInputs(d.inputs);
         setScenario(d.marketScenario);
@@ -534,7 +543,7 @@ export default function NesteggPage() {
       setActiveSavedScenario(null);
       setLoadedBaseline(null);
     },
-    [applySavedRow]
+    [applySavedRow, ownerId, workspaceScope]
   );
 
   const onSavedPlanSelect = React.useCallback(
@@ -555,15 +564,17 @@ export default function NesteggPage() {
   );
 
   const handleSaveActiveScenario = React.useCallback(async () => {
-    if (!user || !activeSavedScenario || !activePlanIsOnCloud) return;
+    const request = workspaceScope.capture();
+    if (!request.isCurrent() || !activeSavedScenario || !activePlanIsOnCloud) return;
     setSavingScenario(true);
     try {
       const row = await updateNesteggScenarioInSupabase(
         activeSavedScenario.id,
         inputs,
         scenario,
-        { name: scenarioNameDraft.trim() || "Untitled" }
+        { name: scenarioNameDraft.trim() || "Untitled" }, request
       );
+      if (!request.isCurrent()) return;
       if (!row) {
         toast.error("Could not save", {
           description: "Check your connection and try again.",
@@ -579,12 +590,15 @@ export default function NesteggPage() {
       setActiveSavedScenario({ id: row.id, name: row.name });
       setScenarioNameDraft(row.name);
       await refreshCloudScenarios();
+      if (!request.isCurrent()) return;
       toast.success("Saved to plan", { description: row.name });
+    } catch {
+      if (request.isCurrent()) toast.error("Could not save your plan");
     } finally {
-      setSavingScenario(false);
+      if (request.isCurrent()) setSavingScenario(false);
     }
   }, [
-    user,
+    workspaceScope,
     activeSavedScenario,
     activePlanIsOnCloud,
     inputs,
@@ -595,13 +609,15 @@ export default function NesteggPage() {
 
   const focusPlanInputsSection = React.useCallback(() => {
     setPlanInputsOpen(true);
+    const request = workspaceScope.capture();
     window.setTimeout(() => {
+      if (!request.isCurrent()) return;
       planInputsSectionRef.current?.scrollIntoView({
         behavior: "smooth",
         block: "start",
       });
     }, 80);
-  }, []);
+  }, [workspaceScope]);
 
   const planInputsTitle = React.useMemo(() => {
     if (activeSavedScenario && activePlanIsOnCloud) {
@@ -620,8 +636,13 @@ export default function NesteggPage() {
   /* ── Best available MC for export / saved-compare (prefer full, fall back to light) ── */
   const bestAvailableMc = fullMcStale ? lightMc : (fullMc ?? lightMc);
 
+  if (!hydrated) return <div role="status">
+    <p>{hydrationError ? "Unable to load your Nestegg workspace." : "Loading your Nestegg workspace…"}</p>
+    {hydrationError && <button onClick={() => setHydrationAttempt(n => n + 1)}>Retry workspace load</button>}
+  </div>;
   return (
     <div className="space-y-6 pb-10">
+      {storageUnavailable && <p role="alert">Your browser draft could not be saved or read. Changes remain in this workspace; cloud plan saving is separate.</p>}
       <NesteggWalkthrough replayKey={tourReplay} />
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:items-start">
@@ -660,8 +681,8 @@ export default function NesteggPage() {
               Explore retirement outcomes, compare stress tests, and tune your plan — results update
               as you go.
               {user
-                ? " Saved plans sync to your account; a recent visit loads your latest saved plan."
-                : " Sign in to save named plans; this device still remembers your in-progress edits."}
+                ? " Saved plans and device drafts are scoped to your account. Older unassigned device drafts are not imported."
+                : " Sign in to save named plans."}
             </p>
           </div>
         </div>
@@ -797,6 +818,7 @@ export default function NesteggPage() {
               cloudScenarios={cloudScenarios}
               activeSavedScenarioId={activeSavedScenario?.id ?? null}
               onLoadScenario={onLoadScenario}
+              workspaceScope={workspaceScope}
               onRefreshCloud={refreshCloudScenarios}
               cloudRefreshing={cloudRefreshing}
               onCloudSaved={onCloudSaved}

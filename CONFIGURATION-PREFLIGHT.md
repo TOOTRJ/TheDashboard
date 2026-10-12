@@ -4501,3 +4501,33 @@ unchanged user migrationSHAa62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf
 No hosted mutation/capability/provider/billing/wallet operation. Rollback is a
 reviewed code/docs revert; invalid aliases are not valid restored evidence.
 Exact source/merge/production proof will be recorded in the scoped PR.
+
+
+## 106. Nestegg owner draft and login-session isolation — 2026-10-12
+
+NEST-06A replaces shared-draft consumption with strict owner-tagged v2 device
+envelopes, preserving but never claiming/importing unowned v1 data. Signed-out
+state has no private workspace. Opaque keys contain no bearer tokens; stable
+Supabase session_id refresh retains one workspace, while exact fallback token
+changes conservatively remount. Captured revision scopes retire old private
+views/reads/saves/portfolio/MC/progress/autosave/focus callbacks at account change,
+logout/re-login and effect replacement. Per-request data clients validate current
+user/login then bind its original token without new persisted auth/refresh state.
+Owner predicates and RLS remain; actual query failure is not empty-plan success.
+Already-dispatched original writes can commit; retired replies are dropped rather
+than claiming rollback. [Policy and test scope](NESTEGG-ACCOUNT-ISOLATION.md).
+
+Twenty-one focused VM/hook/service/storage cases and204 complete Node cases,
+TypeScript, zero-error broad lint (32 existing warnings) and isolated fake-key
+build pass. Root reviewed all service consumers and retained Portfolio optional
+scope compatibility. No actual browser/React/Auth/TLS acceptance or financial
+model claim. NEST-05A same-account result identity and financial/calibration/
+portfolio-link/export gates remain. No schema/migration/cloud financial data or
+credential change. Other projects and user migrationSHAa62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc
+are preserved; CI drafts excluded from this slice. Rollback reviewed code/docs
+only; old private draft/session behavior must not be reintroduced casually.
+
+TYPE1 PR100 merge0a6fab569124da3345689e6a022bddffee26a764 has identical reviewed
+tree; productiondpl_DNzpSEjaF3U8CyFoXoW5dU7K2cJP is READY/current canonical alias
+with all four read-only probes passed. Exact Dashboard targets remain pinned;
+Railway stays closed. Privacy PR source/merge/production proof follows in its PR.

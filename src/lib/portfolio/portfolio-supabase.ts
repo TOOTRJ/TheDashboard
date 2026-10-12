@@ -1,4 +1,6 @@
 import { createClient } from "@/lib/supabase/client";
+import { getNesteggDataClient } from "@/lib/nestegg/scoped-client";
+import type { NesteggRequestScope } from "@/lib/nestegg/session-scope";
 
 export type PortfolioAccount = {
   id: string;
@@ -24,19 +26,34 @@ function rowToAccount(r: Row): PortfolioAccount {
   };
 }
 
-export async function fetchPortfolioAccounts(): Promise<PortfolioAccount[]> {
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return [];
+async function portfolioReadClient(scope?: NesteggRequestScope) {
+  if (scope) {
+    const client = await getNesteggDataClient(scope);
+    return client ? { client, ownerId: scope.ownerId } : null;
+  }
+  const client = createClient();
+  const { data: { user } } = await client.auth.getUser();
+  return user ? { client, ownerId: user.id } : null;
+}
+
+export async function fetchPortfolioAccounts(scope?: NesteggRequestScope): Promise<PortfolioAccount[]> {
+  if (scope && !scope.isCurrent()) return [];
+  const access = await portfolioReadClient(scope);
+  if (!access) {
+    if (scope?.isCurrent()) throw new Error("Current portfolio session is unavailable");
+    return [];
+  }
+  const { client: supabase, ownerId } = access;
 
   const { data, error } = await supabase
     .from("portfolio_accounts")
     .select("id,user_id,name,balance,updated_at")
+    .eq("user_id", ownerId)
     .order("name", { ascending: true });
 
-  if (error || !data) {
+  if (scope && !scope.isCurrent()) return [];
+  if (error || !data || (data as Row[]).some(row => row.user_id !== ownerId)) {
+    if (scope) throw new Error("Portfolio accounts are unavailable");
     console.warn("portfolio_accounts fetch:", error?.message ?? "no data");
     return [];
   }
@@ -119,8 +136,8 @@ export async function deletePortfolioAccount(id: string): Promise<boolean> {
   return true;
 }
 
-export async function fetchPortfolioTotal(): Promise<number> {
-  const accounts = await fetchPortfolioAccounts();
+export async function fetchPortfolioTotal(scope?: NesteggRequestScope): Promise<number> {
+  const accounts = await fetchPortfolioAccounts(scope);
   return accounts.reduce((sum, a) => sum + a.balance, 0);
 }
 
@@ -129,20 +146,24 @@ export type PortfolioGoal = {
   goalYear: number | null;
 };
 
-export async function fetchPortfolioGoal(): Promise<PortfolioGoal> {
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { goal: 0, goalYear: null };
+export async function fetchPortfolioGoal(scope?: NesteggRequestScope): Promise<PortfolioGoal> {
+  if (scope && !scope.isCurrent()) return { goal: 0, goalYear: null };
+  const access = await portfolioReadClient(scope);
+  if (!access) {
+    if (scope?.isCurrent()) throw new Error("Current portfolio session is unavailable");
+    return { goal: 0, goalYear: null };
+  }
+  const { client: supabase, ownerId } = access;
 
   const { data, error } = await supabase
     .from("profiles")
     .select("portfolio_goal,portfolio_goal_year")
-    .eq("id", user.id)
-    .single();
+    .eq("id", ownerId)
+    .maybeSingle();
 
+  if (scope && !scope.isCurrent()) return { goal: 0, goalYear: null };
   if (error || !data) {
+    if (scope && error) throw new Error("Portfolio goal is unavailable");
     console.warn("portfolio goal fetch:", error?.message ?? "no data");
     return { goal: 0, goalYear: null };
   }
