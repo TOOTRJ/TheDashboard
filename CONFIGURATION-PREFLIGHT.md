@@ -3999,3 +3999,63 @@ preserved/excluded at SHA256
 a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc.
 Rollback is a reviewed code/docs revert. Exact preview/merge/production/read-only
 release verification is retained in the PR.
+
+## 97. Independent source and exact indicator continuation — 2026-10-11
+
+Fresh isolated verification matches GitHub TOOTRJ/TheDashboard/repository1141090963
+and biggrizzly11/user16749816; Vercel the-dashboard/prj_wFUe9k9USVreOQcmQKNWRAVsx5fH
+under team_8iNNxiNjrOseD4gdSCHkQEzF; Supabase The Dashboard/fxpxsciltakyypunglzr
+under cqfnnaunmupdyobkyqfo. Railway The Dashboard Worker/project
+38facb49-4de9-4d66-85aa-2861e0306dcf, production9bbe52c6-2305-467a-bf39-8d5e1a98e4e4,
+workspacef3fcd4b2-e424-4c6b-ac33-91196ccc96e1 and dashboard-paper-worker/service
+8e78ad4b-1d8f-43e7-898a-3882ac5053d7 match; deployment
+cf05895d-adc5-427f-873e-82ad6606e5a1 remains unchanged. The base is PR91 merge
+a8ce47dad1de18751301aa6f8fc7fde44dd19c94, whose exact release evidence is in PR91.
+
+PAPER-COMPACT-03B3B1 composes the private locked economic boundary with guarded
+offline source/indicator validation. It independently binds original policy/
+epoch/sequence/request hashes, receipt/source/future/carried ages, block/clock
+ordering, complete minute ranges/document use/candle fingerprints, observation/
+source projections and exact EMA warmup/continuation for all59 periods.
+Integer ratios explicitly round binary64 nearest-even at each model operation;
+no PostgreSQL float cast or tolerance supplies the indicator evidence. Original
+UTC clock strings and conservative microseconds must match their precise inputs.
+Ordinary Stop uses no fresh frame/history or paid-data age gate and keeps holdings.
+
+The versioned source trust is worker-parsed records and manifests. Response
+digests do not authenticate raw provider bytes, which are absent from this compact
+wire. That limit is deliberately tested and documented. The final server-boundary
+source/lease recheck and native atomic journal/identity/pin/history effects remain
+03. Causal signals/ordered account/member risk/lifecycle rules remain03B3B2;
+assessments/optimizer/cohort/selection/lineage remain03B3C;04/05 still gate exact
+restoration, safe retention and closed hosted multi-window acceptance.
+
+The limited synthetic installer owns seventeen private functions with fixed
+pg_catalog search paths; only the final definer validator is callable by its
+fixture auditor. Browser/service-role/relay/helper/table denial and unchanged
+row snapshots are checked. The pinned PostgreSQL17 owned fixtures use no network,
+ports, mounts or app credentials and are removed afterward. Validation adds no
+tables and writes no durable rows. Source/image hashes and full-wrapper timing
+limits are recorded in [the measurement artifact](services/vonneumann/research/source-transition-measurements.json).
+The [source report](services/vonneumann/NATIVE-SOURCE-TRANSITION.md) retains deeper
+research on arithmetic/platform acceptance, raw-document trust/retention,
+immutable validation reuse and full contended/COMMIT/WAL/TOAST tails.
+
+No hosted schema/data/grant/migration/native package, Railway deploy/variable/
+capability, market API request, archive deletion, billing or live execution
+change occurs. The worker remains closed. The user-owned migration is preserved/
+excluded at SHA256 a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc.
+Rollback is a reviewed code/docs revert. Exact preview/merge/production/read-only
+release evidence will be retained in the PR without a documentation-only follow-up
+deployment. No unrelated project or shared credential/configuration is changed.
+
+Final acceptance passes15 actual SQL and21 Python capture/partition/canonical/
+forward-package cases.639 independent binary64 cases, eight61-bar seed/seven-bar
+continuation profiles and93 complete owned commands pass, plus the separate
+carried-age-floor fixture. Unsigned64 provider blocks and canonical microsecond
+clocks are exercised. Ten full-wrapper warm samples per case report p95
+bootstrap839.134ms, quote313.896ms, replacement552.832ms, risk551.494ms and
+held Stop551.008ms; repeated locked resolution is included. No hosted latency,
+commit/storage effect or cadence/cost acceptance is claimed. All four SQL digests
+match the installed-source measurement artifact; the new source digest is
+4f1c5b506fa2e9253cd3e7940f9b4d9f429d81561f73a4676ca8db7c3450cede.

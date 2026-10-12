@@ -859,6 +859,29 @@ Research began **2026-09-30** and was updated **2026-10-06/07** in [WORKER-HOSTI
   but source/staleness/causality-invalid transitions. Preserve original/frozen
   evidence; reserve final-boundary age/lease checks for the native composition.
 
+- [x] **PAPER-COMPACT-03B3B1 — Independently validate source clocks, candles and exact indicators.**
+  Guarded offline SQL composes the locked economic/identity boundary with exact
+  source policy/epoch/sequence, canonical request hashes, receipt/future/source
+  age and carried-floor ordering, completed contiguous minute/bar fingerprints,
+  source/observation projection and all59 EMA periods. Integer ratios implement
+  nearest-even binary64 rounding independently at every seed/update boundary.
+  Ordinary Stop keeps consumed source evidence and has no paid-data freshness
+  gate. Full risk/control/restart/held-Stop traces and rehashed source/indicator
+  adversarial cases are covered. Document digests bind worker-parsed manifests;
+  they do not authenticate external raw responses. No native package or hosted
+  database/worker mutation. [Proof and measured scope](services/vonneumann/NATIVE-SOURCE-TRANSITION.md).
+  **Deep substantial research:** platform fsum/rounding equivalence, source-byte
+  retention/trust, reusable immutable validation and complete lock/COMMIT tails.
+
+- [ ] **PAPER-COMPACT-03B3B2 — Independently replay causal actions and complete risk/lifecycle state.**
+  Next after03B3B1. Derive pending EMA crossing signals, later quote/window
+  eligibility, fixed protective exits, drawdown and original account-loss
+  thresholds at each ordered fill/retirement, risk latch/abort/recovery and
+  control/replacement/restart timing. Bind member cursor/pending/peak/exact
+  drawdown/terminal and lifecycle outcomes in retained/retired evidence.
+  Reject financially and source-consistent invented or omitted trades. Preserve
+  original scored/unscored snapshots for03B3C's independent assessment derivation.
+
 - [ ] **PAPER-COMPACT-03B3C — Enforce assessments, optimizer/cohort continuation and lineage.**
   Independently derive finalized/withheld/frozen metrics and their exact policy,
   execution/source/common-window/revision identity. Bind fitness and stable ties,

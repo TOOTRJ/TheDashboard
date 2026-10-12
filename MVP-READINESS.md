@@ -1,5 +1,33 @@
 # Evolutionary trading bot MVP readiness
 
+**Independent source and exact EMA semantics — 2026-10-11:** PR91's economic
+boundary is merged as a8ce47dad1de18751301aa6f8fc7fde44dd19c94 and exact production/
+canonical-alias/read-only release checks passed. Fresh GitHub/Vercel/Supabase
+identity checks match the authorized Dashboard IDs and owners; Railway still
+matches its project/environment/workspace/service and unchanged deployment.
+
+PAPER-COMPACT-03B3B1 independently checks source policy/epoch/sequence, canonical
+request hashes, receipt/source/future/carried-age clocks, completed contiguous
+minute/candle fingerprints and exact indicator continuation. All59 EMA periods
+are recomputed with independent integer-ratio binary64 rounding, including the
+seed values that the older provider path did not independently recompute.
+The versioned worker-parsed manifest trust remains explicit; a response digest
+does not authenticate the provider's raw response.
+Fifteen SQL and21 Python/package checks pass over93 complete commands,639
+binary64 cases and eight seed/continuation profiles. Full-wrapper warm p95 is
+313.896ms for a quote and551–553ms for replacement/risk/held Stop, excluding
+native effects, final lease/freshness and COMMIT/hosted traffic. Repeated locked
+resolution remains a measurable composition cost.
+[Proof, measurements and deeper research](services/vonneumann/NATIVE-SOURCE-TRANSITION.md).
+
+03B3B remains open: next03B3B2 independently replays causal signals/actions,
+ordered risk updates, terminal/control/recovery/restart timing and lifecycle
+outcomes.03B3C then derives assessments/optimizer/cohort/selection/lineage before
+03 native journal/receipt/unique IDs/pins/projections/final freshness/Stop
+resources;04 restoration and05 safe retention/closed hosted acceptance follow.
+This source proof writes no durable state and changes no hosted database or
+Railway worker configuration. The worker remains closed. No user setup is needed.
+
 **Exact economic/identity semantics — 2026-10-11:** PR90's locked resolution is
 merged as4d044183f831c53e44e5db631298f4087db022c2 with exact production/alias/
 read-only release checks passed. Fresh Dashboard GitHub/Vercel/Supabase and
