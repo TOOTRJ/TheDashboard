@@ -1,5 +1,24 @@
 # Evolutionary trading bot MVP readiness
 
+**Explicit portable model and compact transport — 2026-10-12:** PR96 is merged as
+23692fe5dc727c8b71e25b41daee752b7a65f2d2. Exact Dashboard preview and production
+are READY; canonical alias and all four read-only probes pass. Fresh GitHub/Vercel/
+Supabase/Railway identities match. The dedicated Dashboard sign-in saved correctly.
+
+03B3C2B2A integrates the integer operator under separate version2 model/config/
+assessment/lifecycle/component/checkpoint/transport headers. Nine focused cases
+cover201 commands across three seeds/four windows,96 offspring and assessments,
+both mating modes, fixed controls/parentage, common founders/strategy draws,
+version/config denial, restart and data-free Stop. Seventy old full/compact wire
+pairs and both legacy source hashes remain unchanged. SQL primitive equality and
+fork/evidence/lineage/rehearsal/package regressions pass. [Scope and next gate](services/vonneumann/NATIVE-PORTABLE-GA-MODEL.md).
+
+**Next isB2B's independent complete SQL proof of original v2 semantics.** Parent
+B2/B/C2/C remain open; no native/restoration/hosted authority. Then03 atomic effects/
+forward migration,04 exact restoration and05 retention/closed hosted acceptance.
+Fill/objective/baseline calibration still gates continuous paper operation. No
+hosted worker/database or live execution change; no new user setup is needed now.
+
 **Mutation portability finding and proposal — 2026-10-12:** PR95 is merged as
 9f032238f5b7f5292f0bbf61fcf7468ddb74a4f2; its exact production and canonical alias
 are READY and all four read-only release probes pass. Dashboard target identities

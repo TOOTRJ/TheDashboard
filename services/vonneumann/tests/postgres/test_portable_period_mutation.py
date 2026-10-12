@@ -11,6 +11,7 @@ from tests.postgres.test_economic_transition import INSTALLER,AUDITOR
 from tests.measure_provider_ga_research import literal
 from vonneumann.research import numeric_wire as numbers
 from vonneumann.research.portable_period_mutation import mutate_periods
+from vonneumann.core import integer_period_mutation as versioned_mutation
 
 ROOT=Path(__file__).resolve().parents[2]
 SQL=ROOT/'db-contract/research/portable_period_mutation.sql'
@@ -40,6 +41,10 @@ class PortablePeriodMutationSqlTests(unittest.TestCase):
                     for sexual in (False,True):
                         fast=3 if child%2 else 12;slow=15 if child%2 else 60
                         output=mutate_periods(fast,slow,seed=seed,epoch=epoch,event=event,child=child,sexual=sexual)
+                        core=versioned_mutation.mutate_periods(fast,slow,seed=seed,epoch=epoch,event=event,child=child,sexual=sexual)
+                        self.assertEqual(core['operator'],'ema-period-triangular-integer-v1')
+                        self.assertEqual({k:v for k,v in core.items() if k!='operator'},
+                            {k:v for k,v in output.items() if k not in ('operator','model_integration','restoration_authority')})
                         expected.append(numbers.encode(output).decode())
                         args=','.join((str(fast),str(slow),literal(seed),str(epoch),str(event),str(child),'true' if sexual else 'false'))
                         statements.append('SELECT vn_optimizer_research.portable_periods('+args+')::text;')
@@ -54,6 +59,7 @@ class PortablePeriodMutationSqlTests(unittest.TestCase):
         artifact={'date':'2026-10-12','identity':self.db.identity,'complete_python_sql_traces':len(actual),'coverage':successes,
             'operator':'ema-period-triangular-integer-research-v1','sql_sha256':hashlib.sha256(SQL.read_bytes()).hexdigest(),
             'python_sha256':hashlib.sha256((ROOT/'vonneumann/research/portable_period_mutation.py').read_bytes()).hexdigest(),
+            'versioned_core_sha256':hashlib.sha256((ROOT/'vonneumann/core/integer_period_mutation.py').read_bytes()).hexdigest(),
             'model_integration':False,'production_grants_or_install':False,'restoration_authority':False,
             'scope':'bounded portable mutation prototype; not a replacement of legacy Gaussian semantics'}
         (ROOT/'research/portable-period-mutation-measurements.json').write_text(json.dumps(artifact,indent=2,sort_keys=True)+'\n')

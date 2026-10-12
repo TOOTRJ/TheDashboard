@@ -989,6 +989,33 @@ Research began **2026-09-30** and was updated **2026-10-06/07** in [WORKER-HOSTI
   integer radii/rates/clamping/no-op/diversity bias, full tails and equal-budget
   matched-seed held-out baseline comparisons. Portability is not performance proof.
 
+- [x] **PAPER-COMPACT-03B3C2B2A — Integrate an explicit portable model and transport.**
+  Separate version2 profile/model/code/lifecycle/assessment/components/checkpoint/
+  compact headers bind integer operator/policy. Existing model/checkpoint sources
+  and70 legacy full/compact wire pairs remain unchanged; default GA stays Gaussian
+  and ordinary import does not load the new operator. Nine focused tests cover
+  three seeds/four windows each,201 commands/96 assessments/96 offspring, both
+  mating branches, full recorded parentage, fixed controls, common founders and
+  first-window strategy draws, rehashed config failures, mixed-version denial,
+  restart and data-free Stop. Three SQL cases also compare the core primitive
+  with4128 independent traces; current fork/evidence/lineage/rehearsal/package
+  regressions pass. No independent complete SQL/native/restoration/hosted authority.
+  ParentB2/B/C2/C remain open. [Scope and next proof](services/vonneumann/NATIVE-PORTABLE-GA-MODEL.md).
+
+- [ ] **PAPER-COMPACT-03B3C2B2B — Validate complete portable v2 semantics independently in SQL.**
+  Bind original v2 headers/config/operator/graph/software/counters and canonical
+  wire/dependencies; compose economics/source/causal/risk/assessment with actual
+  RNG/selection/crossover/child mutation/genotypes/mirrors/lineage. Never strip
+  policy or relabel v2 evidence for the partial v1 validator. Reject consistent-
+  looking forged in-range periods, unknown versions/fields and invalid semantic
+  priors. Prove multi-window/mating/restart/ordinary/terminal/risk/recovery/control/
+  interruption/Stop/resource cases from fresh genesis or the accepted same-version
+  chain. Close parentB2/B/C2/C only after full proof, before03 native effects and
+  migration,04 restoration and05 retention/closed hosted acceptance. Retain full
+  continuation evidence. **Deep substantial research:** actual complete resource
+  and library/version tails, bounded rejection/draw work, clamping/diversity/objective
+  bias and matched-seed held-out equal-budget baselines before gene expansion.
+
 - [ ] **PAPER-COMPACT-03 — Prepare the reviewed forward SQL/native contract.**
   **Constraint reviewed by03A:** adopt a reviewed stable partition and enforce
   dependency-safe journal retention/rate/Stop budgets before finalization.
