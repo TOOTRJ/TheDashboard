@@ -820,6 +820,9 @@ Research began **2026-09-30** and was updated **2026-10-06/07** in [WORKER-HOSTI
   validation; preserve RNG and source evidence until04.
 
 - [ ] **PAPER-COMPACT-03B3 — Independently enforce the resolved transition semantics.**
+  Parent remains open:03B3A's offline exact economic/identity layer is complete;
+  source/risk/causality (03B3B) and assessment/optimizer/selection/lineage (03B3C)
+  still require independent SQL enforcement before native composition.
   Depends on03B1/03B2. Define the new GA model's exact SQL contract for cash/holdings,
   risk/lifecycle, source clocks/epochs/watermarks/candle contiguity and EMA equality,
   complete optimizer/cohort continuation and finalized/withheld assessment/history/
@@ -828,6 +831,42 @@ Research began **2026-09-30** and was updated **2026-10-06/07** in [WORKER-HOSTI
   reused historical UUIDs. Do not label the new model as an old v5 command or use
   client-generated hashes as semantic authority. Compose with03's original journal/
   receipt/pin/projection/final-freshness/Stop-reserve and limited-installer contract.
+
+- [x] **PAPER-COMPACT-03B3A — Independently replay exact economics and allocated identities.**
+  Guarded offline SQL recomputes USD-reference integer-unit fills/costs and replays
+  births/opens/closes/retirements against the exact locked prior. Full cash/holding,
+  closed/retired/birth economic history, action/event order, original entry,
+  trade counts, newborn metrics and frozen terminal cash must match. Scoped prior
+  catalog rows are locked and historical/global cross-kind UUID reuse fails.
+  The validator reserves/inserts no IDs and installs no state; native atomic unique
+  insertion and original-ID recovery remain03. A risk-abort capture bug is fixed:
+  only scored drawdown evaluations require frozen snapshots, while later unscored
+  terminals cannot invent them.15 actual SQL and21 Python capture/format/package
+  cases pass over93 complete commands and128 independent fractional-cost fill
+  pairs, including risk/terminal/controls/restart/Stop with eight holdings.
+  [Boundary and deeper research](services/vonneumann/NATIVE-ECONOMIC-TRANSITION.md).
+  **Deep substantial research:** full semantic/lock/COMMIT/WAL/TOAST tails, cross-run
+  allocation/unknown-commit races, independent binary64 EMA/fitness arithmetic,
+  real source-age/cost distributions and immutable-validation reuse. No hosted
+  migration/package/grant change, archive deletion, runtime decoder or activation.
+
+- [ ] **PAPER-COMPACT-03B3B — Enforce source, causal trading and risk/lifecycle continuation.**
+  Depends on03B3A. Independently bind original documents/epoch/sequence/receipt
+  clocks/provider blocks and age, completed contiguous candles and exact EMA
+  continuation. Derive protective/decision/control observation eligibility,
+  pending signal causality, allowed opens/exits/liquidations, account/member risk
+  thresholds, latch/recovery and terminal timing. Reject economically consistent
+  but source/staleness/causality-invalid transitions. Preserve original/frozen
+  evidence; reserve final-boundary age/lease checks for the native composition.
+
+- [ ] **PAPER-COMPACT-03B3C — Enforce assessments, optimizer/cohort continuation and lineage.**
+  Independently derive finalized/withheld/frozen metrics and their exact policy,
+  execution/source/common-window/revision identity. Bind fitness and stable ties,
+  complete optimizer/RNG/cohort mirrors and phase transitions, selected sources,
+  genotype controls and actual ordered ancestry. Reject invented/omitted/reordered
+  results and reassessment of frozen/aborted records. Preserve full continuation
+  evidence until04 proves exact restoration. Compose with03B3B and03's atomic
+  history/journal/identity/pin/projection/receipt boundary before migration.
 
 - [ ] **PAPER-COMPACT-03 — Prepare the reviewed forward SQL/native contract.**
   **Constraint reviewed by03A:** adopt a reviewed stable partition and enforce

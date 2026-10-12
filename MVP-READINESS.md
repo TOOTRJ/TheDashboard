@@ -1,5 +1,26 @@
 # Evolutionary trading bot MVP readiness
 
+**Exact economic/identity semantics — 2026-10-11:** PR90's locked resolution is
+merged as4d044183f831c53e44e5db631298f4087db022c2 with exact production/alias/
+read-only release checks passed. Fresh Dashboard GitHub/Vercel/Supabase and
+Railway project/environment/workspace verification matches authorized targets.
+
+PAPER-COMPACT-03B3A now independently replays integer-unit cash/holding/fill/cost
+and economic-history evidence under the exact prior lock, with allocated UUID/
+scope/role/revision checks.15 actual SQL and21 Python capture/format/package
+cases pass over93 complete commands and128 fractional entry/exit pairs. A real
+risk-abort capture bug is fixed: terminal members without a scored evaluation
+remain unscored, while earlier scored snapshots remain frozen.
+[Proof, measured limits and research](services/vonneumann/NATIVE-ECONOMIC-TRANSITION.md).
+
+The parent03B3 remains open. Next03B3B enforces source/EMA/causality/risk/lifecycle
+continuation;03B3C enforces assessments/fitness/optimizer/cohort/selection/lineage.
+The validator writes no state or identity reservation. Original-ID journal/
+receipt/unique insertion/pins/projections/final freshness/Stop resources and
+production installer/readers still gate03; restoration and retention/hosted
+acceptance still gate04/05. The worker remains closed, with no hosted migration
+or Railway configuration change. No additional user setup is needed for this work.
+
 **Locked checkpoint dependency resolution — 2026-10-11:** PR89's numeric boundary
 is merged as d362266430a38072506b4546d708696dbb437573 and its exact production
 deployment/alias/read-only checks passed. Fresh GitHub/Vercel/Supabase target

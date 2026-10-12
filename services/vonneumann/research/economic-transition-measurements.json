@@ -1,0 +1,71 @@
+{
+  "complete_commands": 93,
+  "date": "2026-10-11",
+  "fill_pairs": 128,
+  "identity": {
+    "image": "public.ecr.aws/supabase/postgres:17.6.1.095",
+    "image_id": "sha256:965e2dfb5a23a0d6541b6106541e777b303656ebabd4e878746b189d550c0a66",
+    "network": "none",
+    "postgres_version": "17.6"
+  },
+  "numeric_sql_sha256": "adc7dbe2ce3ef51d860b8c09430a24759522cb7284dc73e40804dbd8880675b1",
+  "production_grants_or_install": false,
+  "provider_checkpoint_sha256": "877b511ac97425dc66d1bbb255f74541c7b51053daed29acc7196ecf406c97c7",
+  "resolution_sql_sha256": "40973039c4ec1fd0af8a2836818ab75db60b6e75ec41e2f217adc078d2863542",
+  "scope": "offline independent exact economic replay and allocated identity checks only; no commit/admission authority",
+  "sql_sha256": "c12a98685b4f20bc7ceaa3a31995b527379fba505bc1a59ecaf8c54143ef5801",
+  "tables_in_new_artifact": 1,
+  "timing_exclusions": [
+    "transport/TLS",
+    "contended locks",
+    "complete source/risk/assessment/optimizer/lineage semantics",
+    "journal/identity reservation/dependency pin/projection writes",
+    "final source/lease recheck",
+    "COMMIT/WAL/relay",
+    "hosted tails"
+  ],
+  "timing_method": "30 full volatile wrapper calls with wire variable and generic plans; unchanged privileged fixture prior",
+  "warm_server_validation_timings": [
+    {
+      "kind": "bootstrap",
+      "maximum_us": 179540,
+      "p50_us": 172469.5,
+      "p95_us": 179306.75,
+      "samples": 30,
+      "wire_bytes": 128635
+    },
+    {
+      "kind": "quote",
+      "maximum_us": 163712,
+      "p50_us": 152696,
+      "p95_us": 160377.19999999998,
+      "samples": 30,
+      "wire_bytes": 9192
+    },
+    {
+      "kind": "replacement",
+      "maximum_us": 288546,
+      "p50_us": 271305,
+      "p95_us": 283385.9,
+      "samples": 30,
+      "wire_bytes": 149024
+    },
+    {
+      "kind": "risk_trip",
+      "maximum_us": 291511,
+      "p50_us": 275022.5,
+      "p95_us": 286770.1,
+      "samples": 30,
+      "wire_bytes": 140391
+    },
+    {
+      "kind": "held_stop",
+      "maximum_us": 343121,
+      "p50_us": 270230.5,
+      "p95_us": 284559.89999999997,
+      "samples": 30,
+      "wire_bytes": 106885
+    }
+  ],
+  "writes_by_validator": 0
+}
