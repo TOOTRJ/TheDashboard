@@ -64,9 +64,14 @@ jobs:
         run: node scripts/check-build.mjs
 
   worker:
-    name: Ordinary worker and helper regressions (SQL opt-in skips reported)
+    name: Ordinary worker and helpers (shard ${{ matrix.shard }}/2; SQL opt-in skips reported)
     runs-on: ubuntu-24.04
     timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        shard: [1, 2]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -83,7 +88,9 @@ jobs:
           "$RUNNER_TEMP/dashboard-python/bin/python" -m pip install --require-hashes --only-binary=:all: -r services/vonneumann/requirements-dev.txt
           "$RUNNER_TEMP/dashboard-python/bin/python" -m pip check
       - name: Ordinary discovery with explicit skip audit and sanitized environment
-        run: '"$RUNNER_TEMP/dashboard-python/bin/python" scripts/check-worker.py offline'
+        env:
+          DASHBOARD_TEST_SHARD: ${{ matrix.shard }}
+        run: '"$RUNNER_TEMP/dashboard-python/bin/python" scripts/check-worker.py offline --shard "$DASHBOARD_TEST_SHARD"'
 
   postgres:
     name: Required real owned PostgreSQL and PostgREST contracts

@@ -4608,3 +4608,35 @@ Nineteen focused helper regressions and the standalone capability check pass.
 Retry and all three actual hosted job results remain required before merge.
 No job failure, unexecuted job or preview metadata is treated as SQL/worker acceptance.
 No migration, worker setting/activation or other-project change is performed.
+
+## 109. Actual hosted worker scheduling — 2026-10-12
+
+PR102 source 1f6a1f770a8a702605001202f2a3b4d9c2969776 executes in
+[run38320983287](https://github.com/TOOTRJ/TheDashboard/actions/runs/38320983287).
+Frontend passes in 2m0s. Ordinary discovery reaches its 1500-second child deadline
+while executing the complete provider-pilot replacement case and exits failed;
+it has no successful final summary. Raw verbose timestamp gaps attribute roughly
+480s to provider-GA component traces and 306s to portable-GA model traces, including
+class setup. These partial runner observations guide scheduling, not a completed
+suite/performance acceptance claim. Required PostgreSQL setup verifies the pinned
+amd64 images and begins real SQL tests; its final result is still pending.
+
+The repair splits complete ordinary discovery into deterministic bounded groups
+while preserving defining-module/class setup and the original test occurrence
+multiplicity. Coverage and fixed workflow selection must reject omissions, overlap
+and discovery errors. No heavy test, replay window or semantic assertion is removed.
+Four research/dataset fixtures now use owned resolved platform temporary roots; production
+operator path/target guards remain unchanged. The full hosted retry is required
+before QA-01A or PR102 can be accepted. No database migration, hosted worker setting,
+provider/key, billing, wallet or other-project operation accompanies this CI repair.
+
+Seven sharding regressions and20 workflow capability regressions pass, including
+boolean/int matrix refusal and early-stop denial. Seven focused dataset/artifact/
+runner/CLI cases pass with the portable test roots. Discovery-only finds2241
+occurrences with54 repeated baseline IDs, partitioned994/1247 across70/75 modules;
+this executes no cases or class setups. Original contiguous defining-module fixture
+boundaries use standard top-level unittest teardown and the pinned CPython result
+sentinel reset; a synthetic imported-alias regression matches full discovery's
+setup/teardown order. Independent source review finds no concrete blocker. The
+known completed hosted module costs balance approximately684s/719s, with the
+unfinished tail unknown; only actual hosted completion can establish the bounds.

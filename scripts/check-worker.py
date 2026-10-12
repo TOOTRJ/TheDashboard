@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import argparse
+from collections import Counter
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -15,6 +17,16 @@ WORKER = ROOT / "services" / "vonneumann"
 OPT_IN = "DASHBOARD_ISOLATED_POSTGRES_TESTS"
 SUPPORTED_PYTHON = (3, 12, 14)
 CHILD_DEADLINES = {"offline": 1500, "postgres": 2400}
+# The hosted log's large gaps include the NEXT module's class setup. Keep the
+# 32-window provider traces opposite portable three-seed/four-window traces.
+# New modules use a stable SHA-256 partition, never an exclusion list.
+OFFLINE_SHARDS = (1, 2)
+HEAVY_MODULE_SHARDS = {
+    "tests.test_provider_ga_components": 1,
+    "tests.test_portable_ga_model": 2,
+    "tests.test_ga_active_model": 2,
+    "tests.test_partitioned_checkpoint": 2,
+}
 OPT_IN_REASONS = {
     "Requires isolated PostgreSQL opt-in", "Explicit isolated PostgreSQL opt-in required",
     "Use tests.postgres.run --allow-isolated-postgres",
@@ -79,7 +91,7 @@ def audit_result(result: unittest.TestResult, mode: str) -> tuple[dict, bool]:
     # unittest reports class-setup skips separately, without startTest/testsRun.
     method_skips = sum(not item["id"].startswith(("setUpClass (", "setUpModule (")) for item in skips)
     executed = result.testsRun - method_skips
-    accepted = result.wasSuccessful() and executed > 0 and not unexpected
+    accepted = result.wasSuccessful() and executed > 0 and not unexpected and not result.shouldStop
     return {
         "scope": mode, "tests_reported": result.testsRun,
         "tests_executed": executed, "skips": skips,
@@ -88,21 +100,169 @@ def audit_result(result: unittest.TestResult, mode: str) -> tuple[dict, bool]:
     }, accepted
 
 
-def run_suites(mode: str) -> int:
+def discover_suite(mode: str) -> unittest.TestSuite:
+    sys.path.insert(0, str(WORKER))
+    locations = [(WORKER / "tests" / "postgres" if mode == "postgres" else WORKER / "tests",
+                  "test_*.py", WORKER)]
+    if mode == "offline":
+        # Helpers live outside the worker's tests package; discover each as top level.
+        locations.extend((directory, pattern, directory) for directory, pattern in (
+            (ROOT / "scripts" / "tests", "test_*.py"), (ROOT / "tests", "*_test.py")))
+    suite = unittest.TestSuite()
+    for directory, pattern, top_level in locations:
+        loader = unittest.TestLoader()
+        discovered = loader.discover(str(directory), pattern=pattern, top_level_dir=str(top_level))
+        if loader.errors:
+            raise RuntimeError(f"Worker discovery failed before selection: {len(loader.errors)} import errors")
+        suite.addTests(discovered)
+    return suite
+
+
+def flatten_tests(suite):
+    if isinstance(suite, unittest.TestCase):
+        yield suite
+    elif isinstance(suite, unittest.TestSuite):
+        for child in suite:
+            yield from flatten_tests(child)
+    else:
+        raise RuntimeError("Discovery returned an unreviewed test object")
+
+
+def module_shard(module: str) -> int:
+    if not isinstance(module, str) or not module:
+        raise RuntimeError("Discovered test has no defining module")
+    return HEAVY_MODULE_SHARDS.get(module, 1 + int.from_bytes(hashlib.sha256(module.encode()).digest(), "big") % 2)
+
+
+def validate_partition(tests, shards) -> None:
+    if set(shards) != set(OFFLINE_SHARDS) or any(type(key) is not int for key in shards):
+        raise RuntimeError("Exactly two reviewed offline shards are required")
+    indices = [index for shard in OFFLINE_SHARDS for index in shards[shard]]
+    if (any(type(index) is not int for index in indices)
+            or Counter(indices) != Counter(range(len(tests)))
+            or any(not shards[shard] for shard in OFFLINE_SHARDS)):
+        raise RuntimeError("Shard coverage omitted, duplicated or invented a discovered occurrence")
+    modules = []
+    for shard in OFFLINE_SHARDS:
+        selected = shards[shard]
+        if tuple(selected) != tuple(sorted(selected)):
+            raise RuntimeError("Shards must preserve the original discovery order")
+        modules.append({tests[index].__class__.__module__ for index in selected})
+        if any(module_shard(tests[index].__class__.__module__) != shard for index in selected):
+            raise RuntimeError("Shard membership changed or split a defining module")
+    if modules[0] & modules[1]:
+        raise RuntimeError("A defining test module cannot run in both shards")
+    # Repeated imported TestCase IDs already in ordinary discovery remain repeated.
+    original = Counter(test.id() for test in tests)
+    selected = Counter(tests[index].id() for index in indices)
+    if original != selected:
+        raise RuntimeError("Shard coverage changed baseline test-ID multiplicity")
+
+
+def test_source(test) -> tuple[str, str]:
+    module = sys.modules.get(test.__class__.__module__)
+    location = getattr(module, "__file__", None)
+    if location is None:
+        raise RuntimeError("Discovered test must have a reviewed source file")
+    path = Path(location).absolute()
+    if path.resolve() != path or not path.is_file() or path.suffix != ".py":
+        raise RuntimeError("Discovered test source must be a regular nonsymlink Python file")
+    roots = ((WORKER / "tests", "test_*.py"), (ROOT / "scripts" / "tests", "test_*.py"),
+             (ROOT / "tests", "*_test.py"))
+    admitted = False
+    for base, pattern in roots:
+        if path.is_relative_to(base):
+            relative = path.relative_to(base)
+            admitted = path.match(pattern) and not any(
+                part in {"ssl", ".vercel", ".aws", ".codex", ".claude"} or part.startswith('.env')
+                for part in relative.parts)
+            break
+    if not admitted:
+        raise RuntimeError("Discovered test source is outside the three reviewed test roots")
+    return path.relative_to(ROOT).as_posix(), hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def partition_offline(suite):
+    tests = tuple(flatten_tests(suite))
+    sources = {}
+    rows = []
+    shards = {shard: [] for shard in OFFLINE_SHARDS}
+    for index, test in enumerate(tests):
+        module = test.__class__.__module__
+        if module not in sources:
+            sources[module] = test_source(test)
+        path, digest = sources[module]
+        rows.append([index, test.id(), module, path, digest])
+        shards[module_shard(module)].append(index)
+    shards = {shard: tuple(indices) for shard, indices in shards.items()}
+    validate_partition(tests, shards)
+    def fingerprint(value):
+        return hashlib.sha256(json.dumps(value, separators=(",", ":"), ensure_ascii=True).encode()).hexdigest()
+    coverage = {
+        "algorithm": "offline-module-sha256-v1", "discovered_occurrences": len(tests),
+        "runtime": "CPython 3.12.14",
+        "selection_source_sha256": hashlib.sha256((ROOT / "scripts" / "check-worker.py").read_bytes()).hexdigest(),
+        "baseline_repeated_ids": sum(count - 1 for count in Counter(test.id() for test in tests).values()),
+        "discovery_source_sha256": fingerprint(rows),
+        "shards": {str(shard): {"occurrences": len(indices),
+                    "modules": sorted({tests[index].__class__.__module__ for index in indices}),
+                    "occurrence_source_sha256": fingerprint([rows[index] for index in indices])}
+                   for shard, indices in shards.items()},
+        "exhaustive_disjoint_occurrences": True,
+    }
+    return tests, shards, coverage
+
+
+class ModuleShardSuite(unittest.TestSuite):
+    """Preserve original module fixture boundaries when other modules are removed."""
+    def run(self, result, debug=False):
+        for segment in self:
+            if result.shouldStop:
+                break
+            # Each standard top-level suite tears down its module/class fixtures.
+            # CPython's result retains the previous class sentinel afterward;
+            # reset it so an imported alias after a removed module sets up anew.
+            # This harness requires the reviewed exact CPython runtime above.
+            result._previousTestClass = None
+            segment.run(result, debug)
+        return result
+
+
+def selected_suite(tests, indices):
+    selected = set(indices)
+    segments, segment, previous = [], [], None
+    for index, test in enumerate(tests):
+        module = test.__class__.__module__
+        if previous is not None and module != previous:
+            if segment:
+                segments.append(unittest.TestSuite(segment))
+            segment = []
+        if index in selected:
+            segment.append(test)
+        previous = module
+    if segment:
+        segments.append(unittest.TestSuite(segment))
+    return ModuleShardSuite(segments)
+
+
+def run_suites(mode: str, shard: int | None = None) -> int:
     require_supported_python()
     # Reexecution's internal flag is not a way to bypass environment isolation.
     validate_child_environment(mode, dict(os.environ))
-    sys.path.insert(0, str(WORKER))
-    loader = unittest.TestLoader()
-    suite = loader.discover(str(WORKER / "tests" / "postgres" if mode == "postgres" else WORKER / "tests"),
-                            pattern="test_*.py", top_level_dir=str(WORKER))
+    if shard is not None and (mode != "offline" or type(shard) is not int or shard not in OFFLINE_SHARDS):
+        raise RuntimeError("Sharding is available only for the two reviewed offline shards")
+    suite = discover_suite(mode)
+    coverage = None
     if mode == "offline":
-        # Helpers live outside the worker's tests package; discover each as top level.
-        for directory, pattern in ((ROOT / "scripts" / "tests", "test_*.py"), (ROOT / "tests", "*_test.py")):
-            suite.addTests(unittest.TestLoader().discover(str(directory), pattern=pattern,
-                                                         top_level_dir=str(directory)))
+        tests, shards, coverage = partition_offline(suite)
+        # Print source-bound coverage before execution, including on a timeout.
+        print(json.dumps({"offline_coverage": coverage, "selected_shard": shard}, sort_keys=True), flush=True)
+        if shard is not None:
+            suite = selected_suite(tests, shards[shard])
     result = unittest.TextTestRunner(verbosity=2).run(suite)
     report, accepted = audit_result(result, mode)
+    if coverage is not None:
+        report.update(offline_coverage=coverage, selected_shard=shard)
     print(json.dumps(report, sort_keys=True))
     return 0 if accepted else 1
 
@@ -111,21 +271,27 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("mode", choices=("offline", "postgres"))
     parser.add_argument("--allow-isolated-postgres", action="store_true")
+    parser.add_argument("--shard", type=int, choices=OFFLINE_SHARDS,
+                        help="Execute one exhaustive module-cohesive offline shard; omit for local full discovery")
     parser.add_argument("--sanitized-child", action="store_true", help=argparse.SUPPRESS)
     args = parser.parse_args()
     require_supported_python()
     if args.mode == "postgres" and not args.allow_isolated_postgres:
         parser.error("Required integration needs --allow-isolated-postgres")
+    if args.mode != "offline" and args.shard is not None:
+        parser.error("The required PostgreSQL suite cannot be sharded")
     if args.sanitized_child:
         if os.environ.get("PYTHON_DOTENV_DISABLED") != "1":
             raise RuntimeError("Dotenv loading must remain disabled")
         if args.mode == "postgres" and os.environ.get(OPT_IN) != "1":
             raise RuntimeError("Required integration opt-in is missing")
-        return run_suites(args.mode)
+        return run_suites(args.mode, args.shard)
     env = worker_environment(args.mode, dict(os.environ))
     command = [sys.executable, str(Path(__file__).resolve()), args.mode, "--sanitized-child"]
     if args.allow_isolated_postgres:
         command.append("--allow-isolated-postgres")
+    if args.shard is not None:
+        command.extend(("--shard", str(args.shard)))
     return subprocess.run(command, cwd=ROOT, env=env, timeout=CHILD_DEADLINES[args.mode], check=False).returncode
 
 

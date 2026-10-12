@@ -1,7 +1,7 @@
 # Secret-free Dashboard verification
 
 Prepared 2026-10-12 for QA-01A. The repository now has three independent GitHub
-Actions jobs in [.github/workflows/verification.yml](.github/workflows/verification.yml).
+Actions verification gates in [.github/workflows/verification.yml](.github/workflows/verification.yml).
 They run on pull requests, main pushes and explicit dispatch, with only
 `contents:read`, no application secrets, no cloud environment, no deploy step and
 no artifact upload. Checkout does not persist its read-only repository credential.
@@ -19,7 +19,7 @@ existing dedicated Dashboard token; exact account/repository verification and th
 codex branch push now succeed. No shared login, credential rotation or
 organization-wide policy change was performed by this task. GitHub documents the
 separate [workflow write capability](https://docs.github.com/en/rest/authentication/permissions-required-for-fine-grained-personal-access-tokens#repository-permissions-for-workflows).
-The CI PR's three hosted jobs remain required before merge. Workflow results can be read
+The CI PR's frontend, both ordinary worker groups and required PostgreSQL results remain required before merge. Workflow results can be read
 through the existing authorized Dashboard browser; additional token permissions
 for unrelated checks are not required for this setup step.
 
@@ -33,7 +33,7 @@ image/integration command; removing one or adding a bypass/filter fails its test
 | Job | Runtime / limit | Work and truthful scope |
 | --- | --- | --- |
 | Frontend | Node 24.19.0; Ubuntu 24.04; 20 minutes | Clean lock install with lifecycle scripts disabled; all current `tests/*.test.mjs`, `tests/probes/*.test.mjs` and helper Node files; TypeScript, lint, advisory policy and a second fresh fake-configuration production build. Existing lint warnings are reported; errors fail. |
-| Ordinary worker | CPython 3.12.14 x64; Ubuntu 24.04; 30 minutes | Fresh virtual environment, hash-required binary-only dev/runtime wheels, `pip check`, complete worker discovery plus repository/helper Python tests. SQL opt-in skips and optional measurement skips are explicitly categorized and printed; no SQL acceptance is claimed. Unexpected skips, empty/all-skipped results and errors fail. |
+| Ordinary worker, two required groups | CPython 3.12.14 x64; Ubuntu 24.04; 30 minutes each | Fresh virtual environment per runner, hash-required binary-only dev/runtime wheels, `pip check`, complete worker discovery plus repository/helper Python tests partitioned into two exhaustive deterministic groups. SQL opt-in skips and optional measurement skips are explicitly categorized and printed; no SQL acceptance is claimed. Unexpected skips, empty/all-skipped results and errors fail. |
 | Required PostgreSQL | Same Python; Ubuntu 24.04; 50 minutes | Reviewed immutable amd64 PostgreSQL 17.6/PostgREST 14.5 fixtures, followed by full actual PostgreSQL discovery with explicit opt-in. Missing Docker/image/setup, foreign daemon, zero execution or any opt-in skip fails. Six allowlisted non-gating timing-method definitions may be skipped; every reported skip retains its test ID and exact reason. |
 
 The chosen patch versions match the current reviewed source/software contract.
@@ -44,10 +44,21 @@ separate security slice: zero production findings and only its exact expiring
 development exception are permitted. It must not be replaced with global audit
 suppression or a blanket `continue-on-error`.
 
-The owned child deadlines are 1500 seconds for ordinary discovery and 2400 seconds
+The owned child deadlines are 1500 seconds for each ordinary group and 2400 seconds
 for required PostgreSQL discovery, leaving 300/600 seconds within the 30/50 minute
-job ceilings for setup and cleanup. The prior ordinary run took 1163 seconds;
-that observation motivates the bound but does not guarantee GitHub runner tails.
+job ceilings for setup and cleanup. Actual hosted run38320983287 at source1f6a1f7
+passes frontend in 2m0s but exceeds the monolithic ordinary 1500-second deadline
+without a final test summary. The earlier local duration was not a reliable bound
+for the Ubuntu runner. Two required groups preserve the complete suite and its
+original test occurrence multiplicity, including imported aliases; heavy original
+provider-GA traces are separate from portable-GA/active-GA/partitioned traces.
+Remaining and new modules use a fixed deterministic partition. Full discovery,
+module ownership, ordered occurrence coverage and fingerprints are checked before
+execution; discovery errors, missing/duplicate occurrences, overlap, unknown shard
+selection and empty groups fail. Each original defining-module fixture segment
+retains setup/teardown boundaries. Matrix fail-fast is disabled so a failed group
+does not cancel the other group's evidence. No heavy replay window or assertion is
+removed. Required SQL discovery remains separate and unsharded in this repair.
 The wrapper requires CPython 3.12.14 explicitly and gives a virtual-environment
 setup error for an unsupported default interpreter.
 
@@ -132,7 +143,7 @@ Local checks use the existing project Node/Python runtimes. The helper regressio
 exercise real snapshot exclusions and symlink rejection, fake child configuration,
 failure/owned cleanup, skip accounting and mandatory-SQL denial, registry/platform
 identity, and workflow privilege/trigger/bypass changes. Full hosted CI remains
-pending until GitHub executes all three required jobs. The workflow capability
+pending until GitHub executes frontend, both ordinary groups and required SQL successfully. The workflow capability
 check is part of ordinary helper test discovery.
 
 The complete sanitized local run reported 2,088 cases in 1,287.086 seconds. All
@@ -144,6 +155,11 @@ production exporter is unchanged. After the associated portability repair, all
 66 repository/helper cases pass again with zero skips. This is the full worker
 result plus a complete rerun of the changed helper scope, not a second clean
 monolithic run or actual Linux/PostgreSQL acceptance.
+
+Worker research/dataset fixtures now create their owned temporary directories
+under the resolved platform temporary root, making the same artifact and dataset
+assertions executable on Linux. The test-only change does not relax production
+operator `/private/tmp` destination or symlink/ownership guards.
 
 Older operator tests assumed macOS import and staging paths. Their bounded
 [test-only loader](scripts/tests/operator_fixture.py) admits six reviewed public
@@ -168,3 +184,8 @@ dependencies or executing a build. Full build installation and fixture pulls are
 explicit CI work; they were not performed by the helper unit-test review. All
 production deployments, migration/rollback evidence, reader compatibility and
 operational budgets remain separately verified release gates.
+
+The scheduling repair passes seven focused sharding and20 workflow regressions,
+plus seven portable research/dataset fixture checks. A discovery-only smoke finds
+2241 occurrences/54 repeated baseline IDs, split994/1247; this is selection evidence
+without test execution or class setup. The actual hosted retry remains required.

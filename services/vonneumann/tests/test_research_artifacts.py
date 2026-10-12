@@ -29,7 +29,7 @@ class ResearchArtifactTests(unittest.TestCase):
         self.addCleanup(self.stack.close)
         for target in ("socket.getaddrinfo", "socket.create_connection", "socket.socket.connect"):
             self.stack.enter_context(patch(target, side_effect=AssertionError("No network permitted")))
-        temp = self.stack.enter_context(tempfile.TemporaryDirectory(prefix="research-artifact-", dir="/private/tmp"))
+        temp = self.stack.enter_context(tempfile.TemporaryDirectory(prefix="research-artifact-", dir=Path(tempfile.gettempdir()).resolve()))
         self.root = Path(temp)
         self.index = 0
 

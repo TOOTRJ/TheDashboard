@@ -31,6 +31,10 @@ NPM_STEPS = {
 }
 PYTHON = '"$RUNNER_TEMP/dashboard-python/bin/python"'
 HASH_INSTALL = f"{PYTHON} -m pip install --require-hashes --only-binary=:all: -r services/vonneumann/requirements-dev.txt"
+WORKER_SHARD_STEP = "Ordinary discovery with explicit skip audit and sanitized environment"
+WORKER_SHARD_ENV = {"DASHBOARD_TEST_SHARD": "${{ matrix.shard }}"}
+WORKER_SHARD_COMMAND = f'{PYTHON} scripts/check-worker.py offline --shard "$DASHBOARD_TEST_SHARD"'
+WORKER_STRATEGY = {"fail-fast": False, "max-parallel": 2, "matrix": {"shard": [1, 2]}}
 REQUIRED_COMMANDS = {
     "frontend": {
         ': > "$NPM_CONFIG_USERCONFIG"', ': > "$NPM_CONFIG_GLOBALCONFIG"',
@@ -41,7 +45,7 @@ REQUIRED_COMMANDS = {
     },
     "worker": {
         'python -m venv "$RUNNER_TEMP/dashboard-python"', HASH_INSTALL,
-        f"{PYTHON} -m pip check", f"{PYTHON} scripts/check-worker.py offline",
+        f"{PYTHON} -m pip check", WORKER_SHARD_COMMAND,
     },
     "postgres": {
         'python -m venv "$RUNNER_TEMP/dashboard-python"', HASH_INSTALL,
@@ -77,14 +81,23 @@ def validate_workflow(source: str) -> None:
         if (job.get("runs-on") != "ubuntu-24.04" or type(job.get("timeout-minutes")) is not int
                 or job["timeout-minutes"] != JOB_MINUTES[name]):
             raise ValueError("Verification requires bounded disposable hosted runners")
-        if any(key in job for key in ("permissions", "environment", "services", "container", "if")):
+        if any(key in job for key in ("permissions", "environment", "services", "container", "if", "continue-on-error")):
             raise ValueError("Verification cannot widen privileges or skip a required job")
+        if name == "worker":
+            strategy = job.get("strategy")
+            if (strategy != WORKER_STRATEGY or type(strategy.get("fail-fast")) is not bool
+                    or type(strategy.get("max-parallel")) is not int
+                    or any(type(value) is not int for value in strategy["matrix"]["shard"])):
+                raise ValueError("Ordinary verification must execute both reviewed bounded shards")
+        elif "strategy" in job:
+            raise ValueError("Only ordinary worker tests have a reviewed shard matrix")
         if name == "postgres":
             if job.get("env") != {"DOCKER_HOST": "unix:///var/run/docker.sock"}:
                 raise ValueError("PostgreSQL job requires only its reviewed local Docker socket")
         elif "env" in job:
             raise ValueError("Frontend and worker settings cannot use job environment or runner context")
         npm_steps = []
+        worker_shard_steps = 0
         for step in job.get("steps", []):
             if "if" in step or step.get("continue-on-error"):
                 raise ValueError("Required checks cannot be bypassed")
@@ -92,6 +105,10 @@ def validate_workflow(source: str) -> None:
                 if step.get("env") != NPM_STEP_ENV or step.get("run", "").strip() != NPM_STEPS[step["name"]]:
                     raise ValueError("Reviewed npm steps require exact isolated temporary configurations and commands")
                 npm_steps.append(step["name"])
+            elif name == "worker" and step.get("name") == WORKER_SHARD_STEP:
+                if step.get("env") != WORKER_SHARD_ENV or step.get("run") != WORKER_SHARD_COMMAND:
+                    raise ValueError("Worker shard step must pass only the reviewed static matrix selection")
+                worker_shard_steps += 1
             elif "env" in step:
                 raise ValueError("Other steps cannot receive environment settings or credentials")
             if "uses" in step and step["uses"] not in ACTION_PINS:
@@ -106,6 +123,8 @@ def validate_workflow(source: str) -> None:
                 raise ValueError("Shell commands cannot interpolate untrusted event expressions")
         if name == "frontend" and sorted(npm_steps) != sorted(NPM_STEPS):
             raise ValueError("Exactly the reviewed install and lint steps must own npm isolation")
+        if name == "worker" and worker_shard_steps != 1:
+            raise ValueError("Exactly one worker step must execute the reviewed matrix selection")
     for name, required in REQUIRED_COMMANDS.items():
         commands = {line.strip() for step in jobs[name]["steps"]
                     for line in step.get("run", "").splitlines() if line.strip()}

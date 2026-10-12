@@ -117,6 +117,8 @@ print("fixed child environment passed")'''
         self.assertTrue(worker.audit_result(result, "postgres")[1])
         result.addSkip(NamedTest("tests.postgres.future.RequiredProof.test_validity"), "Optional validity timing")
         self.assertFalse(worker.audit_result(result, "postgres")[1])
+        stopped = unittest.TestResult(); stopped.testsRun = 1; stopped.stop()
+        self.assertFalse(worker.audit_result(stopped, "offline")[1])
 
     def test_class_setup_skips_are_not_counted_as_executed_methods(self):
         result = unittest.TestResult()
@@ -259,6 +261,30 @@ print("fixed child environment passed")'''
             mutation = copy.deepcopy(original); mutation["on"][event] = config
             with self.subTest(event=event, config=config), self.assertRaises(ValueError):
                 policy.validate_workflow(yaml.safe_dump(mutation))
+
+    def test_worker_matrix_requires_both_bounded_shards_without_bypasses(self):
+        original = yaml.safe_load(policy.WORKFLOW.read_text())
+        for strategy in (
+            {"fail-fast": False, "max-parallel": 2, "matrix": {"shard": [1]}},
+            {"fail-fast": False, "max-parallel": 2, "matrix": {"shard": [1, 2, 3]}},
+            {"fail-fast": True, "max-parallel": 2, "matrix": {"shard": [1, 2]}},
+            {"fail-fast": False, "max-parallel": 8, "matrix": {"shard": [1, 2]}},
+            {"fail-fast": False, "max-parallel": 2, "matrix": {"shard": [1, 2], "exclude": [{"shard": 2}]}},
+            {"fail-fast": False, "max-parallel": 2, "matrix": {"shard": [True, 2]}},
+            {"fail-fast": 0, "max-parallel": 2, "matrix": {"shard": [1, 2]}},
+        ):
+            mutation = copy.deepcopy(original); mutation["jobs"]["worker"]["strategy"] = strategy
+            with self.subTest(strategy=strategy), self.assertRaises(ValueError):
+                policy.validate_workflow(yaml.safe_dump(mutation))
+        for changed in ({}, {"DASHBOARD_TEST_SHARD": "1"},
+                        {"DASHBOARD_TEST_SHARD": "${{ github.event.inputs.shard }}"},
+                        {**policy.WORKER_SHARD_ENV, "RAILWAY_TOKEN": "must-not-copy"}):
+            mutation = copy.deepcopy(original)
+            mutation["jobs"]["worker"]["steps"][-1]["env"] = changed
+            with self.subTest(env=changed), self.assertRaises(ValueError):
+                policy.validate_workflow(yaml.safe_dump(mutation))
+        mutation = copy.deepcopy(original); mutation["jobs"]["postgres"]["strategy"] = policy.WORKER_STRATEGY
+        with self.assertRaises(ValueError): policy.validate_workflow(yaml.safe_dump(mutation))
 
 
 if __name__ == "__main__": unittest.main()

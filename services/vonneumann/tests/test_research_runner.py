@@ -34,7 +34,7 @@ CONTROL_IDS = ['fixed-ema-09-21', 'cash', 'buy-hold-25', 'buy-hold-100']
 class ResearchRunnerTests(OfflineTestMixin, unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         super().setUp()
-        temporary = tempfile.TemporaryDirectory(prefix='research-runner-tests-', dir='/private/tmp')
+        temporary = tempfile.TemporaryDirectory(prefix='research-runner-tests-', dir=Path(tempfile.gettempdir()).resolve())
         self.addCleanup(temporary.cleanup)
         self.root = Path(temporary.name)
         self.fixture_count = 0
