@@ -1,0 +1,108 @@
+name: Dashboard verification
+
+"on":
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dashboard-verify-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  NEXT_TELEMETRY_DISABLED: "1"
+  PYTHON_DOTENV_DISABLED: "1"
+  PYTHONDONTWRITEBYTECODE: "1"
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+  PIP_NO_INPUT: "1"
+  PIP_CONFIG_FILE: /dev/null
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  frontend:
+    name: Frontend tests, types, lint and isolated build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      NPM_CONFIG_USERCONFIG: ${{ runner.temp }}/dashboard-frontend-user.npmrc
+      NPM_CONFIG_GLOBALCONFIG: ${{ runner.temp }}/dashboard-frontend-global.npmrc
+      NPM_CONFIG_CACHE: ${{ runner.temp }}/dashboard-frontend-npm-cache
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24.19.0
+          package-manager-cache: false
+      - name: Clean locked dependencies without lifecycle scripts
+        run: |
+          : > "$NPM_CONFIG_USERCONFIG"
+          : > "$NPM_CONFIG_GLOBALCONFIG"
+          npm ci --ignore-scripts --no-audit --no-fund
+      - name: Production advisories and exact expiring development exception
+        run: node scripts/check-advisories.mjs
+      - name: All Node regression files
+        run: node --test tests/*.test.mjs tests/probes/*.test.mjs scripts/tests/*.test.mjs
+      - name: TypeScript
+        run: node node_modules/typescript/bin/tsc --noEmit
+      - name: ESLint
+        run: npm run lint
+      - name: Fresh fake-configuration production build
+        run: node scripts/check-build.mjs
+
+  worker:
+    name: Ordinary worker and helper regressions (SQL opt-in skips reported)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: 3.12.14
+          architecture: x64
+          allow-prereleases: false
+      - name: Fresh environment, hash-required binary wheels and dependency consistency
+        run: |
+          python -m venv "$RUNNER_TEMP/dashboard-python"
+          "$RUNNER_TEMP/dashboard-python/bin/python" -m pip install --require-hashes --only-binary=:all: -r services/vonneumann/requirements-dev.txt
+          "$RUNNER_TEMP/dashboard-python/bin/python" -m pip check
+      - name: Ordinary discovery with explicit skip audit and sanitized environment
+        run: '"$RUNNER_TEMP/dashboard-python/bin/python" scripts/check-worker.py offline'
+
+  postgres:
+    name: Required real owned PostgreSQL and PostgREST contracts
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    env:
+      DOCKER_HOST: unix:///var/run/docker.sock
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: 3.12.14
+          architecture: x64
+          allow-prereleases: false
+      - name: Fresh hash-required wheel environment
+        run: |
+          python -m venv "$RUNNER_TEMP/dashboard-python"
+          "$RUNNER_TEMP/dashboard-python/bin/python" -m pip install --require-hashes --only-binary=:all: -r services/vonneumann/requirements-dev.txt
+          "$RUNNER_TEMP/dashboard-python/bin/python" -m pip check
+      - name: Pull and verify reviewed immutable amd64 fixture manifests
+        run: '"$RUNNER_TEMP/dashboard-python/bin/python" scripts/check-ci-images.py --prepare-images'
+      - name: Required integration (missing Docker, failed setup or opt-in skips fail)
+        run: '"$RUNNER_TEMP/dashboard-python/bin/python" scripts/check-worker.py postgres --allow-isolated-postgres'

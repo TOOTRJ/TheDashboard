@@ -1,0 +1,51 @@
+{
+  "checked": "2026-10-12",
+  "images": [
+    {
+      "repository": "supabase/postgres",
+      "tag": "17.6.1.095",
+      "index_digest": "sha256:965e2dfb5a23a0d6541b6106541e777b303656ebabd4e878746b189d550c0a66",
+      "platforms": [
+        {
+          "platform": {
+            "architecture": "amd64",
+            "os": "linux"
+          },
+          "manifest_digest": "sha256:4c087262afbfbb47da86e2863a52d7e424eb21ab589f732d77eeaab51be8e521",
+          "config_digest": "sha256:972aabc75779f6e535f87e1669f36edbab02cdf8bf3f47d13579963c119adefb"
+        },
+        {
+          "platform": {
+            "architecture": "arm64",
+            "os": "linux"
+          },
+          "manifest_digest": "sha256:eb4503f2adfcd1e268644063ef506322beb669099d811b26c1b437de1bcfe3bf",
+          "config_digest": "sha256:35ebf7c6d3b77a430146b0a91974ed1fc14432b5741db4a3e41cd5f899b17f1a"
+        }
+      ]
+    },
+    {
+      "repository": "supabase/postgrest",
+      "tag": "v14.5",
+      "index_digest": "sha256:b574528fe109c8343c1247155734d03df8c34b462f342dca0ccc20244fc36ef9",
+      "platforms": [
+        {
+          "platform": {
+            "architecture": "amd64",
+            "os": "linux"
+          },
+          "manifest_digest": "sha256:bb289d00570b569525e1e22fb77c49cd17c17ca3f41da9ee2b4351a35027551b",
+          "config_digest": "sha256:af0a6dad76305650c215449d905a124ae5ad3bcd0f04c01845a0cea17d4e0960"
+        },
+        {
+          "platform": {
+            "architecture": "arm64",
+            "os": "linux"
+          },
+          "manifest_digest": "sha256:60f641667a5e0a024c2c990cf1d1c01a49996bad849d7b57f16afd97d486ade2",
+          "config_digest": "sha256:19c3659fdecb0c653813ff691d3a0a05a63f7907f16e319920ff9713b666f3fc"
+        }
+      ]
+    }
+  ]
+}

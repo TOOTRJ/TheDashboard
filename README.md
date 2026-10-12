@@ -79,41 +79,40 @@ checkpoint does not grant a hosted lease or permission to trade.
 The frontend's local checks are:
 
 ```bash
-node --test tests/*.test.mjs tests/probes/*.test.mjs
-npx tsc --noEmit
+npm run test:frontend
+npm run typecheck
 npm run lint
+npm run check:advisories
+npm run check:build
 ```
 
 A build needs explicit Supabase client **and server** configuration because API
-modules construct the server client during page-data collection. For a
-credential-free check, copy only tracked `src/`, `public/`, build configuration
-and manifests plus reviewed dependencies into a task-specific temporary directory;
-exclude `.env*`, `.vercel`, `ssl/`, `.claude/` and other private files. Run there
-with fake values, preserving the checkout's `.next`:
-
-```bash
-NEXT_TELEMETRY_DISABLED=1 \
-NEXT_PUBLIC_SUPABASE_URL=https://dashboard-build.invalid \
-NEXT_PUBLIC_SUPABASE_ANON_KEY=dashboard-build-placeholder \
-SUPABASE_SERVICE_ROLE_KEY=dashboard-build-placeholder \
-API_SECRET_KEY=dashboard-build-placeholder \
-npm run build
-```
+modules construct the server client during page-data collection. `check:build`
+copies only tracked frontend/build inputs into a new owned temporary directory,
+installs the lock without lifecycle scripts and builds with fixed fake keys and
+the reserved `dashboard-ci.invalid` URL. It excludes private environment files,
+cloud/agent configuration and existing dependencies/build outputs. New frontend
+source must be staged before this tracked-input check. The checkout's `.next`
+and other-agent files remain untouched.
 
 Run Python tests with `PYTHON_DOTENV_DISABLED=1` and
 `PYTHONPATH=services/vonneumann` in the isolated worker environment. From this
 repository root, use that environment's Python executable:
 
 ```bash
-PYTHONDONTWRITEBYTECODE=1 PYTHON_DOTENV_DISABLED=1 \
-PYTHONPATH=services/vonneumann /path/to/dashboard-worker-venv/bin/python \
-  -m unittest discover -s services/vonneumann/tests -t services/vonneumann
+/path/to/dashboard-worker-venv/bin/python scripts/check-worker.py offline
+/path/to/dashboard-worker-venv/bin/python scripts/check-ci.py
 ```
 
-Ordinary offline regressions require no production credentials; real PostgreSQL cases are
-explicitly opt-in and own their network-disabled containers. Their passing
+The worker wrapper requires the hash-locked CPython 3.12.14 environment and
+sanitizes its own child before discovering worker and helper tests. Ordinary
+offline regressions report SQL skips rather than claiming integration acceptance.
+Real PostgreSQL cases require `scripts/check-worker.py postgres
+--allow-isolated-postgres` and the reviewed owned fixture setup. Their passing
 results establish the tested scope, not hosted source, COMMIT, quota or latency
-acceptance. Secret-free CI wiring and broader audit closeout remain QA work.
+acceptance. [CI gates and isolation](CI-VERIFICATION.md) document the three
+independent GitHub jobs and their first-run acceptance requirement. Actual browser
+acceptance and broader audit closeout remain separate QA work.
 
 ## Release boundaries
 

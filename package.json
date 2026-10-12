@@ -6,7 +6,14 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint src tests scripts --no-cache",
+    "test:frontend": "node --test tests/*.test.mjs tests/probes/*.test.mjs scripts/tests/*.test.mjs",
+    "typecheck": "tsc --noEmit",
+    "check:build": "node scripts/check-build.mjs",
+    "test:worker": "python scripts/check-worker.py offline",
+    "test:postgres": "python scripts/check-worker.py postgres --allow-isolated-postgres",
+    "check:ci": "python scripts/check-ci.py",
+    "check:advisories": "node scripts/check-advisories.mjs"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.2.6",
