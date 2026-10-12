@@ -4436,3 +4436,34 @@ files/tools/credentials/processes remain untouched. The user migration is exclud
 at unchanged SHA256 a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc.
 Rollback is a code/docs revert; no new hosted research object exists. Exact PR
 source/merge/production/read-only metadata will be recorded in the review PR.
+
+
+## 104. Compatible advisory repair and bounded development exception — 2026-10-12
+
+Exact Dashboard GitHub/Vercel/Supabase/Railway identities match at batch preflight.
+The worker remains at unchanged closedcf05895d-adc5-427f-873e-82ad6606e5a1; no hosted
+schema/data/grants/credentials/settings/billing/trading operation is performed.
+Source-map-js lock entry alone changes1.2.1→1.2.2. Empty-config/task-cache clean
+npm install uses no lifecycle hooks; existing repo node_modules is preserved.
+The new independently deadline-bounded offset regression fails old1.2.1 and
+passes1.2.2 with valid mapping retained.183 Node/security tests, TypeScript,
+zero-error lint (33 baseline warnings) and isolated fake-credential build pass.
+The first snapshot attempt omitted the cross-language JSON fixture and failed;
+complete reviewed source/fixture export passes. A source-map positive fixture
+was corrected to use supported eachMapping behavior; no upstream code is changed.
+
+Fresh full/production audits yield five/zero entries: only the reviewed unpatched
+braces3.0.3 dev-only lint chain remains. Exact advisory/version/path exception is
+visible and expires2026-10-26; October14/upstream patch triggers earlier review.
+The scanner wrapper rejects new/runtime/changed/expired findings and unavailable
+scans. Independent review found misbound direct-leaf and exponential duplicate
+path weaknesses; exact-leaf binding and duplicate/node/depth/visit budgets repair
+them with adversarial tests. No blanket severity suppression or Next14 downgrade.
+Next/config16.3.8 stay pending the actual announced October14 security release;
+SEC-05/05B remain open. [Current evidence](DEPENDENCY-REVIEW.md).
+
+Only this slice's lock, guard/policy/tests and associated TODO/preflight/dependency
+docs are staged. Other parallel TYPE1/privacy/CI drafts and the user migration
+are excluded. MigrationSHA256a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc
+is unchanged. Exact preview/head/merge/production proof will be recorded in the
+scoped PR; rollback is a reviewed lock/guard/docs revert, not a database action.
