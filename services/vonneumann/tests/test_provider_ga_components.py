@@ -19,7 +19,9 @@ from vonneumann.research import provider_checkpoint as cp
 from vonneumann.research import numeric_wire as numbers
 
 
-def provider_trace(dense, windows=32, observer=None):
+def provider_trace(dense, windows=32, observer=None, *, model=ga, checkpoint=cp, search_seed='0'):
+    # Explicit trusted test modules; no monkeypatch or shared model globals.
+    ga, cp = model, checkpoint
     ledger = ga.SimulationLedger(OWNER, RUN)
     metrics = {'windows': windows, 'dense': dense, 'candidates': 0,
         'max_resolved_bytes': 0, 'max_manifest_bytes': 0, 'max_compact_command_bytes': 0,
@@ -66,7 +68,7 @@ def provider_trace(dense, windows=32, observer=None):
 
     with deny_network():
         state = accept(ga.bootstrap(ga.GAConfig('genetic_algorithm', OWNER, RUN,
-            asset='SOL/USD', source_epoch=EPOCH), seed_bundle(last_close='80'),
+            asset='SOL/USD', source_epoch=EPOCH, search_seed=search_seed), seed_bundle(last_close='80'),
             source_inputs(WALL), ledger=ledger))
         offsets = [1] + [offset for bar in range(1, 4 * windows + 1)
                          for offset in (bar * 900, bar * 900 + 1)]

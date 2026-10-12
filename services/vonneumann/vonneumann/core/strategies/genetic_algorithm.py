@@ -52,8 +52,19 @@ class GeneticAlgorithmStrategy(EvolutionStrategy):
         probes: list[Probe],
         dead_probes: list[Probe],
         colony_config: ColonyConfig,
+        *, period_operator: str | None = None,
     ) -> EvolutionResult:
+        portable = None
+        if period_operator is not None:
+            if type(period_operator) is not str:
+                raise ValueError('Explicit period operator must be a plain version string')
+            from .. import integer_period_mutation as portable
+            if period_operator != portable.VERSION:
+                raise ValueError('Unknown explicit period mutation operator')
+            portable.validate_context(self, colony_config)
         eligible = self._cohort.results(probes)
+        if portable is not None and len(eligible) != 8:
+            raise ValueError('Portable model requires the complete eight-member cohort')
         offspring: list[Genome] = []
         parent_map: dict[str, list[str]] = {}
         operations = []
@@ -67,17 +78,24 @@ class GeneticAlgorithmStrategy(EvolutionStrategy):
             sexual = mate is not None and self._rng.random() > 0.3
 
             child_operations = []
-            children = reproduce(
-                parent.genome,
-                mate.genome if sexual else None,
-                min(2, len(eligible) - len(offspring)),
-                self.mutation_rate,
-                colony_config,
-                operations=child_operations,
-                rng=self._rng,
-                mutation_rngs=[self.mutation_rng(i) for i in range(len(offspring),
-                    min(len(offspring) + 2, len(eligible)))],
-            )
+            if portable is not None:
+                children = portable.reproduce(parent.genome, mate.genome if sexual else None,
+                    min(2, len(eligible) - len(offspring)), colony_config, rng=self._rng,
+                    seed=self._search_streams.seed, epoch=self._search_epoch,
+                    event=self._mutation_event, child_start=len(offspring),
+                    operations=child_operations)
+            else:
+                children = reproduce(
+                    parent.genome,
+                    mate.genome if sexual else None,
+                    min(2, len(eligible) - len(offspring)),
+                    self.mutation_rate,
+                    colony_config,
+                    operations=child_operations,
+                    rng=self._rng,
+                    mutation_rngs=[self.mutation_rng(i) for i in range(len(offspring),
+                        min(len(offspring) + 2, len(eligible)))],
+                )
 
             for child, operation in zip(children, child_operations):
                 idx = str(len(offspring))
@@ -92,13 +110,16 @@ class GeneticAlgorithmStrategy(EvolutionStrategy):
 
         self._cohort.propose(offspring, eligible)
         self._mutation_event += 1
+        metadata = {"selection_policy": "completed-window-generational-ga-v1",
+                    "iteration_id": eligible[0].iteration_id,
+                    "evaluation_accounts": len(eligible), "offspring": operations}
+        if portable is not None:
+            metadata['mutation_operator'] = portable.VERSION
         return EvolutionResult(
             offspring=offspring,
             retire_ids=[p.probe_id for p in eligible],
             parent_map=parent_map,
-            metadata={"selection_policy": "completed-window-generational-ga-v1",
-                      "iteration_id": eligible[0].iteration_id,
-                      "evaluation_accounts": len(eligible), "offspring": operations},
+            metadata=metadata,
         )
 
 

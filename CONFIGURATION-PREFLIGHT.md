@@ -4304,3 +4304,72 @@ processes/files and the user-owned colonies migration remain untouched; its SHA2
 is a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc.
 Rollback is a reviewed code/docs revert; no hosted research objects exist. Exact
 preview/merge/production/read-only evidence will be recorded in the PR.
+
+## 102. Explicit portable-period GA model and compact transport — 2026-10-12
+
+This supersedes section101's pending sign-in/release checkpoint. The fresh login
+saved to the exact isolated Dashboard profile. GitHub TOOTRJ/TheDashboard ID
+1141090963/account biggrizzly11 ID16749816, Vercel the-dashboard/
+prj_wFUe9k9USVreOQcmQKNWRAVsx5fH/team_8iNNxiNjrOseD4gdSCHkQEzF and Supabase
+The Dashboard/fxpxsciltakyypunglzr/cqfnnaunmupdyobkyqfo match. Railway project/
+environment/workspace/service identities, original deploymentcf05895d-adc5-427f-
+873e-82ad6606e5a1 and resource limits are unchanged; the worker stays closed.
+PR96 heada2d396c8e06f9c29e66af7037d1575dac1235e45 has exact READY preview
+ dpl_9QM1MrMV4qCTSByrkhYuh8GPN79g with verified owner/repository/source/author.
+Authorized merge23692fe5dc727c8b71e25b41daee752b7a65f2d2 has the same tested tree;
+productiondpl_5VeVWZPoqA47hysTsnKLBQchGwqB is READY/current canonical alias with
+all four read-only release probes passed. No shared/default credentials are used.
+
+PAPER-COMPACT-03B3C2B2A integrates ema-period-triangular-integer-v1 under explicit
+new portable version2 profile/code/model/lifecycle/assessment and component/
+checkpoint/transport headers. The pinned complete mutation policy and reconstruction
+bind domains/radii/rates/decision/step/clamp/fixed asset/counter/draw bounds. The
+old model/checkpoint sources retain their original hashes. New private modules are
+reviewed version forks with those header/policy/kernel/operator and strategy-counter
+increment-bound differences;
+no mutable shared model globals or monkeypatching. Default GA remains Gaussian and
+ordinary import does not load the operator. Genome periods must be exactly integral
+before conversion; fractional/bool/nonfinite inputs cannot be rounded into validity.
+
+All eight focused offline model cases pass. Seventy legacy full-candidate/compact
+wire hash pairs remain identical. Three seeds/four complete synthetic windows each
+produce201 commands,96 assessments/offspring and both mating modes with recorded
+parentage/fixed controls; common founders and first-window strategy draws match
+legacy. Mixed owned versions and rehashed config/rate/version/seed/population/counter
+changes fail. Pause/resume/restart advances epoch/reset event and retains original
+phenotypes; Stop needs no provider fetch. Unknown selector failure preserves RNG.
+Mutation-event/restart-epoch increments refuse at the policy maximum without
+counter rollover; new-batch refusal preserves RNG and existing Stop capacity.
+The three-seed measurement binds actual source hashes and false independent complete
+SQL/native/restoration/hosted/performance authority. Maximum compact request159843
+bytes, resolved capture61537 and full candidate206324. These are synthetic finite
+sizes within current caps, not hosted cadence/cost/latency or profitability evidence.
+
+Fifty-eight SQL/fork/evidence/real-lineage/all-four-solver rehearsal/canonical/forward
+package regressions pass. Three actual SQL cases also compare the new versioned
+core operator with all4128 independent proposal traces;16 additional proposal traces
+and guard/client denial pass. The source-bound primitive artifact now includes the
+core hash. No complete-model SQL wrapper or native grant/runtime format is installed.
+Owned pinned PostgreSQL/no-network/no-port/no-application-mount/no-secret fixtures
+are removed after testing. AST/source-hash/diff checks and the preserved user
+migration SHA pass.
+
+ParentB2/B/C2/C remain open. NextB2B independently binds the original complete v2
+wire/config/headers/software/graph/aliases/mirrors/selection/crossover/mutation/
+lineage and economics/source/causal/risk/assessment semantics from fresh genesis
+or the accepted same-version chain. Never strip policy/relabel evidence to pass
+the partial v1 verifier. Prove forged-period denial, lifecycle/ordinary/restart/
+risk/recovery/interruption/Stop and resource bounds. Then03 atomic native effects/
+forward migration,04 exact restoration and05 retention/closed hosted acceptance.
+Keep all full continuation evidence. Deep substantial research retains full tails,
+rejection/draw limits, actual deployed-platform upgrades, mutation/objective/
+clamping/diversity bias and longer held-out equal-budget baselines before more genes.
+[Scope and next gate](services/vonneumann/NATIVE-PORTABLE-GA-MODEL.md).
+
+No hosted schema/data/grant/migration/native package, Railway deployment/variables/
+capability, paid provider call, archive deletion, billing or live execution change.
+Other projects/shared credentials/configuration/files/processes are preserved.
+The user-owned colonies migration is excluded at SHA256
+ a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc.
+Rollback is a reviewed code/docs revert; no hosted research objects exist. Exact
+preview/merge/production/read-only evidence will be recorded in the PR.
