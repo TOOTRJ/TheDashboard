@@ -5,8 +5,9 @@
 **Implementation follow-up:** SEC-05A's compatible source-map-js repair and exact
 expiring development exception are implemented; production audit is now clean.
 The original findings below describe the pre-repair review. October14 security
-response remains open. TYPE1/privacy/CI progress is recorded with each reviewed
-implementation section rather than inferred from this first slice.
+response remains open. TYPE1 is also repaired with unchanged canonical wires;
+complete independent v2 SQL is next. Privacy/CI progress is recorded with each
+reviewed implementation section.
 
 This section is the authoritative priority/dependency view. Dated checkpoints
 below are historical evidence, not instructions to repeat completed setup or
@@ -37,7 +38,7 @@ this documentation review.
 | --- | --- | --- |
 | P0 access boundary, every remote operation | Before the operation; serialize cloud writes | Exact GitHub/Vercel/Supabase/Railway project and owner verification; preserve shared credentials/other projects. Preview still shares production DB values, so initial tests stay offline. |
 | P1 security and QA, start now | Parallel with the worker and app lanes; release joins require their relevant checks | SEC-05A advisory repair/reachability, SEC-05B October 14 response; QA-01A secret-free CI, QA-01B real browser coverage. No forced Next 14 downgrade. |
-| P1 worker step1 | First runtime repair in the worker chain | PAPER-COMPACT-TYPE1: exact policy types for v2; decide legacy v1 compatibility; adversarial rehash tests. Freeze corrected model/config/operator/component versions. |
+| P1 worker step1 — complete | Rejection-only repair verified before the next SQL gate | PAPER-COMPACT-TYPE1: exact policy types for v2; decide legacy v1 compatibility; adversarial rehash tests. Freeze corrected model/config/operator/component versions. |
 | P1 worker step2 | After TYPE1; close full semantics before native admission | PAPER-COMPACT-03B3C2B2B: independently validate original complete v2 evidence in SQL, including actual child mutation. Compose prior economics/source/causal/risk/assessment proofs without stripping policy or relabeling versions. |
 | P1 worker step3 | After complete v2 semantics | PAPER-COMPACT-03: atomic native journal, dependency pins, original-ID receipt/replay, final source/lease admission, reserved Stop, history/relay/projections, reviewed forward package. Include PAPER-ASSESSMENT-PROVENANCE1 in this format. |
 | P1 worker step4 | Design/fixtures can overlap step3 after version freeze; final proof needs its durable receipt contract | PAPER-COMPACT-04: independent restoration, exact next-command equivalence, pending original-command reconciliation and retained holdings. Loading a checkpoint grants no running authority. |
@@ -1070,17 +1071,22 @@ Research began **2026-09-30** and was updated **2026-10-06/07** in [WORKER-HOSTI
   **2026-10-12 qualification:** the existing nine cases still pass, but a new
   rehashed bool/int policy reproducer is accepted. This checkbox records the
   implemented versioned model/transport, not complete strict-validation
-  acceptance. TYPE1 must close before B2B/native admission.
+  acceptance. TYPE1 is now repaired with separately bound evidence; full B2B/native
+  admission remains unaccepted.
 
-- [ ] **PAPER-COMPACT-TYPE1 — P1: Enforce exact configuration scalar types.**
-  Both research v1 and portable v2 reconstruct policy with ordinary dictionary
-  equality, accepting boolean False for pinned integer 0 at
-  lifecycle_policy.max_lifespan_seconds. Correct v2 with explicit type-preserving
-  canonical comparison/schema validation; inspect all bool/int/float/string and
-  nested scalar cases. Decide and document v1 compatibility without silently
-  changing historical evidence. Rehashed components must fail before semantic
-  admission and preserve original ledger/RNG/Stop behavior. Rerun legacy hash
-  and portable multi-window invariants. [Reproduced source-bound evidence](services/vonneumann/research/2026-10-12-config-type-review.json).
+- [x] **PAPER-COMPACT-TYPE1 — P1: Enforce exact configuration scalar types.**
+  Research v1/v2 now validate exact nested field/scalar/list types and pinned
+  policies against trusted immutable templates before reconstruction, then
+  require canonical bytes. Candidate before/after configurations also reject
+  bool/int aliases. Unsupported/custom keys cannot invoke equality ahead of
+  type refusal. Only documented string-valued settings vary; existing range/
+  economics checks remain. Six focused type cases, nine portable/legacy cases
+  and22 package cases pass (37 total,no skips), including423 type substitutions,
+  29 rehashed cases and all70 original v1 wire pairs. Rejection-only repair keeps
+  canonical model/policy/software/wire semantics; original artifacts remain
+  historical with separately pinned repair provenance. No SQL/native/restore/
+  hosted selection change. [Repair and version decision](services/vonneumann/CONFIGURATION-TYPE-REPAIR.md).
+  Complete original-v2 SQL B2B remains the next worker gate.
 
 
 - [ ] **PAPER-COMPACT-03B3C2B2B — Validate complete portable v2 semantics independently in SQL.**

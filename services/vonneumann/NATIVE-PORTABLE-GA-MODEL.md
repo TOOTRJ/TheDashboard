@@ -24,7 +24,7 @@ fixed asset/no mutation draw, epoch/event limits and rejection/word budgets.
 Configuration reconstruction requires the complete pinned dictionary; an unknown
 or missing field/policy cannot quietly select a different operator.
 
-The old provider model, base checkpoint and stable-partition source files are unchanged. The new model
+The old provider model, base checkpoint and stable-partition source files were unchanged by PR97. The new model
 and checkpoint adapters are reviewed version forks of the PR96 implementations, retaining
 the same economics, source provenance, causal/risk/lifecycle/assessment behavior,
 stable thirteen-slot candle/EMA partition,
@@ -34,6 +34,12 @@ strategy-counter increment bounds and new kernel binding. This avoids mutable sh
 between versions. The [legacy baseline](research/legacy-ga-portable-integration-baseline.json)
 records the original source hashes and70 full-candidate/compact-wire hash pairs
 before integration.
+
+The subsequent [PAPER-COMPACT-TYPE1 validation repair](CONFIGURATION-TYPE-REPAIR.md)
+changes the two research model validators to reject scalar-type aliases before
+configuration reconstruction. Canonical model/operator/version/transport policies
+and every original legacy wire hash stay unchanged. Historical measurements remain
+intact; separate source-bound repaired measurements record current validation.
 
 The shared GA's default call still executes the existing Gaussian path. A plain
 explicit operator version is required to enter the new branch; ordinary import
