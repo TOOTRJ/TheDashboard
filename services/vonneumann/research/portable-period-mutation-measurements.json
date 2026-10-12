@@ -1,0 +1,24 @@
+{
+  "complete_python_sql_traces": 4128,
+  "coverage": {
+    "clamp": 865,
+    "fast": 982,
+    "negative": 869,
+    "positive": 795,
+    "slow": 1030
+  },
+  "date": "2026-10-12",
+  "identity": {
+    "image": "public.ecr.aws/supabase/postgres:17.6.1.095",
+    "image_id": "sha256:965e2dfb5a23a0d6541b6106541e777b303656ebabd4e878746b189d550c0a66",
+    "network": "none",
+    "postgres_version": "17.6"
+  },
+  "model_integration": false,
+  "operator": "ema-period-triangular-integer-research-v1",
+  "production_grants_or_install": false,
+  "python_sha256": "3451537f72cd6326d3dcf9cc3188a1ee3ec49995bf5d028cb487d6d19d0151e9",
+  "restoration_authority": false,
+  "scope": "bounded portable mutation prototype; not a replacement of legacy Gaussian semantics",
+  "sql_sha256": "605dfb89940b9dcee0a0f9d2f756e51621de7ee003bc9b997a5bf537c0992777"
+}

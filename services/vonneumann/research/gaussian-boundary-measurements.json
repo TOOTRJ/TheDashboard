@@ -1,0 +1,422 @@
+{
+  "bit_examples": [
+    {
+      "cached": false,
+      "index": 581,
+      "kind": "boundary",
+      "postgres_bits": "bfdffffffffffff4",
+      "python_bits": "bfdffffffffffff5"
+    },
+    {
+      "cached": false,
+      "index": 582,
+      "kind": "boundary",
+      "postgres_bits": "bfdffffffffffff5",
+      "python_bits": "bfdffffffffffff7"
+    },
+    {
+      "cached": false,
+      "index": 583,
+      "kind": "boundary",
+      "postgres_bits": "bfdffffffffffffb",
+      "python_bits": "bfdffffffffffffc"
+    },
+    {
+      "cached": false,
+      "index": 584,
+      "kind": "boundary",
+      "postgres_bits": "bfdffffffffffffd",
+      "python_bits": "bfe0000000000000"
+    },
+    {
+      "cached": false,
+      "index": 587,
+      "kind": "boundary",
+      "postgres_bits": "bfe0000000000004",
+      "python_bits": "bfe0000000000005"
+    },
+    {
+      "cached": false,
+      "index": 588,
+      "kind": "boundary",
+      "postgres_bits": "bff7fffffffffffc",
+      "python_bits": "bff7fffffffffffd"
+    },
+    {
+      "cached": false,
+      "index": 589,
+      "kind": "boundary",
+      "postgres_bits": "bff7fffffffffffd",
+      "python_bits": "bff7fffffffffffe"
+    },
+    {
+      "cached": false,
+      "index": 590,
+      "kind": "boundary",
+      "postgres_bits": "bff7fffffffffffe",
+      "python_bits": "bff8000000000000"
+    }
+  ],
+  "boundary_cases": 71582,
+  "cases": 71582,
+  "date": "2026-10-12",
+  "identity": {
+    "image": "public.ecr.aws/supabase/postgres:17.6.1.095",
+    "image_id": "sha256:965e2dfb5a23a0d6541b6106541e777b303656ebabd4e878746b189d550c0a66",
+    "network": "none",
+    "postgres_version": "17.6"
+  },
+  "noise_bit_mismatches": 4612,
+  "period_examples": [
+    {
+      "index": 2629,
+      "inputs": [
+        0.3734184904561133,
+        0.9697689883942827,
+        1.3499999999999999,
+        3,
+        12,
+        12,
+        false
+      ],
+      "kind": "boundary",
+      "postgres_bits": "c004000000000001",
+      "postgres_period": 10,
+      "python_bits": "c004000000000003",
+      "python_period": 9
+    },
+    {
+      "index": 2780,
+      "inputs": [
+        0.13632512632406246,
+        0.7627438783043898,
+        1.3499999999999999,
+        3,
+        12,
+        3,
+        false
+      ],
+      "kind": "boundary",
+      "postgres_bits": "3ff7fffffffffffe",
+      "postgres_period": 5,
+      "python_bits": "3ff7fffffffffffd",
+      "python_period": 4
+    },
+    {
+      "index": 2781,
+      "inputs": [
+        0.13632512632406246,
+        0.7627438783043899,
+        1.3499999999999999,
+        3,
+        12,
+        3,
+        false
+      ],
+      "kind": "boundary",
+      "postgres_bits": "3ff7fffffffffffe",
+      "postgres_period": 5,
+      "python_bits": "3ff7fffffffffffd",
+      "python_period": 4
+    },
+    {
+      "index": 2905,
+      "inputs": [
+        0.8872876653224618,
+        0.6569925294074505,
+        1.3499999999999999,
+        3,
+        12,
+        3,
+        false
+      ],
+      "kind": "boundary",
+      "postgres_bits": "3ff7fffffffffffe",
+      "postgres_period": 5,
+      "python_bits": "3ff7fffffffffffd",
+      "python_period": 4
+    },
+    {
+      "index": 3026,
+      "inputs": [
+        0.8623058681495871,
+        0.1504751687814705,
+        1.3499999999999999,
+        3,
+        12,
+        3,
+        false
+      ],
+      "kind": "boundary",
+      "postgres_bits": "3fdffffffffffffb",
+      "postgres_period": 3,
+      "python_bits": "3fdffffffffffffc",
+      "python_period": 4
+    },
+    {
+      "index": 3362,
+      "inputs": [
+        0.14148325784347837,
+        0.1586006076588079,
+        1.3499999999999999,
+        3,
+        12,
+        3,
+        false
+      ],
+      "kind": "boundary",
+      "postgres_bits": "3fdffffffffffffc",
+      "postgres_period": 4,
+      "python_bits": "3fdffffffffffffb",
+      "python_period": 3
+    },
+    {
+      "index": 3377,
+      "inputs": [
+        0.14148325784347837,
+        0.986663101351472,
+        1.3499999999999999,
+        3,
+        12,
+        3,
+        false
+      ],
+      "kind": "boundary",
+      "postgres_bits": "4003ffffffffffff",
+      "postgres_period": 6,
+      "python_bits": "4003fffffffffffd",
+      "python_period": 5
+    },
+    {
+      "index": 3422,
+      "inputs": [
+        0.33209700150152066,
+        0.9209044700827149,
+        1.3499999999999999,
+        3,
+        12,
+        12,
+        false
+      ],
+      "kind": "boundary",
+      "postgres_bits": "bff8000000000004",
+      "postgres_period": 11,
+      "python_bits": "bff8000000000005",
+      "python_period": 10
+    },
+    {
+      "index": 4401,
+      "inputs": [
+        0.3256718656431915,
+        0.9474504209089978,
+        1.3499999999999999,
+        3,
+        12,
+        12,
+        false
+      ],
+      "kind": "boundary",
+      "postgres_bits": "bff8000000000004",
+      "postgres_period": 11,
+      "python_bits": "bff8000000000005",
+      "python_period": 10
+    },
+    {
+      "index": 5446,
+      "inputs": [
+        0.8034569346280847,
+        0.4681251602000541,
+        1.3499999999999999,
+        3,
+        12,
+        3,
+        false
+      ],
+      "kind": "boundary",
+      "postgres_bits": "3fdffffffffffffc",
+      "postgres_period": 4,
+      "python_bits": "3fdffffffffffffb",
+      "python_period": 3
+    },
+    {
+      "index": 6054,
+      "inputs": [
+        0.6371506521874183,
+        0.6575341415294319,
+        1.3499999999999999,
+        3,
+        12,
+        12,
+        true
+      ],
+      "kind": "boundary",
+      "postgres_bits": "bff8000000000005",
+      "postgres_period": 10,
+      "python_bits": "bff8000000000004",
+      "python_period": 11
+    },
+    {
+      "index": 6065,
+      "inputs": [
+        0.6371506521874183,
+        0.9970741662506959,
+        1.3499999999999999,
+        3,
+        12,
+        12,
+        true
+      ],
+      "kind": "boundary",
+      "postgres_bits": "c00c000000000003",
+      "postgres_period": 8,
+      "python_bits": "c00c000000000002",
+      "python_period": 9
+    },
+    {
+      "index": 10161,
+      "inputs": [
+        0.6175852960935724,
+        0.9772037366684417,
+        1.3499999999999999,
+        3,
+        12,
+        12,
+        true
+      ],
+      "kind": "boundary",
+      "postgres_bits": "c004000000000001",
+      "postgres_period": 10,
+      "python_bits": "c004000000000003",
+      "python_period": 9
+    },
+    {
+      "index": 17967,
+      "inputs": [
+        0.5833770887620929,
+        0.08741908092653061,
+        6.75,
+        15,
+        60,
+        60,
+        false
+      ],
+      "kind": "boundary",
+      "postgres_bits": "c004000000000008",
+      "postgres_period": 58,
+      "python_bits": "c004000000000009",
+      "python_period": 57
+    },
+    {
+      "index": 17996,
+      "inputs": [
+        0.5833770887620929,
+        0.4611913544173525,
+        6.75,
+        15,
+        60,
+        60,
+        false
+      ],
+      "kind": "boundary",
+      "postgres_bits": "c01a000000000004",
+      "postgres_period": 54,
+      "python_bits": "c01a000000000005",
+      "python_period": 53
+    },
+    {
+      "index": 18003,
+      "inputs": [
+        0.5833770887620929,
+        0.5610223029503251,
+        6.75,
+        15,
+        60,
+        60,
+        false
+      ],
+      "kind": "boundary",
+      "postgres_bits": "c01e000000000004",
+      "postgres_period": 53,
+      "python_bits": "c01e000000000005",
+      "python_period": 52
+    },
+    {
+      "index": 18017,
+      "inputs": [
+        0.5833770887620929,
+        0.7331183065995098,
+        6.75,
+        15,
+        60,
+        60,
+        false
+      ],
+      "kind": "boundary",
+      "postgres_bits": "c023000000000002",
+      "postgres_period": 51,
+      "python_bits": "c023000000000003",
+      "python_period": 50
+    },
+    {
+      "index": 18030,
+      "inputs": [
+        0.5833770887620929,
+        0.8556746946713193,
+        6.75,
+        15,
+        60,
+        60,
+        false
+      ],
+      "kind": "boundary",
+      "postgres_bits": "c027000000000002",
+      "postgres_period": 49,
+      "python_bits": "c027000000000003",
+      "python_period": 48
+    },
+    {
+      "index": 18044,
+      "inputs": [
+        0.5833770887620929,
+        0.9305753727313305,
+        6.75,
+        15,
+        60,
+        60,
+        false
+      ],
+      "kind": "boundary",
+      "postgres_bits": "c02b000000000002",
+      "postgres_period": 47,
+      "python_bits": "c02b000000000003",
+      "python_period": 46
+    },
+    {
+      "index": 18063,
+      "inputs": [
+        0.5833770887620929,
+        0.9814039165666215,
+        6.75,
+        15,
+        60,
+        60,
+        false
+      ],
+      "kind": "boundary",
+      "postgres_bits": "c030800000000001",
+      "postgres_period": 44,
+      "python_bits": "c030800000000002",
+      "python_period": 43
+    }
+  ],
+  "period_mismatches": 145,
+  "platform": {
+    "machine": "arm64",
+    "system": "Darwin"
+  },
+  "profile": "boundaries",
+  "prototype_sha256": "36d38d5b2a52545ac7089ee95c30600dc14a045a284106c7bb768a1ac7cc9224",
+  "python": "3.12.14",
+  "random_cases": 0,
+  "scope": "synthetic uniform inputs; numeric compatibility only; not owned command/seed reachability or native authority"
+}

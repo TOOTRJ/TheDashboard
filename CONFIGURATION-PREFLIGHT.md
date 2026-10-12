@@ -4235,3 +4235,53 @@ needed from the user. The user-owned colonies migration remains excluded at
 SHA256 a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc.
 Rollback is a reviewed code/docs revert; no hosted research objects exist. Exact
 preview/merge/production/read-only evidence will be recorded in the PR.
+
+## 101. Gaussian portability research and integer mutation proposal — 2026-10-12
+
+PR95 source91603afb0d04cc4e0ef807140d10c4f15565acc7 merged as
+9f032238f5b7f5292f0bbf61fcf7468ddb74a4f2. Exact preview
+ dpl_2QRM7Gf3LyPiwDe8xBnTQqXUa5vo and production
+ dpl_9fRC66PqPBYGbymGg9oNwBrMuFkX are READY with verified project/team/repository/
+source/author; current canonical production alias and four read-only probes pass.
+The merged tree equals the tested head. Fresh exact Dashboard GitHub/Vercel/
+Supabase identities and Railway project/environment/workspace/service match.
+
+PAPER-COMPACT-03B3C2B1 compares the actual macOS arm64 Python3.12.14 reference
+with owned pinned Linux PostgreSQL17.6 math, preserving operation order, first/
+cached Gaussian variates, actual strengths and clamp/half-up conversion.
+4852 random/boundary inputs yield111 noise-bit differences and no integer-period
+changes;71582 constructed adjacent-boundary inputs yield4612 bit differences and
+145 different EMA periods. Synthetic input counts are not production failure
+rates, accepted command evidence or proven reachable search seeds. Actual Linux
+worker Python math is a remaining comparison. Reproducers/artifacts bind the
+platform, image and source hash. No tolerance substitutes for an exact phenotype.
+
+The separately versioned ema-period-triangular-integer-research-v1 proposal uses
+integer53-bit mutation decisions, two bounded draws per mutated gene, triangular
+steps/radii3 and15 and integer clamping. Sexual/asexual rates are exact200000/
+300000 per million; distribution and draw consumption deliberately differ from
+legacy Gaussian behavior. Three actual SQL cases pass:4128 full Python/SQL traces,
+16 additional maximum-counter/interior traces, invalid input/counter/seed failures,
+mandatory offline guard and denied browser/authenticated/service-role/relay/auditor
+execution. Owned limited-installer private helper only; no durable rows or runtime
+imports/grants. The independent namespace/MT19937 implementation is unchanged.
+The artifact binds Python and SQL source hashes and false model integration,
+production installation and restoration authority.
+
+Parent03B3C2B/C2/C stay open. NextB2 must integrate explicit new model/config/operator
+versions and complete independent offspring/header/configuration/selection/lineage
+semantics from fresh genesis or an accepted chain. Preserve old evidence and full
+continuation state. Then03 atomic native effects/migration,04 exact restoration
+and05 retention/closed hosted acceptance. Deep research retains actual Linux math,
+legacy reachable boundaries, mutation radii/rates/clamping/no-op/diversity effects,
+full resource tails and matched-seed held-out equal-budget baselines. Mechanical
+portability is not profitability or live-cadence evidence.
+
+[Research and ordered implementation](services/vonneumann/NATIVE-MUTATION-PORTABILITY.md).
+The worker stays closed. No hosted schema/data/grant/migration/native package,
+Railway deployment/variables/capability, paid market request, archive deletion,
+billing or live execution change. Shared credentials/configuration, other agent
+processes/files and the user-owned colonies migration remain untouched; its SHA256
+is a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc.
+Rollback is a reviewed code/docs revert; no hosted research objects exist. Exact
+preview/merge/production/read-only evidence will be recorded in the PR.
