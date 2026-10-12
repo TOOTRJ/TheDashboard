@@ -1,4 +1,47 @@
-# Dependency security review — security follow-up checked 2026-10-02
+# Dependency security review — current advisory review 2026-10-12
+
+## Current findings — 2026-10-12
+
+Fresh public-registry `npm audit --json` scans of the unchanged lock report
+**six high-severity affected package entries in the full graph and one in the
+production graph**, from **two underlying advisories**. These are package counts,
+not six independent CVEs or demonstrated exploitable application routes. Both
+scans complete successfully and exit1 because findings exist. Separate empty
+npm user/global configs and a task-specific `/private/tmp` cache avoid shared
+credentials/configuration. No installation, lifecycle hook, package update or
+`audit fix` ran in this review. The earlier zero results below are dated history.
+
+| Advisory / current path | Current result | Required action |
+| --- | --- | --- |
+| [source-map-js indexed source-map denial of service](https://github.com/advisories/GHSA-68fv-2mgg-jv7q) | Lock has 1.2.1; reviewed affected range is 1.0.0 through 1.2.1, fix 1.2.2. Reached by PostCSS and @tailwindcss/node; counted in production dependencies. | Review compatible transitive lock repair and isolate build/source-map input exposure. Production dependency classification alone does not prove an HTTP exploit. Retest locked install, styles/build and API/Auth routes. |
+| [braces nested-pattern stack exhaustion](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm) | Lock has 3.0.3. Advisory lists<=3.0.3 and no patch. Dev path @next/eslint-plugin-next→fast-glob→micromatch→braces generates five full-graph affected entries including parent packages. | Examine controllable pattern input, upstream patch/removal and compatible plugin choices. Record a bounded tooling exception if no safe fix exists. npm's proposed eslint-config-next14.2.35 downgrade is not an accepted repair for Next 16. |
+
+Both `next` and `eslint-config-next` remain installed/pinned 16.3.8. Fresh official
+registry tags now identify **16.4.0** as latest stable, and [Next 16.4 was released
+October 6](https://nextjs.org/blog/next-16-4). The October 2 statement that16.4 is only
+prerelease is superseded. Review compatible framework/config upgrades in SEC-05;
+no package version was changed during this audit review.
+
+The [October 8 official security notice](https://nextjs.org/blog/upcoming-nextjs-security-update-october-2026)
+announces an October 14 out-of-band update for two critical and one high upstream
+vulnerability, including postponed September fixes. Full advisories, affected
+versions and upgrade instructions are pending. Do not infer current reachability
+or consider16.4.0 a fix for undisclosed issues. SEC-05B requires actual advisory
+review and a tested patched release as soon as available. This is distinct from
+the two currently reported npm advisories. No scheduled automation or global
+runtime/CLI change is created by this document.
+
+Fresh Node 177-test/typecheck/lint and isolated-build results are in
+[AUDIT-REVIEW-2026-10-12.md](AUDIT-REVIEW-2026-10-12.md). Python's prior 49-package
+hash-lock/advisory results remain historical; this pass reruns ordinary tests but
+does not claim a fresh Python advisory or full target-image scan. SEC-05 retains
+platform-lock/native-library and coordinated ESLint/plugin, HTTPX2 and SSR
+cookie/cache-header maintenance.
+
+## Historical dependency repair evidence
+
+The remainder records what was installed and tested at its date. Its zero
+advisory counts and latest-version claims do not supersede the current scan.
 
 The local dependency repair is implemented. Fresh September 30 npm audits report **zero known vulnerabilities** for both the full installed graph and the production graph. Both Python lock files contain **49 exact, hashed packages**; their original September 29 advisory checks reported **zero known vulnerabilities**, and Python was not changed or rescanned in this Next.js patch. These results describe the advisory databases and versions at their check times; they are not a claim that the application is secure or ready to deploy.
 
@@ -6,7 +49,7 @@ The local dependency repair is implemented. Fresh September 30 npm audits report
 
 ## Scope and isolation
 
-**October 2 follow-up:** official npm metadata still identifies `16.3.8` as the
+**Historical October 2 follow-up:** official npm metadata still identifies `16.3.8` as the
 latest stable release of both `next` and `eslint-config-next`; the manifest,
 lockfile and installed versions agree. GitHub's newer 16.4 builds are
 prereleases. The revised security notice still leaves one critical and one

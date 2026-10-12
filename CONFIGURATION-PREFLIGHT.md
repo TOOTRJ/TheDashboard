@@ -4376,3 +4376,63 @@ The user-owned colonies migration is excluded at SHA256
  a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc.
 Rollback is a reviewed code/docs revert; no hosted research objects exist. Exact
 preview/merge/production/read-only evidence will be recorded in the PR.
+
+
+## 103. Audit re-review and dependency reprioritization — 2026-10-12
+
+Reviewed main 67cff30e82d6847a6d1b3f03276308646e8083a4 after PR96/97. GitHub
+TOOTRJ/TheDashboard ID 1141090963/user biggrizzly11 ID 16749816, Vercel
+the-dashboard/prj_wFUe9k9USVreOQcmQKNWRAVsx5fH/team_8iNNxiNjrOseD4gdSCHkQEzF,
+Supabase The Dashboard/fxpxsciltakyypunglzr/cqfnnaunmupdyobkyqfo and exact Railway
+project/workspace/environment/service all freshly match. Baseline PR97 production
+ dpl_ASo5z4Zc6APWsUPseQVrvw52Aici is READY/current canonical alias; all four
+read-only release probes pass. Railway's same successful ordinary closed
+ cf05895d-adc5-427f-873e-82ad6606e5a1 and replica/resource/health/restart/IPv6
+settings match. No worker activation or hosted economic/catalog mutation.
+
+Three read-only reviews identify a reproduced research configuration bool/int
+equality defect, active Nestegg account-draft/late-response/result-identity
+problems, original finance calculations, dashboard unsupported success/mock
+claims and remaining API validation/schema evidence. Portable nine-case regression
+passes again, while rehashed False-for-0 policy resolution is wrongly accepted
+in both research v1/v2. [Exact ten-source reproduction evidence](services/vonneumann/research/2026-10-12-config-type-review.json).
+This is offline construction/resolution only, not native admission. B2A retains
+built scope; new TYPE1 repair gates complete B2B/native acceptance.
+
+Fresh 177 Node tests, TypeScript and broad lint pass; lint retains 33 existing
+warnings. Isolated default-Turbopack production build passes using a temporary
+allowlisted source/dependency copy, fake client/server keys and no env files.
+The first build configuration omitted the required fake server key and failed;
+corrected configuration passed. Complete worker discovery runs 2,023 cases:
+1,609 pass, 414 opt-in integration skips, zero failures in1,162.972s under
+CPython3.12.14. Node is24.19.0. Skipped SQL/hosted cases are not fresh acceptance.
+[Complete scope](AUDIT-REVIEW-2026-10-12.md).
+No new complete SQL/managed-image/browser/fault acceptance or Python advisory
+scan is claimed. Manual original pilot evidence is retained, not repeated.
+
+Fresh full/production npm audits complete with six / one high affected package
+entries from two advisories. source-map-js 1.2.1 has reviewed 1.2.2 fix; dev-only
+braces 3.0.3 has no listed patch. Review compatible paths, not npm's Next 14 downgrade.
+Next/config 16.4.0 now stable; the October 8 official notice announces October 14
+security fixes with impact/ranges still pending. [Current review and sources](DEPENDENCY-REVIEW.md).
+SEC-05A/B and CI/browser gaps are explicit parallel priorities, not closed by
+passing local regressions. Railway's December 1 legacy-config cutoff is freshly
+confirmed and HOST-02C remains a parallel project-only maintenance gate.
+
+TODO's authoritative top execution table replaces obsolete current-hour/setup/
+login instructions while preserving dated evidence. README/MVP/hosting docs
+now agree: the original zero-cost hour at revision 514 is accepted, closed hosting
+exists, new portable/compact implementation is offline, and complete v2 SQL →
+atomic native journal/receipts/provenance → restoration/retention/reader join →
+closed hosted multi-window/fault/load acceptance remains. Account/UI/API/CI and
+data/fill/objective/Nestegg research can proceed in separate parallel lanes.
+Whole-dashboard audit, mechanical continuous paper and empirical strategy
+acceptance are separate outcomes; live transactions remain outside authorization.
+
+This change is documentation plus a credential-free defect artifact. No packages,
+runtime source, hosted schema/data/grants/migrations/capabilities, Railway settings,
+provider requests, billing or wallet operations are changed. Other-agent/shared
+files/tools/credentials/processes remain untouched. The user migration is excluded
+at unchanged SHA256 a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc.
+Rollback is a code/docs revert; no new hosted research object exists. Exact PR
+source/merge/production/read-only metadata will be recorded in the review PR.

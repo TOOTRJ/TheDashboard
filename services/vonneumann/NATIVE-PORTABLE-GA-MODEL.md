@@ -5,6 +5,15 @@ operator into a separate owned in-process model and component/transport version.
 The fullB2 gate remains open: independent complete v2 SQL semantics, native effects,
 checkpoint restoration and hosted acceptance are not implemented by this stage.
 
+**Audit qualification — 2026-10-12:** the nine existing focused tests pass again,
+but a correctly rehashed configuration can substitute boolean `False` for the
+pinned integer `0` at `lifecycle_policy.max_lifespan_seconds`. Ordinary Python
+dictionary equality accepts that substitution in both research v1 and portable
+v2. The implemented model/transport is not fully strictly validated. Complete
+PAPER-COMPACT-TYPE1 before B2B SQL/native admission; preserve historical v1
+evidence and decide compatibility explicitly. No hosted command is involved.
+[Reproduction and exact source hashes](research/2026-10-12-config-type-review.json).
+
 ## Version boundaries and implementation
 
 The new operator is `ema-period-triangular-integer-v1`. The profile/code/model,
