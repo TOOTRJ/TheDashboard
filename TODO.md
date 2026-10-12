@@ -821,8 +821,9 @@ Research began **2026-09-30** and was updated **2026-10-06/07** in [WORKER-HOSTI
 
 - [ ] **PAPER-COMPACT-03B3 — Independently enforce the resolved transition semantics.**
   Parent remains open:03B3A's offline exact economic/identity layer is complete;
-  source/risk/causality (03B3B) and assessment/optimizer/selection/lineage (03B3C)
-  still require independent SQL enforcement before native composition.
+  source/risk/causality (03B3B) are complete offline; assessment/optimizer/
+  selection/lineage (03B3C) still requires independent SQL enforcement before
+  native composition.
   Depends on03B1/03B2. Define the new GA model's exact SQL contract for cash/holdings,
   risk/lifecycle, source clocks/epochs/watermarks/candle contiguity and EMA equality,
   complete optimizer/cohort continuation and finalized/withheld assessment/history/
@@ -850,7 +851,7 @@ Research began **2026-09-30** and was updated **2026-10-06/07** in [WORKER-HOSTI
   real source-age/cost distributions and immutable-validation reuse. No hosted
   migration/package/grant change, archive deletion, runtime decoder or activation.
 
-- [ ] **PAPER-COMPACT-03B3B — Enforce source, causal trading and risk/lifecycle continuation.**
+- [x] **PAPER-COMPACT-03B3B — Enforce source, causal trading and risk/lifecycle continuation.**
   Depends on03B3A. Independently bind original documents/epoch/sequence/receipt
   clocks/provider blocks and age, completed contiguous candles and exact EMA
   continuation. Derive protective/decision/control observation eligibility,
@@ -873,14 +874,19 @@ Research began **2026-09-30** and was updated **2026-10-06/07** in [WORKER-HOSTI
   **Deep substantial research:** platform fsum/rounding equivalence, source-byte
   retention/trust, reusable immutable validation and complete lock/COMMIT tails.
 
-- [ ] **PAPER-COMPACT-03B3B2 — Independently replay causal actions and complete risk/lifecycle state.**
-  Next after03B3B1. Derive pending EMA crossing signals, later quote/window
+- [x] **PAPER-COMPACT-03B3B2 — Independently replay causal actions and complete risk/lifecycle state.**
+  Guarded offline SQL derives pending EMA crossing signals, later quote/window
   eligibility, fixed protective exits, drawdown and original account-loss
   thresholds at each ordered fill/retirement, risk latch/abort/recovery and
-  control/replacement/restart timing. Bind member cursor/pending/peak/exact
-  drawdown/terminal and lifecycle outcomes in retained/retired evidence.
-  Reject financially and source-consistent invented or omitted trades. Preserve
-  original scored/unscored snapshots for03B3C's independent assessment derivation.
+  control/replacement/restart timing. Member cursor/pending/peak/exact drawdown/
+  terminal, allocation order and lifecycle outcomes must match retained/retired
+  evidence.13 actual SQL cases pass over150 complete commands, including exact
+  threshold edges, expired signals, duplicate decisions, acknowledgement and
+  below-boundary recovery; adversarial commands first pass source/economic
+  validation before causal rejection. Original scored/unscored assessment
+  derivation and complete optimizer/RNG/cohort/lineage semantics remain03B3C.
+  [Proof, measured limits and deeper research](services/vonneumann/NATIVE-CAUSAL-RISK.md).
+  No native package, hosted schema/grant/migration, decoder or activation.
 
 - [ ] **PAPER-COMPACT-03B3C — Enforce assessments, optimizer/cohort continuation and lineage.**
   Independently derive finalized/withheld/frozen metrics and their exact policy,

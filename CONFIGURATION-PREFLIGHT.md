@@ -4059,3 +4059,60 @@ held Stop551.008ms; repeated locked resolution is included. No hosted latency,
 commit/storage effect or cadence/cost acceptance is claimed. All four SQL digests
 match the installed-source measurement artifact; the new source digest is
 4f1c5b506fa2e9253cd3e7940f9b4d9f429d81561f73a4676ca8db7c3450cede.
+
+## 98. Independent causal trading and risk replay — 2026-10-11
+
+Fresh isolated verification matches GitHub TOOTRJ/TheDashboard/repository1141090963,
+biggrizzly11/user16749816; Vercel the-dashboard/prj_wFUe9k9USVreOQcmQKNWRAVsx5fH
+under team_8iNNxiNjrOseD4gdSCHkQEzF; Supabase The Dashboard/fxpxsciltakyypunglzr
+under cqfnnaunmupdyobkyqfo. The base is PR92 merge
+1c61cdabae4ee0deecd0ae591f4d5bda242a2731, whose exact preview/production/alias/
+read-only release evidence is recorded in PR92. Railway project/environment/
+workspace/service and deployment cf05895d-adc5-427f-873e-82ad6606e5a1 remain as
+verified in97; this slice performs no Railway mutation.
+
+PAPER-COMPACT-03B3B2 independently consumes the required ordered operations and
+allocation prefix after locked economics/identities/source/indicator validation.
+It derives pending crossing/later eligible execution, protective threshold
+closes, reduced member drawdown/peak/terminal and retirement timing, the first
+original-baseline account-loss breach/latch, explicit recovery and control/
+replacement/restart outcomes. Retained and retired risk evidence must match.
+Stop retains holdings and consumed source with no paid-data freshness gate.
+
+Thirteen actual SQL and seven canonical/forward-package checks pass.150 complete
+owned commands cover two traded windows, costs, scored/unscored terminals,
+risk/controls/restart, recovery with eight holdings, exact97%/107% threshold
+sides, expired signals and held Stop. Rehashed duplicate decisions and altered
+member/risk/policy/retirement/protective/recovery evidence first pass source/
+economic checks and then fail causal checks. Source/measurement hashes match.
+Limited installer ownership, fourteen private functions/fixed pg_catalog search
+paths, auditor-only wrapper execution, browser/service-role/relay/helper/table
+denial and unchanged rows pass. Owned pinned-image/no-network/no-port/no-mount/
+no-secret fixtures are removed afterward. Validation adds no tables or effects.
+
+Ten warm full-wrapper samples include three full dependency resolutions. P95
+is bootstrap989.980ms, quote469.678ms, replacement805.821ms, risk842.613ms,
+recovery577.215ms and held Stop814.777ms. These exclude remaining assessment/
+optimizer/RNG/lineage checks, contended waits, native journal/identity/pin/
+projection effects, final source/lease checks, COMMIT/WAL/TLS/relay and hosted
+tails. No cadence, hosting-budget or profitability acceptance is claimed.
+All five SQL sources and the image are bound in
+[the artifact](services/vonneumann/research/causal-risk-measurements.json); causal
+SQL SHA256 is e3f19debaa251f73fe5b0f4ff1528a5693753a3c4ae710762d336acd10ffb4b0.
+
+03B3B is complete offline;03B3C still gates assessments/frozen/withheld/fitness,
+complete optimizer/RNG/cohort/stable selection and lineage.03/04/05 still gate
+native composition/original-ID effects and exact restoration/retention/hosted
+acceptance. [Deeper research](services/vonneumann/NATIVE-CAUSAL-RISK.md) includes
+one verified resolution, server-owned/version-bound immutable validation reuse,
+full contended/COMMIT/WAL/TOAST tails, source-byte trust/retention and compatible
+clock handoff. Keep full optimizer/alias/RNG evidence until next-wire restoration
+passes. No new user setup is needed for the next offline semantic work.
+
+No hosted schema/data/grant/migration/native package, Railway deploy/variable/
+capability, market API request, archive deletion, billing or live execution
+change. The worker stays closed. The user-owned migration remains excluded at
+SHA256 a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc.
+Rollback is a reviewed code/docs revert with no hosted research objects.
+Exact preview/merge/production/read-only release evidence will be recorded in
+the PR; shared credentials/configuration and other projects are preserved.
