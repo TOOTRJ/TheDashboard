@@ -184,6 +184,70 @@ print("fixed child environment passed")'''
                 with self.subTest(job=job, command=command), self.assertRaises(ValueError):
                     policy.validate_workflow(yaml.safe_dump(mutation))
 
+    def test_runner_temporary_npm_settings_are_only_in_the_two_valid_step_contexts(self):
+        workflow = yaml.safe_load(policy.WORKFLOW.read_text())
+        policy.validate_workflow(yaml.safe_dump(workflow))
+        self.assertNotIn("env", workflow["jobs"]["frontend"])
+        env_steps = [step for step in workflow["jobs"]["frontend"]["steps"] if "env" in step]
+        self.assertEqual({step["name"] for step in env_steps}, set(policy.NPM_STEPS))
+        for step in env_steps:
+            self.assertEqual(step["env"], policy.NPM_STEP_ENV)
+            self.assertEqual(step["run"].strip(), policy.NPM_STEPS[step["name"]])
+
+    def test_missing_or_changed_npm_step_isolation_is_rejected(self):
+        original = yaml.safe_load(policy.WORKFLOW.read_text())
+        for step_name in policy.NPM_STEPS:
+            for key in (None, *policy.NPM_STEP_ENV):
+                mutation = copy.deepcopy(original)
+                step = next(step for step in mutation["jobs"]["frontend"]["steps"] if step.get("name") == step_name)
+                if key is None:
+                    del step["env"]
+                else:
+                    del step["env"][key]
+                with self.subTest(step=step_name, key=key), self.assertRaises(ValueError):
+                    policy.validate_workflow(yaml.safe_dump(mutation))
+            mutation = copy.deepcopy(original)
+            step = next(step for step in mutation["jobs"]["frontend"]["steps"] if step.get("name") == step_name)
+            step["env"]["NPM_CONFIG_USERCONFIG"] = "/home/runner/.npmrc"
+            with self.subTest(step=step_name, shared_config=True), self.assertRaises(ValueError):
+                policy.validate_workflow(yaml.safe_dump(mutation))
+
+    def test_job_context_cannot_receive_runner_expression_or_other_environment(self):
+        original = yaml.safe_load(policy.WORKFLOW.read_text())
+        for job in original["jobs"]:
+            mutation = copy.deepcopy(original)
+            mutation["jobs"][job]["env"] = dict(policy.NPM_STEP_ENV)
+            with self.subTest(job=job), self.assertRaises(ValueError):
+                policy.validate_workflow(yaml.safe_dump(mutation))
+        mutation = copy.deepcopy(original)
+        frontend = mutation["jobs"]["frontend"]
+        frontend["env"] = dict(policy.NPM_STEP_ENV)
+        for step in frontend["steps"]:
+            step.pop("env", None)
+        with self.assertRaises(ValueError): policy.validate_workflow(yaml.safe_dump(mutation))
+
+    def test_extra_environment_credentials_or_misplaced_npm_settings_are_rejected(self):
+        original = yaml.safe_load(policy.WORKFLOW.read_text())
+        for step_name in policy.NPM_STEPS:
+            mutation = copy.deepcopy(original)
+            step = next(step for step in mutation["jobs"]["frontend"]["steps"] if step.get("name") == step_name)
+            step["env"]["VERCEL_TOKEN"] = "must-not-be-allowed"
+            with self.subTest(step=step_name), self.assertRaises(ValueError):
+                policy.validate_workflow(yaml.safe_dump(mutation))
+        for job in original["jobs"]:
+            mutation = copy.deepcopy(original)
+            mutation["jobs"][job]["steps"][0]["env"] = dict(policy.NPM_STEP_ENV)
+            with self.subTest(job=job), self.assertRaises(ValueError):
+                policy.validate_workflow(yaml.safe_dump(mutation))
+        for job in original["jobs"]:
+            mutation = copy.deepcopy(original)
+            mutation["jobs"][job].setdefault("env", {})["SUPABASE_SERVICE_ROLE_KEY"] = "must-not-be-allowed"
+            with self.subTest(job=job, credentials=True), self.assertRaises(ValueError):
+                policy.validate_workflow(yaml.safe_dump(mutation))
+        mutation = copy.deepcopy(original)
+        mutation["env"]["RAILWAY_TOKEN"] = "must-not-be-allowed"
+        with self.assertRaises(ValueError): policy.validate_workflow(yaml.safe_dump(mutation))
+
     def test_required_triggers_cannot_acquire_skip_filters(self):
         original = yaml.safe_load(policy.WORKFLOW.read_text())
         for event, config in (("pull_request", {"paths": ["unrelated/**"]}),

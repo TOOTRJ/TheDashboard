@@ -4593,3 +4593,18 @@ data/grant/capability, provider, billing or wallet operation is performed.
 The user's migration SHA256 a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc
 and all unrelated drafts are preserved/excluded. Rollback is a reviewed code/docs
 revert; disabling the new workflow does not substitute for required checks.
+
+## 108. Actual hosted CI context validation — 2026-10-12
+
+The user-completed Dashboard token permission update allows verified codex pushes.
+PR102 opens at cc13cc1509a3ae685da93ed84543cf61c523ed95; exact Dashboard preview
+dpl_5brpkagBbTyJDvuRYzyM5sYLE9Qm is READY with matching project/team/repo/source/author.
+Workflow run38320692900 fails syntax before any job executes: runner.temp is
+unavailable in job.env. The exact three isolated npm settings now belong only to
+the clean-install and lint step.env, where the official context table admits runner.
+The capability validator requires their exact keys/paths/commands and rejects
+job-level placement, missing/misplaced settings, shared paths and extra credentials.
+Nineteen focused helper regressions and the standalone capability check pass.
+Retry and all three actual hosted job results remain required before merge.
+No job failure, unexecuted job or preview metadata is treated as SQL/worker acceptance.
+No migration, worker setting/activation or other-project change is performed.

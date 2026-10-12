@@ -30,10 +30,6 @@ jobs:
     name: Frontend tests, types, lint and isolated build
     runs-on: ubuntu-24.04
     timeout-minutes: 20
-    env:
-      NPM_CONFIG_USERCONFIG: ${{ runner.temp }}/dashboard-frontend-user.npmrc
-      NPM_CONFIG_GLOBALCONFIG: ${{ runner.temp }}/dashboard-frontend-global.npmrc
-      NPM_CONFIG_CACHE: ${{ runner.temp }}/dashboard-frontend-npm-cache
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -44,6 +40,10 @@ jobs:
           node-version: 24.19.0
           package-manager-cache: false
       - name: Clean locked dependencies without lifecycle scripts
+        env:
+          NPM_CONFIG_USERCONFIG: ${{ runner.temp }}/dashboard-frontend-user.npmrc
+          NPM_CONFIG_GLOBALCONFIG: ${{ runner.temp }}/dashboard-frontend-global.npmrc
+          NPM_CONFIG_CACHE: ${{ runner.temp }}/dashboard-frontend-npm-cache
         run: |
           : > "$NPM_CONFIG_USERCONFIG"
           : > "$NPM_CONFIG_GLOBALCONFIG"
@@ -55,6 +55,10 @@ jobs:
       - name: TypeScript
         run: node node_modules/typescript/bin/tsc --noEmit
       - name: ESLint
+        env:
+          NPM_CONFIG_USERCONFIG: ${{ runner.temp }}/dashboard-frontend-user.npmrc
+          NPM_CONFIG_GLOBALCONFIG: ${{ runner.temp }}/dashboard-frontend-global.npmrc
+          NPM_CONFIG_CACHE: ${{ runner.temp }}/dashboard-frontend-npm-cache
         run: npm run lint
       - name: Fresh fake-configuration production build
         run: node scripts/check-build.mjs

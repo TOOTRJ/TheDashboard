@@ -12,6 +12,23 @@ ACTION_PINS = {
     "actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
 }
 JOB_MINUTES = {"frontend": 20, "worker": 30, "postgres": 50}
+WORKFLOW_ENV = {
+    "NEXT_TELEMETRY_DISABLED": "1", "PYTHON_DOTENV_DISABLED": "1",
+    "PYTHONDONTWRITEBYTECODE": "1", "PIP_DISABLE_PIP_VERSION_CHECK": "1",
+    "PIP_NO_INPUT": "1", "PIP_CONFIG_FILE": "/dev/null",
+}
+NPM_STEP_ENV = {
+    "NPM_CONFIG_USERCONFIG": "${{ runner.temp }}/dashboard-frontend-user.npmrc",
+    "NPM_CONFIG_GLOBALCONFIG": "${{ runner.temp }}/dashboard-frontend-global.npmrc",
+    "NPM_CONFIG_CACHE": "${{ runner.temp }}/dashboard-frontend-npm-cache",
+}
+NPM_STEPS = {
+    "Clean locked dependencies without lifecycle scripts": '\n'.join((
+        ': > "$NPM_CONFIG_USERCONFIG"', ': > "$NPM_CONFIG_GLOBALCONFIG"',
+        'npm ci --ignore-scripts --no-audit --no-fund',
+    )),
+    "ESLint": "npm run lint",
+}
 PYTHON = '"$RUNNER_TEMP/dashboard-python/bin/python"'
 HASH_INSTALL = f"{PYTHON} -m pip install --require-hashes --only-binary=:all: -r services/vonneumann/requirements-dev.txt"
 REQUIRED_COMMANDS = {
@@ -47,6 +64,8 @@ def validate_workflow(source: str) -> None:
         raise ValueError("Main pushes cannot have additional filters or duplicate feature jobs")
     if data.get("permissions") != {"contents": "read"}:
         raise ValueError("Workflow must have only read-only repository permissions")
+    if data.get("env") != WORKFLOW_ENV:
+        raise ValueError("Workflow environment must contain only reviewed inert verification settings")
     if data.get("concurrency", {}).get("cancel-in-progress") is not True:
         raise ValueError("Concurrent verification must be bounded")
     if re.search(r"\$\{\{\s*secrets\.", source):
@@ -60,9 +79,21 @@ def validate_workflow(source: str) -> None:
             raise ValueError("Verification requires bounded disposable hosted runners")
         if any(key in job for key in ("permissions", "environment", "services", "container", "if")):
             raise ValueError("Verification cannot widen privileges or skip a required job")
+        if name == "postgres":
+            if job.get("env") != {"DOCKER_HOST": "unix:///var/run/docker.sock"}:
+                raise ValueError("PostgreSQL job requires only its reviewed local Docker socket")
+        elif "env" in job:
+            raise ValueError("Frontend and worker settings cannot use job environment or runner context")
+        npm_steps = []
         for step in job.get("steps", []):
-            if "if" in step or step.get("continue-on-error") or "env" in step:
-                raise ValueError("Required checks cannot be bypassed or receive step credentials")
+            if "if" in step or step.get("continue-on-error"):
+                raise ValueError("Required checks cannot be bypassed")
+            if name == "frontend" and step.get("name") in NPM_STEPS:
+                if step.get("env") != NPM_STEP_ENV or step.get("run", "").strip() != NPM_STEPS[step["name"]]:
+                    raise ValueError("Reviewed npm steps require exact isolated temporary configurations and commands")
+                npm_steps.append(step["name"])
+            elif "env" in step:
+                raise ValueError("Other steps cannot receive environment settings or credentials")
             if "uses" in step and step["uses"] not in ACTION_PINS:
                 raise ValueError("Action must be one of the reviewed full commit pins")
             if step.get("uses", "").startswith("actions/checkout@") and step.get("with", {}).get("persist-credentials") is not False:
@@ -73,6 +104,8 @@ def validate_workflow(source: str) -> None:
                 raise ValueError("Python runtime and release-only setup must remain reviewed")
             if "run" in step and "${{" in step["run"]:
                 raise ValueError("Shell commands cannot interpolate untrusted event expressions")
+        if name == "frontend" and sorted(npm_steps) != sorted(NPM_STEPS):
+            raise ValueError("Exactly the reviewed install and lint steps must own npm isolation")
     for name, required in REQUIRED_COMMANDS.items():
         commands = {line.strip() for step in jobs[name]["steps"]
                     for line in step.get("run", "").splitlines() if line.strip()}
