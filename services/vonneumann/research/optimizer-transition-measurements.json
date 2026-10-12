@@ -1,0 +1,85 @@
+{
+  "complete_commands": 165,
+  "date": "2026-10-12",
+  "identity": {
+    "image": "public.ecr.aws/supabase/postgres:17.6.1.095",
+    "image_id": "sha256:965e2dfb5a23a0d6541b6106541e777b303656ebabd4e878746b189d550c0a66",
+    "network": "none",
+    "postgres_version": "17.6"
+  },
+  "installed_sql_sha256": {
+    "assessment_transition.sql": "6af9cec6722c53e2995de01d75d62deab63381d407313939123cc41e8590dde3",
+    "causal_risk.sql": "6132cedbe15d3d88997bfafc319cee08848bb9c38b4c9be86d8ee284644aab37",
+    "economic_transition.sql": "c12a98685b4f20bc7ceaa3a31995b527379fba505bc1a59ecaf8c54143ef5801",
+    "locked_checkpoint.sql": "40973039c4ec1fd0af8a2836818ab75db60b6e75ec41e2f217adc078d2863542",
+    "numeric_wire.sql": "adc7dbe2ce3ef51d860b8c09430a24759522cb7284dc73e40804dbd8880675b1",
+    "optimizer_graph.sql": "aade55e4f7a41980ddb6faf1dc34d27373324375373e950e42d26e8700ef326b",
+    "optimizer_rng.sql": "bc761910b7e4dda3b1fe938f6847f8439ff3e62685b55320c44030e1a464a993",
+    "optimizer_transition.sql": "25c352d013ef663ac4de318032548d8281e4bc0c3ab8a62063e4410bc57ec8ab",
+    "source_transition.sql": "4f1c5b506fa2e9253cd3e7940f9b4d9f429d81561f73a4676ca8db7c3450cede"
+  },
+  "production_grants_or_install": false,
+  "scope": "economics/source/risk/assessment/graph/mirrors/founders/restart/selection RNG/parentage; completed Gaussian mutation pending",
+  "tables_in_new_artifact": 0,
+  "timing_exclusions": [
+    "completed offspring Gaussian mutation proof",
+    "transport/TLS",
+    "contended locks",
+    "native journal/identity insertion/pins/projections",
+    "final source/lease boundary",
+    "COMMIT/WAL/relay",
+    "hosted tails"
+  ],
+  "timing_method": "10 full volatile wrapper calls; wire variable/generic plans; unchanged fixture prior; three resolutions",
+  "warm_server_validation_timings": [
+    {
+      "kind": "bootstrap",
+      "maximum_us": 1085948,
+      "p50_us": 1053249.5,
+      "p95_us": 1082162.15,
+      "samples": 10,
+      "wire_bytes": 128635
+    },
+    {
+      "kind": "quote",
+      "maximum_us": 599683,
+      "p50_us": 564933.5,
+      "p95_us": 592044.25,
+      "samples": 10,
+      "wire_bytes": 9192
+    },
+    {
+      "kind": "replacement",
+      "maximum_us": 980138,
+      "p50_us": 936781.5,
+      "p95_us": 967631.6,
+      "samples": 10,
+      "wire_bytes": 149024
+    },
+    {
+      "kind": "early_terminal",
+      "maximum_us": 1164163,
+      "p50_us": 1131503,
+      "p95_us": 1161741.1,
+      "samples": 10,
+      "wire_bytes": 134029
+    },
+    {
+      "kind": "restart",
+      "maximum_us": 937132,
+      "p50_us": 916115.5,
+      "p95_us": 935450.35,
+      "samples": 10,
+      "wire_bytes": 105963
+    },
+    {
+      "kind": "held_stop",
+      "maximum_us": 957391,
+      "p50_us": 927650.5,
+      "p95_us": 947407.3,
+      "samples": 10,
+      "wire_bytes": 106885
+    }
+  ],
+  "writes_by_validator": 0
+}

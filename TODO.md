@@ -931,6 +931,36 @@ Research began **2026-09-30** and was updated **2026-10-06/07** in [WORKER-HOSTI
   portability cannot be justified, evaluate a separately versioned portable
   integer-period mutation operator; never silently reinterpret old evidence.
 
+- [x] **PAPER-COMPACT-03B3C2A — Validate graph/mirrors, selection RNG and recorded parentage.**
+  Complete offline: exact class/field/software/role and alias/order checks,
+  cohort/genome/result/selection mirrors, fixed two-EMA profile, exact founders,
+  unchanged ordinary genes/names and ordered restart clones. Independent SHA256
+  namespacing/MT19937/twist/tempering/random/rejection/pool sampling derives
+  tournament ties, sexual/crossover/asset draw consumption, stored continuation,
+  full selection metadata and typed birth lineage/name allocations. All 12 SQL
+  cases pass over 165 complete commands, 60 state/word vectors and 42 namespace/
+  random/sample expressions; seven unchanged native-package cases pass. All 22
+  functions are private, with limited ownership/auditor-only final execution,
+  unchanged rows and client/helper/table denial. Warm quote p95 is 592.044 ms,
+  replacement 967.632 ms, with three resolutions. No native effects/hosted tails.
+  **Boundary:** a changed in-range completed offspring period with matching
+  mirrors can still pass this partial layer. Tests require explicit false
+  mutation/restoration authority; no native package or runtime imports it.
+  Parent03B3C2 and03B3C stay open. [Proof and remaining research](services/vonneumann/NATIVE-OPTIMIZER-SELECTION.md).
+
+- [ ] **PAPER-COMPACT-03B3C2B — Prove completed offspring mutation and close full semantics.**
+  Independently derive each child mutation stream/decision, Gaussian first/cached
+  variate, exact rate/strength/arithmetic, half-up/clamp periods and asset mutation
+  draw consumption. Reject a changed in-range period even after all other mirrors,
+  money/source/risk/assessment/selection/lineage checks pass. Research the actual
+  pinned worker/database math boundary and adjacent rounding/clamp cases; if the
+  existing cross-platform Gaussian contract cannot be justified, use an explicitly
+  reviewed portable integer-period operator under a new model version. Preserve
+  old versions/evidence and two active genes. No tolerance or client attestation
+  is a substitute. Compose complete semantics, resource/Stop bounds and versioned
+  pure entrypoint before03's native journal/receipt/ID/pin/history/freshness/lease
+  integration. Retain full continuation evidence until04 restoration proof.
+
 - [ ] **PAPER-COMPACT-03 — Prepare the reviewed forward SQL/native contract.**
   **Constraint reviewed by03A:** adopt a reviewed stable partition and enforce
   dependency-safe journal retention/rate/Stop budgets before finalization.
