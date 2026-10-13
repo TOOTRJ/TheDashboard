@@ -210,6 +210,10 @@ should be resolved with measured joins rather than inferred from canonical hashe
 
 ## CI source-window choreography follow-up — 2026-10-13 UTC
 
+This section records the earlier `d9bb9eb` test choreography. The subsequent
+follow-up below supersedes its protective comparison placement; its dated
+acceptance and refusal measurements remain historical evidence.
+
 PR104 head `897ec2ad369d82ccef80b05a4bbd475f630a1a3b` executes 205 SQL4
 cases in `885.928s`, with zero skips but one error in the retired-ID restoration join:
 the first protective commit reaches
@@ -282,3 +286,112 @@ from saved snapshots, continuous hosted operation or a final-visible freshness
 bound. Native/worker/resource tails, including the proposed Railway CPU budget,
 still require measured acceptance; a slower host cannot extend the guard or
 rebase an original receipt to compensate.
+
+## Captured-head pair equivalence and refusal diagnosis — 2026-10-13 UTC
+
+The next full hosted CI execution at PR104 head
+`c58177afe7d22ab17b6ee21da91ec2b9e7d5a73d`, run `38357623351`, SQL4 job
+`115164075775`, executes 205 cases in `869.304s`, zero skips, with one error in
+the same retired-ID join, now during the original **decision** submission.
+Its `portable_native_final_source_or_lease_expired` exception is the function's
+final check after semantic/projection work, before the pending reply; it is not
+the separately named deferred COMMIT-trigger refusal. That exception combines
+source, lease and future-anchor predicates. The old traceback has no observed
+guard timestamp or retained failed row, so it cannot conclusively distinguish
+which predicate failed. It remains a failed full-shard result. A later local
+pass does not erase it or establish a hosted latency bound.
+
+Before editing this follow-up, one diagnostic-only execution of the unchanged
+`c58177a` affected case passes in `15.654s`, zero skips. Its genuine native
+protective/decision guards are `1.980503s`/`3.072967s` after the first original
+receipt; receipt-to-integral-action delay is `0.941202s`. The duplicated
+protective full/compact comparison takes `0.171293s`, the mandatory current
+protective snapshot/oracle capture takes `0.141386s`, and original decision
+submission takes `0.653094s` on this local fixture. These phase observations
+explain avoidable test work; they cannot attribute the earlier CI refusal or
+guarantee performance on slower or contended hosts.
+
+The revised case is named
+`test_captured_current_head_equivalence_retains_retired_ids_after_original_pair`.
+Before creating a fresh original frame, the fixture saves the independently
+observed actual prior head/catalog binding, its exact scoped checkpoint, and
+the asked-ID oracle. It prepares and submits the original protective once,
+without repeating the restored producer's graph/next-wire calculation on the
+source-critical path. It then independently observes the actual committed
+protective head/catalog and saves that current checkpoint/oracle before
+preparing and submitting the original decision once with the identical frame.
+No prospective head or provisional receipt authorizes either capture.
+
+Only after the pair succeeds does it reconstruct **both** saved checkpoints.
+Each comparison retains exact complete restored state, all thirteen original
+component wires, the independently bound expected manifest and asked IDs,
+and byte equality of the complete candidate and compact transport. The later
+snapshot does not authorize present continuation: `is_current` describes its
+independently observed head **at capture**. No saved snapshot submits, replays,
+reacquires/renews a lease or refreshes a quote. A subsequent independent read
+checks the actual accepted decision head. Retired historical identity,
+stale-head refusal, original-ID reconciliation and no-write checks remain;
+the second protective also receives its complete equivalence comparison after
+its one original submission. Data-free restored controls retain comparisons
+and database immutability checks before their own submissions.
+
+The source submission helper emits fixed laboratory metadata after an original
+SQL refusal and rollback. It derives the original request's source deadline
+with the unchanged minimum-receipt/source-age/source-time/history formula,
+observes one later native clock plus retained lease/current accepted head,
+and reads the original command ID/hash through the scoped getter. This is a
+**later observation**, not the failed check's clock or proof of its exact
+branch. Integer diagnostic arithmetic does not replace the native timestamp
+calculation. The helper re-raises the original `SqlFailure`; diagnostic or
+output failure cannot conceal it. It never retries, rebases or submits a
+replacement. If diagnosis is unavailable it records only a controlled error
+type, without raw request/error content.
+
+A fourth, related native case prepares one genuine original protective under
+lease60, waits six genuine database seconds, verifies before first submission
+that its original source allowance has elapsed while the lease remains live,
+and submits it exactly once. It requires the named native source-expired
+refusal, original-ID absence, unchanged accepted head and complete table
+equality after rollback. The diagnostic asserts later source expiry/live lease
+without claiming to have observed the failed guard instant. A separate pure
+mocked error-preservation subproof makes no database call and verifies that a
+reporter/output error preserves the same original exception instance; it is
+not a second native submission.
+
+The first revised four-case execution takes `25.993s`, zero skips, with the
+original three cases passing; the new expiry case encounters a test-helper
+`last_control_at=None` assumption before any original source preparation or
+attempt. Its pair records actual native guard offsets `1.740023s`/`2.899260s`.
+The helper now treats an absent prior control as no control-order wait, while
+retaining the same genuine fractional receipt and observed integral action
+logic. The relevant ordinary restoration module passes 16 cases in `52.863s`,
+zero skips. Final four-case acceptance is recorded separately below.
+
+This change removes duplicate proof calculations, rather than proving that
+the full restored worker can complete cold reconstruction and admission inside
+five seconds. The mandatory original producer, accepted-head/oracle read and
+full native validation still consume the unchanged allowance. Native/resource
+tail measurement remains an open runtime gate, including Railway's proposed
+CPU allocation; a contended host may legitimately refuse the original. The
+original semantic/model/source/decoder/SQL, native lease60/source5/future2
+bounds, wire versions, all false authority flags and the historical genuine
+Stop receipt remain unchanged. Native SQL SHA256 remains
+`76e23d44a296c838238e5545c9ea498eb86d2ac5caee9798236aee1f8a5bf5c4`.
+No provider, production database, cloud account, credential or other project's
+process is accessed. A fresh complete final-head CI result is still required.
+
+The final focused native class passes all four cases in `33.380s`, zero skips,
+under locked CPython3.12.14 and the owned cached network-none PostgreSQL17.6
+fixture; exact owned-container cleanup completes. Actual recorded native
+protective/decision guards are `1.658530s`/`2.816193s` after the same original
+receipt. Receipt-to-action delay is `0.798434s`; host intervals after action
+are `0.851351s` through protective commit, `2.008753s` through decision commit,
+and `2.559175s` through both delayed equivalence comparisons. The mandatory
+current protective snapshot/oracle capture takes `0.151602s`.
+
+The deterministic refusal case reports its later receipt age as `7.371844s`,
+with `51.162866s` of lease remaining at that later observation; the original
+ID is absent and the accepted bootstrap revision2 and complete tables remain
+unchanged. The same-error/no-database-call output-failure subproof passes.
+These are dated scoped measurements, not guard-to-WAL bounds, throughput
+claims, cold-restoration admission or complete hosted CI acceptance.

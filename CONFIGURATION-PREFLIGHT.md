@@ -4986,3 +4986,58 @@ remain required. Railway project/environment/workspace,
 service/settings and latestcf05895d-adc5-427f-873e-82ad6606e5a1 SUCCESS are rechecked
 read-only with the project token. This is identity/settings continuity, not a fresh
 mode/image/TLS/auth/pilot acceptance or worker activation.
+
+## 116. Resumed ordered work and completed failed CI evidence — 2026-10-13
+
+The user authorizes continuation of all ordered next steps. Read-only identity
+verification again matches GitHub TOOTRJ/TheDashboard/1141090963 and
+biggrizzly11/16749816, Vercel the-dashboard/prj_wFUe9k9USVreOQcmQKNWRAVsx5fH
+owned by team_8iNNxiNjrOseD4gdSCHkQEzF, and Supabase The Dashboard/
+fxpxsciltakyypunglzr owned by cqfnnaunmupdyobkyqfo; local links also match.
+Railway's project token verifies The Dashboard Worker/
+38facb49-4de9-4d66-85aa-2861e0306dcf, production environment
+9bbe52c6-2305-467a-bf39-8d5e1a98e4e4 and Red Jester's Projects/
+f3fcd4b2-e424-4c6b-ac33-91196ccc96e1. These are target checks, not activation
+acceptance. No shared login, account setting or another project's data changes.
+The user's existing migration retains SHA256
+a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc.
+
+Fresh authorized browser inspection reads the completed c58177a
+run38357623351: frontend2m1s, ordinary11m28s/10m41s and SQL1/3 in36m42s/28m37s
+pass; SQL4 fails15m39s at original restoration admission and SQL2 fails40m57s
+with its2400-second parent timeout during the complete source-transition trace.
+The source-or-lease refusal's actual failed branch is not recorded. Preserve
+the failed original and both deadlines; later diagnostic observation cannot be
+represented as a clock captured at that guard. Immutable image preparation
+succeeded, so prior registry failures remain separate infrastructure evidence.
+
+The reviewed whole defining source-transition module moves SQL2→SQL4. All600
+ordered discovered occurrences and54 repeated IDs remain identical, and only
+its30 occurrences change group. Counts become94/128/143/235, with unchanged
+1500/2400-second child limits. Ten existing sharding/fixture/environment tests
+pass0.007s. This proves selection coverage, not completion on hosted runners.
+Complete new-head CI and scoped release checks remain required before merge.
+The readiness overview is reconciled with PR99–PR104; original-v2 laboratory
+proofs are distinguished from unimplemented real-provider/hosted joins.
+[CI research, failure propagation and deeper measurements](services/vonneumann/CI-FIXTURE-RELIABILITY-RESEARCH-2026-10-13.md).
+
+The reviewed restoration repair moves both duplicate equivalence calculations
+after the once-only original pair, retaining independently captured actual
+prior/protective heads and scoped oracles, complete state/13 wires/full+compact
+equality, current decision readback, retired-ID and stale/no-write assertions.
+Four native cases pass33.380s and16 ordinary restoration cases pass52.863s,
+zero skips. Genuine native guard intervals are1.658530s/2.816193s after the same
+first receipt; these are local observations, not hosted or cold-restore bounds.
+The new genuinely expired-original case proves one source refusal/live lease,
+original-ID absence and complete rollback; its later observation is explicitly
+not the failed guard clock. A pure output-error subproof preserves the original
+SQL exception without a database call. Native/model/source/decoder versions,
+SQL hash and all guard limits remain unchanged. Exact owned fixture cleanup
+completes, with no provider or hosted database request.
+
+Final discovery includes the additional refusal case:2399 ordinary occurrences
+1045/1354 and601 SQL occurrences94/128/143/236, still54 original repeated IDs.
+Selection SHA256 be75136c0592a7a2da26707a3d7e4c1e7e740dda639776f6759d23ed64357af1;
+ordinary e1f774da9b5d8e47d5d4941aeb2f53e3867b4a3f08dccd7b89c8037a8c857262;
+SQL 7ea5fd730d7d91975c5b62f9fbf81ec02b8fd37a6ad324b3b25a3b153f06718c.
+These source inventories do not establish executed counts or complete CI.

@@ -90,7 +90,28 @@ organization-wide limits still apply, but no other-application inventory answer
 is pending. Research is a deliverable with evidence and acceptance criteria,
 not a reason to repeat already completed pilot/setup work.
 
+**CI reliability follow-up — 2026-10-13:** after PR104's current restoration and
+whole-module scheduling repairs, add bounded private-safe phase/module timing
+and immutable-image retry diagnostics. Classify registry preparation separately
+from actual SQL deadline failures. A future fixture archive or repository-linked
+mirror must preserve original digests, validate every received blob, hard-fail
+producer/missing/corrupt/cancelled evidence and retain mandatory SQL execution.
+Measure transfer/load tails, byte-hours, cache poisoning/eviction boundaries and
+account entitlements before choosing transport; no new publisher permission,
+shared credential or billing change is implied. Keep the2400-second SQL limit
+and exhaustive occurrences unchanged. [Deep research and ordered CI candidates](services/vonneumann/CI-FIXTURE-RELIABILITY-RESEARCH-2026-10-13.md).
+
 ## Five-priority implementation batch — local review, 2026-10-12
+
+**2026-10-13 release follow-up:** PR104 remains open at `c58177a`. The completed
+seven-job run passes frontend, both ordinary groups and SQL1/3, but SQL2 expires
+at its unchanged2400-second child deadline during the source-transition module,
+and SQL4 still refuses the original restoration decision at the combined
+source/lease guard. Resolve both and accept all required jobs before merge.
+Local proof counts below are bounded historical evidence, not hosted acceptance.
+[Completed failed run and limits](CI-VERIFICATION.md#completed-follow-up-head-c58177a--2026-10-13).
+The current readiness overview now reflects PR99–PR104 and separates the
+implemented synthetic/native laboratory from the remaining real-provider joins.
 
 The working `codex/dashboard-five-priorities` branch now contains corrected
 original-v2 independent SQL, NEST-05A identity/cloud-order repairs, a real

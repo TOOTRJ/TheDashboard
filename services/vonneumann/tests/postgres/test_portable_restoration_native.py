@@ -4,15 +4,18 @@ Requires the separately reviewed native fixture package. No source fixture is
 relabelled as real-provider data; no hosted/restoration authority is returned.
 """
 from dataclasses import replace
+from contextlib import redirect_stdout
 from datetime import datetime, timezone
 import hashlib
+import io
 import json
 import os
 import time
 import unittest
 from uuid import UUID
+from unittest.mock import patch
 
-from tests.postgres.harness import OPT_IN
+from tests.postgres.harness import OPT_IN, SqlFailure
 from tests.measure_provider_ga_research import literal
 from tests.test_provider_contract import OWNER, RUN, WORKER, EPOCH, MONO, raw_capture, source_inputs
 from tests.test_portable_restoration import inputs_of, prepare_restored_next
@@ -94,14 +97,14 @@ class PortableRestorationNativeTests(unittest.TestCase):
         response = self.db.scalar(self.fixture.lookup(row, list(ids)), role=self.actor)
         return restore.decode_identity_lookup(response.encode(), expected, ids)
 
-    def context_before_source(self, row, *, serial, generation=0):
+    def capture_context_before_source(self, row, *, serial, generation=0):
         """Observe the committed head and ID oracle before an original capture.
 
         The allocation tuple does not depend on the later event/source clock.
         No prospective checkpoint or provisional receipt becomes authority.
         """
         ids = source_inputs(0, generation=generation, serial=serial).ids
-        return self.restore_captured_context(row, self.capture_context(row, ids))
+        return self.capture_context(row, ids)
 
     def capture_context(self, row, ids):
         """Capture original readback/oracle while this head is actually current."""
@@ -130,7 +133,8 @@ class PortableRestorationNativeTests(unittest.TestCase):
 
     def current_source_clock(self, state):
         """Sample the real fixture clock after any bounded control-order wait."""
-        target = state.to_dict()['engine']['lifecycle']['last_control_at'] + 1
+        previous_control = state.to_dict()['engine']['lifecycle']['last_control_at']
+        target = 0 if previous_control is None else previous_control + 1
         query = 'SELECT floor(extract(epoch FROM clock_timestamp())*1000000);'
         now_us = int(self.db.scalar(query))
         if now_us < target * 1000000:
@@ -165,48 +169,88 @@ class PortableRestorationNativeTests(unittest.TestCase):
         self.assertEqual(restore.prepare_restored_transport(restored, prepared,
             command_id=numbers.decode(following[2])['command_id']), following[2])
 
-    def commit_then_compare_captured_snapshot(self, previous, following, context):
-        """Submit once, then compare off the native admission critical path.
+    def report_source_failure_after_rollback(self, following):
+        """Observe fixed fixture fields later; do not infer the failed guard instant.
 
-        Reading the independently accepted protective head/oracle precedes this
-        decision. Its original frame and ID are unchanged. This proves immutable
-        snapshot equivalence, not cold restoration plus admission within five
-        seconds or present continuation authority from a historical snapshot.
+        The original request is inspected only after refusal. The failed row has
+        rolled back, so its deadline is derived from that immutable request, not
+        represented as a persisted guard observation. This read cannot retry it.
         """
-        self.assertEqual(following[0].transition['evidence']['kind'], 'decision')
-        self.assertEqual(following[0].transition['evidence']['inputs']['provider']['frame'],
-            previous[0].transition['evidence']['inputs']['provider']['frame'])
-        pending = self.fixture.commit(following[2])
+        try:
+            original = numbers.decode(following[2])
+            quote = original['evidence']['inputs']['provider']['frame']['quote']
+            received_us = quote['document']['received_wall_us']
+            source_us = quote['estimated_source_second'] * 1000000
+            deadline_us = min(received_us,
+                received_us + 25000000 - quote['source_age_floor_us'], source_us + 25000000)
+            history = original['evidence']['inputs']['provider'].get('history')
+            if history is not None:
+                deadline_us = min(deadline_us, *(document['received_wall_us'] for document in history['documents']))
+            deadline_us += 5000000
+            observation = json.loads(self.db.scalar('''WITH observed AS MATERIALIZED
+              (SELECT clock_timestamp() AS at)
+              SELECT jsonb_build_object(
+              'observed_at_us',floor(extract(epoch FROM o.at)*1000000)::text,
+              'lease_until_us',floor(extract(epoch FROM r.lease_until)*1000000)::text,
+              'accepted_revision',r.revision::text,'accepted_command_id',c.command_id::text,
+              'accepted_manifest_sha256',c.manifest_sha256,
+              'accepted_guard_observed_at',c.guard_observed_at)
+              FROM observed o CROSS JOIN vn_portable_native_research.runs r
+              LEFT JOIN vn_portable_native_research.commands c
+              ON c.owner_id=r.owner_id AND c.run_id=r.run_id AND c.revision=r.revision
+              WHERE r.owner_id=''' + literal(OWNER) + ' AND r.run_id=' + literal(RUN) + ';'))
+            observed_us = int(observation['observed_at_us'])
+            original_readback = self.fixture.read(following)
+            diagnostic = {'native_source_failure_observation': 'after-original-refusal-and-rollback',
+                'failed_guard_instant_observed': False, 'failed_branch_attribution_authority': False,
+                'original_command_id': original['command_id'],
+                'original_command_sha256': hashlib.sha256(following[2]).hexdigest(),
+                'original_command_found_after_failure': original_readback['found'],
+                'original_received_wall_us': received_us,
+                'derived_original_source_deadline_us': deadline_us,
+                'source_deadline_elapsed_at_later_observation': deadline_us <= observed_us,
+                'lease_expired_at_later_observation': int(observation['lease_until_us']) <= observed_us,
+                'receipt_age_seconds_at_later_observation': (observed_us - received_us) / 1000000,
+                'estimated_source_age_seconds_at_later_observation': (observed_us - source_us) / 1000000,
+                'retry_performed': False, **observation}
+        except Exception as error:
+            # A diagnostic failure must not replace or conceal the SQL refusal.
+            diagnostic = {'native_source_failure_observation': 'unavailable-after-original-refusal',
+                'diagnostic_error_type': type(error).__name__, 'retry_performed': False,
+                'failed_guard_instant_observed': False, 'failed_branch_attribution_authority': False}
+        print(json.dumps(diagnostic, sort_keys=True))
+
+    def commit_source_once(self, previous, following):
+        """Submit one original; leave all duplicate reconstruction off admission."""
+        kind = following[0].transition['evidence']['kind']
+        self.assertIn(kind, {'protective', 'decision'})
+        if kind == 'decision':
+            self.assertEqual(following[0].transition['evidence']['inputs']['provider']['frame'],
+                previous[0].transition['evidence']['inputs']['provider']['frame'])
+        try:
+            pending = self.fixture.commit(following[2])
+        except SqlFailure:
+            try:
+                self.report_source_failure_after_rollback(following)
+            except Exception:
+                # Even output failure must preserve the original SQL exception.
+                pass
+            raise
         committed_at = time.monotonic()
         self.assertFalse(pending['record_observed']); self.assertTrue(pending['pending_until_commit'])
-        self.assert_equivalent(previous, following, self.restore_captured_context(previous, context))
         return committed_at
 
-    def assert_next(self, previous, following, *, context=None):
-        source_critical = following[0].transition['evidence']['kind'] in {'protective', 'decision'}
-        # Whole-table snapshots establish read-only behavior in the independent
-        # control case; do not repeatedly copy the complete journal while the
-        # original five-second laboratory source guard is running.
+    def assert_next(self, previous, following):
+        """Prove restored controls before their separate data-free submission."""
+        self.assertEqual(following[0].transition['evidence']['kind'], 'control')
         inputs = inputs_of(following[0])
-        if context is None:
-            restored = self.load(previous, prove_read_only=not source_critical)
-            checked = self.identities(previous, restored.checkpoint.expected, inputs.ids)
-        else:
-            self.assertTrue(source_critical)
-            restored, checked = context
-            self.assertEqual(restored.checkpoint.expected.manifest_sha256, self.fixture.manifest_sha(previous))
-            self.assertEqual(checked.requested, inputs.ids)
-        before = self.fixture.snapshot() if not source_critical else None
+        restored = self.load(previous)
+        checked = self.identities(previous, restored.checkpoint.expected, inputs.ids)
+        before = self.fixture.snapshot()
         self.assert_equivalent(previous, following, (restored, checked))
-        if not source_critical:
-            self.assertEqual(self.fixture.snapshot(), before, 'Preparation must not submit or acquire a lease')
+        self.assertEqual(self.fixture.snapshot(), before, 'Preparation must not submit or acquire a lease')
         pending = self.fixture.commit(following[2])
         self.assertFalse(pending['record_observed']); self.assertTrue(pending['pending_until_commit'])
-        if source_critical:
-            # The subsequent independently scoped checkpoint load binds the
-            # committed head. Original getter reconciliation is separately
-            # exercised for controls and the dedicated uncertain-reply case.
-            return
         observed = self.fixture.read(following)
         resolution = restore.reconcile_original_request(restore.PendingOriginalRequest.capture(following[2]),
             json_wire(observed), self.operator_expected(following))
@@ -250,7 +294,7 @@ class PortableRestorationNativeTests(unittest.TestCase):
         self.assertEqual(result.original.wire, row[2]); self.assertEqual(result.original.command_id, pending.command_id)
         self.assertFalse(result.retry_authority); self.assertFalse(result.hosted_authority)
 
-    def test_native_current_head_oracle_retains_retired_ids_after_original_restart(self):
+    def test_captured_current_head_equivalence_retains_retired_ids_after_original_pair(self):
         self.fixture.create(); original = self.fixture.bootstrap(); self.fixture.commit(original[2])
         row = original
         for serial, action in enumerate(('pause', 'resume'), 60):
@@ -258,7 +302,8 @@ class PortableRestorationNativeTests(unittest.TestCase):
             self.assert_next(row, following); row = following
         # A literal synthetic quote at the actual laboratory clock. No clock
         # GUC, semantic seed, source relabeling or real provider request is used.
-        context = self.context_before_source(row, serial=70)
+        before_protective = row
+        protective_context = self.capture_context_before_source(row, serial=70)
         state = row[3].accept(row[0]); data = state.to_dict()
         at, received_at, decision_at = self.current_source_clock(state)
         captured_started = time.monotonic()
@@ -272,26 +317,37 @@ class PortableRestorationNativeTests(unittest.TestCase):
         capture = cp.capture_owned_candidate(protective)
         following = (protective, capture, cp.prepare_transport(protective, capture, previous=row[1],
             command_id=str(UUID(int=97000000 + protective.state.revision))), row[3])
-        self.assert_next(row, following, context=context); row = following
-        protective_seconds = time.monotonic() - captured_started
-        # Read original protective head/receipt/oracle while it is current, but
-        # postpone the repeated cold graph decode until after the one decision.
-        context = self.capture_context(row, source_inputs(at, wall=decision_at, mono=mono, generation=1, serial=71).ids)
+        protective_committed_at = self.commit_source_once(row, following); row = following
+        protective_row = row
+        # Both original snapshots are bound while their heads are current. Keep
+        # the independent protective head/catalog/oracle read before decision,
+        # but postpone ALL duplicate cold graph/next-wire work until the pair
+        # has been submitted once with the unchanged original source frame.
+        snapshot_started = time.monotonic()
+        decision_context = self.capture_context(row, source_inputs(at, wall=decision_at, mono=mono, generation=1, serial=71).ids)
+        snapshot_seconds = time.monotonic() - snapshot_started
         state = row[3].accept(row[0])
         decision = ga.prepare_decision(state, frame, None, source_inputs(at, wall=decision_at, mono=mono, generation=1, serial=71), ledger=row[3])
         capture = cp.capture_owned_candidate(decision)
         following = (decision, capture, cp.prepare_transport(decision, capture, previous=row[1],
             command_id=str(UUID(int=97000000 + decision.state.revision))), row[3])
-        decision_committed_at = self.commit_then_compare_captured_snapshot(row, following, context); row = following
+        decision_committed_at = self.commit_source_once(row, following); row = following
+        # Saved snapshots cannot grant current-at-decode continuation authority.
+        # These complete math comparisons do not submit, replay or renew a lease.
+        self.assert_equivalent(before_protective, protective_row,
+            self.restore_captured_context(before_protective, protective_context))
+        self.assert_equivalent(protective_row, row,
+            self.restore_captured_context(protective_row, decision_context))
         compared_at = time.monotonic()
         restored = self.load(row)
         receipt_us = frame['quote']['document']['received_wall_us']
-        protective_guard = json.loads(context[1])['receipt']['guard_observed_at']
+        protective_guard = json.loads(decision_context[1])['receipt']['guard_observed_at']
         print(json.dumps({'restoration_native_source_sequence': 'same-original-frame-once',
             'original_receipt_to_action_wall_seconds': round(decision_at - received_at, 6),
-            'protective_host_seconds_from_action_sample': round(protective_seconds, 6),
+            'protective_host_seconds_from_action_sample': round(protective_committed_at - captured_started, 6),
+            'current_protective_snapshot_host_seconds': round(snapshot_seconds, 6),
             'decision_commit_host_seconds_from_action_sample': round(decision_committed_at - captured_started, 6),
-            'decision_and_delayed_equivalence_host_seconds_from_action_sample': round(compared_at - captured_started, 6),
+            'pair_and_both_delayed_equivalences_host_seconds_from_action_sample': round(compared_at - captured_started, 6),
             'protective_guard_seconds_from_original_receipt': (utc_microseconds(protective_guard) - receipt_us) / 1000000,
             'decision_guard_seconds_from_original_receipt': (utc_microseconds(restored.checkpoint.guard_observed_at) - receipt_us) / 1000000}, sort_keys=True))
         old_id = original[0].state.to_dict()['accounts'][0]['id']
@@ -303,7 +359,8 @@ class PortableRestorationNativeTests(unittest.TestCase):
         # Independent current preparation also refuses a reused retired UUID.
         paused = self.fixture.control(row, 'pause', serial=72); self.assert_next(row, paused); row = paused
         resumed = self.fixture.control(row, 'resume', serial=73); self.assert_next(row, resumed); row = resumed
-        context = self.context_before_source(row, serial=74)
+        before_protective = row
+        context = self.capture_context_before_source(row, serial=74)
         state = row[3].accept(row[0]); data = state.to_dict()
         at, received_at, decision_at = self.current_source_clock(state)
         received_mono = MONO + received_at - initial_at
@@ -315,7 +372,8 @@ class PortableRestorationNativeTests(unittest.TestCase):
         capture = cp.capture_owned_candidate(protective)
         following = (protective, capture, cp.prepare_transport(protective, capture, previous=row[1],
             command_id=str(UUID(int=98000000 + protective.state.revision))), row[3])
-        self.assert_next(row, following, context=context); row = following
+        self.commit_source_once(row, following); row = following
+        self.assert_equivalent(before_protective, row, self.restore_captured_context(before_protective, context))
         state = row[3].accept(row[0]); restored = self.load(row)
         original_inputs = source_inputs(at, wall=decision_at, mono=mono, generation=2, serial=75)
         reused_inputs = replace(original_inputs, ids=(old_id,) + original_inputs.ids[1:])
@@ -327,6 +385,64 @@ class PortableRestorationNativeTests(unittest.TestCase):
         with self.assertRaises(ga.ExactRehearsalError):
             restore.prepare_restored_candidate(restored, reused_inputs, checked, phase='decision', frame=frame)
         self.assertEqual(self.fixture.snapshot(), before)
+
+    def test_expired_original_source_reports_later_rollback_state_without_retry(self):
+        self.fixture.create(lease=60); original = self.fixture.bootstrap(); self.fixture.commit(original[2])
+        before = self.fixture.snapshot()
+        state = original[3].accept(original[0]); data = state.to_dict()
+        at, received_at, decision_at = self.current_source_clock(state)
+        initial_at = int(datetime.fromisoformat(original[0].transition['evidence']['inputs']['event_at']).timestamp())
+        received_mono = MONO + received_at - initial_at
+        mono = MONO + decision_at - initial_at
+        frame = ga.source.make_frame(raw_capture(price='100', block=900,
+            source_second=int(received_at) - 2, wall=received_at, mono=received_mono), prior_source=data['source'],
+            epoch=EPOCH, wall_now=decision_at, monotonic_now=mono)
+        protective = ga.prepare_protective(state, frame,
+            source_inputs(at, wall=decision_at, mono=mono, serial=80), ledger=original[3])
+        capture = cp.capture_owned_candidate(protective)
+        following = (protective, capture, cp.prepare_transport(protective, capture, previous=original[1],
+            command_id=str(UUID(int=99000000 + protective.state.revision))), original[3])
+        # Expire this already prepared original on genuine elapsed DB time. No
+        # timestamp/quote substitution, heartbeat, rebasing or second attempt.
+        observed = json.loads(self.db.scalar('SELECT pg_sleep(6);SELECT jsonb_build_object('
+            + "'observed_at_us',floor(extract(epoch FROM clock_timestamp())*1000000)::text,"
+            + "'lease_until_us',floor(extract(epoch FROM lease_until)*1000000)::text)"
+            + ' FROM vn_portable_native_research.runs WHERE owner_id=' + literal(OWNER)
+            + ' AND run_id=' + literal(RUN) + ';'))
+        self.assertGreater(int(observed['observed_at_us']), frame['quote']['document']['received_wall_us'] + 5000000)
+        self.assertLess(int(observed['observed_at_us']), int(observed['lease_until_us']))
+        output = io.StringIO()
+        with patch.object(self.fixture, 'commit', wraps=self.fixture.commit) as one_original, redirect_stdout(output):
+            with self.assertRaises(SqlFailure) as failure:
+                self.commit_source_once(original, following)
+        self.assertIn('portable_native_source_expired', str(failure.exception))
+        one_original.assert_called_once_with(following[2])
+        diagnostic = json.loads(output.getvalue())
+        self.assertEqual(diagnostic['native_source_failure_observation'], 'after-original-refusal-and-rollback')
+        self.assertFalse(diagnostic['failed_guard_instant_observed'])
+        self.assertFalse(diagnostic['failed_branch_attribution_authority'])
+        self.assertFalse(diagnostic['retry_performed'])
+        self.assertTrue(diagnostic['source_deadline_elapsed_at_later_observation'])
+        self.assertFalse(diagnostic['lease_expired_at_later_observation'])
+        self.assertFalse(diagnostic['original_command_found_after_failure'])
+        self.assertEqual(diagnostic['original_command_id'], numbers.decode(following[2])['command_id'])
+        self.assertEqual(diagnostic['original_command_sha256'], hashlib.sha256(following[2]).hexdigest())
+        self.assertEqual(int(diagnostic['accepted_revision']), original[0].state.revision)
+        self.assertEqual(diagnostic['accepted_command_id'], numbers.decode(original[2])['command_id'])
+        self.assertEqual(diagnostic['accepted_manifest_sha256'], self.fixture.manifest_sha(original))
+        # Pure exception-preservation subproof only: no second SQL submission or
+        # diagnostic DB read. A reporter/output exception cannot mask the very
+        # same original SqlFailure instance observed above.
+        with patch.object(self.fixture, 'commit', side_effect=failure.exception) as no_database_retry, \
+             patch.object(self, 'report_source_failure_after_rollback', side_effect=BrokenPipeError('test-only-output-error')), \
+             patch.object(self.db, 'sql', side_effect=AssertionError('pure-error-proof-must-not-call-db')):
+            with self.assertRaises(SqlFailure) as preserved:
+                self.commit_source_once(original, following)
+        self.assertIs(preserved.exception, failure.exception)
+        no_database_retry.assert_called_once_with(following[2])
+        self.assertEqual(self.fixture.read(following), {'format': restore.COMMAND_READBACK_FORMAT, 'found': False})
+        self.assertEqual(self.fixture.snapshot(), before)
+        print(json.dumps(diagnostic, sort_keys=True))
 
 
 if __name__ == '__main__': unittest.main()

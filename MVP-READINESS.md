@@ -1,6 +1,6 @@
 # Evolutionary trading bot MVP readiness
 
-## Authoritative current status — 2026-10-12
+## Authoritative current status — 2026-10-13
 
 The supervised, zero-cost paper hour is accepted. The original owner run reached
 revision 514 with 504 accepted prices, one GA replacement, eight equally funded
@@ -9,22 +9,26 @@ owner history and repeat read passed. This proves a finite mechanical pilot;
 continuous evolution, exact process restoration and strategy performance remain
 unaccepted. [Original evidence](supabase/audits/2026-10-08-owner-hour-first-replacement.json).
 
-PR96 and [PR97](https://github.com/TOOTRJ/TheDashboard/pull/97) are merged. The
-current reviewed source baseline is `67cff30`; PR97 production
-`dpl_ASo5z4Zc6APWsUPseQVrvw52Aici` was verified READY with its canonical alias
-and four read-only release probes. The dedicated Dashboard sign-in saved; the
-older PR96 login request is resolved. The root review freshly reverified this exact baseline deployment and all four
-read-only probes; the historical owner-hour acceptance was not repeated.
+PR99–PR103 are merged. The last verified production source is PR103 merge
+`92d3d4313e4a8648a0d65bebd41b5029b55826be`; its exact Dashboard deployment
+`dpl_T2Rq6Lyz8mBCnpfGjXPCZRY1tT7h` was READY with the canonical alias and
+four read-only application checks. The historical owner-hour acceptance was
+not repeated. PR97's earlier snapshot is historical, not the current baseline.
 
-The portable integer-mutation model, versioned checkpoint and compact transport
-are built as offline research code. Source-bound synthetic tests and independent
-SQL mutation-primitive comparisons pass. This review reproduced a strict
-configuration defect: Python boolean/integer equality permits some incorrectly
-typed configuration values to match the expected dictionary. Repair and test
-that boundary before the full independent version 2 SQL proof. The portable model
-is therefore **built with a known validation repair pending**, not fully validated
-or selected by the hosted writer. Native version 2 admission, restored execution,
-retention and hosted activation are not implemented by PR97.
+[PR104](https://github.com/TOOTRJ/TheDashboard/pull/104) contains the corrected
+complete original-v2 SQL semantics, guarded atomic native laboratory admission,
+original-wire restoration, measured conservative retention, an inert checkpoint
+inspector, NEST-05A result/reply ordering fixes, and bounded synthetic browser
+acceptance. Strict boolean/integer configuration rejection is already repaired
+in PR99. Focused local proofs pass; this does not establish complete release
+acceptance or a real-provider runtime.
+
+The completed exact-source [run38357623351](https://github.com/TOOTRJ/TheDashboard/actions/runs/38357623351)
+at `c58177afe7d22ab17b6ee21da91ec2b9e7d5a73d` passes frontend, both ordinary
+worker groups and SQL groups1/3, but fails SQL group2's2400-second parent deadline
+and SQL group4's restoration source-or-lease expiry guard. PR104 remains open.
+Repair and complete all seven actual jobs before merge; preserve the failed
+run's evidence and unchanged freshness/lease limits. See [CI-VERIFICATION.md](CI-VERIFICATION.md).
 
 Railway remains at ordinary closed deployment
 `cf05895d-adc5-427f-873e-82ad6606e5a1`, with the original variable map restored and
@@ -34,12 +38,14 @@ production migration. No live funding, signing or swaps are available or authori
 
 | Order | Remaining gate | Dependency and acceptance |
 | --- | --- | --- |
-| 1 | Repair strict portable configuration validation | Reject boolean/integer substitutions, wrong types, unknown/missing fields and rehashed invalid configurations before construction or admission. Recheck unchanged legacy behavior. |
-| 2 | Complete independent original version 2 SQL semantics | PAPER-COMPACT-03B3C2B2B follows the repair. Bind complete policy/configuration/wire/prior chain; derive selection, mutation, genomes, lineage, economics, source, risk and assessments independently. Reject consistent-looking forged periods. |
-| 3 | Implement the atomic native compact contract | PAPER-COMPACT-03 follows complete semantics: original-ID receipts/replay, component pins, allocated identities, journal/history/outbox/provenance, final lease/source checks, installer/capability isolation and reserved Stop resources. |
-| 4 | Prove exact restoration and safe retention | PAPER-COMPACT-04 then PAPER-COMPACT-05: decode pinned state and match the full next wire; settle uncertain original commands; verify dependency-safe archives/readback before hot pruning. Measure physical storage and filled-budget Stop behavior. |
-| 5 | Join new-version dashboard and closed deployment acceptance | Compatible owner-only old/new history, assessments, ancestry, precision and controls must pass alongside native/package/rollback tests. Reverify exact targets before a reviewed closed migration/deployment. |
-| 6 | Accept bounded multi-window operation and fault/load behavior | After the preceding gates and measured provider/resource budgets, prove repeated windows, held-position interruption, process kill/overlap/recovery, original-ID settlement, complete owner replay and closed cleanup. Continuous operation needs an explicitly accepted operating profile. |
+| 1 | Release the bounded PR104 laboratory and app repairs | Resolve restoration timing and SQL workload tails without widening guards, dropping occurrences or increasing deadlines; require all seven actual CI jobs and exact-source/project release checks. |
+| 2 | Freeze real-provider v3 source/trust/model interfaces | Preserve synthetic v2 and existing v5 meanings. The recommended Jupiter-only prospective profile retains original observations and explicitly sampled close-only bars; it is not historical OHLCV or executable-quote evidence. |
+| 3 | Implement recorded acquisition and model in parallel | After interface freeze, bind authenticated recorder scope, original raw bytes/IDs, integer clocks/process epochs, causal availability, gap refusal and the two EMA genes. Hashes alone do not authenticate a source. |
+| 4 | Implement the v3 atomic native operator | Independently reparse evidence, enforce current scope/epochs, original-ID replay, final source/lease checks, complete projection pins and reserved data-free Stop. |
+| 5 | Join restoration, measured retention and offline owner/API/UI fixtures | These can overlap after stable native contracts. Prove original-command reconciliation and retained holdings; measure physical growth and Stop reserves; preserve old/new reader compatibility. |
+| 6 | Install and accept the closed hosted package | Prepare migration validation and rollback, reverify exact targets, then prove authenticated owner reads/controls against the installed package before activation. |
+| 7 | Accept bounded multi-window and fault operation | Prove repeated windows, held-position interruption, kill/overlap/recovery, original-ID settlement, provider failure behavior and complete owner replay. |
+| 8 | Accept sustained resource/quota/recovery operation | Measure provider limits, latency, physical storage and Railway cost against the approved $20/month design ceiling. A finite pilot does not establish continuous readiness. |
 
 Security/dependency review and secret-free CI; dashboard/API honesty and privacy;
 representative data, fill and objective research; and project-only Railway

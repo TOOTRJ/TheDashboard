@@ -136,12 +136,66 @@ original order/fixture segment,54 repeated IDs, skip rule and1500/2400-second
 child deadline remains enforced; the final selection source fingerprint changes.
 The corrected source still requires all seven actual hosted jobs.
 
+### Completed follow-up head c58177a — 2026-10-13
+
+The complete [run38357623351](https://github.com/TOOTRJ/TheDashboard/actions/runs/38357623351)
+at `c58177afe7d22ab17b6ee21da91ec2b9e7d5a73d` fails in42m29s. Fresh rendered
+job results show frontend2m1s, ordinary1/2 in11m28s/10m41s, SQL1 in36m42s and
+SQL3 in28m37s all successful. SQL4 fails in15m39s and SQL2 in40m57s. These
+successful job outcomes do not close the seven-job release gate.
+
+SQL4 still refuses the once-only original decision in the current-head/retired-ID
+restoration case with `portable_native_final_source_or_lease_expired`. The native
+condition combines source and lease deadlines; the failed log does not identify
+which expired at the actual guard instant. The prior local pass is therefore
+insufficient. Review must preserve the original request, genuine observed
+clocks and accepted-head/oracle snapshot, and must not widen either deadline,
+renew/rebase evidence or turn an expired request into a passing continuation.
+
+SQL2's required integration step reaches40m0s. The sanitized child's parent
+expires after2399.999975517s in
+`test_complete_provider_control_risk_and_held_stop_traces` from the defining
+`tests.postgres.test_source_transition` module. The preceding four methods in
+that module and the new native clock/latest-history/retention cases are rendered
+as successful. There is no final unittest report for this interrupted group;
+do not count its partial progress as complete execution. Immutable image
+preparation succeeded in this run, so registry pull failure is a separate
+historical problem, not this timeout's cause.
+
+The test merge's tree is identical to the reviewed PR head tree; the workflow
+uses the normal pull-request test merge checkout. PR104 remains open and
+production remains the last verified PR103 release. Source-specific timing,
+exhaustive selection and the complete next hosted run remain required.
+
 All seven required jobs at the final corrected head, exhaustive coverage,
 explicit skip audit and fresh exact-project/source/author/alias release checks
-remain the merge gate. The source count inventories2398 ordinary and600 SQL
-occurrences retain54 original repeated IDs; discovery is not execution. The
-reviewed module move changes SQL shard counts to94/158/143/205; ordinary counts
-remain1045/1353. Final source fingerprints must be captured after every repair.
+remain the merge gate. The c581 source inventories2398 ordinary and600 SQL
+occurrences, retaining54 original repeated IDs; discovery is not execution.
+Its earlier module move produces SQL counts94/158/143/205 and ordinary
+counts1045/1353.
+
+The subsequent original-pair test repair moves both duplicate reconstruction
+comparisons after the once-only pair while retaining actual current-at-capture
+snapshots/oracles and complete state/13-component/full+compact equality. A new
+genuine six-second expired-original regression requires one native refusal,
+original-ID absence and complete rollback with a live lease. A separate pure
+output-error check preserves the same SQL exception without a database call.
+All four native cases pass33.380s, zero skips; ordinary restoration16 cases
+pass52.863s, zero skips. Native/model/decoder bytes and source5/lease60/future2
+bounds remain unchanged. [Detailed sequence and limits](services/vonneumann/PORTABLE-RESTORATION-CONTRACT.md#captured-head-pair-equivalence-and-refusal-diagnosis--2026-10-13-utc).
+
+The whole defining source-transition module now moves SQL2→SQL4. All600 prior
+ordered occurrences and54 repeated IDs are preserved; only its30 occurrences
+move. Ten existing coverage/fixture/environment tests pass0.007s, with unchanged
+1500/2400-second limits. The added refusal case then yields2399 ordinary
+occurrences1045/1354 and601 SQL occurrences94/128/143/236. Final selection SHA256
+is `be75136c0592a7a2da26707a3d7e4c1e7e740dda639776f6759d23ed64357af1`;
+ordinary discovery SHA256
+`e1f774da9b5d8e47d5d4941aeb2f53e3867b4a3f08dccd7b89c8037a8c857262`,
+SQL discovery SHA256
+`7ea5fd730d7d91975c5b62f9fbf81ec02b8fd37a6ad324b3b25a3b153f06718c`.
+These inventories and focused passes still require complete exact-source hosted
+acceptance; a balancing hypothesis is not an upper latency bound.
 
 PR/manual triggers have no path/type/branch filters, and main pushes have only
 the main-branch filter. The capability validator requires every advertised Node,

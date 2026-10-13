@@ -44,7 +44,11 @@ POSTGRES_HEAVY_MODULE_SHARDS = {
     "tests.postgres.test_exact_transition_contract": 1,
     "tests.postgres.test_harness": 1,
     "tests.postgres.test_causal_risk": 2,
-    "tests.postgres.test_source_transition": 2,
+    # c58177a's shard2 exceeds2400s during the complete source trace while
+    # shard4 completes its205 cases in15m39s. Move all30 original defining
+    # module occurrences together; no alias, fixture segment or limit changes.
+    # The new hosted run must establish that this distribution completes.
+    "tests.postgres.test_source_transition": 4,
     "tests.postgres.test_fenced_commands": 2,
     "tests.postgres.test_lifecycle_contract": 2,
     "tests.postgres.test_lifecycle_adversarial": 2,
