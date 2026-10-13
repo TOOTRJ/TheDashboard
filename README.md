@@ -107,11 +107,11 @@ repository root, use that environment's Python executable:
 The worker wrapper requires the hash-locked CPython 3.12.14 environment and
 sanitizes its own child before discovering worker and helper tests. Ordinary
 offline regressions report SQL skips rather than claiming integration acceptance.
-Real PostgreSQL cases require `scripts/check-worker.py postgres
+Real PostgreSQL cases require the reviewed native wheel bundle and `scripts/check-worker.py postgres
 --allow-isolated-postgres` and the reviewed owned fixture setup. Their passing
 results establish the tested scope, not hosted source, COMMIT, quota or latency
 acceptance. [CI gates and isolation](CI-VERIFICATION.md) document the three
-independent GitHub jobs and their first-run acceptance requirement. Actual browser
+independent verification gates, seven required jobs and their first-run acceptance requirement. Actual browser
 acceptance and broader audit closeout remain separate QA work.
 
 ## Release boundaries

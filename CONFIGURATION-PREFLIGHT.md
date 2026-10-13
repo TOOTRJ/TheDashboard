@@ -4640,3 +4640,50 @@ sentinel reset; a synthetic imported-alias regression matches full discovery's
 setup/teardown order. Independent source review finds no concrete blocker. The
 known completed hosted module costs balance approximately684s/719s, with the
 unfinished tail unknown; only actual hosted completion can establish the bounds.
+
+## 110. Actual hosted SQL scheduling — 2026-10-12
+
+The same source1f6a1f7/run38320983287's full SQL job115048750993 exits failed in
+40m54s after the2400-second child deadline, without a final test summary. The last
+completed case is CommandAdapterTests.test_repository_commits_one_atomic_economic_batch_with_exact_balances;
+timeout occurs before the next visible case. Raw timestamp intervals including
+class setup show assessment633.028s; imported causal516.401s; canonical177.952s;
+original causal514.237s; imported source295.337s; checkpoint-reference31.596s.
+These are partial observations and include alias setup work, not full SQL acceptance.
+
+Required SQL is divided into four exhaustive defining-module groups with
+unchanged2400-second child/50-minute job bounds, exact immutable images, explicit
+local Docker opt-in and skip audit. Assessment, causal, optimizer and portable
+mutation anchor separate groups. Original occurrences, aliases, fixture setup/
+teardown and ordering remain covered; no semantics/assertions/windows are removed.
+All four required groups and both ordinary groups must finish on the reviewed
+head before merge. No SQL source/migration, production service or other project
+changes in this verification repair.
+
+## 111. Required native CI fixture prerequisites — 2026-10-12
+
+Independent review finds the full SQL native-driver class always requires a
+cached Python3.12.14 Bookworm image and explicit Linux wheels; the initial CI
+only prepared PostgreSQL/PostgREST and dropped the wheel-path variable. The
+class and15 inner driver cases remain required. The official amd64 Python leaf
+1aaa65a85fda306ffb8b910824d4e93bdce61e212c7e87168123ea3073b41a1a/config
+febd0be41adb897a0ab8f1f1c693d8912669ea60c4940e076e9946b60e210ef0 are
+anonymously registry-digest-verified and pinned alongside the original images.
+
+Fresh exact-repo hosted preparation downloads a complete51-package hash-locked
+Bookworm-compatible native wheel bundle with no shared pip config/cache/credentials.
+Independent bounded file/hash/internal package/tag/Python checks and a current
+lock/helper/target sibling manifest reject stale, altered, missing, extra, linked
+or incompatible wheels. Only its verified canonical path enters the SQL child,
+where validation repeats; offline mode drops it. A narrow local record-existing
+command validates an explicitly prepared owned temporary bundle and creates only
+an absent manifest, with no download/install/Docker/network or overwrite. No
+production fixture/runtime source or configured database is changed.
+
+All83 combined helper cases pass with zero skips, including16 native-wheel cases.
+Final discovery-only ordinary2262cases split994/1268 and SQL533 split94/132/126/181
+preserve54 baseline alias repetitions each, with source-bound coverage. No full
+worker/SQL cases, wheel download, image pull or local Docker action is run for
+this prerequisite repair. Actual hosted acceptance of all seven jobs remains
+required. The user migration and unrelated files/credentials/processes remain
+preserved. Rollback is a reviewed verification code/docs revert.

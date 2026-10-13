@@ -19,7 +19,7 @@ existing dedicated Dashboard token; exact account/repository verification and th
 codex branch push now succeed. No shared login, credential rotation or
 organization-wide policy change was performed by this task. GitHub documents the
 separate [workflow write capability](https://docs.github.com/en/rest/authentication/permissions-required-for-fine-grained-personal-access-tokens#repository-permissions-for-workflows).
-The CI PR's frontend, both ordinary worker groups and required PostgreSQL results remain required before merge. Workflow results can be read
+The CI PR's frontend, both ordinary worker groups and all four required PostgreSQL results remain required before merge. Workflow results can be read
 through the existing authorized Dashboard browser; additional token permissions
 for unrelated checks are not required for this setup step.
 
@@ -34,7 +34,7 @@ image/integration command; removing one or adding a bypass/filter fails its test
 | --- | --- | --- |
 | Frontend | Node 24.19.0; Ubuntu 24.04; 20 minutes | Clean lock install with lifecycle scripts disabled; all current `tests/*.test.mjs`, `tests/probes/*.test.mjs` and helper Node files; TypeScript, lint, advisory policy and a second fresh fake-configuration production build. Existing lint warnings are reported; errors fail. |
 | Ordinary worker, two required groups | CPython 3.12.14 x64; Ubuntu 24.04; 30 minutes each | Fresh virtual environment per runner, hash-required binary-only dev/runtime wheels, `pip check`, complete worker discovery plus repository/helper Python tests partitioned into two exhaustive deterministic groups. SQL opt-in skips and optional measurement skips are explicitly categorized and printed; no SQL acceptance is claimed. Unexpected skips, empty/all-skipped results and errors fail. |
-| Required PostgreSQL | Same Python; Ubuntu 24.04; 50 minutes | Reviewed immutable amd64 PostgreSQL 17.6/PostgREST 14.5 fixtures, followed by full actual PostgreSQL discovery with explicit opt-in. Missing Docker/image/setup, foreign daemon, zero execution or any opt-in skip fails. Six allowlisted non-gating timing-method definitions may be skipped; every reported skip retains its test ID and exact reason. |
+| Required PostgreSQL, four required groups | Same Python; Ubuntu 24.04; 50 minutes each | Reviewed immutable amd64 PostgreSQL 17.6/PostgREST 14.5/Python 3.12.14 fixtures and a verified native-driver wheel bundle, followed by full actual PostgreSQL discovery with explicit opt-in before exhaustive deterministic selection. Missing Docker/image/setup, foreign daemon, zero execution or any opt-in skip fails. Six allowlisted non-gating timing-method definitions may be skipped; every reported skip retains its test ID and exact reason. |
 
 The chosen patch versions match the current reviewed source/software contract.
 They are deliberate pins, not a claim to be the newest security patches. A later
@@ -45,7 +45,7 @@ development exception are permitted. It must not be replaced with global audit
 suppression or a blanket `continue-on-error`.
 
 The owned child deadlines are 1500 seconds for each ordinary group and 2400 seconds
-for required PostgreSQL discovery, leaving 300/600 seconds within the 30/50 minute
+for each required PostgreSQL group, leaving 300/600 seconds within the 30/50 minute
 job ceilings for setup and cleanup. Actual hosted run38320983287 at source1f6a1f7
 passes frontend in 2m0s but exceeds the monolithic ordinary 1500-second deadline
 without a final test summary. The earlier local duration was not a reliable bound
@@ -58,7 +58,14 @@ execution; discovery errors, missing/duplicate occurrences, overlap, unknown sha
 selection and empty groups fail. Each original defining-module fixture segment
 retains setup/teardown boundaries. Matrix fail-fast is disabled so a failed group
 does not cancel the other group's evidence. No heavy replay window or assertion is
-removed. Required SQL discovery remains separate and unsharded in this repair.
+removed. The same run's full SQL child also exceeds its2400-second deadline without a
+final summary. Required SQL now uses four exhaustive defining-module groups,
+retaining all aliases, fixture segments and the same strict skip policy. The
+known assessment/causal setup segments consume roughly633s/515s respectively;
+causal aliases alone total about1030s before the remaining modules. Independent
+assessment, causal, optimizer and portable-mutation anchors distribute that
+work across four groups. Partial observed costs justify scheduling, not a claim
+that the bounds pass. Every required group must finish successfully.
 The wrapper requires CPython 3.12.14 explicitly and gives a virtual-environment
 setup error for an unsupported default interpreter.
 
@@ -93,7 +100,7 @@ process with allowlisted paths/locale, disabled dotenv/bytecode, fixed thread
 bounds and the repository worker import path. It drops application credentials,
 proxy/token settings, arbitrary Python import/startup settings, inherited opt-in
 and measurement flags. The internal child flag cannot bypass this environment
-check. The required SQL child admits only an explicit local Unix Docker socket.
+check. The required SQL child admits only an explicit local Unix Docker socket and the independently validated native fixture bundle path.
 No existing Supabase database is selected.
 Locale is fixed to C with Python UTF-8 mode enabled and locale coercion disabled.
 On macOS, the child also fixes the benign per-UID text-encoding key added during
@@ -112,6 +119,7 @@ the multi-platform index, platform manifest and image config; the earlier
 | --- | --- | --- |
 | `public.ecr.aws/supabase/postgres:17.6.1.095` | `sha256:4c087262afbfbb47da86e2863a52d7e424eb21ab589f732d77eeaab51be8e521` | `sha256:972aabc75779f6e535f87e1669f36edbab02cdf8bf3f47d13579963c119adefb` |
 | `public.ecr.aws/supabase/postgrest:v14.5` | `sha256:bb289d00570b569525e1e22fb77c49cd17c17ca3f41da9ee2b4351a35027551b` | `sha256:af0a6dad76305650c215449d905a124ae5ad3bcd0f04c01845a0cea17d4e0960` |
+| Official `python:3.12.14-slim-bookworm` | `sha256:1aaa65a85fda306ffb8b910824d4e93bdce61e212c7e87168123ea3073b41a1a` | `sha256:febd0be41adb897a0ab8f1f1c693d8912669ea60c4940e076e9946b60e210ef0` |
 
 [scripts/check-ci-images.py](scripts/check-ci-images.py) pulls those exact leaf
 references, checks Linux/amd64, repository `RepoDigests` and the reviewed immutable
@@ -143,7 +151,7 @@ Local checks use the existing project Node/Python runtimes. The helper regressio
 exercise real snapshot exclusions and symlink rejection, fake child configuration,
 failure/owned cleanup, skip accounting and mandatory-SQL denial, registry/platform
 identity, and workflow privilege/trigger/bypass changes. Full hosted CI remains
-pending until GitHub executes frontend, both ordinary groups and required SQL successfully. The workflow capability
+pending until GitHub executes frontend, both ordinary groups and all four required SQL groups successfully. The workflow capability
 check is part of ordinary helper test discovery.
 
 The complete sanitized local run reported 2,088 cases in 1,287.086 seconds. All
@@ -189,3 +197,45 @@ The scheduling repair passes seven focused sharding and20 workflow regressions,
 plus seven portable research/dataset fixture checks. A discovery-only smoke finds
 2241 occurrences/54 repeated baseline IDs, split994/1247; this is selection evidence
 without test execution or class setup. The actual hosted retry remains required.
+
+## Required native fixture preparation
+
+The full SQL discovery includes the real native driver wrapper and its15 inner
+TLS/SCRAM/controller/fault cases. Its previously missing cached Python image and
+Linux wheels are now explicit prerequisites. [check-ci-native-wheels.py](scripts/check-ci-native-wheels.py)
+downloads only on the exact disposable Dashboard GitHub-hosted Linux amd64
+CPython3.12.14 runner. It uses public PyPI, the current hash-required binary lock,
+no cache, a sanitized process environment and disabled shared pip configuration.
+Explicit CPython/ABI/platform constraints target Bookworm glibc2.36 and compatible
+earlier manylinux tags, rather than Ubuntu2.39 or unconstrained Linux/musl binaries.
+[Debian target](https://packages.debian.org/bookworm/libc6),
+[pip target options](https://pip.pypa.io/en/stable/cli/pip_download/),
+[pip configuration isolation](https://pip.pypa.io/en/stable/topics/configuration/).
+
+Pure validation requires all51 locked packages exactly once, matching filename/
+internal package/version/Python requirements and platform tags, archive hashes,
+owned0700/0600 nonsymlink directories/files and a150MiB whole-bundle limit. A sibling
+manifest outside the wheel-only directory binds current lock/helper/target and
+exact file inventory. The SQL parent validates the explicit path before copying
+it; the sanitized child validates it again. No application environment enters the
+container. The existing native fixture remains unchanged: offline hash-required
+installation, only synthetic TLS/password data through stdin, owned private tmpfs,
+no host ports/mounts or external network namespace. This proves its actual tested
+scope when run, not hosted Supabase/native-v2 admission.
+
+For an independently prepared local amd64 bundle, create an owned temporary parent
+and its0700 `dashboard-native-wheels` child, containing only the current locked
+Bookworm-compatible0600 wheels. `python scripts/check-ci-native-wheels.py
+--record-existing /absolute/owned/temp/dashboard-native-wheels` performs only
+validation and absent sibling-manifest creation; it downloads/installs nothing,
+uses no Docker/network and refuses overwrite. Set `DASHBOARD_NATIVE_SQL_WHEELS` to
+that explicit canonical child path before the full `check-worker.py postgres
+--allow-isolated-postgres` command. Reviewed cached compatible images/local daemon
+opt-in remain separate prerequisites; hosted preparation cannot retag a local
+daemon. Loose old bundles fail with a setup message.
+
+Final combined sanitized helper discovery passes83/83 cases, zero skips, including
+16 native bundle regressions. Source-bound discovery-only finds2262 ordinary
+occurrences split994/1268 and533 SQL occurrences split94/132/126/181; both preserve
+54 baseline repeated IDs. Discovery-only executes no tests/class setups. Actual
+hosted pulls/downloads and every group's completion remain required before merge.

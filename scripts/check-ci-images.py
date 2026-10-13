@@ -16,13 +16,21 @@ PINS = (
      "repository": "public.ecr.aws/supabase/postgrest",
      "manifest": "sha256:bb289d00570b569525e1e22fb77c49cd17c17ca3f41da9ee2b4351a35027551b",
      "config": "sha256:af0a6dad76305650c215449d905a124ae5ad3bcd0f04c01845a0cea17d4e0960"},
+    {"tag": "python:3.12.14-slim-bookworm",
+     "repository": "docker.io/library/python",
+     "digest_repositories": ("docker.io/library/python", "library/python", "python"),
+     "manifest": "sha256:1aaa65a85fda306ffb8b910824d4e93bdce61e212c7e87168123ea3073b41a1a",
+     "config": "sha256:febd0be41adb897a0ab8f1f1c693d8912669ea60c4940e076e9946b60e210ef0"},
 )
 
 
 def verify_image(metadata: dict, pin: dict) -> None:
-    expected = f"{pin['repository']}@{pin['manifest']}"
+    # Docker normalizes Docker Hub's official library names in RepoDigests.
+    # These explicit aliases all refer to this same pinned official image.
+    expected = {f"{repository}@{pin['manifest']}"
+                for repository in pin.get("digest_repositories", (pin["repository"],))}
     if (metadata.get("Architecture") != "amd64" or metadata.get("Os") != "linux"
-            or expected not in metadata.get("RepoDigests", [])
+            or not expected.intersection(metadata.get("RepoDigests", []))
             or metadata.get("Id") not in {pin["manifest"], pin["config"]}):
         raise ValueError("Fixture image platform, digest or immutable identity does not match")
 

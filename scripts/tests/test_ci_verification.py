@@ -59,7 +59,7 @@ print("fixed child environment passed")'''
         for mode, job, margin in (("offline", "worker", 300), ("postgres", "postgres", 600)):
             args = ["check-worker.py", mode]
             if mode == "postgres": args.append("--allow-isolated-postgres")
-            with patch.object(worker.sys, "argv", args), patch.dict(os.environ, {"PATH": "/test/bin"}, clear=True), patch.object(worker.subprocess, "run") as execute:
+            with patch.object(worker.sys, "argv", args), patch.dict(os.environ, {"PATH": "/test/bin"}, clear=True), patch.object(worker, "native_wheels_directory", return_value=Path('/test/native-wheels')), patch.object(worker.subprocess, "run") as execute:
                 execute.return_value.returncode = 0
                 self.assertEqual(worker.main(), 0)
                 self.assertEqual(execute.call_args.kwargs["timeout"], worker.CHILD_DEADLINES[mode])
@@ -76,20 +76,24 @@ print("fixed child environment passed")'''
         inherited = {"PATH": "/test/bin", "LANG": "C", "HOME": "/shared/home",
                      "SUPABASE_SERVICE_ROLE_KEY": "never-copy", "RAILWAY_TOKEN": "never-copy",
                      "VERCEL_TOKEN": "never-copy", "PYTHONPATH": "/foreign/project",
-                     worker.OPT_IN: "1", "DASHBOARD_OPTIMIZER_MEASURE": "1"}
+                     worker.OPT_IN: "1", worker.NATIVE_WHEELS_ENV: "/never-copy/wheels", "DASHBOARD_OPTIMIZER_MEASURE": "1"}
         env = worker.worker_environment("offline", inherited)
         self.assertEqual(env["PATH"], "/test/bin")
         self.assertEqual(env["PYTHON_DOTENV_DISABLED"], "1")
         self.assertEqual(env["PYTHONPATH"], str(worker.WORKER))
         for key in ("HOME", "SUPABASE_SERVICE_ROLE_KEY", "RAILWAY_TOKEN", "VERCEL_TOKEN",
-                    worker.OPT_IN, "DASHBOARD_OPTIMIZER_MEASURE"):
+                    worker.OPT_IN, worker.NATIVE_WHEELS_ENV, "DASHBOARD_OPTIMIZER_MEASURE"):
             self.assertNotIn(key, env)
         self.assertNotIn("never-copy", env.values())
 
     def test_required_sql_child_has_explicit_local_socket_and_opt_in(self):
-        env = worker.worker_environment("postgres", {"PATH": "/test/bin"})
+        with self.assertRaisesRegex(RuntimeError, "explicit prepared native SQL wheel bundle"):
+            worker.worker_environment("postgres", {"PATH": "/test/bin"})
+        with patch.object(worker, "native_wheels_directory", return_value=Path('/test/native-wheels')):
+            env = worker.worker_environment("postgres", {"PATH": "/test/bin"})
         self.assertEqual(env[worker.OPT_IN], "1")
         self.assertEqual(env["DOCKER_HOST"], "unix:///var/run/docker.sock")
+        self.assertEqual(env[worker.NATIVE_WHEELS_ENV], "/test/native-wheels")
         with self.assertRaises(ValueError):
             worker.worker_environment("postgres", {"DOCKER_HOST": "tcp://foreign.example:2375"})
 
@@ -144,7 +148,8 @@ print("fixed child environment passed")'''
         evidence = json.loads((SCRIPTS / "check-ci-images-evidence.json").read_text())
         self.assertEqual(evidence["checked"], "2026-10-12")
         for pin in images.PINS:
-            item = next(item for item in evidence["images"] if "public.ecr.aws/" + item["repository"] == pin["repository"])
+            item = next(item for item in evidence["images"]
+                        if item.get("registry", "public.ecr.aws") + "/" + item["repository"] == pin["repository"])
             platform = next(value for value in item["platforms"] if value["platform"] == {"architecture": "amd64", "os": "linux"})
             self.assertEqual(platform["manifest_digest"], pin["manifest"])
             self.assertEqual(platform["config_digest"], pin["config"])
@@ -283,8 +288,52 @@ print("fixed child environment passed")'''
             mutation["jobs"]["worker"]["steps"][-1]["env"] = changed
             with self.subTest(env=changed), self.assertRaises(ValueError):
                 policy.validate_workflow(yaml.safe_dump(mutation))
-        mutation = copy.deepcopy(original); mutation["jobs"]["postgres"]["strategy"] = policy.WORKER_STRATEGY
+        mutation = copy.deepcopy(original); mutation["jobs"]["frontend"]["strategy"] = policy.WORKER_STRATEGY
         with self.assertRaises(ValueError): policy.validate_workflow(yaml.safe_dump(mutation))
+
+    def test_required_postgres_matrix_keeps_every_shard_and_explicit_integration_authority(self):
+        original = yaml.safe_load(policy.WORKFLOW.read_text())
+        for strategy in (
+            {"fail-fast": False, "max-parallel": 4, "matrix": {"shard": [1, 2, 3]}},
+            {"fail-fast": False, "max-parallel": 4, "matrix": {"shard": [1, 2, 3, 4, 5]}},
+            {"fail-fast": True, "max-parallel": 4, "matrix": {"shard": [1, 2, 3, 4]}},
+            {"fail-fast": False, "max-parallel": 8, "matrix": {"shard": [1, 2, 3, 4]}},
+            {"fail-fast": False, "max-parallel": 4, "matrix": {"shard": [True, 2, 3, 4]}},
+            {**policy.POSTGRES_STRATEGY, "matrix": {"shard": [1, 2, 3, 4], "exclude": [{"shard": 4}]}},
+        ):
+            mutation = copy.deepcopy(original); mutation["jobs"]["postgres"]["strategy"] = strategy
+            with self.subTest(strategy=strategy), self.assertRaises(ValueError):
+                policy.validate_workflow(yaml.safe_dump(mutation))
+        for changed in ({}, {"DASHBOARD_TEST_SHARD": "1"},
+                        {"DASHBOARD_TEST_SHARD": "${{ github.event.inputs.shard }}"},
+                        {**policy.POSTGRES_SHARD_ENV, "SUPABASE_SERVICE_ROLE_KEY": "must-not-copy"}):
+            mutation = copy.deepcopy(original)
+            mutation["jobs"]["postgres"]["steps"][-1]["env"] = changed
+            with self.subTest(env=changed), self.assertRaises(ValueError):
+                policy.validate_workflow(yaml.safe_dump(mutation))
+
+    def test_native_wheel_preparation_and_exact_owned_execution_path_cannot_be_removed_or_misplaced(self):
+        original = yaml.safe_load(policy.WORKFLOW.read_text())
+        mutations = []
+        value = copy.deepcopy(original)
+        value['jobs']['postgres']['steps'] = [step for step in value['jobs']['postgres']['steps']
+                                             if step.get('name') != policy.NATIVE_WHEELS_PREP_STEP]
+        mutations.append(value)
+        value = copy.deepcopy(original)
+        steps = value['jobs']['postgres']['steps']; steps[-2], steps[-1] = steps[-1], steps[-2]
+        mutations.append(value)
+        value = copy.deepcopy(original); del value['jobs']['postgres']['steps'][-1]['env']['DASHBOARD_NATIVE_SQL_WHEELS']; mutations.append(value)
+        value = copy.deepcopy(original); value['jobs']['postgres']['steps'][-1]['env']['DASHBOARD_NATIVE_SQL_WHEELS'] = '/home/runner/shared-wheels'; mutations.append(value)
+        value = copy.deepcopy(original); value['jobs']['postgres']['steps'][-2]['run'] = policy.NATIVE_WHEELS_PREP_COMMAND.replace('dashboard-native-wheels', 'shared-wheels'); mutations.append(value)
+        for mutation in mutations:
+            with self.subTest(mutation=mutation), self.assertRaises(ValueError):
+                policy.validate_workflow(yaml.safe_dump(mutation))
+        for omitted in ("--allow-isolated-postgres", '--shard "$DASHBOARD_TEST_SHARD"'):
+            mutation = copy.deepcopy(original)
+            step = mutation["jobs"]["postgres"]["steps"][-1]
+            step["run"] = step["run"].replace(omitted, '')
+            with self.subTest(omitted=omitted), self.assertRaises(ValueError):
+                policy.validate_workflow(yaml.safe_dump(mutation))
 
 
 if __name__ == "__main__": unittest.main()

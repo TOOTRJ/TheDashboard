@@ -136,6 +136,15 @@ pulls images or fetches packages. A second owned nonroot container shares only
 the native TLS fixture's network-none namespace, with no host ports/mounts and
 an offline `--require-hashes` install. Its private tmpfs permits binary-library
 executable mappings while its image root remains read-only. Only synthetic
-fixture credentials are staged through stdin. Eight actual driver cases cover
+fixture credentials are staged through stdin. Fifteen actual driver cases cover
 controller/relay, TLS/SCRAM denial and real commit/rollback/recovery faults;
 ordinary test discovery skips the host integration wrapper without opt-in.
+
+The complete `scripts/check-worker.py postgres --allow-isolated-postgres`
+verification command additionally validates the native amd64 bundle's current
+lock/helper/target sibling manifest before starting its sanitized child. CI
+prepares that bundle and the exact pinned Python image on disposable hosted
+runners. Local callers can use the metadata-only `--record-existing` command
+for an independently prepared owned temporary bundle; see
+[complete CI/local prerequisites](../../../../CI-VERIFICATION.md#required-native-fixture-preparation).
+No preparation helper is authorized to retag or prune a shared local Docker daemon.

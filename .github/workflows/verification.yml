@@ -93,9 +93,14 @@ jobs:
         run: '"$RUNNER_TEMP/dashboard-python/bin/python" scripts/check-worker.py offline --shard "$DASHBOARD_TEST_SHARD"'
 
   postgres:
-    name: Required real owned PostgreSQL and PostgREST contracts
+    name: Required owned PostgreSQL and PostgREST (shard ${{ matrix.shard }}/4)
     runs-on: ubuntu-24.04
     timeout-minutes: 50
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        shard: [1, 2, 3, 4]
     env:
       DOCKER_HOST: unix:///var/run/docker.sock
     steps:
@@ -115,5 +120,10 @@ jobs:
           "$RUNNER_TEMP/dashboard-python/bin/python" -m pip check
       - name: Pull and verify reviewed immutable amd64 fixture manifests
         run: '"$RUNNER_TEMP/dashboard-python/bin/python" scripts/check-ci-images.py --prepare-images'
+      - name: Prepare owned hash-locked native SQL wheels
+        run: '"$RUNNER_TEMP/dashboard-python/bin/python" scripts/check-ci-native-wheels.py --destination "$RUNNER_TEMP/dashboard-native-wheels"'
       - name: Required integration (missing Docker, failed setup or opt-in skips fail)
-        run: '"$RUNNER_TEMP/dashboard-python/bin/python" scripts/check-worker.py postgres --allow-isolated-postgres'
+        env:
+          DASHBOARD_TEST_SHARD: ${{ matrix.shard }}
+          DASHBOARD_NATIVE_SQL_WHEELS: ${{ runner.temp }}/dashboard-native-wheels
+        run: '"$RUNNER_TEMP/dashboard-python/bin/python" scripts/check-worker.py postgres --allow-isolated-postgres --shard "$DASHBOARD_TEST_SHARD"'

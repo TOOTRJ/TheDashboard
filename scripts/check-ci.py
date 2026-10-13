@@ -35,6 +35,16 @@ WORKER_SHARD_STEP = "Ordinary discovery with explicit skip audit and sanitized e
 WORKER_SHARD_ENV = {"DASHBOARD_TEST_SHARD": "${{ matrix.shard }}"}
 WORKER_SHARD_COMMAND = f'{PYTHON} scripts/check-worker.py offline --shard "$DASHBOARD_TEST_SHARD"'
 WORKER_STRATEGY = {"fail-fast": False, "max-parallel": 2, "matrix": {"shard": [1, 2]}}
+POSTGRES_SHARD_STEP = "Required integration (missing Docker, failed setup or opt-in skips fail)"
+POSTGRES_SHARD_ENV = {**WORKER_SHARD_ENV, "DASHBOARD_NATIVE_SQL_WHEELS": "${{ runner.temp }}/dashboard-native-wheels"}
+POSTGRES_SHARD_COMMAND = f'{PYTHON} scripts/check-worker.py postgres --allow-isolated-postgres --shard "$DASHBOARD_TEST_SHARD"'
+POSTGRES_STRATEGY = {"fail-fast": False, "max-parallel": 4, "matrix": {"shard": [1, 2, 3, 4]}}
+NATIVE_WHEELS_PREP_STEP = "Prepare owned hash-locked native SQL wheels"
+NATIVE_WHEELS_PREP_COMMAND = f'{PYTHON} scripts/check-ci-native-wheels.py --destination "$RUNNER_TEMP/dashboard-native-wheels"'
+SHARD_JOBS = {
+    "worker": (WORKER_STRATEGY, WORKER_SHARD_STEP, WORKER_SHARD_COMMAND),
+    "postgres": (POSTGRES_STRATEGY, POSTGRES_SHARD_STEP, POSTGRES_SHARD_COMMAND),
+}
 REQUIRED_COMMANDS = {
     "frontend": {
         ': > "$NPM_CONFIG_USERCONFIG"', ': > "$NPM_CONFIG_GLOBALCONFIG"',
@@ -50,7 +60,7 @@ REQUIRED_COMMANDS = {
     "postgres": {
         'python -m venv "$RUNNER_TEMP/dashboard-python"', HASH_INSTALL,
         f"{PYTHON} -m pip check", f"{PYTHON} scripts/check-ci-images.py --prepare-images",
-        f"{PYTHON} scripts/check-worker.py postgres --allow-isolated-postgres",
+        NATIVE_WHEELS_PREP_COMMAND, POSTGRES_SHARD_COMMAND,
     },
 }
 
@@ -83,21 +93,22 @@ def validate_workflow(source: str) -> None:
             raise ValueError("Verification requires bounded disposable hosted runners")
         if any(key in job for key in ("permissions", "environment", "services", "container", "if", "continue-on-error")):
             raise ValueError("Verification cannot widen privileges or skip a required job")
-        if name == "worker":
+        if name in SHARD_JOBS:
             strategy = job.get("strategy")
-            if (strategy != WORKER_STRATEGY or type(strategy.get("fail-fast")) is not bool
+            if (strategy != SHARD_JOBS[name][0] or type(strategy.get("fail-fast")) is not bool
                     or type(strategy.get("max-parallel")) is not int
                     or any(type(value) is not int for value in strategy["matrix"]["shard"])):
-                raise ValueError("Ordinary verification must execute both reviewed bounded shards")
+                raise ValueError("Verification must execute every reviewed bounded shard for its scope")
         elif "strategy" in job:
-            raise ValueError("Only ordinary worker tests have a reviewed shard matrix")
+            raise ValueError("Frontend verification has no reviewed shard matrix")
         if name == "postgres":
             if job.get("env") != {"DOCKER_HOST": "unix:///var/run/docker.sock"}:
                 raise ValueError("PostgreSQL job requires only its reviewed local Docker socket")
         elif "env" in job:
             raise ValueError("Frontend and worker settings cannot use job environment or runner context")
         npm_steps = []
-        worker_shard_steps = 0
+        shard_steps = 0
+        native_preparation = 0
         for step in job.get("steps", []):
             if "if" in step or step.get("continue-on-error"):
                 raise ValueError("Required checks cannot be bypassed")
@@ -105,10 +116,13 @@ def validate_workflow(source: str) -> None:
                 if step.get("env") != NPM_STEP_ENV or step.get("run", "").strip() != NPM_STEPS[step["name"]]:
                     raise ValueError("Reviewed npm steps require exact isolated temporary configurations and commands")
                 npm_steps.append(step["name"])
-            elif name == "worker" and step.get("name") == WORKER_SHARD_STEP:
-                if step.get("env") != WORKER_SHARD_ENV or step.get("run") != WORKER_SHARD_COMMAND:
-                    raise ValueError("Worker shard step must pass only the reviewed static matrix selection")
-                worker_shard_steps += 1
+            elif name in SHARD_JOBS and step.get("name") == SHARD_JOBS[name][1]:
+                expected_env = WORKER_SHARD_ENV if name == "worker" else POSTGRES_SHARD_ENV
+                if step.get("env") != expected_env or step.get("run") != SHARD_JOBS[name][2]:
+                    raise ValueError("Shard step must pass only the reviewed static matrix selection and scope command")
+                if name == "postgres" and native_preparation != 1:
+                    raise ValueError("Owned native SQL wheels must be prepared before required integration")
+                shard_steps += 1
             elif "env" in step:
                 raise ValueError("Other steps cannot receive environment settings or credentials")
             if "uses" in step and step["uses"] not in ACTION_PINS:
@@ -121,10 +135,16 @@ def validate_workflow(source: str) -> None:
                 raise ValueError("Python runtime and release-only setup must remain reviewed")
             if "run" in step and "${{" in step["run"]:
                 raise ValueError("Shell commands cannot interpolate untrusted event expressions")
+            if name == "postgres" and step.get("name") == NATIVE_WHEELS_PREP_STEP:
+                if step.get("run") != NATIVE_WHEELS_PREP_COMMAND:
+                    raise ValueError("Native SQL preparation must use the reviewed fresh runner destination")
+                native_preparation += 1
         if name == "frontend" and sorted(npm_steps) != sorted(NPM_STEPS):
             raise ValueError("Exactly the reviewed install and lint steps must own npm isolation")
-        if name == "worker" and worker_shard_steps != 1:
-            raise ValueError("Exactly one worker step must execute the reviewed matrix selection")
+        if name in SHARD_JOBS and shard_steps != 1:
+            raise ValueError("Exactly one required step must execute the reviewed scope matrix selection")
+        if name == "postgres" and native_preparation != 1:
+            raise ValueError("Exactly one owned native SQL wheel preparation step is required")
     for name, required in REQUIRED_COMMANDS.items():
         commands = {line.strip() for step in jobs[name]["steps"]
                     for line in step.get("run", "").splitlines() if line.strip()}

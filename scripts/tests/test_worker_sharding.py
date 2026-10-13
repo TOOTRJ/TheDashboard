@@ -125,15 +125,66 @@ class WorkerShardingTests(unittest.TestCase):
     def test_cli_shard_is_explicit_retains_deadline_and_is_not_inherited_as_credentials(self):
         with patch.object(worker.sys, 'argv', ['check-worker.py', 'offline', '--shard', '2']), patch.dict(os.environ, {
             'PATH': '/test/bin', 'DASHBOARD_TEST_SHARD': '1', 'SUPABASE_SERVICE_ROLE_KEY': 'must-not-copy',
-        }, clear=True), patch.object(worker.subprocess, 'run') as execute:
+        }, clear=True), patch.object(worker, 'native_wheels_directory', return_value=Path('/test/native-wheels')), patch.object(worker.subprocess, 'run') as execute:
             execute.return_value.returncode = 0
             self.assertEqual(worker.main(), 0)
             self.assertEqual(execute.call_args.args[0][-2:], ['--shard', '2'])
             self.assertEqual(execute.call_args.kwargs['timeout'], 1500)
             self.assertNotIn('DASHBOARD_TEST_SHARD', execute.call_args.kwargs['env'])
             self.assertNotIn('SUPABASE_SERVICE_ROLE_KEY', execute.call_args.kwargs['env'])
-        with patch.object(worker.sys, 'argv', ['check-worker.py', 'postgres', '--allow-isolated-postgres', '--shard', '1']):
-            with self.assertRaises(SystemExit), patch('sys.stderr', io.StringIO()): worker.main()
+        for args in (['offline', '--shard', '3'], ['postgres', '--allow-isolated-postgres', '--shard', '5'],
+                     ['postgres', '--shard', '1']):
+            with patch.object(worker.sys, 'argv', ['check-worker.py', *args]), self.assertRaises(SystemExit), patch('sys.stderr', io.StringIO()):
+                worker.main()
+
+    def test_required_postgres_cli_keeps_opt_in_sanitization_and_2400_second_deadline(self):
+        with patch.object(worker.sys, 'argv', ['check-worker.py', 'postgres', '--allow-isolated-postgres', '--shard', '4']), patch.dict(os.environ, {
+            'PATH': '/test/bin', 'DASHBOARD_TEST_SHARD': '1', 'SUPABASE_SERVICE_ROLE_KEY': 'must-not-copy',
+            worker.NATIVE_WHEELS_ENV: '/test/native-wheels',
+        }, clear=True), patch.object(worker, 'native_wheels_directory', return_value=Path('/test/native-wheels')), patch.object(worker.subprocess, 'run') as execute:
+            execute.return_value.returncode = 0
+            self.assertEqual(worker.main(), 0)
+            command = execute.call_args.args[0]
+            self.assertIn('--allow-isolated-postgres', command)
+            self.assertEqual(command[-2:], ['--shard', '4'])
+            self.assertEqual(execute.call_args.kwargs['timeout'], 2400)
+            env = execute.call_args.kwargs['env']
+            self.assertEqual(env[worker.OPT_IN], '1')
+            self.assertEqual(env['DOCKER_HOST'], 'unix:///var/run/docker.sock')
+            self.assertEqual(env[worker.NATIVE_WHEELS_ENV], '/test/native-wheels')
+            self.assertNotIn('DASHBOARD_TEST_SHARD', env)
+            self.assertNotIn('SUPABASE_SERVICE_ROLE_KEY', env)
+
+    def test_sql_bundle_is_revalidated_in_child_and_missing_or_changed_bundle_cannot_bypass_guards(self):
+        inherited = {'PATH': '/test/bin', worker.NATIVE_WHEELS_ENV: '/test/native-wheels'}
+        with patch.object(worker, 'native_wheels_directory', return_value=Path('/test/native-wheels')) as validate:
+            env = worker.worker_environment('postgres', inherited)
+            worker.validate_child_environment('postgres', env)
+            self.assertEqual(validate.call_count, 2)
+        with patch.object(worker, 'native_wheels_directory', side_effect=RuntimeError('changed owned wheel bundle')):
+            with self.assertRaisesRegex(RuntimeError, 'changed owned wheel bundle'):
+                worker.validate_child_environment('postgres', env)
+        for inherited in ({}, {worker.NATIVE_WHEELS_ENV: 'relative/wheels'}):
+            with self.assertRaisesRegex(RuntimeError, 'explicit prepared native SQL wheel bundle'):
+                worker.native_wheels_directory(inherited)
+
+    def test_four_required_shards_cover_every_original_postgres_occurrence(self):
+        modules = ('tests.postgres.test_assessment_transition', 'tests.postgres.test_causal_risk',
+                   'tests.postgres.test_optimizer_transition', 'tests.postgres.test_portable_period_mutation')
+        original = [test for module in modules for test in cases(module)]
+        original.extend((original[0], original[2]))
+        with self.source_fixture():
+            tests, shards, coverage = worker.partition_suite(unittest.TestSuite(original), 'postgres')
+        self.assertEqual(set(shards), {1, 2, 3, 4})
+        self.assertEqual(coverage['declared_shards'], [1, 2, 3, 4])
+        self.assertEqual(coverage['scope'], 'postgres')
+        self.assertEqual(coverage['baseline_repeated_ids'], 2)
+        self.assertEqual(Counter(index for indices in shards.values() for index in indices), Counter(range(len(original))))
+        self.assertEqual({worker.module_shard(module, 'postgres') for module in modules}, {1, 2, 3, 4})
+        for invalid in ({key: value for key, value in shards.items() if key != 4}, {**shards, 4: ()}):
+            with self.assertRaises(RuntimeError): worker.validate_partition(tests, invalid, 'postgres')
+        for mode in ('unknown', ''):
+            with self.assertRaises(RuntimeError): worker.partition_suite(unittest.TestSuite(original), mode)
 
 
 if __name__ == '__main__': unittest.main()

@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 from collections import Counter
 import hashlib
+import importlib.util
 import json
 import os
 from pathlib import Path
@@ -15,17 +16,59 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 WORKER = ROOT / "services" / "vonneumann"
 OPT_IN = "DASHBOARD_ISOLATED_POSTGRES_TESTS"
+NATIVE_WHEELS_ENV = "DASHBOARD_NATIVE_SQL_WHEELS"
 SUPPORTED_PYTHON = (3, 12, 14)
 CHILD_DEADLINES = {"offline": 1500, "postgres": 2400}
 # The hosted log's large gaps include the NEXT module's class setup. Keep the
 # 32-window provider traces opposite portable three-seed/four-window traces.
 # New modules use a stable SHA-256 partition, never an exclusion list.
 OFFLINE_SHARDS = (1, 2)
+POSTGRES_SHARDS = (1, 2, 3, 4)
+SHARDS_BY_MODE = {"offline": OFFLINE_SHARDS, "postgres": POSTGRES_SHARDS}
 HEAVY_MODULE_SHARDS = {
     "tests.test_provider_ga_components": 1,
     "tests.test_portable_ga_model": 2,
     "tests.test_ga_active_model": 2,
     "tests.test_partitioned_checkpoint": 2,
+}
+# Defining-module anchors distribute the costly semantic setup chains. These
+# balancing hints do not omit cases or relax acceptance; hosted timings remain
+# required before claiming that all four bounded jobs complete.
+POSTGRES_HEAVY_MODULE_SHARDS = {
+    "tests.postgres.test_assessment_transition": 1,
+    "tests.postgres.test_locked_checkpoint": 1,
+    "tests.postgres.test_numeric_wire": 1,
+    "tests.postgres.test_checkpoint_reference": 1,
+    "tests.postgres.test_command_adapter": 1,
+    "tests.postgres.test_decimal_lineage_contract": 1,
+    "tests.postgres.test_exact_transition_contract": 1,
+    "tests.postgres.test_harness": 1,
+    "tests.postgres.test_causal_risk": 2,
+    "tests.postgres.test_source_transition": 2,
+    "tests.postgres.test_fenced_commands": 2,
+    "tests.postgres.test_lifecycle_contract": 2,
+    "tests.postgres.test_lifecycle_adversarial": 2,
+    "tests.postgres.test_lifecycle_delivery": 2,
+    "tests.postgres.test_transition_coordinator": 2,
+    "tests.postgres.test_read_projections": 2,
+    "tests.postgres.test_read_projection_http": 2,
+    "tests.postgres.test_optimizer_transition": 3,
+    "tests.postgres.test_economic_transition": 3,
+    "tests.postgres.test_legacy_evidence": 3,
+    "tests.postgres.test_legacy_retirement": 3,
+    "tests.postgres.test_installer_boundary": 3,
+    "tests.postgres.test_expired_paper_maintenance": 3,
+    "tests.postgres.test_portable_period_mutation": 4,
+    "tests.postgres.test_native_sql": 4,
+    "tests.postgres.test_session_auth": 4,
+    "tests.postgres.test_native_issuer": 4,
+    "tests.postgres.test_native_operator": 4,
+    "tests.postgres.test_canonical_v5": 4,
+    "tests.postgres.test_forward_cutover": 4,
+    "tests.postgres.test_paper_service": 4,
+    "tests.postgres.test_provider_contract": 4,
+    "tests.postgres.test_provider_controller": 4,
+    "tests.postgres.test_command_http_postgrest": 4,
 }
 OPT_IN_REASONS = {
     "Requires isolated PostgreSQL opt-in", "Explicit isolated PostgreSQL opt-in required",
@@ -56,7 +99,23 @@ def worker_environment(mode: str, inherited: dict[str, str]) -> dict[str, str]:
             raise ValueError("Required integration refuses a nonlocal Docker socket")
         env["DOCKER_HOST"] = host
         env[OPT_IN] = "1"
+        env[NATIVE_WHEELS_ENV] = str(native_wheels_directory(inherited))
     return env
+
+
+def native_wheels_directory(inherited: dict[str, str]) -> Path:
+    directory = inherited.get(NATIVE_WHEELS_ENV)
+    if not isinstance(directory, str) or not directory or not Path(directory).is_absolute():
+        raise RuntimeError("Required PostgreSQL verification needs an explicit prepared native SQL wheel bundle")
+    helper = ROOT / "scripts" / "check-ci-native-wheels.py"
+    if helper.resolve() != helper or not helper.is_file():
+        raise RuntimeError("Native SQL wheel validation requires its reviewed regular helper source")
+    spec = importlib.util.spec_from_file_location("dashboard_ci_native_wheels_validation", helper)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    # Pure lock/source/ownership/content validation is repeated in the sanitized
+    # child. A path copied from arbitrary parent configuration grants no access.
+    return module.validate_bundle(directory)
 
 
 def require_supported_python(version=None, implementation=None) -> None:
@@ -128,30 +187,34 @@ def flatten_tests(suite):
         raise RuntimeError("Discovery returned an unreviewed test object")
 
 
-def module_shard(module: str) -> int:
+def module_shard(module: str, mode: str = "offline") -> int:
     if not isinstance(module, str) or not module:
         raise RuntimeError("Discovered test has no defining module")
-    return HEAVY_MODULE_SHARDS.get(module, 1 + int.from_bytes(hashlib.sha256(module.encode()).digest(), "big") % 2)
+    if mode not in SHARDS_BY_MODE:
+        raise RuntimeError("Unreviewed verification scope")
+    hints = HEAVY_MODULE_SHARDS if mode == "offline" else POSTGRES_HEAVY_MODULE_SHARDS
+    return hints.get(module, 1 + int.from_bytes(hashlib.sha256(module.encode()).digest(), "big") % len(SHARDS_BY_MODE[mode]))
 
 
-def validate_partition(tests, shards) -> None:
-    if set(shards) != set(OFFLINE_SHARDS) or any(type(key) is not int for key in shards):
-        raise RuntimeError("Exactly two reviewed offline shards are required")
-    indices = [index for shard in OFFLINE_SHARDS for index in shards[shard]]
+def validate_partition(tests, shards, mode: str = "offline") -> None:
+    declared = SHARDS_BY_MODE.get(mode)
+    if declared is None or set(shards) != set(declared) or any(type(key) is not int for key in shards):
+        raise RuntimeError("Exactly the reviewed scope's complete shard set is required")
+    indices = [index for shard in declared for index in shards[shard]]
     if (any(type(index) is not int for index in indices)
             or Counter(indices) != Counter(range(len(tests)))
-            or any(not shards[shard] for shard in OFFLINE_SHARDS)):
+            or any(not shards[shard] for shard in declared)):
         raise RuntimeError("Shard coverage omitted, duplicated or invented a discovered occurrence")
     modules = []
-    for shard in OFFLINE_SHARDS:
+    for shard in declared:
         selected = shards[shard]
         if tuple(selected) != tuple(sorted(selected)):
             raise RuntimeError("Shards must preserve the original discovery order")
         modules.append({tests[index].__class__.__module__ for index in selected})
-        if any(module_shard(tests[index].__class__.__module__) != shard for index in selected):
+        if any(module_shard(tests[index].__class__.__module__, mode) != shard for index in selected):
             raise RuntimeError("Shard membership changed or split a defining module")
-    if modules[0] & modules[1]:
-        raise RuntimeError("A defining test module cannot run in both shards")
+    if any(first & second for index, first in enumerate(modules) for second in modules[index + 1:]):
+        raise RuntimeError("A defining test module cannot run in more than one shard")
     # Repeated imported TestCase IDs already in ordinary discovery remain repeated.
     original = Counter(test.id() for test in tests)
     selected = Counter(tests[index].id() for index in indices)
@@ -182,24 +245,27 @@ def test_source(test) -> tuple[str, str]:
     return path.relative_to(ROOT).as_posix(), hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def partition_offline(suite):
+def partition_suite(suite, mode: str):
+    if mode not in SHARDS_BY_MODE:
+        raise RuntimeError("Unreviewed verification scope")
     tests = tuple(flatten_tests(suite))
     sources = {}
     rows = []
-    shards = {shard: [] for shard in OFFLINE_SHARDS}
+    shards = {shard: [] for shard in SHARDS_BY_MODE[mode]}
     for index, test in enumerate(tests):
         module = test.__class__.__module__
         if module not in sources:
             sources[module] = test_source(test)
         path, digest = sources[module]
         rows.append([index, test.id(), module, path, digest])
-        shards[module_shard(module)].append(index)
+        shards[module_shard(module, mode)].append(index)
     shards = {shard: tuple(indices) for shard, indices in shards.items()}
-    validate_partition(tests, shards)
+    validate_partition(tests, shards, mode)
     def fingerprint(value):
         return hashlib.sha256(json.dumps(value, separators=(",", ":"), ensure_ascii=True).encode()).hexdigest()
     coverage = {
-        "algorithm": "offline-module-sha256-v1", "discovered_occurrences": len(tests),
+        "algorithm": f"{mode}-module-sha256-v1", "scope": mode,
+        "declared_shards": list(SHARDS_BY_MODE[mode]), "discovered_occurrences": len(tests),
         "runtime": "CPython 3.12.14",
         "selection_source_sha256": hashlib.sha256((ROOT / "scripts" / "check-worker.py").read_bytes()).hexdigest(),
         "baseline_repeated_ids": sum(count - 1 for count in Counter(test.id() for test in tests).values()),
@@ -211,6 +277,10 @@ def partition_offline(suite):
         "exhaustive_disjoint_occurrences": True,
     }
     return tests, shards, coverage
+
+
+def partition_offline(suite):
+    return partition_suite(suite, "offline")
 
 
 class ModuleShardSuite(unittest.TestSuite):
@@ -249,20 +319,17 @@ def run_suites(mode: str, shard: int | None = None) -> int:
     require_supported_python()
     # Reexecution's internal flag is not a way to bypass environment isolation.
     validate_child_environment(mode, dict(os.environ))
-    if shard is not None and (mode != "offline" or type(shard) is not int or shard not in OFFLINE_SHARDS):
-        raise RuntimeError("Sharding is available only for the two reviewed offline shards")
+    if mode not in SHARDS_BY_MODE or (shard is not None and (type(shard) is not int or shard not in SHARDS_BY_MODE[mode])):
+        raise RuntimeError("Selection must use one of the reviewed scope's declared shards")
     suite = discover_suite(mode)
-    coverage = None
-    if mode == "offline":
-        tests, shards, coverage = partition_offline(suite)
-        # Print source-bound coverage before execution, including on a timeout.
-        print(json.dumps({"offline_coverage": coverage, "selected_shard": shard}, sort_keys=True), flush=True)
-        if shard is not None:
-            suite = selected_suite(tests, shards[shard])
+    tests, shards, coverage = partition_suite(suite, mode)
+    # Print source-bound coverage before execution, including on a timeout.
+    print(json.dumps({f"{mode}_coverage": coverage, "selected_shard": shard}, sort_keys=True), flush=True)
+    if shard is not None:
+        suite = selected_suite(tests, shards[shard])
     result = unittest.TextTestRunner(verbosity=2).run(suite)
     report, accepted = audit_result(result, mode)
-    if coverage is not None:
-        report.update(offline_coverage=coverage, selected_shard=shard)
+    report.update({f"{mode}_coverage": coverage, "selected_shard": shard})
     print(json.dumps(report, sort_keys=True))
     return 0 if accepted else 1
 
@@ -271,15 +338,15 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("mode", choices=("offline", "postgres"))
     parser.add_argument("--allow-isolated-postgres", action="store_true")
-    parser.add_argument("--shard", type=int, choices=OFFLINE_SHARDS,
-                        help="Execute one exhaustive module-cohesive offline shard; omit for local full discovery")
+    parser.add_argument("--shard", type=int,
+                        help="Execute a declared module-cohesive shard: offline 1..2 or postgres 1..4; omit for full discovery")
     parser.add_argument("--sanitized-child", action="store_true", help=argparse.SUPPRESS)
     args = parser.parse_args()
     require_supported_python()
     if args.mode == "postgres" and not args.allow_isolated_postgres:
         parser.error("Required integration needs --allow-isolated-postgres")
-    if args.mode != "offline" and args.shard is not None:
-        parser.error("The required PostgreSQL suite cannot be sharded")
+    if args.shard is not None and args.shard not in SHARDS_BY_MODE[args.mode]:
+        parser.error("Selection must use a declared shard for its verification scope")
     if args.sanitized_child:
         if os.environ.get("PYTHON_DOTENV_DISABLED") != "1":
             raise RuntimeError("Dotenv loading must remain disabled")

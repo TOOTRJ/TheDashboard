@@ -2,6 +2,7 @@
   "checked": "2026-10-12",
   "images": [
     {
+      "registry": "public.ecr.aws",
       "repository": "supabase/postgres",
       "tag": "17.6.1.095",
       "index_digest": "sha256:965e2dfb5a23a0d6541b6106541e777b303656ebabd4e878746b189d550c0a66",
@@ -25,6 +26,7 @@
       ]
     },
     {
+      "registry": "public.ecr.aws",
       "repository": "supabase/postgrest",
       "tag": "v14.5",
       "index_digest": "sha256:b574528fe109c8343c1247155734d03df8c34b462f342dca0ccc20244fc36ef9",
@@ -46,6 +48,22 @@
           "config_digest": "sha256:19c3659fdecb0c653813ff691d3a0a05a63f7907f16e319920ff9713b666f3fc"
         }
       ]
+    },
+    {
+      "registry": "docker.io",
+      "repository": "library/python",
+      "tag": "3.12.14-slim-bookworm",
+      "index_digest": "sha256:392307d22300de8b5986851a12d9176dfc0fc073e65bf6523ebd7dcbeb23564e",
+      "platforms": [
+        {
+          "platform": {"architecture": "amd64", "os": "linux"},
+          "manifest_digest": "sha256:1aaa65a85fda306ffb8b910824d4e93bdce61e212c7e87168123ea3073b41a1a",
+          "config_digest": "sha256:febd0be41adb897a0ab8f1f1c693d8912669ea60c4940e076e9946b60e210ef0"
+        }
+      ],
+      "metadata_source": "https://registry-1.docker.io/v2/library/python/manifests/3.12.14-slim-bookworm",
+      "content_digest_verified": true,
+      "config_python_version": "3.12.14"
     }
   ]
 }
