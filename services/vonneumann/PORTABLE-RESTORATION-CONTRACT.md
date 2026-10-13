@@ -435,3 +435,27 @@ The connection optimization saves one client startup; these local measurements
 do not establish a hosted speedup or a five-second cold-restoration bound.
 All full/compact comparisons,13 original wires, retired-ID/stale-head checks,
 original reconciliation, data-free controls and unchanged native guards remain.
+
+The completed4edff598 hosted run still rejects the same original decision.
+SQL4 reports237 cases/1442.718s, one error and two allowed optional timing skips;
+all six other jobs pass. The post-COMMIT reconciliation regression and complete
+source-transition trace pass. Process measurements show1.647129434s across the
+two checkpoint captures and two transport preparations. The accepted protective
+guard is2.789782s after its original first receipt, while a later observation
+sees5.514220s and a live lease. No failed guard instant is recovered by these
+measurements, and no source-bound original is refreshed or retried. The next
+factory-owned immutable-validation-cache experiment must preserve complete
+validation of external/restored/tampered inputs and byte-identical wire meaning.
+
+The reviewed factory-owned cache is now adopted as4685741. First factory audits
+and both complete manifest resolvers remain unchanged; every cache hit requires
+the original exact private object/type/immutable-byte identities. External,
+restored, copied or changed captures always retain full auditing and never
+self-register. The author verifies14 ownership cases plus70 pre-change full/
+compact/13-component wire records, and16 existing restoration cases, zero skips.
+Root verifies all five actual native cases in32.342s with unchanged SQL and
+guards. Positive guard offsets0.904890s/1.827126s include a different0.183815s
+integral-action delay; these are local observations, not a calibrated speedup
+or hosted five-second guarantee. Original expiry and after-COMMIT reconciliation
+still pass. Require complete exact-new-head CI before merge or operating claims.
+[Cache contract](OWNED-CHECKPOINT-RESOLUTION-CONTRACT.md).

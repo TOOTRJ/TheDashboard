@@ -92,13 +92,22 @@ organization-wide limits still apply, but no other-application inventory answer
 is pending. Research is a deliverable with evidence and acceptance criteria,
 not a reason to repeat already completed pilot/setup work.
 
-**Prospective source progress — 2026-10-13:** the separate source branch has67
-passing offline source/acquisition checks, followed by74 checks after the reviewed
-nullable-metadata policy update. It requires915 genuinely observed contiguous
-minutes for61 sampled15-minute closes, original immutable records and independent
-native admission/seal bindings. These pure contracts are not a deployed recorder
-or authenticated source. The fresh two-EMA model and recorder can now proceed
-in parallel; native admission, restoration and hosted acceptance follow them.
+**Prospective source progress — 2026-10-13:** the separate source branch has107
+passing combined offline acquisition/source/metadata/recorded-transport checks.
+It requires915 genuinely observed contiguous minutes for61 sampled15-minute
+closes, original immutable records and independent native admission/seal bindings.
+The separate fresh two-EMA model passes20 focused cases, including two complete
+synthetic cohorts, held Stop, same-package restart, A→B→A epoch refusal and the
+actual-microsecond hour boundary. Reviewed local commits are not yet integrated
+into this release. Native raw-body admission, authenticated epochs/complete
+inventory, restoration and hosted acceptance follow them; the next pure schema
+slice does not issue source or database authority.
+
+**SEC-06 implementation progress:** the separate reviewed local TLS slice has160
+passing scoped cases, including real owned TLS handshakes and cold-import
+inheritance refusal. The new recorder separately suppresses its owned credential-
+bearing request logs. Neither slice is yet integrated/released or accepted in
+the hosted image; keep the SEC-06 parent open through those joins.
 
 **SEC-06 research finding:** Python's default TLS context can inherit
 `SSLKEYLOGFILE` even when HTTPX uses `trust_env=False`; the installed aiohttp also
@@ -127,16 +136,25 @@ and exhaustive occurrences unchanged. [Deep research and ordered CI candidates](
 
 ## Five-priority implementation batch — local review, 2026-10-12
 
-**2026-10-13 release follow-up:** PR104 remains open at `360d4a2`. Its completed
-run38420675259 passes frontend, both ordinary groups and SQL1–3. SQL4 reports236
+**2026-10-13 release follow-up:** PR104 remains open; its latest completed head is `4edff598`. That completed
+run38429396878 passes frontend, both ordinary groups and SQL1–3. SQL4 reports237
 cases, one restoration decision error and two allowed timing skips; the moved
 complete source-transition trace now passes. The original decision still refuses
 at the combined source/lease guard. Resolve that critical path and accept all
 required jobs before merge. Preserve earlier c58177a's separate SQL2 timeout.
 Local proof counts below are bounded historical evidence, not hosted acceptance.
-[Completed failed run and limits](CI-VERIFICATION.md#completed-follow-up-head-360d4a2--2026-10-13).
+[Completed failed run and limits](CI-VERIFICATION.md#completed-follow-up-head-4edff598--2026-10-13).
 The current readiness overview now reflects PR99–PR104 and separates the
 implemented synthetic/native laboratory from the remaining real-provider joins.
+
+The reviewed immutable factory-owned checkpoint cache is adopted locally as
+`4685741`, preserving all first/untrusted full audits and canonical wires.
+Fourteen dedicated cases include70 pre-change complete wire comparisons;
+16 existing restoration cases also pass. Root's unchanged five native cases
+pass32.342s, zero skips. New2414 ordinary/602 SQL discovery retains all original
+occurrences and54 repeated IDs. Complete next-head hosted CI/release remains
+required; local faster phases do not establish hosted operating tails.
+[Factory ownership and trust limits](services/vonneumann/OWNED-CHECKPOINT-RESOLUTION-CONTRACT.md).
 
 The working `codex/dashboard-five-priorities` branch now contains corrected
 original-v2 independent SQL, NEST-05A identity/cloud-order repairs, a real
@@ -578,6 +596,8 @@ Preflight evidence and remaining setup are tracked in [the access report](CONFIG
 - [x] **SEC-05A — P1: Review and repair the two reported advisory paths.** source-map-js is locked1.2.2; its bounded invalid-offset regression fails1.2.1 and passes the reviewed fix. Exact security snapshot passes183 Node tests, TypeScript, isolated build and zero-error lint; repaired production audit is zero. Five high dev graph entries remain from unpatched braces3.0.3. The exact dev-only path/version exception expires2026-10-26 and is due for October14/upstream re-review; check-advisories rejects changed/new/runtime findings, scanner errors, expiry and malformed/unbounded graphs. This is visible bounded acceptance, not a claim braces is fixed. No Next14 downgrade or global changes. [Current repair/exception](DEPENDENCY-REVIEW.md). ParentSEC-05/05B and broader runtime/tool maintenance remain open.
 
 - [ ] **SEC-05B — P1, due 2026-10-14: Review the announced Next security update as soon as published.** The [October8 official notice](https://nextjs.org/blog/upcoming-nextjs-security-update-october-2026) announces two critical and one high upstream fix; impact/affected versions/instructions are pending. Review the actual advisories and compatible patched Next/config versions, test Auth/proxy/build paths and release to the exact Dashboard project. Do not claim current installed versions are definitely affected or16.4.0 fixes these undisclosed issues. No scheduler/account-wide change is implied by this task.
+
+- [ ] **SEC-06 — P1: Integrate and accept isolated credential-bearing HTTP behavior.** Reviewed local TLS commit `b1ab59f4e6d5ae9a134a21235ba9a7f4343332fd` passes160 scoped cases; the new recorded transport's owned logging/TLS/deadline slice passes33 cases within107 combined acquisition/source tests. Integrate each reviewed slice after PR104's release gate, run complete relevant regressions, verify the immutable non-root image and actual pinned CA/runtime/entrypoint, then accept closed hosted credential-bearing I/O before any recorder activation. Preserve other tasks' environment, log filters, credentials and processes. No global context monkeypatch, inherited key-log/CA/proxy fallback, secret-bearing response/log exception, automatic retry or unverified custom record factory. **Deeper research:** complete cold-import paths, cancellation/cleanup tails, logger concurrency and malicious runtime limits, CA maintenance, target-host memory/CPU and secret-safe diagnostics. Local fake-keylog and owned TLS proofs do not establish that a leak occurred or that the hosted image is accepted.
 
 - [x] **RELEASE-01 — Repair this project's Vercel Git deployment authorization.** **Verified in [PR #10](https://github.com/TOOTRJ/TheDashboard/pull/10):** the dedicated credential authenticates as **biggrizzly11** (ID `16749816`), and GitHub attributes both source commit author/committer and the merge to that account. Automatic preview `dpl_99zV4MVWj8Xu312AEvASESgMj28f` is READY on source `d945dcdea7fbc3fffe7dede218ffaab9f740579d`; automatic production `dpl_EqbEvGzqe3RK7CD5mLscyf32SmiQ` is READY on merge `e9045b4f133f81fc75d5552e531c43a6259c3500`, with the production alias independently verified. Login/redirect, unauthenticated 401, authenticated zero-row API read, and a bounded error-log scan pass. Shared GitHub CLI still identifies as RedJester14; global Git/auth, historical commit authors, Vercel team/installation settings, billing, and other projects were unchanged. Historical RedJester14 attempts remain blocked; their history was not rewritten or bypassed. Use the repository-pinned helper and verified local identity for future releases. The limited token cannot read GitHub's combined check-status view; inspect the exact approved Vercel deployment directly instead of broadening permissions. This closes Git deployment authorization only, not worker or trading readiness.
 - [x] **REL-01 — Make failures visible and durable.** Replace swallowed persistence errors and endless log-only tick retries with structured errors, health/degraded/failed states, bounded retry rules, and user-visible outcomes. Preserve data when a read fails; do not turn all query failures into empty-success results. Acceptance: injected DB/feed/startup failures are distinguishable from empty datasets and successful operations, without exposing secrets. **Local completion:** acknowledged owner-scoped writes, finite transport timeouts, per-colony write serialization/cancellation draining, supervised terminal failures, safe provider errors, retained query results/retry, saved terminal diagnostics, and explicit unsaved/reconciliation warnings pass regression tests. Expired price-cache fallback and fabricated zero prices are removed. Automatic write/provider retries are disabled. Deployed readiness/recovery, optional historical-data policy, and candle freshness remain under SVC-02/ENG-02/ENG-03/DATA tasks.

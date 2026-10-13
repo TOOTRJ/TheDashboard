@@ -239,6 +239,63 @@ SQL discovery SHA256
 `970cba0134f6186013506ae042595e32e1d541427f019208fce63c6a7d44a536`.
 Discovery does not execute tests. Complete next-head CI remains required.
 
+### Completed follow-up head 4edff598 — 2026-10-13
+
+[Run38429396878](https://github.com/TOOTRJ/TheDashboard/actions/runs/38429396878)
+at `4edff5983ec6817fe7156c659cd716e8340f5eac` completes39m36s. Frontend
+passes2m11s, ordinary groups pass15m34s/15m8s, and SQL1–3 pass36m30s/39m33s/
+28m51s. SQL4 fails25m9s, reporting237 cases in1442.718s with one error and two
+allowed optional timing skips. Its complete source-transition trace and the
+new actual post-COMMIT failure/reconciliation case pass. The original restoration
+decision still refuses at `portable_native_final_source_or_lease_expired`.
+PR104 remains unmerged; no job rerun, deadline change or omission closes this.
+
+The fixed process-phase observations identify repeated checkpoint capture and
+transport preparation as a substantial cost: protective capture0.456948445s,
+protective transport0.317276690s, decision capture0.432810786s and decision
+transport0.440093513s (1.647129434s together). Original protective submission
+and native readback takes1.208044806s; its separate fresh operator read takes
+0.160430889s; decision native submission takes1.518929106s. These process
+durations are not the failed native guard's clock. The accepted protective guard
+is2.789782s after the first original receipt; a later diagnostic observes that
+receipt aged5.514220s and a live lease. The combined failed predicate's exact
+instant remains unobserved. Preserve the original-ID reconciliation and refusal.
+
+The next investigation may cache the completed full validation only for exact
+immutable objects created by the private checkpoint factory. Arbitrary decoded,
+restored, forged or changed objects must retain full validation; detached views,
+canonical full/compact wires, first-factory validation and independent native
+source/lease checks remain required. This would change Python implementation
+hashes and requires new evidence, without relabeling prior source-bound receipts.
+
+### Factory-owned resolution follow-up — adopted locally 2026-10-13
+
+Reviewed cache commit `d55bff6` is adopted as `468574193c33c9d5f4c2ddee44ed00faca0a7d53`
+with exactly five files; its separate TLS parent is excluded. Both first-factory
+full audits, complete arbitrary `resolve_manifest` functions, transport/candidate
+comparisons and all wire/capacity policies stay intact. Exact immutable factory
+object/type/byte identities permit a detached JSON view from already validated
+evidence; unowned, restored, changed or copied objects keep full auditing. Weak
+ownership does not confer source, receipt, lease or native authority.
+
+The author passes14 dedicated cases/18.244s, including70 independently captured
+pre-change full/compact/manifest/component wire records, and16 existing offline
+restoration cases/38.370s; both report zero skips. Root independently runs all five
+actual native restoration cases against4edff598 plus this cache:5/5 pass32.342s,
+zero skips. The actual positive guards are0.904890s/1.827126s after the same
+original receipt; its integral-action delay is0.183815s. This differing delay and
+local scheduling prevent a calibrated old/new speedup or hosted bound claim.
+Actual post-COMMIT reconciliation, genuine expiry rollback, original absence,
+foreign/historical refusal and data-free controls remain accepted locally.
+
+New ordinary discovery is2414 occurrences1045/1369, SHA256
+`d5a508ad6d4801fa51b57ca160ec4da1bb6415f9b5666e361c0a92d542121bad`.
+SQL discovery remains602 occurrences94/128/143/237, SHA256
+`970cba0134f6186013506ae042595e32e1d541427f019208fce63c6a7d44a536`.
+Selection SHA256,54 original repeated IDs and all limits stay unchanged.
+This is discovery, not complete execution. Require all seven actual checks on
+the next pushed head before merge. [Ownership contract](services/vonneumann/OWNED-CHECKPOINT-RESOLUTION-CONTRACT.md).
+
 PR/manual triggers have no path/type/branch filters, and main pushes have only
 the main-branch filter. The capability validator requires every advertised Node,
 type, lint, advisory, build, lock/hash installation, dependency-consistency and

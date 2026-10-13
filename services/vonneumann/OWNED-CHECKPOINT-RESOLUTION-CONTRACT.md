@@ -120,3 +120,26 @@ Rollback is a reviewed reversion of the two implementation modules to the
 previous full-resolution behavior. It needs no database migration or provider
 change. New package/source bindings must again use the reverted bytes; retained
 receipts and this historical golden fixture keep their recorded provenance.
+
+## Root adoption and independent native check — 2026-10-13
+
+The exact five-file local commit `d55bff696694c69dde87577565c496d1f72ea93a`
+is adopted as `468574193c33c9d5f4c2ddee44ed00faca0a7d53` on the PR104 branch.
+Root independently confirms the pre-change source hashes match its4edff598 base;
+the separate TLS parent is excluded. The changed legacy/partitioned Python
+hashes are respectively
+`b79433a9e7aaf34112b5f76927a4e6eb990e5f6630627337e6b1add90cb60843` and
+`5fc9a5ddac33a58f8855f4d7c356ca13a119909e6b819e4a681ae82972d55b75`.
+Native SQL remains
+`76e23d44a296c838238e5545c9ea498eb86d2ac5caee9798236aee1f8a5bf5c4`.
+
+All five actual native restoration cases pass32.342s, zero skips, against this
+adopted source and a newly owned network-none PostgreSQL fixture. Original
+protective/decision guard offsets are0.904890s/1.827126s after the first original
+receipt; the integral-action delay is0.183815s. The differing delay, source
+sample and local scheduling prevent a calibrated old/new speedup claim. Actual
+after-COMMIT failure reconciles the original protection without retry/decision;
+genuine expiry refuses and leaves the original absent with rollback. Historical/
+foreign/current-head, data-free controls and no-load-created authority checks
+pass. Exact owned fixture cleanup completes. Complete hosted next-head CI remains
+required before merge or any operating bound; no provider/cloud request occurs.

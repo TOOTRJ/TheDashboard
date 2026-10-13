@@ -23,13 +23,26 @@ acceptance. Strict boolean/integer configuration rejection is already repaired
 in PR99. Focused local proofs pass; this does not establish complete release
 acceptance or a real-provider runtime.
 
-The completed exact-source [run38420675259](https://github.com/TOOTRJ/TheDashboard/actions/runs/38420675259)
-at `360d4a2ea490eabf53bfa2709495f89b725a368e` passes frontend, both ordinary
+The latest completed exact-source [run38429396878](https://github.com/TOOTRJ/TheDashboard/actions/runs/38429396878)
+at `4edff5983ec6817fe7156c659cd716e8340f5eac` passes frontend, both ordinary
 worker groups and SQL groups1–3. SQL4's complete source-transition trace passes,
 but its original restoration decision still fails the source-or-lease expiry
 guard. The earlier SQL2 parent timeout remains dated evidence. PR104 remains open.
 Repair and complete all seven actual jobs before merge; preserve the failed
 run's evidence and unchanged freshness/lease limits. See [CI-VERIFICATION.md](CI-VERIFICATION.md).
+
+The separate reviewed prospective-source/recorder branch passes107 combined
+offline checks; the independently constructed two-EMA model passes20 focused
+checks, with explicit paper-cost provenance and exact microsecond cohort bounds.
+Those local commits have not yet joined this release or a native runtime.
+Full raw source admission, authenticated epoch/inventory registries and original
+readback remain the next dependency; no research authority flag is activated.
+
+The subsequent factory-owned checkpoint optimization is adopted locally as
+`4685741`. Its14 new ownership/continuity cases and16 existing restoration cases
+pass; root's five actual native cases pass32.342s with unchanged source/lease
+guards. A complete next-head hosted run is still pending, so PR104's merge gate
+and the worker's closed status remain in force.
 
 Railway remains at ordinary closed deployment
 `cf05895d-adc5-427f-873e-82ad6606e5a1`, with the original variable map restored and

@@ -284,3 +284,32 @@ does not support compilation as the cause of the hosted restoration expiry or
 justify changing server settings. The fixture/native profile remains unchanged.
 Nested semantic costs and hosted CPU/client scheduling remain unmeasured here.
 [PostgreSQL JIT decision rules](https://www.postgresql.org/docs/17/jit-decision.html).
+
+## Completed same-session-readback run — 2026-10-13
+
+Head4edff598/run38429396878 completes39m36s. Frontend, both ordinary groups and
+SQL1–3 pass; SQL4 fails25m9s, with237 cases/1442.718s, one original restoration
+decision error and two explicitly allowed optional timing skips. Image setup,
+the whole source-transition trace and the new post-COMMIT reconciliation case
+pass. This narrows the remaining measured failure to original-pair source
+admission rather than registry preparation or the earlier SQL2 deadline.
+
+Fixed host-phase durations total1.647129434s for protective/decision checkpoint
+capture and transport preparation; original protective SQL plus full readback
+is1.208044806s, separate operator verification0.160430889s and original decision
+SQL1.518929106s. Later receipt age5.514220s/live lease and protective guard offset
+2.789782s do not expose the failed final-clock instant. Keep that distinction.
+Evaluate already fully validated immutable factory objects as a bounded local
+performance optimization, with external/unowned/restored/tampered full audits,
+fresh detached views, weak ownership, unchanged canonical wires and native
+guards. This proposal is not implemented acceptance or a five-second guarantee.
+
+The bounded cache mechanism is subsequently implemented and adopted as4685741.
+Its14 ownership/continuity cases include70 pre-change complete wire records;
+16 existing restoration cases pass. Root's five actual native restoration cases
+pass32.342s, zero skips, with the same SQL/source/lease budgets and original-ID
+semantics. First-factory and arbitrary-wire full validators stay intact. The
+private weak identity proof is neither source freshness nor native authority.
+The local positive guard offsets0.904890s/1.827126s include a different0.183815s
+integral-action delay; no calibrated speedup or hosted bound follows. Complete
+next-head CI remains required. The prior failed runs remain separate evidence.

@@ -5069,3 +5069,44 @@ the new after-COMMIT failure case finds the original committed row without a
 retry/decision. Final discovery is2400 ordinary/602 SQL occurrences with54
 repeated IDs and unchanged selection/limits. The measured pure catalog query
 does not use JIT; no server setting is tuned. Full next-head CI remains required.
+
+## 118. Completed current-head failure and parallel offline progress — 2026-10-13
+
+Head4edff598/run38429396878 completes39m36s with six jobs passing. SQL4 reports
+237 cases/1442.718s, one original restoration decision error and two allowed
+optional timing skips. The complete source-transition trace and actual
+post-COMMIT original reconciliation pass. The fixed phase observations identify
+1.647129434s of repeated capture/transport preparation; neither those timings
+nor the later receipt-age diagnostic is the actual failed native guard clock.
+The source/lease budgets and original wire/ID remain unchanged. PR104 stays open;
+no production release, migration or worker activation occurs.
+
+The separate reviewed local recorded-acquisition slice passes107 combined cases.
+The fresh independent prospective model passes20 cases/125.704s, zero skips,
+with all authority false. The private legacy TLS hardening slice passes160 scoped
+cases. Those local commits are not yet integrated into this release, installed
+native source admission, the worker image or a hosted paper runtime. New pure
+source/native envelope work must independently reparse original bodies and
+retain its explicit supplied-context trust limits before the native join.
+
+Dedicated Vercel authentication remains pending the user's ready-for-login
+response. Existing scoped-profile and immutable project boundaries are preserved;
+offline work continues without shared credential fallback or cloud changes.
+
+## 119. Factory-owned checkpoint optimization and native recheck — 2026-10-13
+
+The reviewed five-file cache commit is adopted as4685741 without its separate
+SEC-06 TLS parent. Root verifies its old checkpoint/model hashes match the
+pre-change golden fixture. All first-factory/untrusted full validators, canonical
+wire meanings, source/lease budgets and original-ID semantics stay intact.
+Author verification passes14 dedicated cases including70 pre-change complete
+wire records and16 existing restoration cases, zero skips. Root independently
+passes five unchanged actual native cases in32.342s, zero skips, with original
+guard offsets0.904890s/1.827126s and a0.183815s action delay. These local timing
+observations do not establish hosted tails or a calibrated speedup.
+
+Final discovery is2414 ordinary occurrences1045/1369 and602 SQL occurrences
+94/128/143/237, retaining54 repeated IDs and unchanged selection/limits. Full
+new-head hosted CI and exact scoped release checks still gate merge. The user's
+existing migration remains unchanged; no cloud schema, worker activation,
+provider credential, shared configuration or another project is modified.

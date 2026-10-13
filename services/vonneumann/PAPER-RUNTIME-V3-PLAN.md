@@ -1,5 +1,35 @@
 # Forward recorded-provider paper runtime v3 — review proposal, 2026-10-12
 
+## Implementation progress — 2026-10-13
+
+The immutable proposal below remains a historical, inert schema; its reserved
+names and null bindings are not activated or relabeled. New separately named
+research implementations now exist in reviewed local branches: acquisition
+`7374539`/`ee5515e`, prospective Jupiter-only source `a78e734`, explicit nullable
+metadata policy `282c087`, recorded transport `0785ab4`, and fresh independent
+model `760f155`. The transport/source/acquisition suite passes107 cases; the
+fresh two-EMA model passes20 cases/125.704s, zero skips. These commits are not
+yet integrated into PR104 or installed as a native/hosted runtime.
+
+The chosen source research profile is explicitly minute-sampled PriceV3 closes:
+915 genuinely observed contiguous minutes,61 complete15-minute close-only bars,
+original raw Price/genesis/block-time bodies, committed-readback availability,
+complete supplied inventory and retained per-record process epochs. It has no
+historical OHLCV, volume or executable-fill claim, and requires no Birdeye
+transport for this profile. The older Birdeye proposal and data-rights gates
+below remain evidence for a distinct optional dataset, not a required dependency
+of this Jupiter-only implementation.
+
+The model has its own state/ledger, required explicit uncalibrated cost provenance,
+integer-microsecond causal and common-hour bounds, held-position Stop, same-package
+rollover and an accepted-epoch ledger that refuses A→B→A. All authority stays
+false. The next source/native join must independently reparse original bodies,
+authenticate scoped issuer/epoch/head/clock/identity/inventory, preserve original-ID
+reconciliation and atomic admission, and then join compact/restoration/retention
+and owner API/UI. A separate pure schema witness does not replace that native
+boundary. Reviewed migration/rollback and closed hosted multi-window/fault/resource
+acceptance remain later gates; no research wire becomes active by flipping flags.
+
 The next implementation should be a new recorded-provider paper profile joined
 to the proven operator, native admission, restoration and retained evidence.
 Original portable v2 is still a synthetic research profile. The existing closed
