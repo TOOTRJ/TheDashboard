@@ -239,3 +239,12 @@ Final combined sanitized helper discovery passes83/83 cases, zero skips, includi
 occurrences split994/1268 and533 SQL occurrences split94/132/126/181; both preserve
 54 baseline repeated IDs. Discovery-only executes no tests/class setups. Actual
 hosted pulls/downloads and every group's completion remain required before merge.
+
+Run38326083781/sourcea20bcee passes frontend and the actual15 inner native driver
+cases (19.462s), but one SQL group fails an opaque image pull; whole-group and
+workflow acceptance are not claimed. Public pin/operation/fixed-class diagnostics
+and up to three recognized-transient same-reference pull attempts now preserve
+the original total240s-per-pin budget. Permanent/unknown or identity failures
+still fail, and captured Docker output/credentials never enter logs. No image
+fallback is added. After this change all87 combined helper cases pass with zero
+skips; all seven real jobs at the revised head still must complete successfully.

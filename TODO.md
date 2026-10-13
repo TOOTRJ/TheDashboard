@@ -17,7 +17,10 @@ passes the frontend gate but times out ordinary discovery at its 1500-second
 limit. Required PostgreSQL also times out at its 2,400-second limit without a final summary. Exhaustive bounded worker sharding
 and Linux-owned fixture portability are implemented. Required SQL now has
 four exhaustive bounded groups and verified native-driver prerequisites; the full retry and all required hosted
-groups must pass before QA-01A closes. The three repaired application/security slices are
+groups must pass before QA-01A closes. Retry run38326083781 passes frontend and
+15 actual inner native-driver cases, but one SQL group fails an opaque image pull.
+Safe public diagnostics and bounded same-pin transient retries address that
+verification failure; full exact-head acceptance remains pending. The three repaired application/security slices are
 already merged and production-verified.
 
 This section is the authoritative priority/dependency view. Dated checkpoints

@@ -4687,3 +4687,25 @@ worker/SQL cases, wheel download, image pull or local Docker action is run for
 this prerequisite repair. Actual hosted acceptance of all seven jobs remains
 required. The user migration and unrelated files/credentials/processes remain
 preserved. Rollback is a reviewed verification code/docs revert.
+
+## 112. Hosted image-pull evidence and bounded retry — 2026-10-12
+
+At sourcea20bcee22b668a7a11dc9e9bc3a7a11162231d6f,
+[run38326083781](https://github.com/TOOTRJ/TheDashboard/actions/runs/38326083781)
+passes frontend in2m6s. SQL group2 fails its image-pull step after37s; the old
+helper's generic error provides no failed pin or registry cause, so no specific
+rate-limit/outage claim is made. Other groups continue. Group4 actually executes
+and passes all15 inner native driver cases in19.462s; this bounded result does
+not establish completion of its full SQL group or the whole workflow.
+
+Image preparation now emits only public pinned repository/manifest, operation,
+attempt and fixed error category. Captured Docker stderr/environment/credentials
+are never printed. Only recognized transient pull categories retry the same
+exact reference, at most three attempts with5/10s backoff within the original
+total240s-per-pin pull budget. A consumed deadline cannot restart another full
+budget. Permanent/unknown failures, identity and platform mismatches remain
+failures; no image fallback is added. All87 combined sanitized helper cases pass,
+zero skips, including deadline/permanent-failure/secret-suppression cases. Actual
+completion of all seven jobs at the revised head remains required before merge.
+No local image pull/container, migration, provider/key, billing or wallet action
+is performed in this repair.

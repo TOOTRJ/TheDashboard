@@ -6,6 +6,12 @@ import json
 import os
 import re
 import subprocess
+import time
+
+PULL_BUDGET_SECONDS = 240
+PULL_ATTEMPTS = 3
+RETRY_DELAYS_SECONDS = (5, 10)
+TRANSIENT_ERRORS = {"rate-limited", "registry-unavailable", "network-timeout", "transport-reset"}
 
 PINS = (
     {"tag": "public.ecr.aws/supabase/postgres:17.6.1.095",
@@ -35,6 +41,30 @@ def verify_image(metadata: dict, pin: dict) -> None:
         raise ValueError("Fixture image platform, digest or immutable identity does not match")
 
 
+def error_class(stderr: str) -> str:
+    """Return only a fixed class; never publish Docker output or credentials."""
+    text = stderr[:16384].lower() if isinstance(stderr, str) else ""
+    patterns = (
+        ("rate-limited", ("toomanyrequests", "too many requests", "rate limit", r"\b429\b")),
+        ("registry-unavailable", (r"\b50[0234]\b", "service unavailable", "bad gateway")),
+        ("network-timeout", ("tls handshake timeout", "i/o timeout", "context deadline exceeded", "connection timed out")),
+        ("transport-reset", ("connection reset", "unexpected eof", "temporary failure in name resolution")),
+        ("manifest-unavailable", ("manifest unknown", "manifest not found", "no matching manifest")),
+        ("authorization-denied", ("unauthorized", "authentication required", "pull access denied", "access denied", r"\b40[13]\b")),
+        ("daemon-unavailable", ("cannot connect to the docker daemon", "is the docker daemon running", "connection refused", "no such file or directory")),
+    )
+    for category, candidates in patterns:
+        if any(re.search(pattern, text) for pattern in candidates):
+            return category
+    return "unclassified"
+
+
+def diagnostic(pin: dict, operation: str, state: str, **details) -> None:
+    print(json.dumps({"scope": "github-hosted-image-preparation", "image": pin["repository"],
+                      "manifest": pin["manifest"], "operation": operation, "state": state,
+                      **details}, sort_keys=True), flush=True)
+
+
 def prepare(inherited: dict[str, str]) -> None:
     if (inherited.get("GITHUB_ACTIONS") != "true"
             or inherited.get("RUNNER_ENVIRONMENT") != "github-hosted"
@@ -46,21 +76,55 @@ def prepare(inherited: dict[str, str]) -> None:
     env = {key: inherited[key] for key in ("PATH", "TMPDIR", "LANG", "LC_ALL") if key in inherited}
     env["DOCKER_HOST"] = host
 
-    def command(args: list[str], timeout: int = 30) -> str:
-        result = subprocess.run(["docker", "--host", host, *args], env=env, text=True,
-                                capture_output=True, check=False, timeout=timeout)
-        if result.returncode:
-            raise RuntimeError("Required fixture image preparation failed")
-        return result.stdout
+    def command(pin: dict, operation: str, args: list[str], timeout: float = 30, attempt: int = 1) -> tuple[str, str | None]:
+        diagnostic(pin, operation, "starting", attempt=attempt)
+        try:
+            result = subprocess.run(["docker", "--host", host, *args], env=env, text=True,
+                                    capture_output=True, check=False, timeout=timeout)
+        except subprocess.TimeoutExpired:
+            category = "network-timeout" if operation == "pull" else "operation-timeout"
+        except OSError:
+            category = "cli-unavailable"
+        else:
+            if not result.returncode:
+                return result.stdout, None
+            category = error_class(result.stderr)
+        diagnostic(pin, operation, "failed", attempt=attempt, error_class=category)
+        return "", category
+
+    def required(pin: dict, operation: str, args: list[str]) -> str:
+        output, category = command(pin, operation, args)
+        if category:
+            raise RuntimeError(f"Required fixture {operation} failed: {pin['repository']}@{pin['manifest']} ({category})") from None
+        return output
+
+    def pull(pin: dict, reference: str) -> None:
+        deadline = time.monotonic() + PULL_BUDGET_SECONDS
+        category = "network-timeout"
+        for attempt in range(1, PULL_ATTEMPTS + 1):
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                break
+            _, category = command(pin, "pull", ["pull", "--platform", "linux/amd64", reference], remaining, attempt)
+            if category is None:
+                return
+            if category not in TRANSIENT_ERRORS or attempt == PULL_ATTEMPTS:
+                break
+            delay = RETRY_DELAYS_SECONDS[attempt - 1]
+            if deadline - time.monotonic() <= delay:
+                break
+            diagnostic(pin, "pull", "retrying", attempt=attempt, error_class=category, delay_seconds=delay)
+            time.sleep(delay)
+        raise RuntimeError(f"Required fixture pull failed: {reference} ({category})") from None
 
     for pin in PINS:
         reference = f"{pin['repository']}@{pin['manifest']}"
-        command(["pull", "--platform", "linux/amd64", reference], timeout=240)
-        verify_image(json.loads(command(["image", "inspect", reference]))[0], pin)
+        pull(pin, reference)
+        verify_image(json.loads(required(pin, "inspect-pulled", ["image", "inspect", reference]))[0], pin)
         # The existing harness resolves these exact tags then runs the immutable ID.
         # Only this new disposable runner daemon is retagged, never a local daemon.
-        command(["image", "tag", reference, pin["tag"]])
-        verify_image(json.loads(command(["image", "inspect", pin["tag"]]))[0], pin)
+        required(pin, "tag-fixture", ["image", "tag", reference, pin["tag"]])
+        verify_image(json.loads(required(pin, "inspect-fixture", ["image", "inspect", pin["tag"]]))[0], pin)
     print(json.dumps({"scope": "github-hosted-owned-fixtures", "architecture": "amd64",
                       "verified_manifests": [pin["manifest"] for pin in PINS]}, sort_keys=True))
 

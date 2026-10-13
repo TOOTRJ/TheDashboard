@@ -247,5 +247,61 @@ class NativeWheelTests(unittest.TestCase):
                 images.verify_image({"Architecture": "amd64", "Os": "linux", "Id": pin["config"],
                                      "RepoDigests": [repository + "@" + pin["manifest"]]}, pin)
 
+    def test_docker_failure_classes_do_not_include_captured_private_text(self):
+        samples = (("toomanyrequests: You have reached your unauthenticated pull rate limit", "rate-limited"),
+                   ("unexpected status from HEAD request: 503 Service Unavailable", "registry-unavailable"),
+                   ("net/http: TLS handshake timeout", "network-timeout"),
+                   ("read tcp: connection reset by peer", "transport-reset"),
+                   ("manifest unknown", "manifest-unavailable"), ("unauthorized: authentication required", "authorization-denied"),
+                   ("Cannot connect to the Docker daemon at unix:///var/run/docker.sock", "daemon-unavailable"),
+                   ("unexpected failure for synthetic-private-token", "unclassified"))
+        for message, category in samples:
+            with self.subTest(category=category):
+                self.assertEqual(images.error_class(message + " synthetic-private-token"), category)
+
+    def test_transient_pull_retries_same_exact_pin_within_original_budget_without_stderr_output(self):
+        pin = images.PINS[0]
+        metadata = {"Architecture": "amd64", "Os": "linux", "Id": pin["config"],
+                    "RepoDigests": [pin["repository"] + "@" + pin["manifest"]]}
+        events, output = [], io.StringIO()
+        def execute(command, **kwargs):
+            events.append((command, kwargs))
+            if command[3] == "pull" and sum(event[0][3] == "pull" for event in events) == 1:
+                return subprocess.CompletedProcess(command, 1, "", "503 service unavailable synthetic-private-token")
+            return subprocess.CompletedProcess(command, 0, json.dumps([metadata]) if command[3:5] == ["image", "inspect"] else "", "")
+        with patch.object(images, "PINS", (pin,)), patch.object(images.subprocess, "run", side_effect=execute), \
+             patch.object(images.time, "sleep") as sleep, patch.object(images.time, "monotonic", return_value=100), \
+             patch("sys.stdout", output):
+            images.prepare(self.hosted())
+        pulls = [event for event in events if event[0][3] == "pull"]
+        self.assertEqual(len(pulls), 2); self.assertEqual(pulls[0][0], pulls[1][0])
+        self.assertLessEqual(max(event[1]["timeout"] for event in pulls), 240)
+        sleep.assert_called_once_with(5)
+        self.assertIn(pin["manifest"], output.getvalue()); self.assertIn("registry-unavailable", output.getvalue())
+        self.assertNotIn("synthetic-private-token", output.getvalue())
+
+    def test_permanent_pull_failure_and_exhausted_retry_are_bounded_and_never_fallback(self):
+        pin = images.PINS[2]
+        for error, count in (("unauthorized synthetic-private-token", 1), ("manifest unknown synthetic-private-token", 1),
+                             ("toomanyrequests synthetic-private-token", 3)):
+            output = io.StringIO()
+            with self.subTest(error=error), patch.object(images, "PINS", (pin,)), \
+                 patch.object(images.subprocess, "run", return_value=subprocess.CompletedProcess([], 1, "", error)) as execute, \
+                 patch.object(images.time, "sleep") as sleep, patch.object(images.time, "monotonic", return_value=100), \
+                 patch("sys.stdout", output), self.assertRaises(RuntimeError) as caught:
+                images.prepare(self.hosted())
+            self.assertEqual(execute.call_count, count)
+            self.assertLessEqual(sum(call.args[0] for call in sleep.call_args_list), 15)
+            self.assertTrue(all(call.args[0][-1] == pin["repository"] + "@" + pin["manifest"] for call in execute.call_args_list))
+            self.assertNotIn("synthetic-private-token", output.getvalue() + str(caught.exception))
+
+    def test_pull_deadline_exhaustion_prevents_a_second_240_second_attempt(self):
+        output = io.StringIO()
+        with patch.object(images, "PINS", (images.PINS[0],)), patch.object(images.subprocess, "run", side_effect=subprocess.TimeoutExpired([], 240)) as execute, \
+             patch.object(images.time, "sleep") as sleep, patch.object(images.time, "monotonic", side_effect=(100, 100, 341)), \
+             patch("sys.stdout", output), self.assertRaisesRegex(RuntimeError, "network-timeout"):
+            images.prepare(self.hosted())
+        self.assertEqual(execute.call_count, 1); sleep.assert_not_called()
+
 
 if __name__ == "__main__": unittest.main()
