@@ -5221,3 +5221,48 @@ browser displays the expected source commit, repository, branch and
 the reviewed immutable image pull with rate limits before any integration test.
 The other jobs remain running at this observation. No merge, CLI credential
 fallback, production replacement, migration or worker activation follows.
+
+### 2026-10-13 — Settled81474 CI and local final app acceptance
+
+Immediately before the81474 push, fresh read-only GitHub, exact Vercel project/
+team, Supabase project/organization and Railway project/workspace/environment
+checks match the allowed immutable targets. GitHub PR104 remains open at
+`81474c1f9b65ac0defe0da4a1c061aa88c417561`. The exact linked preview
+`dpl_EwKi7hgmUme1x6XbQnKSva2zebzT` is READY40s with the expected repository,
+branch, author and source. GitHub run38464960221 settles35m2s: six jobs pass;
+SQL4 fails all five bounded original-pin image pulls and runs zero SQL cases.
+No merge/rerun/cancellation or production promotion is performed. The next
+content-export experiment cannot be adopted without actual runtime and
+producer/consumer failure proof. Dedicated Vercel CLI auth remains absent;
+signed-in browser verification uses no fallback credential or setting change.
+
+Separate local app source`c029931` builds with fake-only configuration and
+passes379 frontend cases/zero skips in22366.724167ms with unchanged clean source
+before/after. Actual desktop/mobile samples, range/filter/sort/pagination,
+Analytics tabs, disabled unsupported actions and dialog closure/focus recovery
+are source-bound in its local final receipt committed as`5690e6f`. Temporary
+viewport is reset, tab35 closed, exact owner/command checked before normal
+parent54623 stop, fixture exit0 and exact owned build copy absent. No real
+account/database/provider is used. Its release still requires composition
+with the accepted CI base and exact project checks. All earlier build and
+dialog failures remain recorded.
+
+Worker joins`028d39c`/`7cdecab` retain exact frozen TLS/source/model/parser
+bytes and original proof limits. Local308/20/16 proofs do not confer native
+source, actor, clock, epoch, journal, hosted or trading authority. The B1
+actor-only14-case experiment is reviewed for an owned network-none cached
+PostgreSQL fixture only. Railway remains closed at its earlier ordinary
+deployment; Supabase tables/ACL/rows are unchanged. User migration hash remains
+`a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc`.
+No shared credentials/settings/processes or other projects are changed.
+
+**2026-10-13 API privilege prerequisite:** one exact-project read-only catalog
+request confirms postgres ownership, no policy/column/PUBLIC grants, no
+transitive membership, and all eight effective table privileges for anon,
+authenticated and service_role on the two API tables. Only service_role bypasses
+RLS. This does not prove an anonymous row leak or REST TRUNCATE exposure. The
+proposed table-only repair is no anon/authenticated privileges and service
+SELECT+INSERT, preserving defaults/roles/schema/RLS/data/unrelated objects.
+Concrete baseline/ACL SQL, owned SQL/PostgREST tests and reviewed rollout are
+next; no hosted grants or rows changed.
+[Exact evidence, proposed delta and remaining gates](DB-04-API-PERMISSIONS-REVIEW-2026-10-13.md).

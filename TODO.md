@@ -2,6 +2,44 @@
 
 ## Current execution plan — reviewed 2026-10-13
 
+**Latest ordered checkpoint — 2026-10-13:** PR104 head
+`81474c1f9b65ac0defe0da4a1c061aa88c417561` is pushed and its exact Dashboard
+preview is READY. [Run38464960221](https://github.com/TOOTRJ/TheDashboard/actions/runs/38464960221)
+finishes35m2s with six passing jobs; SQL4 fails all five bounded original-pin
+image pulls in preparation and executes zero SQL cases. No merge or rerun.
+The pull coordination passes its mock checks but cannot resolve persistent
+registry quota. Next release work is a separately reviewed runtime-content
+archive verifier and actual export/load measurements, followed by exact
+producer/consumer workflow guards. Keep every required SQL case and deadline.
+
+In parallel, the final separate app source `c029931` passes379 frontend cases,
+zero skips, plus rebuilt desktop/mobile synthetic browser checks. Home/Analytics
+are labeled samples; unsupported profile/wallet/key/export/backtest actions
+explain their unavailable state. A real stuck-dialog defect is repaired, and
+Enter/Space/Escape/Close restore the original button focus with a static outline.
+The source-bound receipt is committed in local app branch `5690e6f`; release
+composition with the eventual accepted CI base remains open. The old installation
+timeout/ECONNRESET and partial dialog failures remain dated evidence.
+
+Worker TLS+source and model+parser joins are committed locally as
+`028d39c`/`7cdecab`, with308 combined scoped checks,20 model checks and16 actual
+parser SQL checks. Complete composed ordinary checks are the next verification.
+The reviewed B1 actor/catalog prototype is authorized only for an owned
+14-case local PostgreSQL experiment; no hosted migration or source/runtime
+authority follows. Its clock/epoch/original-ID/journal/reader joins stay open.
+An unused whole-year household calendar contract is also committed locally
+as`4e03074` with four hand-worked fixtures; it changes no Nestegg calculation.
+
+Current dependency order: CI content/transport acceptance → PR104 release →
+separate app/API release and reviewed table baseline/grants; in parallel,
+composed worker tests → native actor/catalog proof → trusted clock/epoch/ID/
+journal bindings → operator/restore/retention/UI joins → closed hosted package
+→ bounded faults/windows → sustained resource/quota/cost acceptance. Nestegg
+shared calendar/ledger integration follows its explicit units contract. Keep
+Railway closed and the two EMA genes; no extra user setup is needed for these
+offline steps. The October14 security response and deeper empirical/cost/
+capacity/calibration research remain required.
+
 **Implementation follow-up:** SEC-05A's compatible source-map-js repair and exact
 expiring development exception are implemented; production audit is now clean.
 The original findings below describe the pre-repair review. October14 security
@@ -1475,3 +1513,14 @@ browser interaction. Normal owned cleanup removes its exact build copy. This
 is setup failure evidence, not a browser pass or an identified registry cause.
 Investigate bounded installation diagnostics before another attempt; retain the
 379-case source proof and keep the final browser/build gate open.
+
+**2026-10-13 API privilege prerequisite:** one exact-project read-only catalog
+request confirms postgres ownership, no policy/column/PUBLIC grants, no
+transitive membership, and all eight effective table privileges for anon,
+authenticated and service_role on the two API tables. Only service_role bypasses
+RLS. This does not prove an anonymous row leak or REST TRUNCATE exposure. The
+proposed table-only repair is no anon/authenticated privileges and service
+SELECT+INSERT, preserving defaults/roles/schema/RLS/data/unrelated objects.
+Concrete baseline/ACL SQL, owned SQL/PostgREST tests and reviewed rollout are
+next; no hosted grants or rows changed.
+[Exact evidence, proposed delta and remaining gates](DB-04-API-PERMISSIONS-REVIEW-2026-10-13.md).

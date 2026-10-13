@@ -2,6 +2,18 @@
 
 ## Authoritative current status — 2026-10-13
 
+Latest exact-head CI is [run38464960221](https://github.com/TOOTRJ/TheDashboard/actions/runs/38464960221)
+at81474c1: six jobs PASS, SQL4 image preparation FAIL, zero SQL4 tests executed.
+The35m2s run is settled and PR104 remains open. Five bounded pulls still hit
+registry quota, so release now depends on reviewed content/transport verification
+and actual export/load evidence. No hosted result is replaced by a local pass.
+The separate final app source passes379/379 plus desktop/mobile fake-browser
+controls and dialog focus recovery. Local worker security/source/model/parser
+joins pass their scoped checks; composed verification and genuine native
+actor/source/clock/journal/restore/reader acceptance remain incomplete.
+Production remains the exact PR103 source below, and Railway remains closed.
+
+
 The supervised, zero-cost paper hour is accepted. The original owner run reached
 revision 514 with 504 accepted prices, one GA replacement, eight equally funded
 children, two closed trades and 32 contiguous acknowledged events. The repaired
@@ -73,7 +85,7 @@ production migration. No live funding, signing or swaps are available or authori
 
 | Order | Remaining gate | Dependency and acceptance |
 | --- | --- | --- |
-| 1 | Release the bounded PR104 laboratory and app repairs | Resolve restoration timing and SQL workload tails without widening guards, dropping occurrences or increasing deadlines; require all seven actual CI jobs and exact-source/project release checks. |
+| 1 | Release the bounded PR104 laboratory and app repairs | Resolve persistent registry preparation quota with reviewed immutable runtime content/export/load/producer evidence; retain restoration/source/lease guards, exhaustive occurrences and deadlines. Require all seven actual test jobs and exact-source/project release checks. |
 | 2 | Freeze real-provider v3 source/trust/model interfaces | Preserve synthetic v2 and existing v5 meanings. The recommended Jupiter-only prospective profile retains original observations and explicitly sampled close-only bars; it is not historical OHLCV or executable-quote evidence. |
 | 3 | Implement recorded acquisition and model in parallel | After interface freeze, bind authenticated recorder scope, original raw bytes/IDs, integer clocks/process epochs, causal availability, gap refusal and the two EMA genes. Hashes alone do not authenticate a source. |
 | 4 | Implement the v3 atomic native operator | Independently reparse evidence, enforce current scope/epochs, original-ID replay, final source/lease checks, complete projection pins and reserved data-free Stop. |

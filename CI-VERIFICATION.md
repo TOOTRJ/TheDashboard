@@ -723,3 +723,33 @@ registry preparation failure is the sole failure. Its restoration cases never
 execute, so this run supplies no hosted acceptance of the new positive pacing.
 Every job is settled before the next repaired-head push. Complete new-head
 seven-job acceptance remains required; no failed job is rerun or omitted.
+
+### Pushed81474c1 — five-attempt quota refusal, all jobs settled
+
+[Run38464960221](https://github.com/TOOTRJ/TheDashboard/actions/runs/38464960221)
+is bound to`81474c1f9b65ac0defe0da4a1c061aa88c417561` and finishes35m2s,
+FAIL. Actual job summaries report frontend1m56s, ordinary1/2 14m59s/13m59s,
+SQL1/2/3 26m43s/25m14s/34m58s, all PASS.
+[SQL4 job115529138328](https://github.com/TOOTRJ/TheDashboard/actions/runs/38464960221/job/115529138328)
+fails3m6s in image preparation. Its wheel environment step passes18s.
+The five original PostgreSQL manifest pulls are rate-limited after the real
+13.7868775s stagger; attempts begin13.787/24.026/46.325/87.984/149.780s and
+finish13.970/24.120/46.420/88.094/149.879s. Backoffs are
+10.054704/22.204467/41.563597/61.685535s. Zero SQL cases execute.
+
+This measures correct bounded retry/refusal under persistent anonymous quota,
+not SQL restoration failure or successful recovery. No failed job is rerun,
+cancelled, skipped or replaced by historical results. PR104 stays open. The
+exact Dashboard preview`dpl_EwKi7hgmUme1x6XbQnKSva2zebzT` is READY40s with
+source81474c1, expected branch/repository/biggrizzly11 author, in the verified
+project/team. Preview does not establish production or override failed CI.
+
+The next isolated B prototype retains original platform-manifest/config bytes
+and verifies every ordered uncompressed layer DiffID. It explicitly does not
+claim original compressed registry blobs or restored RepoDigests. Pure
+synthetic consistency is separate from actual Docker-format/export/load proof
+and an authenticated same-run artifact producer. All seven test jobs remain
+mandatory; producer/missing/cancelled/corrupt failures must fail the aggregate.
+Current direct verifier/workflow/pins and2400-second SQL deadlines are unchanged.
+Actual archive size, byte-hours, transfer/load tails and source-format provenance
+must be measured before adoption; no mirror/publisher/shared-credential change.

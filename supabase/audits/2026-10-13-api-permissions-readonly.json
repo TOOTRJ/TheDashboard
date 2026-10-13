@@ -1,0 +1,591 @@
+{
+  "catalog": {
+    "format": "dashboard-api-effective-privilege-catalog-v1",
+    "possible_local_function_consumers": [],
+    "public_table_grants": [],
+    "relevant_default_acls": [
+      {
+        "kind": "S",
+        "owner": "postgres",
+        "raw_acl": "{postgres=rwU/postgres,anon=rwU/postgres,authenticated=rwU/postgres,service_role=rwU/postgres}",
+        "schema": "public"
+      },
+      {
+        "kind": "f",
+        "owner": "postgres",
+        "raw_acl": "{postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+        "schema": "public"
+      },
+      {
+        "kind": "r",
+        "owner": "postgres",
+        "raw_acl": "{postgres=arwdDxtm/postgres,anon=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+        "schema": "public"
+      }
+    ],
+    "roles": [
+      {
+        "bypass_rls": false,
+        "inherit": true,
+        "login": false,
+        "memberships": [],
+        "name": "anon",
+        "oid": "16480",
+        "public_schema_create": false,
+        "public_schema_usage": true,
+        "reachable_roles": [
+          {
+            "bypass_rls": false,
+            "inherit": true,
+            "name": "anon",
+            "oid": "16480",
+            "superuser": false
+          }
+        ],
+        "superuser": false
+      },
+      {
+        "bypass_rls": false,
+        "inherit": true,
+        "login": false,
+        "memberships": [],
+        "name": "authenticated",
+        "oid": "16481",
+        "public_schema_create": false,
+        "public_schema_usage": true,
+        "reachable_roles": [
+          {
+            "bypass_rls": false,
+            "inherit": true,
+            "name": "authenticated",
+            "oid": "16481",
+            "superuser": false
+          }
+        ],
+        "superuser": false
+      },
+      {
+        "bypass_rls": true,
+        "inherit": true,
+        "login": false,
+        "memberships": [],
+        "name": "service_role",
+        "oid": "16482",
+        "public_schema_create": false,
+        "public_schema_usage": true,
+        "reachable_roles": [
+          {
+            "bypass_rls": true,
+            "inherit": true,
+            "name": "service_role",
+            "oid": "16482",
+            "superuser": false
+          }
+        ],
+        "superuser": false
+      }
+    ],
+    "tables": [
+      {
+        "column_acl": [
+          {
+            "column": "id",
+            "raw_acl": null
+          },
+          {
+            "column": "score",
+            "raw_acl": null
+          },
+          {
+            "column": "sentiment",
+            "raw_acl": null
+          },
+          {
+            "column": "summary",
+            "raw_acl": null
+          },
+          {
+            "column": "key_factors",
+            "raw_acl": null
+          },
+          {
+            "column": "date",
+            "raw_acl": null
+          },
+          {
+            "column": "source",
+            "raw_acl": null
+          },
+          {
+            "column": "created_at",
+            "raw_acl": null
+          }
+        ],
+        "effective_roles": [
+          {
+            "columns": [
+              {
+                "column": "id",
+                "privileges": {
+                  "INSERT": true,
+                  "REFERENCES": true,
+                  "SELECT": true,
+                  "UPDATE": true
+                }
+              },
+              {
+                "column": "score",
+                "privileges": {
+                  "INSERT": true,
+                  "REFERENCES": true,
+                  "SELECT": true,
+                  "UPDATE": true
+                }
+              },
+              {
+                "column": "sentiment",
+                "privileges": {
+                  "INSERT": true,
+                  "REFERENCES": true,
+                  "SELECT": true,
+                  "UPDATE": true
+                }
+              },
+              {
+                "column": "summary",
+                "privileges": {
+                  "INSERT": true,
+                  "REFERENCES": true,
+                  "SELECT": true,
+                  "UPDATE": true
+                }
+              },
+              {
+                "column": "key_factors",
+                "privileges": {
+                  "INSERT": true,
+                  "REFERENCES": true,
+                  "SELECT": true,
+                  "UPDATE": true
+                }
+              },
+              {
+                "column": "date",
+                "privileges": {
+                  "INSERT": true,
+                  "REFERENCES": true,
+                  "SELECT": true,
+                  "UPDATE": true
+                }
+              },
+              {
+                "column": "source",
+                "privileges": {
+                  "INSERT": true,
+                  "REFERENCES": true,
+                  "SELECT": true,
+                  "UPDATE": true
+                }
+              },
+              {
+                "column": "created_at",
+                "privileges": {
+                  "INSERT": true,
+                  "REFERENCES": true,
+                  "SELECT": true,
+                  "UPDATE": true
+                }
+              }
+            ],
+            "role": "anon",
+            "table": {
+              "DELETE": true,
+              "INSERT": true,
+              "MAINTAIN": true,
+              "REFERENCES": true,
+              "SELECT": true,
+              "TRIGGER": true,
+              "TRUNCATE": true,
+              "UPDATE": true
+            }
+          },
+          {
+            "columns": [
+              {
+                "column": "id",
+                "privileges": {
+                  "INSERT": true,
+                  "REFERENCES": true,
+                  "SELECT": true,
+                  "UPDATE": true
+                }
+              },
+              {
+                "column": "score",
+                "privileges": {
+                  "INSERT": true,
+                  "REFERENCES": true,
+                  "SELECT": true,
+                  "UPDATE": true
+                }
+              },
+              {
+                "column": "sentiment",
+                "privileges": {
+                  "INSERT": true,
+                  "REFERENCES": true,
+                  "SELECT": true,
+                  "UPDATE": true
+                }
+              },
+              {
+                "column": "summary",
+                "privileges": {
+                  "INSERT": true,
+                  "REFERENCES": true,
+                  "SELECT": true,
+                  "UPDATE": true
+                }
+              },
+              {
+                "column": "key_factors",
+                "privileges": {
+                  "INSERT": true,
+                  "REFERENCES": true,
+                  "SELECT": true,
+                  "UPDATE": true
+                }
+              },
+              {
+                "column": "date",
+                "privileges": {
+                  "INSERT": true,
+                  "REFERENCES": true,
+                  "SELECT": true,
+                  "UPDATE": true
+                }
+              },
+              {
+                "column": "source",
+                "privileges": {
+                  "INSERT": true,
+                  "REFERENCES": true,
+                  "SELECT": true,
+                  "UPDATE": true
+                }
+              },
+              {
+                "column": "created_at",
+                "privileges": {
+                  "INSERT": true,
+                  "REFERENCES": true,
+                  "SELECT": true,
+                  "UPDATE": true
+                }
+              }
+            ],
+            "role": "authenticated",
+            "table": {
+              "DELETE": true,
+              "INSERT": true,
+              "MAINTAIN": true,
+              "REFERENCES": true,
+              "SELECT": true,
+              "TRIGGER": true,
+              "TRUNCATE": true,
+              "UPDATE": true
+            }
+          },
+          {
+            "columns": [
+              {
+                "column": "id",
+                "privileges": {
+                  "INSERT": true,
+                  "REFERENCES": true,
+                  "SELECT": true,
+                  "UPDATE": true
+                }
+              },
+              {
+                "column": "score",
+                "privileges": {
+                  "INSERT": true,
+                  "REFERENCES": true,
+                  "SELECT": true,
+                  "UPDATE": true
+                }
+              },
+              {
+                "column": "sentiment",
+                "privileges": {
+                  "INSERT": true,
+                  "REFERENCES": true,
+                  "SELECT": true,
+                  "UPDATE": true
+                }
+              },
+              {
+                "column": "summary",
+                "privileges": {
+                  "INSERT": true,
+                  "REFERENCES": true,
+                  "SELECT": true,
+                  "UPDATE": true
+                }
+              },
+              {
+                "column": "key_factors",
+                "privileges": {
+                  "INSERT": true,
+                  "REFERENCES": true,
+                  "SELECT": true,
+                  "UPDATE": true
+                }
+              },
+              {
+                "column": "date",
+                "privileges": {
+                  "INSERT": true,
+                  "REFERENCES": true,
+                  "SELECT": true,
+                  "UPDATE": true
+                }
+              },
+              {
+                "column": "source",
+                "privileges": {
+                  "INSERT": true,
+                  "REFERENCES": true,
+                  "SELECT": true,
+                  "UPDATE": true
+                }
+              },
+              {
+                "column": "created_at",
+                "privileges": {
+                  "INSERT": true,
+                  "REFERENCES": true,
+                  "SELECT": true,
+                  "UPDATE": true
+                }
+              }
+            ],
+            "role": "service_role",
+            "table": {
+              "DELETE": true,
+              "INSERT": true,
+              "MAINTAIN": true,
+              "REFERENCES": true,
+              "SELECT": true,
+              "TRIGGER": true,
+              "TRUNCATE": true,
+              "UPDATE": true
+            }
+          }
+        ],
+        "name": "market_sentiment",
+        "owner": "postgres",
+        "policies": [],
+        "raw_acl": "{postgres=arwdDxtm/postgres,anon=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+        "rls_enabled": true,
+        "rls_forced": false
+      },
+      {
+        "column_acl": [
+          {
+            "column": "id",
+            "raw_acl": null
+          },
+          {
+            "column": "payload",
+            "raw_acl": null
+          },
+          {
+            "column": "source",
+            "raw_acl": null
+          },
+          {
+            "column": "created_at",
+            "raw_acl": null
+          }
+        ],
+        "effective_roles": [
+          {
+            "columns": [
+              {
+                "column": "id",
+                "privileges": {
+                  "INSERT": true,
+                  "REFERENCES": true,
+                  "SELECT": true,
+                  "UPDATE": true
+                }
+              },
+              {
+                "column": "payload",
+                "privileges": {
+                  "INSERT": true,
+                  "REFERENCES": true,
+                  "SELECT": true,
+                  "UPDATE": true
+                }
+              },
+              {
+                "column": "source",
+                "privileges": {
+                  "INSERT": true,
+                  "REFERENCES": true,
+                  "SELECT": true,
+                  "UPDATE": true
+                }
+              },
+              {
+                "column": "created_at",
+                "privileges": {
+                  "INSERT": true,
+                  "REFERENCES": true,
+                  "SELECT": true,
+                  "UPDATE": true
+                }
+              }
+            ],
+            "role": "anon",
+            "table": {
+              "DELETE": true,
+              "INSERT": true,
+              "MAINTAIN": true,
+              "REFERENCES": true,
+              "SELECT": true,
+              "TRIGGER": true,
+              "TRUNCATE": true,
+              "UPDATE": true
+            }
+          },
+          {
+            "columns": [
+              {
+                "column": "id",
+                "privileges": {
+                  "INSERT": true,
+                  "REFERENCES": true,
+                  "SELECT": true,
+                  "UPDATE": true
+                }
+              },
+              {
+                "column": "payload",
+                "privileges": {
+                  "INSERT": true,
+                  "REFERENCES": true,
+                  "SELECT": true,
+                  "UPDATE": true
+                }
+              },
+              {
+                "column": "source",
+                "privileges": {
+                  "INSERT": true,
+                  "REFERENCES": true,
+                  "SELECT": true,
+                  "UPDATE": true
+                }
+              },
+              {
+                "column": "created_at",
+                "privileges": {
+                  "INSERT": true,
+                  "REFERENCES": true,
+                  "SELECT": true,
+                  "UPDATE": true
+                }
+              }
+            ],
+            "role": "authenticated",
+            "table": {
+              "DELETE": true,
+              "INSERT": true,
+              "MAINTAIN": true,
+              "REFERENCES": true,
+              "SELECT": true,
+              "TRIGGER": true,
+              "TRUNCATE": true,
+              "UPDATE": true
+            }
+          },
+          {
+            "columns": [
+              {
+                "column": "id",
+                "privileges": {
+                  "INSERT": true,
+                  "REFERENCES": true,
+                  "SELECT": true,
+                  "UPDATE": true
+                }
+              },
+              {
+                "column": "payload",
+                "privileges": {
+                  "INSERT": true,
+                  "REFERENCES": true,
+                  "SELECT": true,
+                  "UPDATE": true
+                }
+              },
+              {
+                "column": "source",
+                "privileges": {
+                  "INSERT": true,
+                  "REFERENCES": true,
+                  "SELECT": true,
+                  "UPDATE": true
+                }
+              },
+              {
+                "column": "created_at",
+                "privileges": {
+                  "INSERT": true,
+                  "REFERENCES": true,
+                  "SELECT": true,
+                  "UPDATE": true
+                }
+              }
+            ],
+            "role": "service_role",
+            "table": {
+              "DELETE": true,
+              "INSERT": true,
+              "MAINTAIN": true,
+              "REFERENCES": true,
+              "SELECT": true,
+              "TRIGGER": true,
+              "TRUNCATE": true,
+              "UPDATE": true
+            }
+          }
+        ],
+        "name": "test_events",
+        "owner": "postgres",
+        "policies": [],
+        "raw_acl": "{postgres=arwdDxtm/postgres,anon=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+        "rls_enabled": true,
+        "rls_forced": false
+      }
+    ]
+  },
+  "date": "2026-10-13",
+  "identity": {
+    "id": "fxpxsciltakyypunglzr",
+    "name": "The Dashboard",
+    "owner": "cqfnnaunmupdyobkyqfo"
+  },
+  "limits": {
+    "complete_external_consumer_inventory": false,
+    "database_rows_read": false,
+    "runtime_RLS_or_persistence_proved": false,
+    "schema_or_acl_changed": false
+  },
+  "query_sha256": "cd916fefb230d4f206ba245033a00bac043ede72a9add01e6ec5a150dc7a0eca",
+  "scope": "catalog-only; no table rows, writes, grants or migrations"
+}
