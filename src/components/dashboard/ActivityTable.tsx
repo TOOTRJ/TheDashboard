@@ -18,7 +18,7 @@ import { useDashboardFilters } from "@/components/layout/DashboardProvider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -236,9 +236,18 @@ export function ActivityTable() {
                               </div>
                             </TableCell>
                             <TableCell>
-                              <span className="text-sm font-semibold text-foreground group-hover:text-[#00fff5] transition-colors">
+                              <button
+                                type="button"
+                                aria-label={`View sample ${item.type.toLowerCase()} ${item.asset} trade details`}
+                                aria-haspopup="dialog"
+                                className="text-left text-sm font-semibold text-foreground group-hover:text-[#00fff5] transition-colors"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  setSelectedItem(item);
+                                }}
+                              >
                                 {item.asset}
-                              </span>
+                              </button>
                             </TableCell>
                             <TableCell className="font-mono text-sm">
                               {item.amount.toLocaleString("en-US", { maximumFractionDigits: 4 })}
@@ -317,6 +326,9 @@ export function ActivityTable() {
               <Sparkles className="h-4 w-4 animate-pulse" />
               Sample Trade Details
             </DialogTitle>
+            <DialogDescription>
+              Generated example with fictional identifiers. No account transaction or live quote is loaded.
+            </DialogDescription>
           </DialogHeader>
           {selectedItem && (
             <div className="space-y-4">

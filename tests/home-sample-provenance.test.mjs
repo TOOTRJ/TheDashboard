@@ -196,5 +196,13 @@ test('sample dialogs retain actual selected details while fictional copy/explore
   }
   h.find(n => n.type === 'Dialog').props.onOpenChange(false); h.flush();
   assert.equal(h.find(n => n.type === 'Dialog').props.open, false);
+  const trigger = h.all(n => n.type === 'button' && n.props['aria-haspopup'] === 'dialog')[0];
+  assert.equal(trigger.props.type, 'button');
+  assert.equal(trigger.props['aria-label'], `View sample ${first.type.toLowerCase()} ${first.asset} trade details`);
+  let stopped = 0;
+  trigger.props.onClick({ stopPropagation() { stopped++; } }); h.flush();
+  assert.equal(stopped, 1);
+  assert.equal(h.find(n => n.type === 'Dialog').props.open, true);
+  assert.match(h.text(h.find(n => n.type === 'DialogDescription')), /Generated example with fictional identifiers/);
   assert.deepEqual(h.forbiddenCalls, []); h.dispose();
 });
