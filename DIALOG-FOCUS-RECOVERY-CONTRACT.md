@@ -73,3 +73,34 @@ its own final-source full-suite/browser evidence. It is not relabeled as such.
 Final trigger-refinement source pins:
 - `src/components/dashboard/ActivityTable.tsx`: `83e304e0ed51b4d963ca797ef5322aff0255d8fe3bd1ba1eac1d0d162b7e27f1`.
 - `tests/home-sample-provenance.test.mjs`: `ccc09d5170154447533d9a4646e7fada40d40efeae4621d2841b2ec48cff1f15`.
+
+## Final-source actual acceptance
+
+At `c029931e4ed5a0f7a05ad5b242538e008bf7a21f`, the complete frontend suite
+passes **379/379, zero skips, 22366.724167 ms**. The clean source/head are
+verified before and after that invocation. A separately rebuilt fake-only
+Next16.3.8 fixture installs460 locked packages in14s and compiles in8.5s.
+The actual desktop browser observes Enter/Space opening described sample
+details, Escape and Close removing every dialog node, restored focus to the
+original connected native button, no focus animation and the retained solid
+outline. Header aria-hidden clears and body pointer events return to auto.
+
+Home's range counts39/8/60, combined filters, descending total sort, page2/8
+and filter-reset pagination are observed. Analytics retains explicit sample
+labels, keyboard tabs, fixed-stat scope and disabled account CSV with its
+reason. Account/profile/wallet/key actions remain explicitly unavailable,
+Light/Dark change actual HTML classes, and collapsed/expanded sidebar status
+reports live trading unavailable. At390×844 the measured Analytics/Home
+document widths are382/390; mobile navigation closes after Terminal selection
+and the sample dialog removes/restores focus. Viewport is reset afterward.
+A transitional screenshot initially shows the previous nav styling; a settled
+DOM read confirms only Analytics has the active route style, without a source
+repair. Earlier selector/inspection mistakes do not imply application defects.
+
+The owned tab35 is closed. Exact fixture owner marker and Node command are
+verified before normal termination of parent54623. The helper exits0 and its
+exact owned copy is absent. No hosted account, provider, database write,
+worker activation or trading occurs. This finite synthetic flow does not
+complete the full accessibility audit or native/hosted acceptance.
+[Source-bound final receipt](FINAL-APP-ACCEPTANCE-2026-10-13.json). All previous
+installation and dialog failures remain separately recorded, not erased.
