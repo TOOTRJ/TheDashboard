@@ -133,10 +133,12 @@ export function NesteggSavedPlanTabsToolbar({
       const ok = await deleteNesteggScenarioFromSupabase(id, request);
       if (!isCurrent()) return;
       if (ok) {
-        await onCloudScenarioDeleted(id, publication);
-        if (!isCurrent()) return;
-        toast.message("Scenario removed");
+        // The parent may select a replacement plan and retire this operation.
+        // Close and acknowledge the confirmed, still-owned dialog first; a late
+        // parent completion must never change a newer dialog.
         setDeleteTarget(null);
+        toast.message("Scenario removed");
+        await onCloudScenarioDeleted(id, publication);
       } else {
         toast.error("Delete failed");
       }

@@ -291,3 +291,29 @@ test('identical save-new overlapping requests publish only the newest reply', as
   assert.deepEqual(h.calls.map(c => c.kind), ['insert', 'insert', 'published-new', 'refresh']);
   assert.equal(h.calls[2].value.id, 'current-new-plan'); h.dispose();
 });
+
+
+test('confirmed active-plan deletion closes its dialog before replacement selection retires the operation', async () => {
+  const h = toolbarHarness(), parent = deferred();
+  h.update({ onCloudScenarioDeleted: async () => { h.calls.push({ kind: 'published-delete' }); await parent.promise; } });
+  h.find(n => n.props['aria-label'] === `Delete ${h.saved.name}`).onClick({ preventDefault() {}, stopPropagation() {} }); h.render();
+  h.click('Delete plan'); h.calls[0].gate.resolve(true); await h.flush();
+  assert.equal(h.find(n => n.type === 'Dialog').open, false);
+  assert.deepEqual(h.notifications.map(n => n.args[0]), ['Scenario removed']);
+  h.update({ activeSavedScenarioId: 'replacement-plan' }); await h.flush();
+  parent.resolve(); await h.flush();
+  assert.equal(h.find(n => n.type === 'Dialog').open, false);
+  assert.equal(h.notifications.length, 1); h.dispose();
+});
+
+test('late delete parent completion cannot close a newer delete dialog', async () => {
+  const h = toolbarHarness(), parent = deferred();
+  h.update({ onCloudScenarioDeleted: async () => { h.calls.push({ kind: 'published-delete' }); await parent.promise; } });
+  const open = () => { h.find(n => n.props['aria-label'] === `Delete ${h.saved.name}`).onClick({ preventDefault() {}, stopPropagation() {} }); h.render(); };
+  open(); h.click('Delete plan'); h.calls[0].gate.resolve(true); await h.flush();
+  assert.equal(h.find(n => n.type === 'Dialog').open, false);
+  open(); assert.equal(h.find(n => n.type === 'Dialog').open, true);
+  parent.resolve(); await h.flush();
+  assert.equal(h.find(n => n.type === 'Dialog').open, true);
+  assert.equal(h.notifications.length, 1); h.dispose();
+});

@@ -21,6 +21,7 @@ function defaultInputs() {
   return JSON.parse(JSON.stringify(exports.DEFAULT_NESTEGG_INPUTS));
 }
 let vmInput;
+let preparationPhase = 'input validation';
 
 export async function availablePort() {
   const probe = net.createServer();
@@ -95,6 +96,7 @@ export function browserEnvironment(directory, backendOrigin, inherited) {
 async function main() {
   if (process.argv.length !== 2) throw new Error('This fixture accepts no environment/source/target arguments');
   const prepared = await prepareBuild(ROOT);
+  preparationPhase = 'owned copy canonicalization';
   prepared.directory = await realpath(prepared.directory);
   let backend, next, stopping;
   const stop = () => stopping ??= (async () => {
@@ -103,20 +105,25 @@ async function main() {
   })();
   for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, () => { void stop(); });
   try {
+    preparationPhase = 'public input defaults';
     vmInput = await readFile(path.join(prepared.directory, 'src/lib/nestegg/constants.ts'), 'utf8');
     backend = createBrowserBackend(defaultInputs());
+    preparationPhase = 'owned loopback binding';
     const backendOrigin = await backend.start(), port = await availablePort();
     // Cookies ignore ports. A unique .localhost host prevents sb-127 cookies
     // from colliding with another project's local app on this computer.
     const appOrigin = `http://dashboard-fixture-${prepared.owner}.localhost:${port}`;
     const bindOrigin = `http://127.0.0.1:${port}`;
     backend.setAppOrigin(appOrigin);
+    preparationPhase = 'fake environment';
     const env = browserEnvironment(prepared.directory, backendOrigin);
     // Keep generated local artifacts and process output confined to the owned copy.
     // No .env, ssl, agent/cloud config, existing build or application credentials copy.
+    preparationPhase = 'locked dependency installation';
     await runFixtureChild('npm', ['ci', '--include=dev', '--ignore-scripts', '--no-audit', '--no-fund'],
       { cwd: prepared.directory, env, stdio: 'inherit' }, 300_000);
     const nextBin = path.join(prepared.directory, 'node_modules/next/dist/bin/next');
+    preparationPhase = 'public fixture route copy';
     if (!(await lstat(nextBin)).isFile() || await realpath(nextBin) !== nextBin) throw new Error('Next fixture executable must be regular owned source');
     // A restrictive test-only connect policy blocks the fixed hosted paper RPC
     // origin as well as all other cloud/worker origins. Real paper contract tests
@@ -134,8 +141,10 @@ async function main() {
       }
       await copyFile(file, path.join(route, destination));
     }
+    preparationPhase = 'production fixture build';
     await runFixtureChild(process.execPath, [nextBin, 'build'],
       { cwd: prepared.directory, env, stdio: 'inherit' }, 600_000);
+    preparationPhase = 'owned Next server readiness';
     next = spawn(process.execPath, [nextBin, 'start', '--hostname', '127.0.0.1', '--port', String(port)],
       { cwd: prepared.directory, env, stdio: 'inherit', shell: false, detached: true });
     runningChildren.add(next);
@@ -163,5 +172,5 @@ async function main() {
   } finally { await stop(); }
 }
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  main().catch(() => { process.stderr.write('Dashboard browser fixture failed; private inherited output is not used\n'); process.exitCode = 1; });
+  main().catch(() => { process.stderr.write(`Dashboard browser fixture failed during ${preparationPhase}; private inherited output is not used\n`); process.exitCode = 1; });
 }
