@@ -28,7 +28,10 @@ import {
 } from "@/components/ui/table";
 import { formatCurrency } from "@/lib/formatters";
 import { applyScenarioToInputs, normalizeNesteggInputs } from "@/lib/nestegg/constants";
-import { runMonteCarloBatched } from "@/lib/nestegg/monte-carlo";
+import { runMonteCarloBatched, NESTEGG_MC_MODEL_VERSION, NESTEGG_MC_SEED_POLICY } from "@/lib/nestegg/monte-carlo";
+import type { createNesteggWorkspaceScope } from "@/lib/nestegg/session-scope";
+import { captureNesteggCalculationSource, createNesteggPublicationClock, currentNesteggCalculation,
+  nesteggCalculationIdentity, type NesteggCalculationEnvelope } from "@/lib/nestegg/result-identity";
 import type { MonteCarloResult } from "@/lib/nestegg/monte-carlo";
 import { buildPlanDiff } from "@/lib/nestegg/plan-diff";
 import type { NesteggInputs, NesteggScenarioId, SavedNesteggScenario } from "@/lib/nestegg/types";
@@ -36,63 +39,76 @@ import { GitCompare, ListTree } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type Props = {
+  workspaceKey: string;
+  workspaceScope: ReturnType<typeof createNesteggWorkspaceScope>;
   cloudScenarios: SavedNesteggScenario[];
   workspaceInputs: NesteggInputs;
   workspaceMarketScenario: NesteggScenarioId;
   activeSavedId: string | null;
   /** Main MC from page (avoid duplicate simulation). */
   workspaceMonteCarlo: MonteCarloResult | null;
+  workspaceSimulationStatus?: "pending" | "unavailable";
   /** Hide the card title row when wrapped in a parent section (e.g. collapsible). */
   hideHeader?: boolean;
 };
 
 const NONE = "__none__";
+const SAVED_POLICY = { modelVersion: NESTEGG_MC_MODEL_VERSION, seedPolicy: NESTEGG_MC_SEED_POLICY,
+  purpose: "saved-comparison" as const, pathCount: 420 };
+function savedComparisonSource(workspaceKey: string, snapshot: string | null) {
+  if (snapshot === null) return null;
+  const row = JSON.parse(snapshot) as Pick<SavedNesteggScenario, "id" | "updatedAt" | "inputs" | "marketScenario">;
+  return captureNesteggCalculationSource(`${workspaceKey}:${row.id}:${row.updatedAt}`,
+    normalizeNesteggInputs(row.inputs), row.marketScenario, 0);
+}
 
 export function NesteggSavedCompare({
+  workspaceKey, workspaceScope,
   cloudScenarios,
   workspaceInputs,
   workspaceMarketScenario,
   activeSavedId,
   workspaceMonteCarlo,
+  workspaceSimulationStatus = "pending",
   hideHeader = false,
 }: Props) {
   const [compareId, setCompareId] = React.useState<string>(NONE);
-  const [compareMc, setCompareMc] = React.useState<MonteCarloResult | null>(null);
-  const [compareLoading, setCompareLoading] = React.useState(false);
+  const [generation, setGeneration] = React.useState(0);
+  const [attempt, setAttempt] = React.useState(0);
+  const clock = React.useRef(createNesteggPublicationClock());
+  const [envelope, setEnvelope] = React.useState<NesteggCalculationEnvelope<MonteCarloResult> | null>(null);
+  const [activity, setActivity] = React.useState<{ generation: number; sourceKey: string; failed: boolean } | null>(null);
 
   const options = cloudScenarios.filter((s) => s.id !== activeSavedId);
 
-  const selectedRow = cloudScenarios.find((s) => s.id === compareId);
+  const selectedRow = options.find((s) => s.id === compareId);
+  const selectedSnapshot = selectedRow ? JSON.stringify({ id: selectedRow.id, updatedAt: selectedRow.updatedAt,
+    inputs: selectedRow.inputs, marketScenario: selectedRow.marketScenario }) : null;
+  const source = savedComparisonSource(workspaceKey, selectedSnapshot);
+  const compareMc = source ? currentNesteggCalculation(envelope, source, SAVED_POLICY, generation) : null;
+  const compareFailed = activity?.generation === generation && activity.sourceKey === JSON.stringify({ workspaceKey: source?.workspaceKey, inputKey: source?.inputKey }) && activity.failed;
+  const compareLoading = source !== null && !compareMc && !compareFailed;
 
   React.useEffect(() => {
-    if (compareId === NONE) {
-      setCompareMc(null);
-      setCompareLoading(false);
-      return;
-    }
-    const row = cloudScenarios.find((s) => s.id === compareId);
-    if (!row) {
-      setCompareMc(null);
-      setCompareLoading(false);
-      return;
-    }
+    const source = savedComparisonSource(workspaceKey, selectedSnapshot);
+    const calculation = clock.current.next();
+    setGeneration(calculation.generation);
+    const request = workspaceScope.capture();
+    if (!source || !request.isCurrent()) return;
     let cancelled = false;
-    setCompareLoading(true);
-    const normalized = normalizeNesteggInputs(row.inputs);
-    const adj = applyScenarioToInputs(normalized, row.marketScenario);
-    void runMonteCarloBatched(adj, row.marketScenario, {
-      paths: 420,
+    const isCurrent = () => !cancelled && request.isCurrent() && calculation.isCurrent();
+    setActivity({ generation: calculation.generation, sourceKey: JSON.stringify({ workspaceKey: source.workspaceKey, inputKey: source.inputKey }), failed: false });
+    const adj = applyScenarioToInputs(source.inputs, source.scenario);
+    void runMonteCarloBatched(adj, source.scenario, {
+      paths: SAVED_POLICY.pathCount,
       chunkSize: 140,
     }).then((r) => {
-      if (!cancelled) {
-        setCompareMc(r);
-        setCompareLoading(false);
-      }
-    });
+      if (isCurrent()) setEnvelope({ identity: nesteggCalculationIdentity(source, SAVED_POLICY, calculation.generation), value: r });
+    }).catch(() => { if (isCurrent()) setActivity({ generation: calculation.generation, sourceKey: JSON.stringify({ workspaceKey: source.workspaceKey, inputKey: source.inputKey }), failed: true }); });
     return () => {
       cancelled = true;
     };
-  }, [compareId, cloudScenarios]);
+  }, [workspaceKey, selectedSnapshot, workspaceScope, attempt]);
 
   const diffRows =
     compareId !== NONE && selectedRow
@@ -215,7 +231,9 @@ export function NesteggSavedCompare({
           <Label htmlFor="compare-saved" className="text-[10px] uppercase tracking-wider">
             Saved plan
           </Label>
-          <Select value={compareId} onValueChange={setCompareId}>
+          <Select value={selectedRow ? compareId : NONE} onValueChange={(id) => {
+            clock.current.invalidate(); setGeneration(clock.current.generation()); setCompareId(id); setAttempt((value) => value + 1);
+          }}>
             <SelectTrigger
               id="compare-saved"
               className="h-9 border-[#bf00ff]/25 bg-[#bf00ff]/5 text-xs"
@@ -234,7 +252,7 @@ export function NesteggSavedCompare({
             </SelectContent>
           </Select>
         </div>
-        {compareId !== NONE ? (
+        {selectedRow ? (
           <div className="grid gap-3 sm:grid-cols-2 rounded-lg border border-[#bf00ff]/15 bg-background/40 p-3 text-xs">
             <div>
               <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
@@ -251,7 +269,9 @@ export function NesteggSavedCompare({
                   </p>
                 </>
               ) : (
-                <p className="text-muted-foreground animate-pulse">Updating simulation…</p>
+                <p role="status" className="text-muted-foreground">
+                  {workspaceSimulationStatus === "unavailable" ? "Workspace simulation unavailable." : "Updating simulation…"}
+                </p>
               )}
             </div>
             <div>
@@ -269,7 +289,12 @@ export function NesteggSavedCompare({
                     Nest egg (median) {formatCurrency(compareMc.medianNestEggAtRetirement)}
                   </p>
                 </>
-              ) : null}
+              ) : compareFailed ? <div className="space-y-2">
+                <p role="alert" className="text-muted-foreground">Comparison unavailable.</p>
+                <Button type="button" variant="outline" size="sm" onClick={() => {
+                  clock.current.invalidate(); setGeneration(clock.current.generation()); setAttempt((value) => value + 1);
+                }}>Retry comparison</Button>
+              </div> : null}
             </div>
           </div>
         ) : (

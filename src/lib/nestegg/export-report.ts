@@ -3,6 +3,8 @@ import type { MonteCarloResult } from "./monte-carlo";
 import type { ProjectionResult } from "./types";
 import { formatCurrency } from "@/lib/formatters";
 import { SCENARIO_LABELS } from "./constants";
+import type { NesteggCalculationIdentity } from "./result-identity";
+type AnalysisProvenance = Pick<NesteggCalculationIdentity, "modelVersion" | "seedPolicy" | "purpose" | "pathCount">;
 
 function csvEscape(s: string): string {
   if (/[",\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
@@ -13,10 +15,12 @@ export function buildNesteggScenarioCsv(
   inputs: NesteggInputs,
   marketScenario: NesteggScenarioId,
   deterministic: ProjectionResult,
-  mc: MonteCarloResult | null
+  mc: MonteCarloResult | null,
+  analysis?: AnalysisProvenance | null
 ): string {
   const lines: string[] = [];
   lines.push("Nestegg export", `Market preset,${SCENARIO_LABELS[marketScenario]}`);
+  lines.push(`Simulation status,${mc ? `Current inputs (${mc.paths} paths)` : "Deterministic only - current simulation unavailable"}`);
   lines.push("");
   lines.push("Field,Value");
   const rows: [string, string][] = [
@@ -51,6 +55,12 @@ export function buildNesteggScenarioCsv(
     lines.push(`Paths,${mc.paths}`);
     lines.push(`Success rate,${(mc.successRate * 100).toFixed(1)}%`);
     lines.push(`Median ending balance,${mc.medianEndingBalance}`);
+    if (analysis) {
+      lines.push(`Model version,${csvEscape(analysis.modelVersion)}`);
+      lines.push(`Seed policy,${csvEscape(analysis.seedPolicy)}`);
+      lines.push(`Analysis purpose,${csvEscape(analysis.purpose)}`);
+      lines.push(`Analysis total paths,${analysis.pathCount}`);
+    }
   }
   return lines.join("\n");
 }
@@ -71,8 +81,9 @@ export function openNesteggPrintReport(opts: {
   marketScenario: NesteggScenarioId;
   deterministic: ProjectionResult;
   mc: MonteCarloResult | null;
+  analysis?: AnalysisProvenance | null;
 }): void {
-  const { title, inputs, marketScenario, deterministic, mc } = opts;
+  const { title, inputs, marketScenario, deterministic, mc, analysis } = opts;
   const w = window.open("", "_blank", "noopener,noreferrer");
   if (!w) return;
 
@@ -87,9 +98,12 @@ export function openNesteggPrintReport(opts: {
         <tr><td>Chance of success</td><td>${(mc.successRate * 100).toFixed(1)}%</td></tr>
         <tr><td>Median nest egg at retirement</td><td>${formatCurrency(mc.medianNestEggAtRetirement)}</td></tr>
         <tr><td>Median ending balance</td><td>${formatCurrency(mc.medianEndingBalance)}</td></tr>
+        ${analysis ? `<tr><td>Model version</td><td>${esc(analysis.modelVersion)}</td></tr>
+        <tr><td>Seed policy</td><td>${esc(analysis.seedPolicy)}</td></tr>
+        <tr><td>Analysis purpose / total paths</td><td>${esc(analysis.purpose)} / ${analysis.pathCount}</td></tr>` : ""}
       </table>
     </section>`
-    : "";
+    : "<p>Deterministic only — a simulation for the current inputs is unavailable.</p>";
 
   w.document.write(`<!DOCTYPE html>
 <html lang="en">

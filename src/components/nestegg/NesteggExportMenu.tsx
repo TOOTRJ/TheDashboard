@@ -19,12 +19,14 @@ import {
 import type { MonteCarloResult } from "@/lib/nestegg/monte-carlo";
 import type { NesteggInputs, NesteggScenarioId } from "@/lib/nestegg/types";
 import type { ProjectionResult } from "@/lib/nestegg/types";
+import type { NesteggCalculationIdentity } from "@/lib/nestegg/result-identity";
 
 type Props = {
   inputs: NesteggInputs;
   marketScenario: NesteggScenarioId;
   deterministic: ProjectionResult;
   monteCarlo: MonteCarloResult | null;
+  simulationIdentity: NesteggCalculationIdentity | null;
   onResetDefaults: () => void;
 };
 
@@ -33,6 +35,7 @@ export function NesteggExportMenu({
   marketScenario,
   deterministic,
   monteCarlo,
+  simulationIdentity,
   onResetDefaults,
 }: Props) {
   const stamp = new Date().toISOString().slice(0, 10);
@@ -42,7 +45,8 @@ export function NesteggExportMenu({
       inputs,
       marketScenario,
       deterministic,
-      monteCarlo
+      monteCarlo,
+      simulationIdentity
     );
     downloadNesteggCsv(`nestegg-${stamp}.csv`, content);
     toast.success("Download started");
@@ -55,6 +59,7 @@ export function NesteggExportMenu({
       marketScenario,
       deterministic,
       mc: monteCarlo,
+      analysis: simulationIdentity,
     });
     toast.message("Print dialog opened — choose Save as PDF if you like");
   };
@@ -85,7 +90,7 @@ export function NesteggExportMenu({
           }}
         >
           <Download className="h-3.5 w-3.5 text-[#00fff5]" />
-          Download CSV
+          {monteCarlo ? "Download CSV" : "Download CSV (deterministic only)"}
         </DropdownMenuItem>
         <DropdownMenuItem
           className="text-xs gap-2 cursor-pointer"
@@ -95,7 +100,7 @@ export function NesteggExportMenu({
           }}
         >
           <FileText className="h-3.5 w-3.5 text-[#ff99ff]" />
-          Print / Save as PDF
+          {monteCarlo ? "Print / Save as PDF" : "Print / Save as PDF (deterministic only)"}
         </DropdownMenuItem>
         <DropdownMenuSeparator className="bg-[#bf00ff]/20" />
         <DropdownMenuItem
