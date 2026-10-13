@@ -4804,7 +4804,8 @@ The `codex/dashboard-five-priorities` implementation contains:
   a cloud proxy. Ready requires exact owner marker and CSP. Owned cleanup drains
   preparation, closes the backend even after child failure, and verifies only
   the recorded PGID; ambiguous/live/foreign metadata fails closed. All21 focused
-  fixture/paper cases pass, zero skips,31.918s, including31 adapter assertions.
+  fixture cases pass, zero skips,31.918s; the separate paper adapter case contains
+  31 assertions and also passes in the complete271-case frontend suite.
   The actual used launcher exits0, its exact Next group has no members and its
   owned copy is removed. This is trusted public-source execution, not an OS sandbox.
   [Contract](BROWSER-FIXTURE-CONTRACT.md).
@@ -4826,6 +4827,13 @@ The `codex/dashboard-five-priorities` implementation contains:
   checked during recognized COMMIT processing, not a later visible-instant bound.
   [Contract](services/vonneumann/PORTABLE-NATIVE-CONTRACT.md),
   [genuine-clock receipt](services/vonneumann/research/portable-native-genuine-stop-acceptance.json).
+  Independent review subsequently repairs the probe CLI's output/PID collision
+  and final-publication ownership checks. Both opt-ins/deadline precede I/O;
+  canonical parent descriptors and exclusive0600 nofollow leaves are rechecked
+  before success. Thirteen ordinary isolation cases pass0.017s. Existing or
+  replaced files stay untouched. Timed run() and native SQL are byte-identical;
+  the old genuine-clock receipt remains tied to its original CLI, with no new
+  timed acceptance claim. This is not an OS sandbox against a hostile same-user process.
 - Bounded original-wire fixed-class/RNG restoration:16 ordinary cases pass,
   zero skips,120.684s; the original15-case subset contains78 byte-exact full/compact
   next-command comparisons. Three actual native joins pass27.457s. Current-head
@@ -4862,8 +4870,8 @@ No browser download/print or broad honest-action/native-auth/hosted acceptance i
 claimed. Home still labels mock content as live; APP-01 remains open.
 
 Earlier semantic/research-head ordinary groups executed1751 cases and reported2188
-with audited SQL opt-in skips. Final discovery-only inventory is2383 ordinary
-occurrences split1030/1353 and600 SQL occurrences split94/175/126/205; both retain54
+with audited SQL opt-in skips. Final discovery-only inventory is2396 ordinary
+occurrences split1043/1353 and600 SQL occurrences split94/175/126/205; both retain54
 baseline repeated IDs. These are discovery, not new actual hosted execution.
 All seven exact-head hosted jobs and project/source/author/current-alias release
 checks remain required before merge. Production is the previously accepted PR103
@@ -4878,3 +4886,22 @@ fault/multi-window → longer resource/quota/recovery acceptance. Recorder/model
 research/UI fixtures can overlap after contracts freeze; cloud operations remain
 serialized. The $20/month initial hosting ceiling persists. Continuous paper,
 empirical strategy, full audit and all live-trading gates remain open.
+
+The initial PR104 head6e5b12b starts seven actual hosted jobs inrun38346070509;
+frontend passes2m40s. The ownership repair requires a new exact-head run, so this
+partial earlier result cannot authorize merge. Dedicated Vercel project checks
+passed initially, then API verification failed and the isolated auth file was
+absent. An exact-profile device session ended without saving authentication.
+Release remains gated on fresh exact-target/source/author verification; no shared
+profile/credentials were used or altered. Additional primary-source research
+records the460-pair grid, a pinned public Hummingbot V1/float-amount limitation,
+account-specific Birdeye retention uncertainty and a Jupiter-only prospective
+observed-mark option. No licensed corpus or provider-key request occurred.
+
+Read-only browser identity verification after the CLI session failure confirms
+`the-dashboard` /prj_wFUe9k9USVreOQcmQKNWRAVsx5fH in project settings and
+owner team_8iNNxiNjrOseD4gdSCHkQEzF atorderoftheredjester's Team ID display.
+Only owner identity metadata is read at team level; no shared settings change.
+The dedicated CLI remains unauthenticated, so full API-based source/alias release
+checks are still pending. Supabase name/ref/organization/local link and GitHub
+name/immutable repository/account are reverified before the corrected branch push.

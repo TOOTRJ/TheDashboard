@@ -473,3 +473,58 @@ Registry/schema captures are from `2026-10-13T01:55:20Z` through
 | Swap V2 YAML | `76daa0a94d51cb8ca2488b2cfae22f3ba7dab05444615c7169ce7893cb0ddd67` |
 | Tokens V2 YAML | `a1ba94ded9c4cc2a4afe1d20c675bf09e50e4e388f2dffd1042f1ef348837535` |
 | Birdeye complete documentation index | `fbe3b5f80d57b3089c4708b15eea74df98d439c4cb97fd45e236b7e95daa6887` |
+
+## Additional primary-source checks — 2026-10-13 UTC
+
+The original2-gene integer proposal has10 fast choices(3…12) and46 slow
+choices(15…60), hence460 valid pairs. An exhaustive grid is a practical coverage
+oracle before expanding genes; it is not equal-cost evidence when the GA receives
+a smaller budget. Keep full-domain and equal-budget results separate, account for
+duplicate/failed evaluations and preserve the same ledger/cost/holdout contract.
+Optuna documents integer-grid quantization responsibility, duplicate proposals
+under concurrent unfinished trials and special final-grid ask/tell behavior.
+A single deterministic project evaluator can enumerate460 pairs without adding
+Optuna to the production worker. This is an engineering recommendation, not a
+measured runtime or profitability result.
+[GridSampler](https://optuna.readthedocs.io/en/stable/reference/samplers/generated/optuna.samplers.GridSampler.html).
+
+Hummingbot Gateway is useful for studying connector/accounting/confirmation
+boundaries, but its reviewed current Jupiter source still calls Metis V1 quote
+and swap paths and converts a floating-point human amount with Math.floor.
+Do not copy that connector as a current exact-atomic Swap V2 implementation.
+Public main metadata resolved to commit `f23e91670781fba75eb023edecaf2d992f0918aa`; the bounded
+source GET hashes to `922432f5cef51b3ff494325cf5fc5c1d07b56921e462a7006cb983e10ab04879`. No code was installed
+or executed, and the reference is distinct from a recommendation to replace
+this worker.
+[Pinned Jupiter connector](https://github.com/hummingbot/gateway/blob/f23e91670781fba75eb023edecaf2d992f0918aa/src/connectors/jupiter/jupiter.ts).
+
+Birdeye's published general terms (last updated11-April-2025) do not establish
+this account's permission to retain/replay an historical corpus. Their
+supplemental-service terms can control, while section10.2.1 broadly lists
+copying/storage/recording/API collection restrictions. Confirm the applicable
+API subscription or written permission before acquisition; do not infer rights
+from a working key or this broad general wording. Jupiter retention remains
+user-approved and is not being requested again.
+[Published terms](https://birdeye.so/data-api/terms-of-service).
+
+CoinGecko's pool OHLCV is another candidate, with explicit pool/token-side
+identity rather than a drop-in aggregate mint series. Its current contract has
+a1000-candle limit, skips no-swap intervals by default and can synthesize filled
+intervals when requested. Historical availability depends on plan and tracking
+start. Evaluate actual Solana coverage, completed-bar/cache freshness, retention
+entitlement, pool selection/revisions and budget before implementing any fallback;
+changing source requires a new explicit policy. No candidate API/key request or
+subscription change was made.
+[Pool OHLCV](https://docs.coingecko.com/reference/pool-ohlcv-contract-address).
+
+A Jupiter-only prospective alternative can avoid a third-party historical feed:
+retain actual acquired marks and define an explicit observed-mark series, then
+wait for its warmup instead of inventing past observations. At the proposed
+61 completed15-minute samples, warmup spans915 minutes(15h15m); this arithmetic
+is not an accepted collector, quota estimate or EMA initialization proof. Such
+a series cannot claim token-wide OHLCV, traded volume, executable fill prices
+or exact continuation of an earlier Birdeye-seeded EMA. Missing snapshots, clock
+ordering and restart overlap need an explicit new source policy and acceptance.
+Evaluate this option with the user's pending source preference before paying for
+a replacement feed. Jupiter retention has already been approved.
+[Price semantics](https://developers.jup.ag/docs/price).
