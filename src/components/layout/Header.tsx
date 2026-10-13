@@ -40,8 +40,8 @@ const titleMap: Record<string, { title: string; description: string }> = {
     description: "Real-time portfolio tracking and market analysis",
   },
   "/strategies": {
-    title: "Strategy Backtester",
-    description: "Test and analyze trading strategies with historical data",
+    title: "Strategy Concepts",
+    description: "Example strategies and independent charts; historical evaluation unavailable",
   },
   "/analytics": {
     title: "Market Analytics",
