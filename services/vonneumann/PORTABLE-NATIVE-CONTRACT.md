@@ -198,3 +198,52 @@ clock-refusal and held-position Stop proof is separately gated by the genuinely
 timed bar probe. Sources/results are recorded in
 `research/portable-native-history-clock-acceptance.json`; older source-bound
 receipts remain unchanged and do not establish this later correction.
+
+## Genuine next-bar held-position Stop acceptance
+
+The separately opt-in probe now passes completely against the final all-history
+clock package. Its exact SQL SHA256 is
+`76e23d44a296c838238e5545c9ea498eb86d2ac5caee9798236aee1f8a5bf5c4`,
+and its frozen probe source SHA256 is
+`c505e18fb3c5403d59f7f16aeed1f4fc4f84d26439af1ac7bb380f51026cf052`.
+`research/portable-native-genuine-stop-acceptance.json` retains the complete
+eight-command original-ID/hash/manifest/guard-time trace and fixture identity.
+The run takes664.320501 seconds, including the real wait from the04:00 UTC bar
+to the04:15 UTC bar on2026-10-13. This is a timed correctness experiment, not a
+latency, throughput, fill, hosted-cost or profitability measurement.
+
+The worker starts a genuine-clock warming/evaluating cohort, renews only its
+original60-second lease31 times, waits for the next real completed bar plus the
+unchanged completion margin, creates the original crossover signal, and opens
+eight positions at a later actual quote. It then admits data-free Stop while
+retaining exact positions, accounts and reserve. Stop is independently observed
+at04:15:13.476886 UTC. The decoded native active projection equals the original
+owned checkpoint, including its original checkpoint/model headers. An exact
+original Stop replay changes no row. Final status is stopped, revision9, eight
+commands, an unexpired lease, and722093 logical retained bytes within the original
+reserved budget. The exact UUID-owned fixture and running PID record are cleaned.
+
+Every accepted receipt/input clock comes from actual server UTC or the actual
+process monotonic clock. No future timestamp, seeded native head, replaced
+receipt or relaxed source/lease/guard rule creates the accepted trace. The source
+label remains `synthetic-exact-fixture-v1`, and all production admission,
+final-visible-instant, restoration, retention-deletion and hosting authority
+flags remain false. The fixture uses literal local provider documents and no
+provider, wallet, remote account or other process operation.
+
+Earlier probe attempts that failed their driver type/header assertions are not
+accepted evidence. A separate timing-sensitive future-history experiment also
+did not establish refusal: by native admission its proposed timestamp had aged
+into the allowed genuine-clock window, so acceptance was correct. Original24
+clock regressions remain the source-bound refusal evidence; this successful
+positive trace does not close additional real-provider/tail/authentication gates.
+
+Ordinary CI never waits for a real bar. Explicit reproduction requires the locked
+worker interpreter, cwd `services/vonneumann`, both
+`DASHBOARD_ISOLATED_POSTGRES_TESTS=1` and
+`DASHBOARD_PORTABLE_NATIVE_REAL_BAR_PROBE=1`, and
+`-m research.run_portable_native_bar_probe --maximum-seconds 970 --output
+/private/tmp/<task-owned-output>.json`. The30..970-second deadline is enforced;
+the output must be task-owned temporary storage. The optional running record
+identifies only this probe's PID so a SIGINT can execute its owned cleanup.
+No shared daemon/tool/process is stopped or reconfigured.
