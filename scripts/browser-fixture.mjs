@@ -127,8 +127,13 @@ async function terminateOwned(processHandle) {
     // exact PGID until it disappears; never enumerate or signal other groups.
     if (ownedGroupExists(processHandle)) {
       try { process.kill(-processHandle.pid, 'SIGTERM'); } catch (error) { if (error.code !== 'ESRCH') throw error; }
-      if (!await waitForOwnedGroup(processHandle, 10_000)) {
+      let quiescent = false;
+      try { quiescent = await waitForOwnedGroup(processHandle, 10_000); }
+      catch { /* Intermediate metadata failure still requires stopping this exact registered group. */ }
+      if (!quiescent) {
         try { process.kill(-processHandle.pid, 'SIGKILL'); } catch (error) { if (error.code !== 'ESRCH') throw error; }
+        // Final inspection is mandatory and its failure propagates. Cleanup
+        // retains the owned copy if neither absence nor quiescence is proved.
         if (!await waitForOwnedGroup(processHandle, 1000)) throw new Error('Owned process group cleanup did not complete');
       }
     }
@@ -236,19 +241,24 @@ async function main() {
       const config = path.join(prepared.directory, 'next.config.ts');
       await writeFile(config, `import type { NextConfig } from 'next';\nconst config: NextConfig = { allowedDevOrigins: ['127.0.0.1'], async headers() { return [{source:'/:path*',headers:[{key:'X-Dashboard-Fixture-Owner',value:${JSON.stringify(prepared.owner)}},{key:'Content-Security-Policy',value:${JSON.stringify(connectPolicy)}}]}]; }}; export default config;\n`);
       guard.assertOpen();
-      const fixtures = [['paper-page.tsx', 'page.tsx'], ['paper-data.ts', 'paper-data.ts']];
-      const route = path.join(prepared.directory, 'src/app/(dashboard)/paper-fixture');
-      await mkdir(route, { recursive: true, mode: 0o700 }); guard.assertOpen();
-      for (const [source, destination] of fixtures) {
-        const file = path.join(ROOT, 'scripts/browser-fixtures', source);
-        for (const segment of [path.join(ROOT, 'scripts'), path.dirname(file), file]) {
-          const metadata = await lstat(segment); guard.assertOpen();
-          if (metadata.isSymbolicLink() || (segment === file && !metadata.isFile())) throw new Error('Browser fixture inputs must be regular public files');
+      const publicCopies = [
+        ['scripts/browser-fixtures/paper-page.tsx', 'src/app/(dashboard)/paper-fixture/page.tsx'],
+        ['scripts/browser-fixtures/paper-data.ts', 'src/app/(dashboard)/paper-fixture/paper-data.ts'],
+        ['scripts/browser-fixtures/portable-checkpoint-page.tsx', 'src/app/(dashboard)/portable-fixture/page.tsx'],
+        ['tests/probes/fixtures/portable-checkpoint-inspector.json', 'tests/probes/fixtures/portable-checkpoint-inspector.json'],
+      ];
+      for (const [source, destination] of publicCopies) {
+        const parts = source.split('/'), file = path.join(ROOT, source);
+        for (let index = 1; index <= parts.length; index++) {
+          const metadata = await lstat(path.join(ROOT, ...parts.slice(0, index))); guard.assertOpen();
+          if (metadata.isSymbolicLink() || (index < parts.length && !metadata.isDirectory())
+            || (index === parts.length && (!metadata.isFile() || metadata.size > 1_048_576))) throw new Error('Browser fixture inputs must be bounded regular public files');
         }
-        await copyFile(file, path.join(route, destination)); guard.assertOpen();
+        const target = path.join(prepared.directory, destination);
+        await mkdir(path.dirname(target), { recursive: true, mode: 0o700 }); guard.assertOpen();
+        await copyFile(file, target); guard.assertOpen();
       }
     });
-    guard.assertOpen();
     preparationPhase = 'production fixture build';
     await runFixtureChild(process.execPath, [nextBin, 'build'],
       { cwd: prepared.directory, env, stdio: 'inherit' }, 600_000, guard);
@@ -278,7 +288,7 @@ async function main() {
     const ready = { scope: 'synthetic-loopback-browser', appOrigin, backendOrigin,
       directory: prepared.directory, owner: prepared.owner, originalConfigReplacedOnlyInOwnedCopy: true,
       snapshotFiles: prepared.counts.files, snapshotBytes: prepared.counts.bytes,
-      copiedPublicFixtureRoute: '/paper-fixture', isolatedCookieHostname: true,
+      copiedPublicFixtureRoute: '/paper-fixture', copiedPublicFixtureRoutes: ['/paper-fixture', '/portable-fixture'], isolatedCookieHostname: true,
       parentPid: process.pid, nextProcessGroup: next.pid,
       credentials: 'fake only; no cloud authority' };
     process.stdout.write(JSON.stringify(ready) + '\n');

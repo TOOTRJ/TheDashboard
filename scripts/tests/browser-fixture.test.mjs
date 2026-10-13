@@ -6,6 +6,8 @@ import { browserEnvironment, runFixtureChild, createFixtureLaunchGuard, createFi
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
+import childProcess from 'node:child_process';
+import { syncBuiltinESMExports } from 'node:module';
 
 async function fixture(t) {
   const backend = createBrowserBackend({ currentAge: 32, retirementAge: 65, lifeExpectancy: 90 });
@@ -142,6 +144,42 @@ test('timeout removes surviving descendant even when the group leader exits on T
   const final = await readFile(marker, 'utf8');
   await new Promise(resolve => setTimeout(resolve, 100));
   assert.equal(await readFile(marker, 'utf8'), final);
+});
+
+test('TERM metadata failure still kills the exact registered ignore-TERM leader', { timeout: 16_000 }, async t => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'dashboard-browser-metadata-test-'));
+  const marker = path.join(directory, 'synthetic-heartbeat');
+  const source = `const fs=require('node:fs');process.on('SIGTERM',()=>{});setInterval(()=>fs.writeFileSync(process.argv[1],String(Date.now())),10);`;
+  const originalSpawn = childProcess.spawn, originalSpawnSync = childProcess.spawnSync;
+  let owned, failures = 0;
+  t.after(async () => {
+    childProcess.spawn = originalSpawn; childProcess.spawnSync = originalSpawnSync; syncBuiltinESMExports();
+    // Even a regression failure must not leave this test's exact child alive.
+    if (owned?.pid) {
+      try { process.kill(-owned.pid, 'SIGKILL'); } catch (error) { if (error.code !== 'ESRCH') throw error; }
+    }
+    await rm(directory, { recursive: true, force: true });
+  });
+  childProcess.spawn = (command, args, options) => {
+    assert.equal(command, process.execPath); assert.deepEqual(args, ['-e', source, marker]);
+    assert.equal(options.detached, true); assert.equal(options.shell, false);
+    owned = originalSpawn(command, args, options); return owned;
+  };
+  childProcess.spawnSync = (command, args, options) => {
+    if (command === '/bin/ps' && owned && failures === 0) {
+      const selected = args[1].split(','); assert.ok(selected.includes(String(owned.pid)));
+      failures++;
+      return { error: new Error('synthetic exact-group metadata unavailable'), status: null, stdout: '', stderr: '' };
+    }
+    return originalSpawnSync(command, args, options);
+  };
+  syncBuiltinESMExports();
+  await assert.rejects(runFixtureChild(process.execPath, ['-e', source, marker],
+    { cwd: directory, env: {}, stdio: 'ignore' }, 400), /preparation timed out/);
+  assert.equal(failures, 1, 'The TERM-phase metadata check failed before the KILL phase');
+  const final = await readFile(marker, 'utf8');
+  await new Promise(resolve => setTimeout(resolve, 100));
+  assert.equal(await readFile(marker, 'utf8'), final, 'No exact owned leader remains writing after timeout');
 });
 
 
