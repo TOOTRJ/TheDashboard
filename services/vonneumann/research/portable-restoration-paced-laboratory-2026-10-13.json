@@ -1,0 +1,50 @@
+{
+  "continuous_runtime_acceptance": false,
+  "fixture_cleanup": "exact owned fixture normal teardown; no other process/container stopped",
+  "format": "dashboard-paced-restoration-laboratory-observation-v1",
+  "future_allowance_seconds": 2,
+  "guard_changed": false,
+  "hosted_ci_acceptance": false,
+  "lease_allowance_seconds": 60,
+  "limits": [
+    "selected single local run; not a calibrated old/new speedup or CPU/RSS tail bound",
+    "pre-acquisition wait is outside receipt-critical-path and is not a runtime optimization",
+    "scheduling overshoot is preserved; no retry or repeated pacing",
+    "negative expiry and post-COMMIT cases do not use acquisition pacing"
+  ],
+  "native_source_sha256": "76e23d44a296c838238e5545c9ea498eb86d2ac5caee9798236aee1f8a5bf5c4",
+  "observed_date": "2026-10-13",
+  "positive_observations": {
+    "decision_native_guard_after_original_receipt_seconds": "1.741515",
+    "original_observed_receipt_fraction_us": 952363,
+    "pair_and_delayed_full_compact_equivalence_host_seconds": "2.182149",
+    "pre_acquisition_host_phase_seconds": "0.392364625",
+    "pre_acquisition_target_fraction_us": 950000,
+    "protective_native_guard_after_original_receipt_seconds": "0.787651",
+    "receipt_to_integral_action_seconds": "0.047637"
+  },
+  "postgres_image_sha256": "965e2dfb5a23a0d6541b6106541e777b303656ebabd4e878746b189d550c0a66",
+  "production_authority": false,
+  "receipt_refreshed": false,
+  "receipt_relabelled": false,
+  "retained_checks": [
+    "13 original checkpoint wires",
+    "current protective head and independently scoped oracle",
+    "full and compact next-command equality",
+    "original once-only decision",
+    "retired and foreign identity refusal",
+    "genuine source expiry rollback with original absence",
+    "actual post-COMMIT failure reconciles original without retry or decision",
+    "data-free controls"
+  ],
+  "retry_performed": false,
+  "runtime": "CPython 3.12.14",
+  "scope": "owned offline original-v2 PostgreSQL laboratory; positive first receipt paced before acquisition",
+  "skips": 0,
+  "source_allowance_seconds": 5,
+  "test_source_sha256": "1e55d6c0b0a38eefa776a58775187943bca06b7df038fd106dcadbf9696c5340",
+  "tests_passed": 5,
+  "tests_reported": 5,
+  "unittest_elapsed_seconds": "34.233",
+  "unpaced_cold_restoration_acceptance": false
+}

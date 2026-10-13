@@ -459,3 +459,25 @@ integral-action delay; these are local observations, not a calibrated speedup
 or hosted five-second guarantee. Original expiry and after-COMMIT reconciliation
 still pass. Require complete exact-new-head CI before merge or operating claims.
 [Cache contract](OWNED-CHECKPOINT-RESOLUTION-CONTRACT.md).
+
+## Pre-acquisition pacing for the positive original-v2 fixture — 2026-10-13
+
+Completed headc04be4f accepts six CI jobs but again refuses the original decision.
+The first receipt fraction3,545us spends0.996455s awaiting an integral action.
+The positive fixture now performs one real scheduling wait before its designated
+first receipt, targeting fraction0.95. It then preserves the actual observed
+receipt and genuine action ceiling wait; no quote/body/receipt is created before
+that pacing, and no overshoot is corrected, refreshed or retried. Only this first
+positive acquisition opts in. Genuine expiry, retired-ID and post-COMMIT cases
+remain unpaced. Native source5/lease60/future2 checks and all original wire/current
+head/13-pin/full-compact/oracle/reconciliation assertions stay unchanged.
+
+The five-case actual local run passes34.233s, zero skips. Receipt fraction952,363us
+has0.047637s action delay and guard offsets0.787651s/1.741515s; the pair with delayed
+full/compact comparisons takes2.182149s. The pre-acquisition host wait0.392364625s
+is outside the original receipt and is not a claimed runtime speedup. These
+source-bound paced laboratory measurements do not establish unpaced cold restore,
+continuous/native-v3 admission or hosted performance. The unchanged native SQL
+SHA remains76e23d44a296c838238e5545c9ea498eb86d2ac5caee9798236aee1f8a5bf5c4.
+[Receipt](research/portable-restoration-paced-laboratory-2026-10-13.json);
+[completed CI and new-head gate](../../CI-VERIFICATION.md#completed-head-c04be4f-and-pre-acquisition-fixture-pacing--2026-10-13).

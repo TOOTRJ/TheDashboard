@@ -142,3 +142,29 @@ Final implementation/test source pins:
 These hashes bind the local bytes and test scope; they do not attest a cloud
 deployment, provider, financial model or server authorization. The contract's
 own Git-reviewed bytes are separate from this table to avoid a self-hash cycle.
+
+## Actual rendered synthetic-browser follow-up — 2026-10-13
+
+Root adopts this slice asedbf4d55 and runs the actual compiled page alongside
+Reports/Settings against the bounded fake loopback protocol. Add shows pending
+state with competing inputs/actions disabled and publishes the returned owned
+row after acknowledgment. Goal Save and live Undo acknowledge their own writes;
+Undo from333333 returns the saved222222. Edit and delete return their actual
+owned rows and show generic Account updated/removed notices without private
+account names. Account replacement loads each fake owner's own goal/rows and
+empty drafts. The financial formulas remain unchanged and uncalibrated.
+
+A real original Bob POST is held as4927ff02-b03b-474b-be5a-c1ba4c1b889d at
+fixture sequence149. Client-side logout/login/Links replace the session with
+Alice without cancelling that response. The owned observer releases it once
+after Alice's actual Portfolio read. The stable rendered Alice workspace retains
+its own rows/222222 goal/empty new-name field, excludes the late Bob name and
+publishes no old notice. Earlier exploratory full-document navigations lost
+the pending response and are excluded from this late-success proof.
+
+[BROWSER-ACCEPTANCE-2026-10-13.json](BROWSER-ACCEPTANCE-2026-10-13.json) binds
+exact observed source/protocol/runtime values and limitations. All data/accounts
+are public fake fixtures; this is not actual Supabase/PostgREST/RLS, server CAS,
+write cancellation or live financial acceptance. The owned tab/server/backend
+and marked source copy are cleaned up. Full integrated CI and exact project
+release checks still gate deployment acceptance.

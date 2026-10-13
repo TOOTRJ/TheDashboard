@@ -109,6 +109,23 @@ inheritance refusal. The new recorder separately suppresses its owned credential
 bearing request logs. Neither slice is yet integrated/released or accepted in
 the hosted image; keep the SEC-06 parent open through those joins.
 
+**Additional reviewed progress — 2026-10-13:** the pure prospective A1 source
+slice now passes41 scoped cases, with all authority flags false. The independent
+A2A raw parser passes16 actual isolated PostgreSQL cases in5.618s; finite timestamp
+parity and selected maximum-body measurements do not close authenticated native
+admission, worst-case resources or warmup. These remain local research commits.
+Next native work must freeze the complete actor/package/epoch/original-ID,
+terminal-closure, control-journal and trusted reader-availability contracts before
+implementation; the parser alone grants no source or trading authority.
+
+Portfolio session publication and exact owned-row acknowledgment repairs are
+adopted locally asedbf4d55 (51 controlled cases, compiler/lint and fake build).
+Reports/Settings honest previews are adopted as846c00b (five controlled cases,
+compiler/lint and fake build). Their combined real synthetic-browser review and
+complete integrated CI/release remain required. Strategy mock backtests, Home/
+Analytics provenance, header actions and APP-03 input/schema validation remain
+separate next app tasks; no false report or billing completion is accepted.
+
 **SEC-06 research finding:** Python's default TLS context can inherit
 `SSLKEYLOGFILE` even when HTTPX uses `trust_env=False`; the installed aiohttp also
 constructs a default context at import. This is a conditional exposure, not a
@@ -136,16 +153,21 @@ and exhaustive occurrences unchanged. [Deep research and ordered CI candidates](
 
 ## Five-priority implementation batch — local review, 2026-10-12
 
-**2026-10-13 release follow-up:** PR104 remains open; its latest completed head is
-`35d6aac`. Run38438232967 accepts SQL1/3/4, including all237 SQL4 cases (two allowed
-timing skips) and the original restoration pair. Ordinary2 and SQL2 fail only
-historical-source-hash comparisons after the reviewed checkpoint optimization.
-Both source-lineage corrections preserve all older receipts and actual current
-bindings; root's six ordinary cases and unchanged33-command native retention
-trace pass locally. Accept all seven required corrected-head jobs before merge.
-Preserve earlier4ed expiry failures and c58177a's separate SQL2 timeout.
+**2026-10-13 release follow-up:** PR104 remains open. Its latest completed head
+`c04be4f`/run38444382423 finishes33m57s: frontend, both ordinary groups and SQL1–3
+pass, including both source-lineage corrections. SQL4 fails one original
+restoration decision;237 cases/1472.116s include two allowed timing skips. A
+genuine first receipt only3,545 microseconds into its second spent0.996455s
+waiting for the legacy integral action; this observation supports preparation
+timing investigation, not attribution of the unobserved failed guard clock.
+The reviewed test-only repair paces acquisition before the first designated
+receipt, then preserves that genuine receipt and all five-second/source/lease
+checks. All five native cases pass34.233s locally, including genuine expiry
+rollback and post-COMMIT reconciliation. Require all seven new-head jobs before
+merge; neither a paced fixture nor earlier passes establish runtime tails.
+Preserve all earlier expiry/hash/timeout failures as dated evidence.
 Local proof counts below are bounded historical evidence, not hosted acceptance.
-[Completed run, repairs and limits](CI-VERIFICATION.md#completed-cache-head-35d6aac-and-source-lineage-repair--2026-10-13).
+[Completed runs, repairs and limits](CI-VERIFICATION.md#completed-head-c04be4f-and-pre-acquisition-fixture-pacing--2026-10-13).
 The current readiness overview now reflects PR99–PR104 and separates the
 implemented synthetic/native laboratory from the remaining real-provider joins.
 
@@ -1364,3 +1386,27 @@ These items prepare a later real trading implementation; current authorization e
 **RES-03 next deep-research checkpoint — completed candles (2026-09-30):** verify Birdeye V3 entitlements, shared account quotas/compute-unit cost, completion-latency distributions, sparse-asset gaps, and revisions older than the two-minute overlap. Seek provider clarification of contradictory `outlier` flag documentation; the adapter deliberately leaves that parameter at the provider default. Define restart/checkpoint and gap-recovery policy, dataset licensing/version hashes, and scaled-token unit handling before performance comparisons. A five-second completion margin and rejecting gaps/revisions are local policies, not guarantees of market finality. Research simulation warmup/evaluation scheduling under ENG-06 before presenting optimizer rankings.
 
 **RES-02/RES-03 checkpoint — execution and data rights (2026-09-30):** Jupiter Price V3 is a USD reference, while Swap V2 amount-specific orders have distinct managed/build fee paths. Slippage tolerance is not realized cost; priority-fee aggregates may already include tips; refundable rent is not a permanent expense. Follow the dated primary sources and unresolved calibration questions in the execution contract. The user confirmed Jupiter permits backtesting retention, resolving that question for this project. Do not request that approval again. Separate Birdeye entitlements/retention and any future combined-data redistribution remain distinct research questions; no redistribution is currently planned. Use selected historical windows with immutable experiment snapshots, and record actual Jupiter quote/receipt evidence only during bounded paper research when needed. Synthetic/offline accounting work can proceed independently. Public research candidates need actual partition/completeness, point-in-time provenance and license review, not just a download link.
+
+
+### 2026-10-13 rendered app acceptance and parallel next slices
+
+Portfolio and Reports/Settings now have finite actual compiled fake-browser
+acceptance, including keyboard/mobile/theme, owned acknowledgments and a delayed
+old response across client-side account replacement. Exact cleanup is complete;
+[BROWSER receipt](BROWSER-ACCEPTANCE-2026-10-13.json) preserves the real-versus-
+synthetic limits. Broader Header/Home/Analytics and complete a11y remain open.
+An existing local helper's exact-group inspection fails one complete frontend
+follow-up; metadata-only diagnostics are the immediate CI reliability follow-up,
+without omitting the case, accepting unknown absence or widening guards.
+
+The next independent app candidates are now built/reviewed locally: Strategies
+removes fabricated historical results and clearly separates external charts;
+APP-03 adds bounded original request reads, strict limit/calendar/scalar/source
+validation, lazy safe configuration, no-store/errors and minimal returned-shape
+acknowledgments. Their final integration/browser/complete CI/release gates remain.
+API table migration provenance/full row types/persistence need exact Dashboard
+catalog review and a separate DB-04 forward plan before any schema application.
+Deep research still includes real resource/latency/storage tails, realistic
+cost/holdout evaluation and native reader/closure/full-journal capacity: a
+915-minute source trace uses3660 source writes before fence/control overhead,
+so the4096-row research envelope must not be assumed adequate for a60s lease.

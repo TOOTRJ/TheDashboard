@@ -576,3 +576,78 @@ still fail, and captured Docker output/credentials never enter logs. No image
 fallback is added. After this change all87 combined helper cases pass with zero
 skips. All seven actual jobs at the revised head subsequently completed
 successfully, as recorded in the exact-source receipt above.
+
+### Completed head c04be4f and pre-acquisition fixture pacing — 2026-10-13
+
+[Run38444382423](https://github.com/TOOTRJ/TheDashboard/actions/runs/38444382423)
+at `c04be4fb536c593541603a7e7c6c1140771b139d` completes33m57s. Frontend passes
+2m40s, ordinary1/2 pass15m2s/14m8s, and SQL1–3 pass33m53s/24m27s/32m52s.
+Both historical/current source-lineage corrections now pass. SQL4 fails25m37s:
+237 cases/1472.116s, one original restoration decision error, two allowed timing
+skips and zero unexpected skips. The complete source trace, post-COMMIT original
+reconciliation and genuine expiry rollback pass. No unfinished job is cancelled
+before the next push; the failed run is retained and PR104 remains unmerged.
+
+The first genuine receipt is3,545 microseconds into its second, yielding a
+0.996455-second wait for the legacy integral action. Its accepted protective
+native guard is2.769208s after that same receipt; the later rollback diagnostic
+sees receipt age5.315392s and a live lease. The failed predicate combines source
+and lease; its actual guard instant is unobserved. This supports investigating
+preparation cost, not a definitive failed-branch or native clock attribution.
+
+The positive test now paces once before its designated first receipt. A real
+fixture clock schedules a wait to fraction0.95; the following actual clock
+sample becomes the original receipt. It is never rounded down, refreshed,
+retried or re-paced after overshoot. The remaining actual ceiling/action wait,
+all original wire/ID/current-head/oracle checks, full native source/lease guards
+and off-path full/compact equivalence remain. Only the first positive acquisition
+uses pacing; retired-ID, post-COMMIT and genuine expiry negatives remain unpaced.
+No production/model/native/decoder or server setting changes.
+
+All five actual native cases pass34.233s, zero skips, using pinned CPython3.12.14
+and the owned network-none cached PostgreSQL17.6 fixture with exact cleanup.
+The first receipt fraction is952,363us, action delay0.047637s and original
+protective/decision guard offsets0.787651s/1.741515s. Pair plus delayed equivalence
+takes2.182149s. The pre-acquisition host phase0.392364625s is outside that receipt
+and cannot be presented as a faster receipt-critical-path operation.
+[Exact source-bound local receipt](services/vonneumann/research/portable-restoration-paced-laboratory-2026-10-13.json).
+These are paced original-v2 laboratory observations, not an unpaced cold restore,
+new-v3 runtime, hosted tail bound or continuous acceptance.
+
+Discovery-only retains2414 ordinary occurrences1045/1369 and602 SQL occurrences
+94/128/143/237, with54 baseline repeated IDs and unchanged selection/limits.
+Ordinary SHA256 `9f07a0d170c4953b39c8cbe61c06eaeb584609ca2f20466a8f48a94c3f5d3afe`;
+SQL SHA256 `2d782fbae39f0b3166507c11830e5c7fed1ea2bb3f57655da12ea7af22771aeb`;
+selection SHA256 `be75136c0592a7a2da26707a3d7e4c1e7e740dda639776f6759d23ed64357af1`.
+Discovery executes no tests. All seven actual new-head jobs still gate merge.
+
+The earlier35d6aac run's workflow total is38m2s; its longest SQL2 job is37m58s.
+Earlier references to37m58s as total are corrected here without changing that
+source's individual job reports or relabeling historical measurement artifacts.
+
+### Parallel app/browser verification and local inspection uncertainty
+
+Reviewed Portfolio and Reports/Settings slices are adopted asedbf4d55/846c00bf.
+Their controlled/compiler/lint/fake build receipts remain bound to their precise
+source. Root's rendered combined fake browser proves finite keyboard/mobile/
+preview/theme and owner/acknowledgment/late-reply cases, with exact owned cleanup.
+[BROWSER-ACCEPTANCE-2026-10-13.json](BROWSER-ACCEPTANCE-2026-10-13.json) states
+that synthetic protocol evidence is not real Supabase/RLS/runtime acceptance.
+
+A315-case complete frontend run passes32,317.481584ms before the two new fake
+Portfolio protocol tests. The new protocol cases pass2/2 in221.898ms. A scoped
+whole-fixture run then exposes phase ambiguity in an existing test's first-ps
+failure injection. Its repair targets only the registered negative PGID's actual
+TERM phase, forwarding real TERM/KILL and every final inspection unchanged.
+All23 fixture cases pass22,069.801417ms, zero skips. The production helper's
+1000ms inspection timeout/final positive cleanup requirements remain unchanged.
+
+The subsequent complete frontend attempt exits1 in a different existing
+ignore-TERM descendant case: final exact-group inspection is unavailable. The
+full report's count/inspection errno were not retained, so no cause or aggregate
+current-source pass is claimed. One separately approved exact-PGID diagnostic
+passes10,888.176541ms with actual post-KILL EPERM followed by positive metadata,
+then genuine empty-group disappearance. It does not explain or supersede the
+failed whole-suite attempt. A metadata-only refusal diagnostic is now separately
+reviewed; unknown inspection failures must remain failures, not empty-group
+claims. Full next-source CI and relevant actual checks remain required.

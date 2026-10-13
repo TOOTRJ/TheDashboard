@@ -185,7 +185,7 @@ class PortableRestorationNativeTests(unittest.TestCase):
         self.assertFalse(restored.lease_restored); self.assertFalse(restored.identity_ledger_restored)
         return restored, checked
 
-    def current_source_clock(self, state):
+    def current_source_clock(self, state, *, pace_integral_action=False):
         """Sample the real fixture clock after any bounded control-order wait."""
         previous_control = state.to_dict()['engine']['lifecycle']['last_control_at']
         target = 0 if previous_control is None else previous_control + 1
@@ -197,6 +197,18 @@ class PortableRestorationNativeTests(unittest.TestCase):
                 + '-extract(epoch FROM clock_timestamp())));'
                 + query))
         self.assertGreaterEqual(now_us, target * 1000000)
+        if pace_integral_action:
+            # Schedule this positive v2 fixture BEFORE its first receipt. V2's
+            # integral action otherwise spends almost one second when acquisition
+            # lands just after a whole second. Sample one genuine clock to pace
+            # once, then preserve the actual observed receipt after that wait.
+            # Scheduler overshoot is not adjusted, retried or re-paced.
+            phase_query = '''WITH sampled AS MATERIALIZED
+              (SELECT extract(epoch FROM clock_timestamp()) AS at)
+              SELECT pg_sleep(greatest(0,floor(at)+0.95-at)) FROM sampled;'''
+            now_us = int(self.timed_source_phase('pre_acquisition_clock_pacing',
+                lambda: self.db.scalar(phase_query + query)))
+            self.assertGreaterEqual(now_us, target * 1000000)
         # Preserve the original observed receipt, not a rounded-down label that
         # spends up to a second of the unchanged five-second native allowance.
         received_at = now_us / 1000000
@@ -360,7 +372,7 @@ class PortableRestorationNativeTests(unittest.TestCase):
         before_protective = row
         protective_context = self.capture_context_before_source(row, serial=70)
         state = row[3].accept(row[0]); data = state.to_dict()
-        at, received_at, decision_at = self.current_source_clock(state)
+        at, received_at, decision_at = self.current_source_clock(state, pace_integral_action=True)
         captured_started = time.monotonic()
         initial_at = int(datetime.fromisoformat(original[0].transition['evidence']['inputs']['event_at']).timestamp())
         received_mono = MONO + received_at - initial_at
@@ -403,6 +415,9 @@ class PortableRestorationNativeTests(unittest.TestCase):
         receipt_us = frame['quote']['document']['received_wall_us']
         protective_guard = json.loads(decision_context[1])['receipt']['guard_observed_at']
         print(json.dumps({'restoration_native_source_sequence': 'same-original-frame-once',
+            'positive_v2_pre_acquisition_pacing': True,
+            'pre_acquisition_target_fraction_us': 950000,
+            'original_observed_receipt_fraction_us': receipt_us % 1000000,
             'original_receipt_to_action_wall_seconds': round(decision_at - received_at, 6),
             'protective_submit_and_current_readback_host_seconds_from_action_sample': round(protective_readback_at - captured_started, 6),
             'protective_submit_current_readback_and_independent_oracle_host_seconds': round(snapshot_seconds, 6),

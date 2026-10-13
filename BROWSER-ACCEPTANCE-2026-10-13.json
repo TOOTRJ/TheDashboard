@@ -1,0 +1,99 @@
+{
+  "base_commit": "846c00bf8d83909be2b55754df36535e7eee4e26",
+  "cleanup": "normal exact-owned parent stop; helper stopped its tracked server/backend and removed its marked copy; directory absence verified",
+  "fixture": {
+    "app_port": 55475,
+    "backend_port": 55474,
+    "credentials": "public fake only",
+    "next": "16.3.8",
+    "node": "24.19.0",
+    "original_config_replaced_only_in_owned_copy": true,
+    "owner": "85ba757b-0535-4254-90dc-b8a8d09a3e2a",
+    "snapshot_bytes": 1360554,
+    "snapshot_files": 153
+  },
+  "format": "dashboard-synthetic-browser-observation-v1",
+  "limitations": [
+    "synthetic backend is an independently tested protocol fixture, not real Supabase/PostgREST/RLS acceptance",
+    "no source/model/worker/native/v3/runtime/strategy/profitability authority",
+    "two actual report preview titles; remaining titles covered only by controlled tests",
+    "no report file/download/billing/wallet/provider operation",
+    "notification cleanup is asynchronous; generic text and current-scope guard are the privacy boundary",
+    "Home/Analytics/Header mock provenance and broader accessibility remain separate audit work"
+  ],
+  "observed_date": "2026-10-13",
+  "portfolio": {
+    "actual_notices": [
+      "Portfolio goal saved",
+      "Goal reverted",
+      "Account updated",
+      "Account removed"
+    ],
+    "edit_and_delete_acknowledged": true,
+    "exploratory_traces_excluded": "Earlier full-document navigation removed the pending response before release; these attempts do not prove late-success publication safety.",
+    "goal_save_acknowledged": 222222,
+    "initial_alice_balance": 10000,
+    "late_original": {
+      "current_goal_remained": 222222,
+      "id": "4927ff02-b03b-474b-be5a-c1ba4c1b889d",
+      "late_private_name_absent_in_current_workspace": true,
+      "method": "POST",
+      "navigation": "client-side Links; original response retained",
+      "new_name_input_remained_empty": true,
+      "old_notice_absent": true,
+      "original_owner": "20000000-0000-4000-8000-000000000002",
+      "path": "/rest/v1/portfolio_accounts",
+      "released_once_after_actual_new_owner_portfolio_read": true,
+      "replacement_owner": "10000000-0000-4000-8000-000000000001",
+      "response_held_before_logout": true,
+      "sequence": 149
+    },
+    "live_undo_from": 333333,
+    "live_undo_to": 222222,
+    "new_owner_rows_goal_and_empty_drafts_observed": true,
+    "owned_add_acknowledged": true,
+    "pending_mutation_disabled_competing_controls": true,
+    "private_values_absent_from_success_notices": true
+  },
+  "reports": {
+    "account_report_generation_implemented": false,
+    "actual_keyboard_preview_titles": [
+      "Sample P&L Statement Preview",
+      "Sample Tax Report Preview"
+    ],
+    "escape_closes_after_animation": true,
+    "generation_disabled_with_visible_reason": true,
+    "mobile_viewport": {
+      "document_width": 390,
+      "height": 844,
+      "width": 390
+    },
+    "sample_provenance_visible": true
+  },
+  "scope": "real rendered Dashboard with synthetic loopback-only auth/data; no cloud/project data",
+  "settings": {
+    "escape_focus_return_observed": "View example plans",
+    "example_current_plan_remained": "Pro",
+    "example_tier_keyboard_selection": "Elite",
+    "mobile_document_width": 382,
+    "mobile_navigation_reached_reports": true,
+    "profile_fields_readonly": true,
+    "sample_profile_wallet_preferences_trading_billing_labels_visible": true,
+    "theme_light_class_observed": true,
+    "unsupported_actions_disabled_with_visible_reasons": true,
+    "upgrade_disabled": true
+  },
+  "source_sha256": {
+    "scripts/browser-fixture.mjs": "a684c3f1e487e74cca367b466708e189962569575a112bd8b82cec5f99435793",
+    "scripts/browser-fixtures/backend.mjs": "08a8775a202bdf58ddd5be3ce0176ebb4be71bce0035faebe28251c76b99d89f",
+    "src/app/(dashboard)/portfolio/page.tsx": "e46470132a7eba2a84318ab25c8266203c9d88ea56333311406445e2b076a0ff",
+    "src/app/(dashboard)/reports/page.tsx": "ffa2ad5006ee1d9b050f94bf090c555c87ea0171aeb661eda7d6d5e4cf7c0777",
+    "src/app/(dashboard)/settings/page.tsx": "967770c0b437672a09e3b3ee7d8c9f65451e3f0d2e1dbd4f4d561fe5ee0d5a17",
+    "src/components/auth/AuthProvider.tsx": "4d1ebc680ba3ecb34fd3faadbab0c658c53688215cc752a2a0f62d1513de4988",
+    "src/lib/auth/session-guard.ts": "5d13ce98025c139d90cb42faf04780cf63cf5a748c0014a4af6f41f8e92e9086",
+    "src/lib/nestegg/scoped-client.ts": "fd50f8c7f2831cb6b50fc88065d5e7e60cd114e7d817594a08c3513edc7519f1",
+    "src/lib/nestegg/session-scope.ts": "7cb7f831dbfef8833b16d0f6c215436d7431c9fb6755ce3ebdb7257638816de9",
+    "src/lib/portfolio/portfolio-supabase.ts": "486da0ed8a57d9200f0300ddf13bec2b5b5fe3a8cfd2b2ff97427535908ccc3e"
+  },
+  "viewport_reset": true
+}

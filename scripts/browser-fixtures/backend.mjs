@@ -193,6 +193,32 @@ export function createBrowserBackend(defaultInputs) {
       } else if (req.method === 'DELETE' && table === 'nestegg_scenarios' && idFilter) {
         const selected = new Set(rows.map(r => r.id));
         account.plans = account.plans.filter(r => !selected.has(r.id)); rows = [];
+      } else if (req.method === 'POST' && table === 'portfolio_accounts') {
+        const input = await body(req);
+        if (!input || Array.isArray(input) || Object.keys(input).some(k => !['user_id', 'name', 'balance', 'updated_at'].includes(k))
+          || input.user_id !== owner || typeof input.name !== 'string' || !input.name.trim()
+          || typeof input.balance !== 'number' || !Number.isFinite(input.balance) || input.balance < 0
+          || typeof input.updated_at !== 'string' || !Number.isFinite(Date.parse(input.updated_at))) return send(res, 403, ERROR);
+        const row = { id: randomUUID(), user_id: owner, name: input.name,
+          balance: input.balance, updated_at: input.updated_at };
+        account.portfolio.push(row); rows = [row];
+      } else if (req.method === 'PATCH' && table === 'portfolio_accounts' && idFilter) {
+        const input = await body(req);
+        if (!input || Array.isArray(input) || Object.keys(input).some(k => !['name', 'balance', 'updated_at'].includes(k))
+          || ('name' in input && (typeof input.name !== 'string' || !input.name.trim()))
+          || ('balance' in input && (typeof input.balance !== 'number' || !Number.isFinite(input.balance) || input.balance < 0))
+          || typeof input.updated_at !== 'string' || !Number.isFinite(Date.parse(input.updated_at))) return send(res, 403, ERROR);
+        for (const row of rows) Object.assign(row, structuredClone(input));
+      } else if (req.method === 'DELETE' && table === 'portfolio_accounts' && idFilter) {
+        const selected = new Set(rows.map(r => r.id));
+        account.portfolio = account.portfolio.filter(r => !selected.has(r.id));
+        // Return the actual affected originals for the page's acknowledgment.
+      } else if (req.method === 'PATCH' && table === 'profiles') {
+        const input = await body(req);
+        if (!input || Array.isArray(input) || Object.keys(input).some(k => !['portfolio_goal', 'portfolio_goal_year'].includes(k))
+          || typeof input.portfolio_goal !== 'number' || !Number.isFinite(input.portfolio_goal) || input.portfolio_goal < 0
+          || (input.portfolio_goal_year !== null && !Number.isSafeInteger(input.portfolio_goal_year))) return send(res, 403, ERROR);
+        Object.assign(account.profile, structuredClone(input));
       } else if (req.method !== 'GET') return send(res, 405, ERROR);
       const single = (req.headers.accept ?? '').includes('application/vnd.pgrst.object+json');
       const count = rows.length;

@@ -5133,3 +5133,55 @@ Dedicated Vercel authentication remains pending the user's ready-for-login
 response. The existing user-edited migration remains at its preserved SHA256.
 No production migration, worker activation, provider credential, shared account
 configuration or other project changes occur in this checkpoint.
+
+## 121. Completed lineage acceptance and paced restoration fixture — 2026-10-13
+
+Headc04be4f/run38444382423 completes33m57s with six jobs passing, including both
+historical/current source-lineage repairs. SQL4 reports237 cases/1472.116s, one
+original restoration decision error and two allowed timing skips. PR104 remains
+unmerged. All jobs settle before another push; no failed request is retried.
+The observed first receipt fraction3,545us incurs0.996455s integral-action delay;
+its later receipt-age diagnostic does not recover the actual failed guard clock.
+
+The reviewed test-only positive acquisition pacing occurs before its first
+designated receipt and preserves the subsequent real timestamp. All five native
+cases pass34.233s locally with unchanged original IDs/wires, source5/lease60/
+future2 guards, expiry rollback and post-COMMIT reconciliation. Full current-head,
+13-wire and independent full/compact oracle checks remain. The precise source
+and limited observations are recorded in the new laboratory receipt. Complete
+new-head CI and exact project/source/author/alias release verification remain
+required; no unpaced continuous-runtime or hosted latency guarantee is inferred.
+
+The independently reviewed source A1 slice passes41 actual offline cases; the
+parser-only A2A prototype passes16 actual isolated PostgreSQL cases5.618s with
+all nine authority flags false. They remain private local research commits,
+separate from this release and from authenticated native admission. Wider actor,
+clock, epoch/ID/terminal-closure and full original journal bindings remain open.
+
+The Portfolio session/owned-acknowledgment repair is adopted locally asedbf4d55;
+its51 controlled cases, scoped compiler/lint and fake18-route build pass. Global
+success notices contain no private account values; owned cleanup preserves
+unrelated notices and retired Undo cannot write. Actual browser and full merged
+head CI acceptance remain separate gates. Reports/Settings honest previews are
+also reviewed locally, with their five controlled cases and fake build passing.
+
+Dedicated Vercel authentication remains pending the ready-for-login response.
+The Dashboard-only profile and exact immutable target boundaries remain intact.
+The user's existing migration still hashes toa62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc.
+No production migration, worker activation, provider/wallet action, shared cloud
+setting or other project changes occur in this checkpoint.
+
+
+Root's actual combined fake-browser review now accepts the finite Reports/
+Settings and Portfolio interactions recorded inBROWSER-ACCEPTANCE-2026-10-13.json.
+The original delayed Bob response is released once after new Alice's actual
+read and cannot populate Alice's workspace. Add/edit/delete/goal/Undo all use
+actual synthetic acknowledgments; account data and source authority are not
+inferred from them. The browser tab and exact owned server/backend/source copy
+are cleaned up; viewport override is reset. No real database/account is used.
+
+The complete local frontend follow-up has an unresolved exact-group OS-inspection
+failure in an existing helper test. Scoped23 fixture cases and an independent
+one-case diagnostic pass, but neither replaces that full failure. Closed
+refusal metadata is being reviewed without relaxing cleanup or1000ms inspection
+limits. The current source still needs complete new-head CI and release checks.

@@ -113,6 +113,42 @@ test('foreign browser origins and oversized request bodies are refused', async t
   assert.equal((await f.request('/auth/v1/token?grant_type=password', { method: 'POST',
     body: JSON.stringify({ email: 'alice@dashboard.invalid', password: 'x'.repeat(66_000) }) })).status, 400);
 });
+test('synthetic Portfolio writes return exact owned acknowledgments and original deleted rows', async t => {
+  const f = await fixture(t), a = await f.login('alice');
+  const headers = { authorization: `Bearer ${a.access_token}`, accept: 'application/vnd.pgrst.object+json' };
+  const base = '/rest/v1/portfolio_accounts';
+  const response = await f.request(base, { method: 'POST', headers, body: JSON.stringify({
+    user_id: FIXTURE_OWNERS.alice, name: 'private fixture account', balance: 321, updated_at: '2026-10-13T12:00:00Z' }) });
+  assert.equal(response.status, 200); const row = await response.json();
+  assert.equal(row.user_id, FIXTURE_OWNERS.alice); assert.equal(row.balance, 321);
+  const target = base + '?user_id=eq.' + FIXTURE_OWNERS.alice + '&id=eq.' + row.id;
+  const edited = await (await f.request(target, { method: 'PATCH', headers, body: JSON.stringify({
+    name: 'edited private fixture', balance: 456, updated_at: '2026-10-13T12:01:00Z' }) })).json();
+  assert.equal(edited.id, row.id); assert.equal(edited.balance, 456);
+  const deleted = await (await f.request(target, { method: 'DELETE', headers })).json();
+  assert.equal(deleted.id, row.id); assert.equal(deleted.user_id, FIXTURE_OWNERS.alice);
+  assert.equal(await (await f.request(target, { method: 'DELETE', headers })).json(), null);
+  const goal = await (await f.request('/rest/v1/profiles?id=eq.' + FIXTURE_OWNERS.alice, {
+    method: 'PATCH', headers, body: JSON.stringify({ portfolio_goal: 222222, portfolio_goal_year: 2051 }) })).json();
+  assert.equal(goal.id, FIXTURE_OWNERS.alice); assert.equal(goal.portfolio_goal, 222222); assert.equal(goal.portfolio_goal_year, 2051);
+});
+test('synthetic Portfolio rejects foreign owners and invalid fields without changing saved rows', async t => {
+  const f = await fixture(t), a = await f.login('alice');
+  const headers = { authorization: `Bearer ${a.access_token}` };
+  const target = '/rest/v1/portfolio_accounts?user_id=eq.' + FIXTURE_OWNERS.alice + '&id=eq.alice-portfolio';
+  const before = await (await f.request(target, { headers })).json();
+  for (const input of [{ name: 'foreign', user_id: FIXTURE_OWNERS.bob, updated_at: '2026-10-13T12:00:00Z' },
+    { balance: true, updated_at: '2026-10-13T12:00:00Z' }, { balance: -1, updated_at: '2026-10-13T12:00:00Z' }]) {
+    assert.equal((await f.request(target, { method: 'PATCH', headers, body: JSON.stringify(input) })).status, 403);
+  }
+  assert.equal((await f.request('/rest/v1/portfolio_accounts?user_id=eq.' + FIXTURE_OWNERS.bob + '&id=eq.bob-portfolio', {
+    method: 'DELETE', headers })).status, 403);
+  assert.equal((await f.request('/rest/v1/profiles?id=eq.' + FIXTURE_OWNERS.alice, { method: 'PATCH', headers,
+    body: JSON.stringify({ portfolio_goal: 111, portfolio_goal_year: 2050.5 }) })).status, 403);
+  assert.deepEqual(await (await f.request(target, { headers })).json(), before);
+  assert.equal((await f.request('/rest/v1/portfolio_accounts', { method: 'POST', headers,
+    body: JSON.stringify({ user_id: FIXTURE_OWNERS.bob, name: 'foreign', balance: 1, updated_at: '2026-10-13T12:00:00Z' }) })).status, 403);
+});
 test('synthetic admin admits only the approved zero-row API read and never writes', async t => {
   const f = await fixture(t), headers = { apikey: FIXTURE_ADMIN_KEY, authorization: `Bearer ${FIXTURE_ADMIN_KEY}` };
   const response = await f.request('/rest/v1/test_events?select=*&limit=0', { headers });
@@ -150,9 +186,11 @@ test('TERM metadata failure still kills the exact registered ignore-TERM leader'
   const directory = await mkdtemp(path.join(os.tmpdir(), 'dashboard-browser-metadata-test-'));
   const marker = path.join(directory, 'synthetic-heartbeat');
   const source = `const fs=require('node:fs');process.on('SIGTERM',()=>{});setInterval(()=>fs.writeFileSync(process.argv[1],String(Date.now())),10);`;
-  const originalSpawn = childProcess.spawn, originalSpawnSync = childProcess.spawnSync;
-  let owned, failures = 0;
+  const originalSpawn = childProcess.spawn, originalSpawnSync = childProcess.spawnSync, originalKill = process.kill;
+  let owned, failures = 0, probeFailures = 0, phase = 'before-term';
+  const observed = [];
   t.after(async () => {
+    process.kill = originalKill;
     childProcess.spawn = originalSpawn; childProcess.spawnSync = originalSpawnSync; syncBuiltinESMExports();
     // Even a regression failure must not leave this test's exact child alive.
     if (owned?.pid) {
@@ -165,10 +203,24 @@ test('TERM metadata failure still kills the exact registered ignore-TERM leader'
     assert.equal(options.detached, true); assert.equal(options.shell, false);
     owned = originalSpawn(command, args, options); return owned;
   };
+  process.kill = (pid, signal) => {
+    if (owned && pid === -owned.pid) {
+      if (signal === 'SIGTERM' || signal === 'SIGKILL') {
+        const result = originalKill.call(process, pid, signal);
+        phase = signal === 'SIGTERM' ? 'term' : 'kill';
+        observed.push(signal); return result;
+      }
+      if (signal === 0 && phase === 'term' && probeFailures === 0) {
+        probeFailures++; observed.push('probe-unavailable');
+        throw Object.assign(new Error('synthetic exact-owned probe unavailable'), { code: 'EPERM' });
+      }
+    }
+    return originalKill.call(process, pid, signal);
+  };
   childProcess.spawnSync = (command, args, options) => {
-    if (command === '/bin/ps' && owned && failures === 0) {
+    if (command === '/bin/ps' && owned && phase === 'term' && probeFailures === 1 && failures === 0) {
       const selected = args[1].split(','); assert.ok(selected.includes(String(owned.pid)));
-      failures++;
+      failures++; observed.push('metadata-unavailable');
       return { error: new Error('synthetic exact-group metadata unavailable'), status: null, stdout: '', stderr: '' };
     }
     return originalSpawnSync(command, args, options);
@@ -177,6 +229,8 @@ test('TERM metadata failure still kills the exact registered ignore-TERM leader'
   await assert.rejects(runFixtureChild(process.execPath, ['-e', source, marker],
     { cwd: directory, env: {}, stdio: 'ignore' }, 400), /preparation timed out/);
   assert.equal(failures, 1, 'The TERM-phase metadata check failed before the KILL phase');
+  assert.equal(probeFailures, 1);
+  assert.deepEqual(observed, ['SIGTERM', 'probe-unavailable', 'metadata-unavailable', 'SIGKILL']);
   const final = await readFile(marker, 'utf8');
   await new Promise(resolve => setTimeout(resolve, 100));
   assert.equal(await readFile(marker, 'utf8'), final, 'No exact owned leader remains writing after timeout');

@@ -23,15 +23,17 @@ acceptance. Strict boolean/integer configuration rejection is already repaired
 in PR99. Focused local proofs pass; this does not establish complete release
 acceptance or a real-provider runtime.
 
-The latest completed exact-source [run38438232967](https://github.com/TOOTRJ/TheDashboard/actions/runs/38438232967)
-at `35d6aaca46cb1f628bf4f910433fdfc9355a242e` accepts the complete original
-restoration pair and SQL1/3/4. Ordinary2 and SQL2 fail only assertions that compare
-current checkpoint implementation files with historical pre-cache source hashes.
-Both lineage corrections preserve the old receipts and actual current bindings;
-six ordinary provenance cases and the unchanged33-command native retention trace
-now pass locally. PR104 remains open until all seven actual corrected-head jobs
-and exact release checks pass. Earlier expiry and timeout failures remain dated
-evidence; freshness/lease limits remain unchanged. See [CI-VERIFICATION.md](CI-VERIFICATION.md).
+The latest completed exact-source [run38444382423](https://github.com/TOOTRJ/TheDashboard/actions/runs/38444382423)
+at `c04be4fb536c593541603a7e7c6c1140771b139d` completes33m57s. Frontend, both
+ordinary groups and SQL1–3 pass, including historical/current source-lineage
+repairs. SQL4 again refuses one original restoration decision. The test-only
+follow-up paces acquisition before its first recorded receipt to avoid spending
+almost a second on the legacy integral action. It preserves the actual receipt,
+unchanged five-second guard and negative expiry/reconciliation cases; all five
+native cases pass34.233s locally. PR104 remains open until all seven actual
+new-head jobs and exact release checks pass. These are paced laboratory proofs,
+not unpaced continuous-runtime or latency-tail acceptance.
+See [CI-VERIFICATION.md](CI-VERIFICATION.md).
 
 The separate reviewed prospective-source/recorder branch passes107 combined
 offline checks; the independently constructed two-EMA model passes20 focused

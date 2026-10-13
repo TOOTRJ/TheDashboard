@@ -119,3 +119,24 @@ native keyboard/portal/theme/navigation and mobile layout acceptance are not
 claimed by the VM/build receipt. APP-02's broader header and real backend
 outcomes remain separate acceptance gates. No commit, push or deployment is
 implied by these checks.
+
+## Actual rendered synthetic-browser follow-up — 2026-10-13
+
+Root adopts this slice as846c00bf alongside Portfolioedbf4d55. Its combined
+fresh fake production browser fixture builds successfully from153 public files /
+1,360,554 bytes. Real rendered P&L and Tax sample previews open from the keyboard;
+Escape closes after the normal animation. Generation controls remain disabled
+with visible explanations. Settings profile inputs are actually read-only;
+wallet/preference/trading/upgrade actions remain unavailable. Keyboard selection
+of Example Elite changes only its preview while the example current plan remains
+Pro. The actual theme control sets the document's light class. Escape returns
+focus to View example plans. At390×844, Settings/report document widths382/390
+show no horizontal document overflow; the mobile navigation reaches Reports.
+
+The exact observed source hashes, fake-only protocol scope and cleanup are in
+[BROWSER-ACCEPTANCE-2026-10-13.json](BROWSER-ACCEPTANCE-2026-10-13.json).
+The owned browser tab and server/backend are stopped and its exact marked copy
+is removed. No production Auth/database, provider, wallet or billing request is
+used. This finite browser review does not establish every breakpoint, complete
+accessibility or real account-report functionality. Shared Header mock copy/
+actions and broader Home/Analytics provenance remain separate audit work.
