@@ -17,3 +17,6 @@ export * as responses from "./responses";
 
 // Handler wrapper
 export { withApiHandler } from "./handler";
+
+export { readJsonObject, validateLimit, validateSentiment } from "./validation";
+export { logApiFailure } from "./errors";

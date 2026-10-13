@@ -1,6 +1,7 @@
-import { NextRequest } from "next/server";
-import { validateApiKey } from "./auth";
+import type { NextRequest } from "next/server";
+import { validateApiKey, isApiKeyConfigured } from "./auth";
 import * as responses from "./responses";
+import { ApiInputError, ApiConfigurationError, logApiFailure } from "./errors";
 
 type HandlerFn = (request: NextRequest) => Promise<Response>;
 
@@ -32,6 +33,10 @@ export function withApiHandler(
 
   return async (request: NextRequest) => {
     // Auth check
+    if (requireAuth && !isApiKeyConfigured()) {
+      logApiFailure("CONFIGURATION");
+      return responses.unavailable();
+    }
     if (requireAuth && !validateApiKey(request)) {
       return responses.unauthorized();
     }
@@ -39,7 +44,12 @@ export function withApiHandler(
     try {
       return await handler(request);
     } catch (error) {
-      console.error("API Error:", error);
+      if (error instanceof ApiInputError) return responses.badRequest(error.message);
+      if (error instanceof ApiConfigurationError) {
+        logApiFailure("CONFIGURATION");
+        return responses.unavailable();
+      }
+      logApiFailure("UNEXPECTED");
       return responses.serverError();
     }
   };
