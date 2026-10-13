@@ -301,6 +301,58 @@ the main-branch filter. The capability validator requires every advertised Node,
 type, lint, advisory, build, lock/hash installation, dependency-consistency and
 image/integration command; removing one or adding a bypass/filter fails its tests.
 
+### Completed cache head 35d6aac and source-lineage repair — 2026-10-13
+
+[Run38438232967](https://github.com/TOOTRJ/TheDashboard/actions/runs/38438232967)
+at `35d6aaca46cb1f628bf4f910433fdfc9355a242e` completes37m58s. Frontend passes
+2m43s and ordinary1 passes17m39s (962 reported cases/1024.988s,163 audited SQL
+opt-in skip records). Ordinary2 fails14m17s (1318 cases/822.455s, one stale
+source-hash assertion and320 audited opt-in skip records). SQL1 passes36m47s
+(94 cases/2139.987s, three allowed timing skips); SQL2 fails37m58s (128 cases/
+2212.972s, one stale source-hash assertion and two allowed timing skips); SQL3
+passes33m32s (143 cases/1947.677s, three allowed timing skips); SQL4 passes16m15s
+(237 cases/903.634s, two allowed timing skips). The full run remains failed;
+five successful jobs are not release acceptance. All jobs finish before another
+push, preserving their evidence rather than cancelling the unfinished groups.
+
+SQL4 now accepts the original restoration pair with protective/decision guards
+1.361904s/2.612940s after the same original receipt and integral-action delay
+0.473995s. Capture/transport phases total0.481070084s; pair plus delayed complete
+full/compact equivalence takes2.973974s. Actual post-COMMIT reconciliation finds
+the original committed protection without retry or a decision; its native/readback
+phase is0.642235079s. Genuine expiry rollback and the complete moved source trace
+also pass. These are source-specific hosted fixture observations with unchanged
+guards, not a calibrated speedup, tail bound or production/runtime acceptance.
+
+The ordinary provenance test and native retention test both compared current
+checkpoint implementation files with historical pre-cache hashes. The correction
+preserves every historical measurement and source-contract byte. Root adopts the
+reviewed ordinary lineage repair as `3c643d77f7a5847e089bf8170c2daeecd913ef3b`;
+all six affected configuration/provenance tests pass5.484s, zero skips. Its exact
+new lineage artifact binds the historical receipts, two changed checkpoint files,
+current regression and unchanged model/golden wires. The retention test checks
+the exact historical source-contract and lineage hashes, replaces only the two
+reviewed implementation hashes, and still checks all ten current model sources.
+Every native/control/Stop/storage assertion and source/lease/SQL limit remains.
+
+The unchanged owned retention trace then passes one actual PostgreSQL case in
+38.017s, zero skips:33 commands,60 original-ID/13-pin readbacks, all allocated
+identities retained and final Stop while flat. The new
+[source-bound receipt](services/vonneumann/research/portable-retention-cache-lineage-acceptance.json)
+records1,736,704 total relation bytes and671,205 selected text-wire bytes across
+the13 owned tables. It does not overwrite or recalibrate older storage receipts;
+WAL/backups/cloud/load/pruning/crash durability remain unmeasured. No hosted
+database, provider or application credential enters the owned fixture.
+
+After the ordinary repair, discovery remains2414 ordinary occurrences1045/1369
+and602 SQL occurrences94/128/143/237, retaining54 repeated IDs. Ordinary discovery
+SHA256 is `c75bec99799fb8ff73e2d0154c5fc8e231406893f8a931ba5f55c7bea3897eee`;
+SQL remains unchanged until the subsequent retention test-only edit. Final
+post-repair discovery retains the same counts/54 repeated IDs and selection;
+ordinary SHA256 is `46ea26933326d3027efa9074beb7dba7d5327225a438bf87982ed15815573427`,
+SQL SHA256 is `8c4e2f7f1be78163b436bfd1d61d366ddd9375b01a6429a251e439b855f52b46`.
+Discovery executes no cases. All seven actual next-head jobs remain required.
+
 ## Independent gates
 
 | Job | Runtime / limit | Work and truthful scope |

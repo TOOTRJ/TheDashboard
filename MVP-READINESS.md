@@ -23,13 +23,15 @@ acceptance. Strict boolean/integer configuration rejection is already repaired
 in PR99. Focused local proofs pass; this does not establish complete release
 acceptance or a real-provider runtime.
 
-The latest completed exact-source [run38429396878](https://github.com/TOOTRJ/TheDashboard/actions/runs/38429396878)
-at `4edff5983ec6817fe7156c659cd716e8340f5eac` passes frontend, both ordinary
-worker groups and SQL groups1–3. SQL4's complete source-transition trace passes,
-but its original restoration decision still fails the source-or-lease expiry
-guard. The earlier SQL2 parent timeout remains dated evidence. PR104 remains open.
-Repair and complete all seven actual jobs before merge; preserve the failed
-run's evidence and unchanged freshness/lease limits. See [CI-VERIFICATION.md](CI-VERIFICATION.md).
+The latest completed exact-source [run38438232967](https://github.com/TOOTRJ/TheDashboard/actions/runs/38438232967)
+at `35d6aaca46cb1f628bf4f910433fdfc9355a242e` accepts the complete original
+restoration pair and SQL1/3/4. Ordinary2 and SQL2 fail only assertions that compare
+current checkpoint implementation files with historical pre-cache source hashes.
+Both lineage corrections preserve the old receipts and actual current bindings;
+six ordinary provenance cases and the unchanged33-command native retention trace
+now pass locally. PR104 remains open until all seven actual corrected-head jobs
+and exact release checks pass. Earlier expiry and timeout failures remain dated
+evidence; freshness/lease limits remain unchanged. See [CI-VERIFICATION.md](CI-VERIFICATION.md).
 
 The separate reviewed prospective-source/recorder branch passes107 combined
 offline checks; the independently constructed two-EMA model passes20 focused
@@ -41,7 +43,8 @@ readback remain the next dependency; no research authority flag is activated.
 The subsequent factory-owned checkpoint optimization is adopted locally as
 `4685741`. Its14 new ownership/continuity cases and16 existing restoration cases
 pass; root's five actual native cases pass32.342s with unchanged source/lease
-guards. A complete next-head hosted run is still pending, so PR104's merge gate
+guards. SQL4's subsequent complete hosted group passes with the same original
+pair; a complete corrected-head hosted run is still pending, so PR104's merge gate
 and the worker's closed status remain in force.
 
 Railway remains at ordinary closed deployment

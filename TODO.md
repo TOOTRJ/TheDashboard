@@ -136,14 +136,16 @@ and exhaustive occurrences unchanged. [Deep research and ordered CI candidates](
 
 ## Five-priority implementation batch — local review, 2026-10-12
 
-**2026-10-13 release follow-up:** PR104 remains open; its latest completed head is `4edff598`. That completed
-run38429396878 passes frontend, both ordinary groups and SQL1–3. SQL4 reports237
-cases, one restoration decision error and two allowed timing skips; the moved
-complete source-transition trace now passes. The original decision still refuses
-at the combined source/lease guard. Resolve that critical path and accept all
-required jobs before merge. Preserve earlier c58177a's separate SQL2 timeout.
+**2026-10-13 release follow-up:** PR104 remains open; its latest completed head is
+`35d6aac`. Run38438232967 accepts SQL1/3/4, including all237 SQL4 cases (two allowed
+timing skips) and the original restoration pair. Ordinary2 and SQL2 fail only
+historical-source-hash comparisons after the reviewed checkpoint optimization.
+Both source-lineage corrections preserve all older receipts and actual current
+bindings; root's six ordinary cases and unchanged33-command native retention
+trace pass locally. Accept all seven required corrected-head jobs before merge.
+Preserve earlier4ed expiry failures and c58177a's separate SQL2 timeout.
 Local proof counts below are bounded historical evidence, not hosted acceptance.
-[Completed failed run and limits](CI-VERIFICATION.md#completed-follow-up-head-4edff598--2026-10-13).
+[Completed run, repairs and limits](CI-VERIFICATION.md#completed-cache-head-35d6aac-and-source-lineage-repair--2026-10-13).
 The current readiness overview now reflects PR99–PR104 and separates the
 implemented synthetic/native laboratory from the remaining real-provider joins.
 

@@ -184,3 +184,22 @@ unchanged state/RNG/identity ledger/Stop behavior, canonical variable settings,
 and the new historical-to-current source bindings. The unchanged checkpoint
 implementation and 70-record golden fixture were not regenerated or remeasured.
 Complete CI on the corrected release head remains required.
+
+## Native retention source-lineage follow-up — 2026-10-13
+
+The completed35d6aac SQL2 group fails only because its storage test checks current
+checkpoint source files against the pre-cache `portable-sql-source-contract.json`.
+That historical contract stays byte-identical at SHA256
+`7dff960f6c0c88b5aa7b1cb9f80438d3662fab188eeda9ab485d6b046c08944c`.
+The test pins the exact reviewed lineage artifact above, maps only the two
+checkpoint implementation hashes after proving historical-before equality, and
+checks all ten current model source files. Every native/control/storage/Stop
+assertion and guard remains unchanged.
+
+The unchanged owned trace passes1/1 actual PostgreSQL case in38.017s with zero
+skips,33 accepted commands and60 original-ID/13-pin readbacks. Its separate new
+`research/portable-retention-cache-lineage-acceptance.json` binds the current test,
+lineage and source inventory, SHA256
+`b6b945a0db472c3a11b7a5becb23f50b24802cf124afe4952fe21554ec9fce1f`.
+Historical storage receipts remain untouched; the new trace is neither a provider
+load/calibrated performance comparison nor deletion/production authority.

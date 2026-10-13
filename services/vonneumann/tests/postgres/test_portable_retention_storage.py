@@ -153,7 +153,25 @@ class PortableRetentionStorageTests(unittest.TestCase):
     def test_retains_exact_originals_and_pins_while_measuring_actual_storage(self):
         started = time.monotonic()
         model_contract_path = ROOT / 'research/portable-sql-source-contract.json'
-        model_sources = json.loads(model_contract_path.read_text())['portable_model_sources_sha256']
+        # This source contract records the pre-cache measurement. Keep it exact;
+        # bind the two implementation changes through the separately reviewed
+        # lineage rather than rewriting that historical receipt.
+        self.assertEqual(hashlib.sha256(model_contract_path.read_bytes()).hexdigest(),
+                         '7dff960f6c0c88b5aa7b1cb9f80438d3662fab188eeda9ab485d6b046c08944c')
+        historical_sources = json.loads(model_contract_path.read_text())['portable_model_sources_sha256']
+        lineage_path = ROOT / 'research/owned-checkpoint-cache-source-lineage.json'
+        self.assertEqual(hashlib.sha256(lineage_path.read_bytes()).hexdigest(),
+                         'af0a494726b242fb110b591366e933ad6cfe2dfee68dc8c70934f353498f3869')
+        lineage = json.loads(lineage_path.read_text())
+        changed = {'vonneumann/research/portable_partitioned_checkpoint.py',
+                   'vonneumann/research/provider_portable_checkpoint.py'}
+        self.assertEqual(len(historical_sources), 10)
+        self.assertTrue(changed <= set(historical_sources))
+        model_sources = dict(historical_sources)
+        for path in changed:
+            self.assertEqual(historical_sources[path], lineage['source_before'][path])
+            self.assertNotEqual(lineage['source_before'][path], lineage['source_after'][path])
+            model_sources[path] = lineage['source_after'][path]
         for path, digest in model_sources.items():
             self.assertEqual(hashlib.sha256((ROOT / path).read_bytes()).hexdigest(), digest)
         baseline = self.measure_storage()
@@ -240,7 +258,8 @@ class PortableRetentionStorageTests(unittest.TestCase):
         source_paths = ['tests/postgres/test_portable_retention_storage.py',
                         'tests/postgres/test_portable_native.py', 'tests/postgres/harness.py',
                         'db-contract/research/portable_native.sql',
-                        'research/portable-sql-source-contract.json'] + list(model_sources) + [
+                        'research/portable-sql-source-contract.json',
+                        'research/owned-checkpoint-cache-source-lineage.json'] + list(model_sources) + [
                             'db-contract/research/' + filename for filename, _, _ in self.native.FILES]
         type(self).measurement = {
             'format': 'ga-portable-retained-storage-measurement-lab-v1',
@@ -259,6 +278,7 @@ class PortableRetentionStorageTests(unittest.TestCase):
                           'native_production_admission', 'restoration', 'real_provider',
                           'representative_load', 'physical_crash_durability', 'profitability')},
             'notes': [
+                'Historical source contract stays exact; the current two checkpoint implementation hashes are bound by the reviewed cache lineage.',
                 'No per-test reset, DELETE, pruning, semantic-head copy, source-window relaxation, or original-ID conflict retry.',
                 'Storage is measured for these 13 owned tables only; selected exact TEXT column bytes are not full row/storage bytes.',
                 'pg_table_size includes TOAST and auxiliary forks; total equals that value plus pg_indexes_size. Do not add TOAST twice.',

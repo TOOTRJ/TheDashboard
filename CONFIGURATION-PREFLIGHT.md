@@ -5110,3 +5110,26 @@ Final discovery is2414 ordinary occurrences1045/1369 and602 SQL occurrences
 new-head hosted CI and exact scoped release checks still gate merge. The user's
 existing migration remains unchanged; no cloud schema, worker activation,
 provider credential, shared configuration or another project is modified.
+
+## 120. Hosted restoration pass and retained source lineage — 2026-10-13
+
+Head35d6aac/run38438232967 completes37m58s with frontend, ordinary1 and SQL1/3/4
+passing. SQL4's237-case report has only two allowed timing skips; the original
+restoration pair now passes with guard offsets1.361904s/2.612940s. Ordinary2 and
+SQL2 fail only checkpoint-source hashes compared against historical pre-cache
+receipts. The run remains failed and PR104 is unmerged.
+
+Root adopts the reviewed ordinary lineage correction as3c643d7; all six affected
+cases pass5.484s, zero skips. The retention correction pins the exact historical
+source contract and new lineage artifact, replaces only two checkpoint hashes
+and checks all ten current model sources. The unchanged actual retention trace
+passes38.017s, zero skips:33 commands,60 original-ID/13-pin reads and final Stop
+while flat. A new source-bound receipt preserves all older measurement files.
+Source/lease/SQL budgets, native/model wires and all storage/control assertions
+remain unchanged. Complete corrected-head CI and release verification still gate
+merge; these fixture measurements do not establish continuous hosted readiness.
+
+Dedicated Vercel authentication remains pending the user's ready-for-login
+response. The existing user-edited migration remains at its preserved SHA256.
+No production migration, worker activation, provider credential, shared account
+configuration or other project changes occur in this checkpoint.
