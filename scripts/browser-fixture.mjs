@@ -4,6 +4,7 @@ import { spawn, spawnSync } from 'node:child_process';
 import net from 'node:net';
 import { readFile, writeFile, realpath, lstat, mkdir, copyFile } from 'node:fs/promises';
 import path from 'node:path';
+import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 import vm from 'node:vm';
 import ts from 'typescript';
@@ -22,6 +23,41 @@ function defaultInputs() {
 }
 let vmInput;
 let preparationPhase = 'input validation';
+let diagnosticCopy;
+
+export function fixtureFailureMetadata(error, prepared, groups = []) {
+  const names = new Set(['Error', 'TypeError', 'RangeError', 'ReferenceError', 'SyntaxError',
+    'EvalError', 'URIError', 'AbortError', 'AggregateError']);
+  const codes = new Set(['EPERM', 'EACCES', 'ESRCH', 'ENOENT', 'EINVAL', 'EINTR', 'EBADF', 'ETIMEDOUT',
+    'ENOTDIR', 'EISDIR', 'EBUSY', 'ENOTEMPTY', 'EMFILE', 'ENFILE', 'ENOSPC', 'ECONNREFUSED',
+    'ECONNRESET', 'EADDRINUSE', 'ERR_INVALID_ARG_TYPE', 'ERR_INVALID_ARG_VALUE', 'ERR_OUT_OF_RANGE',
+    'ERR_UNKNOWN_SIGNAL', 'ERR_CHILD_PROCESS_STDIO_MAXBUFFER', 'ERR_SERVER_NOT_RUNNING', 'ABORT_ERR']);
+  let name, code, directory = null, owner = null;
+  try { name = error?.name; code = error?.code ?? error?.cause?.code; } catch { /* Never invoke arbitrary diagnostic serialization. */ }
+  try {
+    const dir = prepared?.directory, candidate = prepared?.owner;
+    const roots = new Set(['/private/tmp', '/tmp', os.tmpdir()]);
+    if (typeof dir === 'string' && path.isAbsolute(dir) && roots.has(path.dirname(dir))
+      && /^dashboard-ci-build-[A-Za-z0-9]{6}$/.test(path.basename(dir))
+      && typeof candidate === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(candidate)) {
+      directory = dir; owner = candidate;
+    }
+  } catch { /* Unknown ownership metadata is omitted. */ }
+  return { errorName: names.has(name) ? name : 'UnknownError', errorCode: codes.has(code) ? code : 'UNKNOWN',
+    parentPid: process.pid, ownedProcessGroups: [...new Set(groups.filter(group =>
+      Number.isSafeInteger(group) && group > 0 && group <= 2_147_483_647))].sort((a, b) => a - b),
+    markerDirectory: directory, markerOwner: owner };
+}
+export async function finishFixtureCleanup(pending, closeBackend, removeCopy) {
+  // Preparation may still publish the backend reference. Settle every owned
+  // operation first, then close that backend even if a child cannot be verified.
+  const results = await Promise.allSettled(pending);
+  try { await closeBackend(); } catch (reason) { results.push({ status: 'rejected', reason }); }
+  const failed = results.find(result => result.status === 'rejected');
+  if (failed) throw failed.reason;
+  // A failed child/drain/backend cleanup never authorizes deleting the copy.
+  await removeCopy();
+}
 
 export async function availablePort() {
   const probe = net.createServer();
@@ -60,7 +96,22 @@ const termination = new WeakMap();
 function ownedGroupExists(handle) {
   if (!handle?.pid) return false;
   try { process.kill(-handle.pid, 0); return true; }
-  catch (error) { if (error.code === 'ESRCH') return false; throw new Error('Cannot inspect exact owned process group'); }
+  catch (error) { if (error.code === 'ESRCH') return false; throw new Error('Cannot inspect exact owned process group', { cause: error }); }
+}
+export function ownedGroupIsActive(handle, probe = ownedGroupExists, inspect = ownedGroupIsQuiescent) {
+  try { return probe(handle); }
+  catch (error) {
+    // A signal probe can fail during group retirement. Only positive metadata
+    // for this exact owned PGID can establish empty/zombie-only quiescence.
+    if (inspect(handle)) return false;
+    throw error;
+  }
+}
+function signalOwnedGroup(handle, signal) {
+  try { process.kill(-handle.pid, signal); }
+  catch (error) {
+    if (error.code !== 'ESRCH' && !ownedGroupIsQuiescent(handle)) throw error;
+  }
 }
 export function parseOwnedGroupState(output, group) {
   if (!Number.isSafeInteger(group) || group <= 0 || group > 2_147_483_647
@@ -117,21 +168,21 @@ export function ownedGroupIsQuiescent(handle, execute = spawnSync, platform = pr
 }
 async function waitForOwnedGroup(handle, milliseconds) {
   const end = Date.now() + milliseconds;
-  while (ownedGroupExists(handle) && Date.now() < end) await new Promise(resolve => setTimeout(resolve, 25));
-  return !ownedGroupExists(handle) || ownedGroupIsQuiescent(handle);
+  while (ownedGroupIsActive(handle) && Date.now() < end) await new Promise(resolve => setTimeout(resolve, 25));
+  return !ownedGroupIsActive(handle) || ownedGroupIsQuiescent(handle);
 }
 async function terminateOwned(processHandle) {
   if (termination.has(processHandle)) return termination.get(processHandle);
   const completion = (async () => {
     // The leader can exit while an stdio:ignore descendant remains. Keep the
     // exact PGID until it disappears; never enumerate or signal other groups.
-    if (ownedGroupExists(processHandle)) {
-      try { process.kill(-processHandle.pid, 'SIGTERM'); } catch (error) { if (error.code !== 'ESRCH') throw error; }
+    if (ownedGroupIsActive(processHandle)) {
+      signalOwnedGroup(processHandle, 'SIGTERM');
       let quiescent = false;
       try { quiescent = await waitForOwnedGroup(processHandle, 10_000); }
       catch { /* Intermediate metadata failure still requires stopping this exact registered group. */ }
       if (!quiescent) {
-        try { process.kill(-processHandle.pid, 'SIGKILL'); } catch (error) { if (error.code !== 'ESRCH') throw error; }
+        signalOwnedGroup(processHandle, 'SIGKILL');
         // Final inspection is mandatory and its failure propagates. Cleanup
         // retains the owned copy if neither absence nor quiescence is proved.
         if (!await waitForOwnedGroup(processHandle, 1000)) throw new Error('Owned process group cleanup did not complete');
@@ -189,15 +240,24 @@ async function main() {
       // Await already-owned file/binding work alongside child termination.
       // Do not track main()/its finally or child lifetimes as file steps: doing
       // so would make cleanup await itself or await a child before stopping it.
-      await Promise.all([steps.drain(), ...[...runningChildren].map(terminateOwned)]);
-      await backend?.stop();
-      if (prepared) await removeBuild(prepared);
+      try {
+        await finishFixtureCleanup([steps.drain(), ...[...runningChildren].map(terminateOwned)],
+          () => backend?.stop(), async () => {
+            if (prepared) await removeBuild(prepared);
+            diagnosticCopy = undefined;
+          });
+      } catch (error) {
+        process.stderr.write(JSON.stringify({ event: 'dashboard-fixture-cleanup-failure', phase: preparationPhase,
+          ...fixtureFailureMetadata(error, prepared, [...runningChildren].map(child => child.pid)) }) + '\n');
+        throw error;
+      }
     })();
   };
-  for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, () => { void stop(); });
+  const stopAfterSignal = () => { void stop().catch(() => { process.exitCode = 1; }); };
+  for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, stopAfterSignal);
   try {
     guard.assertOpen();
-    await steps.run(async () => { prepared = await prepareBuild(ROOT); });
+    await steps.run(async () => { prepared = await prepareBuild(ROOT); diagnosticCopy = prepared; });
     guard.assertOpen();
     preparationPhase = 'owned copy canonicalization';
     await steps.run(async () => { prepared.directory = await realpath(prepared.directory); });
@@ -268,7 +328,7 @@ async function main() {
     next = spawn(process.execPath, [nextBin, 'start', '--hostname', '127.0.0.1', '--port', String(port)],
       { cwd: prepared.directory, env, stdio: 'inherit', shell: false, detached: true });
     runningChildren.add(next);
-    next.once('error', () => { process.stderr.write('Owned Next fixture failed\n'); void stop(); });
+    next.once('error', () => { process.stderr.write('Owned Next fixture failed\n'); stopAfterSignal(); });
     const deadline = Date.now() + 30_000;
     let readyResponse = false;
     while (Date.now() < deadline && next.exitCode === null && next.signalCode === null) {
@@ -298,9 +358,12 @@ async function main() {
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   main().catch(error => {
     const publicReasons = new Set(['Owned process group cleanup did not complete', 'Owned fixture preparation failed',
-      'Owned fixture preparation timed out', 'Owned fixture is closing', 'Owned Next fixture readiness failed']);
-    const detail = publicReasons.has(error.message) ? ` (${error.message})` : '';
+      'Owned fixture preparation timed out', 'Owned fixture is closing', 'Owned Next fixture readiness failed',
+      'Cannot inspect exact owned process group']);
+    const detail = publicReasons.has(error?.message) ? ` (${error.message})` : '';
     process.stderr.write(`Dashboard browser fixture failed during ${preparationPhase}${detail}; private inherited output is not used\n`);
+    process.stderr.write(JSON.stringify({ event: 'dashboard-fixture-failure', phase: preparationPhase,
+      ...fixtureFailureMetadata(error, diagnosticCopy, [...runningChildren].map(child => child.pid)) }) + '\n');
     process.exitCode = 1;
   });
 }

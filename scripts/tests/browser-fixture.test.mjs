@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createBrowserBackend, FIXTURE_KEY, FIXTURE_ADMIN_KEY, FIXTURE_PASSWORD, FIXTURE_OWNERS } from '../browser-fixtures/backend.mjs';
 import { browserEnvironment, runFixtureChild, createFixtureLaunchGuard, createFixtureOwnedSteps,
-  parseOwnedGroupState, ownedGroupIsQuiescent } from '../browser-fixture.mjs';
+  parseOwnedGroupState, ownedGroupIsQuiescent, ownedGroupIsActive, finishFixtureCleanup, fixtureFailureMetadata } from '../browser-fixture.mjs';
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
@@ -233,6 +233,55 @@ test('closed steps never start queued work and failed steps cannot deadlock clea
   const rejected = failing.run(() => { throw new Error('synthetic owned step failure'); });
   await assert.rejects(rejected, /synthetic owned step failure/);
   second.close(); await failing.drain();
+});
+
+test('failed final group verification settles preparation, closes the owned backend and retains the copy', async t => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'dashboard-browser-finalizer-test-'));
+  const marker = path.join(directory, 'owned-copy');
+  await writeFile(marker, 'retained source evidence');
+  let backend, origin, release, removed = false;
+  t.after(async () => { await backend?.stop(); await rm(directory, { recursive: true, force: true }); });
+  const preparation = new Promise(resolve => { release = resolve; }).then(async () => {
+    backend = createBrowserBackend({ currentAge: 32, retirementAge: 65, lifeExpectancy: 90 });
+    origin = await backend.start();
+  });
+  const failure = Object.assign(new Error('synthetic private metadata detail'), { code: 'EPERM' });
+  const cleanup = finishFixtureCleanup([preparation, Promise.reject(failure)], () => backend?.stop(),
+    async () => { removed = true; await rm(directory, { recursive: true }); });
+  const refused = assert.rejects(cleanup, error => error === failure);
+  await new Promise(setImmediate); assert.equal(backend, undefined); assert.equal(removed, false);
+  release(); await refused;
+  assert.equal(removed, false); assert.equal(await readFile(marker, 'utf8'), 'retained source evidence');
+  await assert.rejects(fetch(origin + '/__fixture/status', { signal: AbortSignal.timeout(1000) }));
+});
+
+test('failure diagnostics expose only closed error enums and exact owned metadata', () => {
+  const prepared = { directory: '/private/tmp/dashboard-ci-build-ABC123', owner: '00000000-0000-4000-8000-000000000001' };
+  const error = Object.assign(new TypeError('private error message'), { code: 'EPERM', stack: 'private stack', secret: 'private credential' });
+  const data = fixtureFailureMetadata(error, prepared, [11, 11, -1, 'private group', NaN]);
+  assert.equal(data.errorName, 'TypeError'); assert.equal(data.errorCode, 'EPERM');
+  assert.deepEqual(data.ownedProcessGroups, [11]); assert.equal(data.parentPid, process.pid);
+  assert.equal(data.markerDirectory, prepared.directory); assert.equal(data.markerOwner, prepared.owner);
+  assert.doesNotMatch(JSON.stringify(data), /private error|private stack|private credential|private group/);
+  const unknown = fixtureFailureMetadata({ name: 'private name', code: 'private code', message: 'private message' },
+    { directory: '/Users/private-data/dashboard-ci-build-ABC123', owner: prepared.owner });
+  assert.equal(unknown.errorName, 'UnknownError'); assert.equal(unknown.errorCode, 'UNKNOWN');
+  assert.equal(unknown.markerDirectory, null); assert.equal(unknown.markerOwner, null);
+  assert.doesNotMatch(JSON.stringify(unknown), /private/);
+  assert.equal(fixtureFailureMetadata(new Error('private wrapped error', { cause: error })).errorCode, 'EPERM');
+  assert.equal(fixtureFailureMetadata(null).errorName, 'UnknownError');
+});
+
+test('failed exact-group signal probes retire only with positive empty or zombie metadata', () => {
+  const handle = { pid: 11 }, failure = Object.assign(new Error('synthetic signal probe refused'), { code: 'EPERM' });
+  const probe = current => { assert.equal(current, handle); throw failure; };
+  assert.equal(ownedGroupIsActive(handle, probe, current => {
+    assert.equal(current, handle); return parseOwnedGroupState('12 11 Z\n13 11 Zs\n', 11);
+  }), false);
+  assert.equal(ownedGroupIsActive(handle, probe, current => { assert.equal(current, handle); return true; }), false);
+  assert.throws(() => ownedGroupIsActive(handle, probe, () => false), error => error === failure);
+  assert.throws(() => ownedGroupIsActive(handle, probe, () => { throw new Error('synthetic metadata unavailable'); }), /metadata unavailable/);
+  assert.throws(() => ownedGroupIsActive(handle, probe, () => parseOwnedGroupState('12 99 Z', 11)), /exact owned process group/);
 });
 
 test('owned-group parser distinguishes zombie-only quiescence from live or malformed members', () => {
