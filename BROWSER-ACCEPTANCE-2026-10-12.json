@@ -85,5 +85,67 @@
     "Home still has misleading LIVE FEED/YOUR HOLDINGS labels for mock data; APP-01 remains open.",
     "Screenshot observed in tool result; no screenshot file artifact was exported."
   ],
+  "portable_inspector_observations": {
+    "application_commit": "a367be5",
+    "application_source_sha256": {
+      "scripts/browser-fixtures/portable-checkpoint-page.tsx": "c0fa995ae95f392f384686ab6c605a16a7619223fdfdb4e960f0bcb5cfa26d78",
+      "src/components/probes/PortableCheckpointInspector.tsx": "4e3b1c4c07139076c4f81cd32b357eb5beba1d38d76c7315b57c162c0b68aa09",
+      "src/lib/probes/portable-checkpoint-inspector.ts": "98b8d8f3748756c2706ba345f20101b15e3d9996495d3f9c780759ebaba43434",
+      "tests/probes/fixtures/portable-checkpoint-inspector.json": "790d2d31f99a42582f2211a8d0109504fafd5bd6fae66d3c28b62ae0e4624739"
+    },
+    "cases": [
+      {
+        "id": "native-lab-readback",
+        "observed": "Original owned laboratory Stop readback displayed revision3, stopped,13 verified original pins, fixed2 EMA periods per account, exact USD cash and explicitly false running/restoration/hosted authority."
+      },
+      {
+        "id": "exact-held-position-display",
+        "observed": "Pure held-position demonstration displayed8 holdings and original exact quantities, entry price and cash debits without reducing the stored precision."
+      },
+      {
+        "id": "unknown-format",
+        "observed": "Changing format cleared every private checkpoint table and displayed unavailable or incompatible."
+      },
+      {
+        "id": "pending-receipt",
+        "observed": "Pending receipt left no checkpoint data published."
+      },
+      {
+        "id": "missing-pin",
+        "observed": "Missing original dependency pin left no checkpoint data published."
+      },
+      {
+        "id": "historical",
+        "observed": "Revision8 clearly labeled historical; supplied current revision9. The recorded guard time was expressly not a current freshness guarantee."
+      },
+      {
+        "id": "foreign-owner",
+        "observed": "Synthetic foreign owner cleared checkpoint data and refused publication."
+      },
+      {
+        "id": "signed-out-scope",
+        "observed": "Synthetic signed-out scope removed the private view and reported no scoped checkpoint selected."
+      },
+      {
+        "id": "two-windows",
+        "observed": "Pure2-window fixture displayed revision36/generation2 and current accounts; cumulative completed-window history explicitly unavailable, not fabricated from generation."
+      },
+      {
+        "id": "real-fixture-logout",
+        "observed": "Actual header Sign Out retired fake Alice session and navigated to login."
+      }
+    ],
+    "checked_console_errors_and_warnings": [],
+    "date_utc": "2026-10-13",
+    "fixture_cookie_host_unique": true,
+    "fixture_tab_closed": true,
+    "limits": [
+      "Scope controls are synthetic props; no authenticated database-reader or AuthProvider-to-native-inspector join is accepted.",
+      "Two-window and held-position records are pure synthetic demonstrations; only the explicitly labeled native-lab record preserves a real owned laboratory readback.",
+      "Original bytes/hash verification is not independent semantic validation, provider authenticity, history completeness, lease restoration or runtime authority.",
+      "No screenshot artifact, download, native API, hosted worker, cloud mutation or provider operation is claimed."
+    ],
+    "scope": "Actual Next production build and React publication from public original-wire fixtures; synthetic supplied owner/scope bindings, not an authenticated native reader."
+  },
   "scope": "actual Next production build, React, AuthProvider and Supabase SDK against owned synthetic loopback services"
 }

@@ -38,7 +38,7 @@ trades, eight children, 32 acknowledged events). Railway is provisioned and
 restored to ordinary closed mode. This proves finite zero-cost mechanics, not
 continuous operation, restart restoration, realistic execution or profitability.
 Portable v2 model/partition/transport and the mutation primitive exist offline;
-complete independent original-v2 SQL and guarded native laboratory admission are now implemented locally. Explicit decoder/restoration and retention inventory experiments are implemented; the actual native restoration join, retention/storage, new reader and hosted-profile joins remain separate acceptance gates.
+complete independent original-v2 SQL and guarded native laboratory admission are now implemented locally. Explicit decoder/restoration and retention inventory experiments are implemented; actual native restoration joins, retained storage measurements and an inert new inspector now pass locally. Authenticated reader and real-provider hosted joins remain separate acceptance gates.
 
 **Remaining review blockers:** the new offline SQL/native/restoration slices need their composed release checks and production-profile joins. The Nestegg stale-result defect is repaired locally; several other dashboard actions still report unsupported success. The review's bool/int alias, account-draft leak and compatible production
 dependency advisory are repaired in PR99–PR101. The advisory gate now requires
@@ -107,14 +107,23 @@ open data/cost/strategy research: [research](FIVE-PRIORITIES-RESEARCH-2026-10-12
 The actual browser record covers current Nestegg X→Y→X, held SaveA→SelectB,
 active-plan deletion, paper lost acknowledgments/original IDs, incompatible
 contracts/policies and late cross-account history/control replies. Download
-and broad honest-action/new-native/hosted acceptance are not claimed.
+and broad honest-action/authenticated-native/hosted acceptance are not claimed.
 [Browser observations and limits](BROWSER-ACCEPTANCE-2026-10-12.json).
 
-Continue in order: reviewed native guard follow-ups/genuine held-position Stop →
-actual restoration join → measured retained pins/history/storage and safe policy →
-new native inspector/reader compatibility → honestly versioned real-provider
-runtime/transport/closed forward package → exact hosted fault/multi-window and
-longer resource/quota acceptance. The October14 security response still awaits
+The final native clock package now passes25 actual SQL cases including a bounded
+projection-header regression; a separate genuine-bar probe preserves8 held positions
+at Stop with original replay unchanged. Restoration has16 ordinary and3 actual
+native cases, retained storage is measured without pruning, and the inert inspector
+passes14 controlled plus actual browser cases. Final frontend has271 passing cases.
+These bounded proofs precede authenticated-reader/hosted acceptance.
+
+Continue in order: exact-head seven-job CI and scoped release → forward real-provider
+record/model contracts → native operator/epoch rollover → exact restoration →
+measured raw/history/Stop budgets and authenticated old/new reader → reviewed
+closed package/migration → hosted fault/multi-window → longer resource/quota/recovery
+acceptance. [Eight forward gates and parallel work](services/vonneumann/PAPER-RUNTIME-V3-PLAN.md).
+The nine-test closed proposal is not an implemented runtime. Unknown history rights,
+coverage, actual quota behavior and physical growth remain research/measurement gates. The October14 security response still awaits
 published ranges. Whole audit, continuous paper and empirical/live gates remain
 open; checked subproofs must not erase those parents.
 

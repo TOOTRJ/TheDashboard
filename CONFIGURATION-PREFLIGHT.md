@@ -4770,9 +4770,9 @@ QA-01B mocked browser fixtures and SEC-05B advisory research can also proceed
 in parallel. Exact-project cloud writes and activations remain serialized.
 
 
-## 114. Five-priority local implementation and acceptance — 2026-10-12 Denver / 2026-10-13 UTC
+## 114. Five-priority implementation and local acceptance — 2026-10-12 Denver / 2026-10-13 UTC
 
-Fresh read-only metadata again verifies GitHub `TOOTRJ/TheDashboard` /1141090963
+Fresh read-only metadata verifies GitHub `TOOTRJ/TheDashboard` /1141090963
 under `biggrizzly11` /16749816, Vercel `the-dashboard`
 /prj_wFUe9k9USVreOQcmQKNWRAVsx5fH under team_8iNNxiNjrOseD4gdSCHkQEzF,
 and Supabase `The Dashboard` /fxpxsciltakyypunglzr under
@@ -4781,81 +4781,100 @@ cqfnnaunmupdyobkyqfo. Railway `The Dashboard Worker`
 /9bbe52c6-2305-467a-bf39-8d5e1a98e4e4 and workspace
 /f3fcd4b2-e424-4c6b-ac33-91196ccc96e1 also match. No other project contents,
 shared credentials, account/billing configuration, migration or runtime
-activation was changed. The pre-existing migration edit retains SHA256
-a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc
-and remains unstaged. All new commits use verified repository-local biggrizzly11
-attribution, with inherited author/committer variables removed.
+activation changed. The user's pre-existing colony migration edit retains SHA256
+`a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc`
+and remains unstaged. Commits use verified repository-local biggrizzly11 attribution,
+with inherited author/committer variables removed.
 
-The reviewed local branch `codex/dashboard-five-priorities` contains:
+The `codex/dashboard-five-priorities` implementation contains:
 
-- Complete independent original-v2 configuration/locked/semantic proof, including
-  economics, source/causal/risk/assessment, graph/RNG/selection and actual integer
-  child mutation. The corrected38-case actual PostgreSQL suite passes with zero
-  skips in426.599s;4 ordinary source/Unicode checks also pass. Independent review
-  found a temporary relation/type lookup issue in the unpublished draft; explicit
-  pg_catalog,pg_temp ordering and qualified catalogs repair it. Every oldv1 source
-  remains unchanged. [Contract](services/vonneumann/PORTABLE-SQL-CONTRACT.md).
-- NEST-05A calculation/request/model/input/purpose/path identity and coherent full
-  bundles, saved-row failure/retry, and same-account refresh/save/select/new/rename
-  ordering. The confirmed active-delete dialog is closed/acknowledged before its
-  replacement selection can retire the old operation. Controlled and actual
-  browser observations pass; finance formulas/distributions are unchanged.
-  [Result contract](NESTEGG-RESULT-IDENTITY.md).
-- A trusted-public-source, fake-credential, unique-cookie-host real Next/React
-  browser fixture with no cloud proxy. Shutdown stops only its owned child groups
-  and drains owned preparation work before removal. Its ready check requires the
-  exact owner marker/CSP, not merely a login-shaped page. The current18 focused
-  fixture/paper cases pass, including31 actual adapter assertions. This is not an
-  OS sandbox. [Fixture contract](BROWSER-FIXTURE-CONTRACT.md).
-- Fresh primary research on announced security response, current Jupiter schemas/
-  quotas/tools, Birdeye history/outliers/liquidity and bounded acquisition budgets,
-  cost provenance and matched paired evolutionary evaluation. The new14 research
-  tests and synthetic plan/run/verify mechanics are not empirical profitability
-  evidence. The October14 affected ranges are still unpublished at this check.
-  [Fresh report](FIVE-PRIORITIES-RESEARCH-2026-10-12.md).
-- Guarded original-v2 native laboratory atomic journal/receipt/13pins/events/
-  projections and scoped original-ID/historical checkpoint readback:20 actual
-  PostgreSQL cases pass, zero skips,83.614s. Commit-processing guard time is distinct
-  from later durable/visible/acknowledged outcome. The direct future-time guard
-  follow-up and genuine-clock held-position acceptance are recorded separately
-  when completed. No production package is installed.
-  [Native contract](services/vonneumann/PORTABLE-NATIVE-CONTRACT.md).
-- Bounded original-wire decoder and fixed-class/RNG restoration:16 ordinary cases
-  (the original15-case suite includes78 byte-exact next-command comparisons), plus
-  a separate3-case actual native join, zero skips,27.457s. Independent review found
-  no unsafe class/RNG/authority reconstruction; malformed pending evidence now
-  raises the defined refusal. An independently checked current-head identity
-  oracle is required; saved state restores no lease, capability or runtime.
-  [Restoration contract](services/vonneumann/PORTABLE-RESTORATION-CONTRACT.md).
-- A conservative retained-artifact inventory with7 focused/property cases that
-  reports exact supplied wires and gaps, retains every artifact, and grants no
-  completeness/deletion/pruning/hosted authority. Physical table/index/TOAST/WAL
-  measurements and new reader joins remain separate work.
-  [Retention policy](services/vonneumann/RETAINED-ARTIFACT-POLICY.md).
+- Independent original-v2 configuration, locked dependency and complete semantic
+  SQL, including economics/source/causal/risk/assessment/graph/RNG/selection and
+  actual integer child mutation. Corrected38-case actual PostgreSQL suite passes,
+  zero skips,426.599s;4 ordinary source/Unicode checks pass. The unpublished draft's
+  temporary relation/type influence is repaired with explicit pg_catalog,pg_temp,
+  qualified catalogs and a private v2 numeric fork. Oldv1 source bytes stay unchanged.
+  [Contract](services/vonneumann/PORTABLE-SQL-CONTRACT.md).
+- NEST-05A model/input/calculation/request/purpose/path identity, coherent full
+  bundles, saved-row failure/retry and same-account cloud intent ordering.
+  Active deletion closes/acknowledges its original dialog before replacement
+  selection. Controlled and actual browser cases pass; calculation formulas and
+  distributions stay unchanged. [Contract](NESTEGG-RESULT-IDENTITY.md).
+- Fake-credential, unique-cookie-host actual Next/React browser fixtures without
+  a cloud proxy. Ready requires exact owner marker and CSP. Owned cleanup drains
+  preparation, closes the backend even after child failure, and verifies only
+  the recorded PGID; ambiguous/live/foreign metadata fails closed. All21 focused
+  fixture/paper cases pass, zero skips,31.918s, including31 adapter assertions.
+  The actual used launcher exits0, its exact Next group has no members and its
+  owned copy is removed. This is trusted public-source execution, not an OS sandbox.
+  [Contract](BROWSER-FIXTURE-CONTRACT.md).
+- Primary-source security/Jupiter/Birdeye/quota/history/cost/evolutionary research,
+  seven fee-provenance and seven paired-protocol tests, and a synthetic plan/run/
+  verify exercise with full ledgers. This is no empirical advantage or realistic
+  fill calibration. October14 security ranges remain unpublished at the check.
+  [Report](FIVE-PRIORITIES-RESEARCH-2026-10-12.md).
+- Original-v2 guarded native laboratory atomic journal, original receipt/replay,
+  thirteen pins, history/events/projections and owner-scoped exact readback.
+  Final all-history clock suite passes24 actual SQL cases, zero skips,75.576s;
+  additional bounded projection-header SQL regression passes1 case,2.754s.
+  Native min/max clock admission includes every supplied history receipt.
+  The frozen genuine-bar positive probe passes664.320501s across real04:00→04:15
+  bars:31 original lease renewals,8 admitted commands and8 positions retained
+  exactly at stopped revision9. Original Stop replay is unchanged, complete
+  projection equals original checkpoint, logical retained bytes722093 and owned
+  cleanup finishes. Earlier failed probes are not accepted. This is freshness
+  checked during recognized COMMIT processing, not a later visible-instant bound.
+  [Contract](services/vonneumann/PORTABLE-NATIVE-CONTRACT.md),
+  [genuine-clock receipt](services/vonneumann/research/portable-native-genuine-stop-acceptance.json).
+- Bounded original-wire fixed-class/RNG restoration:16 ordinary cases pass,
+  zero skips,120.684s; the original15-case subset contains78 byte-exact full/compact
+  next-command comparisons. Three actual native joins pass27.457s. Current-head
+  original identity proof is mandatory; historical loading grants no lease,
+  capability or running authority. [Contract](services/vonneumann/PORTABLE-RESTORATION-CONTRACT.md).
+- Conservative supplied-artifact retention with7 focused/property cases,64 seeded
+  inventories and no deletion authority. Final-native actual33-command trace
+  retains429 pins/15 deduplicated components,42 events,8 identities and all IDs;
+  60 original-ID plus60 complete checkpoint reads pass. Selected original text
+  is671205bytes; logical charge935775;13 owned table/index physical allocations
+  are1744896bytes against294912 baseline. The1-case measurement passes47.301s.
+  This small control-only trace is not a real-source/long-run storage forecast,
+  WAL/archive measurement, completeness or safe-pruning proof.
+  [Policy](services/vonneumann/RETAINED-ARTIFACT-POLICY.md).
+- Inert bounded original-v2 checkpoint inspector:14 parser/React cases pass;
+  actual browser observes native-lab Stop, exact8-position and2-window synthetic
+  demonstrations, historical labels, unknown/missing/pending refusal and immediate
+  scope/sign-out clearing. Synthetic scope props do not prove authenticated reader
+  integration. Cumulative history remains explicitly unavailable; oldv5 reader
+  meanings and controls are unchanged. No optimizer/RNG restore or running authority.
+  [Observations](BROWSER-ACCEPTANCE-2026-10-12.json).
+- Explicit closed forward-v3 proposal:9 ordinary cases pass, zero skips,0.041s.
+  It freezes source/config/model/command/checkpoint/projection/reader names, separate
+  market/process epochs and8 ordered implementation gates. Budgets/package hashes
+  stay null; runtime use always refuses. This is a review proposal, not implemented
+  real-provider runtime/native admission. [Plan](services/vonneumann/PAPER-RUNTIME-V3-PLAN.md).
 
-The first integrated frontend source passes246 Node cases, TypeScript and lint
-with zero errors/32 existing warnings; six added lifecycle checks also pass.
-The actual production-built fixture passes the recorded Nestegg/paper cases,
-including held original response barriers across plan/account changes. A final
-fresh launcher build/readiness passes; all150 non-overridden tracked frontend
-inputs match the application commit (151 inputs total; next.config.ts is an
-explicit test-only override). Browser download/print and broad honest-action/
-storage/new-native/hosted QA are not accepted. The home still labels mock content
-as live data. [Observed cases](BROWSER-ACCEPTANCE-2026-10-12.json).
+Final integrated frontend passes271 Node cases, zero skips,32.138s; TypeScript,
+workflow capability check and scoped lint pass. Earlier complete lint had zero
+errors/32 pre-existing warnings. Actual browser core cases use the360f5b1 source
+and final inspector files usea367be5; receipts state separate source boundaries.
+The original full frontend copy proof covers150 non-overridden tracked inputs of151.
+No browser download/print or broad honest-action/native-auth/hosted acceptance is
+claimed. Home still labels mock content as live; APP-01 remains open.
 
-Both ordinary worker shards pass at the integrated semantic/research head:
-767+984=1,751 executed cases,2,188 reported occurrences, with audited PostgreSQL
-opt-in skips and unchanged54 baseline repeated IDs. Later native/restoration/
-retention additions need the final composed discovery/required hosted jobs;
-these earlier results are not relabeled as that final head. Current production
-remains the preceding PR103 source until fresh exact-head CI/release acceptance.
+Earlier semantic/research-head ordinary groups executed1751 cases and reported2188
+with audited SQL opt-in skips. Final discovery-only inventory is2383 ordinary
+occurrences split1030/1353 and600 SQL occurrences split94/175/126/205; both retain54
+baseline repeated IDs. These are discovery, not new actual hosted execution.
+All seven exact-head hosted jobs and project/source/author/current-alias release
+checks remain required before merge. Production is the previously accepted PR103
+source while this review proceeds. [CI receipt and limits](CI-VERIFICATION.md).
 
-Original portablev2 identifies `synthetic-exact-fixture-v1`. Real Jupiter data
-needs a coherent forward runtime/config/model/source/clock/command/SQL/projection/
-reader version and original acquisition/warmup provenance. Preserve v2 journals;
-changing one source scalar or advancing a fixture does not satisfy that join.
-Then complete measured retention/Stop/recovery, reviewed closed migration and
-old/new UI/transport compatibility, followed by exact hosted fault/multi-window
-and longer resource/quota acceptance. The $20/month pilot design ceiling remains;
-no paid or shared setting changed. Continuous paper, empirical strategy advantage,
-the full dashboard audit and all live-trading gates remain open.
+Originalv2 remains `synthetic-exact-fixture-v1`. Preserve its journals while building
+an explicit real-provider runtime/config/model/source/clock/command/SQL/projection/
+reader fork with original acquisition/warmup provenance. Next serial gates are
+forward source/model → scoped native operator → restoration → measured retention
+and authenticated old/new UI → reviewed closed migration/package → exact hosted
+fault/multi-window → longer resource/quota/recovery acceptance. Recorder/model,
+research/UI fixtures can overlap after contracts freeze; cloud operations remain
+serialized. The $20/month initial hosting ceiling persists. Continuous paper,
+empirical strategy, full audit and all live-trading gates remain open.
