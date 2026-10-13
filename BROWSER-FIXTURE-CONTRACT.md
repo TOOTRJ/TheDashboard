@@ -31,10 +31,19 @@ no actual RPC, worker, wallet or provider calls. Literal retained assessment
 fixtures are public test material; passing them is not evidence of profitability
 or a working hosted provider integration.
 
+Public source and locked dependencies remain trusted. This is not an operating
+system filesystem or network sandbox; fake configuration and CSP constrain the
+declared application paths. The ready check requires the unique fixture owner
+response header and its exact CSP, so a port allocation race cannot mistake
+another local application's login page for this server.
+
 The ready record supplies exact owned process IDs, origins and directory marker.
-Stop the launcher with SIGTERM or SIGINT. It waits for its exact child process
-groups to disappear, including descendants whose parent has already exited,
-before removing its own temporary directory. It never enumerates or terminates
+Stop the launcher with SIGTERM or SIGINT. It closes admission for subsequent
+launches, drains already-owned filesystem/binding operations, and stops its
+exact child groups, including descendants whose parent has already exited,
+before removing its own temporary directory. An OS zombie is non-running,
+not physically gone; bounded exact-group metadata distinguishes it from live
+children and refuses malformed or foreign group results. It never inventories or terminates
 another project's processes. The tests exercise both surviving-parent and
 surviving-descendant cleanup. No global Docker, CLI or credential changes are
 part of this harness.
@@ -42,4 +51,5 @@ part of this harness.
 Acceptance must record the exact application commit, observed UI outcomes,
 actual held-request barriers, refusals, console errors and cleanup. Adapter and
 hook tests do not substitute for the real browser observations. Hosted CI and
-production acceptance remain separate gates.
+production acceptance remain separate gates. The dated actual UI observations
+and remaining limits are in [the acceptance record](BROWSER-ACCEPTANCE-2026-10-12.json).

@@ -217,6 +217,7 @@ async function main() {
     backend.setAppOrigin(appOrigin);
     preparationPhase = 'fake environment';
     const env = browserEnvironment(prepared.directory, backendOrigin);
+    const connectPolicy = "connect-src 'self' " + backendOrigin + ' ' + backendOrigin.replace('http:', 'ws:');
     // Keep generated local artifacts and process output confined to the owned copy.
     // No .env, ssl, agent/cloud config, existing build or application credentials copy.
     preparationPhase = 'locked dependency installation';
@@ -233,7 +234,7 @@ async function main() {
       // origin as well as all other cloud/worker origins. Real paper contract tests
       // use explicit component fixtures rather than weakening its project pin.
       const config = path.join(prepared.directory, 'next.config.ts');
-      await writeFile(config, `import type { NextConfig } from 'next';\nconst config: NextConfig = { allowedDevOrigins: ['127.0.0.1'], async headers() { return [{source:'/:path*',headers:[{key:'Content-Security-Policy',value:${JSON.stringify("connect-src 'self' " + backendOrigin + ' ' + backendOrigin.replace('http:', 'ws:'))}}]}]; }}; export default config;\n`);
+      await writeFile(config, `import type { NextConfig } from 'next';\nconst config: NextConfig = { allowedDevOrigins: ['127.0.0.1'], async headers() { return [{source:'/:path*',headers:[{key:'X-Dashboard-Fixture-Owner',value:${JSON.stringify(prepared.owner)}},{key:'Content-Security-Policy',value:${JSON.stringify(connectPolicy)}}]}]; }}; export default config;\n`);
       guard.assertOpen();
       const fixtures = [['paper-page.tsx', 'page.tsx'], ['paper-data.ts', 'paper-data.ts']];
       const route = path.join(prepared.directory, 'src/app/(dashboard)/paper-fixture');
@@ -264,7 +265,10 @@ async function main() {
       try {
         const response = await fetch(bindOrigin + '/login', { redirect: 'error',
           headers: { Host: new URL(appOrigin).host }, signal: AbortSignal.timeout(1000) });
-        readyResponse = response.status === 200 && (await response.text()).includes('SYSTEM');
+        readyResponse = response.status === 200
+          && response.headers.get('x-dashboard-fixture-owner') === prepared.owner
+          && response.headers.get('content-security-policy') === connectPolicy
+          && (await response.text()).includes('SYSTEM');
       } catch { /* The owned server may still be binding its selected port. */ }
       if (readyResponse) break;
       await new Promise(resolve => setTimeout(resolve, 100));
