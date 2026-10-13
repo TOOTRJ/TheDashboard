@@ -255,6 +255,14 @@ class PortableLockedCheckpointSqlTests(unittest.TestCase):
         body['components']=[block]
         body['checkpoint']['components'][0]['sha256']=hashlib.sha256(numbers.encode(block)).hexdigest()
         self.reject(body,'portable_configuration_type_or_policy')
+        # A valid original-v2 variable setting still cannot replace the immutable
+        # configuration of an existing accepted dependency chain.
+        body = numbers.decode(self.samples[1][2])
+        block = deepcopy(self.samples[0][1].components[0].to_dict())
+        block['body']['initial_cash']='2000'
+        body['components']=[block]
+        body['checkpoint']['components'][0]['sha256']=hashlib.sha256(numbers.encode(block)).hexdigest()
+        self.reject(body,'checkpoint_prior_model_binding')
 
     def test_dependency_and_request_capacity_charge_retained_components(self):
         boot,quote = self.samples[:2]
