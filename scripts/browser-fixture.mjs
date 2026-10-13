@@ -7,6 +7,7 @@ import path from 'node:path';
 import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 import vm from 'node:vm';
+import { performance } from 'node:perf_hooks';
 import ts from 'typescript';
 import { prepareBuild, buildEnvironment, removeBuild } from './check-build.mjs';
 import { createBrowserBackend, FIXTURE_KEY, FIXTURE_ADMIN_KEY } from './browser-fixtures/backend.mjs';
@@ -25,17 +26,71 @@ let vmInput;
 let preparationPhase = 'input validation';
 let diagnosticCopy;
 
+// Refusal observations are associated only with errors created by this helper.
+// An arbitrary error.inspection/toJSON/getter cannot supply trusted metadata.
+const inspectionFailures = new WeakMap();
+const cleanupPhases = new WeakMap();
+const INSPECTION_BYTES = 262_144;
+const inspectionCodes = new Set(['EPERM', 'EACCES', 'ESRCH', 'ENOENT', 'EINVAL', 'EINTR', 'EBADF',
+  'ETIMEDOUT', 'ENOBUFS', 'EMFILE', 'ENFILE', 'ENOMEM', 'ERR_CHILD_PROCESS_STDIO_MAXBUFFER']);
+const inspectionSignals = new Set(['SIGTERM', 'SIGKILL', 'SIGINT', 'SIGABRT', 'SIGSEGV', 'SIGHUP',
+  'SIGQUIT', 'SIGBUS', 'SIGPIPE', 'SIGALRM', 'SIGXCPU', 'SIGXFSZ']);
+function ownData(value, key) {
+  if (value === null || (typeof value !== 'object' && typeof value !== 'function')) return undefined;
+  try {
+    const descriptor = Object.getOwnPropertyDescriptor(value, key);
+    return descriptor && Object.hasOwn(descriptor, 'value') ? descriptor.value : undefined;
+  } catch { return undefined; }
+}
+function diagnosticName(error) {
+  // Native Error names are normally data on one of its prototypes. Never call
+  // an accessor, even when its value would otherwise be a permitted enum.
+  try {
+    for (let object = error, depth = 0; object && depth < 4; depth++, object = Object.getPrototypeOf(object)) {
+      const descriptor = Object.getOwnPropertyDescriptor(object, 'name');
+      if (descriptor) return Object.hasOwn(descriptor, 'value') ? descriptor.value : undefined;
+    }
+  } catch { /* A proxy failure is unknown diagnostic data. */ }
+  return undefined;
+}
+function boundedOutputLength(output, bytes = false) {
+  if (typeof output !== 'string') return null;
+  if (output.length > INSPECTION_BYTES) return 'OVER_LIMIT';
+  const length = bytes ? Buffer.byteLength(output, 'utf8') : output.length;
+  return length > INSPECTION_BYTES ? 'OVER_LIMIT' : length;
+}
+function inspectionRefusal(handle, queryKind, phase, result, started) {
+  const suppliedError = ownData(result, 'error'), suppliedCode = ownData(suppliedError, 'code');
+  const code = suppliedError == null ? null : inspectionCodes.has(suppliedCode) ? suppliedCode : 'UNKNOWN';
+  const suppliedSignal = ownData(result, 'signal'), status = ownData(result, 'status');
+  const elapsed = performance.now() - started;
+  const stderr = ownData(result, 'stderr');
+  const observation = Object.freeze({ queryKind, phase, cleanupPhase: cleanupPhases.get(handle) ?? 'untracked',
+    status: Number.isInteger(status) && status >= 0 && status <= 255 ? status : null,
+    signal: suppliedSignal == null ? null : inspectionSignals.has(suppliedSignal) ? suppliedSignal : 'UNKNOWN',
+    errno: code, stdoutChars: boundedOutputLength(ownData(result, 'stdout')),
+    stdoutBytes: boundedOutputLength(ownData(result, 'stdout'), true),
+    stderrPresent: typeof stderr === 'string' ? stderr.length > 0 : null,
+    elapsedMs: Number.isFinite(elapsed) && elapsed >= 0 && elapsed <= 10_000 ? Math.round(elapsed * 1000) / 1000 : null });
+  // Node's ordinary failure formatter can retain this safe detached snapshot.
+  // The WeakMap still determines whether reporting trusts an observation.
+  const cause = Object.freeze({ ...(code === null ? {} : { code }), inspection: Object.freeze({ ...observation }) });
+  const error = new Error('Cannot inspect exact owned process group', { cause });
+  inspectionFailures.set(error, observation);
+  return error;
+}
+
 export function fixtureFailureMetadata(error, prepared, groups = []) {
   const names = new Set(['Error', 'TypeError', 'RangeError', 'ReferenceError', 'SyntaxError',
     'EvalError', 'URIError', 'AbortError', 'AggregateError']);
   const codes = new Set(['EPERM', 'EACCES', 'ESRCH', 'ENOENT', 'EINVAL', 'EINTR', 'EBADF', 'ETIMEDOUT',
     'ENOTDIR', 'EISDIR', 'EBUSY', 'ENOTEMPTY', 'EMFILE', 'ENFILE', 'ENOSPC', 'ECONNREFUSED',
     'ECONNRESET', 'EADDRINUSE', 'ERR_INVALID_ARG_TYPE', 'ERR_INVALID_ARG_VALUE', 'ERR_OUT_OF_RANGE',
-    'ERR_UNKNOWN_SIGNAL', 'ERR_CHILD_PROCESS_STDIO_MAXBUFFER', 'ERR_SERVER_NOT_RUNNING', 'ABORT_ERR']);
+    'ERR_UNKNOWN_SIGNAL', 'ERR_CHILD_PROCESS_STDIO_MAXBUFFER', 'ERR_SERVER_NOT_RUNNING', 'ABORT_ERR', 'ENOBUFS', 'ENOMEM']);
   let name, code, directory = null, owner = null;
-  try { name = error?.name; code = error?.code ?? error?.cause?.code; } catch { /* Never invoke arbitrary diagnostic serialization. */ }
+  name = diagnosticName(error); code = ownData(error, 'code') ?? ownData(ownData(error, 'cause'), 'code');
   try {
-    const dir = prepared?.directory, candidate = prepared?.owner;
+    const dir = ownData(prepared, 'directory'), candidate = ownData(prepared, 'owner');
     const roots = new Set(['/private/tmp', '/tmp', os.tmpdir()]);
     if (typeof dir === 'string' && path.isAbsolute(dir) && roots.has(path.dirname(dir))
       && /^dashboard-ci-build-[A-Za-z0-9]{6}$/.test(path.basename(dir))
@@ -43,9 +98,20 @@ export function fixtureFailureMetadata(error, prepared, groups = []) {
       directory = dir; owner = candidate;
     }
   } catch { /* Unknown ownership metadata is omitted. */ }
+  const admittedGroups = [];
+  try {
+    const length = ownData(groups, 'length');
+    if (Array.isArray(groups) && Number.isSafeInteger(length) && length >= 0) {
+      for (let index = 0; index < Math.min(length, 4096); index++) {
+        const group = ownData(groups, String(index));
+        if (Number.isSafeInteger(group) && group > 0 && group <= 2_147_483_647) admittedGroups.push(group);
+      }
+    }
+  } catch { /* A revoked/malformed proxy cannot supply owned group metadata. */ }
+  const inspection = inspectionFailures.get(error);
   return { errorName: names.has(name) ? name : 'UnknownError', errorCode: codes.has(code) ? code : 'UNKNOWN',
-    parentPid: process.pid, ownedProcessGroups: [...new Set(groups.filter(group =>
-      Number.isSafeInteger(group) && group > 0 && group <= 2_147_483_647))].sort((a, b) => a - b),
+    parentPid: process.pid, ownedProcessGroups: [...new Set(admittedGroups)].sort((a, b) => a - b),
+    ...(inspection ? { inspection: { ...inspection } } : {}),
     markerDirectory: directory, markerOwner: owner };
 }
 export async function finishFixtureCleanup(pending, closeBackend, removeCopy) {
@@ -139,31 +205,40 @@ export function ownedGroupIsQuiescent(handle, execute = spawnSync, platform = pr
   }
   const env = { COMMAND_MODE: 'unix2003', LC_ALL: 'C' };
   let selection, selectedIds;
-  const linuxMembers = () => {
-    const members = execute('/usr/bin/pgrep', ['-g', String(handle.pid)], { env, encoding: 'utf8', timeout: 1000, maxBuffer: 262_144 });
+  const linuxMembers = phase => {
+    const started = performance.now();
+    let members;
+    try { members = execute('/usr/bin/pgrep', ['-g', String(handle.pid)], { env, encoding: 'utf8', timeout: 1000, maxBuffer: 262_144 }); }
+    catch (error) { throw inspectionRefusal(handle, 'linux-group-pgrep', phase, { error }, started); }
     if (!members.error && members.status === 1 && members.stdout === '' && !members.stderr) return [];
     const ids = members.stdout?.trim().split(/\s+/) ?? [];
     if (members.error || members.status !== 0 || members.stderr || !ids.length || ids.length > 4096
       || new Set(ids).size !== ids.length || ids.some(id => !/^[1-9][0-9]*$/.test(id)
-        || !Number.isSafeInteger(Number(id)) || Number(id) > 2_147_483_647)) throw new Error('Cannot inspect exact owned process group');
+        || !Number.isSafeInteger(Number(id)) || Number(id) > 2_147_483_647)) throw inspectionRefusal(handle, 'linux-group-pgrep', phase, members, started);
     return ids;
   };
   if (platform === 'darwin') selection = ['-g', String(handle.pid)];
   else if (platform === 'linux') {
-    selectedIds = linuxMembers();
+    selectedIds = linuxMembers('membership-before');
     if (!selectedIds.length) return true;
     selection = ['-p', selectedIds.join(',')];
   } else throw new Error('Cannot inspect exact owned process group');
-  const state = execute('/bin/ps', [...selection, '-o', 'pid=,pgid=,stat='], { env, encoding: 'utf8', timeout: 1000, maxBuffer: 262_144 });
+  const started = performance.now();
+  let state;
+  try { state = execute('/bin/ps', [...selection, '-o', 'pid=,pgid=,stat='], { env, encoding: 'utf8', timeout: 1000, maxBuffer: 262_144 }); }
+  catch (error) { throw inspectionRefusal(handle, platform === 'darwin' ? 'darwin-group-ps' : 'linux-member-ps', 'state', { error }, started); }
   if (!state.error && state.status === 1 && state.stdout === '' && !state.stderr) {
-    return platform !== 'linux' || linuxMembers().length === 0;
+    return platform !== 'linux' || linuxMembers('membership-after').length === 0;
   }
-  if (state.error || state.status !== 0 || state.stderr) throw new Error('Cannot inspect exact owned process group');
-  const quiescent = parseOwnedGroupState(state.stdout, handle.pid);
+  const refusal = () => inspectionRefusal(handle, platform === 'darwin' ? 'darwin-group-ps' : 'linux-member-ps', 'state', state, started);
+  if (state.error || state.status !== 0 || state.stderr) throw refusal();
+  let quiescent;
+  try { quiescent = parseOwnedGroupState(state.stdout, handle.pid); }
+  catch { throw refusal(); }
   if (!quiescent || platform !== 'linux') return quiescent;
   // A new descendant can appear between pgrep and ps. Never infer quiescence
   // from a stale PID subset: another exact-group sample must agree or be empty.
-  const after = linuxMembers();
+  const after = linuxMembers('membership-after');
   return !after.length || (after.length === selectedIds.length && after.every(id => selectedIds.includes(id)));
 }
 async function waitForOwnedGroup(handle, milliseconds) {
@@ -174,14 +249,17 @@ async function waitForOwnedGroup(handle, milliseconds) {
 async function terminateOwned(processHandle) {
   if (termination.has(processHandle)) return termination.get(processHandle);
   const completion = (async () => {
+    cleanupPhases.set(processHandle, 'initial');
     // The leader can exit while an stdio:ignore descendant remains. Keep the
     // exact PGID until it disappears; never enumerate or signal other groups.
     if (ownedGroupIsActive(processHandle)) {
+      cleanupPhases.set(processHandle, 'term');
       signalOwnedGroup(processHandle, 'SIGTERM');
       let quiescent = false;
       try { quiescent = await waitForOwnedGroup(processHandle, 10_000); }
       catch { /* Intermediate metadata failure still requires stopping this exact registered group. */ }
       if (!quiescent) {
+        cleanupPhases.set(processHandle, 'kill');
         signalOwnedGroup(processHandle, 'SIGKILL');
         // Final inspection is mandatory and its failure propagates. Cleanup
         // retains the owned copy if neither absence nor quiescence is proved.
