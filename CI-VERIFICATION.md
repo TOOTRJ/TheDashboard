@@ -197,6 +197,48 @@ SQL discovery SHA256
 These inventories and focused passes still require complete exact-source hosted
 acceptance; a balancing hypothesis is not an upper latency bound.
 
+### Completed follow-up head 360d4a2 — 2026-10-13
+
+[Run38420675259](https://github.com/TOOTRJ/TheDashboard/actions/runs/38420675259)
+at `360d4a2ea490eabf53bfa2709495f89b725a368e` completes in35m5s. Frontend
+passes2m43s; both ordinary groups pass15m47s/13m14s. SQL groups1–3 pass
+29m58s/29m59s/35m1s. SQL4 fails26m5s: its report contains236 cases in
+1499.558s, one error and two allowlisted optional timing skips. The moved
+complete source-transition trace passes. The original current-head restoration
+decision still refuses with `portable_native_final_source_or_lease_expired`.
+PR104 remains unmerged; six successful jobs do not establish release acceptance.
+
+The post-rollback observation retains the original decision ID/wire digest and
+reports no original committed row. Its later clock sees the original receipt
+aged5.246318s and a still-valid lease. The protective committed receipt records
+a guard2.281214s after that same first receipt. This supports investigating
+source-path cost but does not recover the actual failed guard instant or prove
+its branch. The genuine expired-original refusal and rollback regression passes.
+No new ID, clock adjustment, retry, guard widening or test omission is accepted.
+
+A separate owned local one-case phase observation passes14.694s with unchanged
+source/native/model bytes. Its protective/decision native guard intervals are
+0.888197s/1.986572s after the original receipt. Local preparation/capture,
+transport, current-head reads and both original commits are measured separately;
+these observations are not hosted bounds or substitutes for the failed run.
+
+The subsequent test-only repair keeps explicit COMMIT and full authenticated
+native readback in one ACTOR connection, then independently verifies the current
+head/catalog through a fresh operator connection before the same original
+decision. All native checks and separate final reads remain. Five native cases
+pass36.091s, zero skips, including an actual error after COMMIT that reconciles
+the original committed protection without retry or decision. Fixed process
+phase timings are available on success/refusal without claiming the failed
+native clock. No server/JIT/native/model/decoder or guard change occurs.
+
+Final discovery contains2400 ordinary occurrences1045/1355 and602 SQL occurrences
+94/128/143/237, retaining54 original repeated IDs. Selection SHA256 is unchanged;
+ordinary discovery SHA256
+`d8b26be79ff95f08d5077565f67284b2ac5c0ff485c16a63b4872cc3f49eec77`;
+SQL discovery SHA256
+`970cba0134f6186013506ae042595e32e1d541427f019208fce63c6a7d44a536`.
+Discovery does not execute tests. Complete next-head CI remains required.
+
 PR/manual triggers have no path/type/branch filters, and main pushes have only
 the main-branch filter. The capability validator requires every advertised Node,
 type, lint, advisory, build, lock/hash installation, dependency-consistency and

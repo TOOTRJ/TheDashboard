@@ -263,3 +263,24 @@ smallest supported compatible patched upgrade together with matched tooling,
 lockfile, route/auth/cache behavior and exact-head deployment checks. Do not
 claim 16.3.8 safe from the forthcoming vulnerabilities or 16.4.0 patched from the
 announcement alone. No dependencies were changed. [Support policy](https://nextjs.org/support-policy).
+
+## Measured catalog compilation hypothesis — 2026-10-13
+
+A bounded read-only A/B in a newly owned network-none PostgreSQL17.6 fixture
+examines the exact catalog function body, rather than an EXPLAIN of its opaque
+wrapper. The original native SQL SHA256 is
+76e23d44a296c838238e5545c9ea498eb86d2ac5caee9798236aee1f8a5bf5c4;
+the extracted pure-query body SHA256 is
+ca1c520fa5eb4b69bd7d03a834c8fd2dfd6d163871c566ce64dac4097ad96bb6.
+Both read-only transactions use the fixture installer and pg_catalog,pg_temp,
+and roll back. No commit/advance function or source admission is executed by
+the measurement. Package setup and exact owned cleanup are separate fixture work.
+
+Default jit=on has estimated query cost1121.99 against jit_above_cost100000,
+with no JIT section, planning1.470ms and execution4.935ms. Transaction-local
+jit=off also has no JIT section, planning1.349ms and execution4.658ms. Both
+produce the same catalog digest. One pair is not a latency distribution; it
+does not support compilation as the cause of the hosted restoration expiry or
+justify changing server settings. The fixture/native profile remains unchanged.
+Nested semantic costs and hosted CPU/client scheduling remain unmeasured here.
+[PostgreSQL JIT decision rules](https://www.postgresql.org/docs/17/jit-decision.html).

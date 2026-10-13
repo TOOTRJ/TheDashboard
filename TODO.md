@@ -1,6 +1,6 @@
 # Dashboard audit and implementation backlog
 
-## Current execution plan — reviewed 2026-10-12
+## Current execution plan — reviewed 2026-10-13
 
 **Implementation follow-up:** SEC-05A's compatible source-map-js repair and exact
 expiring development exception are implemented; production audit is now clean.
@@ -30,8 +30,9 @@ Checked items retain their bounded acceptance scope; an open parent is a rollup
 of remaining gates, not a second implementation job. Do not treat checkbox
 counts as a completion percentage.
 
-**Verified implementation baseline:** PR99–PR102 are merged; the accepted CI
-merge is `58808efaf2c025ea865f7429723599081edae491`. PR96/97 and their
+**Verified implementation baseline:** PR99–PR103 are merged; the last verified
+production source is `92d3d4313e4a8648a0d65bebd41b5029b55826be`. PR102's accepted
+CI merge is `58808efaf2c025ea865f7429723599081edae491`. PR96/97 and their
 `67cff30e82d6847a6d1b3f03276308646e8083a4` main snapshot are historical. The original hosted
 owner hour at revision 514 is accepted (504 prices, one replacement, two closed
 trades, eight children, 32 acknowledged events). Railway is provisioned and
@@ -51,6 +52,7 @@ and realistic trading/data evaluation remain separate open gates.
 | --- | --- | --- |
 | P0 access boundary, every remote operation | Before the operation; serialize cloud writes | Exact GitHub/Vercel/Supabase/Railway project and owner verification; preserve shared credentials/other projects. Preview still shares production DB values, so initial tests stay offline. |
 | P1 security and QA, start now | Parallel with the worker and app lanes; release joins require their relevant checks | SEC-05B October 14 response and QA-01B real browser coverage; SEC-05A and QA-01A are complete within their recorded scope. No forced Next 14 downgrade. |
+| P1 provider transport privacy | Before new hosted credential-bearing I/O; implement alongside the prospective recorder | SEC-06: explicit verified TLS contexts that ignore inherited key-log/CA/proxy settings, and owned request-log suppression with concurrency/cleanup proofs. Cover legacy HTTPX/aiohttp paths as well as the new recorder; preserve shared environment and unrelated logging. |
 | P1 worker step1 — complete | Rejection-only repair verified before the next SQL gate | PAPER-COMPACT-TYPE1: exact policy types for v2; decide legacy v1 compatibility; adversarial rehash tests. Freeze corrected model/config/operator/component versions. |
 | P1 worker step2 — offline proof accepted, release pending | Corrected original-v2 semantics precede native admission | PAPER-COMPACT-03B3C2B2B: independently validate original complete v2 evidence in SQL, including actual child mutation. Compose prior economics/source/causal/risk/assessment proofs without stripping policy or relabeling versions. |
 | P1 worker step3 | After complete v2 semantics | PAPER-COMPACT-03: atomic native journal, dependency pins, original-ID receipt/replay, final source/lease admission, reserved Stop, history/relay/projections, reviewed forward package. Include PAPER-ASSESSMENT-PROVENANCE1 in this format. |
@@ -90,6 +92,28 @@ organization-wide limits still apply, but no other-application inventory answer
 is pending. Research is a deliverable with evidence and acceptance criteria,
 not a reason to repeat already completed pilot/setup work.
 
+**Prospective source progress — 2026-10-13:** the separate source branch has67
+passing offline source/acquisition checks, followed by74 checks after the reviewed
+nullable-metadata policy update. It requires915 genuinely observed contiguous
+minutes for61 sampled15-minute closes, original immutable records and independent
+native admission/seal bindings. These pure contracts are not a deployed recorder
+or authenticated source. The fresh two-EMA model and recorder can now proceed
+in parallel; native admission, restoration and hosted acceptance follow them.
+
+**SEC-06 research finding:** Python's default TLS context can inherit
+`SSLKEYLOGFILE` even when HTTPX uses `trust_env=False`; the installed aiohttp also
+constructs a default context at import. This is a conditional exposure, not a
+claim that key logging occurred. Before hosted credential-bearing I/O, construct
+verified contexts directly with the pinned CA bundle, hostname/certificate checks,
+TLS≥1.2 and no key logging. Prove fake inherited paths remain untouched in owned
+subprocesses. The new recorder must also prevent private endpoint/header/body
+exposure through HTTPX/httpcore logs, existing filters, custom record factories,
+timeouts and cancellation while preserving unrelated tasks. Deeper measurements
+must establish runtime/CA provenance and complete cleanup/latency behavior.
+[CPython behavior](https://github.com/python/cpython/blob/v3.12.14/Lib/ssl.py),
+[pinned HTTPX](https://github.com/encode/httpx/blob/0.28.1/httpx/_config.py),
+[aiohttp context](https://github.com/aio-libs/aiohttp/blob/v3.14.3/aiohttp/connector.py).
+
 **CI reliability follow-up — 2026-10-13:** after PR104's current restoration and
 whole-module scheduling repairs, add bounded private-safe phase/module timing
 and immutable-image retry diagnostics. Classify registry preparation separately
@@ -103,13 +127,14 @@ and exhaustive occurrences unchanged. [Deep research and ordered CI candidates](
 
 ## Five-priority implementation batch — local review, 2026-10-12
 
-**2026-10-13 release follow-up:** PR104 remains open at `c58177a`. The completed
-seven-job run passes frontend, both ordinary groups and SQL1/3, but SQL2 expires
-at its unchanged2400-second child deadline during the source-transition module,
-and SQL4 still refuses the original restoration decision at the combined
-source/lease guard. Resolve both and accept all required jobs before merge.
+**2026-10-13 release follow-up:** PR104 remains open at `360d4a2`. Its completed
+run38420675259 passes frontend, both ordinary groups and SQL1–3. SQL4 reports236
+cases, one restoration decision error and two allowed timing skips; the moved
+complete source-transition trace now passes. The original decision still refuses
+at the combined source/lease guard. Resolve that critical path and accept all
+required jobs before merge. Preserve earlier c58177a's separate SQL2 timeout.
 Local proof counts below are bounded historical evidence, not hosted acceptance.
-[Completed failed run and limits](CI-VERIFICATION.md#completed-follow-up-head-c58177a--2026-10-13).
+[Completed failed run and limits](CI-VERIFICATION.md#completed-follow-up-head-360d4a2--2026-10-13).
 The current readiness overview now reflects PR99–PR104 and separates the
 implemented synthetic/native laboratory from the remaining real-provider joins.
 

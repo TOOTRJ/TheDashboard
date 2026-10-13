@@ -23,10 +23,11 @@ acceptance. Strict boolean/integer configuration rejection is already repaired
 in PR99. Focused local proofs pass; this does not establish complete release
 acceptance or a real-provider runtime.
 
-The completed exact-source [run38357623351](https://github.com/TOOTRJ/TheDashboard/actions/runs/38357623351)
-at `c58177afe7d22ab17b6ee21da91ec2b9e7d5a73d` passes frontend, both ordinary
-worker groups and SQL groups1/3, but fails SQL group2's2400-second parent deadline
-and SQL group4's restoration source-or-lease expiry guard. PR104 remains open.
+The completed exact-source [run38420675259](https://github.com/TOOTRJ/TheDashboard/actions/runs/38420675259)
+at `360d4a2ea490eabf53bfa2709495f89b725a368e` passes frontend, both ordinary
+worker groups and SQL groups1–3. SQL4's complete source-transition trace passes,
+but its original restoration decision still fails the source-or-lease expiry
+guard. The earlier SQL2 parent timeout remains dated evidence. PR104 remains open.
 Repair and complete all seven actual jobs before merge; preserve the failed
 run's evidence and unchanged freshness/lease limits. See [CI-VERIFICATION.md](CI-VERIFICATION.md).
 

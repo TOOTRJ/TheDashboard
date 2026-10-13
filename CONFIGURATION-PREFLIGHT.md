@@ -5041,3 +5041,31 @@ Selection SHA256 be75136c0592a7a2da26707a3d7e4c1e7e740dda639776f6759d23ed64357af
 ordinary e1f774da9b5d8e47d5d4941aeb2f53e3867b4a3f08dccd7b89c8037a8c857262;
 SQL 7ea5fd730d7d91975c5b62f9fbf81ec02b8fd37a6ad324b3b25a3b153f06718c.
 These source inventories do not establish executed counts or complete CI.
+
+## 117. Completed revised CI and dedicated-auth status — 2026-10-13
+
+Head360d4a2/run38420675259 completes35m5s: frontend, both ordinary groups and
+SQL1–3 pass; SQL4 reports236 cases/1499.558s with one original restoration
+decision error and two allowed optional timing skips. The moved complete
+source-transition suite passes. The original five-second native allowance
+remains unchanged and PR104 is not merged. Later rollback diagnostics observe
+source age beyond its derived deadline and a live lease; they do not recover
+the actual failed guard clock. See the source-bound CI report.
+
+The dedicated Vercel auth file is absent at the fresh release check. A scoped
+login window expires without saving authentication; a ready-for-login question
+is pending before another link is generated. No default/shared profile is read
+or changed. Browser metadata verifies the exact Dashboard project, team and
+Git repository; PR-bot preview READY alone is not a complete source/author/alias
+release verification. Offline implementation proceeds while authentication is
+pending. No production deployment, migration, worker activation or provider
+credential operation is performed by this checkpoint.
+
+The next test-only repair retains the unchanged original pair and actual
+current-head/catalog/oracles, removes one ACTOR client startup by placing full
+native readback after explicit COMMIT, and retains a separate fresh operator
+connection before decision. Five actual native cases pass36.091s, zero skips;
+the new after-COMMIT failure case finds the original committed row without a
+retry/decision. Final discovery is2400 ordinary/602 SQL occurrences with54
+repeated IDs and unchanged selection/limits. The measured pure catalog query
+does not use JIT; no server setting is tuned. Full next-head CI remains required.

@@ -395,3 +395,43 @@ ID is absent and the accepted bootstrap revision2 and complete tables remain
 unchanged. The same-error/no-database-call output-failure subproof passes.
 These are dated scoped measurements, not guard-to-WAL bounds, throughput
 claims, cold-restoration admission or complete hosted CI acceptance.
+
+## Explicit COMMIT followed by same-session readback — 2026-10-13
+
+Head360d4a2's completed hosted run still fails the first original decision.
+Its later diagnostic observes receipt age5.246318s and a live lease; the
+protective guard is2.281214s after that original receipt. The later clock is
+not the failed guard instant. The complete source-transition trace now passes,
+so it does not explain this remaining restoration refusal.
+
+The follow-up fixture submits the unchanged original protective in one ACTOR
+connection, with explicit BEGIN/native call/COMMIT. The same connection then
+performs the complete checkpoint and asked-ID getters in a new transaction.
+Both native functions retain their actor/package/current-head checks and
+same-transaction provisional-readback refusal. A separate fresh installer
+connection then verifies the actual accepted current head and catalog before
+preparing the decision. No SET ROLE, pooled connection, heartbeat, clock
+adjustment or new native/model/decoder version is introduced. Each SQL call
+still establishes its own connection as the requested fixture role; this one
+call deliberately spans the two documented transactions. The final decision
+load continues to use independent connections.
+
+Exit zero and exactly two complete LF-delimited JSON records are required.
+Pending first output, malformed/partial output, process timeout or a later SQL
+error stops continuation. Since an error can occur after the explicit COMMIT,
+the combined helper reports an uncertain original outcome and reads only that
+original ID/hash through a fresh scoped getter. It preserves the original
+exception and never retries or submits a decision. The added actual
+post-COMMIT SELECT1/0 regression confirms the original protective is committed,
+submitted once, independently readable and unchanged by the subsequent load;
+there is no decision row.
+
+All five native cases pass36.091s with zero skips. Recorded native guard offsets
+are1.602325s/2.676209s after the same original receipt; actual integral-action
+delay is0.773236s. Fixed laboratory host-phase timings separate model,
+checkpoint, transport, original SQL submission, native readback and the fresh
+operator query. They remain process observations, not the failed native clock.
+The connection optimization saves one client startup; these local measurements
+do not establish a hosted speedup or a five-second cold-restoration bound.
+All full/compact comparisons,13 original wires, retired-ID/stale-head checks,
+original reconciliation, data-free controls and unchanged native guards remain.
