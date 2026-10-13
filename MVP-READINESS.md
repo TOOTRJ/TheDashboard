@@ -23,7 +23,7 @@ acceptance. Strict boolean/integer configuration rejection is already repaired
 in PR99. Focused local proofs pass; this does not establish complete release
 acceptance or a real-provider runtime.
 
-The latest completed exact-source [run38444382423](https://github.com/TOOTRJ/TheDashboard/actions/runs/38444382423)
+The previously completed exact-source [run38444382423](https://github.com/TOOTRJ/TheDashboard/actions/runs/38444382423)
 at `c04be4fb536c593541603a7e7c6c1140771b139d` completes33m57s. Frontend, both
 ordinary groups and SQL1–3 pass, including historical/current source-lineage
 repairs. SQL4 again refuses one original restoration decision. The test-only
@@ -42,6 +42,14 @@ at `0609db36b168a803283d57e3302a54c8ebbecaaa` passes 332/332, zero skips.
 The safe owned-process refusal diagnostics preserve cleanup requirements.
 These app and local test results do not replace the seven hosted jobs or the
 exact Vercel release gate. The prospective worker remains closed.
+
+The latest completed [run38458301073](https://github.com/TOOTRJ/TheDashboard/actions/runs/38458301073)
+at 22bd538 finishes 36m17s: frontend, both ordinary groups and SQL1–3 pass.
+SQL4 fails only immutable registry image preparation, before any SQL case.
+The reviewed bounded coordination repair is adopted locally as 41d4ed0 and
+passes 53 integrated mock/policy checks. It preserves images, guards, every
+required SQL occurrence and deadlines. A complete repaired-head run remains
+the next release gate; the READY exact preview does not replace that gate.
 
 The separate reviewed prospective-source/recorder branch passes107 combined
 offline checks; the independently constructed two-EMA model passes20 focused

@@ -1448,3 +1448,30 @@ orders a shared versioned monthly ledger before dependent formula/chart changes.
 Current BLS/SSA/IRS references inform the units and benefit/distribution scope;
 full tax, survivor, distribution and probability calibration remain deeper
 research gates. These three reproductions change no financial formulas or data.
+
+The bounded CI pull repair is adopted locally as 41d4ed0, with 53 integrated
+mock/policy checks passing. New discovery retains all original tests plus eleven
+pull/capability cases (2,425 ordinary occurrences; SQL remains 602). Collect the
+current run's remaining SQL results before pushing; both ordinary groups have
+passed. Require all seven complete actual jobs at the repaired head before merge.
+The next local app branch additionally contains the reviewed Analytics/Header
+honesty slice; Home fixture provenance/actions and their combined browser/build
+acceptance follow. Exact legacy TLS plus prospective recorder/source integration
+is being prepared offline, preserving historical contracts and false authority
+flags. None of these local candidates activates the worker or closes the audit.
+
+Current run 38458301073 is now fully settled: six PASS, one image-preparation
+failure, total 36m17s. Push the repaired batch with that evidence preserved;
+require all seven new-head jobs and exact release verification before merge.
+The separate final app integration passes 379 frontend cases, compiler and
+zero-error lint. Its latest combined Home/Analytics browser/build acceptance
+is still pending, and the former 366-case/Strategies receipt remains bound to
+its older source. TLS/source integration passes 308 offline cases; native
+identity, durable recorder, restoration and hosted joins remain separate gates.
+
+The final app fake build subsequently times out after the existing 300-second
+locked dependency-installation limit, before any app server or Home/Analytics
+browser interaction. Normal owned cleanup removes its exact build copy. This
+is setup failure evidence, not a browser pass or an identified registry cause.
+Investigate bounded installation diagnostics before another attempt; retain the
+379-case source proof and keep the final browser/build gate open.

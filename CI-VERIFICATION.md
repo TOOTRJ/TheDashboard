@@ -696,3 +696,30 @@ warning, so neither is sufficient for strict immutable-image admission.
 [Docker save](https://docs.docker.com/reference/cli/docker/image/save/),
 [Docker load](https://docs.docker.com/reference/cli/docker/image/load/),
 [GitHub artifact validation](https://docs.github.com/en/actions/how-tos/writing-workflows/choosing-what-your-workflow-does/storing-and-sharing-data-from-a-workflow#validating-artifacts).
+
+The reviewed coordination repair is adopted as
+`41d4ed00e40956736e1564ebd1e048c629894f6f`. Root executes both complete affected
+unit modules: 53 pass, zero skips, in 0.714s, with the workflow capability checker
+also passing. These tests mock Docker pulls and sleeps; they do not establish
+registry recovery. The original source-specific 53/0.690s candidate proof remains
+separate. [Reviewed policy and boundaries](CI-PULL-COORDINATION-CONTRACT.md).
+
+Discovery-only now retains 2,425 ordinary occurrences (1,045/1,380), 602 SQL
+occurrences (94/128/143/237), and all 54 baseline repetitions. Eleven new pull/
+capability cases add coverage without deleting or deduplicating earlier cases.
+Ordinary discovery SHA-256
+`1d6bf0c97ab6d1ac1563c38d6be7a950a0dcf8bdbb60c5cca7a6e37e95fe7ace`;
+SQL discovery remains
+`2d782fbae39f0b3166507c11830e5c7fed1ea2bb3f57655da12ea7af22771aeb`;
+selection remains
+`be75136c0592a7a2da26707a3d7e4c1e7e740dda639776f6759d23ed64357af1`.
+Discovery executes no tests. The current run's ordinary groups pass in
+18m58s and 11m6s; three SQL groups remain running at this observation. Wait for
+those results before another push so unfinished evidence is not cancelled.
+
+The 22bd538 run then finishes **36m17s** with six passing jobs: frontend 2m37s,
+ordinary groups 18m58s/11m6s, and SQL1/2/3 36m12s/29m33s/23m57s. SQL4's 48-second
+registry preparation failure is the sole failure. Its restoration cases never
+execute, so this run supplies no hosted acceptance of the new positive pacing.
+Every job is settled before the next repaired-head push. Complete new-head
+seven-job acceptance remains required; no failed job is rerun or omitted.
