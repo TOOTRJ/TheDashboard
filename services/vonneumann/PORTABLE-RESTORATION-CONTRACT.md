@@ -207,3 +207,78 @@ publication-time evidence, real source/process-clock transitions after restart,
 long-term version/runtime support, dependency-safe cold archive lookup, retention
 cost/COMMIT tails and bounded hosted risk-response intervals. These questions
 should be resolved with measured joins rather than inferred from canonical hashes.
+
+## CI source-window choreography follow-up — 2026-10-13 UTC
+
+PR104 head `897ec2ad369d82ccef80b05a4bbd475f630a1a3b` executes 205 SQL4
+cases in `885.928s`, with zero skips but one error in the retired-ID restoration join:
+the first protective commit reaches
+`portable_native_final_source_or_lease_expired`. This is a failed full-shard
+result, not accepted SQL4 execution. The fixture had constructed an original
+source frame before independently reading the prior native head/catalog,
+checkpoint and identity oracle and cold-decoding its complete optimizer graph.
+That test work consumed the unchanged five-second native source interval.
+
+The test-only repair restores the independently observed committed prior head
+and asked-ID oracle before a new original literal capture. It samples genuine
+database wall time and retains the first original fractional receipt. Original
+v2 requires an integral action second at or after the receipt's ceiling, so the
+fixture waits on the genuine clock before observing its action time. It derives
+an integral action clock from that actual observation for both frame and
+DecisionInputs, avoiding the old binary64-ceiling versus datetime-rounding
+one-microsecond representation edge without changing the model or adding a
+future offset. The fixture's MONO relation remains synthetic; these measurements
+are not real worker or cross-process acquisition-clock acceptance.
+
+The restored protective full/compact wire equivalence is checked byte-for-byte
+before the one original submission. While its committed head is
+actually current, an independent installer observation binds its accepted
+head/catalog/semantic contract, and a single scoped actor read captures the
+original checkpoint plus current-head asked-ID oracle. The one original
+decision is then submitted immediately with the exact same frame and command
+ID. Complete reconstruction and full/compact next-wire comparison use the
+immutable saved snapshot after native submission, off the admission critical
+path. No second submission or retry occurs. The saved envelope denotes current
+**at capture**, not present continuation authority at decode time. The subsequent
+scoped current checkpoint read independently observes the accepted decision.
+Retired-ID, stale-head and no-write refusal assertions remain intact.
+
+The original three-case `27.457s` acceptance above remains tied to its older
+source/package. The following local results are separate chronological evidence:
+
+- Moving only the first restore before capture produces a three-case `38.795s`
+  run with two passes and a correct final source-or-lease refusal on the delayed
+  decision. It is not acceptance of cold restoration inside the source window.
+- The saved-snapshot choreography with a floor-second receipt passes all three
+  cases in `46.862s`, zero skips. Host intervals from capture staging are
+  `1.935139s` for protective commit, `4.035750s` for decision commit and
+  `4.514984s` through the delayed equivalence comparison. These are scoped
+  observations, not throughput or native-only latency bounds.
+- A same-sample fractional receipt/action attempt produces a three-case
+  `15.367s` run with two passes and one original `ProviderDeferred` before any
+  native pending source request; the genuine integral-action wait is required.
+- Fractional receipt plus genuine action wait passes all three cases in
+  `24.439s`, zero skips. A later reporting run takes `23.540s` and exposes the
+  one-microsecond representation edge on the second protective before submission;
+  its first protective and decision already pass native guards. That run is not
+  full-class acceptance.
+- The final observed-integral-action/reporting path passes the affected case
+  in `17.695s`, zero skips. Actual original receipt to action wall delay is
+  `0.483848s`. Independently recorded native guard timestamps are `1.646198s`
+  and `2.895655s` after that same original receipt for protective and decision.
+  Host intervals after action observation are `1.157909s` through protective
+  commit, `2.407094s` through decision commit and `2.739567s` through the delayed
+  exact equivalence comparison. The other two cases retain their preceding
+  full-class acceptance; complete final-head CI remains required.
+
+All runs use the owned cached network-none PostgreSQL17.6 fixture and locked
+CPython3.12.14, and remove their exact owned container. No SQL/model/decoder,
+native lease/source limit, wire version, production connection, provider request
+or credential changes. Native SQL remains SHA256
+`76e23d44a296c838238e5545c9ea498eb86d2ac5caee9798236aee1f8a5bf5c4`.
+The prior genuine-bar Stop receipt is unchanged. This proof does not establish
+cold restoration plus decision admission within five seconds, present authority
+from saved snapshots, continuous hosted operation or a final-visible freshness
+bound. Native/worker/resource tails, including the proposed Railway CPU budget,
+still require measured acceptance; a slower host cannot extend the guard or
+rebase an original receipt to compensate.

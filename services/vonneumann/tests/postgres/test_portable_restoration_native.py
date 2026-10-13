@@ -4,10 +4,11 @@ Requires the separately reviewed native fixture package. No source fixture is
 relabelled as real-provider data; no hosted/restoration authority is returned.
 """
 from dataclasses import replace
-from datetime import datetime
+from datetime import datetime, timezone
 import hashlib
 import json
 import os
+import time
 import unittest
 from uuid import UUID
 
@@ -20,6 +21,11 @@ from vonneumann.research import portable_restoration as restore, portable_restor
 
 
 def json_wire(value): return json.dumps(value, ensure_ascii=False).encode('utf-8')
+
+
+def utc_microseconds(value):
+    elapsed = datetime.fromisoformat(value) - datetime(1970, 1, 1, tzinfo=timezone.utc)
+    return (elapsed.days * 86400 + elapsed.seconds) * 1000000 + elapsed.microseconds
 
 
 @unittest.skipUnless(os.environ.get(OPT_IN) == '1', 'Requires isolated PostgreSQL opt-in')
@@ -88,19 +94,110 @@ class PortableRestorationNativeTests(unittest.TestCase):
         response = self.db.scalar(self.fixture.lookup(row, list(ids)), role=self.actor)
         return restore.decode_identity_lookup(response.encode(), expected, ids)
 
-    def assert_next(self, previous, following):
-        source_critical = following[0].transition['evidence']['kind'] in {'protective', 'decision'}
-        # Whole-table snapshots establish read-only behavior in the independent
-        # control case; do not repeatedly copy the complete journal while the
-        # original five-second laboratory source guard is running.
-        restored = self.load(previous, prove_read_only=not source_critical)
+    def context_before_source(self, row, *, serial, generation=0):
+        """Observe the committed head and ID oracle before an original capture.
+
+        The allocation tuple does not depend on the later event/source clock.
+        No prospective checkpoint or provisional receipt becomes authority.
+        """
+        ids = source_inputs(0, generation=generation, serial=serial).ids
+        return self.restore_captured_context(row, self.capture_context(row, ids))
+
+    def capture_context(self, row, ids):
+        """Capture original readback/oracle while this head is actually current."""
+        expected = self.operator_expected(row)
+        checkpoint = 'vn_portable_native_research.read_checkpoint(' + ','.join((
+            literal(OWNER), literal(RUN), str(row[0].state.revision), literal(self.fixture.manifest_sha(row)))) + ')'
+        lookup = self.fixture.lookup(row, list(ids)).removeprefix('SELECT ').removesuffix(';')
+        response = json.loads(self.db.scalar("SELECT jsonb_build_object('checkpoint'," + checkpoint
+            + ",'identities'," + lookup + ');', role=self.actor))
+        return expected, json_wire(response['checkpoint']), json_wire(response['identities']), ids
+
+    def restore_captured_context(self, row, context):
+        """Reconstruct a recorded current-at-capture snapshot, with no submission.
+
+        These saved bytes do not prove that their head is current at decode time.
+        The delayed comparison path below never submits from the saved snapshot.
+        """
+        expected, checkpoint, identities, ids = context
+        restored = restore.restore_readback(checkpoint, expected)
+        checked = restore.decode_identity_lookup(identities, expected, ids)
+        self.assertEqual(restored.state.to_dict(), row[0].state.to_dict())
+        self.assertEqual(restored.checkpoint.component_wires, tuple(block._wire for block in row[1].components))
+        self.assertFalse(restored.restoration_authority); self.assertFalse(restored.hosted_authority)
+        self.assertFalse(restored.lease_restored); self.assertFalse(restored.identity_ledger_restored)
+        return restored, checked
+
+    def current_source_clock(self, state):
+        """Sample the real fixture clock after any bounded control-order wait."""
+        target = state.to_dict()['engine']['lifecycle']['last_control_at'] + 1
+        query = 'SELECT floor(extract(epoch FROM clock_timestamp())*1000000);'
+        now_us = int(self.db.scalar(query))
+        if now_us < target * 1000000:
+            self.assertLessEqual(target * 1000000 - now_us, 8000000, 'Control-order wait must stay bounded')
+            now_us = int(self.db.scalar('SELECT pg_sleep(greatest(0,' + str(target)
+                + '-extract(epoch FROM clock_timestamp())));'
+                + query))
+        self.assertGreaterEqual(now_us, target * 1000000)
+        # Preserve the original observed receipt, not a rounded-down label that
+        # spends up to a second of the unchanged five-second native allowance.
+        received_at = now_us / 1000000
+        # Original v2 forbids an integral action second before the ceiling of a
+        # fractional receipt. Wait on the genuine clock; never label the first
+        # request with a prospective/future decision time or refresh its receipt.
+        action_second = (now_us + 999999) // 1000000
+        decision_us = int(self.db.scalar('SELECT pg_sleep(greatest(0,' + str(action_second)
+            + '-extract(epoch FROM clock_timestamp())));' + query))
+        self.assertGreaterEqual(decision_us, action_second * 1000000)
+        # V2 frame clocks ceil binary64 but DecisionInputs rounds through
+        # datetime. Use the observed integral action second for both, avoiding
+        # a one-microsecond representation mismatch without future adjustment.
+        observed_second = decision_us // 1000000
+        return observed_second, received_at, observed_second
+
+    def assert_equivalent(self, previous, following, context):
+        restored, checked = context
         inputs = inputs_of(following[0])
-        checked = self.identities(previous, restored.checkpoint.expected, inputs.ids)
-        before = self.fixture.snapshot() if not source_critical else None
+        self.assertEqual(restored.checkpoint.expected.manifest_sha256, self.fixture.manifest_sha(previous))
+        self.assertEqual(checked.requested, inputs.ids)
         prepared = prepare_restored_next(restored, following[0], inputs, checked)
         self.assertEqual(prepared._wire, following[0]._wire)
         self.assertEqual(restore.prepare_restored_transport(restored, prepared,
             command_id=numbers.decode(following[2])['command_id']), following[2])
+
+    def commit_then_compare_captured_snapshot(self, previous, following, context):
+        """Submit once, then compare off the native admission critical path.
+
+        Reading the independently accepted protective head/oracle precedes this
+        decision. Its original frame and ID are unchanged. This proves immutable
+        snapshot equivalence, not cold restoration plus admission within five
+        seconds or present continuation authority from a historical snapshot.
+        """
+        self.assertEqual(following[0].transition['evidence']['kind'], 'decision')
+        self.assertEqual(following[0].transition['evidence']['inputs']['provider']['frame'],
+            previous[0].transition['evidence']['inputs']['provider']['frame'])
+        pending = self.fixture.commit(following[2])
+        committed_at = time.monotonic()
+        self.assertFalse(pending['record_observed']); self.assertTrue(pending['pending_until_commit'])
+        self.assert_equivalent(previous, following, self.restore_captured_context(previous, context))
+        return committed_at
+
+    def assert_next(self, previous, following, *, context=None):
+        source_critical = following[0].transition['evidence']['kind'] in {'protective', 'decision'}
+        # Whole-table snapshots establish read-only behavior in the independent
+        # control case; do not repeatedly copy the complete journal while the
+        # original five-second laboratory source guard is running.
+        inputs = inputs_of(following[0])
+        if context is None:
+            restored = self.load(previous, prove_read_only=not source_critical)
+            checked = self.identities(previous, restored.checkpoint.expected, inputs.ids)
+        else:
+            self.assertTrue(source_critical)
+            restored, checked = context
+            self.assertEqual(restored.checkpoint.expected.manifest_sha256, self.fixture.manifest_sha(previous))
+            self.assertEqual(checked.requested, inputs.ids)
+        before = self.fixture.snapshot() if not source_critical else None
+        self.assert_equivalent(previous, following, (restored, checked))
         if not source_critical:
             self.assertEqual(self.fixture.snapshot(), before, 'Preparation must not submit or acquire a lease')
         pending = self.fixture.commit(following[2])
@@ -161,26 +258,42 @@ class PortableRestorationNativeTests(unittest.TestCase):
             self.assert_next(row, following); row = following
         # A literal synthetic quote at the actual laboratory clock. No clock
         # GUC, semantic seed, source relabeling or real provider request is used.
+        context = self.context_before_source(row, serial=70)
         state = row[3].accept(row[0]); data = state.to_dict()
-        at = max(int(self.db.scalar('SELECT floor(extract(epoch FROM clock_timestamp()));')),
-                 data['engine']['lifecycle']['last_control_at'] + 1)
+        at, received_at, decision_at = self.current_source_clock(state)
+        captured_started = time.monotonic()
         initial_at = int(datetime.fromisoformat(original[0].transition['evidence']['inputs']['event_at']).timestamp())
-        mono = MONO + at - initial_at
+        received_mono = MONO + received_at - initial_at
+        mono = MONO + decision_at - initial_at
         frame = ga.source.make_frame(raw_capture(price='100', block=900,
-            source_second=at - 2, wall=at - 1, mono=mono - 1), prior_source=data['source'],
-            epoch=EPOCH, wall_now=at, monotonic_now=mono)
-        protective = ga.prepare_protective(state, frame, source_inputs(at, mono=mono, serial=70), ledger=row[3])
+            source_second=int(received_at) - 2, wall=received_at, mono=received_mono), prior_source=data['source'],
+            epoch=EPOCH, wall_now=decision_at, monotonic_now=mono)
+        protective = ga.prepare_protective(state, frame, source_inputs(at, wall=decision_at, mono=mono, serial=70), ledger=row[3])
         capture = cp.capture_owned_candidate(protective)
         following = (protective, capture, cp.prepare_transport(protective, capture, previous=row[1],
             command_id=str(UUID(int=97000000 + protective.state.revision))), row[3])
-        self.assert_next(row, following); row = following
+        self.assert_next(row, following, context=context); row = following
+        protective_seconds = time.monotonic() - captured_started
+        # Read original protective head/receipt/oracle while it is current, but
+        # postpone the repeated cold graph decode until after the one decision.
+        context = self.capture_context(row, source_inputs(at, wall=decision_at, mono=mono, generation=1, serial=71).ids)
         state = row[3].accept(row[0])
-        decision = ga.prepare_decision(state, frame, None, source_inputs(at, mono=mono, generation=1, serial=71), ledger=row[3])
+        decision = ga.prepare_decision(state, frame, None, source_inputs(at, wall=decision_at, mono=mono, generation=1, serial=71), ledger=row[3])
         capture = cp.capture_owned_candidate(decision)
         following = (decision, capture, cp.prepare_transport(decision, capture, previous=row[1],
             command_id=str(UUID(int=97000000 + decision.state.revision))), row[3])
-        self.assert_next(row, following); row = following
+        decision_committed_at = self.commit_then_compare_captured_snapshot(row, following, context); row = following
+        compared_at = time.monotonic()
         restored = self.load(row)
+        receipt_us = frame['quote']['document']['received_wall_us']
+        protective_guard = json.loads(context[1])['receipt']['guard_observed_at']
+        print(json.dumps({'restoration_native_source_sequence': 'same-original-frame-once',
+            'original_receipt_to_action_wall_seconds': round(decision_at - received_at, 6),
+            'protective_host_seconds_from_action_sample': round(protective_seconds, 6),
+            'decision_commit_host_seconds_from_action_sample': round(decision_committed_at - captured_started, 6),
+            'decision_and_delayed_equivalence_host_seconds_from_action_sample': round(compared_at - captured_started, 6),
+            'protective_guard_seconds_from_original_receipt': (utc_microseconds(protective_guard) - receipt_us) / 1000000,
+            'decision_guard_seconds_from_original_receipt': (utc_microseconds(restored.checkpoint.guard_observed_at) - receipt_us) / 1000000}, sort_keys=True))
         old_id = original[0].state.to_dict()['accounts'][0]['id']
         self.assertNotIn(old_id, {account['id'] for account in restored.state.to_dict()['accounts']})
         oracle = self.identities(row, restored.checkpoint.expected, (old_id,))
@@ -190,23 +303,21 @@ class PortableRestorationNativeTests(unittest.TestCase):
         # Independent current preparation also refuses a reused retired UUID.
         paused = self.fixture.control(row, 'pause', serial=72); self.assert_next(row, paused); row = paused
         resumed = self.fixture.control(row, 'resume', serial=73); self.assert_next(row, resumed); row = resumed
+        context = self.context_before_source(row, serial=74)
         state = row[3].accept(row[0]); data = state.to_dict()
-        at = max(int(self.db.scalar('SELECT floor(extract(epoch FROM clock_timestamp()));')),
-                 data['engine']['lifecycle']['last_control_at'] + 1)
-        # Keep the actual server observation within the reviewed laboratory
-        # source interval. This bounded owned-fixture wait changes no clock GUC.
-        self.db.sql('SELECT pg_sleep(least(8,greatest(0,' + str(at) + '-extract(epoch FROM clock_timestamp())-1)));')
-        mono = MONO + at - initial_at
+        at, received_at, decision_at = self.current_source_clock(state)
+        received_mono = MONO + received_at - initial_at
+        mono = MONO + decision_at - initial_at
         frame = ga.source.make_frame(raw_capture(price='100', block=901,
-            source_second=at - 2, wall=at - 1, mono=mono - 1), prior_source=data['source'],
-            epoch=EPOCH, wall_now=at, monotonic_now=mono)
-        protective = ga.prepare_protective(state, frame, source_inputs(at, mono=mono, serial=74), ledger=row[3])
+            source_second=int(received_at) - 2, wall=received_at, mono=received_mono), prior_source=data['source'],
+            epoch=EPOCH, wall_now=decision_at, monotonic_now=mono)
+        protective = ga.prepare_protective(state, frame, source_inputs(at, wall=decision_at, mono=mono, serial=74), ledger=row[3])
         capture = cp.capture_owned_candidate(protective)
         following = (protective, capture, cp.prepare_transport(protective, capture, previous=row[1],
             command_id=str(UUID(int=98000000 + protective.state.revision))), row[3])
-        self.assert_next(row, following); row = following
+        self.assert_next(row, following, context=context); row = following
         state = row[3].accept(row[0]); restored = self.load(row)
-        original_inputs = source_inputs(at, mono=mono, generation=2, serial=75)
+        original_inputs = source_inputs(at, wall=decision_at, mono=mono, generation=2, serial=75)
         reused_inputs = replace(original_inputs, ids=(old_id,) + original_inputs.ids[1:])
         checked = self.identities(row, restored.checkpoint.expected, reused_inputs.ids)
         self.assertTrue(checked.used(old_id))
