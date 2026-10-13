@@ -9,19 +9,76 @@ Fork pull requests use the ordinary `pull_request` context; this workflow never
 uses `pull_request_target` or `workflow_run` to execute fork code. Feature pushes
 do not duplicate PR jobs. Concurrency cancels a superseded run for the same PR/ref.
 
-This is verification infrastructure, not a completed hosted or live acceptance
-gate. The first actual GitHub-hosted amd64 run must pass before QA-01A closes; local
-helper tests do not prove image pulling, runner installation or Linux execution.
-No production credential or Vercel/Supabase/Railway login is required.
+QA-01A's automated gate has actual GitHub-hosted Linux amd64 acceptance at PR102
+head `cbdc5d010f1f2e37ca50ca7d4528e8f85149e153`; the receipt below records all
+seven successful jobs. This does not establish hosted Supabase/native v2
+admission, real browser/session behavior, continuous paper operation or live
+readiness. No production credential or Vercel/Supabase/Railway login is required
+by the workflow.
 
 The initial workflow-file push was rejected for permission. The user updated the
 existing dedicated Dashboard token; exact account/repository verification and the
 codex branch push now succeed. No shared login, credential rotation or
 organization-wide policy change was performed by this task. GitHub documents the
 separate [workflow write capability](https://docs.github.com/en/rest/authentication/permissions-required-for-fine-grained-personal-access-tokens#repository-permissions-for-workflows).
-The CI PR's frontend, both ordinary worker groups and all four required PostgreSQL results remain required before merge. Workflow results can be read
+The CI PR's frontend, both ordinary worker groups and all four required PostgreSQL
+results passed before merge. Workflow results were read
 through the existing authorized Dashboard browser; additional token permissions
 for unrelated checks are not required for this setup step.
+
+## Actual exact-source acceptance — 2026-10-12 Denver / 2026-10-13 UTC
+
+[PR102](https://github.com/TOOTRJ/TheDashboard/pull/102) is merged after
+[run38326660837](https://github.com/TOOTRJ/TheDashboard/actions/runs/38326660837)
+passes at the exact source above in 36m49s. The completed job reports confirm:
+
+| Required job | Duration | Actual result |
+| --- | --- | --- |
+| Frontend | 1m41s | Node checks, types, lint, advisory policy and fresh fake-configuration build pass |
+| Ordinary group 1 | 13m19s | 756 executed; 911 reported; 163 SQL opt-in skip records |
+| Ordinary group 2 | 11m53s | 977 executed; 1,221 reported; 251 SQL opt-in skip records |
+| PostgreSQL group 1 | 35m56s | 91 executed; 94 reported; 3 allowed timing measurements skipped |
+| PostgreSQL group 2 | 26m31s | 128 executed; 132 reported; 4 allowed timing measurements skipped |
+| PostgreSQL group 3 | 23m0s | 123 executed; 126 reported; 3 allowed timing measurements skipped |
+| PostgreSQL group 4 | 12m29s | 181 executed/reported; zero skips; all 15 additional inner native-driver cases pass in 24.574s |
+
+Every group reports acceptance and zero unexpected skips. Ordinary discovery
+retains all 2,266 occurrences, including 54 original repeated IDs, split 994/1,272.
+It reports 2,132 cases and executes 1,733; its 414 opt-in skip records include 399
+method records and 15 class-setup records. A skipped class setup represents
+multiple discovered methods, so discovery, reported cases and skip-record totals
+are distinct. These ordinary skips do not establish SQL acceptance.
+
+Required SQL discovery retains all 533 outer occurrences, including 54 original
+repeated IDs, split 94/132/126/181. It executes 523 outer cases and reports 10
+allowlisted timing-method skips; no SQL opt-in/setup skip is accepted. The 10
+records correspond to six approved optional measurement definitions, with
+original imported aliases preserved. The 15 nested native-driver cases are
+additional to the 181-case outer group 4 wrapper scope.
+
+Both ordinary groups bind discovery fingerprint
+`bd8dd654e4c05d56bc19d0af07323dcf084c8139ea0acbdaac560d51e1ba17a7`;
+all four SQL groups bind
+`f37180b1a163178743746acf3db94d16e434cae9a9ba062d27bbe71c6a07dc05`.
+All six share selection helper fingerprint
+`6872899a4daad220bc89ce6a615cbad595eb73afb475ab804cfa8bd5f5c5efae`.
+Complete coverage, original multiplicity/fixture segments and the 1500/2400-second
+child limits remain enforced. Sharding improves scheduling; no test is omitted
+or deduplicated to meet a deadline.
+
+Merge `58808efaf2c025ea865f7429723599081edae491` has the same Git tree
+`67cd62325d11ceb29381abbc71cfb60a0bffe106` as the accepted PR head. Exact Vercel
+production `dpl_3TNp9KSP3cBu7DX26GzehqSKe8XJ` is READY, owned by the pinned
+Dashboard team/project/repository and serving `the-dashboard-chi.vercel.app`.
+Read-only `/login` 200, anonymous `/` 307→login, anonymous test API 401 and
+authenticated zero-row test API 200 checks all pass. The API key stays in memory.
+Supabase target metadata and the unchanged ordinary closed Railway service were
+reverified; no migration, runtime setting, provider/key or wallet change occurs.
+
+Later Markdown-only closure records this immutable receipt. Its own workflow
+run is separate; this receipt does not claim that another source head completed
+the same jobs. Application, test, helper, workflow and dependency sources must
+remain byte-identical for that documentation-only scope.
 
 PR/manual triggers have no path/type/branch filters, and main pushes have only
 the main-branch filter. The capability validator requires every advertised Node,
@@ -150,8 +207,8 @@ three run on the action's Node 24 runtime:
 Local checks use the existing project Node/Python runtimes. The helper regressions
 exercise real snapshot exclusions and symlink rejection, fake child configuration,
 failure/owned cleanup, skip accounting and mandatory-SQL denial, registry/platform
-identity, and workflow privilege/trigger/bypass changes. Full hosted CI remains
-pending until GitHub executes frontend, both ordinary groups and all four required SQL groups successfully. The workflow capability
+identity, and workflow privilege/trigger/bypass changes. The receipt above
+separately establishes actual hosted execution of every required group. The workflow capability
 check is part of ordinary helper test discovery.
 
 The complete sanitized local run reported 2,088 cases in 1,287.086 seconds. All
@@ -193,10 +250,11 @@ explicit CI work; they were not performed by the helper unit-test review. All
 production deployments, migration/rollback evidence, reader compatibility and
 operational budgets remain separately verified release gates.
 
-The scheduling repair passes seven focused sharding and20 workflow regressions,
+The earlier scheduling repair passed seven focused sharding and20 workflow regressions,
 plus seven portable research/dataset fixture checks. A discovery-only smoke finds
 2241 occurrences/54 repeated baseline IDs, split994/1247; this is selection evidence
-without test execution or class setup. The actual hosted retry remains required.
+without test execution or class setup. These intermediate discovery counts are
+historical; the final actual run and its larger helper discovery appear above.
 
 ## Required native fixture preparation
 
@@ -234,11 +292,12 @@ that explicit canonical child path before the full `check-worker.py postgres
 opt-in remain separate prerequisites; hosted preparation cannot retag a local
 daemon. Loose old bundles fail with a setup message.
 
-Final combined sanitized helper discovery passes83/83 cases, zero skips, including
+Before the image-retry change, combined sanitized helper discovery passed83/83 cases, zero skips, including
 16 native bundle regressions. Source-bound discovery-only finds2262 ordinary
 occurrences split994/1268 and533 SQL occurrences split94/132/126/181; both preserve
 54 baseline repeated IDs. Discovery-only executes no tests/class setups. Actual
-hosted pulls/downloads and every group's completion remain required before merge.
+hosted pulls/downloads and every group's completion were still required at that
+intermediate source. The final receipt above supersedes that pending state.
 
 Run38326083781/sourcea20bcee passes frontend and the actual15 inner native driver
 cases (19.462s), but one SQL group fails an opaque image pull; whole-group and
@@ -247,4 +306,5 @@ and up to three recognized-transient same-reference pull attempts now preserve
 the original total240s-per-pin budget. Permanent/unknown or identity failures
 still fail, and captured Docker output/credentials never enter logs. No image
 fallback is added. After this change all87 combined helper cases pass with zero
-skips; all seven real jobs at the revised head still must complete successfully.
+skips. All seven actual jobs at the revised head subsequently completed
+successfully, as recorded in the exact-source receipt above.
