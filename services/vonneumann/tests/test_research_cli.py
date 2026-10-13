@@ -61,7 +61,7 @@ class ResearchCliTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.temporary = tempfile.TemporaryDirectory(prefix='research-cli-', dir='/private/tmp')
+        cls.temporary = tempfile.TemporaryDirectory(prefix='research-cli-', dir=Path(tempfile.gettempdir()).resolve())
         cls.addClassCleanup(cls.temporary.cleanup)
         cls.root = Path(cls.temporary.name)
         rows = frames(count=FRAME_COUNT)

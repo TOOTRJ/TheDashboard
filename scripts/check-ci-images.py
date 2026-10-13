@@ -1,0 +1,144 @@
+#!/usr/bin/env python3
+"""Prepare exact fixture images only on a disposable GitHub-hosted CI runner."""
+from __future__ import annotations
+import argparse
+import json
+import os
+import re
+import subprocess
+import time
+
+PULL_BUDGET_SECONDS = 240
+PULL_ATTEMPTS = 3
+RETRY_DELAYS_SECONDS = (5, 10)
+TRANSIENT_ERRORS = {"rate-limited", "registry-unavailable", "network-timeout", "transport-reset"}
+
+PINS = (
+    {"tag": "public.ecr.aws/supabase/postgres:17.6.1.095",
+     "repository": "public.ecr.aws/supabase/postgres",
+     "manifest": "sha256:4c087262afbfbb47da86e2863a52d7e424eb21ab589f732d77eeaab51be8e521",
+     "config": "sha256:972aabc75779f6e535f87e1669f36edbab02cdf8bf3f47d13579963c119adefb"},
+    {"tag": "public.ecr.aws/supabase/postgrest:v14.5",
+     "repository": "public.ecr.aws/supabase/postgrest",
+     "manifest": "sha256:bb289d00570b569525e1e22fb77c49cd17c17ca3f41da9ee2b4351a35027551b",
+     "config": "sha256:af0a6dad76305650c215449d905a124ae5ad3bcd0f04c01845a0cea17d4e0960"},
+    {"tag": "python:3.12.14-slim-bookworm",
+     "repository": "docker.io/library/python",
+     "digest_repositories": ("docker.io/library/python", "library/python", "python"),
+     "manifest": "sha256:1aaa65a85fda306ffb8b910824d4e93bdce61e212c7e87168123ea3073b41a1a",
+     "config": "sha256:febd0be41adb897a0ab8f1f1c693d8912669ea60c4940e076e9946b60e210ef0"},
+)
+
+
+def verify_image(metadata: dict, pin: dict) -> None:
+    # Docker normalizes Docker Hub's official library names in RepoDigests.
+    # These explicit aliases all refer to this same pinned official image.
+    expected = {f"{repository}@{pin['manifest']}"
+                for repository in pin.get("digest_repositories", (pin["repository"],))}
+    if (metadata.get("Architecture") != "amd64" or metadata.get("Os") != "linux"
+            or not expected.intersection(metadata.get("RepoDigests", []))
+            or metadata.get("Id") not in {pin["manifest"], pin["config"]}):
+        raise ValueError("Fixture image platform, digest or immutable identity does not match")
+
+
+def error_class(stderr: str) -> str:
+    """Return only a fixed class; never publish Docker output or credentials."""
+    text = stderr[:16384].lower() if isinstance(stderr, str) else ""
+    patterns = (
+        ("rate-limited", ("toomanyrequests", "too many requests", "rate limit", r"\b429\b")),
+        ("registry-unavailable", (r"\b50[0234]\b", "service unavailable", "bad gateway")),
+        ("network-timeout", ("tls handshake timeout", "i/o timeout", "context deadline exceeded", "connection timed out")),
+        ("transport-reset", ("connection reset", "unexpected eof", "temporary failure in name resolution")),
+        ("manifest-unavailable", ("manifest unknown", "manifest not found", "no matching manifest")),
+        ("authorization-denied", ("unauthorized", "authentication required", "pull access denied", "access denied", r"\b40[13]\b")),
+        ("daemon-unavailable", ("cannot connect to the docker daemon", "is the docker daemon running", "connection refused", "no such file or directory")),
+    )
+    for category, candidates in patterns:
+        if any(re.search(pattern, text) for pattern in candidates):
+            return category
+    return "unclassified"
+
+
+def diagnostic(pin: dict, operation: str, state: str, **details) -> None:
+    print(json.dumps({"scope": "github-hosted-image-preparation", "image": pin["repository"],
+                      "manifest": pin["manifest"], "operation": operation, "state": state,
+                      **details}, sort_keys=True), flush=True)
+
+
+def prepare(inherited: dict[str, str]) -> None:
+    if (inherited.get("GITHUB_ACTIONS") != "true"
+            or inherited.get("RUNNER_ENVIRONMENT") != "github-hosted"
+            or inherited.get("GITHUB_REPOSITORY_ID") != "1141090963"):
+        raise RuntimeError("Image preparation is restricted to the Dashboard GitHub-hosted CI job")
+    host = inherited.get("DOCKER_HOST", "unix:///var/run/docker.sock")
+    if not host.startswith("unix:///"):
+        raise RuntimeError("Refusing a nonlocal CI Docker daemon")
+    env = {key: inherited[key] for key in ("PATH", "TMPDIR", "LANG", "LC_ALL") if key in inherited}
+    env["DOCKER_HOST"] = host
+
+    def command(pin: dict, operation: str, args: list[str], timeout: float = 30, attempt: int = 1) -> tuple[str, str | None]:
+        diagnostic(pin, operation, "starting", attempt=attempt)
+        try:
+            result = subprocess.run(["docker", "--host", host, *args], env=env, text=True,
+                                    capture_output=True, check=False, timeout=timeout)
+        except subprocess.TimeoutExpired:
+            category = "network-timeout" if operation == "pull" else "operation-timeout"
+        except OSError:
+            category = "cli-unavailable"
+        else:
+            if not result.returncode:
+                return result.stdout, None
+            category = error_class(result.stderr)
+        diagnostic(pin, operation, "failed", attempt=attempt, error_class=category)
+        return "", category
+
+    def required(pin: dict, operation: str, args: list[str]) -> str:
+        output, category = command(pin, operation, args)
+        if category:
+            raise RuntimeError(f"Required fixture {operation} failed: {pin['repository']}@{pin['manifest']} ({category})") from None
+        return output
+
+    def pull(pin: dict, reference: str) -> None:
+        deadline = time.monotonic() + PULL_BUDGET_SECONDS
+        category = "network-timeout"
+        for attempt in range(1, PULL_ATTEMPTS + 1):
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                break
+            _, category = command(pin, "pull", ["pull", "--platform", "linux/amd64", reference], remaining, attempt)
+            if category is None:
+                return
+            if category not in TRANSIENT_ERRORS or attempt == PULL_ATTEMPTS:
+                break
+            delay = RETRY_DELAYS_SECONDS[attempt - 1]
+            if deadline - time.monotonic() <= delay:
+                break
+            diagnostic(pin, "pull", "retrying", attempt=attempt, error_class=category, delay_seconds=delay)
+            time.sleep(delay)
+        raise RuntimeError(f"Required fixture pull failed: {reference} ({category})") from None
+
+    for pin in PINS:
+        reference = f"{pin['repository']}@{pin['manifest']}"
+        pull(pin, reference)
+        verify_image(json.loads(required(pin, "inspect-pulled", ["image", "inspect", reference]))[0], pin)
+        # The existing harness resolves these exact tags then runs the immutable ID.
+        # Only this new disposable runner daemon is retagged, never a local daemon.
+        required(pin, "tag-fixture", ["image", "tag", reference, pin["tag"]])
+        verify_image(json.loads(required(pin, "inspect-fixture", ["image", "inspect", pin["tag"]]))[0], pin)
+    print(json.dumps({"scope": "github-hosted-owned-fixtures", "architecture": "amd64",
+                      "verified_manifests": [pin["manifest"] for pin in PINS]}, sort_keys=True))
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--prepare-images", action="store_true", required=True)
+    parser.parse_args()
+    for pin in PINS:
+        if any(not re.fullmatch(r"sha256:[a-f0-9]{64}", pin[key]) for key in ("manifest", "config")):
+            raise RuntimeError("Malformed reviewed fixture digest")
+    prepare(dict(os.environ))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

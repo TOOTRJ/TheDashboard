@@ -92,27 +92,44 @@ class WorkerExportTests(unittest.TestCase):
   commit='a'*40
   paths=['Dockerfile','.dockerignore','requirements.txt','start-worker.sh','railway.json',
    'tools/native_tls_preflight.py','tools/native_session_canary.py','tools/provider_read_canary.py',
+   'tools/paper_controller_canary.py',
    'vonneumann/server/paper_app.py','ssl/private.pem','.env',
    'tests/test_app.py','.claude/settings.json','vonneumann/__pycache__/app.pyc']
   def read(args):
    if args[0]=='rev-parse':return (commit+'\n').encode()
    if args[0]=='ls-tree':return ('\n'.join('services/vonneumann/'+p for p in paths)+'\n').encode()
    return b'public source fixture\n'
-  with tempfile.TemporaryDirectory(prefix='dashboard-railway-worker-test-',dir='/private/tmp') as parent:
-   dest=Path(parent.replace('_','-')+'-export');old=os.umask(0o077)
+  with tempfile.TemporaryDirectory(prefix='dashboard-railway-worker-test-') as parent:
+   staging=Path(parent).resolve();dest=staging/'dashboard-railway-worker-export';old=os.umask(0o077)
+   def fixture_path(value):return staging if value=='/private/tmp' else Path(value)
    try:
-    result=helper.export_worker(commit,dest,read)
-    self.assertEqual(result['files'],9)
+    with patch.object(helper,'Path',side_effect=fixture_path):result=helper.export_worker(commit,dest,read)
+    self.assertEqual(result['files'],10)
     self.assertEqual(dest.stat().st_mode & 0o777,0o700)
     self.assertEqual((dest/'vonneumann/server').stat().st_mode & 0o777,0o755)
     self.assertEqual((dest/'vonneumann/server/paper_app.py').stat().st_mode & 0o777,0o644)
     self.assertEqual((dest/'start-worker.sh').stat().st_mode & 0o777,0o555)
+    self.assertEqual((dest/'tools/paper_controller_canary.py').stat().st_mode & 0o777,0o644)
     self.assertFalse((dest/'.env').exists());self.assertFalse((dest/'ssl').exists())
-    with self.assertRaises(helper.Refused):helper.export_worker(commit,dest,read)
+    with patch.object(helper,'Path',side_effect=fixture_path),self.assertRaises(helper.Refused):helper.export_worker(commit,dest,read)
    finally:
     os.umask(old)
-    import shutil
-    if dest.exists():shutil.rmtree(dest)
+
+ def test_missing_controller_canary_is_refused_before_blob_reads_or_destination_creation(self):
+  commit='a'*40
+  paths=['Dockerfile','.dockerignore','requirements.txt','start-worker.sh','railway.json',
+   'tools/native_tls_preflight.py','tools/native_session_canary.py','tools/provider_read_canary.py',
+   'vonneumann/server/paper_app.py']
+  def read(args):
+   if args[0]=='rev-parse':return (commit+'\n').encode()
+   if args[0]=='ls-tree':return ('\n'.join('services/vonneumann/'+p for p in paths)+'\n').encode()
+   self.fail('Incomplete source must be refused before reading any blobs')
+  with tempfile.TemporaryDirectory(prefix='dashboard-railway-worker-test-') as parent:
+   staging=Path(parent).resolve();dest=staging/'dashboard-railway-worker-export'
+   def fixture_path(value):return staging if value=='/private/tmp' else Path(value)
+   with patch.object(helper,'Path',side_effect=fixture_path),self.assertRaisesRegex(helper.Refused,'Incomplete worker source export'):
+    helper.export_worker(commit,dest,read)
+   self.assertFalse(dest.exists())
 
  def test_export_rejects_unpinned_source_or_shared_destination_before_reads(self):
   def read(args):self.fail('Invalid export must not read source')

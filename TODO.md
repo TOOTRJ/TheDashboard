@@ -9,6 +9,19 @@ response remains open. TYPE1 is also repaired with unchanged canonical wires;
 complete independent v2 SQL is next. Privacy/CI progress is recorded with each
 reviewed implementation section. NEST-06A account/session isolation is now implemented;
 QA-01B real browser acceptance and NEST-05A same-account result identity remain open.
+QA-01A's three secret-free verification gates and explicit local commands are implemented;
+actual GitHub-hosted Linux execution is still a separate acceptance gate.
+The user updated the dedicated Dashboard token's workflow permission; exact
+identity verification and the codex branch push now succeed. PR102 run38320983287
+passes the frontend gate but times out ordinary discovery at its 1500-second
+limit. Required PostgreSQL also times out at its 2,400-second limit without a final summary. Exhaustive bounded worker sharding
+and Linux-owned fixture portability are implemented. Required SQL now has
+four exhaustive bounded groups and verified native-driver prerequisites; the full retry and all required hosted
+groups must pass before QA-01A closes. Retry run38326083781 passes frontend and
+15 actual inner native-driver cases, but one SQL group fails an opaque image pull.
+Safe public diagnostics and bounded same-pin transient retries address that
+verification failure; full exact-head acceptance remains pending. The three repaired application/security slices are
+already merged and production-verified.
 
 This section is the authoritative priority/dependency view. Dated checkpoints
 below are historical evidence, not instructions to repeat completed setup or
@@ -1105,6 +1118,20 @@ Research began **2026-09-30** and was updated **2026-10-06/07** in [WORKER-HOSTI
   continuation evidence. **Deep substantial research:** actual complete resource
   and library/version tails, bounded rejection/draw work, clamping/diversity/objective
   bias and matched-seed held-out equal-budget baselines before gene expansion.
+  **Next reviewable slice:** a separate guarded original-v2 canonical/configuration
+  and locked-dependency resolver; current locked/causal/assessment/optimizer
+  functions pin v1 formats or policies. Preserve v1 objects and every original v2
+  field/header, with independent tagged-type refusal of rehashed TYPE1 aliases.
+  Use an explicit two-window corpus, unchanged row snapshots, dependency locks,
+  byte/Stop limits, privilege denial and source-bound resolver measurements.
+  This partial boundary must return no full-semantic/native/restoration authority.
+  Then compose explicit v2 causal/assessment/selection/mutation proofs without
+  taking completed child periods from the request. A locked hash or privileged
+  fixture seed does not establish semantic acceptance: the full proof needs fresh
+  genesis or a server-owned accepted same-version semantic head bound to its
+  manifest, original command and validator contract. Bind the existing search
+  seed/algorithm/epoch/event fields and model/code namespace policy; the original
+  v2 wire has no standalone serialized search-spec field to invent or strip.
 
 - [ ] **PAPER-COMPACT-03 — Prepare the reviewed forward SQL/native contract.**
   **Constraint reviewed by03A:** adopt a reviewed stable partition and enforce
@@ -1178,7 +1205,7 @@ Research began **2026-09-30** and was updated **2026-10-06/07** in [WORKER-HOSTI
 - [ ] **APP-02 — P1: Replace fake actions with real outcomes or explicit unavailable states.** Reports simulate generation/download; Settings simulate saving/disconnection/upgrades; header controls are inert. Implement only intended supported flows and expose clear pending/success/error/disabled states. Acceptance: an action cannot claim a change that did not occur. Sources: [Reports](src/app/(dashboard)/reports/page.tsx), [Settings](src/app/(dashboard)/settings/page.tsx), [Header](src/components/layout/Header.tsx).
 - [ ] **APP-03 — P1: Validate remaining API inputs and schema dependencies.** Reject NaN/negative/oversized limits and invalid calendar dates, and reconcile endpoint table dependencies before shipping. Acceptance: malformed inputs receive deterministic client errors rather than invalid queries or false empty results. Sources: [test route](src/app/api/v1/test/route.ts), [sentiment route](src/app/api/v1/sentiment/route.ts).
 - [ ] **QA-01 — P1: Complete reproducible automated and browser acceptance.** The original missing-test/lint snapshot is historical; extensive worker/SQL/Node regression harnesses now exist. The 2026-10-12 review passes 177 Node tests, TypeScript and broad lint (zero errors, 33 warnings); fresh worker discovery completes 2,023 cases (1,609 passed, 414 opt-in integration skips, zero failures) and the isolated build passes. See [scope and evidence](AUDIT-REVIEW-2026-10-12.md); skipped SQL cases are not fresh acceptance. No .github workflow exists, and package scripts still omit explicit test/typecheck commands. Parent stays open for CI, actual browser/end-to-end coverage and relevant remaining warning cleanup, not for rebuilding existing harnesses.
-- [ ] **QA-01A — P1, parallel now: Add secret-free CI and explicit local check commands.** Pin supported Node/Python runtimes; run Node, ordinary worker, typecheck/lint and isolated build. Separate explicitly opt-in owned PostgreSQL/Linux image jobs with no application credentials/production service side effects. Fail on failed/skipped required gates; record skip scope instead of conflating offline and actual SQL evidence. Verify GitHub repo identity before workflow changes and preserve shared tools.
+- [ ] **QA-01A — P1, implementation built; hosted scheduling repair and acceptance pending: Secret-free CI and explicit local checks.** Three independent pinned Ubuntu gates now require frontend Node/types/lint/advisories/fresh fake-configuration build, ordinary hash-locked worker/helper discovery and actual owned PostgreSQL/PostgREST contracts. Read-only checkout, no application secrets, deployment or artifact upload. Sanitized child environment, exact audited skips, mandatory SQL opt-in, immutable amd64 image identity and a complete current-lock native Linux wheel bundle fail closed. Local helper regressions and source review establish their tested scope; The first executing run passes frontend but exceeds the ordinary 1500-second and SQL 2,400-second deadlines; two exhaustive bounded ordinary groups, four required SQL groups and portable owned Linux fixtures address scheduling/setup without reducing cases. Close this gate only after all required groups execute successfully on the exact Dashboard GitHub head. Do not conflate offline SQL skips with real SQL acceptance or broaden the dedicated token to obtain unrelated checks. [Commands, pins and acceptance limits](CI-VERIFICATION.md).
 - [ ] **QA-01B — P1, parallel fixtures; final join at release: Add actual browser/React acceptance.** Cover A/B account replacement/logout, storage and late replies, Auth routing, honest actions, old/new paper views and original-ID controls. Current VM/custom-hook tests are useful regression checks, not actual browser/React/Auth/TLS/native acceptance. Use mocked/offline fixtures first; hosted checks require exact targets and a reviewed write-safe plan.
 
 - [ ] **QA-02 — Update operational and product documentation.** Replace generic setup guidance with actual Next.js/Python startup, environment variable names, mode distinctions, risk boundaries, schema/migration flow, authentication, provider quotas, recovery, test commands, and known limitations. Document worker topology and experimental assumptions. Acceptance: a clean local environment can run the deterministic research profile without production credentials. Sources: [README](README.md), [Nestegg README](README-NESTEGG.md), [multi-strategy design](services/vonneumann/DESIGN-multi-strategy-multi-colony.md).

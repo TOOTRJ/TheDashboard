@@ -4531,3 +4531,181 @@ TYPE1 PR100 merge0a6fab569124da3345689e6a022bddffee26a764 has identical reviewed
 tree; productiondpl_DNzpSEjaF3U8CyFoXoW5dU7K2cJP is READY/current canonical alias
 with all four read-only probes passed. Exact Dashboard targets remain pinned;
 Railway stays closed. Privacy PR source/merge/production proof follows in its PR.
+
+
+## 107. Secret-free verification infrastructure — 2026-10-12
+
+QA-01A now has three independent GitHub-hosted Ubuntu jobs with full reviewed
+action pins and Node 24.19.0 / CPython 3.12.14. Read-only checkout does not persist
+credentials; no application secret, hosted environment, deployment or artifact
+upload is configured. Frontend tests/types/scoped lint/advisories and a tracked
+fresh fake-configuration build are required. Ordinary discovery explicitly
+reports unexecuted SQL cases; the separate mandatory owned PostgreSQL/PostgREST
+job fails if setup, image identity, execution or required opt-in fails. Reviewed
+amd64 manifests/configs are distinguished from multi-platform index identity;
+preparation refuses local/self-hosted or wrong-repository contexts.
+[Commands, ownership, pins and remaining acceptance](CI-VERIFICATION.md).
+
+Fifteen Python helper regressions and six Node isolation cases pass. An actual
+sanitized import reproduced an implicit macOS encoding-key mismatch; fixed C
+locale/UTF-8 settings and the exact benign macOS key repair it without admitting
+arbitrary environment variables. Offline/SQL child deadlines of 1500/2400s leave
+300/600s beneath the job ceilings. Independent review also required every
+advertised check/install/consistency command and rejected filtered PR/main/manual
+triggers and removed gates. The first actual isolated build exposed production
+npm's omission of dev build tools; explicit include=dev and its regression repair
+this without enabling lifecycle hooks or using private configuration.
+
+The repo-local dependency installation now matches the reviewed lock, including
+source-map-js 1.2.2, using separate empty npm configs/cache and no lifecycle hooks.
+No global package/tool or other-agent file/process/cache is changed. Fresh tracked
+frontend TypeScript also passes before generated Next files exist. All 210 Node
+cases, TypeScript, scoped lint (zero errors, 32 existing warnings), the full/production
+advisory guard (five reviewed dev entries/zero production) and the corrected actual
+fresh fake-configuration production build pass. Complete sanitized discovery reports
+2088 cases in 1287.086s: all 1630 executed worker cases pass, with 414 explicit SQL
+opt-in skip records (399 methods and 15 class setup skips). Its only error is an
+older repository export fixture missing the already required controller canary.
+That fixture and a refusal-before-output regression are repaired. Older operator
+fixtures now use bounded test-only source/import/staging injection, with real
+process/network/private-read denial and scoped patch restoration. A relocated
+checkout copies only explicitly admitted public sources/artifacts. Production
+helper targets/credentials/staging constants and bytes remain unchanged. All 66
+affected repository/helper cases pass again under the same sanitized environment.
+A second complete
+worker run is not claimed for these test fixture edits. Actual GitHub-hosted
+acceptance will be recorded in the scoped PR. Local helpers are not claimed as
+Linux/container acceptance; QA-01A remains open until all three hosted jobs pass.
+
+The first workflow-file push was rejected for permission. The user updated only
+the existing Dashboard-specific token; fresh account/repository and exact
+GitHub/Vercel/Supabase/Railway target verification pass, and the codex branch push
+now succeeds. Shared credentials, organization-wide policy and production
+operator files are unchanged by this task. The PR and all three real hosted
+jobs precede merge; first-run Linux/image/SQL acceptance is still pending.
+
+Privacy PR101 merge 67366aa1a212346a773225e858d55ccc30ef2e95 has the same tree as
+head 7952b7cd5672b00e74db5c4eefff0ce5d66814de. Exact production
+dpl_DaBCLfxgwLDXx1VFYni3GyFbmAMR is READY/current canonical alias and passes all
+four read-only release probes. Dashboard GitHub/Vercel/Supabase IDs and owners
+match fresh verification. Railway remains closed; no migration, hosted economic
+data/grant/capability, provider, billing or wallet operation is performed.
+The user's migration SHA256 a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc
+and all unrelated drafts are preserved/excluded. Rollback is a reviewed code/docs
+revert; disabling the new workflow does not substitute for required checks.
+
+## 108. Actual hosted CI context validation — 2026-10-12
+
+The user-completed Dashboard token permission update allows verified codex pushes.
+PR102 opens at cc13cc1509a3ae685da93ed84543cf61c523ed95; exact Dashboard preview
+dpl_5brpkagBbTyJDvuRYzyM5sYLE9Qm is READY with matching project/team/repo/source/author.
+Workflow run38320692900 fails syntax before any job executes: runner.temp is
+unavailable in job.env. The exact three isolated npm settings now belong only to
+the clean-install and lint step.env, where the official context table admits runner.
+The capability validator requires their exact keys/paths/commands and rejects
+job-level placement, missing/misplaced settings, shared paths and extra credentials.
+Nineteen focused helper regressions and the standalone capability check pass.
+Retry and all three actual hosted job results remain required before merge.
+No job failure, unexecuted job or preview metadata is treated as SQL/worker acceptance.
+No migration, worker setting/activation or other-project change is performed.
+
+## 109. Actual hosted worker scheduling — 2026-10-12
+
+PR102 source 1f6a1f770a8a702605001202f2a3b4d9c2969776 executes in
+[run38320983287](https://github.com/TOOTRJ/TheDashboard/actions/runs/38320983287).
+Frontend passes in 2m0s. Ordinary discovery reaches its 1500-second child deadline
+while executing the complete provider-pilot replacement case and exits failed;
+it has no successful final summary. Raw verbose timestamp gaps attribute roughly
+480s to provider-GA component traces and 306s to portable-GA model traces, including
+class setup. These partial runner observations guide scheduling, not a completed
+suite/performance acceptance claim. Required PostgreSQL setup verifies the pinned
+amd64 images and begins real SQL tests; its final result is still pending.
+
+The repair splits complete ordinary discovery into deterministic bounded groups
+while preserving defining-module/class setup and the original test occurrence
+multiplicity. Coverage and fixed workflow selection must reject omissions, overlap
+and discovery errors. No heavy test, replay window or semantic assertion is removed.
+Four research/dataset fixtures now use owned resolved platform temporary roots; production
+operator path/target guards remain unchanged. The full hosted retry is required
+before QA-01A or PR102 can be accepted. No database migration, hosted worker setting,
+provider/key, billing, wallet or other-project operation accompanies this CI repair.
+
+Seven sharding regressions and20 workflow capability regressions pass, including
+boolean/int matrix refusal and early-stop denial. Seven focused dataset/artifact/
+runner/CLI cases pass with the portable test roots. Discovery-only finds2241
+occurrences with54 repeated baseline IDs, partitioned994/1247 across70/75 modules;
+this executes no cases or class setups. Original contiguous defining-module fixture
+boundaries use standard top-level unittest teardown and the pinned CPython result
+sentinel reset; a synthetic imported-alias regression matches full discovery's
+setup/teardown order. Independent source review finds no concrete blocker. The
+known completed hosted module costs balance approximately684s/719s, with the
+unfinished tail unknown; only actual hosted completion can establish the bounds.
+
+## 110. Actual hosted SQL scheduling — 2026-10-12
+
+The same source1f6a1f7/run38320983287's full SQL job115048750993 exits failed in
+40m54s after the2400-second child deadline, without a final test summary. The last
+completed case is CommandAdapterTests.test_repository_commits_one_atomic_economic_batch_with_exact_balances;
+timeout occurs before the next visible case. Raw timestamp intervals including
+class setup show assessment633.028s; imported causal516.401s; canonical177.952s;
+original causal514.237s; imported source295.337s; checkpoint-reference31.596s.
+These are partial observations and include alias setup work, not full SQL acceptance.
+
+Required SQL is divided into four exhaustive defining-module groups with
+unchanged2400-second child/50-minute job bounds, exact immutable images, explicit
+local Docker opt-in and skip audit. Assessment, causal, optimizer and portable
+mutation anchor separate groups. Original occurrences, aliases, fixture setup/
+teardown and ordering remain covered; no semantics/assertions/windows are removed.
+All four required groups and both ordinary groups must finish on the reviewed
+head before merge. No SQL source/migration, production service or other project
+changes in this verification repair.
+
+## 111. Required native CI fixture prerequisites — 2026-10-12
+
+Independent review finds the full SQL native-driver class always requires a
+cached Python3.12.14 Bookworm image and explicit Linux wheels; the initial CI
+only prepared PostgreSQL/PostgREST and dropped the wheel-path variable. The
+class and15 inner driver cases remain required. The official amd64 Python leaf
+1aaa65a85fda306ffb8b910824d4e93bdce61e212c7e87168123ea3073b41a1a/config
+febd0be41adb897a0ab8f1f1c693d8912669ea60c4940e076e9946b60e210ef0 are
+anonymously registry-digest-verified and pinned alongside the original images.
+
+Fresh exact-repo hosted preparation downloads a complete51-package hash-locked
+Bookworm-compatible native wheel bundle with no shared pip config/cache/credentials.
+Independent bounded file/hash/internal package/tag/Python checks and a current
+lock/helper/target sibling manifest reject stale, altered, missing, extra, linked
+or incompatible wheels. Only its verified canonical path enters the SQL child,
+where validation repeats; offline mode drops it. A narrow local record-existing
+command validates an explicitly prepared owned temporary bundle and creates only
+an absent manifest, with no download/install/Docker/network or overwrite. No
+production fixture/runtime source or configured database is changed.
+
+All83 combined helper cases pass with zero skips, including16 native-wheel cases.
+Final discovery-only ordinary2262cases split994/1268 and SQL533 split94/132/126/181
+preserve54 baseline alias repetitions each, with source-bound coverage. No full
+worker/SQL cases, wheel download, image pull or local Docker action is run for
+this prerequisite repair. Actual hosted acceptance of all seven jobs remains
+required. The user migration and unrelated files/credentials/processes remain
+preserved. Rollback is a reviewed verification code/docs revert.
+
+## 112. Hosted image-pull evidence and bounded retry — 2026-10-12
+
+At sourcea20bcee22b668a7a11dc9e9bc3a7a11162231d6f,
+[run38326083781](https://github.com/TOOTRJ/TheDashboard/actions/runs/38326083781)
+passes frontend in2m6s. SQL group2 fails its image-pull step after37s; the old
+helper's generic error provides no failed pin or registry cause, so no specific
+rate-limit/outage claim is made. Other groups continue. Group4 actually executes
+and passes all15 inner native driver cases in19.462s; this bounded result does
+not establish completion of its full SQL group or the whole workflow.
+
+Image preparation now emits only public pinned repository/manifest, operation,
+attempt and fixed error category. Captured Docker stderr/environment/credentials
+are never printed. Only recognized transient pull categories retry the same
+exact reference, at most three attempts with5/10s backoff within the original
+total240s-per-pin pull budget. A consumed deadline cannot restart another full
+budget. Permanent/unknown failures, identity and platform mismatches remain
+failures; no image fallback is added. All87 combined sanitized helper cases pass,
+zero skips, including deadline/permanent-failure/secret-suppression cases. Actual
+completion of all seven jobs at the revised head remains required before merge.
+No local image pull/container, migration, provider/key, billing or wallet action
+is performed in this repair.

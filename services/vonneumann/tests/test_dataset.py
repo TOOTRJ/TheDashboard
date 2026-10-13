@@ -77,7 +77,7 @@ def provider_bundle():
 class DatasetTests(OfflineTestMixin, unittest.TestCase):
     def setUp(self):
         super().setUp()
-        self.temp = tempfile.TemporaryDirectory(prefix="dataset-test-", dir="/private/tmp")
+        self.temp = tempfile.TemporaryDirectory(prefix="dataset-test-", dir=Path(tempfile.gettempdir()).resolve())
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
         self.index = 0
