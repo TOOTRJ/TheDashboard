@@ -243,8 +243,9 @@ worker interpreter, cwd `services/vonneumann`, both
 `DASHBOARD_ISOLATED_POSTGRES_TESTS=1` and
 `DASHBOARD_PORTABLE_NATIVE_REAL_BAR_PROBE=1`, and
 `-m research.run_portable_native_bar_probe --maximum-seconds 970 --output
-/private/tmp/<task-owned-output>.json`. The30..970-second deadline is enforced;
-the output must be task-owned temporary storage. The optional running record
+/private/tmp/<task-owned-output>.json` on macOS, or `/tmp/<task-owned-output>.json`
+on Linux. The30..970-second deadline is enforced; the output must be task-owned
+temporary storage. The optional running record
 identifies only this probe's PID so a SIGINT can execute its owned cleanup.
 No shared daemon/tool/process is stopped or reconfigured.
 
@@ -260,9 +261,11 @@ relabel the previous trace, or establish a new timed/native acceptance. The exac
 SQL, assertions, genuine-clock bounds and source/lease rules remain unchanged.
 
 Both explicit opt-ins and the 30..970-second bound are checked before any file
-operation. Output paths must be canonical absolute `.json` paths beneath
-`/private/tmp`; traversed parents are pinned through no-follow directory
-descriptors, and nested parents beneath that system temporary directory must
+operation. Output paths must be canonical absolute `.json` paths beneath the
+fixed OS anchor: `/private/tmp` on Darwin, `/tmp` on Linux. Other platforms refuse;
+environment variables and default temporary-directory selection supply no
+fallback or override. Traversed parents are pinned through no-follow directory
+descriptors, and every nested parent beneath the selected system anchor must
 belong to the current user with private permissions. The output and its
 `.running.json` sibling are exclusively created as mode0600 regular files.
 Parent identities, leaf identities, ownership and private modes are checked
@@ -272,13 +275,25 @@ the held parent descriptor. Existing or replaced objects are preserved; the
 helper never changes their permissions. The output reservation is empty while
 pending, and an incomplete or failed output grants no acceptance or authority.
 
-Thirteen ordinary, credential-free tests cover absent opt-ins, invalid deadlines,
+Fifteen ordinary, credential-free tests cover absent opt-ins, invalid deadlines,
 existing-file collisions, symlinks, noncanonical paths, nonprivate parents,
 exclusive mode0600 creation, failure cleanup, changed leaf identities/modes,
-renamed parents and staged replacements after publication. They also compare the
-frozen `run()` source hash. These are local file-rights tests, with a stubbed
-runner; they do not execute a real-bar wait, SQL fixture or provider request.
+renamed parents and staged replacements after publication. They also verify
+closed OS-anchor selection and refusal of environment/default overrides, and
+compare the frozen `run()` source hash. These are local file-rights tests, with a
+stubbed runner; they do not execute a real-bar wait, SQL fixture or provider request.
 The boundary assumes a trusted local operator and is not an OS sandbox against
 a hostile process under the same user. Observed replacement causes refusal,
 and uncertain command outcomes still require reconciliation by the original ID
 rather than a fresh-ID retry.
+
+The OS-anchor follow-up passes all 15 ordinary tests locally on Darwin. A separate
+standard-library-only proof executes the exact controller and ordinary test
+class extracted from their ASTs on actual Linux arm64 Python 3.12.14, with all 15
+cases passing and zero skips. Its cached image ID is
+`sha256:392307d22300de8b5986851a12d9176dfc0fc073e65bf6523ebd7dcbeb23564e`.
+That proof runs as a nonroot user with no network or host mounts, a read-only
+image root and owned temporary tmpfs; the exact container is removed afterward.
+It verifies Linux file handling rather than a full worker import, native SQL,
+timed probe, amd64 runtime or complete CI execution. No image is pulled and no
+provider, shared Docker configuration or other container is changed.

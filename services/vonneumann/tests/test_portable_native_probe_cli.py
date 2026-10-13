@@ -22,7 +22,8 @@ OPT_INS={driver.OPT_IN:'1','DASHBOARD_PORTABLE_NATIVE_REAL_BAR_PROBE':'1'}
 
 class PortableNativeProbeCliTests(unittest.TestCase):
     def setUp(self):
-        self.temp=tempfile.TemporaryDirectory(prefix='dashboard-probe-cli-',dir='/private/tmp')
+        self.anchor=driver._temporary_anchor()
+        self.temp=tempfile.TemporaryDirectory(prefix='dashboard-probe-cli-',dir=self.anchor)
         self.addCleanup(self.temp.cleanup)
         self.directory=Path(self.temp.name);self.output=self.directory/'result.json'
         self.running=self.directory/'result.running.json'
@@ -69,14 +70,29 @@ class PortableNativeProbeCliTests(unittest.TestCase):
         self.assertFalse(self.output.exists());self.assertFalse(self.running.exists())
 
     def test_noncanonical_outside_or_shared_nested_parents_are_refused(self):
+        outside='/tmp/result.json' if self.anchor==Path('/private/tmp') else '/private/tmp/result.json'
         for output in (str(self.directory/'..'/'result.json'),str(self.directory)+'/./result.json',
-            str(self.directory)+'//result.json','/tmp/result.json','relative.json',str(self.directory/'result.txt')):
+            str(self.directory)+'//result.json',outside,'relative.json',str(self.directory/'result.txt')):
             with self.subTest(output=output),self.assertRaises(driver.ProbeOutputError):self.main(output=output)
         self.directory.chmod(0o755)
         try:
             with self.assertRaises(driver.ProbeOutputError):self.main()
             self.assertEqual(stat.S_IMODE(self.directory.stat().st_mode),0o755,'No existing parent is chmodded')
         finally:self.directory.chmod(0o700)
+
+    def test_fixed_platform_selection_ignores_environment_and_tempfile_defaults(self):
+        with patch.dict(os.environ,{'TMPDIR':'/untrusted','TMP':'/untrusted','TEMP':'/untrusted'},clear=True),\
+            patch.object(tempfile,'gettempdir',side_effect=AssertionError('No default temporary directory')):
+            for platform,expected in [('darwin',Path('/private/tmp')),('linux',Path('/tmp'))]:
+                with self.subTest(platform=platform),patch.object(driver.sys,'platform',platform):
+                    self.assertEqual(driver._temporary_anchor(),expected)
+
+    def test_unknown_platform_refuses_before_any_file_operation(self):
+        for platform in ('win32','freebsd14','linux2',''):
+            with self.subTest(platform=platform),patch.object(driver.sys,'platform',platform),\
+                patch.object(driver.os,'open',side_effect=AssertionError('No file operation')):
+                with self.assertRaises(driver.ProbeOutputError):driver._temporary_anchor()
+                with self.assertRaises(driver.ProbeOutputError):driver._OwnedProbeOutput(str(self.output))
 
     def test_success_reserves_exact_private_files_and_removes_only_its_pid(self):
         def action(**kwargs):

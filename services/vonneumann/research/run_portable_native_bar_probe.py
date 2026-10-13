@@ -12,6 +12,7 @@ import json
 import os
 from pathlib import Path
 import stat
+import sys
 import time
 from uuid import UUID
 
@@ -24,8 +25,15 @@ class ProbeOutputError(RuntimeError):
     def __init__(self):super().__init__('Owned probe output is unavailable or incompatible')
 
 
+def _temporary_anchor():
+    """Fixed OS anchors only; environment and tempfile defaults grant no rights."""
+    if sys.platform=='darwin':return Path('/private/tmp')
+    if sys.platform=='linux':return Path('/tmp')
+    raise ProbeOutputError()
+
+
 class _OwnedProbeOutput:
-    """Exclusive private files under pinned canonical /private/tmp parents.
+    """Exclusive private files beneath a fixed, pinned OS temporary anchor.
 
     Directory descriptors keep cleanup on the original parent after renames.
     Neither a caller filename nor a replaced file conveys cleanup authority.
@@ -35,11 +43,12 @@ class _OwnedProbeOutput:
     def __init__(self, raw):
         self.parent_fd=None;self.files={};self.published=False
         try:
+            anchor=_temporary_anchor();self.anchor_depth=len(anchor.parts)-1
             if type(raw) is not str or '\x00' in raw:raise ProbeOutputError()
             output=Path(raw)
             if not output.is_absolute() or str(output)!=raw or any(p in ('.','..') for p in output.parts):
                 raise ProbeOutputError()
-            if Path('/private/tmp') not in output.parents or output.suffix!='.json' or len(raw)>1024:
+            if anchor not in output.parents or output.suffix!='.json' or len(raw)>1024:
                 raise ProbeOutputError()
             self.output=output;self.running=output.with_suffix('.running.json')
             self.parts=output.parent.parts[1:];self.parent_pins=[]
@@ -60,7 +69,7 @@ class _OwnedProbeOutput:
             for index,part in enumerate(self.parts):
                 child=os.open(part,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW|os.O_CLOEXEC,dir_fd=fd)
                 os.close(fd);fd=child;value=os.fstat(fd)
-                if not stat.S_ISDIR(value.st_mode) or (index>=2 and
+                if not stat.S_ISDIR(value.st_mode) or (index>=self.anchor_depth and
                     (value.st_uid!=os.geteuid() or stat.S_IMODE(value.st_mode)&0o077)):
                     raise ProbeOutputError()
                 identity=(value.st_dev,value.st_ino)
