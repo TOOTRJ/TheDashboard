@@ -1,0 +1,52 @@
+{
+  "authority": {
+    "hosted": false,
+    "native_admission": false,
+    "restoration": false
+  },
+  "complete_entry_point": "vn_portable_semantic_research.validate_request(uuid,uuid,text)",
+  "format": "ga-portable-sql-source-contract-research-v2",
+  "original_model_format": "ga-portable-provider-model-research-v2",
+  "original_v1_sources_sha256": {
+    "db-contract/research/assessment_transition.sql": "6af9cec6722c53e2995de01d75d62deab63381d407313939123cc41e8590dde3",
+    "db-contract/research/causal_risk.sql": "6132cedbe15d3d88997bfafc319cee08848bb9c38b4c9be86d8ee284644aab37",
+    "db-contract/research/economic_transition.sql": "c12a98685b4f20bc7ceaa3a31995b527379fba505bc1a59ecaf8c54143ef5801",
+    "db-contract/research/locked_checkpoint.sql": "40973039c4ec1fd0af8a2836818ab75db60b6e75ec41e2f217adc078d2863542",
+    "db-contract/research/numeric_wire.sql": "adc7dbe2ce3ef51d860b8c09430a24759522cb7284dc73e40804dbd8880675b1",
+    "db-contract/research/optimizer_graph.sql": "aade55e4f7a41980ddb6faf1dc34d27373324375373e950e42d26e8700ef326b",
+    "db-contract/research/optimizer_rng.sql": "bc761910b7e4dda3b1fe938f6847f8439ff3e62685b55320c44030e1a464a993",
+    "db-contract/research/optimizer_transition.sql": "25c352d013ef663ac4de318032548d8281e4bc0c3ab8a62063e4410bc57ec8ab",
+    "db-contract/research/portable_period_mutation.sql": "605dfb89940b9dcee0a0f9d2f756e51621de7ee003bc9b997a5bf537c0992777",
+    "db-contract/research/source_transition.sql": "4f1c5b506fa2e9253cd3e7940f9b4d9f429d81561f73a4676ca8db7c3450cede",
+    "vonneumann/research/partitioned_checkpoint.py": "4752288ddaba3835270701253874b246522c5e760a602d616c862f37f42d1aa7",
+    "vonneumann/research/provider_checkpoint.py": "877b511ac97425dc66d1bbb255f74541c7b51053daed29acc7196ecf406c97c7",
+    "vonneumann/research/provider_ga_model.py": "4343e38c9ccf864144abbb843e1b4936b2441954ade42c573c986dbc1d87f242"
+  },
+  "portable_model_sources_sha256": {
+    "vonneumann/core/decision_inputs.py": "4e10b3a9e3311b83415c04880b8bfdcc0b939ecd488a7735f72c4591801d0149",
+    "vonneumann/core/integer_period_mutation.py": "6dd653e4f4d6eecf309d7c5974951afc87f170b72456da521d03e30dd2fd92b2",
+    "vonneumann/core/optimizer_evidence.py": "f667906414f83df3db3097692029fb324da25625f67f2aedbd415afb5b0c44e4",
+    "vonneumann/core/search_random.py": "f08dc67cae68a26fa17dc017b9be1b4e9d1a8fcd2cd7a494cba90eb13884db5a",
+    "vonneumann/core/strategies/genetic_algorithm.py": "dd4ee9ac03f1d5db5fc899361f40c95207eef24d9d5ef8a070d5f720e4c744f5",
+    "vonneumann/research/exact_configuration.py": "d8b26b2045f051df0300de3ae159c7d9b3ff5c71e774379d633e6faca5b39b64",
+    "vonneumann/research/numeric_wire.py": "2c26477e4c4fa1910319605981a64b82e7d0b67c1cbe69a92c492374aed05015",
+    "vonneumann/research/portable_partitioned_checkpoint.py": "cb682e2acbddc321e4f282c23d69e22ab32b599162873d0e44fd87ea30407985",
+    "vonneumann/research/provider_portable_checkpoint.py": "cc897d41c55882113e02c295c355b7be8bc620a442667df5add5d33fadbd10c8",
+    "vonneumann/research/provider_portable_ga_model.py": "e53486d35be4fdf642df85c33c9b9c278a82ba2016905a60e6870e59ae5df9ec"
+  },
+  "portable_sql_sources_sha256": {
+    "db-contract/research/portable_assessment_transition.sql": "efc141ff0e69ae16b523dc035f2ecb430b93a60948adebe7bd40d053a9078fa2",
+    "db-contract/research/portable_causal_risk.sql": "605a4c60da4e09526229a12af1d0f83f202d9328ab55400a378b27c88d1373ff",
+    "db-contract/research/portable_configuration.sql": "c39f562932522238453d5d05471cc214ea71286c341acc9205dd001488587ed2",
+    "db-contract/research/portable_economic_transition.sql": "84a04ee8f5e6bc01653ae95a76f476f95d9944f3d2bec70d998bfefea6836770",
+    "db-contract/research/portable_locked_checkpoint.sql": "52f7a7d19efbdae6f3a02234f3b3623256910f4acb0e5eda10bc566d62390a93",
+    "db-contract/research/portable_model_period_mutation.sql": "7ab8a0bc37da4110c1edc704e6837d99ba58da7d364df7bb8c610aaf631afdc3",
+    "db-contract/research/portable_optimizer_graph.sql": "7236f5f84ee3f6902a0311aa49ed04699b9197d0dc31837586f2b746d96eea8d",
+    "db-contract/research/portable_optimizer_rng.sql": "9cb35261fdf0f73d3bb22ef831398a0cd54bdc73075029d7929069097f736cfd",
+    "db-contract/research/portable_optimizer_transition.sql": "4109311d77fee15805281716a84acc363def3fcad6b3dfff173e55a8e7b4a7f0",
+    "db-contract/research/portable_source_transition.sql": "65c19ac8dc6e4a56172c9467669ba76fee73b9896fab283a4359102a28135c45",
+    "db-contract/research/portable_transition.sql": "778b6a014408fd4e1b9ddbb9986feb15941229b1dbbb7e958c98c2ce980f5a03"
+  },
+  "reviewed_type_repair": "PAPER-COMPACT-TYPE1",
+  "scope": "original-v2 offline independently composed value semantics and server-owned accepted-prior function-source binding; no catalog/ACL/native authority"
+}

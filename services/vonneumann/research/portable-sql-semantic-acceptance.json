@@ -1,0 +1,80 @@
+{
+  "accepted": true,
+  "actual_semantic_cases": 16,
+  "additional_positive_commands_minimum_asserted": 150,
+  "additional_positive_traces": "cost,terminal,risk,pause/resume/restart,recovery,frozen completion,pending expiration,four inclusive/exclusive exit thresholds,search seeds1/maxuint64",
+  "authority": {
+    "hosted": false,
+    "native_admission": false,
+    "profitability": false,
+    "restoration": false
+  },
+  "date": "2026-10-12",
+  "dense_commands": 35,
+  "dense_finalized_assessments": 16,
+  "dense_replacements": 2,
+  "explicit_dense_windows": 2,
+  "failures_proven": [
+    "coherent in-range forged offspring periods across every mirror",
+    "unknown versions/fields/scalar types",
+    "privileged dependency seed without semantic acceptance",
+    "prior original-command/manifest/validator drift",
+    "source/economic/causal/assessment forgery",
+    "RNG/graph/mirror/ancestry forgery",
+    "unused allocation/name corruption",
+    "oversized/noncanonical requests",
+    "late transaction failure/rollback",
+    "original-ID conflict",
+    "concurrent semantic/dependency delete/update"
+  ],
+  "format": "ga-portable-sql-offline-acceptance-research-v2",
+  "guards": "actual limited installer, no client/auditor helpers/tables/fixture advancement, pinned pg_catalog search paths",
+  "mating_modes": [
+    "crossover_mutation",
+    "clone_mutation"
+  ],
+  "portable_model_sources_sha256": {
+    "vonneumann/core/decision_inputs.py": "4e10b3a9e3311b83415c04880b8bfdcc0b939ecd488a7735f72c4591801d0149",
+    "vonneumann/core/integer_period_mutation.py": "6dd653e4f4d6eecf309d7c5974951afc87f170b72456da521d03e30dd2fd92b2",
+    "vonneumann/core/optimizer_evidence.py": "f667906414f83df3db3097692029fb324da25625f67f2aedbd415afb5b0c44e4",
+    "vonneumann/core/search_random.py": "f08dc67cae68a26fa17dc017b9be1b4e9d1a8fcd2cd7a494cba90eb13884db5a",
+    "vonneumann/core/strategies/genetic_algorithm.py": "dd4ee9ac03f1d5db5fc899361f40c95207eef24d9d5ef8a070d5f720e4c744f5",
+    "vonneumann/research/exact_configuration.py": "d8b26b2045f051df0300de3ae159c7d9b3ff5c71e774379d633e6faca5b39b64",
+    "vonneumann/research/numeric_wire.py": "2c26477e4c4fa1910319605981a64b82e7d0b67c1cbe69a92c492374aed05015",
+    "vonneumann/research/portable_partitioned_checkpoint.py": "cb682e2acbddc321e4f282c23d69e22ab32b599162873d0e44fd87ea30407985",
+    "vonneumann/research/provider_portable_checkpoint.py": "cc897d41c55882113e02c295c355b7be8bc620a442667df5add5d33fadbd10c8",
+    "vonneumann/research/provider_portable_ga_model.py": "e53486d35be4fdf642df85c33c9b9c278a82ba2016905a60e6870e59ae5df9ec"
+  },
+  "portable_sql_sources_sha256": {
+    "db-contract/research/portable_assessment_transition.sql": "efc141ff0e69ae16b523dc035f2ecb430b93a60948adebe7bd40d053a9078fa2",
+    "db-contract/research/portable_causal_risk.sql": "605a4c60da4e09526229a12af1d0f83f202d9328ab55400a378b27c88d1373ff",
+    "db-contract/research/portable_configuration.sql": "c39f562932522238453d5d05471cc214ea71286c341acc9205dd001488587ed2",
+    "db-contract/research/portable_economic_transition.sql": "84a04ee8f5e6bc01653ae95a76f476f95d9944f3d2bec70d998bfefea6836770",
+    "db-contract/research/portable_locked_checkpoint.sql": "52f7a7d19efbdae6f3a02234f3b3623256910f4acb0e5eda10bc566d62390a93",
+    "db-contract/research/portable_model_period_mutation.sql": "7ab8a0bc37da4110c1edc704e6837d99ba58da7d364df7bb8c610aaf631afdc3",
+    "db-contract/research/portable_optimizer_graph.sql": "7236f5f84ee3f6902a0311aa49ed04699b9197d0dc31837586f2b746d96eea8d",
+    "db-contract/research/portable_optimizer_rng.sql": "9cb35261fdf0f73d3bb22ef831398a0cd54bdc73075029d7929069097f736cfd",
+    "db-contract/research/portable_optimizer_transition.sql": "4109311d77fee15805281716a84acc363def3fcad6b3dfff173e55a8e7b4a7f0",
+    "db-contract/research/portable_source_transition.sql": "65c19ac8dc6e4a56172c9467669ba76fee73b9896fab283a4359102a28135c45",
+    "db-contract/research/portable_transition.sql": "778b6a014408fd4e1b9ddbb9986feb15941229b1dbbb7e958c98c2ce980f5a03"
+  },
+  "scope": "owned isolated PostgreSQL17.6 independently composed original-v2 value semantics, accepted same-version original-command/manifest/function-source prior chain; no native authority",
+  "seconds": 245.058,
+  "skipped": 0,
+  "test_sources_sha256": {
+    "tests/postgres/portable_sql_fixture.py": "ca884a775c33f12b3d7e808344f195e582669da5311ade3a936988970fc1ea17",
+    "tests/postgres/test_portable_transition.py": "8b361676c01dcd769c453ff6c1a3a8bf0bc259038d4c922ac1b2f6af896f807c",
+    "tests/test_portable_sql_contract.py": "8e6aa2288816205de3a889c121084b440979e1ac55321188b7e9f529c48f7eb9"
+  },
+  "timing_exclusions": [
+    "representative provider data",
+    "full native package and actor capabilities",
+    "catalog/ACL/extension/server patch acceptance",
+    "TLS/SCRAM/transport",
+    "final native source/lease checks",
+    "native journal/pins/projections/COMMIT/WAL/relay",
+    "crash durability",
+    "hosted tails/cost"
+  ],
+  "unicode": "CPython3.12.14 Unicode15.0.0,712frozen nonprintable intervals; all1114112scalars checked by credential-free package test"
+}
