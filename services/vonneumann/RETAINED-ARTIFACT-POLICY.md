@@ -119,3 +119,30 @@ replicas, backups, physical crash durability and hosted cost/latency remain
 separate gates. This fixture's tmpfs storage and synchronous COMMIT checks are
 not a power-loss durability proof. The pure seven-case retention test suite and
 its 64 seeded inventory checks remain unchanged.
+
+## Final native clock-package rerun
+
+`research/portable-retention-storage-final-acceptance.json` separately binds the
+final native SQL source at `0300fb54aff6c95fec4a38e9a1764774d97c2888`, following
+`0f1c04eb83665df817f2c6dc5b750025dd079008`. This package checks the latest supplied
+receipt and estimated source directly against one observed database clock,
+includes every supplied history document receipt in its oldest/latest bounds,
+and retains the direct anchors for the recognized COMMIT guard. The earlier
+receipt remains evidence for its own historical package.
+
+The unchanged one-case storage trace passed again with zero skips: 33 genuine
+accepted commands, 60 exact original-ID readbacks and 60 complete 13-pin current
+and historical checkpoint readbacks. No guard, source window, lease, catalog,
+or history policy was relaxed. Setup and exact owned-container cleanup completed
+in 47.301 seconds; the trace took 45.912 seconds under local contention. Final
+row counts, exact selected TEXT bytes (671,205), native logical charge (935,775)
+and relation allocation (1,744,896) equal the earlier observation. That equality
+is an observed result for two bounded synthetic traces, not a guarantee for
+other payloads, hosts, long runs or package versions. All 27 recorded source
+hashes were checked against the executed files, and the final native SQL hash
+was also checked against the named commit's source.
+
+All authority and deletion/pruning flags remain false. This rerun updates the
+source binding of the narrow retained-history/storage proof; it adds no
+representative load, real-provider capture, crash durability, authenticated
+reader, or cleanup/deletion acceptance.
