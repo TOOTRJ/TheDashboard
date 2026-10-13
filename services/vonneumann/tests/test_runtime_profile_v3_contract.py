@@ -3,6 +3,7 @@ import hashlib
 import json
 from pathlib import Path
 import subprocess
+import sys
 import unittest
 from unittest.mock import patch
 
@@ -112,7 +113,7 @@ sys.meta_path.insert(0,Boundary())
 from vonneumann.research import runtime_profile_v3_contract
 print('inert-profile-import-pass')
 '''
-        result = subprocess.run(['/private/tmp/dashboard-locked-worker/bin/python', '-c', code], cwd=project,
+        result = subprocess.run([sys.executable, '-c', code], cwd=project,
             env={'PATH': '/usr/bin:/bin', 'PYTHONPATH': str(project), 'PYTHON_DOTENV_DISABLED': '1', 'PYTHONDONTWRITEBYTECODE': '1'},
             capture_output=True, text=True, timeout=10)
         self.assertEqual(result.returncode, 0, result.stderr); self.assertEqual(result.stdout.strip(), 'inert-profile-import-pass')

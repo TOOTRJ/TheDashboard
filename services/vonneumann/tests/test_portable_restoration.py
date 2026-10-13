@@ -11,6 +11,7 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import sys
 import unittest
 from unittest.mock import patch
 from uuid import UUID
@@ -402,7 +403,7 @@ print('pure-import-boundary-pass')
 '''
         env = {'PATH': '/usr/bin:/bin', 'PYTHONPATH': str(project),
             'PYTHON_DOTENV_DISABLED': '1', 'PYTHONDONTWRITEBYTECODE': '1'}
-        result = subprocess.run(['/private/tmp/dashboard-locked-worker/bin/python', '-c', code],
+        result = subprocess.run([sys.executable, '-c', code],
             cwd=project, env=env, capture_output=True, text=True, timeout=20)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(result.stdout.strip(), 'pure-import-boundary-pass')
