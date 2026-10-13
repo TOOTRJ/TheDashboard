@@ -1,5 +1,13 @@
 # Dashboard configuration and access preflight
 
+**Current automated release gate — 2026-10-12 Denver / 2026-10-13 UTC:**
+PR102 is merged at `58808efaf2c025ea865f7429723599081edae491` after all seven
+secret-free hosted jobs pass on its exact source. Dashboard production is READY
+with four read-only checks. QA-01A closes within automated scope; QA-01B real
+browser acceptance and full v2 SQL/native/restoration remain open. Section113
+records the receipt and exact target boundaries. Earlier baselines and failures
+below remain historical rather than current instructions.
+
 **Actual owner hour completed — 2026-10-08:** The original PR78-source pilot
 completes its common hour at revision 514 with 504 accepted prices, one full GA
 replacement, eight retired founders, eight equally funded children, two closed
@@ -4709,3 +4717,54 @@ zero skips, including deadline/permanent-failure/secret-suppression cases. Actua
 completion of all seven jobs at the revised head remains required before merge.
 No local image pull/container, migration, provider/key, billing or wallet action
 is performed in this repair.
+
+## 113. Actual CI acceptance and reviewed release — 2026-10-12 Denver / 2026-10-13 UTC
+
+[PR102](https://github.com/TOOTRJ/TheDashboard/pull/102) exact head
+`cbdc5d010f1f2e37ca50ca7d4528e8f85149e153` passes all seven jobs in
+[run38326660837](https://github.com/TOOTRJ/TheDashboard/actions/runs/38326660837)
+in 36m49s. Frontend passes in 1m41s. Ordinary groups pass in 13m19s/11m53s;
+complete discovery retains 2,266 occurrences/54 repeated IDs, reports 2,132 cases,
+executes 1,733 and separately reports 414 SQL opt-in skip records (399 method and
+15 class-setup records). Discovery methods represented by skipped class setups
+are not individual reported executions; these totals must not be conflated.
+
+The four required SQL groups pass in 35m56s/26m31s/23m0s/12m29s. They retain all
+533 outer occurrences/54 repeated IDs, report 533, execute 523 and skip only 10
+allowlisted optional timing records across six definitions. There are no SQL
+opt-in/setup or unexpected skips. Group 4 also passes all 15 actual inner native
+TLS/SCRAM/controller/fault cases in 24.574s, additional to its outer wrapper.
+All groups bind the reviewed discovery/selection fingerprints and retain the
+original 1500/2400-second child bounds, full occurrence multiplicity and fixture
+segments. No suite reduction, deduplication, image fallback or credential-bearing
+workflow is used. [Detailed receipt and limitations](CI-VERIFICATION.md).
+
+Merge `58808efaf2c025ea865f7429723599081edae491` has the identical Git tree
+`67cd62325d11ceb29381abbc71cfb60a0bffe106` as the accepted head. Production
+`dpl_3TNp9KSP3cBu7DX26GzehqSKe8XJ` is READY and the canonical Dashboard alias
+serves that exact deployment. Independent project/owner/repository/source/author
+verification passes. Read-only login 200, anonymous root 307→login, anonymous API 401
+and authenticated limit=0 API 200/data=[] pass; the application key remains in
+memory and is not printed. This verifies this release's routing/authenticated
+zero-row read, not browser login/account switching or the bot's full behavior.
+
+Before merge, fresh identity checks verify GitHub `TOOTRJ/TheDashboard`, ID
+`1141090963`, and biggrizzly11 user `16749816`; Vercel `the-dashboard`, ID
+`prj_wFUe9k9USVreOQcmQKNWRAVsx5fH`, team `team_8iNNxiNjrOseD4gdSCHkQEzF`;
+Supabase `The Dashboard`, ref `fxpxsciltakyypunglzr`, organization
+`cqfnnaunmupdyobkyqfo`. Read-only Railway service verification confirms
+the exact existing project/workspace/environment/service and unchanged ordinary
+closed deployment `cf05895d-adc5-427f-873e-82ad6606e5a1` and settings. It is not a fresh
+full TLS/runtime-mode test. No Supabase data/migration, Railway runtime variable,
+provider/key, shared account configuration, billing or wallet action is performed.
+The user's uncommitted colony migration and other-agent configuration remain
+outside all commits. The dedicated token permission was manually updated by the
+user; no shared credentials were changed by this task.
+
+QA-01A is complete; QA-01 and the whole audit remain open. Next worker slice is
+the guarded original-v2 canonical/configuration/locked-dependency boundary under
+PAPER-COMPACT-03B3C2B2B, followed by full v2 causal/assessment/selection/mutation
+semantics before native effects, restoration, retention and hosted acceptance.
+NEST-05A result identity then cloud reply ordering can proceed independently;
+QA-01B mocked browser fixtures and SEC-05B advisory research can also proceed
+in parallel. Exact-project cloud writes and activations remain serialized.
