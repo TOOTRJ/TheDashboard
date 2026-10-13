@@ -185,3 +185,16 @@ The original20-case receipt remains unchanged; the exact corrected sources and
 results are recorded separately in `research/portable-native-clock-acceptance.json`.
 Decision/recovery history-document receipt composition is being hardened in a
 subsequent rejection-only slice before any broader native source acceptance.
+
+The subsequent history correction includes every supplied history document in
+the same genuine native clock bounds: the earliest receipt can shorten the
+five-second admission/COMMIT deadline, and the latest receipt can trigger the
+direct two-second future refusal. This applies to decision/recovery as well as
+bootstrap, preserving source-age limits and all original v2 semantic headers.
+The corrected24-case actual suite passes with zero skips in75.576 seconds. A
+normal refusal regression checks stale/future receipt tags even in invalid unused
+control history before any semantic write. Complete value-valid decision/history
+clock-refusal and held-position Stop proof is separately gated by the genuinely
+timed bar probe. Sources/results are recorded in
+`research/portable-native-history-clock-acceptance.json`; older source-bound
+receipts remain unchanged and do not establish this later correction.

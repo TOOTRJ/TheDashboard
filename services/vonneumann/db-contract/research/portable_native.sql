@@ -193,7 +193,7 @@ LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $functio
 DECLARE request jsonb; digest text; id uuid; state vn_portable_native_research.runs%ROWTYPE;
  replay vn_portable_native_research.commands%ROWTYPE; stored text; checked jsonb; manifest jsonb; ref record; event record;
  resolved jsonb; catalog text; deadline timestamptz; latest_receipt timestamptz; source_time timestamptz;
- server_now timestamptz; stop_only boolean; next_revision bigint;
+ server_now timestamptz; history_earliest timestamptz; history_latest timestamptz; stop_only boolean; next_revision bigint;
  component_before bigint; component_after bigint; old_active bigint; charge bigint; history_wire text;
  record vn_portable_native_research.commands%ROWTYPE;
 BEGIN
@@ -230,11 +230,14 @@ BEGIN
   latest_receipt
    +make_interval(secs=>(25000000-vn_portable_source_research.clock(request#>'{evidence,inputs,provider,frame,quote,source_age_floor_us}'))::double precision/1000000),
   source_time+interval '25 seconds'); END IF;
- -- Bootstrap documents are converted below through the strict tagged counter.
- IF request#>>'{evidence,kind}'='bootstrap' THEN
+ -- Every supplied history document contributes to native clock bounds, for
+ -- bootstrap, decision and recovery alike. A fresh quote cannot hide a stale
+ -- or future candle receipt. Full original source grammar remains semantic.
+ IF jsonb_typeof(request#>'{evidence,inputs,provider,history}')='object' THEN
   SELECT min(to_timestamp(vn_portable_source_research.clock(v->'received_wall_us')/1000000)),
-   max(to_timestamp(vn_portable_source_research.clock(v->'received_wall_us')/1000000)) INTO deadline,latest_receipt
+   max(to_timestamp(vn_portable_source_research.clock(v->'received_wall_us')/1000000)) INTO history_earliest,history_latest
    FROM jsonb_array_elements(request#>'{evidence,inputs,provider,history,documents}') a(v);
+  deadline:=least(deadline,history_earliest);latest_receipt:=greatest(latest_receipt,history_latest);
  END IF;
  -- The original worker-relative two-second allowances must not compose into
  -- four seconds relative to the native server clock. Bind each latest receipt

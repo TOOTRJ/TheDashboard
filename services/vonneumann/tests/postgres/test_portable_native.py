@@ -400,3 +400,17 @@ class PortableNativeSqlTests(unittest.TestCase):
             command_id=str(UUID(int=96000132)),previous=seed[1])
         row=(candidate,capture,wire,ledger);self.commit(wire)
         self.assertTrue(self.read(row)['receipt']['record_observed'])
+
+    def test_any_supplied_history_receipt_participates_in_native_clock_refusal(self):
+        self.create();seed=self.bootstrap();self.commit(seed[2]);row=self.control(seed,'pause')
+        for offset,expected in ((-20,'portable_native_source_expired'),(20,'portable_native_source_future')):
+            with self.subTest(offset=offset):
+                now=int(self.db.scalar('SELECT floor(extract(epoch FROM clock_timestamp()));'))
+                body=numbers.decode(row[2])
+                # This is deliberately invalid control source grammar: even
+                # unused supplied document receipt tags are rejected by the
+                # native clock guard before semantic advancement. Complete
+                # valid decision/history composition is a real-bar probe gate.
+                body['evidence']['inputs']['provider']['history']={'documents':[{'received_wall_us':(now+offset)*1_000_000}],
+                    'minutes':[],'unscaled':True}
+                self.reject_sql('BEGIN;'+self.sql(numbers.encode(body))+'COMMIT;',expected)
