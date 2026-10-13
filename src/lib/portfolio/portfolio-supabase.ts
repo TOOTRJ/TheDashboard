@@ -13,9 +13,31 @@ type Row = {
   id: string;
   user_id: string;
   name: string;
-  balance: number;
+  balance: number | string;
   updated_at: string;
 };
+
+function numericValue(value: unknown): number | null {
+  if (typeof value !== "number" && (typeof value !== "string"
+    || !/^[+-]?[0-9]+(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?$/.test(value.trim()))) return null;
+  const result = Number(value);
+  return Number.isFinite(result) ? result : null;
+}
+
+function goalValue(value: { portfolio_goal: unknown; portfolio_goal_year: unknown }): PortfolioGoal | null {
+  const amount = numericValue(value.portfolio_goal);
+  const year = value.portfolio_goal_year === null ? null : numericValue(value.portfolio_goal_year);
+  if (amount === null || amount < 0 || value.portfolio_goal_year !== null && (year === null || !Number.isSafeInteger(year))) return null;
+  return { goal: amount, goalYear: year };
+}
+
+function validAccount(r: Row, ownerId: string, id?: string): boolean {
+  const balance = r && numericValue(r.balance);
+  return !!r && typeof r.id === "string" && r.id.length > 0 && (id === undefined || r.id === id)
+    && r.user_id === ownerId && typeof r.name === "string"
+    && typeof r.updated_at === "string" && r.updated_at.length > 0
+    && balance !== null && balance >= 0;
+}
 
 function rowToAccount(r: Row): PortfolioAccount {
   return {
@@ -52,7 +74,7 @@ export async function fetchPortfolioAccounts(scope?: NesteggRequestScope): Promi
     .order("name", { ascending: true });
 
   if (scope && !scope.isCurrent()) return [];
-  if (error || !data || (data as Row[]).some(row => row.user_id !== ownerId)) {
+  if (error || !Array.isArray(data) || (data as Row[]).some(row => !validAccount(row, ownerId))) {
     if (scope) throw new Error("Portfolio accounts are unavailable");
     console.warn("portfolio_accounts fetch:", error?.message ?? "no data");
     return [];
@@ -63,18 +85,17 @@ export async function fetchPortfolioAccounts(scope?: NesteggRequestScope): Promi
 
 export async function insertPortfolioAccount(
   name: string,
-  balance: number
+  balance: number,
+  scope: NesteggRequestScope
 ): Promise<PortfolioAccount | null> {
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return null;
+  if (!Number.isFinite(balance) || balance < 0) return null;
+  const supabase = await getNesteggDataClient(scope);
+  if (!supabase || !scope.isCurrent()) return null;
 
   const { data, error } = await supabase
     .from("portfolio_accounts")
     .insert({
-      user_id: user.id,
+      user_id: scope.ownerId,
       name: name.trim() || "Untitled",
       balance,
       updated_at: new Date().toISOString(),
@@ -82,8 +103,7 @@ export async function insertPortfolioAccount(
     .select("id,user_id,name,balance,updated_at")
     .single();
 
-  if (error || !data) {
-    console.warn("portfolio_accounts insert:", error?.message);
+  if (!scope.isCurrent() || error || !data || !validAccount(data as Row, scope.ownerId)) {
     return null;
   }
 
@@ -92,13 +112,12 @@ export async function insertPortfolioAccount(
 
 export async function updatePortfolioAccount(
   id: string,
-  fields: { name?: string; balance?: number }
+  fields: { name?: string; balance?: number },
+  scope: NesteggRequestScope
 ): Promise<PortfolioAccount | null> {
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return null;
+  if (fields.balance !== undefined && (!Number.isFinite(fields.balance) || fields.balance < 0)) return null;
+  const supabase = await getNesteggDataClient(scope);
+  if (!supabase || !scope.isCurrent()) return null;
 
   const payload: Record<string, unknown> = {
     updated_at: new Date().toISOString(),
@@ -110,30 +129,26 @@ export async function updatePortfolioAccount(
     .from("portfolio_accounts")
     .update(payload)
     .eq("id", id)
-    .eq("user_id", user.id)
+    .eq("user_id", scope.ownerId)
     .select("id,user_id,name,balance,updated_at")
     .single();
 
-  if (error || !data) {
-    console.warn("portfolio_accounts update:", error?.message);
+  if (!scope.isCurrent() || error || !data || !validAccount(data as Row, scope.ownerId, id)) {
     return null;
   }
 
   return rowToAccount(data as Row);
 }
 
-export async function deletePortfolioAccount(id: string): Promise<boolean> {
-  const supabase = createClient();
-  const { error } = await supabase
+export async function deletePortfolioAccount(id: string, scope: NesteggRequestScope): Promise<boolean> {
+  const supabase = await getNesteggDataClient(scope);
+  if (!supabase || !scope.isCurrent()) return false;
+  const { data, error } = await supabase
     .from("portfolio_accounts")
     .delete()
-    .eq("id", id);
-
-  if (error) {
-    console.warn("portfolio_accounts delete:", error.message);
-    return false;
-  }
-  return true;
+    .eq("id", id).eq("user_id", scope.ownerId)
+    .select("id,user_id").single();
+  return scope.isCurrent() && !error && !!data && data.id === id && data.user_id === scope.ownerId;
 }
 
 export async function fetchPortfolioTotal(scope?: NesteggRequestScope): Promise<number> {
@@ -162,39 +177,36 @@ export async function fetchPortfolioGoal(scope?: NesteggRequestScope): Promise<P
     .maybeSingle();
 
   if (scope && !scope.isCurrent()) return { goal: 0, goalYear: null };
-  if (error || !data) {
+  if (error || data === null) {
     if (scope && error) throw new Error("Portfolio goal is unavailable");
-    console.warn("portfolio goal fetch:", error?.message ?? "no data");
+    if (!scope) console.warn("portfolio goal fetch:", error?.message ?? "no data");
     return { goal: 0, goalYear: null };
   }
 
-  return {
-    goal: Number(data.portfolio_goal) || 0,
-    goalYear: data.portfolio_goal_year != null ? Number(data.portfolio_goal_year) : null,
-  };
+  if (typeof data !== "object" || Array.isArray(data)) throw new Error("Portfolio goal is unavailable");
+  const goal = goalValue(data);
+  if (!goal) throw new Error("Portfolio goal is unavailable");
+  return goal;
 }
 
 export async function updatePortfolioGoal(
   goal: number,
-  goalYear: number | null
+  goalYear: number | null,
+  scope: NesteggRequestScope
 ): Promise<boolean> {
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return false;
+  if (!Number.isFinite(goal) || goal < 0 || (goalYear !== null && !Number.isSafeInteger(goalYear))) return false;
+  const supabase = await getNesteggDataClient(scope);
+  if (!supabase || !scope.isCurrent()) return false;
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("profiles")
     .update({
-      portfolio_goal: Math.max(0, goal),
+      portfolio_goal: goal,
       portfolio_goal_year: goalYear,
     })
-    .eq("id", user.id);
-
-  if (error) {
-    console.warn("portfolio goal update:", error.message);
-    return false;
-  }
-  return true;
+    .eq("id", scope.ownerId)
+    .select("id,portfolio_goal,portfolio_goal_year").single();
+  if (!scope.isCurrent() || error || !data || data.id !== scope.ownerId) return false;
+  const saved = goalValue(data);
+  return !!saved && saved.goal === goal && saved.goalYear === goalYear;
 }
