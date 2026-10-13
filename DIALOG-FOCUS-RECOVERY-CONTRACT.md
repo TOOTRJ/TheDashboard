@@ -53,3 +53,23 @@ Reviewed source pins for the fresh-build acceptance:
 - `src/components/dashboard/ActivityTable.tsx`: `fd723a3c7a6a0511cbe2a3f3478037768bd665db50c5fec41d90ba46245ec594`.
 - `src/components/layout/Sidebar.tsx`: `f44736b0f57e9a96c65c2bf566efd3ee0cc4ffdd24dfb8b46e98d37ab9fd7f76`.
 - `tests/home-sample-provenance.test.mjs`: `a400a271703f81b7c2aaadca05da7cfde583e61679e86d8473eeb62ca1653f85`.
+
+The first repaired-source compiled fixture at cb29b80 observed completed
+modal removal (zero remaining dialog nodes), header aria-hidden removal and
+working account/theme/Analytics controls. It also observed focus returning to
+the page body, because sample details were controlled without a Radix trigger.
+This is retained as a separate partial acceptance, not final keyboard recovery.
+The next refinement keeps the actual native details button in a ref and restores
+focus on close only while that original element remains connected. Mouse-row
+opening clears the ref; a detached/absent trigger keeps the default fallback.
+The reference is cleared after close and creates no data fetch or timer.
+
+All five existing Home cases then pass, zero skips, in 1466.631958 ms, including
+one connected trigger receiving focus and a detached trigger preserving the
+fallback. Compiler and scoped lint pass. A complete frontend run launched at
+cb29b80 reports 379 passes/22537.844125 ms, but the later trigger edit requires
+its own final-source full-suite/browser evidence. It is not relabeled as such.
+
+Final trigger-refinement source pins:
+- `src/components/dashboard/ActivityTable.tsx`: `83e304e0ed51b4d963ca797ef5322aff0255d8fe3bd1ba1eac1d0d162b7e27f1`.
+- `tests/home-sample-provenance.test.mjs`: `ccc09d5170154447533d9a4646e7fada40d40efeae4621d2841b2ec48cff1f15`.

@@ -68,6 +68,7 @@ export function ActivityTable() {
   const [sortDirection, setSortDirection] = React.useState<SortDirection>("desc");
   const [currentPage, setCurrentPage] = React.useState(1);
   const [selectedItem, setSelectedItem] = React.useState<TradeItem | null>(null);
+  const detailsTrigger = React.useRef<HTMLButtonElement | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
   const [isVisible, setIsVisible] = React.useState(false);
 
@@ -217,7 +218,10 @@ export function ActivityTable() {
                               ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'}
                             `}
                             style={{ transitionDelay: `${index * 50}ms` }}
-                            onClick={() => setSelectedItem(item)}
+                            onClick={() => {
+                              detailsTrigger.current = null;
+                              setSelectedItem(item);
+                            }}
                           >
                             <TableCell className="font-mono text-xs text-muted-foreground">
                               {formatDateTime(item.timestamp)}
@@ -243,6 +247,7 @@ export function ActivityTable() {
                                 className="text-left text-sm font-semibold text-foreground group-hover:text-[#00fff5] transition-colors"
                                 onClick={(event) => {
                                   event.stopPropagation();
+                                  detailsTrigger.current = event.currentTarget;
                                   setSelectedItem(item);
                                 }}
                               >
@@ -314,7 +319,16 @@ export function ActivityTable() {
       </Card>
 
       <Dialog open={!!selectedItem} onOpenChange={(open) => !open && setSelectedItem(null)}>
-        <DialogContent className="border-[#00fff5]/20 bg-card/95 backdrop-blur-xl scale-in">
+        <DialogContent
+          className="border-[#00fff5]/20 bg-card/95 backdrop-blur-xl scale-in"
+          onCloseAutoFocus={(event) => {
+            if (detailsTrigger.current?.isConnected) {
+              event.preventDefault();
+              detailsTrigger.current.focus();
+            }
+            detailsTrigger.current = null;
+          }}
+        >
           {/* Animated border */}
           <div className="absolute inset-0 rounded-lg overflow-hidden pointer-events-none">
             <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#00fff5] to-transparent animate-[data-flow_2s_linear_infinite]" />

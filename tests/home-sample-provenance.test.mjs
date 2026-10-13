@@ -17,6 +17,7 @@ function harness(component = 'Home', range = '30d') {
   let active, timerId = 0, tree;
   const forbidden = name => () => { forbiddenCalls.push(name); throw new Error(`Unexpected ${name}`); };
   const react = {
+    useRef(initial) { return react.useState({ current: initial })[0]; },
     useState(initial) {
       const frame = active, slot = frame.cursor++;
       if (!(slot in frame.states)) frame.states[slot] = typeof initial === 'function' ? initial() : initial;
@@ -199,10 +200,16 @@ test('sample dialogs retain actual selected details while fictional copy/explore
   const trigger = h.all(n => n.type === 'button' && n.props['aria-haspopup'] === 'dialog')[0];
   assert.equal(trigger.props.type, 'button');
   assert.equal(trigger.props['aria-label'], `View sample ${first.type.toLowerCase()} ${first.asset} trade details`);
-  let stopped = 0;
-  trigger.props.onClick({ stopPropagation() { stopped++; } }); h.flush();
+  let stopped = 0, focused = 0, prevented = 0;
+  const element = { isConnected: true, focus() { focused++; } };
+  trigger.props.onClick({ currentTarget: element, stopPropagation() { stopped++; } }); h.flush();
   assert.equal(stopped, 1);
   assert.equal(h.find(n => n.type === 'Dialog').props.open, true);
   assert.match(h.text(h.find(n => n.type === 'DialogDescription')), /Generated example with fictional identifiers/);
+  h.find(n => n.type === 'DialogContent').props.onCloseAutoFocus({ preventDefault() { prevented++; } });
+  assert.equal(prevented, 1); assert.equal(focused, 1);
+  const detached = { isConnected: false, focus() { throw new Error('Detached trigger must not receive focus'); } };
+  trigger.props.onClick({ currentTarget: detached, stopPropagation() {} }); h.flush();
+  h.find(n => n.type === 'DialogContent').props.onCloseAutoFocus({ preventDefault() { throw new Error('Preserve the default fallback'); } });
   assert.deepEqual(h.forbiddenCalls, []); h.dispose();
 });
