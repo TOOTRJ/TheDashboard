@@ -1,6 +1,8 @@
 """Portable-model stable candle/indicator partition; offline evidence only.
 
-Pinned fork of partitioned_checkpoint.py at PR96; old partitions are unchanged.
+Fork of partitioned_checkpoint.py at PR96 with factory-owned immutable resolution
+memoization. Original partitions, wire/policy meanings and full validators stay
+unchanged; this optimization changes the Python implementation bytes.
 
 The original eleven-slot provider format is unchanged. This thirteen-slot
 format delegates complete model checks to its validator after a bounded,
@@ -10,6 +12,7 @@ from dataclasses import dataclass
 import hashlib
 import json
 import re
+from weakref import WeakKeyDictionary
 
 from . import provider_portable_checkpoint as legacy
 from . import provider_portable_ga_model as kernel
@@ -153,8 +156,32 @@ def resolve_manifest(manifest, components, *, owner_id, run_id, revision):
     return resolved
 
 
+@dataclass(frozen=True, slots=True)
+class _OwnedResolution:
+    """Factory validation evidence; no capture back-reference or mutable view."""
+    manifest_wire: bytes
+    expected_wire: bytes
+    components: tuple
+    component_wires: tuple
+
+    def unchanged(self, capture):
+        return (type(capture) is ActiveCheckpoint
+            and capture._ActiveCheckpoint__wire is self.manifest_wire
+            and capture._ActiveCheckpoint__expected is self.expected_wire
+            and capture._ActiveCheckpoint__components is self.components
+            and type(self.components) is tuple and type(self.component_wires) is tuple
+            and len(self.components) == len(self.component_wires) == MAX_COMPONENTS
+            and all(type(block) is TypedComponent and block._wire is wire
+                for block, wire in zip(self.components, self.component_wires)))
+
+
+# This is private factory ownership, never source/server/receipt authority.
+# Unregistered or changed captures continue through the full validator below.
+_OWNED_RESOLUTIONS = WeakKeyDictionary()
+
+
 class ActiveCheckpoint:
-    __slots__ = ('__wire', '__components', '__expected')
+    __slots__ = ('__wire', '__components', '__expected', '__weakref__')
 
     def __init__(self, *args, **kwargs):
         raise CommandValidationError('Capture an owned candidate first')
@@ -178,6 +205,9 @@ class ActiveCheckpoint:
         return jsonb_text_bytes(json.loads(self.__expected))
 
     def resolve(self):
+        proof = _OWNED_RESOLUTIONS.get(self) if type(self) is ActiveCheckpoint else None
+        if type(proof) is _OwnedResolution and proof.unchanged(self):
+            return json.loads(proof.expected_wire)
         value = self.to_dict()
         result = resolve_manifest(value, self.components, owner_id=value['owner_id'],
             run_id=value['run_id'], revision=value['revision'])
@@ -210,6 +240,8 @@ def capture_owned_candidate(candidate, *, legacy_capture=None):
     object.__setattr__(result, '_ActiveCheckpoint__wire', numbers.encode(manifest, maximum=MAX_MANIFEST_BYTES))
     object.__setattr__(result, '_ActiveCheckpoint__components', tuple(components))
     object.__setattr__(result, '_ActiveCheckpoint__expected', canonical_json(expected))
+    _OWNED_RESOLUTIONS[result] = _OwnedResolution(result._ActiveCheckpoint__wire,
+        result._ActiveCheckpoint__expected, result.components, tuple(block._wire for block in result.components))
     return result
 
 

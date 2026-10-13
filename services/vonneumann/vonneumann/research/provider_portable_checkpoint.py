@@ -1,6 +1,8 @@
 """Portable-period provider GA v2 components; no decoder or durable admission.
 
-Pinned fork of provider_checkpoint.py at PR96; old components remain unchanged.
+Fork of provider_checkpoint.py at PR96 with factory-owned immutable resolution
+memoization. Original components, wire/policy meanings and full validators stay
+unchanged; this optimization changes the Python implementation bytes.
 
 The original v5 capture remains unchanged. Hashes bind canonical numeric wire,
 not PostgreSQL JSONB text, provider authenticity or authority.
@@ -12,6 +14,7 @@ from functools import wraps
 import hashlib
 import json
 import re
+from weakref import WeakKeyDictionary
 
 from ..core import exact_rehearsal as base
 from . import provider_portable_ga_model as kernel
@@ -430,9 +433,34 @@ def resolve_manifest(manifest, components, *, owner_id, run_id, revision):
     return result
 
 
+@dataclass(frozen=True, slots=True)
+class _OwnedResolution:
+    """Factory validation evidence; no capture back-reference or mutable view."""
+    manifest_wire: bytes
+    expected_wire: bytes
+    components: tuple
+    component_wires: tuple
+
+    def unchanged(self, capture):
+        return (type(capture) is ActiveCheckpoint
+            and capture._ActiveCheckpoint__wire is self.manifest_wire
+            and capture._ActiveCheckpoint__expected is self.expected_wire
+            and capture._ActiveCheckpoint__components is self.components
+            and type(self.components) is tuple and type(self.component_wires) is tuple
+            and len(self.components) == len(self.component_wires) == MAX_COMPONENTS
+            and all(type(block) is TypedComponent and block._wire is wire
+                for block, wire in zip(self.components, self.component_wires)))
+
+
+# Only the fully validated factory below registers an exact capture. A hash,
+# restored object or successful arbitrary resolve cannot enter this registry.
+# Weak keys and a value with no capture back-reference follow capture lifetime.
+_OWNED_RESOLUTIONS = WeakKeyDictionary()
+
+
 class ActiveCheckpoint:
     """Detached capture, not an ExactState or receipt. No public constructor."""
-    __slots__ = ('__wire', '__components', '__expected')
+    __slots__ = ('__wire', '__components', '__expected', '__weakref__')
 
     def __init__(self, *args, **kwargs):
         raise CommandValidationError('Capture an owned candidate first')
@@ -456,6 +484,10 @@ class ActiveCheckpoint:
         return jsonb_text_bytes(json.loads(self.__expected))
 
     def resolve(self):
+        proof = _OWNED_RESOLUTIONS.get(self) if type(self) is ActiveCheckpoint else None
+        if type(proof) is _OwnedResolution and proof.unchanged(self):
+            # Always return a detached graph: transport callers mutate views.
+            return json.loads(proof.expected_wire)
         manifest = self.to_dict()
         result = resolve_manifest(manifest, self.components, owner_id=manifest['owner_id'],
             run_id=manifest['run_id'], revision=manifest['revision'])
@@ -508,6 +540,8 @@ def capture_owned_candidate(candidate):
     object.__setattr__(value, '_ActiveCheckpoint__wire', numbers.encode(manifest, maximum=MAX_MANIFEST_BYTES))
     object.__setattr__(value, '_ActiveCheckpoint__components', components)
     object.__setattr__(value, '_ActiveCheckpoint__expected', canonical_json(expected))
+    _OWNED_RESOLUTIONS[value] = _OwnedResolution(value._ActiveCheckpoint__wire,
+        value._ActiveCheckpoint__expected, components, tuple(block._wire for block in components))
     return value
 
 
