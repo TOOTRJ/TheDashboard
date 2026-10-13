@@ -80,6 +80,37 @@ run is separate; this receipt does not claim that another source head completed
 the same jobs. Application, test, helper, workflow and dependency sources must
 remain byte-identical for that documentation-only scope.
 
+## PR104 release review — failed head retained as evidence
+
+The five-priority batch head `897ec2ad369d82ccef80b05a4bbd475f630a1a3b`
+starts all seven required jobs in
+[run38349686661](https://github.com/TOOTRJ/TheDashboard/actions/runs/38349686661).
+Its frontend passes in2m21s. This is **not complete CI acceptance**: ordinary
+shard1 and PostgreSQL shard4 fail, and the head must not be merged on the
+strength of its successful frontend or local focused proofs.
+
+The rendered ordinary shard1 log reports962 tests in673.884s,2 errors and163
+audited opt-in skip records. The two new child-import tests used the local
+`/private/tmp/dashboard-locked-worker/bin/python` executable, which is absent on
+the Linux runner. The scoped repair `82759034349d9fc1d0de87a74e4f4a8ba83ff12d`
+uses the active `sys.executable` in both tests. Their sanitized environment,
+working directory, import guards, assertions and20/10-second limits remain
+unchanged; both affected cases pass locally, zero skips,31.031s. The local
+repair requires a new exact-source hosted run and does not replace the failed
+head's evidence.
+
+The rendered PostgreSQL shard4 log reports205 tests in885.928s, zero skips and
+one error in the native current-head restoration/retired-identity case. Its
+source-bearing command refuses with `portable_native_final_source_or_lease_expired`.
+The five-second laboratory guard must remain intact. Test preparation/capture
+order and its actual critical-path timing are under review; a failed original
+request must not be reinterpreted as accepted or silently rebased.
+
+All seven required jobs at the final corrected head, exhaustive coverage,
+explicit skip audit and fresh exact-project/source/author/alias release checks
+remain the merge gate. The source count inventories2398 ordinary and600 SQL
+occurrences retain54 original repeated IDs; discovery is not execution.
+
 PR/manual triggers have no path/type/branch filters, and main pushes have only
 the main-branch filter. The capability validator requires every advertised Node,
 type, lint, advisory, build, lock/hash installation, dependency-consistency and

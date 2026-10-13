@@ -4880,8 +4880,9 @@ source while this review proceeds. [CI receipt and limits](CI-VERIFICATION.md).
 Originalv2 remains `synthetic-exact-fixture-v1`. Preserve its journals while building
 an explicit real-provider runtime/config/model/source/clock/command/SQL/projection/
 reader fork with original acquisition/warmup provenance. Next serial gates are
-forward source/model → scoped native operator → restoration → measured retention
-and authenticated old/new UI → reviewed closed migration/package → exact hosted
+forward source/trust/interface freeze → recorded acquisition/model → scoped native
+operator → restoration, measured retention and offline authorization/API/old-new UI
+→ reviewed closed migration/package → exact hosted owner/read/control join → hosted
 fault/multi-window → longer resource/quota/recovery acceptance. Recorder/model,
 research/UI fixtures can overlap after contracts freeze; cloud operations remain
 serialized. The $20/month initial hosting ceiling persists. Continuous paper,
@@ -4916,3 +4917,46 @@ Its owned container is removed. The latter uses extracted exact source and
 excludes full worker imports/amd64/SQL/timed acceptance. Independent review
 verifies unchanged native SQL and timed run() bytes. Final exact-head full CI
 remains mandatory; earlier macOS proof and partial CI do not replace it.
+
+## 115. Final-source browser follow-up and CI repairs — 2026-10-13 UTC
+
+Final-source897ec2a browser follow-up uses one owned fake loopback fixture with
+unique hostname/cookies. Its153 tracked frontend inputs are checked against the
+committed head:152 non-overridden files match byte-for-byte, and only
+next.config.ts has the explicitly reviewed fixture override. Aggregate pin
+`0c6198c70392cda0d4dc8d3349c1cfe7974aa82c569b10dd93cd2a4d37658a06`
+is recorded separately from the earlier150-of151/core/inspector proofs.
+Actual fake Alice form/SDK/SSR login admits currentSavings10000. CSV click shows
+Download started, but a correctly registered concurrent15s download wait returns
+no artifact. Print click shows its success message without an observable report
+tab/print dialog. Neither artifact is accepted, and NEST-07 remains open.
+Actual keyboard Sign Out removes the private view and reaches login; console
+errors/warnings are empty. The owned tab is closed; launcher93816 exits0, the exact
+launcher/Next93907 processes are absent and the marked copy is removed. No other
+process/tab or cloud service is stopped. [Source-bound observations](BROWSER-ACCEPTANCE-2026-10-12.json).
+
+Exact PR104head897ec2a/run38349686661 frontend passes2m21s, but ordinary1 and
+SQL4 fail. Two ordinary import-boundary tests hardcode a missing macOS interpreter;
+the reviewed8275903 fix uses sys.executable with unchanged sanitized boundaries
+and20/10s limits. Both focused cases pass31.031s, zero skips. SQL4's retired-ID
+restoration case expires at the five-second native source/lease guard; its
+preparation choreography remains under review. No guard is widened, failed head
+accepted, migration performed, worker activated or production release claimed.
+[CI failure evidence and required new acceptance](CI-VERIFICATION.md).
+
+Forward dependencies are clarified: initial source/trust/interface freeze precedes
+implementation, while actual runtime hashes/quota/tails join the final package.
+Offline owner/API/UI fixtures precede a closed additive migration; exact hosted
+owner/read/control acceptance follows that installed schema and precedes activation.
+This resolves the former circular hosted-reader-before-migration requirement.
+The user completes a fresh device login, and the waiting dedicated Dashboard
+profile successfully saves it. Fresh API verification matches GitHub repository
+1141090963/user16749816, Vercel prj_wFUe9k9USVreOQcmQKNWRAVsx5fH/team
+team_8iNNxiNjrOseD4gdSCHkQEzF and Supabase fxpxsciltakyypunglzr/organization
+cqfnnaunmupdyobkyqfo with exact names/local links. Read-only owner identity and
+Git binding are also checked in the existing authorized browser. The current
+production remains PR103sha92d3d4313e4a8648a0d65bebd41b5029b55826be,
+deployment dpl_T2Rq6Lyz8mBCnpfGjXPCZRY1tT7h: exact repository/source/author,
+project/team, READY/current production alias and all four read-only smokes pass.
+No shared credential, other project, configuration, migration or worker changes
+are made. New final-source CI/release acceptance remains required before merge.

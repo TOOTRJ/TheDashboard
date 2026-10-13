@@ -1,5 +1,7 @@
 {
-  "all_observed_cases_accepted": true,
+  "all_observed_cases_accepted": false,
+  "historical_core_cases_accepted": true,
+  "overall_acceptance": "partial; final-source export artifacts remain unresolved",
   "application_commit": "360f5b1adfee3ea6f8b0201c650b0eb76958085d",
   "application_source_sha256": {
     "src/app/(dashboard)/nestegg/page.tsx": "a3e8111ca3dfbda7bc1784d0345c0f5b22b948b5d5550b58d35097127c7c2ca2",
@@ -147,5 +149,46 @@
     ],
     "scope": "Actual Next production build and React publication from public original-wire fixtures; synthetic supplied owner/scope bindings, not an authenticated native reader."
   },
-  "scope": "actual Next production build, React, AuthProvider and Supabase SDK against owned synthetic loopback services"
+  "scope": "actual Next production build, React, AuthProvider and Supabase SDK against owned synthetic loopback services",
+  "final_source_export_followup": {
+    "application_commit": "897ec2ad369d82ccef80b05a4bbd475f630a1a3b",
+    "date_utc": "2026-10-13",
+    "scope": "Actual final-source production build using owned fake loopback backend, unique cookie hostname and real form/SDK/SSR login; export artifact acceptance remains unresolved.",
+    "fixture_owner": "b699e38a-c703-4e63-be86-c7738b249a3d",
+    "source_copy_proof": {
+      "tracked_inputs": 153,
+      "byte_equal_nonoverridden_inputs": 152,
+      "explicit_test_override": "next.config.ts",
+      "nonoverridden_aggregate_sha256": "0c6198c70392cda0d4dc8d3349c1cfe7974aa82c569b10dd93cd2a4d37658a06",
+      "mismatches": []
+    },
+    "observations": [
+      {
+        "id": "final-source-login",
+        "observed": "Actual form login and Nestegg page admitted fake Alice plan1 with currentSavings10000; walkthrough Skip exposed actual export menu."
+      },
+      {
+        "id": "csv-artifact-unresolved",
+        "accepted": false,
+        "observed": "Download CSV click displayed Download started. Concurrent registered15s download wait and click returned no download artifact; no file-content acceptance claimed."
+      },
+      {
+        "id": "print-artifact-unresolved",
+        "accepted": false,
+        "observed": "Print / Save as PDF click displayed Print dialog opened success message, but no report tab or print dialog was observable. NEST-07 remains open; success toast is not acceptance."
+      },
+      {
+        "id": "final-source-signout",
+        "observed": "Actual header Sign Out keyboard activation retired fake Alice, removed private Nestegg view and navigated to the real login form."
+      }
+    ],
+    "checked_console_errors_and_warnings": [],
+    "fixture_tab_closed": true,
+    "owned_launcher_exit_code": 0,
+    "limits": [
+      "No downloaded-file/PDF/print-dialog acceptance.",
+      "No cloud/provider/native-reader/worker mutation or operation.",
+      "Source-copy equality applies to this final897ec2a follow-up; it does not rewrite prior360f5b1/a367be5 observations."
+    ]
+  }
 }

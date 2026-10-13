@@ -6,7 +6,7 @@
 expiring development exception are implemented; production audit is now clean.
 The original findings below describe the pre-repair review. October14 security
 response remains open. TYPE1 is also repaired with unchanged canonical wires;
-the corrected independent original-v2 SQL laboratory now passes 38 actual PostgreSQL cases; the native/restore/retention joins follow. Privacy/CI progress is recorded with each
+the corrected independent original-v2 SQL laboratory now passes 38 actual PostgreSQL cases; bounded native/restoration/retention laboratory joins also pass, while production-profile joins remain open. Privacy/CI progress is recorded with each
 reviewed implementation section. NEST-06A account/session isolation is now implemented;
 NEST-05A result identity and same-account reply ordering are implemented locally and pass controlled plus real synthetic-browser cases. Their release review is pending; broader QA-01B remains open.
 QA-01A is now complete within its automated verification scope. PR102's exact
@@ -118,9 +118,10 @@ passes14 controlled plus actual browser cases. Final frontend has271 passing cas
 These bounded proofs precede authenticated-reader/hosted acceptance.
 
 Continue in order: exact-head seven-job CI and scoped release → forward real-provider
-record/model contracts → native operator/epoch rollover → exact restoration →
-measured raw/history/Stop budgets and authenticated old/new reader → reviewed
-closed package/migration → hosted fault/multi-window → longer resource/quota/recovery
+source/trust/interface freeze → recorded acquisition and model contracts → native
+operator/epoch rollover → exact restoration, measured raw/history/Stop budgets and
+offline owner/API/old-new reader fixtures → reviewed closed package/migration →
+exact-target hosted owner/read/control join → hosted fault/multi-window → longer resource/quota/recovery
 acceptance. [Eight forward gates and parallel work](services/vonneumann/PAPER-RUNTIME-V3-PLAN.md).
 The nine-test closed proposal is not an implemented runtime. Unknown history rights,
 coverage, actual quota behavior and physical growth remain research/measurement gates. The October14 security response still awaits
@@ -1172,7 +1173,7 @@ Research began **2026-09-30** and was updated **2026-10-06/07** in [WORKER-HOSTI
   v2 wire has no standalone serialized search-spec field to invent or strip.
 
 - [ ] **PAPER-COMPACT-03 — Prepare the reviewed forward SQL/native contract.**
-  Guarded original-v2 native laboratory now passes20 actual PostgreSQL cases/zero skips: original-ID replay/readback, atomic journal/13pins/events/projections, scope/ACL/catalog/rollback/refusal and recognized-COMMIT guard freshness. This does not install a production package or establish final-visible-instant freshness. Actual held-position clock proof, native restoration, physical retention/resource tails, forward real-provider profile and migration/reader joins remain. [Native contract](services/vonneumann/PORTABLE-NATIVE-CONTRACT.md).
+  Guarded original-v2 native laboratory passes24 final-clock PostgreSQL cases plus1 bounded projection-header regression, zero skips: original-ID replay/readback, atomic journal/13pins/events/projections, scope/ACL/catalog/rollback/refusal and recognized-COMMIT guard freshness. A genuine-bar664.320501s probe retains8 held positions at Stop, and3 original-native restoration joins plus a33-command physical storage experiment pass within their recorded source bounds. These do not install a production package or establish final-visible-instant freshness. Composed release checks, real-provider/native restoration, long-run physical/resource tails and migration/authenticated reader joins remain. [Native contract](services/vonneumann/PORTABLE-NATIVE-CONTRACT.md).
   **Constraint reviewed by03A:** adopt a reviewed stable partition and enforce
   dependency-safe journal retention/rate/Stop budgets before finalization.
   Smaller requests still grow with every accepted command. The old one-window
@@ -1194,8 +1195,14 @@ Research began **2026-09-30** and was updated **2026-10-06/07** in [WORKER-HOSTI
   The research SQL wrapper is not a candidate production migration.
 
 - [ ] **PAPER-COMPACT-04 — Implement and accept explicit checkpoint restoration.**
-  Begin with the reviewed GA-only two-EMA profile. The current optimizer encoder
-  is not a decoder and ExactState remains bootstrap-only. Decode only pinned
+  Original synthetic-v2 restoration is implemented locally with16 ordinary cases
+  and3 actual native joins, including78 full/compact next-command comparisons in
+  the original15-case subset. Final CI and real-provider/hosted restoration remain
+  separate gates; do not repeat those accepted bounded laboratory subproofs as
+  though no decoder exists. [Restoration contract](services/vonneumann/PORTABLE-RESTORATION-CONTRACT.md).
+  Carry the reviewed GA-only two-EMA profile into the new real-provider format.
+  Its old generic optimizer encoder/ExactState path does not provide the new
+  format's decoder or restart proof. Decode only pinned
   allowlisted types/dependencies/policies, preserving RNG, order/aliases,
   cohort genomes/results, source epoch/watermark, indicators, risk, balances and
   pending decisions. Verify the entire next prepared wire against uninterrupted
