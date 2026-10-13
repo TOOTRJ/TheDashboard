@@ -5212,3 +5212,12 @@ such as TRUNCATE. The separate reviewed API integer alignment and DB-04 plan
 must preserve the actual schema and establish effective-role/consumer needs
 before any table-specific privilege migration. No global role/default-grant or
 owner-policy change is inferred from this catalog observation.
+
+Pushed head 22bd538 creates exact Dashboard preview
+`dpl_584BwNfUphmYcqh6HbqErJKv42ic`, READY in 58 seconds, at
+`the-dashboard-pgblsovlh-orderoftheredjester.vercel.app`. The verified project
+browser displays the expected source commit, repository, branch and
+`biggrizzly11` author. GitHub run38458301073 frontend passes 2m37s; SQL4 fails
+the reviewed immutable image pull with rate limits before any integration test.
+The other jobs remain running at this observation. No merge, CLI credential
+fallback, production replacement, migration or worker activation follows.

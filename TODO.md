@@ -1429,3 +1429,22 @@ release, then review DB-04 schema reproducibility and table-specific effective
 privileges with offline SQL/PostgREST and rollback proof before any migration.
 Catalog metadata alone does not close persistence, authorization or full row
 validation. No application rows, schema or ACL were changed during inspection.
+
+**Release blocker after push:** exact head 22bd538 / run38458301073 has a
+passing frontend job, but SQL4 fails image preparation in 48 seconds after
+three anonymous registry rate-limit responses; no SQL executes in that job.
+Let the other jobs finish, preserve their exact evidence, implement reviewed
+bounded pull coordination, and require a complete new-head run. Vercel's exact
+preview is READY but production remains PR103. The separate combined API/
+Strategies branch now passes 366 frontend cases, compiler/lint and a fresh
+fake build, with actual keyboard/mobile and compiled HTTP guard observations;
+it remains local and does not replace PR104's release gate.
+
+**RES-05 bounded research progress:** current-source synthetic replays confirm
+the 360-versus-600-month asymmetric household horizon, missing accumulation-year
+inflation ($5,000 versus $10,487.84), and the silent 0%→0.5% effective-return
+floor. [Calendar/units/accounting proposal](NESTEGG-CALENDAR-UNITS-RESEARCH-2026-10-13.md)
+orders a shared versioned monthly ledger before dependent formula/chart changes.
+Current BLS/SSA/IRS references inform the units and benefit/distribution scope;
+full tax, survivor, distribution and probability calibration remain deeper
+research gates. These three reproductions change no financial formulas or data.

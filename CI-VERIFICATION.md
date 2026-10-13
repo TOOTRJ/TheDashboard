@@ -667,3 +667,32 @@ owned-OS-inspection context. The mode-0600 log is retained locally at
 `/private/tmp/dashboard-frontend-0609db3-20261013.log`. This is a new-source local
 pass; the previous whole-suite failure remains unattributed historical evidence.
 Every next-head hosted job and exact release verification still gate merge.
+
+### Pushed head 22bd538 — registry preparation failure
+
+[Run 38458301073](https://github.com/TOOTRJ/TheDashboard/actions/runs/38458301073)
+is bound to pushed head `22bd5387ab66cb95ccb73edf59d805b4009d7d73`.
+Frontend passes in 2m37s. SQL4 job
+[115506607790](https://github.com/TOOTRJ/TheDashboard/actions/runs/38458301073/job/115506607790)
+fails in 48 seconds during image preparation: the pinned ECR PostgreSQL manifest
+is rate-limited on all three attempts, including the existing 5/10-second
+backoffs. Native-wheel preparation and required integration do not run; zero
+SQL cases execute in that job. This is preparation failure, not a restoration
+rejection or an accepted SQL result. The remaining jobs are allowed to finish;
+no cancellation, job rerun, optional SQL gate or older-result substitution.
+
+The exact Dashboard preview `dpl_584BwNfUphmYcqh6HbqErJKv42ic` is READY,
+with source 22bd538, branch `codex/dashboard-five-priorities`, repository
+`TOOTRJ/TheDashboard` and author `biggrizzly11` visible in the verified project.
+Preview readiness does not override incomplete CI or establish production.
+
+The smallest reviewed follow-up coordinates anonymous pulls and transient
+backoff within the existing 240-second per-pin deadline, with an owned empty
+Docker config and unchanged repository-digest/config/platform verification.
+Implementation and exact-source acceptance remain pending. A larger shared
+artifact transport stays deferred: Docker save/load does not promise upstream
+RepoDigest retention, and GitHub's automatic artifact digest mismatch is a
+warning, so neither is sufficient for strict immutable-image admission.
+[Docker save](https://docs.docker.com/reference/cli/docker/image/save/),
+[Docker load](https://docs.docker.com/reference/cli/docker/image/load/),
+[GitHub artifact validation](https://docs.github.com/en/actions/how-tos/writing-workflows/choosing-what-your-workflow-does/storing-and-sharing-data-from-a-workflow#validating-artifacts).
