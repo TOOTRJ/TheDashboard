@@ -180,6 +180,16 @@ Next joins must proceed in this order:
    only after original pending requests and holdings are reconciled and all gates
    pass. No part of this pure restoration experiment opens that lease path.
 
+`tests/postgres/test_portable_restoration_native.py` prepares three guarded
+native join cases using the separately reviewed native fixture installer,
+independent accepted-head/catalog observations and scoped reader roles. They
+cover original committed loading, next control wires, pending/absent/foreign
+original getters, historical refusal, head-bound lookup and refused reuse of a
+retired ID after restart. Ordinary discovery skips these three explicitly
+opt-in cases; that skip is not native acceptance. Actual joined execution must
+use the reviewed native package with owned PostgreSQL, then record its result
+and remaining limits separately. No production schema or credentials are used.
+
 Further substantial research is needed on authenticated provider recording and
 publication-time evidence, real source/process-clock transitions after restart,
 long-term version/runtime support, dependency-safe cold archive lookup, retention
