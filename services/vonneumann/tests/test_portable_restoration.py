@@ -408,4 +408,16 @@ print('pure-import-boundary-pass')
         self.assertEqual(result.stdout.strip(), 'pure-import-boundary-pass')
 
 
+class PortablePendingRequestShapeTests(unittest.TestCase):
+    def test_malformed_nested_pending_evidence_has_controlled_refusal(self):
+        value = {'format': cp.TRANSPORT_FORMAT, 'command_id': WORKER, 'owner_id': OWNER, 'run_id': RUN,
+            'prior': None, 'checkpoint': {'format': cp.FORMAT, 'source_model_version': ga.MODEL_FORMAT,
+                'owner_id': OWNER, 'run_id': RUN, 'revision': 2},
+            'components': [], 'operations': [], 'history': {}, 'evidence': None, 'events': []}
+        for evidence in (None, [], '', False):
+            value['evidence'] = evidence
+            with self.subTest(evidence=evidence), self.assertRaisesRegex(wire.RestorationError, 'evidence'):
+                restore.PendingOriginalRequest.capture(numbers.encode(value))
+
+
 if __name__ == '__main__': unittest.main()

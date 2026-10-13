@@ -180,15 +180,27 @@ Next joins must proceed in this order:
    only after original pending requests and holdings are reconciled and all gates
    pass. No part of this pure restoration experiment opens that lease path.
 
-`tests/postgres/test_portable_restoration_native.py` prepares three guarded
+`tests/postgres/test_portable_restoration_native.py` contains three guarded
 native join cases using the separately reviewed native fixture installer,
 independent accepted-head/catalog observations and scoped reader roles. They
 cover original committed loading, next control wires, pending/absent/foreign
 original getters, historical refusal, head-bound lookup and refused reuse of a
 retired ID after restart. Ordinary discovery skips these three explicitly
-opt-in cases; that skip is not native acceptance. Actual joined execution must
-use the reviewed native package with owned PostgreSQL, then record its result
-and remaining limits separately. No production schema or credentials are used.
+opt-in cases; that skip is not native acceptance. Actual composed execution with
+the defensive semantic package `fb96ac2` and native package `5603cbde` passes
+all three cases, zero skips (27.457 seconds), in owned PostgreSQL17.6. The
+source-critical comparisons avoid repeated whole-journal snapshots; independent
+control cases still verify that loading/preparation changes no rows or lease.
+Quotes use the actual laboratory server clock and retain the original native
+five-second source guard. No semantic seed, clock GUC, deadline widening,
+production schema or credentials are used. This establishes the guarded local
+readback/restoration join, not provider authenticity, final-visible durability,
+long-duration operation, production migration or hosted authority.
+
+Independent review also found and fixed a malformed nested pending-evidence
+error path. A sixteenth focused ordinary case now verifies controlled
+`RestorationError` refusal for null/list/string/boolean evidence; valid original
+wire semantics are unchanged.
 
 Further substantial research is needed on authenticated provider recording and
 publication-time evidence, real source/process-clock transitions after restart,

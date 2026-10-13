@@ -298,6 +298,7 @@ class PendingOriginalRequest:
                 and checkpoint.get('owner_id') == body['owner_id'] and checkpoint.get('run_id') == body['run_id'])
         require(type(checkpoint.get('revision')) is int and 2 <= checkpoint['revision'] <= 2**63 - 1)
         for key in ('owner_id', 'run_id', 'command_id'): uuid(body[key])
+        require(type(body['evidence']) is dict, 'Original pending request evidence must be an object')
         control = body['evidence'].get('control')
         stop = type(control) is dict and control.get('action') == 'stop'
         require(len(wire) <= (MAX_AGGREGATE_BYTES if stop else original_checkpoint.ORDINARY_COMMAND_BYTES))

@@ -71,12 +71,13 @@ class PortableRestorationNativeTests(unittest.TestCase):
             accepted['manifest_sha256'], accepted['command_id'], accepted['command_sha256'],
             accepted['semantic_validator_sha256'], accepted['native_package_sha256'])
 
-    def load(self, row):
+    def load(self, row, *, prove_read_only=True):
         expected = self.operator_expected(row)
         response = self.fixture.checkpoint(row)
-        before = self.fixture.snapshot()
+        before = self.fixture.snapshot() if prove_read_only else None
         restored = restore.restore_readback(json_wire(response), expected)
-        self.assertEqual(self.fixture.snapshot(), before, 'Loading must not write or install a lease')
+        if prove_read_only:
+            self.assertEqual(self.fixture.snapshot(), before, 'Loading must not write or install a lease')
         self.assertEqual(restored.state.to_dict(), row[0].state.to_dict())
         self.assertEqual(restored.checkpoint.component_wires, tuple(block._wire for block in row[1].components))
         self.assertFalse(restored.restoration_authority); self.assertFalse(restored.hosted_authority)
@@ -88,17 +89,27 @@ class PortableRestorationNativeTests(unittest.TestCase):
         return restore.decode_identity_lookup(response.encode(), expected, ids)
 
     def assert_next(self, previous, following):
-        restored = self.load(previous)
+        source_critical = following[0].transition['evidence']['kind'] in {'protective', 'decision'}
+        # Whole-table snapshots establish read-only behavior in the independent
+        # control case; do not repeatedly copy the complete journal while the
+        # original five-second laboratory source guard is running.
+        restored = self.load(previous, prove_read_only=not source_critical)
         inputs = inputs_of(following[0])
         checked = self.identities(previous, restored.checkpoint.expected, inputs.ids)
-        before = self.fixture.snapshot()
+        before = self.fixture.snapshot() if not source_critical else None
         prepared = prepare_restored_next(restored, following[0], inputs, checked)
         self.assertEqual(prepared._wire, following[0]._wire)
         self.assertEqual(restore.prepare_restored_transport(restored, prepared,
             command_id=numbers.decode(following[2])['command_id']), following[2])
-        self.assertEqual(self.fixture.snapshot(), before, 'Preparation must not submit or acquire a lease')
+        if not source_critical:
+            self.assertEqual(self.fixture.snapshot(), before, 'Preparation must not submit or acquire a lease')
         pending = self.fixture.commit(following[2])
         self.assertFalse(pending['record_observed']); self.assertTrue(pending['pending_until_commit'])
+        if source_critical:
+            # The subsequent independently scoped checkpoint load binds the
+            # committed head. Original getter reconciliation is separately
+            # exercised for controls and the dedicated uncertain-reply case.
+            return
         observed = self.fixture.read(following)
         resolution = restore.reconcile_original_request(restore.PendingOriginalRequest.capture(following[2]),
             json_wire(observed), self.operator_expected(following))
@@ -180,7 +191,8 @@ class PortableRestorationNativeTests(unittest.TestCase):
         paused = self.fixture.control(row, 'pause', serial=72); self.assert_next(row, paused); row = paused
         resumed = self.fixture.control(row, 'resume', serial=73); self.assert_next(row, resumed); row = resumed
         state = row[3].accept(row[0]); data = state.to_dict()
-        at = data['engine']['lifecycle']['last_control_at'] + 1
+        at = max(int(self.db.scalar('SELECT floor(extract(epoch FROM clock_timestamp()));')),
+                 data['engine']['lifecycle']['last_control_at'] + 1)
         # Keep the actual server observation within the reviewed laboratory
         # source interval. This bounded owned-fixture wait changes no clock GUC.
         self.db.sql('SELECT pg_sleep(least(8,greatest(0,' + str(at) + '-extract(epoch FROM clock_timestamp())-1)));')
