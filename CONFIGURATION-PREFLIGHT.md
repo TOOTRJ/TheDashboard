@@ -4960,3 +4960,29 @@ deployment dpl_T2Rq6Lyz8mBCnpfGjXPCZRY1tT7h: exact repository/source/author,
 project/team, READY/current production alias and all four read-only smokes pass.
 No shared credential, other project, configuration, migration or worker changes
 are made. New final-source CI/release acceptance remains required before merge.
+
+The original897ec2a run finally fails SQL2 at the2400s child deadline; its partial
+log also marks the latest-bootstrap-receipt case FAIL without a final traceback.
+SQL1/3 pass32m36s/18m40s. Whole-module relocation41c214d uses that actual scheduling
+evidence and preserves exhaustive coverage, original fixture segments and all
+deadlines; ten existing sharding cases pass0.006s. Native restoration choreography
+is repaired with the original five-second rule unchanged: prior load before
+fresh capture, actual current-head/oracle snapshot before one original decision,
+then delayed immutable full/compact equivalence with no later submission. A
+three-case revision passes24.439s; final affected representation/reporting case
+passes17.695s. Stored native guard intervals are1.646198s and2.895655s after the
+unchanged original fractional receipt. True receipt→integral action delay is
+0.483848s; host action-stage intervals are separately labeled. Earlier expiry,
+causal defer and one-microsecond representation failures remain dated evidence,
+not accepted or rebased requests. This does not claim cold restart within five
+seconds, real-provider/new-v3 clock correctness or Railway CPU performance.
+The separate latest-history negative fixture now passes1 actual PostgreSQL case,
+zero skips,3.103s: a one-time explicitly adversarial later receipt is claimed60s
+ahead of a valid unchanged producer baseline; native-first future refusal and
+complete table equality pass. This is not sealed producer-valid continuation.
+The new whole-module partition is94/158/143/205, with2398 ordinary/600 SQL
+occurrences and54 repeated IDs retained. Full corrected exact-head CI and release
+remain required. Railway project/environment/workspace,
+service/settings and latestcf05895d-adc5-427f-873e-82ad6606e5a1 SUCCESS are rechecked
+read-only with the project token. This is identity/settings continuity, not a fresh
+mode/image/TLS/auth/pilot acceptance or worker activation.

@@ -528,3 +528,38 @@ ordering and restart overlap need an explicit new source policy and acceptance.
 Evaluate this option with the user's pending source preference before paying for
 a replacement feed. Jupiter retention has already been approved.
 [Price semantics](https://developers.jup.ag/docs/price).
+
+## Measured original-v2 clock and admission lessons
+
+The composed hosted CI exposes a laboratory source expiry while cold restoration,
+catalog/checkpoint reads, oracle lookup and full next-wire comparison run between
+the original capture and admission. The unchanged native five-second guard correctly
+refuses the expired request. A revised experiment restores the prior head before
+new capture, records the independently accepted protective head/snapshot/oracle
+while current, submits the original decision once with its same frame and ID, and
+compares complete saved-snapshot continuation off the admission path afterward.
+The final affected case passes17.695s, zero skips; actual stored guard observations
+are1.646198s and2.895655s after the original fractional receipt. These are bounded
+laboratory observations, not a cold-restart, throughput or Railway CPU guarantee.
+[Restoration evidence and earlier failures](services/vonneumann/PORTABLE-RESTORATION-CONTRACT.md).
+
+The original-v2 fractional producer experiment also exposes two representation
+constraints: an integral action second must follow the ceiling of the receipt,
+and frame wall conversion using a binary64 ceiling can differ by one microsecond
+from DecisionInputs datetime rounding. The test now retains its original fractional
+receipt, genuinely waits for the legal integral action second and uses that observed
+second consistently. It does not repair the original model's fractional conversion
+or relabel its clock as v3. The new integer-UTC-microsecond profile needs explicit
+round-trip/boundary fixtures and cross-process/source-clock acceptance; synthetic
+MONO relations cannot establish those claims.
+[New clock contract and gates](services/vonneumann/PAPER-RUNTIME-V3-PLAN.md).
+
+The latest-of-all-history negative had claimed a four-second future receipt, which
+can age into the permitted two-second range during canonical audit/preparation.
+That timing explanation is inferred from source: the hosted job timed out before
+its final failure traceback. A one-time far-future adversarial original request
+now tests the native-first maximum over all supplied receipts, preserving the
+sealed baseline and requiring complete table equality after refusal. Its1-case
+actual PostgreSQL proof passes3.103s; it does not establish producer-valid source
+continuation. Native guards and the30-second SQL limit remain unchanged.
+[Exact failed-head CI evidence](CI-VERIFICATION.md).

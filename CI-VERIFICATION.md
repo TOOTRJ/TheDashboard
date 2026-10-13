@@ -102,14 +102,46 @@ head's evidence.
 The rendered PostgreSQL shard4 log reports205 tests in885.928s, zero skips and
 one error in the native current-head restoration/retired-identity case. Its
 source-bearing command refuses with `portable_native_final_source_or_lease_expired`.
-The five-second laboratory guard must remain intact. Test preparation/capture
-order and its actual critical-path timing are under review; a failed original
-request must not be reinterpreted as accepted or silently rebased.
+The five-second laboratory guard remains intact. Review identifies the test's
+preparation/capture order and critical-path timing; a failed original
+request must not be reinterpreted as accepted or silently rebased. The reviewed
+repair loads the prior restoration/oracle before fresh capture, captures the
+actual current protective head and scoped original snapshot, submits the same
+decision once, then verifies saved-snapshot full/compact equivalence off the
+admission path. A three-case revision passes24.439s, zero skips; the final
+affected-case representation/reporting repair passes17.695s, zero skips. Its
+native receipt records protective/decision guard intervals1.646198s/2.895655s
+after the unchanged original fractional receipt. These local source-specific
+proofs do not establish cold restoration and full decision within five seconds,
+new-v3 integer-clock acceptance, hosted performance or final CI acceptance.
+
+The completed original run also reports SQLshard2 failure in40m54s total. Its
+parent child limit expires at2399.9999737519997s during the new portable semantic
+module. The partial log records `test_latest_bootstrap_receipt_is_checked_even_when_an_earlier_document_is_fresh`
+as FAIL but reaches no final unittest traceback/report. Source review identifies
+a timing-sensitive four-second future claim; that explanation remains an
+inference rather than a recovered exception. The repaired native-first supplied-history
+negative keeps the sealed producer baseline unchanged and submits one explicit
+adversarial canonical request whose later receipt is claimed60 seconds ahead.
+It passes1/1 actual PostgreSQL case, zero skips,3.103s, with the expected native
+future refusal and complete table equality. It is not producer-valid continuation
+acceptance; server clock, model, guard and30-second SQL test limit stay unchanged. Partial
+progress/coverage must not be treated as completed execution.
+
+Observed SQLshard1 passes32m36s and shard3 passes18m40s at this failed head.
+The reviewed41c214d scheduling repair moves the whole new
+`tests.postgres.test_portable_transition` module to shard3. Ten existing
+selection/coverage/environment tests pass0.006s. Every discovered occurrence,
+original order/fixture segment,54 repeated IDs, skip rule and1500/2400-second
+child deadline remains enforced; the final selection source fingerprint changes.
+The corrected source still requires all seven actual hosted jobs.
 
 All seven required jobs at the final corrected head, exhaustive coverage,
 explicit skip audit and fresh exact-project/source/author/alias release checks
 remain the merge gate. The source count inventories2398 ordinary and600 SQL
-occurrences retain54 original repeated IDs; discovery is not execution.
+occurrences retain54 original repeated IDs; discovery is not execution. The
+reviewed module move changes SQL shard counts to94/158/143/205; ordinary counts
+remain1045/1353. Final source fingerprints must be captured after every repair.
 
 PR/manual triggers have no path/type/branch filters, and main pushes have only
 the main-branch filter. The capability validator requires every advertised Node,
