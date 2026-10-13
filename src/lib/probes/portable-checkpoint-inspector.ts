@@ -108,10 +108,10 @@ function strictJSON(text: string, maximum: number): unknown {
       }
       return refuse();
     }
-    requireValue(char === '{'); offset++; const result: Record<string, unknown> = Object.create(null); whitespace();
+    requireValue(char === '{'); offset++; const result: Record<string, unknown> = Object.create(null); let keyCount = 0; whitespace();
     if (text[offset] === '}') { offset++; return result; }
     while (offset < text.length) {
-      whitespace(); requireValue(Object.keys(result).length < 4096); const key = string();
+      whitespace(); requireValue(keyCount++ < 4096); const key = string();
       requireValue(!Object.hasOwn(result, key)); whitespace(); requireValue(text[offset++] === ':');
       result[key] = value(depth + 1); whitespace();
       if (text[offset++] === '}') return result;

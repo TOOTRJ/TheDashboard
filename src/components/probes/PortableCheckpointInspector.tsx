@@ -38,7 +38,7 @@ export function PortableCheckpointInspector({ owner, scopeKey, raw, binding, evi
       a database reader, replay evolution, prove provider authenticity, restore a lease or authorize a worker to run.</p>
     <dl className="grid gap-2 sm:grid-cols-2">
       <div><dt className="font-semibold">Checkpoint status</dt><dd>{view.status} · revision {view.revision}
-        {view.historical ? ` · historical; current native revision ${view.currentRevision}` : ' · supplied current head'}</dd></div>
+        {view.historical ? ` · historical; supplied current revision ${view.currentRevision}` : ' · supplied current head'}</dd></div>
       <div><dt className="font-semibold">Generation</dt><dd>{view.generation}. Cumulative completed-window history is unavailable in this checkpoint.</dd></div>
       <div><dt className="font-semibold">Original source profile</dt><dd>{view.source}</dd></div>
       <div><dt className="font-semibold">Dependencies</dt><dd>{view.dependencyPins} original ordered wires verified against their SHA256 references.</dd></div>
