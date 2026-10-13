@@ -8,9 +8,13 @@ preview is READY. [Run38464960221](https://github.com/TOOTRJ/TheDashboard/action
 finishes35m2s with six passing jobs; SQL4 fails all five bounded original-pin
 image pulls in preparation and executes zero SQL cases. No merge or rerun.
 The pull coordination passes its mock checks but cannot resolve persistent
-registry quota. Next release work is a separately reviewed runtime-content
-archive verifier and actual export/load measurements, followed by exact
-producer/consumer workflow guards. Keep every required SQL case and deadline.
+registry quota. The immediate release task is the smallest reviewed image
+delivery repair that preserves the original immutable images and every required
+SQL case/deadline. The closed runtime-content archive verifier passes34 pure
+checks, and one cached ARM export has been measured, but neither proves an
+amd64 consumer load or a working same-run artifact path. Choose and prove that
+path before another complete CI run; do not broaden the implementation batch
+or retry unchanged CI for a green result.
 
 In parallel, the final separate app source `c029931` passes379 frontend cases,
 zero skips, plus rebuilt desktop/mobile synthetic browser checks. Home/Analytics
@@ -23,22 +27,27 @@ timeout/ECONNRESET and partial dialog failures remain dated evidence.
 
 Worker TLS+source and model+parser joins are committed locally as
 `028d39c`/`7cdecab`, with308 combined scoped checks,20 model checks and16 actual
-parser SQL checks. Complete composed ordinary checks are the next verification.
-The reviewed B1 actor/catalog prototype is authorized only for an owned
-14-case local PostgreSQL experiment; no hosted migration or source/runtime
-authority follows. Its clock/epoch/original-ID/journal/reader joins stay open.
+parser SQL checks. The complete composed ordinary shards now execute2,005
+cases with zero unexpected skips, recorded in local commit`7f12b34`. The first
+launch omitted Node from PATH; that failed launch remains recorded alongside
+the successful complete correction. The separate B1 actor/catalog prototype
+passes14 actual owned PostgreSQL cases and is committed locally as`05fa535`.
+Its first setup error remains recorded. This is actor-only local acceptance;
+CI fixture portability and clock/epoch/original-ID/journal/reader joins stay open.
 An unused whole-year household calendar contract is also committed locally
 as`4e03074` with four hand-worked fixtures; it changes no Nestegg calculation.
 
 Current dependency order: CI content/transport acceptance → PR104 release →
 separate app/API release and reviewed table baseline/grants; in parallel,
-composed worker tests → native actor/catalog proof → trusted clock/epoch/ID/
+accepted composed worker tests and local actor/catalog proof → trusted clock/epoch/ID/
 journal bindings → operator/restore/retention/UI joins → closed hosted package
 → bounded faults/windows → sustained resource/quota/cost acceptance. Nestegg
 shared calendar/ledger integration follows its explicit units contract. Keep
 Railway closed and the two EMA genes; no extra user setup is needed for these
 offline steps. The October14 security response and deeper empirical/cost/
-capacity/calibration research remain required.
+capacity/calibration research remain required. API baseline/controller work
+is prepared but paused until the CI and app release blockers are resolved;
+no proposed catalog controller or privilege migration has been executed.
 
 **Implementation follow-up:** SEC-05A's compatible source-map-js repair and exact
 expiring development exception are implemented; production audit is now clean.

@@ -3,8 +3,10 @@
 One authorized catalog-only request reverified `The Dashboard` /
 `fxpxsciltakyypunglzr`, organization `cqfnnaunmupdyobkyqfo`, before querying
 only metadata and effective privileges for `public.test_events` and
-`public.market_sentiment`. No table rows, credentials, function bodies, writes,
-grants, policies or migrations were read or changed. The linked project matches
+`public.market_sentiment`. No table rows or credentials were read, no function
+body was returned or published, and no writes, grants, policies or migrations
+were performed. The consumer scan evaluates body-name references on the server
+and returns only routine identity metadata. The linked project matches
 the immutable target. [Query](supabase/audits/2026-10-13-api-permissions-readonly.sql)
 and [original result](supabase/audits/2026-10-13-api-permissions-readonly.json).
 The receipt SHA256 is

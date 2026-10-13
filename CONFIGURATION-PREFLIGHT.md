@@ -5266,3 +5266,32 @@ SELECT+INSERT, preserving defaults/roles/schema/RLS/data/unrelated objects.
 Concrete baseline/ACL SQL, owned SQL/PostgREST tests and reviewed rollout are
 next; no hosted grants or rows changed.
 [Exact evidence, proposed delta and remaining gates](DB-04-API-PERMISSIONS-REVIEW-2026-10-13.md).
+
+### 2026-10-13 — Completed local worker proofs and narrowed release focus
+
+The separate composed worker source`7cdecab` now passes both complete ordinary
+shards:2,005 cases execute, zero unexpected skips. The first shard's initial
+launch omitted Node from PATH and failed its actual Node prerequisite; the
+complete corrected shard passes without changing source or assertions. The
+other accepted shard is retained with its original context. Local evidence
+commit`7f12b34` records both contexts, all audited skips and the original failure.
+
+The separate B1 actor/catalog-only prototype at`05fa535` passes14 actual local
+PostgreSQL cases after a narrow PL/pgSQL record/alias collision repair. Its
+first setup failure ran zero cases and remains in the evidence. The local ARM
+fixture result does not establish CI platform portability, source/clock/epoch/
+journal/reader integration, a hosted migration or continuous operation.
+
+One bounded cached ARM Docker export measures359,817,216 bytes in13.004341s
+for export/inventory, with original ARM manifest/config bytes present. Its
+owned export/config files are removed. No image is pulled, loaded, retagged,
+deleted or run by this measurement. It does not prove amd64 export/load or
+RepoDigest restoration. The closed pure archive prototype is adopted locally
+as`0dbc305`, passes34 controlled checks and changes no current workflow.
+
+The immediate focus is the smallest reviewed immutable image-delivery repair,
+all required new-head checks, PR104 release, then the tested app release.
+API controller and schema/privilege preparation are paused; neither the new
+controller nor proposed grants have been executed. No new remote push, merge,
+deployment, migration, activation, account setting or shared credential change
+is part of this checkpoint. Railway remains closed; no user setup is needed now.

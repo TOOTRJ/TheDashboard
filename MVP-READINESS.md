@@ -9,9 +9,17 @@ registry quota, so release now depends on reviewed content/transport verificatio
 and actual export/load evidence. No hosted result is replaced by a local pass.
 The separate final app source passes379/379 plus desktop/mobile fake-browser
 controls and dialog focus recovery. Local worker security/source/model/parser
-joins pass their scoped checks; composed verification and genuine native
-actor/source/clock/journal/restore/reader acceptance remain incomplete.
+joins pass their scoped checks. The complete composed ordinary shards now
+execute2,005 cases with zero unexpected skips; a separate actor/catalog-only
+prototype passes14 actual local PostgreSQL cases. These results do not prove
+the native source/clock/journal/restore/reader joins or hosted operation.
 Production remains the exact PR103 source below, and Railway remains closed.
+
+Immediate work is narrowed to the image-delivery blocker, then PR104 release
+and the already tested app fixes. The unused archive verifier and one cached
+ARM export are exploratory evidence, not an accepted CI delivery path. API
+baseline/controller preparation and broader native prototypes are paused until
+those releases; no additional user setup is currently required.
 
 
 The supervised, zero-cost paper hour is accepted. The original owner run reached
