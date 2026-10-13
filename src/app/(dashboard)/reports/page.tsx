@@ -1,79 +1,69 @@
 "use client";
 
 import * as React from "react";
-import { FileText, Loader2, Clock, Download, ArrowUpRight, ArrowDownLeft } from "lucide-react";
-import { toast } from "sonner";
+import { FileText, Download, ArrowUpRight, ArrowDownLeft } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 
 const reports = [
   {
     id: "pnl",
     title: "P&L Statement",
-    description: "Detailed profit and loss breakdown by asset and time period.",
-    lastGenerated: "Jan 22, 2026",
+    description: "Example layout for profit and loss by asset and period.",
     icon: ArrowUpRight,
     color: "#39ff14",
   },
   {
     id: "portfolio",
     title: "Portfolio Snapshot",
-    description: "Current holdings, allocation, and unrealized gains.",
-    lastGenerated: "Jan 22, 2026",
+    description: "Example layout for holdings and allocation.",
     icon: FileText,
     color: "#00fff5",
   },
   {
     id: "tax",
     title: "Tax Report",
-    description: "Cost basis and capital gains for tax filing purposes.",
-    lastGenerated: "Jan 21, 2026",
+    description: "Report concept only; tax calculations are not available.",
     icon: Download,
     color: "#ff00ff",
   },
   {
     id: "trades",
     title: "Trade History Export",
-    description: "Complete transaction history with timestamps and fees.",
-    lastGenerated: "Jan 20, 2026",
+    description: "Example layout for trade activity.",
     icon: ArrowDownLeft,
     color: "#bf00ff",
   },
 ];
 
-const recentTrades = [
-  { id: 1, asset: "BTC", type: "Buy", amount: 0.15, value: 14178, time: "2 hours ago" },
-  { id: 2, asset: "ETH", type: "Sell", amount: 3.2, value: 10234, time: "5 hours ago" },
-  { id: 3, asset: "SOL", type: "Buy", amount: 45, value: 8340, time: "Yesterday" },
-  { id: 4, asset: "LINK", type: "Swap", amount: 120, value: 2388, time: "Yesterday" },
+const sampleTrades = [
+  { id: 1, asset: "BTC", type: "Buy", amount: 0.15, value: 14178 },
+  { id: 2, asset: "ETH", type: "Sell", amount: 3.2, value: 10234 },
+  { id: 3, asset: "SOL", type: "Buy", amount: 45, value: 8340 },
+  { id: 4, asset: "LINK", type: "Swap", amount: 120, value: 2388 },
 ];
 
 export default function ReportsPage() {
-  const [loadingId, setLoadingId] = React.useState<string | null>(null);
   const [previewReport, setPreviewReport] = React.useState<(typeof reports)[number] | null>(null);
-
-  const handleGenerate = (reportId: string) => {
-    setLoadingId(reportId);
-    setTimeout(() => {
-      setLoadingId(null);
-      toast.success("Report generated successfully!", {
-        description: "Your report is ready for download.",
-      });
-    }, 1500);
-  };
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+      <div className="lg:col-span-2 rounded-lg border border-[#00fff5]/20 bg-[#00fff5]/5 p-4">
+        <Badge variant="outline">Sample report preview</Badge>
+        <p className="mt-2 text-sm text-muted-foreground">
+          All figures and trades on this page are examples. They do not reflect your account or bot activity.
+        </p>
+      </div>
       <div className="space-y-4">
         <div className="mb-6">
           <h2 className="text-lg font-semibold uppercase tracking-wider text-[#00fff5] neon-text-cyan">
-            Available Reports
+            Report Previews
           </h2>
           <p className="text-xs text-muted-foreground mt-1">
-            Generate and export trading reports for analysis or compliance
+            Explore example layouts. Report generation and downloads are not available yet.
           </p>
         </div>
         
@@ -99,38 +89,30 @@ export default function ReportsPage() {
                     <p className="text-xs text-muted-foreground mt-0.5">{report.description}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <Button 
+                    type="button"
                     variant="outline" 
                     size="sm"
                     className="border-[#00fff5]/20 hover:bg-[#00fff5]/10 hover:text-[#00fff5]"
                     onClick={() => setPreviewReport(report)}
                   >
-                    Preview
+                    Sample Preview
                   </Button>
                   <Button 
                     size="sm"
-                    onClick={() => handleGenerate(report.id)} 
-                    disabled={loadingId === report.id}
+                    type="button"
+                    disabled
+                    aria-describedby={`report-unavailable-${report.id}`}
                     className="bg-gradient-to-r from-[#00fff5] to-[#ff00ff] text-black hover:opacity-90"
                   >
-                    {loadingId === report.id ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Generating
-                      </>
-                    ) : (
-                      <>
-                        <Download className="mr-2 h-4 w-4" />
-                        Generate
-                      </>
-                    )}
+                    <Download className="mr-2 h-4 w-4" />
+                    Generate unavailable
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent className="flex items-center gap-3 text-xs text-muted-foreground pt-0">
-                <Clock className="h-3 w-3" />
-                Last generated: {report.lastGenerated}
+              <CardContent id={`report-unavailable-${report.id}`} className="text-xs text-muted-foreground pt-0">
+                Account report generation is not available yet. No report has been created here.
               </CardContent>
             </Card>
           );
@@ -141,10 +123,10 @@ export default function ReportsPage() {
         <Card className="border-[#ff00ff]/20 bg-card/80 backdrop-blur-sm">
           <CardHeader>
             <h3 className="text-sm font-semibold uppercase tracking-wider text-[#ff00ff]">
-              Quick Summary
+              Sample Summary
             </h3>
             <p className="text-xs text-muted-foreground">
-              Recent trading activity overview
+              Illustrative figures only; no account history has been loaded.
             </p>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -164,8 +146,8 @@ export default function ReportsPage() {
             </div>
             
             <div className="space-y-2">
-              <p className="text-xs uppercase tracking-wider text-muted-foreground">Recent Activity</p>
-              {recentTrades.map((trade) => (
+              <p className="text-xs uppercase tracking-wider text-muted-foreground">Sample Activity</p>
+              {sampleTrades.map((trade) => (
                 <div 
                   key={trade.id}
                   className="flex items-center justify-between rounded-lg border border-[#00fff5]/10 bg-[#00fff5]/5 p-2"
@@ -187,8 +169,8 @@ export default function ReportsPage() {
                     <span className="text-xs text-muted-foreground">{trade.amount}</span>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs font-mono text-[#00fff5]">${trade.value.toLocaleString()}</p>
-                    <p className="text-[10px] text-muted-foreground">{trade.time}</p>
+                    <p className="text-xs font-mono text-[#00fff5]">${trade.value.toLocaleString("en-US")}</p>
+                    <p className="text-[10px] text-muted-foreground">Example trade {trade.id}</p>
                   </div>
                 </div>
               ))}
@@ -199,26 +181,13 @@ export default function ReportsPage() {
         <Card className="border-[#bf00ff]/20 bg-card/80 backdrop-blur-sm">
           <CardHeader>
             <h3 className="text-sm font-semibold uppercase tracking-wider text-[#bf00ff]">
-              Export Settings
+              Export Availability
             </h3>
           </CardHeader>
           <CardContent className="space-y-3 text-xs text-muted-foreground">
             <p>
-              Reports are generated in CSV format compatible with most accounting software 
-              and tax preparation tools.
+              Downloads and tax reports are not available yet. These previews are not account statements or tax documents.
             </p>
-            <div className="flex items-center gap-2">
-              <div className="h-2 w-2 rounded-full bg-[#39ff14]" />
-              <span>Supports TurboTax, CoinTracker, Koinly</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="h-2 w-2 rounded-full bg-[#39ff14]" />
-              <span>FIFO/LIFO cost basis methods available</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="h-2 w-2 rounded-full bg-[#39ff14]" />
-              <span>Automatic fee tracking included</span>
-            </div>
           </CardContent>
         </Card>
       </div>
@@ -227,36 +196,39 @@ export default function ReportsPage() {
         <SheetContent side="right" className="w-full sm:max-w-lg border-l border-[#00fff5]/20 bg-card">
           <SheetHeader>
             <SheetTitle className="text-[#00fff5] uppercase tracking-wider">
-              {previewReport?.title ?? "Report Preview"}
+              Sample {previewReport?.title ?? "Report"} Preview
             </SheetTitle>
+            <SheetDescription>
+              Illustrative layout only. No account data, tax calculation or downloadable report is included.
+            </SheetDescription>
           </SheetHeader>
           <div className="mt-6 space-y-4">
             <p className="text-sm text-muted-foreground">
-              This preview shows a summary of what will be included in the generated report.
+              These fixed example figures show a possible report layout. They do not describe your trading results.
             </p>
             
             <div className="rounded-lg border border-[#00fff5]/20 p-4">
-              <h4 className="text-sm font-semibold text-[#00fff5] mb-3">Report Contents</h4>
+              <h4 className="text-sm font-semibold text-[#00fff5] mb-3">Example Contents</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li className="flex items-center gap-2">
                   <div className="h-1.5 w-1.5 rounded-full bg-[#00fff5]" />
-                  Complete transaction history with timestamps
+                  Sample activity and period summary
                 </li>
                 <li className="flex items-center gap-2">
                   <div className="h-1.5 w-1.5 rounded-full bg-[#00fff5]" />
-                  Cost basis calculations (FIFO method)
+                  Example asset amounts
                 </li>
                 <li className="flex items-center gap-2">
                   <div className="h-1.5 w-1.5 rounded-full bg-[#00fff5]" />
-                  Realized and unrealized gains/losses
+                  Illustrative profit and loss figures
                 </li>
                 <li className="flex items-center gap-2">
                   <div className="h-1.5 w-1.5 rounded-full bg-[#00fff5]" />
-                  Network fees and exchange commissions
+                  No fee reconciliation or tax calculations
                 </li>
                 <li className="flex items-center gap-2">
                   <div className="h-1.5 w-1.5 rounded-full bg-[#00fff5]" />
-                  Wallet address mapping
+                  No verified wallet history
                 </li>
               </ul>
             </div>
@@ -284,15 +256,17 @@ export default function ReportsPage() {
             </div>
             
             <Button 
+              type="button"
+              disabled
+              aria-describedby="preview-report-unavailable"
               className="w-full bg-gradient-to-r from-[#00fff5] to-[#ff00ff] text-black hover:opacity-90"
-              onClick={() => {
-                handleGenerate(previewReport?.id ?? "");
-                setPreviewReport(null);
-              }}
             >
               <Download className="mr-2 h-4 w-4" />
-              Generate Full Report
+              Generate unavailable
             </Button>
+            <p id="preview-report-unavailable" className="text-xs text-muted-foreground">
+              Account report generation is not available yet. This preview cannot be downloaded.
+            </p>
           </div>
         </SheetContent>
       </Sheet>
