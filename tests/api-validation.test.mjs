@@ -5,7 +5,7 @@ import vm from 'node:vm';
 import ts from 'typescript';
 
 const encode = value => new TextEncoder().encode(value);
-const SENTIMENT = { score: 75.5, sentiment: 'bullish', summary: 'Synthetic summary', key_factors: ['Synthetic factor'] };
+const SENTIMENT = { score: 75, sentiment: 'bullish', summary: 'Synthetic summary', key_factors: ['Synthetic factor'] };
 const clone = value => JSON.parse(JSON.stringify(value));
 
 function harness(options = {}) {
@@ -242,8 +242,35 @@ test('sentiment exact fields/finite score/enum and calendar validation reject be
     { date: '2026-13-01' }, { date: '2026-04-31' }, { date: '0000-01-01' }, { date: '2026-01-00' }, { date: '2026-1-01' }, { unknown: true }]) {
     await assertResponse(await h.sentimentRoute.POST(request('/api/v1/sentiment', { method: 'POST', body: { ...SENTIMENT, ...patch } })), 400, 'BAD_REQUEST');
   }
-  await assertResponse(await h.sentimentRoute.POST(request('/api/v1/sentiment', { method: 'POST', body: JSON.stringify(SENTIMENT).replace('75.5', '1e309') })), 400, 'BAD_REQUEST');
+  await assertResponse(await h.sentimentRoute.POST(request('/api/v1/sentiment', { method: 'POST', body: JSON.stringify(SENTIMENT).replace('75', '1e309') })), 400, 'BAD_REQUEST');
   assert.equal(h.calls.length, 0); assert.equal(h.constructors.length, 0);
+});
+
+test('sentiment score uses integer values without fraction rounding or token/sign restrictions', async () => {
+  const rejected = harness();
+  for (const score of [0.1, 75.5, 99.9, -0.1, 100.1, true, false, '75', null]) {
+    await assertResponse(await rejected.sentimentRoute.POST(request('/api/v1/sentiment',
+      { method: 'POST', body: { ...SENTIMENT, score } })), 400, 'BAD_REQUEST');
+  }
+  for (const token of ['1e309', '-1e309']) {
+    const body = JSON.stringify(SENTIMENT).replace('75', token);
+    await assertResponse(await rejected.sentimentRoute.POST(request('/api/v1/sentiment',
+      { method: 'POST', body })), 400, 'BAD_REQUEST');
+  }
+  assert.equal(rejected.calls.length, 0); assert.equal(rejected.constructors.length, 0);
+
+  const accepted = harness();
+  for (const [token, score] of [['0', 0], ['1', 1], ['100', 100], ['1.0', 1], ['1e0', 1], ['-0', 0]]) {
+    const body = JSON.stringify(SENTIMENT).replace('75', token);
+    await assertResponse(await accepted.sentimentRoute.POST(request('/api/v1/sentiment',
+      { method: 'POST', body })), 201);
+    assert.equal(accepted.calls.at(-1).insert.score, score);
+    assert.equal(Number.isInteger(accepted.calls.at(-1).insert.score), true);
+  }
+  assert.equal(accepted.calls.length, 6); assert.equal(accepted.constructors.length, 1);
+  const negativeZero = accepted.validation.validateSentiment({ ...SENTIMENT, score: -0 });
+  assert.equal(Object.is(negativeZero.score, -0), true);
+  assert.throws(() => accepted.validation.validateSentiment({ ...SENTIMENT, score: 75.5 }), accepted.errors.ApiInputError);
 });
 
 test('Gregorian dates preserve valid low years/leap centuries and omitted UTC date', async () => {

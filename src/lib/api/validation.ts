@@ -118,8 +118,8 @@ export function validateSentiment(value: unknown): SentimentPayload {
   const body = validateJsonObject(value);
   const allowed = new Set(["score", "sentiment", "summary", "key_factors", "date"]);
   if (Object.keys(body).some(key => !allowed.has(key))) invalid("Request contains unsupported fields");
-  if (typeof body.score !== "number" || !Number.isFinite(body.score) || body.score < 0 || body.score > 100) {
-    invalid("score must be a finite number between 0 and 100");
+  if (typeof body.score !== "number" || !Number.isFinite(body.score) || !Number.isInteger(body.score) || body.score < 0 || body.score > 100) {
+    invalid("score must be an integer between 0 and 100");
   }
   if (body.sentiment !== "bullish" && body.sentiment !== "bearish" && body.sentiment !== "neutral") {
     invalid("sentiment must be bullish, bearish, or neutral");
