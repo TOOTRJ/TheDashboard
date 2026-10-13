@@ -38,6 +38,23 @@ def wheel_bytes(name="fixture", version="1.0", tag="py3-none-any", internal_tag=
     return f"{name}-{version}-{tag}.whl", content.getvalue()
 
 
+class PullClock:
+    def __init__(self):
+        self.now = 100.0
+        self.sleeps = []
+
+    def monotonic(self):
+        return self.now
+
+    def sleep(self, seconds):
+        self.sleeps.append(seconds)
+        self.now += seconds
+
+
+def docker_args(command):
+    return command[command.index("--host") + 2:]
+
+
 class NativeWheelTests(unittest.TestCase):
     def setUp(self):
         self.stack = ExitStack(); self.addCleanup(self.stack.close)
@@ -70,7 +87,8 @@ class NativeWheelTests(unittest.TestCase):
 
     def hosted(self):
         return {"GITHUB_ACTIONS": "true", "RUNNER_ENVIRONMENT": "github-hosted",
-                "GITHUB_REPOSITORY_ID": "1141090963", "RUNNER_TEMP": str(self.root)}
+                "GITHUB_REPOSITORY_ID": "1141090963", "RUNNER_TEMP": str(self.root),
+                "DASHBOARD_TEST_SHARD": "1"}
 
     def runtime(self):
         self.stack.enter_context(patch.object(wheels.sys, "version_info", (3, 12, 14)))
@@ -264,44 +282,236 @@ class NativeWheelTests(unittest.TestCase):
         metadata = {"Architecture": "amd64", "Os": "linux", "Id": pin["config"],
                     "RepoDigests": [pin["repository"] + "@" + pin["manifest"]]}
         events, output = [], io.StringIO()
+        clock = PullClock()
         def execute(command, **kwargs):
             events.append((command, kwargs))
-            if command[3] == "pull" and sum(event[0][3] == "pull" for event in events) == 1:
+            if docker_args(command)[0] == "pull" and sum(docker_args(event[0])[0] == "pull" for event in events) == 1:
+                clock.now += 2
                 return subprocess.CompletedProcess(command, 1, "", "503 service unavailable synthetic-private-token")
-            return subprocess.CompletedProcess(command, 0, json.dumps([metadata]) if command[3:5] == ["image", "inspect"] else "", "")
+            return subprocess.CompletedProcess(command, 0, json.dumps([metadata]) if docker_args(command)[:2] == ["image", "inspect"] else "", "")
         with patch.object(images, "PINS", (pin,)), patch.object(images.subprocess, "run", side_effect=execute), \
-             patch.object(images.time, "sleep") as sleep, patch.object(images.time, "monotonic", return_value=100), \
+             patch.object(images.time, "sleep", side_effect=clock.sleep), patch.object(images.time, "monotonic", side_effect=clock.monotonic), \
+             patch.object(images, "jitter_seconds", return_value=3), \
              patch("sys.stdout", output):
             images.prepare(self.hosted())
-        pulls = [event for event in events if event[0][3] == "pull"]
+        pulls = [event for event in events if docker_args(event[0])[0] == "pull"]
         self.assertEqual(len(pulls), 2); self.assertEqual(pulls[0][0], pulls[1][0])
-        self.assertLessEqual(max(event[1]["timeout"] for event in pulls), 240)
-        sleep.assert_called_once_with(5)
+        self.assertEqual([event[1]["timeout"] for event in pulls], [237, 222])
+        self.assertEqual(clock.sleeps, [3, 13])
         self.assertIn(pin["manifest"], output.getvalue()); self.assertIn("registry-unavailable", output.getvalue())
+        reports = [json.loads(line) for line in output.getvalue().splitlines()]
+        failure = next(item for item in reports if item.get('state') == 'failed')
+        self.assertEqual(failure['elapsed_seconds'], 2)
+        self.assertEqual(failure['pin_elapsed_seconds'], 5)
         self.assertNotIn("synthetic-private-token", output.getvalue())
 
     def test_permanent_pull_failure_and_exhausted_retry_are_bounded_and_never_fallback(self):
         pin = images.PINS[2]
         for error, count in (("unauthorized synthetic-private-token", 1), ("manifest unknown synthetic-private-token", 1),
-                             ("toomanyrequests synthetic-private-token", 3)):
+                             ("unknown synthetic-private-token", 1), ("toomanyrequests synthetic-private-token", 5)):
             output = io.StringIO()
+            clock = PullClock()
             with self.subTest(error=error), patch.object(images, "PINS", (pin,)), \
                  patch.object(images.subprocess, "run", return_value=subprocess.CompletedProcess([], 1, "", error)) as execute, \
-                 patch.object(images.time, "sleep") as sleep, patch.object(images.time, "monotonic", return_value=100), \
+                 patch.object(images.time, "sleep", side_effect=clock.sleep), patch.object(images.time, "monotonic", side_effect=clock.monotonic), \
+                 patch.object(images, "jitter_seconds", return_value=3), \
                  patch("sys.stdout", output), self.assertRaises(RuntimeError) as caught:
                 images.prepare(self.hosted())
             self.assertEqual(execute.call_count, count)
-            self.assertLessEqual(sum(call.args[0] for call in sleep.call_args_list), 15)
+            self.assertLessEqual(sum(clock.sleeps), 145)
+            self.assertEqual(clock.sleeps, [3, 13, 23, 43, 63] if count == 5 else [3])
             self.assertTrue(all(call.args[0][-1] == pin["repository"] + "@" + pin["manifest"] for call in execute.call_args_list))
+            self.assertTrue(all(0 < call.kwargs['timeout'] <= 240 for call in execute.call_args_list))
             self.assertNotIn("synthetic-private-token", output.getvalue() + str(caught.exception))
 
     def test_pull_deadline_exhaustion_prevents_a_second_240_second_attempt(self):
         output = io.StringIO()
-        with patch.object(images, "PINS", (images.PINS[0],)), patch.object(images.subprocess, "run", side_effect=subprocess.TimeoutExpired([], 240)) as execute, \
-             patch.object(images.time, "sleep") as sleep, patch.object(images.time, "monotonic", side_effect=(100, 100, 341)), \
+        clock = PullClock()
+        def expired(*args, **kwargs):
+            clock.now += kwargs['timeout']
+            raise subprocess.TimeoutExpired([], kwargs['timeout'])
+        with patch.object(images, "PINS", (images.PINS[0],)), patch.object(images.subprocess, "run", side_effect=expired) as execute, \
+             patch.object(images.time, "sleep", side_effect=clock.sleep), patch.object(images.time, "monotonic", side_effect=clock.monotonic), \
+             patch.object(images, "jitter_seconds", return_value=0), \
              patch("sys.stdout", output), self.assertRaisesRegex(RuntimeError, "network-timeout"):
             images.prepare(self.hosted())
-        self.assertEqual(execute.call_count, 1); sleep.assert_not_called()
+        self.assertEqual(execute.call_count, 1); self.assertEqual(clock.sleeps, [0])
+
+    def test_initial_shard_stagger_is_part_of_each_pin_budget_and_never_an_image_selector(self):
+        pins = images.PINS[:2]
+        for shard in range(1, 5):
+            clock, events = PullClock(), []
+            def execute(command, **kwargs):
+                args = docker_args(command); events.append((args, kwargs['timeout']))
+                pin = next(pin for pin in pins if args[-1] in (pin['tag'], pin['repository'] + '@' + pin['manifest']))
+                metadata = {'Architecture': 'amd64', 'Os': 'linux', 'Id': pin['config'],
+                            'RepoDigests': [pin['repository'] + '@' + pin['manifest']]}
+                return subprocess.CompletedProcess(command, 0, json.dumps([metadata]) if args[:2] == ['image', 'inspect'] else '', '')
+            with self.subTest(shard=shard), patch.object(images, 'PINS', pins), \
+                 patch.object(images.subprocess, 'run', side_effect=execute), \
+                 patch.object(images.time, 'monotonic', side_effect=clock.monotonic), \
+                 patch.object(images.time, 'sleep', side_effect=clock.sleep), \
+                 patch.object(images, 'jitter_seconds', return_value=3), patch('sys.stdout', io.StringIO()):
+                images.prepare({**self.hosted(), 'DASHBOARD_TEST_SHARD': str(shard)})
+            delay = (shard - 1) * 4 + 3
+            self.assertEqual(clock.sleeps, [delay, delay])
+            pulls = [(args, timeout) for args, timeout in events if args[0] == 'pull']
+            self.assertEqual([args[-1] for args, _ in pulls], [pin['repository'] + '@' + pin['manifest'] for pin in pins])
+            self.assertEqual([timeout for _, timeout in pulls], [240 - delay, 240 - delay])
+
+    def test_noncanonical_or_absent_shard_refuses_before_filesystem_or_process_work(self):
+        for value in (None, '', '0', '5', '01', '1 ', ' 1', '1\n', '1.0', True, 1, 'secret'):
+            environment = self.hosted(); environment['DASHBOARD_TEST_SHARD'] = value
+            with self.subTest(value=value), patch.object(images, 'runner_directory') as directory, \
+                 patch.object(images.os, 'mkdir') as mkdir, patch.object(images.subprocess, 'run') as execute, \
+                 self.assertRaisesRegex(RuntimeError, 'canonical SQL shard'):
+                images.prepare(environment)
+            directory.assert_not_called(); mkdir.assert_not_called(); execute.assert_not_called()
+
+    def test_runner_directory_requires_canonical_owned_nonwritable_directory_before_process(self):
+        regular = self.root / 'regular'; regular.write_text('preserve')
+        target = self.root / 'target'; target.mkdir(mode=0o700)
+        link = self.root / 'linked'; link.symlink_to(target, target_is_directory=True)
+        writable = self.root / 'writable'; writable.mkdir(mode=0o777); writable.chmod(0o777)
+        for value in ('relative', '', None, str(regular), str(link), str(target / '..' / 'target'),
+                      str(self.root / 'absent'), str(writable)):
+            with self.subTest(value=value), patch.object(images.os, 'mkdir') as mkdir, \
+                 patch.object(images.subprocess, 'run') as execute, self.assertRaisesRegex(RuntimeError, 'owned runner temporary'):
+                images.prepare({**self.hosted(), 'RUNNER_TEMP': value})
+            mkdir.assert_not_called(); execute.assert_not_called()
+        metadata = target.lstat()
+        with patch.object(images.Path, 'lstat', return_value=type('ForeignOwner', (), {
+                'st_mode': metadata.st_mode, 'st_uid': os.geteuid() + 1})()), \
+             patch.object(images.subprocess, 'run') as execute, self.assertRaises(RuntimeError):
+            images.runner_directory(str(target))
+        execute.assert_not_called(); self.assertEqual(regular.read_text(), 'preserve')
+
+    def test_every_docker_child_uses_same_empty_private_config_and_sanitized_environment_then_removes_only_it(self):
+        pin = images.PINS[0]; configs = []
+        foreign = self.root / 'shared-docker'; foreign.mkdir(); (foreign / 'config.json').write_text('preserve private credentials')
+        metadata = {'Architecture': 'amd64', 'Os': 'linux', 'Id': pin['config'],
+                    'RepoDigests': [pin['repository'] + '@' + pin['manifest']]}
+        inherited = {**self.hosted(), 'PATH': '/test/bin', 'DOCKER_CONFIG': str(foreign),
+                     'HOME': str(foreign), 'DOCKER_AUTH_CONFIG': 'synthetic-private-token',
+                     'DOCKER_CONTEXT': 'private-context', 'SUPABASE_SERVICE_ROLE_KEY': 'synthetic-private-token',
+                     'HTTPS_PROXY': 'private-proxy', 'TMPDIR': '/foreign/temp'}
+        def execute(command, **kwargs):
+            config = Path(command[command.index('--config') + 1]); configs.append(config)
+            self.assertEqual(config.parent, self.root); self.assertEqual(config.stat().st_mode & 0o777, 0o700)
+            self.assertEqual(list(config.iterdir()), [])
+            self.assertEqual(kwargs['env'], {'PATH': '/test/bin', 'DOCKER_HOST': 'unix:///var/run/docker.sock',
+                                            'DOCKER_CONFIG': str(config), 'TMPDIR': str(self.root)})
+            args = docker_args(command)
+            return subprocess.CompletedProcess(command, 0, json.dumps([metadata]) if args[:2] == ['image', 'inspect'] else '', '')
+        with patch.object(images, 'PINS', (pin,)), patch.object(images.subprocess, 'run', side_effect=execute), \
+             patch.object(images.time, 'sleep'), patch.object(images, 'jitter_seconds', return_value=0), patch('sys.stdout', io.StringIO()):
+            images.prepare(inherited)
+        self.assertEqual(len(configs), 4); self.assertEqual(len(set(configs)), 1)
+        self.assertFalse(configs[0].exists()); self.assertEqual((foreign / 'config.json').read_text(), 'preserve private credentials')
+
+    def test_success_after_deadline_and_scheduler_sleep_overshoot_fail_without_inspect_or_retry(self):
+        for phase in ('pull-success', 'initial-sleep', 'retry-sleep'):
+            clock, events = PullClock(), []
+            def sleep(seconds):
+                clock.sleep(seconds)
+                if phase == 'initial-sleep' or (phase == 'retry-sleep' and len(clock.sleeps) == 2):
+                    clock.now += 241
+            def execute(command, **kwargs):
+                events.append((command, kwargs))
+                if phase == 'pull-success':
+                    clock.now += 241
+                    return subprocess.CompletedProcess(command, 0, '', '')
+                return subprocess.CompletedProcess(command, 1, '', '429 synthetic-private-token')
+            output = io.StringIO()
+            with self.subTest(phase=phase), patch.object(images, 'PINS', (images.PINS[0],)), \
+                 patch.object(images.subprocess, 'run', side_effect=execute), \
+                 patch.object(images.time, 'monotonic', side_effect=clock.monotonic), patch.object(images.time, 'sleep', side_effect=sleep), \
+                 patch.object(images, 'jitter_seconds', return_value=0), patch('sys.stdout', output), self.assertRaises(RuntimeError):
+                images.prepare(self.hosted())
+            self.assertEqual(len(events), 0 if phase == 'initial-sleep' else 1)
+            self.assertTrue(all(docker_args(command)[0] == 'pull' for command, _ in events))
+            self.assertFalse(list(self.root.glob('dashboard-ci-docker-*')))
+            self.assertNotIn('synthetic-private-token', output.getvalue())
+
+    def test_keyboard_cancellation_during_stagger_or_pull_unwinds_only_owned_config(self):
+        foreign = self.root / 'untouched'; foreign.mkdir(); (foreign / 'keep').write_text('keep')
+        for phase in ('stagger', 'pull'):
+            output = io.StringIO()
+            with self.subTest(phase=phase), patch.object(images, 'PINS', (images.PINS[0],)), \
+                 patch.object(images, 'jitter_seconds', return_value=0), \
+                 patch.object(images.time, 'sleep', side_effect=KeyboardInterrupt if phase == 'stagger' else None), \
+                 patch.object(images.subprocess, 'run', side_effect=KeyboardInterrupt) as execute, \
+                 patch('sys.stdout', output), self.assertRaises(KeyboardInterrupt):
+                images.prepare(self.hosted())
+            self.assertEqual(execute.call_count, 0 if phase == 'stagger' else 1)
+            self.assertFalse(list(self.root.glob('dashboard-ci-docker-*')))
+            self.assertEqual((foreign / 'keep').read_text(), 'keep')
+            if phase == 'pull': self.assertIn('"state": "cancelled"', output.getvalue())
+
+    def test_changed_config_name_is_refused_and_replacement_is_never_removed(self):
+        preserved = []
+        def replace(command, **kwargs):
+            config = Path(command[command.index('--config') + 1])
+            moved = config.with_name(config.name + '-original'); config.rename(moved)
+            config.mkdir(mode=0o700); (config / 'keep').write_text('replacement')
+            preserved.extend((config, moved))
+            return subprocess.CompletedProcess(command, 0, '', '')
+        try:
+            with patch.object(images, 'PINS', (images.PINS[0],)), patch.object(images.subprocess, 'run', side_effect=replace) as execute, \
+                 patch.object(images.time, 'sleep'), patch.object(images, 'jitter_seconds', return_value=0), \
+                 patch('sys.stdout', io.StringIO()), self.assertRaisesRegex(RuntimeError, 'cleanup refused'):
+                images.prepare(self.hosted())
+            self.assertEqual(execute.call_count, 1)
+            self.assertEqual((preserved[0] / 'keep').read_text(), 'replacement'); self.assertTrue(preserved[1].is_dir())
+        finally:
+            if preserved:
+                (preserved[0] / 'keep').unlink(); preserved[0].rmdir(); preserved[1].rmdir()
+
+    def test_new_config_contents_refuse_before_next_command_and_are_not_recursively_deleted(self):
+        configs = []
+        def write(command, **kwargs):
+            config = Path(command[command.index('--config') + 1]); configs.append(config)
+            (config / 'config.json').write_text('synthetic only')
+            return subprocess.CompletedProcess(command, 0, '', '')
+        try:
+            with patch.object(images, 'PINS', (images.PINS[0],)), patch.object(images.subprocess, 'run', side_effect=write) as execute, \
+                 patch.object(images.time, 'sleep'), patch.object(images, 'jitter_seconds', return_value=0), \
+                 patch('sys.stdout', io.StringIO()), self.assertRaisesRegex(RuntimeError, 'cleanup refused'):
+                images.prepare(self.hosted())
+            self.assertEqual(execute.call_count, 1); self.assertEqual((configs[0] / 'config.json').read_text(), 'synthetic only')
+        finally:
+            if configs: (configs[0] / 'config.json').unlink(); configs[0].rmdir()
+
+    def test_parent_replacement_refuses_and_descriptor_cleanup_touches_only_original_created_directory(self):
+        parent = self.root / 'runner-temp'; parent.mkdir(mode=0o700)
+        moved = self.root / 'original-runner-temp'
+        configs = []
+        def replace(command, **kwargs):
+            configs.append(Path(command[command.index('--config') + 1]).name)
+            parent.rename(moved); parent.mkdir(mode=0o700); (parent / 'keep').write_text('replacement')
+            return subprocess.CompletedProcess(command, 0, '', '')
+        with patch.object(images, 'PINS', (images.PINS[0],)), patch.object(images.subprocess, 'run', side_effect=replace) as execute, \
+             patch.object(images.time, 'sleep'), patch.object(images, 'jitter_seconds', return_value=0), \
+             patch('sys.stdout', io.StringIO()), self.assertRaisesRegex(RuntimeError, 'binding changed'):
+            images.prepare({**self.hosted(), 'RUNNER_TEMP': str(parent)})
+        self.assertEqual(execute.call_count, 1)
+        self.assertFalse((moved / configs[0]).exists()); self.assertEqual((parent / 'keep').read_text(), 'replacement')
+
+    def test_final_config_mode_change_is_refused_before_successful_return_and_owned_empty_directory_is_removed(self):
+        pin, configs = images.PINS[0], []
+        metadata = {'Architecture': 'amd64', 'Os': 'linux', 'Id': pin['config'],
+                    'RepoDigests': [pin['repository'] + '@' + pin['manifest']]}
+        calls = 0
+        def execute(command, **kwargs):
+            nonlocal calls
+            calls += 1; config = Path(command[command.index('--config') + 1]); configs.append(config)
+            if calls == 4: config.chmod(0o777)
+            return subprocess.CompletedProcess(command, 0, json.dumps([metadata]) if docker_args(command)[:2] == ['image', 'inspect'] else '', '')
+        with patch.object(images, 'PINS', (pin,)), patch.object(images.subprocess, 'run', side_effect=execute), \
+             patch.object(images.time, 'sleep'), patch.object(images, 'jitter_seconds', return_value=0), \
+             patch('sys.stdout', io.StringIO()), self.assertRaisesRegex(RuntimeError, 'binding changed'):
+            images.prepare(self.hosted())
+        self.assertEqual(calls, 4); self.assertFalse(configs[0].exists())
 
 
 if __name__ == "__main__": unittest.main()

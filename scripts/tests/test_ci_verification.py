@@ -312,6 +312,32 @@ print("fixed child environment passed")'''
             with self.subTest(env=changed), self.assertRaises(ValueError):
                 policy.validate_workflow(yaml.safe_dump(mutation))
 
+    def test_image_preparation_shard_environment_is_exact_step_scoped_and_cannot_bypass_setup(self):
+        original = yaml.safe_load(policy.WORKFLOW.read_text())
+        policy.validate_workflow(yaml.safe_dump(original))
+        image = next(step for step in original['jobs']['postgres']['steps'] if step.get('name') == policy.IMAGE_PREP_STEP)
+        self.assertEqual(image['env'], policy.WORKER_SHARD_ENV)
+        self.assertEqual(image['run'], policy.IMAGE_PREP_COMMAND)
+        for environment in (None, {}, {'DASHBOARD_TEST_SHARD': '1'},
+                            {'DASHBOARD_TEST_SHARD': '${{ github.event.inputs.shard }}'},
+                            {**policy.WORKER_SHARD_ENV, 'DOCKER_CONFIG': '/shared/docker'},
+                            {**policy.WORKER_SHARD_ENV, 'SUPABASE_SERVICE_ROLE_KEY': 'never-copy'}):
+            mutation = copy.deepcopy(original)
+            step = next(step for step in mutation['jobs']['postgres']['steps'] if step.get('name') == policy.IMAGE_PREP_STEP)
+            if environment is None: step.pop('env')
+            else: step['env'] = environment
+            with self.subTest(environment=environment), self.assertRaises(ValueError):
+                policy.validate_workflow(yaml.safe_dump(mutation))
+        for change in ('delete', 'duplicate', 'after-integration', 'renamed'):
+            mutation = copy.deepcopy(original); steps = mutation['jobs']['postgres']['steps']
+            step = next(step for step in steps if step.get('name') == policy.IMAGE_PREP_STEP)
+            if change == 'delete': steps.remove(step)
+            elif change == 'duplicate': steps.insert(steps.index(step), copy.deepcopy(step))
+            elif change == 'after-integration': steps.remove(step); steps.append(step)
+            else: step['name'] = 'Unreviewed preparation'
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                policy.validate_workflow(yaml.safe_dump(mutation))
+
     def test_native_wheel_preparation_and_exact_owned_execution_path_cannot_be_removed_or_misplaced(self):
         original = yaml.safe_load(policy.WORKFLOW.read_text())
         mutations = []
