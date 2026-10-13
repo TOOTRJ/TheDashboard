@@ -414,3 +414,12 @@ class PortableNativeSqlTests(unittest.TestCase):
                 body['evidence']['inputs']['provider']['history']={'documents':[{'received_wall_us':(now+offset)*1_000_000}],
                     'minutes':[],'unscaled':True}
                 self.reject_sql('BEGIN;'+self.sql(numbers.encode(body))+'COMMIT;',expected)
+
+    def test_native_projection_text_decodes_to_the_exact_original_checkpoint_header(self):
+        self.create();row=self.bootstrap();self.commit(row[2])
+        raw=self.db.scalar('SELECT resolved_wire FROM vn_portable_native_research.active_projection;')
+        projection=numbers.decode(raw.encode(),maximum=262144)
+        self.assertEqual(projection,row[1].resolve())
+        self.assertEqual(projection['format'],'ga-portable-provider-checkpoint-research-v2')
+        self.assertEqual(projection['source_model_version'],'ga-portable-provider-model-research-v2')
+        self.assertNotIn('version',projection)
