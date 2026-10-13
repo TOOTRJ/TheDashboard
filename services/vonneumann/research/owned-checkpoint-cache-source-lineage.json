@@ -1,0 +1,61 @@
+{
+  "authority": {
+    "hosted_activation": false,
+    "live_trading_authority": false,
+    "native_admission": false,
+    "performance_calibration": false,
+    "provider_authenticated": false,
+    "restoration_authority": false
+  },
+  "cache_commit": "d55bff696694c69dde87577565c496d1f72ea93a",
+  "changed_source_paths": [
+    "tests/test_research_configuration_types.py",
+    "vonneumann/research/portable_partitioned_checkpoint.py",
+    "vonneumann/research/provider_portable_checkpoint.py"
+  ],
+  "date": "2026-10-13",
+  "format": "ga-owned-checkpoint-cache-source-lineage-research-v1",
+  "golden_fixture": {
+    "path": "tests/fixtures/owned-checkpoint-cache-wire-baseline.json",
+    "sha256": "ba9985083f9d96cd8212e8e1642725a62bdc1f7cba2fdc61764b1e7a9ce2c2c3"
+  },
+  "golden_source_before": {
+    "vonneumann/research/portable_partitioned_checkpoint.py": "cb682e2acbddc321e4f282c23d69e22ab32b599162873d0e44fd87ea30407985",
+    "vonneumann/research/provider_portable_checkpoint.py": "cc897d41c55882113e02c295c355b7be8bc620a442667df5add5d33fadbd10c8",
+    "vonneumann/research/provider_portable_ga_model.py": "e53486d35be4fdf642df85c33c9b9c278a82ba2016905a60e6870e59ae5df9ec"
+  },
+  "historical_defect_sha256": "ad301372e0c8a32b01f32c418b57b5213056a465d812c5ec6f6fb3bb36033341",
+  "historical_measurements": {
+    "research/configuration-type-repair-measurements.json": "0843296d6f677f089f897a5b41e9dc8de23ca1f32a0de2ea8a0925bd57adef05",
+    "research/portable-ga-model-type-repair-measurements.json": "8a520851e022f2ee079226687714a6b98df5d7632c2e240b5e3fd49bc826a146"
+  },
+  "source_after": {
+    "tests/measure_configuration_type_repair.py": "ff9391bd2ef3f83cdb37d9704e594e358212ec25d6037005ec194153cf25bdb6",
+    "tests/test_portable_ga_model.py": "81a927f02fa8a0d18bbb393bb37c0097d9eec309b1b35d4aef3834bd33caec70",
+    "tests/test_research_configuration_types.py": "8234ec7038ace3f349d1a278172e6e5c21afa920d603e3ceb6d83d07d5051804",
+    "vonneumann/core/integer_period_mutation.py": "6dd653e4f4d6eecf309d7c5974951afc87f170b72456da521d03e30dd2fd92b2",
+    "vonneumann/core/strategies/genetic_algorithm.py": "dd4ee9ac03f1d5db5fc899361f40c95207eef24d9d5ef8a070d5f720e4c744f5",
+    "vonneumann/research/exact_configuration.py": "d8b26b2045f051df0300de3ae159c7d9b3ff5c71e774379d633e6faca5b39b64",
+    "vonneumann/research/partitioned_checkpoint.py": "4752288ddaba3835270701253874b246522c5e760a602d616c862f37f42d1aa7",
+    "vonneumann/research/portable_partitioned_checkpoint.py": "5fc9a5ddac33a58f8855f4d7c356ca13a119909e6b819e4a681ae82972d55b75",
+    "vonneumann/research/provider_checkpoint.py": "877b511ac97425dc66d1bbb255f74541c7b51053daed29acc7196ecf406c97c7",
+    "vonneumann/research/provider_ga_model.py": "4343e38c9ccf864144abbb843e1b4936b2441954ade42c573c986dbc1d87f242",
+    "vonneumann/research/provider_portable_checkpoint.py": "b79433a9e7aaf34112b5f76927a4e6eb990e5f6630627337e6b1add90cb60843",
+    "vonneumann/research/provider_portable_ga_model.py": "e53486d35be4fdf642df85c33c9b9c278a82ba2016905a60e6870e59ae5df9ec"
+  },
+  "source_before": {
+    "tests/measure_configuration_type_repair.py": "ff9391bd2ef3f83cdb37d9704e594e358212ec25d6037005ec194153cf25bdb6",
+    "tests/test_portable_ga_model.py": "81a927f02fa8a0d18bbb393bb37c0097d9eec309b1b35d4aef3834bd33caec70",
+    "tests/test_research_configuration_types.py": "2c26fe0806f5b6edecb4a5709af2c2539f11cfca7a585a94be022b66fc334d3e",
+    "vonneumann/core/integer_period_mutation.py": "6dd653e4f4d6eecf309d7c5974951afc87f170b72456da521d03e30dd2fd92b2",
+    "vonneumann/core/strategies/genetic_algorithm.py": "dd4ee9ac03f1d5db5fc899361f40c95207eef24d9d5ef8a070d5f720e4c744f5",
+    "vonneumann/research/exact_configuration.py": "d8b26b2045f051df0300de3ae159c7d9b3ff5c71e774379d633e6faca5b39b64",
+    "vonneumann/research/partitioned_checkpoint.py": "4752288ddaba3835270701253874b246522c5e760a602d616c862f37f42d1aa7",
+    "vonneumann/research/portable_partitioned_checkpoint.py": "cb682e2acbddc321e4f282c23d69e22ab32b599162873d0e44fd87ea30407985",
+    "vonneumann/research/provider_checkpoint.py": "877b511ac97425dc66d1bbb255f74541c7b51053daed29acc7196ecf406c97c7",
+    "vonneumann/research/provider_ga_model.py": "4343e38c9ccf864144abbb843e1b4936b2441954ade42c573c986dbc1d87f242",
+    "vonneumann/research/provider_portable_checkpoint.py": "cc897d41c55882113e02c295c355b7be8bc620a442667df5add5d33fadbd10c8",
+    "vonneumann/research/provider_portable_ga_model.py": "e53486d35be4fdf642df85c33c9b9c278a82ba2016905a60e6870e59ae5df9ec"
+  },
+  "verification_scope": "Historical source lineage and present file bindings; pre-change golden source provenance; original configuration adversarial regression. No new native or trajectory measurements."
+}

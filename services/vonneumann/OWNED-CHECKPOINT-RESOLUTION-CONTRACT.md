@@ -143,3 +143,44 @@ genuine expiry refuses and leaves the original absent with rollback. Historical/
 foreign/current-head, data-free controls and no-load-created authority checks
 pass. Exact owned fixture cleanup completes. Complete hosted next-head CI remains
 required before merge or any operating bound; no provider/cloud request occurs.
+
+## Historical measurement lineage follow-up
+
+The hosted ordinary-test run at cache head `35d` passed the golden wire case but
+failed the configuration-repair provenance test because that test still compared
+current checkpoint implementation files with their pre-cache source hashes.
+That assertion failure is retained as CI evidence. It does not justify rewriting
+the historical measurements or claiming new native or trajectory measurements.
+
+The follow-up adds
+`research/owned-checkpoint-cache-source-lineage.json`, SHA-256
+`af0a494726b242fb110b591366e933ad6cfe2dfee68dc8c70934f353498f3869`.
+It binds these unchanged original measurement files:
+
+| Historical measurement | Preserved SHA-256 |
+| --- | --- |
+| `configuration-type-repair-measurements.json` | `0843296d6f677f089f897a5b41e9dc8de23ca1f32a0de2ea8a0925bd57adef05` |
+| `portable-ga-model-type-repair-measurements.json` | `8a520851e022f2ee079226687714a6b98df5d7632c2e240b5e3fd49bc826a146` |
+
+The record merges their original repaired-source maps, declares exactly three
+subsequent source changes (the two portable checkpoint modules and the provenance
+test itself), and binds every current source file to its actual bytes. All other
+recorded sources must still equal their historical hashes. The pre-change golden
+fixture's two checkpoint and model source hashes must equal those same historical
+repaired hashes. Both historical artifacts, the historical defect artifact, and
+the golden fixture retain their original bytes and hashes.
+
+The corrected provenance test requires the exact lineage schema, ancestor hashes,
+three-path change allowlist, actual current hashes, golden links, and false
+authority fields. It does not contain a literal hash of the lineage artifact:
+that artifact records the test's own new source hash, so such an assertion would
+create a self-hash cycle. This separately reviewed contract pins the lineage
+artifact instead. The original configuration adversarial assertions remain.
+
+All six `ResearchConfigurationTypeTests` methods passed, zero skips, in 6.866
+seconds with the same pinned, empty-environment, network-denied worker setup.
+This verifies rehashed scalar aliases, unknown/missing configuration fields,
+unchanged state/RNG/identity ledger/Stop behavior, canonical variable settings,
+and the new historical-to-current source bindings. The unchanged checkpoint
+implementation and 70-record golden fixture were not regenerated or remeasured.
+Complete CI on the corrected release head remains required.
