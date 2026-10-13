@@ -7,7 +7,7 @@ import { KpiCards } from "@/components/dashboard/KpiCards";
 import { getHoldings, getMarketTicker } from "@/lib/mock";
 import { TrendingUp, TrendingDown, Zap, Radio } from "lucide-react";
 
-function LiveMarketBanner() {
+function SampleMarketBanner() {
   const ticker = getMarketTicker();
   const [offset, setOffset] = React.useState(0);
   
@@ -31,11 +31,11 @@ function LiveMarketBanner() {
       <div className="flex items-center gap-3 border-b border-[#00fff5]/10 px-4 py-2 relative">
         <div className="relative flex items-center gap-2">
           <Radio className="h-3 w-3 text-[#39ff14] animate-pulse" />
-          <span className="text-xs uppercase tracking-wider text-[#39ff14] font-bold">Live Feed</span>
+          <span className="text-xs uppercase tracking-wider text-[#39ff14] font-bold">Sample ticker</span>
         </div>
         <div className="flex-1 h-px bg-gradient-to-r from-[#00fff5]/20 via-[#00fff5]/5 to-transparent" />
         <span className="text-[10px] text-muted-foreground font-mono">
-          {new Date().toLocaleTimeString()}
+          Local clock, not quote time: {new Date().toLocaleTimeString()}
         </span>
       </div>
       
@@ -79,7 +79,7 @@ function HoldingsTicker() {
     <div className="overflow-hidden rounded-lg border border-[#ff00ff]/20 bg-card/50 backdrop-blur-sm relative gradient-border-animated">
       <div className="flex items-center gap-2 border-b border-[#ff00ff]/10 px-4 py-2">
         <Zap className="h-3 w-3 text-[#ff00ff] animate-pulse" />
-        <span className="text-xs uppercase tracking-wider text-[#ff00ff] font-bold">Your Holdings</span>
+        <span className="text-xs uppercase tracking-wider text-[#ff00ff] font-bold">Example holdings</span>
         <div className="flex-1" />
         <span className="text-xs text-muted-foreground">
           {holdings.length} assets
@@ -186,8 +186,11 @@ function WelcomeHeader() {
 export default function Home() {
   return (
     <div className="space-y-6">
+      <p className="rounded-lg border border-[#00fff5]/20 bg-[#00fff5]/5 p-3 text-sm text-muted-foreground">
+        All prices, holdings, metrics, charts and activity below are generated or fixed examples. No account trades or live quotes are loaded.
+      </p>
       <WelcomeHeader />
-      <LiveMarketBanner />
+      <SampleMarketBanner />
       <HoldingsTicker />
       <KpiCards />
       <Charts />

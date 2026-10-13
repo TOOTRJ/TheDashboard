@@ -2,8 +2,6 @@
 
 import * as React from "react";
 import {
-  Area,
-  AreaChart,
   Bar,
   BarChart,
   CartesianGrid,
@@ -41,7 +39,7 @@ function ChartSkeleton() {
       <div className="absolute inset-0 flex items-center justify-center">
         <div className="flex items-center gap-2 text-muted-foreground">
           <div className="h-4 w-4 border-2 border-[#00fff5] border-t-transparent rounded-full animate-spin" />
-          <span className="text-xs uppercase tracking-wider">Loading chart...</span>
+          <span className="text-xs uppercase tracking-wider">Loading sample chart...</span>
         </div>
       </div>
     </div>
@@ -52,6 +50,7 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
   if (active && payload && payload.length) {
     return (
       <div className="rounded-lg border border-[#00fff5]/30 bg-card/95 backdrop-blur-xl p-3 shadow-xl shadow-[#00fff5]/10 scale-in">
+        <p className="text-xs text-muted-foreground">Sample prices</p>
         <p className="text-xs text-muted-foreground mb-2 font-mono">{label}</p>
         {payload.map((entry, index) => (
           <p key={index} className="text-sm font-mono font-medium flex items-center gap-2" style={{ color: entry.color }}>
@@ -110,10 +109,10 @@ export function Charts() {
                   <span className="absolute inset-0 animate-ping opacity-30">●</span>
                   <span className="relative">●</span>
                 </span>
-                Price Action
+                Sample Crypto Prices
               </h2>
               <p className="text-xs text-muted-foreground mt-1">
-                BTC, ETH & SOL price movements
+                Generated BTC, ETH and SOL examples; not live quotes
               </p>
             </div>
             <div className="flex items-center gap-4 text-xs">
@@ -238,10 +237,10 @@ export function Charts() {
         
         <CardHeader>
           <h2 className="text-sm font-semibold uppercase tracking-wider text-[#ff00ff]">
-            Holdings
+            Example Holdings Allocation
           </h2>
           <p className="text-xs text-muted-foreground mt-1">
-            Portfolio allocation by asset
+            Fixed example allocation; independent of the sample date range
           </p>
         </CardHeader>
         <CardContent className="h-[300px]">
@@ -318,10 +317,10 @@ export function Charts() {
         
         <CardHeader>
           <h2 className="text-sm font-semibold uppercase tracking-wider text-[#bf00ff]">
-            Trading Volume by Exchange
+            Example Volume by Exchange
           </h2>
           <p className="text-xs text-muted-foreground mt-1">
-            Your trading activity distribution across platforms
+            Fixed platform examples; independent of the sample date range
           </p>
         </CardHeader>
         <CardContent className="h-[220px]">
