@@ -11,12 +11,106 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import stat
 import time
 from uuid import UUID
 
 from tests.postgres.harness import OPT_IN
 from tests.postgres.test_portable_native import PortableNativeSqlTests,ACTOR,literal,ga,cp,numbers,OWNER,RUN,WORKER,EPOCH
 from tests.test_provider_contract import raw_minutes,raw_capture,source_inputs
+
+
+class ProbeOutputError(RuntimeError):
+    def __init__(self):super().__init__('Owned probe output is unavailable or incompatible')
+
+
+class _OwnedProbeOutput:
+    """Exclusive private files under pinned canonical /private/tmp parents.
+
+    Directory descriptors keep cleanup on the original parent after renames.
+    Neither a caller filename nor a replaced file conveys cleanup authority.
+    This is a trusted local operator boundary, not an OS sandbox against another
+    malicious process running under the same user.
+    """
+    def __init__(self, raw):
+        self.parent_fd=None;self.files={};self.published=False
+        try:
+            if type(raw) is not str or '\x00' in raw:raise ProbeOutputError()
+            output=Path(raw)
+            if not output.is_absolute() or str(output)!=raw or any(p in ('.','..') for p in output.parts):
+                raise ProbeOutputError()
+            if Path('/private/tmp') not in output.parents or output.suffix!='.json' or len(raw)>1024:
+                raise ProbeOutputError()
+            self.output=output;self.running=output.with_suffix('.running.json')
+            self.parts=output.parent.parts[1:];self.parent_pins=[]
+            self.parent_fd=self._open_parents(record=True)
+            for name in (self.output.name,self.running.name):
+                fd=os.open(name,os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW|os.O_CLOEXEC,
+                    0o600,dir_fd=self.parent_fd)
+                value=os.fstat(fd);self.files[name]=(fd,(value.st_dev,value.st_ino))
+                if not stat.S_ISREG(value.st_mode) or stat.S_IMODE(value.st_mode)!=0o600 or value.st_uid!=os.geteuid():
+                    raise ProbeOutputError()
+            self._check_binding()
+        except BaseException:
+            self.close();raise ProbeOutputError() from None
+
+    def _open_parents(self,*,record=False):
+        fd=os.open('/',os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW|os.O_CLOEXEC)
+        try:
+            for index,part in enumerate(self.parts):
+                child=os.open(part,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW|os.O_CLOEXEC,dir_fd=fd)
+                os.close(fd);fd=child;value=os.fstat(fd)
+                if not stat.S_ISDIR(value.st_mode) or (index>=2 and
+                    (value.st_uid!=os.geteuid() or stat.S_IMODE(value.st_mode)&0o077)):
+                    raise ProbeOutputError()
+                identity=(value.st_dev,value.st_ino)
+                if record:self.parent_pins.append(identity)
+                elif identity!=self.parent_pins[index]:raise ProbeOutputError()
+            return fd
+        except BaseException:
+            os.close(fd);raise
+
+    def _is_owned(self,name):
+        try:value=os.stat(name,dir_fd=self.parent_fd,follow_symlinks=False)
+        except FileNotFoundError:return False
+        return stat.S_ISREG(value.st_mode) and value.st_uid==os.geteuid() and (value.st_dev,value.st_ino)==self.files[name][1]
+
+    def _check_binding(self):
+        current=None
+        try:
+            current=self._open_parents()
+            if os.fstat(current).st_ino!=os.fstat(self.parent_fd).st_ino or any(not self._is_owned(n) for n in self.files):
+                raise ProbeOutputError()
+            if any(stat.S_IMODE(os.stat(n,dir_fd=self.parent_fd,follow_symlinks=False).st_mode)!=0o600 for n in self.files):
+                raise ProbeOutputError()
+        except OSError:raise ProbeOutputError() from None
+        finally:
+            if current is not None:os.close(current)
+
+    def write_running(self):
+        self._check_binding()
+        raw=(json.dumps({'pid':os.getpid(),'output':str(self.output),'scope':'owned portable native real-bar probe'})+'\n').encode()
+        with os.fdopen(os.dup(self.files[self.running.name][0]),'wb') as stream:stream.write(raw);stream.flush()
+
+    def publish(self,result):
+        self._check_binding()
+        raw=(json.dumps(result,indent=2,sort_keys=True)+'\n').encode()
+        with os.fdopen(os.dup(self.files[self.output.name][0]),'wb') as stream:stream.write(raw);stream.flush()
+        self._check_binding();self.published=True
+
+    def close(self):
+        failed=False
+        if self.parent_fd is not None:
+            try:self._check_binding()
+            except (ProbeOutputError,OSError):failed=True
+            for name,(fd,_) in self.files.items():
+                try:
+                    if not self._is_owned(name):failed=True
+                    elif name==self.running.name or not self.published:os.unlink(name,dir_fd=self.parent_fd)
+                except OSError:failed=True
+                finally:os.close(fd)
+            self.files.clear();os.close(self.parent_fd);self.parent_fd=None
+        return not failed
 
 
 def run(*,maximum_seconds: int):
@@ -133,19 +227,22 @@ def run(*,maximum_seconds: int):
 
 
 def main():
+    # Check both guards before resolving/statting paths or creating any file.
+    if os.environ.get(OPT_IN)!='1' or os.environ.get('DASHBOARD_PORTABLE_NATIVE_REAL_BAR_PROBE')!='1':
+        raise RuntimeError('Explicit owned PostgreSQL and real-bar probe opt-ins are both required')
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--maximum-seconds',type=int,default=970)
-    parser.add_argument('--output',type=Path,required=True)
-    args=parser.parse_args();output=args.output.resolve()
-    if Path('/private/tmp') not in output.parents:parser.error('Only a task-owned /private/tmp output is supported')
+    parser.add_argument('--output',required=True)
+    args=parser.parse_args()
+    if not 30<=args.maximum_seconds<=970:raise ValueError('The genuine-clock probe deadline must be30..970seconds')
+    owned=_OwnedProbeOutput(args.output)
     # This exact PID record permits interrupting only this task's probe. The
     # default Python SIGINT handling runs the owned fixture's finally cleanup.
-    running=output.with_suffix('.running.json')
-    running.write_text(json.dumps({'pid':os.getpid(),'output':str(output),'scope':'owned portable native real-bar probe'})+'\n')
-    try:result=run(maximum_seconds=args.maximum_seconds)
-    finally:running.unlink(missing_ok=True)
-    output.write_text(json.dumps(result,indent=2,sort_keys=True)+'\n')
-    print(json.dumps({'accepted':True,'output':str(output),'elapsed_seconds':result['elapsed_seconds']},sort_keys=True),flush=True)
+    try:
+        owned.write_running();result=run(maximum_seconds=args.maximum_seconds);owned.publish(result)
+    finally:
+        if not owned.close():raise ProbeOutputError()
+    print(json.dumps({'accepted':True,'output':str(owned.output),'elapsed_seconds':result['elapsed_seconds']},sort_keys=True),flush=True)
 
 
 if __name__=='__main__':main()

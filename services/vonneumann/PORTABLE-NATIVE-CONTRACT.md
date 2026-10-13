@@ -204,7 +204,7 @@ receipts remain unchanged and do not establish this later correction.
 The separately opt-in probe now passes completely against the final all-history
 clock package. Its exact SQL SHA256 is
 `76e23d44a296c838238e5545c9ea498eb86d2ac5caee9798236aee1f8a5bf5c4`,
-and its frozen probe source SHA256 is
+and the accepted historical probe source SHA256 is
 `c505e18fb3c5403d59f7f16aeed1f4fc4f84d26439af1ac7bb380f51026cf052`.
 `research/portable-native-genuine-stop-acceptance.json` retains the complete
 eight-command original-ID/hash/manifest/guard-time trace and fixture identity.
@@ -247,3 +247,38 @@ worker interpreter, cwd `services/vonneumann`, both
 the output must be task-owned temporary storage. The optional running record
 identifies only this probe's PID so a SIGINT can execute its owned cleanup.
 No shared daemon/tool/process is stopped or reconfigured.
+
+## Later CLI output-ownership repair
+
+The accepted genuine-Stop receipt above remains historical evidence for its
+recorded SQL and complete probe-source hashes. Its original probe source is
+retained at commit `52a4929bce065e8438d8270d360966b88b46ec8d`. A later repair
+changes only the CLI's local output rights; it does not rewrite that receipt,
+relabel the previous trace, or establish a new timed/native acceptance. The exact
+`run()` function source remains byte-identical, with SHA256
+`25153c91f462114c6caf73518cf8adf6db925fb03c6ab387b8a575ae752e557e`.
+SQL, assertions, genuine-clock bounds and source/lease rules remain unchanged.
+
+Both explicit opt-ins and the 30..970-second bound are checked before any file
+operation. Output paths must be canonical absolute `.json` paths beneath
+`/private/tmp`; traversed parents are pinned through no-follow directory
+descriptors, and nested parents beneath that system temporary directory must
+belong to the current user with private permissions. The output and its
+`.running.json` sibling are exclusively created as mode0600 regular files.
+Parent identities, leaf identities, ownership and private modes are checked
+before and after publication and again during final cleanup. Cleanup removes
+only this invocation's matching created PID record or unpublished output through
+the held parent descriptor. Existing or replaced objects are preserved; the
+helper never changes their permissions. The output reservation is empty while
+pending, and an incomplete or failed output grants no acceptance or authority.
+
+Thirteen ordinary, credential-free tests cover absent opt-ins, invalid deadlines,
+existing-file collisions, symlinks, noncanonical paths, nonprivate parents,
+exclusive mode0600 creation, failure cleanup, changed leaf identities/modes,
+renamed parents and staged replacements after publication. They also compare the
+frozen `run()` source hash. These are local file-rights tests, with a stubbed
+runner; they do not execute a real-bar wait, SQL fixture or provider request.
+The boundary assumes a trusted local operator and is not an OS sandbox against
+a hostile process under the same user. Observed replacement causes refusal,
+and uncertain command outcomes still require reconciliation by the original ID
+rather than a fresh-ID retry.
