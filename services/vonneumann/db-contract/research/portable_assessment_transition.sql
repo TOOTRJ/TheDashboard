@@ -9,33 +9,33 @@ CREATE SCHEMA vn_portable_assessment_research;
 REVOKE ALL ON SCHEMA vn_portable_assessment_research FROM PUBLIC;
 
 CREATE FUNCTION vn_portable_assessment_research.float_view(value jsonb) RETURNS jsonb
-LANGUAGE sql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE sql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
  SELECT CASE WHEN value IS NULL OR value='null'::jsonb THEN 'null'::jsonb
   ELSE jsonb_build_object('float64',value->'$binary64') END
 $function$;
 
 CREATE FUNCTION vn_portable_assessment_research.time_view(value jsonb) RETURNS jsonb
-LANGUAGE sql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE sql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
  SELECT vn_portable_assessment_research.float_view(vn_portable_source_research.round_ratio(
    vn_portable_dependency_research.counter(value,0,1099511627776),1))
 $function$;
 
 CREATE FUNCTION vn_portable_assessment_research.policy() RETURNS jsonb
-LANGUAGE sql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE sql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
  SELECT jsonb_build_object('version','common-market-window-v1','horizon_unit','market_minutes',
   'warmup','all_candidates_ready','early_terminal','freeze_cash_and_score_until_common_deadline',
   'interruptions','abort_without_tell','deadline_mark','first_valid_observation_at_or_after_deadline')
 $function$;
 
 CREATE FUNCTION vn_portable_assessment_research.source_cursor(state jsonb,at jsonb) RETURNS jsonb
-LANGUAGE sql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE sql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
  SELECT jsonb_build_object('policy','ga-provider-source-research-v1','epoch',state#>'{source,epoch}',
   'sequence',state#>'{source,quote_sequence}','at',at,'candle_count',state#>'{engine,ema,count}',
   'bar',state#>'{source,bars,-1}','frame',state#>'{source,last_quote}')
 $function$;
 
 CREATE FUNCTION vn_portable_assessment_research.snapshot(member jsonb,account jsonb,holding jsonb,state jsonb,at jsonb) RETURNS jsonb
-LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE cash numeric:=vn_portable_economic_research.units(account->'cash',36);
  initial numeric:=vn_portable_economic_research.units(account->'initial_cash',36);
  n numeric; d numeric; g numeric; roi jsonb; dd jsonb; fitness jsonb;
@@ -44,8 +44,8 @@ BEGIN
  IF initial<=0 THEN RAISE EXCEPTION 'assessment_zero_initial_cash' USING ERRCODE='22023'; END IF;
  n:=cash-initial; d:=initial; g:=gcd(n,d); n:=div(n,g); d:=div(d,g);
  roi:=vn_portable_source_research.round_ratio(n,d);
- dd:=vn_portable_source_research.round_ratio(vn_numeric_research.integer_text(member#>>'{max_drawdown,numerator}'),
-   vn_numeric_research.integer_text(member#>>'{max_drawdown,denominator}'));
+ dd:=vn_portable_source_research.round_ratio(vn_portable_numeric_research.integer_text(member#>>'{max_drawdown,numerator}'),
+   vn_portable_numeric_research.integer_text(member#>>'{max_drawdown,denominator}'));
  fitness:=vn_portable_source_research.binary_operation('subtract',roi,
    vn_portable_source_research.binary_operation('multiply','{"$binary64":"0x1.0000000000000p+1"}',dd));
  RETURN jsonb_build_object('captured_revision',state->'revision','captured_at',at,
@@ -57,7 +57,7 @@ BEGIN
 END $function$;
 
 CREATE FUNCTION vn_portable_assessment_research.cohort(state jsonb) RETURNS jsonb
-LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE ids jsonb; gen bigint:=vn_portable_dependency_research.counter(state#>'{engine,generation}',0,2147483647);
 BEGIN
  SELECT jsonb_agg(v->'id' ORDER BY ordinal) INTO ids FROM jsonb_array_elements(state#>'{engine,members}') WITH ORDINALITY a(v,ordinal);
@@ -69,7 +69,7 @@ END $function$;
 
 CREATE FUNCTION vn_portable_assessment_research.result(member jsonb,metrics jsonb,cohort jsonb,ordinal integer,
  reason text,at jsonb,aborted boolean,complete boolean) RETURNS jsonb
-LANGUAGE sql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE sql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
  SELECT jsonb_build_object('probe_id',member->'id','evaluation_id',(cohort->>'iteration_id')||':'||ordinal::text,
   'iteration_id',cohort->'iteration_id','fitness',CASE WHEN aborted THEN 'null'::jsonb ELSE jsonb_build_object('float64',metrics->'fitness_float64') END,
   'roi',CASE WHEN aborted THEN 'null'::jsonb ELSE jsonb_build_object('float64',metrics->'roi_float64') END,
@@ -80,7 +80,7 @@ $function$;
 
 CREATE FUNCTION vn_portable_assessment_research.record(state jsonb,cohort jsonb,member jsonb,metrics jsonb,result jsonb,
  ordinal integer,at jsonb,reason text,aborted boolean,frozen boolean,window_source jsonb) RETURNS jsonb
-LANGUAGE sql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE sql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
  SELECT jsonb_build_object('format','ga-portable-provider-assessment-research-v2','owner_id',state->'owner_id','run_id',state->'run_id',
   'finalized_revision',state->'revision','finalized_at',at,'iteration_id',cohort->'iteration_id',
   'evaluation_id',(cohort->>'iteration_id')||':'||ordinal::text,'member_index',vn_portable_source_research.tag(ordinal),
@@ -101,7 +101,7 @@ LANGUAGE sql IMMUTABLE SET search_path=pg_catalog AS $function$
 $function$;
 
 CREATE FUNCTION vn_portable_assessment_research.transition(request jsonb,previous jsonb,following jsonb,causal jsonb) RETURNS jsonb
-LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE cohort jsonb; window_source jsonb; at jsonb:=vn_portable_source_research.tag(extract(epoch FROM (request#>>'{evidence,inputs,event_at}')::timestamptz));
  trace jsonb:=causal->'trace'; finalized jsonb:=trace->'finalized'; frozen jsonb:='{}'; results jsonb:='{}'; rows jsonb:='[]'; records jsonb:='[]';
  member jsonb; marker jsonb; metrics jsonb; result jsonb; entry record; id text; ordinal integer; count integer:=0;

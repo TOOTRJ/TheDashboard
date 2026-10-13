@@ -21,7 +21,7 @@ CREATE TABLE vn_portable_economic_research.allocated (
 REVOKE ALL ON vn_portable_economic_research.allocated FROM PUBLIC;
 
 CREATE FUNCTION vn_portable_economic_research.decimal_text(units numeric,digits integer) RETURNS text
-LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE divisor numeric; whole text; tail text;
 BEGIN
  IF units IS NULL OR units<>trunc(units) OR digits NOT IN (6,18,36) THEN
@@ -35,7 +35,7 @@ BEGIN
 END $function$;
 
 CREATE FUNCTION vn_portable_economic_research.units(value jsonb,digits integer) RETURNS numeric
-LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE raw text:=value#>>'{}'; amount numeric; result numeric;
 BEGIN
  IF digits IS NULL OR digits NOT IN (6,18,36) OR
@@ -55,7 +55,7 @@ BEGIN
 END $function$;
 
 CREATE FUNCTION vn_portable_economic_research.configuration(value jsonb) RETURNS jsonb
-LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE fee numeric; spread numeric; slip numeric;
 BEGIN
  PERFORM vn_portable_dependency_research.exact_keys(value,ARRAY['fee_bps','half_spread_bps','slippage_bps']);
@@ -69,7 +69,7 @@ BEGIN
 END $function$;
 
 CREATE FUNCTION vn_portable_economic_research.policy(value jsonb) RETURNS jsonb
-LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE expected jsonb;
 BEGIN
  expected:=jsonb_build_object('version','usd-reference-decimal-v2','account_currency','USD',
@@ -88,7 +88,7 @@ BEGIN
 END $function$;
 
 CREATE FUNCTION vn_portable_economic_research.entry(value jsonb) RETURNS jsonb
-LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE cfg jsonb; budget numeric; reference numeric; price numeric; quantity numeric;
  cap numeric; notional numeric; fee numeric; debit numeric; rate numeric; impact numeric; expected jsonb;
 BEGIN
@@ -122,7 +122,7 @@ BEGIN
 END $function$;
 
 CREATE FUNCTION vn_portable_economic_research.exit(value jsonb,stored jsonb) RETURNS jsonb
-LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE original jsonb; cfg jsonb; reference numeric; quantity numeric; rate numeric;
  impact numeric; price numeric; notional numeric; fee numeric; credit numeric; expected jsonb;
 BEGIN
@@ -156,7 +156,7 @@ BEGIN
 END $function$;
 
 CREATE FUNCTION vn_portable_economic_research.state(value jsonb) RETURNS jsonb
-LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE cfg jsonb; seed numeric; ids text[]:=ARRAY[]::text[]; ordered text[];
  accounts jsonb:='{}'; positions jsonb:='{}'; members jsonb:='{}'; roles jsonb:='{}';
  row jsonb; identity text; holder text; cash numeric; plan jsonb; held text[]:=ARRAY[]::text[];
@@ -227,7 +227,7 @@ BEGIN
 END $function$;
 
 CREATE FUNCTION vn_portable_economic_research.transition(request jsonb,previous jsonb,following jsonb)
-RETURNS jsonb LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+RETURNS jsonb LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE prior jsonb; after jsonb; history jsonb:=request->'history'; cfg jsonb;
  accounts jsonb:='{}'; positions jsonb:='{}'; old_roles jsonb:='{}'; new_roles jsonb:='{}';
  trade_counts jsonb:='{}'; retired jsonb:='[]'; closed jsonb:='[]'; births jsonb:='[]';

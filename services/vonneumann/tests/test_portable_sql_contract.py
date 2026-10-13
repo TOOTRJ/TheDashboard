@@ -32,7 +32,7 @@ class PortableSqlContractTests(OfflineTestMixin,unittest.TestCase):
         manifest=json.loads((ROOT/'research/portable-sql-source-contract.json').read_text())
         for relative,digest in manifest['portable_sql_sources_sha256'].items():
             with self.subTest(path=relative):self.assertEqual(hashlib.sha256((ROOT/relative).read_bytes()).hexdigest(),digest)
-        self.assertEqual(len(manifest['portable_sql_sources_sha256']),11)
+        self.assertEqual(len(manifest['portable_sql_sources_sha256']),12)
         self.assertEqual(manifest['reviewed_type_repair'],'PAPER-COMPACT-TYPE1')
         self.assertEqual(manifest['complete_entry_point'],'vn_portable_semantic_research.validate_request(uuid,uuid,text)')
 

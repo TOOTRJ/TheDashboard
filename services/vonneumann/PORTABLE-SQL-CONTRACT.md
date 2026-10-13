@@ -117,3 +117,23 @@ representative timing/cost or profitability. Every complete result reports false
 native-admission, restoration and hosted authority. Those catalog/capability and
 atomic native gates must be implemented and independently accepted next. Original
 continuation evidence remains fully retained; no retention/deletion is provided.
+
+## Defensive catalog and type lookup correction
+
+The historical acceptance above predates a defensive search-path correction.
+PostgreSQL implicitly searches a session's temporary schema first for relations
+and types when `pg_temp` is omitted. Every new original-v2 helper and entry now
+pins `pg_catalog,pg_temp` explicitly, and semantic catalog lookups name
+`pg_catalog.pg_proc` and `pg_catalog.pg_namespace` directly. A private original-v2
+numeric-wire namespace preserves the numeric equations without modifying the
+old v1 numeric implementation. The original v1 source inventory remains exact.
+
+The corrected joined resolver and full-semantic suite passes all38 actual
+PostgreSQL17.6 cases with zero skips in426.599 seconds. Benign temporary catalog
+views and a temporary JSONB domain contain raising sentinels only; accepted
+read-only calls never evaluate them and fixture rows remain unchanged. The four
+ordinary source/template/Unicode checks also pass in0.582 seconds. This is
+recorded separately in `research/portable-sql-defensive-acceptance.json` so the
+earlier historical receipt remains unchanged. These checks establish defensive
+lookup behavior within the owned fixture, and grant no native, restoration or
+hosted authority.

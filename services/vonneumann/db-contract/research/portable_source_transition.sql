@@ -11,18 +11,18 @@ CREATE SCHEMA vn_portable_source_research;
 REVOKE ALL ON SCHEMA vn_portable_source_research FROM PUBLIC;
 
 CREATE FUNCTION vn_portable_source_research.tag(value numeric) RETURNS jsonb
-LANGUAGE sql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE sql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
  SELECT jsonb_build_object('$integer',trunc(value)::text)
 $function$;
 
 -- Exact rational representation of the canonical binary64 tag. No decimal float cast.
 CREATE FUNCTION vn_portable_source_research.ratio(value jsonb) RETURNS numeric[]
-LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE raw text; digits text; mantissa numeric:=0; exponent integer; numerator numeric; denominator numeric:=1;
 BEGIN
  IF jsonb_typeof(value)='string' THEN raw:=value#>>'{}';
  ELSE PERFORM vn_portable_dependency_research.exact_keys(value,ARRAY['$binary64']); raw:=value->>'$binary64'; END IF;
- PERFORM vn_numeric_research.binary64(raw);
+ PERFORM vn_portable_numeric_research.binary64(raw);
  IF raw IN ('0x0.0p+0','-0x0.0p+0') THEN RETURN ARRAY[0::numeric,1::numeric]; END IF;
  digits:=replace(substring(split_part(ltrim(raw,'-'),'p',1),3),'.','');
  exponent:=split_part(raw,'p',2)::integer-4*length(split_part(split_part(raw,'p',1),'.',2));
@@ -37,7 +37,7 @@ END $function$;
 -- Independently round an integer ratio to nearest, ties to even, at each Python
 -- operation boundary. This avoids PostgreSQL numeric's different tie policy.
 CREATE FUNCTION vn_portable_source_research.round_ratio(numerator numeric,denominator numeric) RETURNS jsonb
-LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE n numeric:=abs(numerator); d numeric:=denominator; low integer:=-1075; high integer:=1024;
  middle integer; exponent integer; shift integer; scaled numeric; divisor numeric; k numeric; remainder numeric;
  sign text:=CASE WHEN numerator<0 THEN '-' ELSE '' END; fraction text; raw text;
@@ -72,12 +72,12 @@ BEGIN
   fraction:=right(encode(int8send((k-4503599627370496)::bigint),'hex'),13);
   raw:=sign||'0x1.'||fraction||'p'||CASE WHEN exponent>=0 THEN '+' ELSE '' END||exponent::text;
  END IF;
- PERFORM vn_numeric_research.binary64(raw);
+ PERFORM vn_portable_numeric_research.binary64(raw);
  RETURN jsonb_build_object('$binary64',raw);
 END $function$;
 
 CREATE FUNCTION vn_portable_source_research.binary_operation(operation text,left_value jsonb,right_value jsonb) RETURNS jsonb
-LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE l numeric[]:=vn_portable_source_research.ratio(left_value); r numeric[]:=vn_portable_source_research.ratio(right_value); n numeric; d numeric;
  left_negative boolean:=left(coalesce(left_value->>'$binary64',left_value#>>'{}'),1)='-';
  right_negative boolean:=left(coalesce(right_value->>'$binary64',right_value#>>'{}'),1)='-';
@@ -99,24 +99,24 @@ BEGIN
 END $function$;
 
 CREATE FUNCTION vn_portable_source_research.clock(value jsonb) RETURNS numeric
-LANGUAGE sql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE sql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
  SELECT vn_portable_dependency_research.counter(value,0,10000000000000000)
 $function$;
 
 CREATE FUNCTION vn_portable_source_research.block(value jsonb) RETURNS numeric
-LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE result numeric;
 BEGIN
  PERFORM vn_portable_dependency_research.exact_keys(value,ARRAY['$integer']);
  IF jsonb_typeof(value->'$integer') IS DISTINCT FROM 'string' THEN
   RAISE EXCEPTION 'source_invalid_block' USING ERRCODE='22023'; END IF;
- result:=vn_numeric_research.integer_text(value->>'$integer');
+ result:=vn_portable_numeric_research.integer_text(value->>'$integer');
  IF result<0 OR result>18446744073709551615 THEN RAISE EXCEPTION 'source_invalid_block' USING ERRCODE='22023'; END IF;
  RETURN result;
 END $function$;
 
 CREATE FUNCTION vn_portable_source_research.price(value jsonb) RETURNS numeric
-LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE result numeric:=vn_portable_economic_research.units(value,18);
 BEGIN
  IF result<=0 THEN RAISE EXCEPTION 'source_invalid_price' USING ERRCODE='22023'; END IF;
@@ -124,7 +124,7 @@ BEGIN
 END $function$;
 
 CREATE FUNCTION vn_portable_source_research.mint(value text) RETURNS void
-LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE alphabet text:='123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'; n numeric:=0; zeroes integer:=0; bytes integer:=0;
 BEGIN
  IF value IS NULL OR value !~ '^[1-9A-HJ-NP-Za-km-z]{32,44}$' THEN RAISE EXCEPTION 'source_invalid_mint' USING ERRCODE='22023'; END IF;
@@ -135,7 +135,7 @@ BEGIN
 END $function$;
 
 CREATE FUNCTION vn_portable_source_research.document(value jsonb,provider text) RETURNS void
-LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE request jsonb:=value->'request'; params jsonb:=request->'parameters'; mints text[]; m text;
  lower_time numeric; upper_time numeric; canonical text; parameter_text text;
 BEGIN
@@ -176,7 +176,7 @@ BEGIN
 END $function$;
 
 CREATE FUNCTION vn_portable_source_research.receipt(doc jsonb,wall numeric,mono numeric) RETURNS void
-LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE w numeric:=vn_portable_source_research.clock(doc->'received_wall_us'); m numeric:=vn_portable_source_research.clock(doc->'received_monotonic_us');
 BEGIN
  IF wall<w OR mono<m OR greatest(wall-w,mono-m)>=5000000 THEN
@@ -184,7 +184,7 @@ BEGIN
 END $function$;
 
 CREATE FUNCTION vn_portable_source_research.frame(value jsonb,wall numeric,mono numeric) RETURNS void
-LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE q jsonb:=value->'quote'; doc jsonb:=q->'document'; at numeric; w numeric; m numeric; stamp numeric; initial_age numeric;
 BEGIN
  PERFORM vn_portable_dependency_research.exact_keys(value,ARRAY['sequence','decision_second','decision_wall_us','decision_monotonic_us','quote']);
@@ -205,7 +205,7 @@ BEGIN
 END $function$;
 
 CREATE FUNCTION vn_portable_source_research.bars(value jsonb) RETURNS void
-LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE row jsonb; stamp numeric; previous numeric;
 BEGIN
  IF jsonb_typeof(value) IS DISTINCT FROM 'array' OR jsonb_array_length(value) NOT BETWEEN 61 AND 64 THEN
@@ -221,7 +221,7 @@ BEGIN
 END $function$;
 
 CREATE FUNCTION vn_portable_source_research.history(value jsonb,old_bars jsonb,seed boolean,wall numeric,mono numeric) RETURNS jsonb
-LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE docs jsonb:=value->'documents'; minutes jsonb:=value->'minutes'; doc jsonb; old_doc jsonb; row jsonb;
  index integer; used integer[]:=ARRAY[]::integer[]; stamp numeric; previous numeric; ending numeric; ordinal integer:=0;
  pairs text:=''; result jsonb:='[]';
@@ -265,7 +265,7 @@ BEGIN
 END $function$;
 
 CREATE FUNCTION vn_portable_source_research.indicators(previous jsonb,bars jsonb) RETURNS jsonb
-LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE result jsonb:=coalesce(previous,'{"count":{"$integer":"0"},"last_end":null,"closes":[],"values":{},"previous":{}}'::jsonb);
  row jsonb; closes jsonb; values jsonb; key text; count bigint; price jsonb; old jsonb; next jsonb; alpha jsonb;
  seed_window jsonb; item jsonb; ratio numeric[]; scale_units numeric; scale_value jsonb; sum_units numeric;
@@ -310,7 +310,7 @@ BEGIN
 END $function$;
 
 CREATE FUNCTION vn_portable_source_research.state(value jsonb,epoch jsonb) RETURNS void
-LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE source jsonb:=value->'source'; frame jsonb:=source->'last_quote'; ema jsonb:=value#>'{engine,ema}';
 BEGIN
  PERFORM vn_portable_dependency_research.exact_keys(source,ARRAY['version','epoch','quote_sequence','last_quote','bars']);
@@ -335,7 +335,7 @@ BEGIN
 END $function$;
 
 CREATE FUNCTION vn_portable_source_research.transition(request jsonb,previous jsonb,following jsonb) RETURNS jsonb
-LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE evidence jsonb:=request->'evidence'; inputs jsonb:=evidence->'inputs'; provider jsonb:=inputs->'provider';
  phase text:=evidence->>'kind'; control text:=evidence#>>'{control,action}'; frame jsonb:=provider->'frame'; history jsonb:=provider->'history';
  source jsonb:=following->'source'; expected jsonb; additions jsonb:='[]'; bars jsonb; epoch jsonb:=following#>'{engine,config,source_policy,epoch}';

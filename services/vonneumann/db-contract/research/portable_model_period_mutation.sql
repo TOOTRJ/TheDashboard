@@ -5,7 +5,7 @@ DO $guard$ BEGIN
   RAISE EXCEPTION 'offline_portable_model_period_fixture_required' USING ERRCODE='22023'; END IF;
 END $guard$;
 CREATE FUNCTION vn_portable_optimizer_research.portable_periods(fast integer,slow integer,seed text,epoch bigint,event bigint,child integer,sexual boolean) RETURNS jsonb
-LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE state jsonb; rate bigint; i integer; original integer; following integer; radius integer; lo integer; hi integer;
  left_draw integer; right_draw integer; delta integer; mutated boolean; uniform_n numeric; trace jsonb:='[]'; result integer[]:=ARRAY[]::integer[];
 BEGIN

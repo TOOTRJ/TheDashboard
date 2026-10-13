@@ -35,18 +35,20 @@
     "vonneumann/research/provider_portable_ga_model.py": "e53486d35be4fdf642df85c33c9b9c278a82ba2016905a60e6870e59ae5df9ec"
   },
   "portable_sql_sources_sha256": {
-    "db-contract/research/portable_assessment_transition.sql": "efc141ff0e69ae16b523dc035f2ecb430b93a60948adebe7bd40d053a9078fa2",
-    "db-contract/research/portable_causal_risk.sql": "605a4c60da4e09526229a12af1d0f83f202d9328ab55400a378b27c88d1373ff",
-    "db-contract/research/portable_configuration.sql": "c39f562932522238453d5d05471cc214ea71286c341acc9205dd001488587ed2",
-    "db-contract/research/portable_economic_transition.sql": "84a04ee8f5e6bc01653ae95a76f476f95d9944f3d2bec70d998bfefea6836770",
-    "db-contract/research/portable_locked_checkpoint.sql": "52f7a7d19efbdae6f3a02234f3b3623256910f4acb0e5eda10bc566d62390a93",
-    "db-contract/research/portable_model_period_mutation.sql": "7ab8a0bc37da4110c1edc704e6837d99ba58da7d364df7bb8c610aaf631afdc3",
-    "db-contract/research/portable_optimizer_graph.sql": "7236f5f84ee3f6902a0311aa49ed04699b9197d0dc31837586f2b746d96eea8d",
-    "db-contract/research/portable_optimizer_rng.sql": "9cb35261fdf0f73d3bb22ef831398a0cd54bdc73075029d7929069097f736cfd",
-    "db-contract/research/portable_optimizer_transition.sql": "4109311d77fee15805281716a84acc363def3fcad6b3dfff173e55a8e7b4a7f0",
-    "db-contract/research/portable_source_transition.sql": "65c19ac8dc6e4a56172c9467669ba76fee73b9896fab283a4359102a28135c45",
-    "db-contract/research/portable_transition.sql": "778b6a014408fd4e1b9ddbb9986feb15941229b1dbbb7e958c98c2ce980f5a03"
+    "db-contract/research/portable_assessment_transition.sql": "38321b8952ada745e2b2cbb558f2e86057cf34f72b7f54e7c226d661ba357c6c",
+    "db-contract/research/portable_causal_risk.sql": "9365bb0882579cc25088f1487c6aab8f25549dbe6a7d37b996797aae3b26284a",
+    "db-contract/research/portable_configuration.sql": "ae43e9f757124291e369240f1dc07c64885c77a2b5eeec7c27448b200e7233dc",
+    "db-contract/research/portable_economic_transition.sql": "46372357ff94a98cb8226cee74392bd3efc0b8bbda3e7865c17a13f033609148",
+    "db-contract/research/portable_locked_checkpoint.sql": "260762936fb80d7be1b821f582d8941961b7971defe54a4fe03734c6ccdec5fe",
+    "db-contract/research/portable_model_period_mutation.sql": "4f4ef89459e6e612ad2b8ded7bc0f9b77c993fccfb204fbc1316fa549651c532",
+    "db-contract/research/portable_numeric_wire.sql": "0f392d3eba0ac6eb6db1b58e1b78cc6a5c1688267e6695b2ec1d9d5e4f132307",
+    "db-contract/research/portable_optimizer_graph.sql": "79450d713d06cb03992e7f4c5c42707830f26964d0e91d1af851d4b32761ca25",
+    "db-contract/research/portable_optimizer_rng.sql": "500e02df7f9e1d6e67ea67059b598c6f43c86458c891d2fd843ee66a8134038b",
+    "db-contract/research/portable_optimizer_transition.sql": "459844f56dbd630378fc68599cfd5acc3b9a559104a2ab43e817356f56ca4ff2",
+    "db-contract/research/portable_source_transition.sql": "f01ff1dc52c629bdc454cdd36a99b5d099f0ca0249771d7d9c8c2b054891bd41",
+    "db-contract/research/portable_transition.sql": "0261ca93f1f5a39861315365a4e001cf60856952eabf94083ce750510a5a4bda"
   },
   "reviewed_type_repair": "PAPER-COMPACT-TYPE1",
-  "scope": "original-v2 offline independently composed value semantics and server-owned accepted-prior function-source binding; no catalog/ACL/native authority"
+  "scope": "original-v2 offline independently composed value semantics and server-owned accepted-prior function-source binding; no catalog/ACL/native authority",
+  "security_repair": "explicit_pg_catalog_then_pg_temp_and_qualified_catalog_relations_v1"
 }

@@ -8,7 +8,7 @@ DO $guard$ BEGIN
 END $guard$;
 
 CREATE FUNCTION vn_portable_optimizer_research.profile(value jsonb) RETURNS jsonb
-LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE fixed jsonb:='{"rsi_period":"0x1.c000000000000p+3","rsi_oversold":"0x1.0000000000000p+5","rsi_overbought":"0x1.1800000000000p+6", "volume_threshold":"0x1.6666666666666p+0","position_size_pct":"0x1.0000000000000p-2","stop_loss_pct":"0x1.eb851eb851eb8p-6","take_profit_pct":"0x1.1eb851eb851ecp-4","max_open_positions":"0x1.0000000000000p+0","timeframe_minutes":"0x1.e000000000000p+3","benchmark_target_pct":"0x1.47ae147ae147bp-4","reproduce_target_dollars":"0x1.4000000000000p+3","death_drawdown_pct":"0x1.999999999999ap-3","num_assets":"0x1.0000000000000p+0"}';
  fast numeric[]; slow numeric[];
 BEGIN
@@ -25,7 +25,7 @@ BEGIN
 END $function$;
 
 CREATE FUNCTION vn_portable_optimizer_research.strategy(graph jsonb,state jsonb) RETURNS jsonb
-LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE raw jsonb:=vn_portable_optimizer_research.node(graph,graph->'strategy','object','GeneticAlgorithmStrategy')->'fields';
  result jsonb:=vn_portable_optimizer_research.plain(graph,graph->'strategy')->'fields'; selection jsonb;
 BEGIN
@@ -47,7 +47,7 @@ BEGIN
 END $function$;
 
 CREATE FUNCTION vn_portable_optimizer_research.tournament(state jsonb,ids jsonb,scores jsonb) RETURNS jsonb
-LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE row jsonb; best text; score numeric[]; incumbent numeric[];
 BEGIN
  state:=vn_portable_optimizer_research.sample(state,ids,3);
@@ -59,7 +59,7 @@ BEGIN
 END $function$;
 
 CREATE FUNCTION vn_portable_optimizer_research.selection(state jsonb,ids jsonb,scores jsonb,genomes jsonb,generation jsonb) RETURNS jsonb
-LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE pair integer; child integer; parent text; mate text; pool jsonb; sexual boolean; operation text; parents jsonb;
  threshold numeric[]:=vn_portable_source_research.ratio('"0x1.3333333333333p-2"');
  operations jsonb:='[]'; templates jsonb:='[]'; a jsonb; b jsonb; key text; row jsonb;
@@ -91,7 +91,7 @@ BEGIN
 END $function$;
 
 CREATE FUNCTION vn_portable_optimizer_research.transition(request jsonb,previous jsonb,following jsonb,causal jsonb) RETURNS jsonb
-LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE graph jsonb:=vn_portable_optimizer_research.graph(following#>'{engine,optimizer}'); old_graph jsonb; strategy jsonb; old_strategy jsonb;
  cohort jsonb:=following#>'{engine,cohort}'; old_cohort jsonb; expected jsonb; expected_selection jsonb; selection_fields jsonb;
  ids jsonb:=cohort->'member_ids'; old_ids jsonb; order_ids jsonb:='[]'; sigs jsonb:='{}'; scores jsonb:='{}'; genomes jsonb:='{}';

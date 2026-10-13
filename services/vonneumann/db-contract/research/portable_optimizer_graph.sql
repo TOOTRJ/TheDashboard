@@ -9,7 +9,7 @@ CREATE SCHEMA vn_portable_optimizer_research;
 REVOKE ALL ON SCHEMA vn_portable_optimizer_research FROM PUBLIC;
 
 CREATE FUNCTION vn_portable_optimizer_research.fields(name text) RETURNS text[]
-LANGUAGE sql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE sql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
  SELECT CASE name
  WHEN 'GeneticAlgorithmStrategy' THEN ARRAY['_search_streams','_search_epoch','_rng','_mutation_event','mutation_rate','mutation_strength','_cohort']
  WHEN 'SearchRandomStreams' THEN ARRAY['seed','algorithm']
@@ -21,7 +21,7 @@ LANGUAGE sql IMMUTABLE SET search_path=pg_catalog AS $function$
 $function$;
 
 CREATE FUNCTION vn_portable_optimizer_research.walk(value jsonb,ctx jsonb,depth integer) RETURNS jsonb
-LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE typ text:=jsonb_typeof(value); kind text; node_id integer; pointer jsonb; body jsonb; output jsonb; entry record;
  keys text[]; key text; count integer:=(ctx->>'visits')::integer+1; seen text[]:=ARRAY[]::text[];
 BEGIN
@@ -45,7 +45,7 @@ BEGIN
  IF kind='integer' THEN
   PERFORM vn_portable_dependency_research.exact_keys(value,ARRAY['type','decimal']);
   IF jsonb_typeof(value->'decimal') IS DISTINCT FROM 'string' THEN RAISE EXCEPTION 'optimizer_integer_type' USING ERRCODE='22023'; END IF;
-  PERFORM vn_numeric_research.integer_text(value->>'decimal');
+  PERFORM vn_portable_numeric_research.integer_text(value->>'decimal');
   RETURN ctx||jsonb_build_object('value',jsonb_build_object('$integer',value->'decimal'));
  ELSIF kind='float' THEN
   PERFORM vn_portable_dependency_research.exact_keys(value,ARRAY['type','hex']);
@@ -111,7 +111,7 @@ BEGIN
 END $function$;
 
 CREATE FUNCTION vn_portable_optimizer_research.graph(value jsonb) RETURNS jsonb
-LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE ctx jsonb:='{"nodes":{},"next":0,"visits":0}'; strategy jsonb;
 BEGIN
  PERFORM vn_portable_dependency_research.exact_keys(value,ARRAY['version','software','strategy','cohort']);
@@ -124,7 +124,7 @@ BEGIN
 END $function$;
 
 CREATE FUNCTION vn_portable_optimizer_research.node(graph jsonb,value jsonb,kind text,name text DEFAULT NULL) RETURNS jsonb
-LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE body jsonb;
 BEGIN
  PERFORM vn_portable_dependency_research.exact_keys(value,ARRAY['$node']); body:=graph#>ARRAY['nodes',value->>'$node'];
@@ -134,7 +134,7 @@ BEGIN
 END $function$;
 
 CREATE FUNCTION vn_portable_optimizer_research.plain(graph jsonb,value jsonb,depth integer DEFAULT 0) RETURNS jsonb
-LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE body jsonb; result jsonb; entry record;
 BEGIN
  IF depth>24 THEN RAISE EXCEPTION 'optimizer_plain_capacity' USING ERRCODE='22023'; END IF;
@@ -156,13 +156,13 @@ BEGIN
 END $function$;
 
 CREATE FUNCTION vn_portable_optimizer_research.map_order(graph jsonb,value jsonb) RETURNS jsonb
-LANGUAGE sql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE sql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
  SELECT coalesce(jsonb_agg(v->0 ORDER BY ordinal),'[]') FROM jsonb_array_elements(
    vn_portable_optimizer_research.node(graph,value,'map')->'entries') WITH ORDINALITY a(v,ordinal)
 $function$;
 
 CREATE FUNCTION vn_portable_optimizer_research.genome(value jsonb) RETURNS jsonb
-LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE result jsonb:=value; entry record;
 BEGIN
  FOR entry IN SELECT * FROM jsonb_each(value-ARRAY['assets','generation','parent_ids']) LOOP
@@ -172,7 +172,7 @@ BEGIN
 END $function$;
 
 CREATE FUNCTION vn_portable_optimizer_research.mirrors(state jsonb,graph jsonb,expected_order jsonb) RETURNS jsonb
-LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE root jsonb; fields jsonb; cohort jsonb:=state#>'{engine,cohort}'; expected jsonb; genomes jsonb:='{}'; ids jsonb; evaluations jsonb:='{}';
  member jsonb; row jsonb; key text; id text; eval_ids jsonb:='{}'; ordinal integer:=0; evaluation_order jsonb:='[]';
 BEGIN

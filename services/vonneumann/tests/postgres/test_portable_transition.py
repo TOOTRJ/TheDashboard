@@ -18,7 +18,7 @@ ROOT=Path(__file__).resolve().parents[2]
 DIRECTORY=ROOT/'db-contract/research'
 INSTALLER='vn_portable_semantic_installer'
 AUDITOR='vn_portable_semantic_auditor'
-FILES=(('numeric_wire.sql','numeric_wire_fixture','offline-v1'),
+FILES=(('portable_numeric_wire.sql','portable_numeric_wire_fixture','offline-v2'),
  ('portable_configuration.sql','portable_configuration_fixture','offline-v2'),
  ('portable_locked_checkpoint.sql','portable_locked_checkpoint_fixture','offline-v2'),
  ('portable_economic_transition.sql','portable_economic_transition_fixture','offline-v2'),
@@ -233,7 +233,7 @@ class PortableTransitionSqlTests(unittest.TestCase):
         metadata=json.loads(self.db.scalar("""SELECT json_agg(x) FROM (SELECT n.nspname,p.proname,p.prosecdef,p.proconfig,r.rolname AS owner
           FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace JOIN pg_roles r ON r.oid=p.proowner
           WHERE n.nspname LIKE 'vn_portable_%_research' ORDER BY n.nspname,p.proname)x;"""))
-        self.assertTrue(all(r['owner']==INSTALLER and r['proconfig']==['search_path=pg_catalog'] for r in metadata))
+        self.assertTrue(all(r['owner']==INSTALLER and r['proconfig']==['search_path=pg_catalog, pg_temp'] for r in metadata))
         self.assertEqual([(r['nspname'],r['proname']) for r in metadata if r['prosecdef']],
           [('vn_portable_dependency_research','resolve_request'),('vn_portable_semantic_research','validate_request')])
         self.assertEqual(self.db.scalar(f"SELECT rolsuper OR rolcreatedb OR rolcreaterole OR rolbypassrls FROM pg_roles WHERE rolname='{INSTALLER}';"),'f')
@@ -389,3 +389,19 @@ class PortableTransitionSqlTests(unittest.TestCase):
             statements.append('SELECT vn_portable_semantic_research.printable_name('+literal(json.dumps(name))+'::jsonb);')
             expected.append('t' if valid else 'f')
         self.assertEqual(self.db.sql('\n'.join(statements),role=INSTALLER).stdout.splitlines(),expected)
+
+    def test_temp_catalog_and_type_sentinels_are_never_resolved_under_semantic_owner(self):
+        # Benign sentinels only: accidental shadow lookup raises, with no private
+        # reads/writes or exploit actions in the sentinel. The valid caller still
+        # receives normal read-only semantic acceptance under the corrected path.
+        wire=self.samples[0][2];before=self.snapshot()
+        setup='''CREATE TEMP TABLE benign_shadow_namespace_marker(x integer);
+          CREATE FUNCTION pg_temp.benign_shadow_sentinel() RETURNS boolean LANGUAGE plpgsql AS $sentinel$
+          BEGIN RAISE EXCEPTION 'unexpected_benign_shadow_sentinel_execution'; END $sentinel$;
+          CREATE TEMP VIEW pg_proc AS SELECT * FROM pg_catalog.pg_proc WHERE pg_temp.benign_shadow_sentinel();
+          CREATE TEMP VIEW pg_namespace AS SELECT * FROM pg_catalog.pg_namespace WHERE pg_temp.benign_shadow_sentinel();
+          CREATE DOMAIN pg_temp.jsonb AS pg_catalog.jsonb CHECK(pg_temp.benign_shadow_sentinel());'''
+        result=self.db.sql(setup+self.sql(wire),role=AUDITOR,timeout=30)
+        self.assertNotIn('unexpected_benign_shadow_sentinel_execution',result.stderr)
+        self.assertTrue(json.loads(result.stdout)['original_v2_complete_semantics_verified'])
+        self.assertEqual(self.snapshot(),before)

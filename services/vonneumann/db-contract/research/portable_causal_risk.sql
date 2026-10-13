@@ -9,7 +9,7 @@ CREATE SCHEMA vn_portable_causal_research;
 REVOKE ALL ON SCHEMA vn_portable_causal_research FROM PUBLIC;
 
 CREATE FUNCTION vn_portable_causal_research.member_projection(value jsonb) RETURNS jsonb
-LANGUAGE sql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE sql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
  SELECT jsonb_build_object('id',value->'id','cursor',value->'cursor','pending',value->'pending',
   'num_trades',value->'num_trades','peak_equity',value->'peak_equity','max_drawdown',value->'max_drawdown','terminal',value->'terminal')
 $function$;
@@ -18,7 +18,7 @@ $function$;
 -- derived here, never supplied by the request and never returned by the client
 -- wrapper. Keep the original pre-retirement/pre-abort capture boundaries.
 CREATE FUNCTION vn_portable_causal_research.capture_finalization(ctx jsonb,reason text,aborted boolean) RETURNS jsonb
-LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 BEGIN
  IF ctx#>'{trace,finalized}'<>'null'::jsonb THEN
   RAISE EXCEPTION 'causal_duplicate_finalization' USING ERRCODE='22023'; END IF;
@@ -27,7 +27,7 @@ BEGIN
 END $function$;
 
 CREATE FUNCTION vn_portable_causal_research.allocate(ctx jsonb,identity jsonb) RETURNS jsonb
-LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE i integer:=(ctx->>'allocation')::integer;
 BEGIN
  IF identity IS NULL OR identity IS DISTINCT FROM ctx#>ARRAY['inputs','ids',i::text] THEN
@@ -37,7 +37,7 @@ END $function$;
 
 CREATE FUNCTION vn_portable_causal_research.consume(ctx jsonb,kind text,reason text,account text,position_id text,
  signal jsonb DEFAULT 'null',price jsonb DEFAULT 'null',status text DEFAULT NULL) RETURNS jsonb
-LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE i integer:=(ctx->>'index')::integer; op jsonb:=ctx->'operations'->i; expected jsonb;
 BEGIN
  expected:=jsonb_build_object('operation_index',vn_portable_source_research.tag(i),'reason',reason,
@@ -52,7 +52,7 @@ BEGIN
 END $function$;
 
 CREATE FUNCTION vn_portable_causal_research.equity(ctx jsonb,identity text DEFAULT NULL) RETURNS numeric
-LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE total numeric:=0; row record; held jsonb;
 BEGIN
  IF identity IS NULL THEN
@@ -73,13 +73,13 @@ BEGIN
 END $function$;
 
 CREATE FUNCTION vn_portable_causal_research.member_risk(ctx jsonb,identity text) RETURNS jsonb
-LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE member jsonb:=ctx#>ARRAY['members',identity]; equity numeric; peak numeric; n numeric; d numeric; divisor numeric;
 BEGIN
  equity:=vn_portable_causal_research.equity(ctx,identity);
  peak:=greatest(equity,vn_portable_economic_research.units(member->'peak_equity',36));
- n:=vn_numeric_research.integer_text(member#>>'{max_drawdown,numerator}');
- d:=vn_numeric_research.integer_text(member#>>'{max_drawdown,denominator}');
+ n:=vn_portable_numeric_research.integer_text(member#>>'{max_drawdown,numerator}');
+ d:=vn_portable_numeric_research.integer_text(member#>>'{max_drawdown,denominator}');
  IF peak<=0 OR n<0 OR d<=0 OR n>d OR gcd(n,d)<>1 THEN RAISE EXCEPTION 'causal_invalid_drawdown' USING ERRCODE='22023'; END IF;
  member:=member||jsonb_build_object('peak_equity',vn_portable_economic_research.decimal_text(peak,36));
  IF (peak-equity)*d>n*peak THEN
@@ -90,7 +90,7 @@ BEGIN
 END $function$;
 
 CREATE FUNCTION vn_portable_causal_research.account_risk(ctx jsonb) RETURNS jsonb
-LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE risk jsonb:=ctx#>'{lifecycle,risk}'; equity numeric:=vn_portable_causal_research.equity(ctx);
  baseline numeric:=vn_portable_economic_research.units(risk->'baseline_equity',36); trip jsonb; row record;
 BEGIN
@@ -112,7 +112,7 @@ BEGIN
 END $function$;
 
 CREATE FUNCTION vn_portable_causal_research.close_position(ctx jsonb,identity text,reason text,signal jsonb DEFAULT 'null') RETURNS jsonb
-LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE held jsonb:=ctx#>ARRAY['holdings',identity]; op jsonb; member jsonb; cash numeric;
 BEGIN
  IF held IS NULL THEN RETURN ctx; END IF;
@@ -128,7 +128,7 @@ BEGIN
 END $function$;
 
 CREATE FUNCTION vn_portable_causal_research.open_position(ctx jsonb,identity text,signal jsonb) RETURNS jsonb
-LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE op jsonb:=ctx->'operations'->(ctx->>'index')::integer; cash numeric; held jsonb;
 BEGIN
  ctx:=vn_portable_causal_research.allocate(ctx,op->'id');
@@ -142,7 +142,7 @@ BEGIN
 END $function$;
 
 CREATE FUNCTION vn_portable_causal_research.retire(ctx jsonb,identity text,reason text) RETURNS jsonb
-LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE account jsonb:=ctx#>ARRAY['accounts',identity]; member jsonb:=ctx#>ARRAY['members',identity]; reserve numeric;
 BEGIN
  IF account->'retired' IS DISTINCT FROM 'false'::jsonb OR ctx->'holdings' ? identity THEN
@@ -156,7 +156,7 @@ BEGIN
 END $function$;
 
 CREATE FUNCTION vn_portable_causal_research.terminal(ctx jsonb,identity text) RETURNS jsonb
-LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE member jsonb:=ctx#>ARRAY['members',identity]; peak numeric; equity numeric;
 BEGIN
  IF member->'terminal'<>'null'::jsonb THEN RETURN ctx; END IF;
@@ -173,7 +173,7 @@ BEGIN
 END $function$;
 
 CREATE FUNCTION vn_portable_causal_research.pending(ctx jsonb,identity text,allow_entry boolean) RETURNS jsonb
-LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE member jsonb:=ctx#>ARRAY['members',identity]; pending jsonb:=member->'pending'; held jsonb:=ctx#>ARRAY['holdings',identity];
  at numeric:=vn_portable_dependency_research.counter(ctx->'at',0,1099511627776);
 BEGIN
@@ -192,7 +192,7 @@ BEGIN
 END $function$;
 
 CREATE FUNCTION vn_portable_causal_research.signal(ema jsonb,genome jsonb,holding jsonb,at jsonb) RETURNS jsonb
-LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE fast numeric[]:=vn_portable_source_research.ratio(genome->'ema_fast'); slow numeric[]:=vn_portable_source_research.ratio(genome->'ema_slow');
  f text; s text; pf numeric[]; ps numeric[]; cf numeric[]; cs numeric[]; action text;
 BEGIN
@@ -209,7 +209,7 @@ BEGIN
 END $function$;
 
 CREATE FUNCTION vn_portable_causal_research.transition(request jsonb,previous jsonb,following jsonb) RETURNS jsonb
-LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE ctx jsonb; maps jsonb; members jsonb; accounts jsonb; holdings jsonb; ids jsonb; row jsonb; id text;
  kind text:=request#>>'{evidence,kind}'; control text:=request#>>'{evidence,control,action}';
  at numeric:=extract(epoch FROM (request#>>'{evidence,inputs,event_at}')::timestamptz);

@@ -19,7 +19,7 @@ from uuid import UUID
 ROOT = Path(__file__).resolve().parents[2]
 SQL = ROOT/'db-contract'/'research'/'portable_locked_checkpoint.sql'
 CONFIGURATION = ROOT/'db-contract'/'research'/'portable_configuration.sql'
-NUMERIC = ROOT/'db-contract'/'research'/'numeric_wire.sql'
+NUMERIC = ROOT/'db-contract'/'research'/'portable_numeric_wire.sql'
 INSTALLER = 'vn_portable_resolution_installer'
 AUDITOR = 'vn_portable_resolution_auditor'
 RELAY = 'vn_portable_resolution_relay'
@@ -42,7 +42,7 @@ class PortableLockedCheckpointSqlTests(unittest.TestCase):
             denied = cls.db.sql(SQL.read_text(), role=INSTALLER, check=False)
             if denied.returncode == 0 or 'offline_portable_locked_checkpoint_fixture_required' not in denied.stderr:
                 raise AssertionError('Resolution installed without its offline guard')
-            cls.db.sql("BEGIN; SET dashboard.numeric_wire_fixture='offline-v1';"+
+            cls.db.sql("BEGIN; SET dashboard.portable_numeric_wire_fixture='offline-v2';"+
                 NUMERIC.read_text()+"SET dashboard.portable_configuration_fixture='offline-v2';"+
                 CONFIGURATION.read_text()+"SET dashboard.portable_locked_checkpoint_fixture='offline-v2';"+
                 SQL.read_text()+'COMMIT;', role=INSTALLER)
@@ -132,7 +132,7 @@ class PortableLockedCheckpointSqlTests(unittest.TestCase):
           JOIN pg_namespace n ON n.oid=p.pronamespace JOIN pg_roles r ON r.oid=p.proowner
           WHERE n.nspname='vn_portable_dependency_research' ORDER BY p.proname)x;"""))
         self.assertEqual(len(rows),7)
-        self.assertTrue(all(r['owner']==INSTALLER and r['proconfig']==['search_path=pg_catalog'] for r in rows))
+        self.assertTrue(all(r['owner']==INSTALLER and r['proconfig']==['search_path=pg_catalog, pg_temp'] for r in rows))
         self.assertEqual([r['proname'] for r in rows if r['prosecdef']], ['resolve_request'])
         self.assertEqual(self.db.scalar(f"SELECT rolsuper OR rolcreatedb OR rolcreaterole OR rolbypassrls FROM pg_roles WHERE rolname='{INSTALLER}';"),'f')
         for role in ('anon','authenticated','service_role',RELAY):
@@ -142,7 +142,7 @@ class PortableLockedCheckpointSqlTests(unittest.TestCase):
             'SELECT * FROM vn_portable_dependency_research.checkpoints;',
             'SELECT * FROM vn_portable_dependency_research.components;',
             "SELECT vn_portable_dependency_research.counter('{\"$integer\":\"1\"}',0,2);",
-            "SELECT vn_numeric_research.audit('{}');",
+            "SELECT vn_portable_numeric_research.audit('{}');",
             'CREATE SCHEMA forbidden_resolution_schema;'):
             self.assertNotEqual(self.db.sql(statement,role=AUDITOR,check=False).returncode,0)
         self.assertEqual(self.db.scalar("""SELECT NOT EXISTS(SELECT 1 FROM pg_proc p,
@@ -475,3 +475,14 @@ class PortableLockedCheckpointSqlTests(unittest.TestCase):
         for statement in ("SELECT vn_portable_configuration_research.template();",
             "SELECT vn_portable_configuration_research.validate('{}');"):
             self.assertNotEqual(self.db.sql(statement,role=AUDITOR,check=False).returncode,0)
+
+    def test_temp_builtin_type_sentinel_does_not_change_numeric_or_configuration_resolution(self):
+        before=self.snapshot()
+        setup='''CREATE TEMP TABLE benign_resolution_namespace_marker(x integer);
+          CREATE FUNCTION pg_temp.benign_resolution_sentinel() RETURNS boolean LANGUAGE plpgsql AS $sentinel$
+          BEGIN RAISE EXCEPTION 'unexpected_benign_resolution_sentinel_execution'; END $sentinel$;
+          CREATE DOMAIN pg_temp.jsonb AS pg_catalog.jsonb CHECK(pg_temp.benign_resolution_sentinel());'''
+        result=self.db.sql(setup+self.request_sql(self.samples[0][2]),role=AUDITOR,timeout=30)
+        self.assertNotIn('unexpected_benign_resolution_sentinel_execution',result.stderr)
+        self.assertEqual(json.loads(result.stdout)['following']['wire'].encode(),numbers.encode(self.samples[0][1].resolve()))
+        self.assertEqual(self.snapshot(),before)

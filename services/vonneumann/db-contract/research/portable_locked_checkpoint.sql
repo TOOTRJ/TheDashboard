@@ -5,7 +5,7 @@ DO $guard$ BEGIN
      OR to_regprocedure('vn_portable_configuration_research.validate(jsonb)') IS NULL
      OR current_setting('server_encoding') <> 'UTF8'
      OR current_setting('standard_conforming_strings') <> 'on'
-     OR to_regprocedure('vn_numeric_research.audit(text,integer)') IS NULL THEN
+     OR to_regprocedure('vn_portable_numeric_research.audit(text,integer)') IS NULL THEN
     RAISE EXCEPTION 'offline_portable_locked_checkpoint_fixture_required' USING ERRCODE='22023';
   END IF;
 END $guard$;
@@ -34,7 +34,7 @@ CREATE TABLE vn_portable_dependency_research.components (
 REVOKE ALL ON ALL TABLES IN SCHEMA vn_portable_dependency_research FROM PUBLIC;
 
 CREATE FUNCTION vn_portable_dependency_research.exact_keys(value jsonb, expected text[])
-RETURNS void LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+RETURNS void LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE actual text[];
 BEGIN
   IF jsonb_typeof(value) IS DISTINCT FROM 'object' THEN
@@ -48,14 +48,14 @@ BEGIN
 END $function$;
 
 CREATE FUNCTION vn_portable_dependency_research.counter(value jsonb, minimum numeric, maximum numeric)
-RETURNS bigint LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+RETURNS bigint LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE result numeric;
 BEGIN
   PERFORM vn_portable_dependency_research.exact_keys(value,ARRAY['$integer']);
   IF jsonb_typeof(value->'$integer') IS DISTINCT FROM 'string' THEN
     RAISE EXCEPTION 'checkpoint_integer_required' USING ERRCODE='22023';
   END IF;
-  result:=vn_numeric_research.integer_text(value->>'$integer');
+  result:=vn_portable_numeric_research.integer_text(value->>'$integer');
   IF minimum IS NULL OR maximum IS NULL OR minimum>maximum OR
      result<minimum OR result>maximum THEN
     RAISE EXCEPTION 'checkpoint_counter_capacity' USING ERRCODE='22023';
@@ -64,7 +64,7 @@ BEGIN
 END $function$;
 
 CREATE FUNCTION vn_portable_dependency_research.uuid_text(value jsonb)
-RETURNS text LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+RETURNS text LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE result text:=value #>> '{}';
 BEGIN
   IF jsonb_typeof(value) IS DISTINCT FROM 'string' OR
@@ -75,15 +75,15 @@ BEGIN
 END $function$;
 
 CREATE FUNCTION vn_portable_dependency_research.canonical(value jsonb)
-RETURNS text LANGUAGE sql IMMUTABLE SET search_path=pg_catalog AS $function$
-  SELECT canonical FROM vn_numeric_research.walk(value::json,0,0,0)
+RETURNS text LANGUAGE sql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
+  SELECT canonical FROM vn_portable_numeric_research.walk(value::json,0,0,0)
 $function$;
 
 CREATE FUNCTION vn_portable_dependency_research.block(wire text, owner_id uuid, run_id uuid)
-RETURNS jsonb LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+RETURNS jsonb LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE kind text; entity text; generation bigint; checked jsonb; value jsonb;
 BEGIN
-  checked:=vn_numeric_research.audit(wire,196608);
+  checked:=vn_portable_numeric_research.audit(wire,196608);
   value:=checked->'tagged';
   PERFORM vn_portable_dependency_research.exact_keys(value,
     ARRAY['format','hash_policy','owner_id','run_id','kind','entity_id','generation','body']);
@@ -114,7 +114,7 @@ END $function$;
 
 CREATE FUNCTION vn_portable_dependency_research.expand(manifest jsonb, blocks jsonb,
   owner_id uuid, run_id uuid, revision bigint)
-RETURNS jsonb LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog AS $function$
+RETURNS jsonb LANGUAGE plpgsql IMMUTABLE SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE checked jsonb; wire text; total integer; ref jsonb; entry jsonb; body jsonb;
   generation bigint; expected_generation bigint; kind text; entity text; digest text;
   slots jsonb:='{}'; seen text[]:=ARRAY[]::text[]; ids text[]:=ARRAY[]::text[];
@@ -132,7 +132,7 @@ BEGIN
     RAISE EXCEPTION 'checkpoint_manifest_binding' USING ERRCODE='22023';
   END IF;
   wire:=vn_portable_dependency_research.canonical(manifest);
-  checked:=vn_numeric_research.audit(wire,65536);
+  checked:=vn_portable_numeric_research.audit(wire,65536);
   total:=octet_length(wire);
   IF octet_length(manifest::text)>65536 OR
      jsonb_typeof(manifest->'components') IS DISTINCT FROM 'array' OR
@@ -214,7 +214,7 @@ BEGIN
       'ema',slots->'ema:ema','members',members),
     'source',(manifest->'source')||(slots->'source_bars:source_bars'));
   wire:=vn_portable_dependency_research.canonical(expanded);
-  result:=vn_numeric_research.audit(wire,262144);
+  result:=vn_portable_numeric_research.audit(wire,262144);
   IF octet_length(expanded::text)>262144 THEN
     RAISE EXCEPTION 'checkpoint_expanded_capacity' USING ERRCODE='22023';
   END IF;
@@ -223,7 +223,7 @@ BEGIN
 END $function$;
 
 CREATE FUNCTION vn_portable_dependency_research.resolve_request(owner_id uuid, run_id uuid, request_wire text)
-RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog AS $function$
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE current vn_portable_dependency_research.checkpoints%ROWTYPE; audited jsonb; request jsonb;
   following jsonb; previous jsonb; prior jsonb; prior_result jsonb; next_result jsonb;
   supplied jsonb:='{}'; retained jsonb:='{}';
@@ -234,7 +234,7 @@ BEGIN
   IF owner_id IS NULL OR run_id IS NULL THEN
     RAISE EXCEPTION 'checkpoint_scope_required' USING ERRCODE='22023';
   END IF;
-  audited:=vn_numeric_research.audit(request_wire,262144);
+  audited:=vn_portable_numeric_research.audit(request_wire,262144);
   request:=audited->'tagged';
   PERFORM vn_portable_dependency_research.exact_keys(request,ARRAY['format','command_id','owner_id','run_id',
     'prior','checkpoint','components','operations','history','evidence','events']);
@@ -272,7 +272,7 @@ BEGIN
       RAISE EXCEPTION 'checkpoint_bootstrap_prior' USING ERRCODE='22023';
     END IF;
   ELSE
-    checked:=vn_numeric_research.audit(current.manifest_wire,65536);
+    checked:=vn_portable_numeric_research.audit(current.manifest_wire,65536);
     previous:=checked->'tagged';
     PERFORM vn_portable_dependency_research.exact_keys(prior,ARRAY['revision','sha256']);
     IF vn_portable_dependency_research.counter(prior->'revision',2,9223372036854775807)<>current.revision OR
