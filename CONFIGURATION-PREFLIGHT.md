@@ -4870,8 +4870,8 @@ No browser download/print or broad honest-action/native-auth/hosted acceptance i
 claimed. Home still labels mock content as live; APP-01 remains open.
 
 Earlier semantic/research-head ordinary groups executed1751 cases and reported2188
-with audited SQL opt-in skips. Final discovery-only inventory is2396 ordinary
-occurrences split1043/1353 and600 SQL occurrences split94/175/126/205; both retain54
+with audited SQL opt-in skips. Final discovery-only inventory is2398 ordinary
+occurrences split1045/1353 and600 SQL occurrences split94/175/126/205; both retain54
 baseline repeated IDs. These are discovery, not new actual hosted execution.
 All seven exact-head hosted jobs and project/source/author/current-alias release
 checks remain required before merge. Production is the previously accepted PR103
@@ -4905,3 +4905,14 @@ Only owner identity metadata is read at team level; no shared settings change.
 The dedicated CLI remains unauthenticated, so full API-based source/alias release
 checks are still pending. Supabase name/ref/organization/local link and GitHub
 name/immutable repository/account are reverified before the corrected branch push.
+
+Final Linux portability review replaces the fixed macOS-only CLI path with
+Darwin/private/tmp and Linux/tmp anchors; unsupported platforms refuse before
+I/O. Environment/default temporary paths cannot override this, and private
+parent depth follows the actual anchor. Fifteen local ordinary cases pass
+0.018s; fifteen exact controller/test-class cases pass on cached Linuxarm64
+CPython3.12.14 as a nonroot user, networknone/read-only/no host mounts,0.013s.
+Its owned container is removed. The latter uses extracted exact source and
+excludes full worker imports/amd64/SQL/timed acceptance. Independent review
+verifies unchanged native SQL and timed run() bytes. Final exact-head full CI
+remains mandatory; earlier macOS proof and partial CI do not replace it.
