@@ -1,0 +1,115 @@
+{
+  "format": "dashboard-ci-runtime-content-verifier-prototype-v1",
+  "authority": {
+    "compressed_registry_blobs_preserved": false,
+    "docker_export_mapping_proven": false,
+    "hosted_producer_authenticated": false,
+    "loaded_runtime_verified": false,
+    "original_repo_digests_preserved": false,
+    "production_worker_authority": false,
+    "sql_executed": false,
+    "trading_authority": false
+  },
+  "bounds": {
+    "archive_bytes": "4294967296",
+    "expected_manifest_bytes": "65536",
+    "images": "3",
+    "json_depth": "32",
+    "json_nodes": "100000",
+    "json_numeric_token_bytes": "128",
+    "json_document_bytes": "1048576",
+    "layers_per_image": "64",
+    "output_bytes": "8192",
+    "stream_buffer_bytes": "1048576",
+    "total_layer_bytes": "8589934592",
+    "validation_seconds": "240"
+  },
+  "archive": {
+    "compression": "none",
+    "format": "ustar",
+    "header_bytes": "512",
+    "typeflag": "0",
+    "mode": "0000600",
+    "uid": "0",
+    "gid": "0",
+    "mtime": "0",
+    "uname": "",
+    "gname": "",
+    "linkname": "",
+    "prefix": "",
+    "extensions": "none-no-pax-gnu-sparse-base256-links-devices-directories",
+    "numeric_fields": "fixed-width-zero-padded-octal-with-NUL-and-canonical-six-octal-checksum-NUL-space",
+    "padding": "zero-to-512-byte-member-boundary",
+    "terminal": "two-zero-512-byte-blocks-then-zero-padding-to-next-10240-byte-record-and-exact-EOF",
+    "order": "manifest.json-then-manifest-and-config-for-each-reviewed-pin-in-pin-order-then-unique-layer-members-by-diffID-hex",
+    "names": "manifest.json;images/{0,1,2}/platform-manifest.json;images/{0,1,2}/config.json;layers/{64-lowercase-hex}.tar",
+    "member_count": "1+2*3+unique-union-of-at-most-3*64-layer-diffIDs",
+    "inner_layers": "exact-uncompressed-tar-byte-stream-hash-only-no-extraction-or-inner-link-whiteout-reinterpretation",
+    "shared_layers": "one-physical-member-for-equal-diffID-and-equal-bytes-size-retaining-each-image-ordered-reference;total-layer-byte-budget-charges-every-ordered-logical-reference"
+  },
+  "schemas": {
+    "TransportManifest": ["format", "policy_sha256", "producer_context", "source_declaration", "images", "authority"],
+    "ProducerContext": ["repository_id", "workflow_path", "workflow_sha256", "checkout_commit", "head_commit", "ref", "run_id", "run_attempt", "producer_job", "artifact_name"],
+    "SourceDeclaration": ["producer_source_sha256", "verifier_source_sha256", "pin_source_sha256", "export_profile_sha256", "normalized_mapping_format"],
+    "ImageMapping": ["repository", "tag", "platform", "platform_manifest_sha256", "config_sha256", "manifest_member", "config_member", "layers"],
+    "LayerMapping": ["member", "diff_id", "bytes"],
+    "ExpectedManifest": ["format", "policy_sha256", "producer_context", "source_declaration", "artifact_id", "archive_sha256", "archive_bytes", "transport_manifest_sha256"],
+    "VerificationReport": ["format", "policy_sha256", "archive_sha256", "archive_bytes", "transport_manifest_sha256", "artifact_id", "images", "authority"],
+    "VerifiedImage": ["repository", "tag", "platform_manifest_sha256", "config_sha256", "layer_count", "layer_bytes", "ordered_diff_ids_sha256"]
+  },
+  "formats": {
+    "transport": "dashboard-ci-runtime-content-archive-v1",
+    "expected": "dashboard-ci-runtime-content-expected-v1",
+    "report": "dashboard-ci-runtime-content-verification-research-v1",
+    "mapping": "dashboard-ci-uncompressed-layer-map-v1"
+  },
+  "identity": {
+    "repository_id": "1141090963",
+    "workflow_path": ".github/workflows/verification.yml",
+    "producer_job": "fixture_images",
+    "platform": "linux/amd64",
+    "hashes": "64-lowercase-hex-SHA256;registry-and-diffID-values-use-sha256-prefix",
+    "commits": "40-lowercase-hex",
+    "counters": "canonical-positive-ASCII-uint64-strings-no-coercion",
+    "artifact_name": "dashboard-runtime-content-{run_id}-{run_attempt}-{full-policy-sha256}",
+    "ref": "bounded-UTF8-exact-independent-expected-ref-no-control-or-NUL-or-surrogate",
+    "expected_source": "separate-readonly-reviewed-source-and-same-run-outputs-not-fields-recovered-from-the-untrusted-archive",
+    "self_reference": "transport-omits-archive-hash-bytes-manifest-hash-and-post-upload-artifact-ID;those-are-held-in-separate-expected-manifest"
+  },
+  "original_content": {
+    "pins": "exact-three-existing-check-ci-images.py-reviewed-repository-tag-platform-manifest-config-tuples-no-caller-substitution",
+    "platform_manifest": "raw-original-bytes-SHA256-first-then-bounded-JSON-schemaVersion2-config-digest-and-layer-count-descriptor-validation",
+    "manifest_media_types": ["application/vnd.docker.distribution.manifest.v2+json", "application/vnd.oci.image.manifest.v1+json"],
+    "config_media_types": ["application/vnd.docker.container.image.v1+json", "application/vnd.oci.image.config.v1+json"],
+    "layer_media_types": ["application/vnd.docker.image.rootfs.diff.tar.gzip", "application/vnd.oci.image.layer.v1.tar", "application/vnd.oci.image.layer.v1.tar+gzip"],
+    "foreign_layer_urls": "refuse",
+    "config": "raw-bytes-SHA256-equals-reviewed-config-pin-and-original-manifest-descriptor;os-linux-architecture-amd64-rootfs-type-layers-with-ordered-SHA256-diffIDs",
+    "layer_mapping": "one-original-manifest-layer-and-one-original-config-diffID-per-ordered-mapping-row;hash-every-actual-exported-uncompressed-byte-stream",
+    "compressed_layer_digest": "retained-original-manifest-fact-never-claimed-validated-against-exported-uncompressed-bytes",
+    "json": "strict-UTF8-no-BOM-duplicate-decoded-keys-NUL-lone-surrogate-or-nonfinite-number;bounded-full-walk-before-typed-use",
+    "transport_json": "exact-sorted-key-compact-UTF8-JSON-no-trailing-newline;original-manifest-config-JSON-keeps-original-raw-bytes",
+    "unused_original_fields": "retained-and-bounded-validated-no-invention-relabeling-or-normalized-byte-hash"
+  },
+  "files": {
+    "directory": "exclusive-owned-mode0700-under-canonical-owned-runner-temp-held-parent-dirfd-no-symlink-ancestors",
+    "archive": "exclusive-owned-regular-mode0600-nlink1-O_NOFOLLOW-held-fd-dev-inode-size-and-path-binding-before-after-validation",
+    "expected_manifest": "separate-exclusive-owned-regular-mode0600-nlink1-held-fd-with-external-readonly-binding",
+    "cleanup": "only-created-same-inodes-via-held-directory-fd-refuse-preexisting-replaced-or-unexpected-members-no-recursive-foreign-removal",
+    "threat_limit": "ordinary-observed-replacement-checks-not-hostile-same-user-or-host-isolation"
+  },
+  "timing": {
+    "clock": "actual-monotonic-before-after-bounded-reads-refuse-late-success-no-clock-override-in-production-interface",
+    "read_limit": "regular-file-byte-cap-and-exact-required-byte-counts-no-network-or-decompression",
+    "runtime_limit": "no-hard-real-time-or-OS-blocking-latency-guarantee",
+    "load": "not-implemented;later-explicit240-second-total-validation-load-candidate-no-deadline-restart"
+  },
+  "later_gates": {
+    "docker": "freeze-actual-engine-store-API-and-original-export-format-after-owned-observed-roundtrip;unknown-profile-refuses",
+    "load": "no-load-until-all-content-provenance-file-bindings-pass;then-actual-ID-platform-ordered-RootFS-and-fixture-smoke",
+    "workflow": "unchanged-until-separate-exact-actions-identity-failure-propagation-and-coverage-review",
+    "failure": "missing-failed-cancelled-corrupt-producer-or-artifact-never-successful-SQL-or-skip-substitute",
+    "retention_days": "1",
+    "candidate_caps": "unmeasured-refusal-limits-no-proof-images-fit-deadline-cost-or-availability-no-auto-widening",
+    "authority": "pure-shape-context-and-content-checks-do-not-authenticate-job-runner-or-signer"
+  }
+}
