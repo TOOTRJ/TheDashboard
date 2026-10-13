@@ -1,0 +1,73 @@
+{
+  "accepted": true,
+  "authority": {
+    "final_visible_instant_freshness": false,
+    "hosted": false,
+    "native_production_admission": false,
+    "profitability": false,
+    "restoration": false,
+    "retention_deletion": false
+  },
+  "cases": 20,
+  "date": "2026-10-12",
+  "fixture": {
+    "image": "public.ecr.aws/supabase/postgres:17.6.1.095",
+    "image_id": "sha256:965e2dfb5a23a0d6541b6106541e777b303656ebabd4e878746b189d550c0a66",
+    "network": "none",
+    "ownership": "UUID-owned isolated fixture only",
+    "platform": "linux/arm64",
+    "server": "PostgreSQL17.6"
+  },
+  "format": "ga-portable-native-offline-acceptance-lab-v1",
+  "freshness_claim": "during recognized standalone explicit COMMIT guard processing only",
+  "native_sql_sha256": "ff26081dff64ff6bfff6eae66e9f07e66da883fa260b7bdca09041f4a47796c2",
+  "native_tests_sha256": "6ffd9268ba1e161b3fd39f5ade83a04a44777b200424ba89713d9f7594204e14",
+  "ordinary_commands": 127,
+  "ordinary_logical_wire_bytes": 8388608,
+  "original_v1_sources_sha256": {
+    "db-contract/research/assessment_transition.sql": "6af9cec6722c53e2995de01d75d62deab63381d407313939123cc41e8590dde3",
+    "db-contract/research/causal_risk.sql": "6132cedbe15d3d88997bfafc319cee08848bb9c38b4c9be86d8ee284644aab37",
+    "db-contract/research/economic_transition.sql": "c12a98685b4f20bc7ceaa3a31995b527379fba505bc1a59ecaf8c54143ef5801",
+    "db-contract/research/locked_checkpoint.sql": "40973039c4ec1fd0af8a2836818ab75db60b6e75ec41e2f217adc078d2863542",
+    "db-contract/research/numeric_wire.sql": "adc7dbe2ce3ef51d860b8c09430a24759522cb7284dc73e40804dbd8880675b1",
+    "db-contract/research/optimizer_graph.sql": "aade55e4f7a41980ddb6faf1dc34d27373324375373e950e42d26e8700ef326b",
+    "db-contract/research/optimizer_rng.sql": "bc761910b7e4dda3b1fe938f6847f8439ff3e62685b55320c44030e1a464a993",
+    "db-contract/research/optimizer_transition.sql": "25c352d013ef663ac4de318032548d8281e4bc0c3ab8a62063e4410bc57ec8ab",
+    "db-contract/research/portable_period_mutation.sql": "605dfb89940b9dcee0a0f9d2f756e51621de7ee003bc9b997a5bf537c0992777",
+    "db-contract/research/source_transition.sql": "4f1c5b506fa2e9253cd3e7940f9b4d9f429d81561f73a4676ca8db7c3450cede",
+    "vonneumann/research/partitioned_checkpoint.py": "4752288ddaba3835270701253874b246522c5e760a602d616c862f37f42d1aa7",
+    "vonneumann/research/provider_checkpoint.py": "877b511ac97425dc66d1bbb255f74541c7b51053daed29acc7196ecf406c97c7",
+    "vonneumann/research/provider_ga_model.py": "4343e38c9ccf864144abbb843e1b4936b2441954ade42c573c986dbc1d87f242"
+  },
+  "remaining_gates": [
+    "genuine next-bar held-position native Stop trace",
+    "authenticated decoder/native reader and historical-ID continuation joins",
+    "dependency-safe retention/load/pruning",
+    "wire transport/client capability and TLS/SCRAM",
+    "vendor binary/source equivalence",
+    "physical/TOAST/WAL/crash durability",
+    "replacement lease-acquisition API",
+    "honest forward real-provider runtime profile and authenticated capture corpus",
+    "representative hosted latency/cost and recovery"
+  ],
+  "reserved_stop_command": 128,
+  "reserved_stop_total_logical_wire_bytes": 9707520,
+  "scope": "original-v2 atomic offline laboratory journal/pins/projections/replay/rollback/actor/catalog/clock/readback; no production migration or runtime",
+  "seconds": 83.614,
+  "semantic_sources_sha256": {
+    "db-contract/research/portable_assessment_transition.sql": "38321b8952ada745e2b2cbb558f2e86057cf34f72b7f54e7c226d661ba357c6c",
+    "db-contract/research/portable_causal_risk.sql": "9365bb0882579cc25088f1487c6aab8f25549dbe6a7d37b996797aae3b26284a",
+    "db-contract/research/portable_configuration.sql": "ae43e9f757124291e369240f1dc07c64885c77a2b5eeec7c27448b200e7233dc",
+    "db-contract/research/portable_economic_transition.sql": "46372357ff94a98cb8226cee74392bd3efc0b8bbda3e7865c17a13f033609148",
+    "db-contract/research/portable_locked_checkpoint.sql": "260762936fb80d7be1b821f582d8941961b7971defe54a4fe03734c6ccdec5fe",
+    "db-contract/research/portable_model_period_mutation.sql": "4f4ef89459e6e612ad2b8ded7bc0f9b77c993fccfb204fbc1316fa549651c532",
+    "db-contract/research/portable_numeric_wire.sql": "0f392d3eba0ac6eb6db1b58e1b78cc6a5c1688267e6695b2ec1d9d5e4f132307",
+    "db-contract/research/portable_optimizer_graph.sql": "79450d713d06cb03992e7f4c5c42707830f26964d0e91d1af851d4b32761ca25",
+    "db-contract/research/portable_optimizer_rng.sql": "500e02df7f9e1d6e67ea67059b598c6f43c86458c891d2fd843ee66a8134038b",
+    "db-contract/research/portable_optimizer_transition.sql": "459844f56dbd630378fc68599cfd5acc3b9a559104a2ab43e817356f56ca4ff2",
+    "db-contract/research/portable_source_transition.sql": "f01ff1dc52c629bdc454cdd36a99b5d099f0ca0249771d7d9c8c2b054891bd41",
+    "db-contract/research/portable_transition.sql": "0261ca93f1f5a39861315365a4e001cf60856952eabf94083ce750510a5a4bda"
+  },
+  "skipped": 0,
+  "source_window_seconds": 5
+}
