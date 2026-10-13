@@ -6,9 +6,9 @@
 expiring development exception are implemented; production audit is now clean.
 The original findings below describe the pre-repair review. October14 security
 response remains open. TYPE1 is also repaired with unchanged canonical wires;
-complete independent v2 SQL is next. Privacy/CI progress is recorded with each
+the corrected independent original-v2 SQL laboratory now passes 38 actual PostgreSQL cases; the native/restore/retention joins follow. Privacy/CI progress is recorded with each
 reviewed implementation section. NEST-06A account/session isolation is now implemented;
-QA-01B real browser acceptance and NEST-05A same-account result identity remain open.
+NEST-05A result identity and same-account reply ordering are implemented locally and pass controlled plus real synthetic-browser cases. Their release review is pending; broader QA-01B remains open.
 QA-01A is now complete within its automated verification scope. PR102's exact
 head `cbdc5d010f1f2e37ca50ca7d4528e8f85149e153` passes all seven hosted jobs in
 [run38326660837](https://github.com/TOOTRJ/TheDashboard/actions/runs/38326660837):
@@ -38,12 +38,9 @@ trades, eight children, 32 acknowledged events). Railway is provisioned and
 restored to ordinary closed mode. This proves finite zero-cost mechanics, not
 continuous operation, restart restoration, realistic execution or profitability.
 Portable v2 model/partition/transport and the mutation primitive exist offline;
-complete independent v2 SQL, native admission and restoration do not.
+complete independent original-v2 SQL and guarded native laboratory admission are now implemented locally. Explicit decoder/restoration and retention inventory experiments are implemented; the actual native restoration join, retention/storage, new reader and hosted-profile joins remain separate acceptance gates.
 
-**Remaining review blockers:** complete independent v2 SQL semantics and native
-admission/restoration remain unfinished; Nestegg can mix old simulation results
-with current inputs, and several dashboard actions still report unsupported
-success. The review's bool/int alias, account-draft leak and compatible production
+**Remaining review blockers:** the new offline SQL/native/restoration slices need their composed release checks and production-profile joins. The Nestegg stale-result defect is repaired locally; several other dashboard actions still report unsupported success. The review's bool/int alias, account-draft leak and compatible production
 dependency advisory are repaired in PR99–PR101. The advisory gate now requires
 zero production findings and only the exact expiring development exception.
 SEC-05B still tracks the announced October 14 Next security response; inspect the
@@ -55,8 +52,9 @@ and realistic trading/data evaluation remain separate open gates.
 | P0 access boundary, every remote operation | Before the operation; serialize cloud writes | Exact GitHub/Vercel/Supabase/Railway project and owner verification; preserve shared credentials/other projects. Preview still shares production DB values, so initial tests stay offline. |
 | P1 security and QA, start now | Parallel with the worker and app lanes; release joins require their relevant checks | SEC-05B October 14 response and QA-01B real browser coverage; SEC-05A and QA-01A are complete within their recorded scope. No forced Next 14 downgrade. |
 | P1 worker step1 — complete | Rejection-only repair verified before the next SQL gate | PAPER-COMPACT-TYPE1: exact policy types for v2; decide legacy v1 compatibility; adversarial rehash tests. Freeze corrected model/config/operator/component versions. |
-| P1 worker step2 | After TYPE1; close full semantics before native admission | PAPER-COMPACT-03B3C2B2B: independently validate original complete v2 evidence in SQL, including actual child mutation. Compose prior economics/source/causal/risk/assessment proofs without stripping policy or relabeling versions. |
+| P1 worker step2 — offline proof accepted, release pending | Corrected original-v2 semantics precede native admission | PAPER-COMPACT-03B3C2B2B: independently validate original complete v2 evidence in SQL, including actual child mutation. Compose prior economics/source/causal/risk/assessment proofs without stripping policy or relabeling versions. |
 | P1 worker step3 | After complete v2 semantics | PAPER-COMPACT-03: atomic native journal, dependency pins, original-ID receipt/replay, final source/lease admission, reserved Stop, history/relay/projections, reviewed forward package. Include PAPER-ASSESSMENT-PROVENANCE1 in this format. |
+| P1 forward runtime profile | Freeze after original-v2 proofs, before any real-provider native/hosted join | PAPER-RUNTIME-V3: preserve original synthetic v2 journals; explicitly version real Jupiter acquisition/source/clock/config/model/command/projection/reader contracts. Do not relabel real data as synthetic. |
 | P1 worker step4 | Design/fixtures can overlap step3 after version freeze; final proof needs its durable receipt contract | PAPER-COMPACT-04: independent restoration, exact next-command equivalence, pending original-command reconciliation and retained holdings. Loading a checkpoint grants no running authority. |
 | P1 worker step5 | Retention design/load fixtures can overlap step3/4; safe pruning and final acceptance require their pins/restore proofs | PAPER-COMPACT-05: original receipt lookup, immutable dependency preservation, measured table/index/TOAST/storage budgets, long-history owner reads and relay/Stop safety. No speculative deletion. |
 | P1 native UI compatibility | Mock parser/fixtures after projection draft; final browser/read acceptance joins native package and restoration | PAPER-UI-V2: explicit model/operator/assessment/source versions, multi-window history, correct ancestry and unknown-version states; retain old v5 reader meanings. |
@@ -91,6 +89,34 @@ assumptions. Dashboard is the sole Jupiter consumer in TheOrder per the user;
 organization-wide limits still apply, but no other-application inventory answer
 is pending. Research is a deliverable with evidence and acceptance criteria,
 not a reason to repeat already completed pilot/setup work.
+
+## Five-priority implementation batch — local review, 2026-10-12
+
+The working `codex/dashboard-five-priorities` branch now contains corrected
+original-v2 independent SQL, NEST-05A identity/cloud-order repairs, a real
+synthetic-browser harness and observed cases, fresh primary-source research,
+guarded native atomic admission, explicit original-wire restoration, and a
+conservative retained-artifact inventory. These are local review commits;
+production remains the previously verified PR103 source until new CI/release
+acceptance is recorded. No migration or worker activation occurred.
+
+The fresh report distinguishes documented policy from measurements and retains
+open data/cost/strategy research: [research](FIVE-PRIORITIES-RESEARCH-2026-10-12.md),
+[paired protocol](services/vonneumann/PAIRED-RESEARCH-CONTRACT.md),
+[commit timing](services/vonneumann/NATIVE-COMMIT-EDGE-RESEARCH.md).
+The actual browser record covers current Nestegg X→Y→X, held SaveA→SelectB,
+active-plan deletion, paper lost acknowledgments/original IDs, incompatible
+contracts/policies and late cross-account history/control replies. Download
+and broad honest-action/new-native/hosted acceptance are not claimed.
+[Browser observations and limits](BROWSER-ACCEPTANCE-2026-10-12.json).
+
+Continue in order: reviewed native guard follow-ups/genuine held-position Stop →
+actual restoration join → measured retained pins/history/storage and safe policy →
+new native inspector/reader compatibility → honestly versioned real-provider
+runtime/transport/closed forward package → exact hosted fault/multi-window and
+longer resource/quota acceptance. The October14 security response still awaits
+published ranges. Whole audit, continuous paper and empirical/live gates remain
+open; checked subproofs must not erase those parents.
 
 ## Historical implementation and release checkpoints
 
@@ -663,7 +689,7 @@ Research began **2026-09-30** and was updated **2026-10-06/07** in [WORKER-HOSTI
 - [ ] **NEST-06 — Correct plan, portfolio-link, and browser-storage state.** A zero linked portfolio retains old savings; restoring saved plans conflicts with the linked badge; the shared browser draft key can expose one account's plan to another account on the same device. Scope drafts by user, define link/override semantics, and clear or migrate state appropriately. Acceptance: logout/login, zero portfolio, restored plans, and manual overrides show consistent provenance. Sources: [storage](src/lib/nestegg/storage.ts), [Nestegg page](src/app/(dashboard)/nestegg/page.tsx).
 - [x] **NEST-06A — P1: Isolate drafts and asynchronous publication by account/session.** Owner-tagged v2 drafts never claim/read the unowned v1 draft. A keyed opaque login workspace retires private views, hydration/refresh/save/delete/portfolio/autosave/MC/focus replies across account/logout/re-login/Strict Mode replacement. Per-request clients verify current owner/login and bind its original token; owner predicates/RLS remain. Ordinary refresh keeps stable session identity; opaque-token changes conservatively remount without embedding credentials in keys.21 focused cases and204 complete Node cases, TypeScript, zero-error lint and isolated build pass. No real two-user browser acceptance claimed (QA-01B); device storage is scoped, not encrypted. Same-account result identity/calibration and broad NEST-06 remain open. [Contract and limits](NESTEGG-ACCOUNT-ISOLATION.md).
 
-- [ ] **NEST-05A — P1, parallel with the worker SQL lane: Bind all results and exports to their input/model identity.** Retained light/full results can mix with edited inputs during debounce and in charts/cards/insights/comparisons/exports. First slice: capture inputs and tag results with opaque workspace, input/scenario, model/seed policy, purpose/path count and request generation. Require both the existing session guard and current calculation generation for result/progress/error/finally publication; gate every consumer immediately and publish a coherent full-analysis bundle. Saved-row comparisons need their own generation and failure state. Test X→Y, X→Y→X, identical-input overlaps, partial failures and late callbacks; current results or explicit pending/unavailable states must reach every consumer/export. Second slice: separate list-request/workspace-intent generations for refresh/save/select/save-new/rename replies; a captured write may finish, but its late reply must not replace newer inputs, selection, name or dirty baseline. Preserve NEST-06A token/owner/session guards. Controlled regressions precede QA-01B real browser acceptance. These state repairs do not depend on RES-05; distribution/tail/calibration/formula changes remain RES-05/NEST-05.
+- [ ] **NEST-05A — Implemented locally; current release acceptance pending. P1, parallel with the worker SQL lane: Bind all results and exports to their input/model identity.** Retained light/full results can mix with edited inputs during debounce and in charts/cards/insights/comparisons/exports. First slice: capture inputs and tag results with opaque workspace, input/scenario, model/seed policy, purpose/path count and request generation. Require both the existing session guard and current calculation generation for result/progress/error/finally publication; gate every consumer immediately and publish a coherent full-analysis bundle. Saved-row comparisons need their own generation and failure state. Test X→Y, X→Y→X, identical-input overlaps, partial failures and late callbacks; current results or explicit pending/unavailable states must reach every consumer/export. Second slice: separate list-request/workspace-intent generations for refresh/save/select/save-new/rename replies; a captured write may finish, but its late reply must not replace newer inputs, selection, name or dirty baseline. Preserve NEST-06A token/owner/session guards. Controlled regressions precede QA-01B real browser acceptance. These state repairs do not depend on RES-05; distribution/tail/calibration/formula changes remain RES-05/NEST-05.
 - [ ] **NEST-07 — Fix export/print success reporting.** `window.open` with `noopener` can return null, leaving blank output while UI reports success. Generate a reliable export artifact or print path and report actual completion/error. Acceptance: exported values match the current input/result version, and blocked popups/failed rendering cannot produce false success. Sources: [report export](src/lib/nestegg/export-report.ts), [export menu](src/components/nestegg/NesteggExportMenu.tsx).
 
 **Research follow-up — 2026-10-08 finite pilot:** Before continuous paper operation, measure command/journal growth separately from PostgreSQL compressed column bytes and total relation/index/TOAST storage. Database compression does not change the 262,144-byte application/SQL admission checks. A proposed prior-checkpoint reference must preserve one original immutable wire request for replay, verify the same owner/run/revision under the run lock, and independently bound expanded logical validation; the inner v4 model currently has its own capacity rejection. Removing the repeated before-state alone does not bound growing after-state histories, candidate accounts or positions. Investigate active-state versus immutable historical-ledger separation, sealed checkpoint/version ownership, retention pins and verified archive/recovery before deleting any referenced command. Prove lost-reply, rollback, freshness at final commit, retained Stop capacity, corruption rejection and complete source/RNG/account restoration with real offline PostgreSQL tests before proposing a new production contract. Primary sources: [PostgreSQL TOAST](https://www.postgresql.org/docs/17/storage-toast.html), [JSON operations](https://www.postgresql.org/docs/17/functions-json.html). This is a research requirement, not an implemented v6 migration or continuous-operation approval.
@@ -1106,7 +1132,8 @@ Research began **2026-09-30** and was updated **2026-10-06/07** in [WORKER-HOSTI
   Complete original-v2 SQL B2B remains the next worker gate.
 
 
-- [ ] **PAPER-COMPACT-03B3C2B2B — Validate complete portable v2 semantics independently in SQL.**
+- [ ] **PAPER-COMPACT-03B3C2B2B — Offline proof accepted; current release acceptance pending. Validate complete portable v2 semantics independently in SQL.**
+  Corrected laboratory passes38 actual PostgreSQL cases/zero skips and4 ordinary source checks. It independently composes complete original-v2 evidence, accepted priors and actual child mutation; private catalog/type lookup is hardened. [Contract](services/vonneumann/PORTABLE-SQL-CONTRACT.md), [defensive evidence](services/vonneumann/research/portable-sql-defensive-acceptance.json). Historical instructions below explain the original gap; they are not a request to redo this proof.
   Dependency: TYPE1 and frozen corrected model/config/operator/component contract.
   Bind original v2 headers/config/operator/graph/software/counters and canonical
   wire/dependencies; compose economics/source/causal/risk/assessment with actual
@@ -1136,6 +1163,7 @@ Research began **2026-09-30** and was updated **2026-10-06/07** in [WORKER-HOSTI
   v2 wire has no standalone serialized search-spec field to invent or strip.
 
 - [ ] **PAPER-COMPACT-03 — Prepare the reviewed forward SQL/native contract.**
+  Guarded original-v2 native laboratory now passes20 actual PostgreSQL cases/zero skips: original-ID replay/readback, atomic journal/13pins/events/projections, scope/ACL/catalog/rollback/refusal and recognized-COMMIT guard freshness. This does not install a production package or establish final-visible-instant freshness. Actual held-position clock proof, native restoration, physical retention/resource tails, forward real-provider profile and migration/reader joins remain. [Native contract](services/vonneumann/PORTABLE-NATIVE-CONTRACT.md).
   **Constraint reviewed by03A:** adopt a reviewed stable partition and enforce
   dependency-safe journal retention/rate/Stop budgets before finalization.
   Smaller requests still grow with every accepted command. The old one-window
@@ -1190,6 +1218,8 @@ Research began **2026-09-30** and was updated **2026-10-06/07** in [WORKER-HOSTI
   migration rollback before application. **Deep substantial research:** objective
   sensitivity, cross-version comparability and compact immutable assessment
   records. This is required before comparing results across worker-policy changes.
+
+- [ ] **PAPER-RUNTIME-V3 — P1: Freeze an honest real-provider runtime profile before hosting the new engine.** Original portablev2 deliberately pins `synthetic-exact-fixture-v1`; preserve its immutable journals, wires, model/operator/assessment meanings and proofs. Define a coherent forward configuration/model/source/clock/checkpoint/command/SQL/projection/reader contract for retained Jupiter PriceV3 acquisition evidence and licensed contiguous historical warmup. Accept raw publication/hash/decoder provenance, chain/receipt ordering, direct database-time age/future bounds, restart epochs, errors/rate limits and next-command/old-history compatibility. No scalar replacement, future-time fixture advance, lease restoration or original-ID substitution establishes this profile. Then prepare and rehearse the exact-project closed package/migration/rollback before hosted paper activation. **Further deep research:** measure clock/error/quota/resource tails and source-data authenticity limits, with the existing two EMA genes retained.
 
 - [ ] **PAPER-UI-V2 — P1: Join native v2 projection and browser compatibility.**
   Current page version 1/durability 5 readers and ancestry version 2 restart_clone
