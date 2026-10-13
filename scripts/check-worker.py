@@ -58,6 +58,10 @@ POSTGRES_HEAVY_MODULE_SHARDS = {
     "tests.postgres.test_legacy_retirement": 3,
     "tests.postgres.test_installer_boundary": 3,
     "tests.postgres.test_expired_paper_maintenance": 3,
+    # PR104's actual shard2 reaches the new full semantic module after37m;
+    # shard3 finishes18m40s. Keep this module intact on the shorter shard.
+    # The2400s child deadline, every occurrence and fixture segment stay fixed.
+    "tests.postgres.test_portable_transition": 3,
     "tests.postgres.test_portable_period_mutation": 4,
     "tests.postgres.test_native_sql": 4,
     "tests.postgres.test_session_auth": 4,
