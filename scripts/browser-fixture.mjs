@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // A fresh real Next/React app with synthetic loopback-only Auth/data.
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import net from 'node:net';
 import { readFile, writeFile, realpath, lstat, mkdir, copyFile } from 'node:fs/promises';
 import path from 'node:path';
@@ -29,6 +29,32 @@ export async function availablePort() {
   const port = probe.address().port;
   await new Promise(resolve => probe.close(resolve)); return port;
 }
+export function createFixtureLaunchGuard() {
+  let closing = false;
+  return Object.freeze({
+    close() { closing = true; },
+    assertOpen() { if (closing) throw new Error('Owned fixture is closing'); },
+    get closing() { return closing; },
+  });
+}
+export function createFixtureOwnedSteps(guard) {
+  const pending = new Set();
+  return Object.freeze({
+    run(action) {
+      guard.assertOpen();
+      // Register before scheduling the action: shutdown can neither miss an
+      // already-owned write nor admit a new action after the closing boundary.
+      const step = Promise.resolve().then(() => { guard.assertOpen(); return action(); });
+      pending.add(step);
+      void step.then(() => pending.delete(step), () => pending.delete(step));
+      return step;
+    },
+    async drain() {
+      if (!guard.closing) throw new Error('Owned fixture steps require a closed launch guard');
+      await Promise.allSettled([...pending]);
+    },
+  });
+}
 const runningChildren = new Set();
 const termination = new WeakMap();
 function ownedGroupExists(handle) {
@@ -36,10 +62,63 @@ function ownedGroupExists(handle) {
   try { process.kill(-handle.pid, 0); return true; }
   catch (error) { if (error.code === 'ESRCH') return false; throw new Error('Cannot inspect exact owned process group'); }
 }
+export function parseOwnedGroupState(output, group) {
+  if (!Number.isSafeInteger(group) || group <= 0 || group > 2_147_483_647
+    || typeof output !== 'string' || output.length > 262_144) throw new Error('Cannot inspect exact owned process group');
+  const rows = output.trim().split('\n').filter(Boolean);
+  if (!rows.length) return true;
+  if (rows.length > 4096) throw new Error('Cannot inspect exact owned process group');
+  const seen = new Set();
+  return rows.map(line => {
+    const row = /^\s*([1-9][0-9]*)\s+([1-9][0-9]*)\s+([A-Za-z][A-Za-z+<>-]*)\s*$/.exec(line);
+    const pid = row && Number(row[1]);
+    if (!row || !Number.isSafeInteger(pid) || pid > 2_147_483_647
+      || Number(row[2]) !== group || seen.has(pid)) throw new Error('Cannot inspect exact owned process group');
+    seen.add(pid);
+    if (row[3].startsWith('Z') && !/^Z[+<>AELNSsVWXl]*$/.test(row[3])) throw new Error('Cannot inspect exact owned process group');
+    return row[3].startsWith('Z');
+  }).every(Boolean);
+}
+export function ownedGroupIsQuiescent(handle, execute = spawnSync, platform = process.platform) {
+  // A dead descendant can remain as an unreapable OS zombie. Query only the
+  // exact group we created, never a global process inventory. macOS legacy ps
+  // ignores -g, so the child environment explicitly selects unix2003 behavior.
+  if (!Number.isSafeInteger(handle?.pid) || handle.pid <= 0 || handle.pid > 2_147_483_647) {
+    throw new Error('Cannot inspect exact owned process group');
+  }
+  const env = { COMMAND_MODE: 'unix2003', LC_ALL: 'C' };
+  let selection, selectedIds;
+  const linuxMembers = () => {
+    const members = execute('/usr/bin/pgrep', ['-g', String(handle.pid)], { env, encoding: 'utf8', timeout: 1000, maxBuffer: 262_144 });
+    if (!members.error && members.status === 1 && members.stdout === '' && !members.stderr) return [];
+    const ids = members.stdout?.trim().split(/\s+/) ?? [];
+    if (members.error || members.status !== 0 || members.stderr || !ids.length || ids.length > 4096
+      || new Set(ids).size !== ids.length || ids.some(id => !/^[1-9][0-9]*$/.test(id)
+        || !Number.isSafeInteger(Number(id)) || Number(id) > 2_147_483_647)) throw new Error('Cannot inspect exact owned process group');
+    return ids;
+  };
+  if (platform === 'darwin') selection = ['-g', String(handle.pid)];
+  else if (platform === 'linux') {
+    selectedIds = linuxMembers();
+    if (!selectedIds.length) return true;
+    selection = ['-p', selectedIds.join(',')];
+  } else throw new Error('Cannot inspect exact owned process group');
+  const state = execute('/bin/ps', [...selection, '-o', 'pid=,pgid=,stat='], { env, encoding: 'utf8', timeout: 1000, maxBuffer: 262_144 });
+  if (!state.error && state.status === 1 && state.stdout === '' && !state.stderr) {
+    return platform !== 'linux' || linuxMembers().length === 0;
+  }
+  if (state.error || state.status !== 0 || state.stderr) throw new Error('Cannot inspect exact owned process group');
+  const quiescent = parseOwnedGroupState(state.stdout, handle.pid);
+  if (!quiescent || platform !== 'linux') return quiescent;
+  // A new descendant can appear between pgrep and ps. Never infer quiescence
+  // from a stale PID subset: another exact-group sample must agree or be empty.
+  const after = linuxMembers();
+  return !after.length || (after.length === selectedIds.length && after.every(id => selectedIds.includes(id)));
+}
 async function waitForOwnedGroup(handle, milliseconds) {
   const end = Date.now() + milliseconds;
   while (ownedGroupExists(handle) && Date.now() < end) await new Promise(resolve => setTimeout(resolve, 25));
-  return !ownedGroupExists(handle);
+  return !ownedGroupExists(handle) || ownedGroupIsQuiescent(handle);
 }
 async function terminateOwned(processHandle) {
   if (termination.has(processHandle)) return termination.get(processHandle);
@@ -57,7 +136,8 @@ async function terminateOwned(processHandle) {
   })();
   termination.set(processHandle, completion); return completion;
 }
-export function runFixtureChild(command, args, options, timeout) {
+export function runFixtureChild(command, args, options, timeout, guard) {
+  guard?.assertOpen();
   return new Promise((resolve, reject) => {
     const ownedChild = spawn(command, args, { ...options, shell: false, detached: true });
     runningChildren.add(ownedChild);
@@ -95,21 +175,41 @@ export function browserEnvironment(directory, backendOrigin, inherited) {
 
 async function main() {
   if (process.argv.length !== 2) throw new Error('This fixture accepts no environment/source/target arguments');
-  const prepared = await prepareBuild(ROOT);
-  preparationPhase = 'owned copy canonicalization';
-  prepared.directory = await realpath(prepared.directory);
-  let backend, next, stopping;
-  const stop = () => stopping ??= (async () => {
-    await Promise.all([...runningChildren].map(terminateOwned));
-    await backend?.stop(); await removeBuild(prepared);
-  })();
+  let prepared, backend, next, stopping;
+  const guard = createFixtureLaunchGuard();
+  const steps = createFixtureOwnedSteps(guard);
+  const stop = () => {
+    guard.close();
+    return stopping ??= (async () => {
+      // Await already-owned file/binding work alongside child termination.
+      // Do not track main()/its finally or child lifetimes as file steps: doing
+      // so would make cleanup await itself or await a child before stopping it.
+      await Promise.all([steps.drain(), ...[...runningChildren].map(terminateOwned)]);
+      await backend?.stop();
+      if (prepared) await removeBuild(prepared);
+    })();
+  };
   for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, () => { void stop(); });
   try {
+    guard.assertOpen();
+    await steps.run(async () => { prepared = await prepareBuild(ROOT); });
+    guard.assertOpen();
+    preparationPhase = 'owned copy canonicalization';
+    await steps.run(async () => { prepared.directory = await realpath(prepared.directory); });
+    guard.assertOpen();
     preparationPhase = 'public input defaults';
-    vmInput = await readFile(path.join(prepared.directory, 'src/lib/nestegg/constants.ts'), 'utf8');
-    backend = createBrowserBackend(defaultInputs());
+    vmInput = await steps.run(() => readFile(path.join(prepared.directory, 'src/lib/nestegg/constants.ts'), 'utf8'));
+    guard.assertOpen();
     preparationPhase = 'owned loopback binding';
-    const backendOrigin = await backend.start(), port = await availablePort();
+    guard.assertOpen();
+    const backendOrigin = await steps.run(async () => {
+      backend = createBrowserBackend(defaultInputs());
+      try { return await backend.start(); }
+      catch (error) { backend = undefined; throw error; }
+    });
+    guard.assertOpen();
+    const port = await steps.run(availablePort);
+    guard.assertOpen();
     // Cookies ignore ports. A unique .localhost host prevents sb-127 cookies
     // from colliding with another project's local app on this computer.
     const appOrigin = `http://dashboard-fixture-${prepared.owner}.localhost:${port}`;
@@ -121,30 +221,39 @@ async function main() {
     // No .env, ssl, agent/cloud config, existing build or application credentials copy.
     preparationPhase = 'locked dependency installation';
     await runFixtureChild('npm', ['ci', '--include=dev', '--ignore-scripts', '--no-audit', '--no-fund'],
-      { cwd: prepared.directory, env, stdio: 'inherit' }, 300_000);
+      { cwd: prepared.directory, env, stdio: 'inherit' }, 300_000, guard);
+    guard.assertOpen();
     const nextBin = path.join(prepared.directory, 'node_modules/next/dist/bin/next');
     preparationPhase = 'public fixture route copy';
-    if (!(await lstat(nextBin)).isFile() || await realpath(nextBin) !== nextBin) throw new Error('Next fixture executable must be regular owned source');
-    // A restrictive test-only connect policy blocks the fixed hosted paper RPC
-    // origin as well as all other cloud/worker origins. Real paper contract tests
-    // use explicit component fixtures rather than weakening its project pin.
-    const config = path.join(prepared.directory, 'next.config.ts');
-    await writeFile(config, `import type { NextConfig } from 'next';\nconst config: NextConfig = { allowedDevOrigins: ['127.0.0.1'], async headers() { return [{source:'/:path*',headers:[{key:'Content-Security-Policy',value:${JSON.stringify("connect-src 'self' " + backendOrigin + ' ' + backendOrigin.replace('http:', 'ws:'))}}]}]; }}; export default config;\n`);
-    const fixtures = [['paper-page.tsx', 'page.tsx'], ['paper-data.ts', 'paper-data.ts']];
-    const route = path.join(prepared.directory, 'src/app/(dashboard)/paper-fixture');
-    await mkdir(route, { recursive: true, mode: 0o700 });
-    for (const [source, destination] of fixtures) {
-      const file = path.join(ROOT, 'scripts/browser-fixtures', source);
-      for (const segment of [path.join(ROOT, 'scripts'), path.dirname(file), file]) {
-        const metadata = await lstat(segment);
-        if (metadata.isSymbolicLink() || (segment === file && !metadata.isFile())) throw new Error('Browser fixture inputs must be regular public files');
+    await steps.run(async () => {
+      const metadata = await lstat(nextBin); guard.assertOpen();
+      const canonicalNext = await realpath(nextBin); guard.assertOpen();
+      if (!metadata.isFile() || canonicalNext !== nextBin) throw new Error('Next fixture executable must be regular owned source');
+      // A restrictive test-only connect policy blocks the fixed hosted paper RPC
+      // origin as well as all other cloud/worker origins. Real paper contract tests
+      // use explicit component fixtures rather than weakening its project pin.
+      const config = path.join(prepared.directory, 'next.config.ts');
+      await writeFile(config, `import type { NextConfig } from 'next';\nconst config: NextConfig = { allowedDevOrigins: ['127.0.0.1'], async headers() { return [{source:'/:path*',headers:[{key:'Content-Security-Policy',value:${JSON.stringify("connect-src 'self' " + backendOrigin + ' ' + backendOrigin.replace('http:', 'ws:'))}}]}]; }}; export default config;\n`);
+      guard.assertOpen();
+      const fixtures = [['paper-page.tsx', 'page.tsx'], ['paper-data.ts', 'paper-data.ts']];
+      const route = path.join(prepared.directory, 'src/app/(dashboard)/paper-fixture');
+      await mkdir(route, { recursive: true, mode: 0o700 }); guard.assertOpen();
+      for (const [source, destination] of fixtures) {
+        const file = path.join(ROOT, 'scripts/browser-fixtures', source);
+        for (const segment of [path.join(ROOT, 'scripts'), path.dirname(file), file]) {
+          const metadata = await lstat(segment); guard.assertOpen();
+          if (metadata.isSymbolicLink() || (segment === file && !metadata.isFile())) throw new Error('Browser fixture inputs must be regular public files');
+        }
+        await copyFile(file, path.join(route, destination)); guard.assertOpen();
       }
-      await copyFile(file, path.join(route, destination));
-    }
+    });
+    guard.assertOpen();
     preparationPhase = 'production fixture build';
     await runFixtureChild(process.execPath, [nextBin, 'build'],
-      { cwd: prepared.directory, env, stdio: 'inherit' }, 600_000);
+      { cwd: prepared.directory, env, stdio: 'inherit' }, 600_000, guard);
+    guard.assertOpen();
     preparationPhase = 'owned Next server readiness';
+    guard.assertOpen();
     next = spawn(process.execPath, [nextBin, 'start', '--hostname', '127.0.0.1', '--port', String(port)],
       { cwd: prepared.directory, env, stdio: 'inherit', shell: false, detached: true });
     runningChildren.add(next);
@@ -160,6 +269,7 @@ async function main() {
       if (readyResponse) break;
       await new Promise(resolve => setTimeout(resolve, 100));
     }
+    guard.assertOpen();
     if (!readyResponse) throw new Error('Owned Next fixture readiness failed');
     const ready = { scope: 'synthetic-loopback-browser', appOrigin, backendOrigin,
       directory: prepared.directory, owner: prepared.owner, originalConfigReplacedOnlyInOwnedCopy: true,
@@ -172,5 +282,11 @@ async function main() {
   } finally { await stop(); }
 }
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  main().catch(() => { process.stderr.write(`Dashboard browser fixture failed during ${preparationPhase}; private inherited output is not used\n`); process.exitCode = 1; });
+  main().catch(error => {
+    const publicReasons = new Set(['Owned process group cleanup did not complete', 'Owned fixture preparation failed',
+      'Owned fixture preparation timed out', 'Owned fixture is closing', 'Owned Next fixture readiness failed']);
+    const detail = publicReasons.has(error.message) ? ` (${error.message})` : '';
+    process.stderr.write(`Dashboard browser fixture failed during ${preparationPhase}${detail}; private inherited output is not used\n`);
+    process.exitCode = 1;
+  });
 }

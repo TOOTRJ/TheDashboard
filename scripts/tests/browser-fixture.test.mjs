@@ -1,8 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createBrowserBackend, FIXTURE_KEY, FIXTURE_ADMIN_KEY, FIXTURE_PASSWORD, FIXTURE_OWNERS } from '../browser-fixtures/backend.mjs';
-import { browserEnvironment, runFixtureChild } from '../browser-fixture.mjs';
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { browserEnvironment, runFixtureChild, createFixtureLaunchGuard, createFixtureOwnedSteps,
+  parseOwnedGroupState, ownedGroupIsQuiescent } from '../browser-fixture.mjs';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
@@ -141,4 +142,111 @@ test('timeout removes surviving descendant even when the group leader exits on T
   const final = await readFile(marker, 'utf8');
   await new Promise(resolve => setTimeout(resolve, 100));
   assert.equal(await readFile(marker, 'utf8'), final);
+});
+
+
+test('shutdown racing successful preparation refuses every subsequent child launch', async () => {
+  const guard = createFixtureLaunchGuard();
+  const completed = runFixtureChild(process.execPath, ['-e', 'process.exit(0)'],
+    { env: {}, stdio: 'ignore' }, 1000, guard);
+  completed.then(() => guard.close());
+  await completed;
+  assert.equal(guard.closing, true);
+  assert.throws(() => runFixtureChild('/must-never-spawn', [], { env: {} }, 1000, guard), /fixture is closing/);
+  assert.throws(() => guard.assertOpen(), /fixture is closing/);
+  guard.close(); assert.equal(guard.closing, true);
+});
+
+test('shutdown drains an already-owned filesystem write before removing its directory', async t => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'dashboard-browser-write-test-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const marker = path.join(directory, 'owned-step');
+  const guard = createFixtureLaunchGuard(), steps = createFixtureOwnedSteps(guard);
+  let enter, release;
+  const entered = new Promise(resolve => { enter = resolve; });
+  const gate = new Promise(resolve => { release = resolve; });
+  const write = steps.run(async () => {
+    enter(); await gate;
+    await writeFile(marker, 'completed owned write');
+    guard.assertOpen();
+  });
+  await entered; guard.close();
+  let cleaned = false;
+  const cleanup = steps.drain().then(async () => {
+    assert.equal(await readFile(marker, 'utf8'), 'completed owned write');
+    await rm(directory, { recursive: true }); cleaned = true;
+  });
+  await new Promise(setImmediate);
+  assert.equal(cleaned, false, 'Cleanup waits for the operation already in progress');
+  assert.throws(() => steps.run(() => writeFile(marker, 'must not run')), /fixture is closing/);
+  release(); await assert.rejects(write, /fixture is closing/); await cleanup;
+  assert.equal(cleaned, true);
+  await assert.rejects(readFile(marker), error => error.code === 'ENOENT');
+});
+
+test('closed steps never start queued work and failed steps cannot deadlock cleanup', async () => {
+  const guard = createFixtureLaunchGuard(), steps = createFixtureOwnedSteps(guard);
+  await assert.rejects(steps.drain(), /closed launch guard/);
+  let launched = false;
+  const queued = steps.run(() => { launched = true; });
+  guard.close(); await assert.rejects(queued, /fixture is closing/);
+  await steps.drain(); assert.equal(launched, false);
+  const second = createFixtureLaunchGuard(), failing = createFixtureOwnedSteps(second);
+  const rejected = failing.run(() => { throw new Error('synthetic owned step failure'); });
+  await assert.rejects(rejected, /synthetic owned step failure/);
+  second.close(); await failing.drain();
+});
+
+test('owned-group parser distinguishes zombie-only quiescence from live or malformed members', () => {
+  assert.equal(parseOwnedGroupState(' 12 11 Z\n 13 11 Zs\n', 11), true);
+  assert.equal(parseOwnedGroupState('12 11 Z\n13 11 Ss\n', 11), false);
+  assert.equal(parseOwnedGroupState('', 11), true);
+  for (const [output, group] of [['12 99 Z', 11], ['PID PGID STAT', 11], ['12 11 Zgarbage', 11],
+    ['12 11 Z\n12 11 Z', 11], ['0 11 Z', 11], ['12 11 0', 11], ['12 11 Z', 0],
+    ['12 11 Z', -11], ['12 11 Z', NaN], ['x'.repeat(262_145), 11]]) {
+    assert.throws(() => parseOwnedGroupState(output, group), /exact owned process group/);
+  }
+});
+
+test('macOS quiescence selects only exact owned group metadata with legacy mode disabled', () => {
+  const calls = [];
+  const execute = (command, args, options) => {
+    calls.push({ command, args, options }); return { status: 0, stdout: '12 11 Z\n13 11 Zs\n', stderr: '' };
+  };
+  assert.equal(ownedGroupIsQuiescent({ pid: 11 }, execute, 'darwin'), true);
+  assert.deepEqual(calls[0].args, ['-g', '11', '-o', 'pid=,pgid=,stat=']);
+  assert.equal(calls[0].command, '/bin/ps');
+  assert.deepEqual(calls[0].options.env, { COMMAND_MODE: 'unix2003', LC_ALL: 'C' });
+  assert.equal(calls[0].options.maxBuffer, 262_144);
+  assert.equal(calls[0].options.timeout, 1000);
+});
+
+test('Linux quiescence resamples exact membership so a new descendant cannot be missed', () => {
+  const calls = [], replies = [
+    { status: 0, stdout: '12\n13\n', stderr: '' },
+    { status: 0, stdout: '12 11 Z\n13 11 Z\n', stderr: '' },
+    { status: 0, stdout: '12\n13\n14\n', stderr: '' },
+  ];
+  const execute = (command, args) => { calls.push({ command, args }); return replies.shift(); };
+  assert.equal(ownedGroupIsQuiescent({ pid: 11 }, execute, 'linux'), false);
+  assert.deepEqual(calls, [{ command: '/usr/bin/pgrep', args: ['-g', '11'] },
+    { command: '/bin/ps', args: ['-p', '12,13', '-o', 'pid=,pgid=,stat='] },
+    { command: '/usr/bin/pgrep', args: ['-g', '11'] }]);
+  const replaced = [{ status: 0, stdout: '12\n', stderr: '' },
+    { status: 1, stdout: '', stderr: '' }, { status: 0, stdout: '14\n', stderr: '' }];
+  assert.equal(ownedGroupIsQuiescent({ pid: 11 }, () => replaced.shift(), 'linux'), false,
+    'A vanished stale PID subset is not proof that its entire owned group is empty');
+});
+
+test('owned-group command failures, foreign metadata and unsupported platforms fail closed', () => {
+  for (const reply of [{ status: 2, stdout: '', stderr: 'synthetic command error' },
+    { status: 1, stdout: '', stderr: 'synthetic permission error' },
+    { status: 0, stdout: '12 99 Z', stderr: '' },
+    { status: 0, stdout: 'unknown', stderr: '' },
+    { error: new Error('synthetic unavailable'), status: null, stdout: '', stderr: '' }]) {
+    assert.throws(() => ownedGroupIsQuiescent({ pid: 11 }, () => reply, 'darwin'), /exact owned process group/);
+  }
+  assert.equal(ownedGroupIsQuiescent({ pid: 11 }, () => ({ status: 1, stdout: '', stderr: '' }), 'darwin'), true);
+  assert.throws(() => ownedGroupIsQuiescent({ pid: 0 }, () => assert.fail('must not execute'), 'darwin'), /exact owned process group/);
+  assert.throws(() => ownedGroupIsQuiescent({ pid: 11 }, () => assert.fail('must not execute'), 'win32'), /exact owned process group/);
 });
