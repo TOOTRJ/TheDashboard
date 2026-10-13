@@ -380,15 +380,30 @@ class PortableNativeSqlTests(unittest.TestCase):
         self.reject_sql('BEGIN;'+self.sql(wire)+'COMMIT;','portable_native_source_future')
 
     def test_latest_bootstrap_receipt_is_checked_even_when_an_earlier_document_is_fresh(self):
-        self.create();now=int(self.db.scalar('SELECT floor(extract(epoch FROM clock_timestamp()));'))
+        self.create();before=self.snapshot()
+        now=int(self.db.scalar('SELECT floor(extract(epoch FROM clock_timestamp()));'))
         end=(now-5)//900*900;mono=MONO
         records=list(raw_minutes(end=end-900,count=900,close='80',wall=now,mono=mono))
-        records+=list(raw_minutes(end=end,count=15,close='80',wall=now+4,mono=mono))
-        history=ga.source.build_history(records,prior_bars=[],seed=True,wall_us=(now+4)*1_000_000,monotonic_us=int(mono*1_000_000))
+        records+=list(raw_minutes(end=end,count=15,close='80',wall=now,mono=mono))
+        history=ga.source.build_history(records,prior_bars=[],seed=True,wall_us=now*1_000_000,monotonic_us=int(mono*1_000_000))
         candidate=ga.bootstrap(ga.GAConfig('genetic_algorithm',OWNER,RUN,asset='SOL/USD',source_epoch=EPOCH),history,
-            source_inputs(now+4,mono=mono,serial=1310),ledger=ga.SimulationLedger(OWNER,RUN))
+            source_inputs(now,mono=mono,serial=1310),ledger=ga.SimulationLedger(OWNER,RUN))
         capture=cp.capture_owned_candidate(candidate);wire=cp.prepare_transport(candidate,capture,command_id=str(UUID(int=96000131)))
-        self.reject_sql('BEGIN;'+self.sql(wire)+'COMMIT;','portable_native_source_future')
+        # A +4s producer-valid receipt can age into the native +2s allowance
+        # during preparation/audit. This is explicitly an adversarial original
+        # supplied-history request, not a producer-valid source continuation.
+        # Keep the sealed baseline unchanged; construct/encode the attack once.
+        # Its far-future claim exceeds the unchanged 30s SQL test timeout.
+        body=numbers.decode(wire);documents=body['evidence']['inputs']['provider']['history']['documents']
+        self.assertEqual(len(documents),2)
+        latest=next(doc for doc in documents if doc['request']['parameters']['time_to']==end)
+        self.assertEqual(latest['received_wall_us'],now*1_000_000)
+        latest['received_wall_us']=(now+60)*1_000_000
+        original_adversarial_wire=numbers.encode(body)
+        result=self.db.sql('BEGIN;'+self.sql(original_adversarial_wire)+'COMMIT;',role=ACTOR,check=False,timeout=30)
+        self.assertNotEqual(result.returncode,0,result.stdout)
+        self.assertIn('portable_native_source_future',result.stderr)
+        self.assertEqual(self.snapshot(),before)
 
     def test_direct_two_second_native_source_estimate_boundary_is_inclusive(self):
         self.create();seed=self.bootstrap();self.commit(seed[2]);ledger=seed[3];state=ledger.accept(seed[0])
