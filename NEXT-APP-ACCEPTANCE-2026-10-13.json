@@ -1,0 +1,128 @@
+{
+  "browser_observations": [
+    {
+      "case": "rendered_honesty",
+      "observed": [
+        "Examples only",
+        "Five read-only concept cards",
+        "Historical evaluator disabled with adjacent reason",
+        "No fabricated results table"
+      ],
+      "real_external_widget_loaded": true
+    },
+    {
+      "analysis_label_independent": true,
+      "case": "keyboard_selectors",
+      "external_analysis_frame_observed": "BINANCE:SOLUSDT,1h",
+      "external_chart_frame_observed": "BINANCE:SOLUSDT,15",
+      "observed_chart_timeframe": "15 Minutes",
+      "observed_symbol": "SOL/USD"
+    },
+    {
+      "case": "mobile",
+      "disabled_evaluator_retained": true,
+      "document_width": 382,
+      "selected_symbol_and_timeframe_retained": true,
+      "viewport_height": 844,
+      "viewport_width": 390
+    }
+  ],
+  "compiled_http": [
+    {
+      "authenticated": false,
+      "cache_control": "no-store",
+      "error_code": "UNAUTHORIZED",
+      "method": "GET",
+      "path": "/api/v1/test?limit=0",
+      "status": 401
+    },
+    {
+      "authenticated": true,
+      "cache_control": "no-store",
+      "error_code": "BAD_REQUEST",
+      "method": "GET",
+      "path": "/api/v1/test?limit=1.5",
+      "status": 400
+    },
+    {
+      "authenticated": true,
+      "cache_control": "no-store",
+      "data": [],
+      "method": "GET",
+      "path": "/api/v1/test?limit=0",
+      "status": 200
+    },
+    {
+      "authenticated": true,
+      "cache_control": "no-store",
+      "error_code": "BAD_REQUEST",
+      "method": "POST",
+      "path": "/api/v1/sentiment",
+      "status": 400,
+      "synthetic_score": 75.5
+    }
+  ],
+  "date": "2026-10-13",
+  "format": "dashboard-next-app-acceptance-v1",
+  "git_source": "0e83c3ca2221e408fe07fd901cb8d74959f25ab1",
+  "limitations": [
+    "Controlled suite checks all supported symbol/timeframe mappings; actual browser selection observes SOL/USD and15minutes only.",
+    "TradingView public iframes visibly loaded; their price freshness, accuracy and strategy merit were not assessed.",
+    "No Jupiter request, real Supabase account/database request, Vercel mutation, live signing or wallet action.",
+    "Fake zero-row protocol and rejected-input responses do not prove real RLS, INSERT persistence or full returned-row validation.",
+    "No screenshot or downloaded-file artifact is claimed.",
+    "This local branch is unpushed; exact-head CI and release remain required."
+  ],
+  "local_verification": {
+    "build": {
+      "additional_public_fixture_routes": [
+        "/paper-fixture",
+        "/portable-fixture"
+      ],
+      "clean_locked_dependency_install": true,
+      "fake_application_credentials_only": true,
+      "next": "16.3.8",
+      "normal_routes": 18,
+      "pinned_node": "24.19.0",
+      "snapshot_bytes": 1341064,
+      "snapshot_files": 155
+    },
+    "eslint": {
+      "errors": 0,
+      "warnings": 25
+    },
+    "frontend": {
+      "duration_ms": 22845.99425,
+      "executed": 366,
+      "passed": 366,
+      "private_log": "/private/tmp/dashboard-api-strategy-0e83c3c-frontend-20261013.log",
+      "skipped": 0
+    },
+    "typescript": "pass"
+  },
+  "ownership": {
+    "fixture_owner": "f1f4e2b1-e0f2-40e5-b7cc-e40563b23e72",
+    "marked_copy_absence_verified": true,
+    "next_process_group": 12476,
+    "normal_helper_cleanup_exit": 0,
+    "parent_pid": 12211,
+    "tab_closed": true,
+    "tab_id": "32",
+    "temporary_viewport_reset": true
+  },
+  "profile": "compiled-fake-configuration-local-browser-and-http",
+  "source_sha256": {
+    "scripts/browser-fixture.mjs": "44a81c063f8bd9b6bde6be945f6fbc206f6e4a3f88307d9a90792c17b9c44bc8",
+    "scripts/browser-fixtures/backend.mjs": "08a8775a202bdf58ddd5be3ce0176ebb4be71bce0035faebe28251c76b99d89f",
+    "src/app/(dashboard)/strategies/page.tsx": "df53f9a862d7d22a211fa7e48fc84c3da29c4297d965a4cf6782cb30a088f404",
+    "src/app/api/v1/sentiment/route.ts": "5c337cb184309c7688b3aaf72d0b745567031f6a292a2669f6e724b5a5fd0838",
+    "src/app/api/v1/test/route.ts": "0fe69728777a1030c181e5ff26cba753d700f4c8ed778e421fb1e4ba8011dca4",
+    "src/components/layout/Header.tsx": "eb907364a131c4fb4d44ae44d966e1b51b6e053c3330c53e14a96eb77f04da48",
+    "src/components/strategies/TradingViewChart.tsx": "791d809b59280af2e11e7c5bce7c05cd655267836063f846dd6c3277f0a474ad",
+    "src/lib/api/auth.ts": "9fb1291180f633c02b94990f27ee93778a8846b883017895bebb2a1101b468d8",
+    "src/lib/api/handler.ts": "d2b02bc7f30f8c3da7fbdc541c59ea30d302a7d9c5a1767998c8d46fb3740dc6",
+    "src/lib/api/responses.ts": "23089813778660e1b40e0a754a0d526107199c067167d684b3ea1899290db74a",
+    "src/lib/api/validation.ts": "04b6b7a9d836dd7e7ef3b0616661450e41b50728a420ee1bc58566eac6a25faa",
+    "src/lib/supabase/admin.ts": "f7fa201939ecb1a9ba940fb7adbd3919be2967508c790b2a4f54c7569a6a0dfe"
+  }
+}

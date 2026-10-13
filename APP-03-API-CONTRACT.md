@@ -179,3 +179,17 @@ installation/runtime authority.
 | src/app/api/v1/test/route.ts | 0fe69728777a1030c181e5ff26cba753d700f4c8ed778e421fb1e4ba8011dca4 |
 | src/app/api/v1/sentiment/route.ts | 5c337cb184309c7688b3aaf72d0b745567031f6a292a2669f6e724b5a5fd0838 |
 | tests/api-validation.test.mjs | c74e974d6a491e46c330d2fe8a0edce16063ab3e5aad3ac6406920c0c3d40785 |
+
+## Combined local compiled verification
+
+At local integration `0e83c3ca2221e408fe07fd901cb8d74959f25ab1`, all 366 frontend
+cases pass with zero skips; whole-project TypeScript and zero-error lint pass.
+A fresh fake-configuration build includes both actual API routes. Four bounded
+requests to that owned compiled server confirm missing authentication returns
+401, a fractional limit returns 400, a configured zero-row read returns 200/[],
+and a fractional sentiment score returns 400. All use Cache-Control: no-store.
+Only public synthetic fixture credentials and loopback endpoints are used.
+[The exact source-bound receipt](NEXT-APP-ACCEPTANCE-2026-10-13.json) preserves
+the build, test and normal cleanup evidence. Successful real INSERT, effective
+privileges, full returned-row validation and hosted persistence remain DB-04
+acceptance work; rejected-input and fake zero-row requests cannot close them.

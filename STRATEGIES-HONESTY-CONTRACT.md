@@ -74,3 +74,28 @@ Current implementation and unchanged dependency pins:
 
 These are local source pins, not provider or deployment attestations. The
 contract's own bytes are reviewed separately to avoid a self-hash cycle.
+
+## Combined local integration acceptance
+
+Root integrates this slice with the reviewed API and integer-score validation
+at local commit `0e83c3ca2221e408fe07fd901cb8d74959f25ab1`. The complete frontend
+suite passes 366 cases, zero skips, in 22,845.99425 ms. Whole-project TypeScript
+passes and whole-project ESLint has zero errors with 25 existing warnings.
+A fresh locked fake-configuration build uses 155 tracked frontend files /
+1,341,064 bytes plus the two existing public fixture routes.
+
+[The dated acceptance receipt](NEXT-APP-ACCEPTANCE-2026-10-13.json) records
+actual keyboard selection of SOL/USD and 15 Minutes, a disabled historical
+evaluator with its reason, five example cards and no results table. The public
+TradingView frames visibly load SOLUSDT at 15 minutes and the independent
+one-hour analysis. This does not assess their prices, freshness or strategy
+merit. At a 390×844 viewport the document width is 382 pixels, with the selected
+controls and unavailable evaluator preserved. The controlled suite covers the
+remaining selector mappings; the browser receipt does not claim all mappings.
+
+Four actual compiled local HTTP requests also confirm API authentication,
+malformed-limit rejection, fractional-score rejection and a synthetic zero-row
+read, all with no-store responses. They do not prove hosted persistence or RLS.
+The browser tab is closed, viewport reset, and the exact marked fixture copy and
+owned processes clean up normally. This combined branch remains unpushed;
+exact-head hosted CI and release verification are still required.
