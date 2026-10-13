@@ -35,6 +35,14 @@ new-head jobs and exact release checks pass. These are paced laboratory proofs,
 not unpaced continuous-runtime or latency-tail acceptance.
 See [CI-VERIFICATION.md](CI-VERIFICATION.md).
 
+The reviewed follow-up also repairs Portfolio session publication and owned
+write acknowledgments, makes Reports/Settings sample actions explicit, and
+passes finite compiled fake-browser cases. Its complete local frontend suite
+at `0609db36b168a803283d57e3302a54c8ebbecaaa` passes 332/332, zero skips.
+The safe owned-process refusal diagnostics preserve cleanup requirements.
+These app and local test results do not replace the seven hosted jobs or the
+exact Vercel release gate. The prospective worker remains closed.
+
 The separate reviewed prospective-source/recorder branch passes107 combined
 offline checks; the independently constructed two-EMA model passes20 focused
 checks, with explicit paper-cost provenance and exact microsecond cohort bounds.

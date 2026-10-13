@@ -1,0 +1,187 @@
+{
+  "format": "dashboard-api-schema-readonly-observation-v1",
+  "limitations": [
+    "Catalog metadata only; no complete persistence/request/constraint acceptance",
+    "RLS bypass and owner intent remain the existing global integration contract; no user API authorization is added"
+  ],
+  "observed_date": "2026-10-13",
+  "query_sha256": "f8e55c02443138d7685e73e64e2b693690bdad81d6dab89d16ed838870872614",
+  "read_only": true,
+  "row_data_read": false,
+  "schema": [
+    {
+      "acl": "{postgres=arwdDxtm/postgres,anon=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+      "columns": [
+        {
+          "column": "id",
+          "default": "gen_random_uuid()",
+          "identity": "",
+          "not_null": true,
+          "type": "uuid"
+        },
+        {
+          "column": "score",
+          "default": null,
+          "identity": "",
+          "not_null": true,
+          "type": "integer"
+        },
+        {
+          "column": "sentiment",
+          "default": null,
+          "identity": "",
+          "not_null": true,
+          "type": "text"
+        },
+        {
+          "column": "summary",
+          "default": null,
+          "identity": "",
+          "not_null": true,
+          "type": "text"
+        },
+        {
+          "column": "key_factors",
+          "default": "'[]'::jsonb",
+          "identity": "",
+          "not_null": true,
+          "type": "jsonb"
+        },
+        {
+          "column": "date",
+          "default": "CURRENT_DATE",
+          "identity": "",
+          "not_null": true,
+          "type": "date"
+        },
+        {
+          "column": "source",
+          "default": "'grok'::text",
+          "identity": "",
+          "not_null": false,
+          "type": "text"
+        },
+        {
+          "column": "created_at",
+          "default": "now()",
+          "identity": "",
+          "not_null": false,
+          "type": "timestamp with time zone"
+        }
+      ],
+      "constraints": [
+        {
+          "definition": "UNIQUE (date)",
+          "name": "market_sentiment_date_key",
+          "type": "u"
+        },
+        {
+          "definition": "PRIMARY KEY (id)",
+          "name": "market_sentiment_pkey",
+          "type": "p"
+        },
+        {
+          "definition": "CHECK (score >= 0 AND score <= 100)",
+          "name": "market_sentiment_score_check",
+          "type": "c"
+        },
+        {
+          "definition": "CHECK (sentiment = ANY (ARRAY['bullish'::text, 'bearish'::text, 'neutral'::text]))",
+          "name": "market_sentiment_sentiment_check",
+          "type": "c"
+        }
+      ],
+      "force_rls": false,
+      "indexes": [
+        {
+          "definition": "CREATE INDEX idx_market_sentiment_date ON public.market_sentiment USING btree (date DESC)",
+          "name": "idx_market_sentiment_date",
+          "primary": false,
+          "unique": false
+        },
+        {
+          "definition": "CREATE UNIQUE INDEX market_sentiment_date_key ON public.market_sentiment USING btree (date)",
+          "name": "market_sentiment_date_key",
+          "primary": false,
+          "unique": true
+        },
+        {
+          "definition": "CREATE UNIQUE INDEX market_sentiment_pkey ON public.market_sentiment USING btree (id)",
+          "name": "market_sentiment_pkey",
+          "primary": true,
+          "unique": true
+        }
+      ],
+      "policies": null,
+      "relkind": "r",
+      "rls_enabled": true,
+      "table_name": "market_sentiment"
+    },
+    {
+      "acl": "{postgres=arwdDxtm/postgres,anon=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+      "columns": [
+        {
+          "column": "id",
+          "default": "gen_random_uuid()",
+          "identity": "",
+          "not_null": true,
+          "type": "uuid"
+        },
+        {
+          "column": "payload",
+          "default": null,
+          "identity": "",
+          "not_null": true,
+          "type": "jsonb"
+        },
+        {
+          "column": "source",
+          "default": "'unknown'::text",
+          "identity": "",
+          "not_null": false,
+          "type": "text"
+        },
+        {
+          "column": "created_at",
+          "default": "now()",
+          "identity": "",
+          "not_null": false,
+          "type": "timestamp with time zone"
+        }
+      ],
+      "constraints": [
+        {
+          "definition": "PRIMARY KEY (id)",
+          "name": "test_events_pkey",
+          "type": "p"
+        }
+      ],
+      "force_rls": false,
+      "indexes": [
+        {
+          "definition": "CREATE INDEX idx_test_events_created_at ON public.test_events USING btree (created_at DESC)",
+          "name": "idx_test_events_created_at",
+          "primary": false,
+          "unique": false
+        },
+        {
+          "definition": "CREATE UNIQUE INDEX test_events_pkey ON public.test_events USING btree (id)",
+          "name": "test_events_pkey",
+          "primary": true,
+          "unique": true
+        }
+      ],
+      "policies": null,
+      "relkind": "r",
+      "rls_enabled": true,
+      "table_name": "test_events"
+    }
+  ],
+  "schema_or_acl_changed": false,
+  "target": {
+    "id": "fxpxsciltakyypunglzr",
+    "name": "The Dashboard",
+    "organization_name": "Valentine Jester",
+    "owner": "cqfnnaunmupdyobkyqfo"
+  }
+}

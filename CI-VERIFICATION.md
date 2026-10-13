@@ -651,3 +651,19 @@ then genuine empty-group disappearance. It does not explain or supersede the
 failed whole-suite attempt. A metadata-only refusal diagnostic is now separately
 reviewed; unknown inspection failures must remain failures, not empty-group
 claims. Full next-source CI and relevant actual checks remain required.
+
+### Complete local frontend verification after refusal diagnostics
+
+Source `0609db36b168a803283d57e3302a54c8ebbecaaa` retains bounded,
+metadata-only diagnostics for unavailable inspection of an owned process group.
+The cleanup predicates, signal order, exact selectors, 1000 ms inspection bound
+and requirement for positive final absence are unchanged. No failure is retried
+or converted into an empty group. The diagnostic tests include hostile error
+objects and fabricated metadata so error serialization cannot expose credentials.
+
+The exhaustive frontend suite passes **332/332, zero skips**, in
+22,623.090834 ms using the pinned Node runtime and the explicitly approved
+owned-OS-inspection context. The mode-0600 log is retained locally at
+`/private/tmp/dashboard-frontend-0609db3-20261013.log`. This is a new-source local
+pass; the previous whole-suite failure remains unattributed historical evidence.
+Every next-head hosted job and exact release verification still gate merge.

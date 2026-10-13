@@ -5185,3 +5185,30 @@ failure in an existing helper test. Scoped23 fixture cases and an independent
 one-case diagnostic pass, but neither replaces that full failure. Closed
 refusal metadata is being reviewed without relaxing cleanup or1000ms inspection
 limits. The current source still needs complete new-head CI and release checks.
+
+### 2026-10-13 — Local release checks and API catalog observation
+
+The complete frontend suite at `0609db36b168a803283d57e3302a54c8ebbecaaa`
+passes 332 cases, zero skips, in 22,623.090834 ms. The owned inspection diagnostic
+adds safe refusal metadata without changing process selection, cleanup or timeout
+requirements. The earlier inspection failure remains recorded without inferred
+attribution. New-head hosted CI and release checks remain pending.
+
+Fresh read-only verification matches the allowed GitHub repository/user, Vercel
+project/team, Supabase project/organization, and Railway project/workspace/
+environment. Vercel's browser settings identify `the-dashboard`, project
+`prj_wFUe9k9USVreOQcmQKNWRAVsx5fH`, team
+`team_8iNNxiNjrOseD4gdSCHkQEzF`, slug `orderoftheredjester`; no setting changes.
+Dedicated Vercel CLI authentication is still absent; the default profile is unused.
+
+One exact-project read-only catalog query records the two existing API tables in
+[the dated receipt](supabase/audits/2026-10-13-api-schema-readonly.json), SHA-256
+`25d9362d0c22df79f54898cf15933e522a65f0ec479db76205d35d489d53012f`.
+No row data, schema or ACL is changed. `market_sentiment.score` is an integer
+with a 0…100 constraint, exposing the next API validator's fractional-value
+mismatch. Both tables have RLS enabled, no policies, nullable `source` and
+`created_at`, and broad direct grants. RLS does not replace review of privileges
+such as TRUNCATE. The separate reviewed API integer alignment and DB-04 plan
+must preserve the actual schema and establish effective-role/consumer needs
+before any table-specific privilege migration. No global role/default-grant or
+owner-policy change is inferred from this catalog observation.

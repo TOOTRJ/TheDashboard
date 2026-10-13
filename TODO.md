@@ -1410,3 +1410,22 @@ Deep research still includes real resource/latency/storage tails, realistic
 cost/holdout evaluation and native reader/closure/full-journal capacity: a
 915-minute source trace uses3660 source writes before fence/control overhead,
 so the4096-row research envelope must not be assumed adequate for a60s lease.
+
+**Latest local release verification:** source
+`0609db36b168a803283d57e3302a54c8ebbecaaa` passes the complete frontend suite,
+332/332 with zero skips, in 22,623.090834 ms. Safe owned-inspection refusal
+diagnostics are implemented without widening cleanup/time limits or accepting
+unknown absence. The earlier full-run inspection failure remains unattributed.
+Push this reviewed batch, require all seven exact-head jobs, then verify the
+exact Dashboard Vercel release before authorized merge and production checks.
+
+**API schema finding and next parallel step:** the dated exact-project
+[catalog receipt](supabase/audits/2026-10-13-api-schema-readonly.json) confirms
+an integer 0…100 sentiment score, nullable source/timestamps, existing constraints
+and indexes, RLS without policies, and broad direct table grants. A reviewed
+28-case API follow-up rejects fractional scores before database access, preserving
+normalized integral JSON values without coercion. Integrate it after the current
+release, then review DB-04 schema reproducibility and table-specific effective
+privileges with offline SQL/PostgREST and rollback proof before any migration.
+Catalog metadata alone does not close persistence, authorization or full row
+validation. No application rows, schema or ACL were changed during inspection.
