@@ -240,7 +240,7 @@ class PortableNativeSqlTests(unittest.TestCase):
             with self.subTest(offset=offset):
                 row=self.bootstrap(clock_offset=offset)
                 self.reject_sql("BEGIN;SET dashboard.portable_clock='1900-01-01T00:00:00Z';"+self.sql(row[2])+'COMMIT;',
-                    'portable_native_source_expired')
+                    'portable_native_source_expired' if offset<0 else 'portable_native_source_future')
 
     def test_delayed_commit_source_expiry_rolls_back_pending_rows(self):
         self.create();row=self.bootstrap()
@@ -365,3 +365,38 @@ class PortableNativeSqlTests(unittest.TestCase):
             self.assertNotEqual(response.returncode,0);self.assertIn('lock timeout',response.stderr)
         session.wait(25);self.assertTrue(self.read(pause)['receipt']['record_observed'])
         self.assertEqual(self.db.scalar('SELECT fence FROM vn_portable_native_research.runs;'),'1')
+
+    def test_source_estimate_cannot_compose_two_worker_tolerances_past_native_clock(self):
+        self.create();seed=self.bootstrap();self.commit(seed[2]);ledger=seed[3];state=ledger.accept(seed[0])
+        now=int(self.db.scalar('SELECT floor(extract(epoch FROM clock_timestamp()));'));mono=MONO+1
+        # The original worker-relative model validly allows receipt=worker wall
+        # and estimated source=worker wall+2. With worker wall=DB-now+2, this
+        # composes to DB-now+4; native admission must reject the direct anchor.
+        frame=ga.source.make_frame(raw_capture(price='100',source_second=now+4,wall=now+2,mono=mono,age_floor=0),
+            prior_source=state.to_dict()['source'],epoch=EPOCH,wall_now=now+2,monotonic_now=mono)
+        candidate=ga.prepare_protective(state,frame,source_inputs(now+2,mono=mono,serial=1300),ledger=ledger)
+        capture=cp.capture_owned_candidate(candidate);wire=cp.prepare_transport(candidate,capture,
+            command_id=str(UUID(int=96000130)),previous=seed[1])
+        self.reject_sql('BEGIN;'+self.sql(wire)+'COMMIT;','portable_native_source_future')
+
+    def test_latest_bootstrap_receipt_is_checked_even_when_an_earlier_document_is_fresh(self):
+        self.create();now=int(self.db.scalar('SELECT floor(extract(epoch FROM clock_timestamp()));'))
+        end=(now-5)//900*900;mono=MONO
+        records=list(raw_minutes(end=end-900,count=900,close='80',wall=now,mono=mono))
+        records+=list(raw_minutes(end=end,count=15,close='80',wall=now+4,mono=mono))
+        history=ga.source.build_history(records,prior_bars=[],seed=True,wall_us=(now+4)*1_000_000,monotonic_us=int(mono*1_000_000))
+        candidate=ga.bootstrap(ga.GAConfig('genetic_algorithm',OWNER,RUN,asset='SOL/USD',source_epoch=EPOCH),history,
+            source_inputs(now+4,mono=mono,serial=1310),ledger=ga.SimulationLedger(OWNER,RUN))
+        capture=cp.capture_owned_candidate(candidate);wire=cp.prepare_transport(candidate,capture,command_id=str(UUID(int=96000131)))
+        self.reject_sql('BEGIN;'+self.sql(wire)+'COMMIT;','portable_native_source_future')
+
+    def test_direct_two_second_native_source_estimate_boundary_is_inclusive(self):
+        self.create();seed=self.bootstrap();self.commit(seed[2]);ledger=seed[3];state=ledger.accept(seed[0])
+        now=int(self.db.scalar('SELECT floor(extract(epoch FROM clock_timestamp()));'));mono=MONO+1
+        frame=ga.source.make_frame(raw_capture(price='100',source_second=now+2,wall=now,mono=mono,age_floor=0),
+            prior_source=state.to_dict()['source'],epoch=EPOCH,wall_now=now,monotonic_now=mono)
+        candidate=ga.prepare_protective(state,frame,source_inputs(now,mono=mono,serial=1320),ledger=ledger)
+        capture=cp.capture_owned_candidate(candidate);wire=cp.prepare_transport(candidate,capture,
+            command_id=str(UUID(int=96000132)),previous=seed[1])
+        row=(candidate,capture,wire,ledger);self.commit(wire)
+        self.assertTrue(self.read(row)['receipt']['record_observed'])

@@ -165,3 +165,23 @@ with honest source labeling and an authenticated acquisition/continuation corpus
 Original v2 must not be relabeled or deployed as a live-provider runtime. Native
 production admission, restoration/activation, retention deletion and hosting
 authority remain closed.
+
+## Rejection-only direct native source-clock correction
+
+The historical20-case acceptance predates a direct source future-anchor check.
+Original worker-relative two-second receipt/source allowances can otherwise
+compose to an estimated source four seconds ahead of the database clock. Native
+admission now captures one genuine server time after the run lock and bounds the
+latest receipt and estimated source directly to that observation plus two seconds.
+Bootstrap checks the latest document receipt as well as the oldest deadline.
+Those private anchors are retained beside the deadline and are checked again at
+the final function observation and recognized COMMIT guard observation. No caller
+clock GUC, changed original v2 policy/header, or longer age window is introduced.
+
+The corrected23-case actual suite passes with zero skips in126.398 seconds. Three
+new cases exercise the composed four-second estimate, a fresh first bootstrap
+document hiding a later future document, and an allowed direct two-second estimate.
+The original20-case receipt remains unchanged; the exact corrected sources and
+results are recorded separately in `research/portable-native-clock-acceptance.json`.
+Decision/recovery history-document receipt composition is being hardened in a
+subsequent rejection-only slice before any broader native source acceptance.

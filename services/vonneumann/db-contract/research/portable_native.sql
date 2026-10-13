@@ -31,7 +31,8 @@ CREATE TABLE vn_portable_native_research.commands (
  validator_sha256 text NOT NULL CHECK(validator_sha256 ~ '^[0-9a-f]{64}$'),
  package_sha256 text NOT NULL CHECK(package_sha256 ~ '^[0-9a-f]{64}$'),
  worker_id uuid NOT NULL,fence bigint NOT NULL,created_xid xid8 NOT NULL,
- source_deadline timestamptz,stop_only boolean NOT NULL,guard_observed_at timestamptz,
+ source_deadline timestamptz,source_received_latest timestamptz,source_estimated_at timestamptz,
+ stop_only boolean NOT NULL,guard_observed_at timestamptz,
  PRIMARY KEY(owner_id,run_id,revision),
  FOREIGN KEY(owner_id,run_id,revision,command_sha256,manifest_sha256,validator_sha256)
   REFERENCES vn_portable_semantic_research.accepted_commands(owner_id,run_id,revision,command_sha256,manifest_sha256,validator_sha256),
@@ -191,7 +192,8 @@ CREATE FUNCTION vn_portable_native_research.commit_command(p_owner uuid,p_run uu
 LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $function$
 DECLARE request jsonb; digest text; id uuid; state vn_portable_native_research.runs%ROWTYPE;
  replay vn_portable_native_research.commands%ROWTYPE; stored text; checked jsonb; manifest jsonb; ref record; event record;
- resolved jsonb; catalog text; deadline timestamptz; stop_only boolean; next_revision bigint;
+ resolved jsonb; catalog text; deadline timestamptz; latest_receipt timestamptz; source_time timestamptz;
+ server_now timestamptz; stop_only boolean; next_revision bigint;
  component_before bigint; component_after bigint; old_active bigint; charge bigint; history_wire text;
  record vn_portable_native_research.commands%ROWTYPE;
 BEGIN
@@ -212,7 +214,8 @@ BEGIN
  IF EXISTS(SELECT 1 FROM vn_portable_native_research.commands c WHERE c.created_xid=pg_current_xact_id()) THEN
   RAISE EXCEPTION 'portable_native_one_command_per_transaction' USING ERRCODE='22023'; END IF;
  SELECT * INTO state FROM vn_portable_native_research.runs r WHERE r.owner_id=p_owner AND r.run_id=p_run FOR UPDATE;
- IF NOT FOUND OR state.worker_id IS DISTINCT FROM p_worker OR state.fence IS DISTINCT FROM p_fence OR state.lease_until<=clock_timestamp()
+ server_now:=clock_timestamp();
+ IF NOT FOUND OR state.worker_id IS DISTINCT FROM p_worker OR state.fence IS DISTINCT FROM p_fence OR state.lease_until<=server_now
     OR state.status IN ('stopped','failed') THEN RAISE EXCEPTION 'portable_native_lease_lost' USING ERRCODE='22023'; END IF;
  stop_only:=request#>>'{evidence,kind}'='control' AND request#>>'{evidence,control,action}'='stop' AND request#>>'{checkpoint,status}'='stopped';
  IF state.commands>=128 OR (NOT stop_only AND state.commands>=127) THEN RAISE EXCEPTION 'portable_native_stop_slot_reserved' USING ERRCODE='22023'; END IF;
@@ -220,18 +223,26 @@ BEGIN
  -- commit-processing age is derived from server time, never a caller clock GUC.
  IF stop_only OR (request#>>'{evidence,kind}'='control' AND request#>>'{evidence,control,action}' IN ('pause','resume')) THEN deadline:=NULL;
  ELSIF request#>>'{evidence,kind}'='bootstrap' THEN deadline:=NULL;
- ELSE deadline:=least(
-  to_timestamp(vn_portable_source_research.clock(request#>'{evidence,inputs,provider,frame,quote,document,received_wall_us}')/1000000),
-  to_timestamp(vn_portable_source_research.clock(request#>'{evidence,inputs,provider,frame,quote,document,received_wall_us}')/1000000)
+ ELSE
+  latest_receipt:=to_timestamp(vn_portable_source_research.clock(request#>'{evidence,inputs,provider,frame,quote,document,received_wall_us}')/1000000);
+  source_time:=to_timestamp(vn_portable_dependency_research.counter(request#>'{evidence,inputs,provider,frame,quote,estimated_source_second}',0,10000000000)::double precision);
+  deadline:=least(latest_receipt,
+  latest_receipt
    +make_interval(secs=>(25000000-vn_portable_source_research.clock(request#>'{evidence,inputs,provider,frame,quote,source_age_floor_us}'))::double precision/1000000),
-  to_timestamp(vn_portable_dependency_research.counter(request#>'{evidence,inputs,provider,frame,quote,estimated_source_second}',0,10000000000)::double precision)+interval '25 seconds'); END IF;
+  source_time+interval '25 seconds'); END IF;
  -- Bootstrap documents are converted below through the strict tagged counter.
  IF request#>>'{evidence,kind}'='bootstrap' THEN
-  SELECT min(to_timestamp(vn_portable_source_research.clock(v->'received_wall_us')/1000000)) INTO deadline
+  SELECT min(to_timestamp(vn_portable_source_research.clock(v->'received_wall_us')/1000000)),
+   max(to_timestamp(vn_portable_source_research.clock(v->'received_wall_us')/1000000)) INTO deadline,latest_receipt
    FROM jsonb_array_elements(request#>'{evidence,inputs,provider,history,documents}') a(v);
  END IF;
+ -- The original worker-relative two-second allowances must not compose into
+ -- four seconds relative to the native server clock. Bind each latest receipt
+ -- and estimated source anchor directly to this one genuine observation.
+ IF latest_receipt>server_now+interval '2 seconds' OR source_time>server_now+interval '2 seconds' THEN
+  RAISE EXCEPTION 'portable_native_source_future' USING ERRCODE='22023'; END IF;
  IF deadline IS NOT NULL THEN deadline:=deadline+interval '5 seconds';
-  IF deadline<=clock_timestamp() OR deadline>clock_timestamp()+interval '7 seconds' THEN RAISE EXCEPTION 'portable_native_source_expired' USING ERRCODE='22023'; END IF;
+  IF deadline<=server_now THEN RAISE EXCEPTION 'portable_native_source_expired' USING ERRCODE='22023'; END IF;
  ELSIF NOT stop_only AND request#>>'{evidence,kind}' NOT IN ('control') THEN
   RAISE EXCEPTION 'portable_native_source_required' USING ERRCODE='22023'; END IF;
  SELECT coalesce(sum(octet_length(c.wire)),0) INTO component_before FROM vn_portable_dependency_research.components c WHERE c.owner_id=p_owner AND c.run_id=p_run;
@@ -253,7 +264,7 @@ BEGIN
  IF state.used_bytes+charge>(CASE WHEN stop_only THEN 9707520 ELSE 8388608 END) THEN
   RAISE EXCEPTION 'portable_native_stop_bytes_reserved' USING ERRCODE='22023'; END IF;
  INSERT INTO vn_portable_native_research.commands VALUES(p_owner,p_run,next_revision,id,digest,checked->>'following_sha256',
-  checked->>'validator_sha256',catalog,p_worker,p_fence,pg_current_xact_id(),deadline,stop_only,NULL) RETURNING * INTO record;
+  checked->>'validator_sha256',catalog,p_worker,p_fence,pg_current_xact_id(),deadline,latest_receipt,source_time,stop_only,NULL) RETURNING * INTO record;
  FOR ref IN SELECT v,ordinal FROM jsonb_array_elements(manifest->'components') WITH ORDINALITY a(v,ordinal) LOOP
   INSERT INTO vn_portable_native_research.dependency_pins VALUES(p_owner,p_run,next_revision,ref.ordinal,ref.v->>'kind',ref.v->>'entity_id',
    vn_portable_dependency_research.counter(ref.v->'generation',0,2147483647),ref.v->>'sha256');
@@ -268,7 +279,9 @@ BEGIN
   WHERE owner_id=p_owner AND run_id=p_run;
  -- This final function check is only defense in depth. The pending constraint
  -- guard repeats the check at recognized commit processing, never final WAL time.
- IF state.lease_until<=clock_timestamp() OR (deadline IS NOT NULL AND deadline<=clock_timestamp()) THEN
+ server_now:=clock_timestamp();
+ IF state.lease_until<=server_now OR (deadline IS NOT NULL AND deadline<=server_now)
+    OR latest_receipt>server_now+interval '2 seconds' OR source_time>server_now+interval '2 seconds' THEN
   RAISE EXCEPTION 'portable_native_final_source_or_lease_expired' USING ERRCODE='22023'; END IF;
  RETURN vn_portable_native_research.receipt(record,false);
 END $function$;
@@ -285,7 +298,8 @@ BEGIN
  SELECT * INTO state FROM vn_portable_native_research.runs r WHERE r.owner_id=NEW.owner_id AND r.run_id=NEW.run_id FOR UPDATE;
  observed:=clock_timestamp();
  IF NOT FOUND OR state.worker_id IS DISTINCT FROM NEW.worker_id OR state.fence IS DISTINCT FROM NEW.fence
-    OR state.lease_until<=observed OR (NEW.source_deadline IS NOT NULL AND NEW.source_deadline<=observed) THEN
+    OR state.lease_until<=observed OR (NEW.source_deadline IS NOT NULL AND NEW.source_deadline<=observed)
+    OR NEW.source_received_latest>observed+interval '2 seconds' OR NEW.source_estimated_at>observed+interval '2 seconds' THEN
   RAISE EXCEPTION 'portable_native_commit_guard_expired' USING ERRCODE='22023'; END IF;
  UPDATE vn_portable_native_research.commands SET guard_observed_at=observed
   WHERE owner_id=NEW.owner_id AND run_id=NEW.run_id AND revision=NEW.revision;

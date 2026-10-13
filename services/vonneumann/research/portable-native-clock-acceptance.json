@@ -1,0 +1,28 @@
+{
+  "accepted": true,
+  "authority": {
+    "final_visible_instant_freshness": false,
+    "hosted": false,
+    "native_production_admission": false,
+    "restoration": false,
+    "retention_deletion": false
+  },
+  "caller_clock_override": false,
+  "cases": 23,
+  "date": "2026-10-12",
+  "focused_new_cases": 3,
+  "focused_seconds": 6.473,
+  "format": "ga-portable-native-clock-acceptance-lab-v1",
+  "future_tolerance_seconds": 2,
+  "historical_native_acceptance_sha256": "84d331a543d92048fb1e012d7c61277fe6a51a9f37ee6158b0fb1ca7dded6e0c",
+  "historical_native_commit": "5603cbde76b1365956b3879185c84166c36a6da6",
+  "native_sql_sha256": "cea5eba15f270c07a85f8b67131d338f3d4d1a30e324b8846ef9d2898c2fd8f8",
+  "native_test_sha256": "ce81e30a03be9717ee0ffe0961c6eaa24b10188b0625cfc4d76d98ebc83029a2",
+  "original_v2_headers_and_value_semantics_changed": false,
+  "receipt_age_seconds": 5,
+  "remaining_clock_gate": "decision/recovery history-document receipt composition; follow-up before broader native source acceptance",
+  "scope": "rejection-only direct genuine database clock bound for latest quote/bootstrap receipt and estimated source; private anchors repeated at final function and recognized COMMIT guard",
+  "seconds": 126.398,
+  "skipped": 0,
+  "source_age_seconds": 30
+}
