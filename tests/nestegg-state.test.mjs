@@ -94,11 +94,15 @@ test('identical-input overlapping full runs reject old progress, result, error a
     const gate = deferred(); calls.push({ ...call, gate }); return gate.promise;
   } });
   await h.flush(); const old = h.clickFull(), newest = h.clickFull(); await h.flush();
+  assert.doesNotMatch(h.text(), /Inputs changed since last run/);
   calls[0].args.onProgress(0.99); await h.flush();
   calls[1].gate.resolve(mc(2, 1100)); await newest; await h.flush();
   calls[0].gate.resolve(mc(1, 1100)); await old; await h.flush();
   calls[1].args.onProgress(0.2); await h.flush(); assert.doesNotMatch(h.text(), /Running…/);
-  assert.equal(h.component('NesteggExportMenu').monteCarlo.mark, 2); assert.equal(h.toasts.length, 0); h.dispose();
+  assert.equal(h.component('NesteggExportMenu').monteCarlo.mark, 2); assert.equal(h.toasts.length, 0);
+  const repeated = h.clickFull(); await h.flush();
+  assert.doesNotMatch(h.text(), /Inputs changed since last run/);
+  calls[2].gate.resolve(mc(3, 1100)); await repeated; await h.flush(); h.dispose();
 });
 
 test('edited input retires full progress and failure while allowing a new full request immediately', async () => {

@@ -374,7 +374,10 @@ export function NesteggWorkspace({ ownerId, workspaceScope }: {
 
   /* ── Full MC — triggered by user clicking "Run full analysis" ── */
 
-  const fullMcStale = fullEnvelope !== null && fullBundle === null;
+  const fullMcStale = fullEnvelope !== null && (
+    fullEnvelope.identity.inputGeneration !== calculationSource.inputGeneration ||
+    fullEnvelope.identity.inputKey !== calculationSource.inputKey
+  );
 
   const runFullAnalysis = React.useCallback(async () => {
     const request = workspaceScope.capture();
