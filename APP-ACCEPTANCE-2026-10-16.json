@@ -1,0 +1,318 @@
+{
+  "format": "dashboard-app-local-acceptance-v1",
+  "date": "2026-10-16",
+  "source": {
+    "commit": "7dd5b116ac1bd0709aeb5118b9877fb3315e186b",
+    "branch": "codex/dashboard-app-release",
+    "base_commit": "e0048002c8e387a2d4ad5021c4207ba9329c3de5",
+    "clean_before_after_local_checks": true,
+    "clean_browser_source_reported_by_parent": true,
+    "clean_before_new_receipt_creation": true,
+    "lock_unchanged": true
+  },
+  "runtime": {
+    "node": "v24.19.0",
+    "npm": "11.9.0",
+    "next": "16.4.2",
+    "eslint-config-next": "16.4.2",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "eslint": "9.39.5",
+    "lockfile_sha256": "8bdc3b4b786c94753676d5ce8e05e03321b271d9b773f571872004bf28a39463"
+  },
+  "installation": {
+    "exit_code": 0,
+    "packages": 462,
+    "seconds": 8.374619875103235,
+    "worktree_physical_dependency_directory": true,
+    "shared_dependency_target_unchanged": true,
+    "lifecycle_scripts_disabled": true,
+    "empty_private_npm_configs_cache_home_tmp": true
+  },
+  "frontend": {
+    "test_files": 30,
+    "tests": 379,
+    "passed": 379,
+    "failed": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "reported_duration_ms": 22547.778458,
+    "process_seconds": 22.639639583067037
+  },
+  "typescript": {
+    "exit_code": 0,
+    "incremental": false,
+    "seconds": 5.699954250012524
+  },
+  "lint": {
+    "exit_code": 0,
+    "errors": 0,
+    "warnings": 69,
+    "seconds": 8.142543207970448,
+    "warnings_by_rule": {
+      "react-hooks/set-state-in-effect": 18,
+      "react-hooks/immutability": 2,
+      "react-hooks/refs": 28,
+      "react-hooks/exhaustive-deps": 3,
+      "@typescript-eslint/no-unused-vars": 18
+    },
+    "source_or_lint_configuration_edited_for_acceptance": false
+  },
+  "original_configuration_build": {
+    "exit_code": 0,
+    "fresh_locked_install": true,
+    "packages": 462,
+    "next": "16.4.2",
+    "fake_application_configuration_only": true,
+    "next_config_source_unchanged": true,
+    "seconds": 15.76200308301486,
+    "compile_seconds_displayed": 4.1,
+    "typescript_seconds_displayed": 3.0,
+    "routes": 18,
+    "snapshot_files": 155,
+    "snapshot_bytes": 1344506,
+    "owned_build_snapshots_remaining": 0
+  },
+  "browser": {
+    "evidence_source": "Parent-reported actual scoped browser observations; no invented trace or timestamps",
+    "source_commit": "7dd5b116ac1bd0709aeb5118b9877fb3315e186b",
+    "snapshot_files": 155,
+    "snapshot_bytes": 1344506,
+    "fixture": {
+      "owner": "1a1e8e88-bfac-4b1d-8fdb-e90204578326",
+      "unique_localhost_hostname": true,
+      "app_hostname_pattern": "*.localhost",
+      "app_port": 57860,
+      "backend": "http://127.0.0.1:57859",
+      "synthetic_accounts_only": true,
+      "config_replaced_only_inside_owned_browser_copy": true
+    },
+    "home": {
+      "generated_or_fixed_examples_explicit": true,
+      "no_account_trades_or_live_quotes_explicit": true,
+      "fictional_copy_and_explorer_disabled": true
+    },
+    "dialog": {
+      "native_LINK_button_Return_and_Space_open_described_dialog": true,
+      "Escape_zero_dialogs_and_original_button_focus": true,
+      "Close_zero_dialogs_and_original_button_focus": true,
+      "restored_focus_LINK_button_animationName_after_Escape": "none",
+      "body_pointer_events_observation_after_close": "empty"
+    },
+    "analytics": {
+      "explicit_Sample_label": true,
+      "no_account_or_bot_metrics_explicit": true,
+      "CSV_disabled_with_reason": true
+    },
+    "local_auth": {
+      "Alice_mouse_sign_out": true,
+      "Bob_login_Portfolio_full_reload_then_mouse_sign_out": true
+    },
+    "mobile": {
+      "viewport": [
+        390,
+        844
+      ],
+      "login_then_navigation_sheet_to_Analytics": true,
+      "Analytics_document_width": 390,
+      "Home_to_Analytics_immediate_dialog_count": 1,
+      "Analytics_to_Terminal_explicit_getByRole_dialog_waitFor_hidden_completed": true,
+      "after_hidden_wait_dialog_count": 0,
+      "after_hidden_wait_body_pointer_events": "empty",
+      "after_hidden_wait_document_width": 382,
+      "viewport_reset": true
+    },
+    "cleanup": {
+      "tabs_closed": [
+        "39",
+        "40"
+      ],
+      "parent_pid": 75557,
+      "exact_owner_marker_and_command_verified": true,
+      "normal_SIGTERM": true,
+      "fixture_exit_code": 0,
+      "exact_owned_copy": "/private/tmp/dashboard-ci-build-QiNA8Q",
+      "exact_owned_copy_absence_verified_by_parent": true
+    }
+  },
+  "historical_evidence": {
+    "October_13_final_receipt_unchanged": {
+      "path": "FINAL-APP-ACCEPTANCE-2026-10-13.json",
+      "sha256": "7a004c309d5be74597ff70a0c8e7a809c2912b0b8a440b2cace129392a34066b"
+    },
+    "earlier_single_mouse_logout_failure": "An earlier old-app/root observation failed; its cause remains unproved. Current successful local flows do not establish a cause or permanent fix.",
+    "mobile_transition": "Home-to-Analytics immediately showed one dialog. The separate Analytics-to-Terminal test explicitly waited for the dialog to be hidden, then observed zero dialogs, empty body pointer-events and document width 382 <= 390. No stuck-dialog or timing-SLA conclusion is inferred from the immediate read."
+  },
+  "limits": {
+    "hosted_release_accepted": false,
+    "actual_Supabase_auth_or_RLS_proved": false,
+    "hosted_API_persistence_proved": false,
+    "provider_data_or_freshness_exercised": false,
+    "paper_MVP_or_native_worker_bridge_accepted": false,
+    "runtime_persistence_or_continuous_operation_proved": false,
+    "live_trading_or_signing_authorized": false,
+    "full_accessibility_audit_complete": false,
+    "all_routes_browser_tested": false
+  },
+  "private_evidence": {
+    "summary_filename": "acceptance-summary.json",
+    "summary_bytes": 3722,
+    "summary_sha256": "1e89a84a6ddc452eb0afe1821cbe2f0c3de396a05ae7d38bf92d889959b20e7b",
+    "logs": [
+      {
+        "filename": "frontend.log",
+        "bytes": 47716,
+        "sha256": "4b83072efe940346229d96ef1bb58553eccc279b277264a517a4988a76c52ee4",
+        "mode": "0600"
+      },
+      {
+        "filename": "isolated-build.log",
+        "bytes": 1412,
+        "sha256": "500ea5f618f1df7b0a6ff4f77566167b3d6870a03da71231ede2709e05054225",
+        "mode": "0600"
+      },
+      {
+        "filename": "lint.log",
+        "bytes": 109630,
+        "sha256": "a8e468acf8c1e81a670c963a87c130a4b5341e72555d2f66613d9af483df4216",
+        "mode": "0600"
+      },
+      {
+        "filename": "npm-ci.log",
+        "bytes": 371,
+        "sha256": "111d5be8e7c18233965a602e41fc92be9dd6d6e4d83e41088bd0ccc0c1e212d6",
+        "mode": "0600"
+      },
+      {
+        "filename": "npm-launch-missing-adjacent-cli-empty.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "mode": "0600"
+      },
+      {
+        "filename": "typescript.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "mode": "0600"
+      }
+    ]
+  },
+  "source_files": [
+    {
+      "path": "src/app/(dashboard)/analytics/page.tsx",
+      "sha256": "04da4aa2b12bb81ded0d6072d96d1338c6f3548c49cf4427571aa006b36522a4"
+    },
+    {
+      "path": "src/app/(dashboard)/page.tsx",
+      "sha256": "1f5003d1396558ab2eebe250db82f91fd15fbfe2eae5b065ea792d9a9ded1f12"
+    },
+    {
+      "path": "src/app/(dashboard)/strategies/page.tsx",
+      "sha256": "df53f9a862d7d22a211fa7e48fc84c3da29c4297d965a4cf6782cb30a088f404"
+    },
+    {
+      "path": "src/app/api/v1/sentiment/route.ts",
+      "sha256": "5c337cb184309c7688b3aaf72d0b745567031f6a292a2669f6e724b5a5fd0838"
+    },
+    {
+      "path": "src/app/api/v1/test/route.ts",
+      "sha256": "0fe69728777a1030c181e5ff26cba753d700f4c8ed778e421fb1e4ba8011dca4"
+    },
+    {
+      "path": "src/app/globals.css",
+      "sha256": "df69e76b71faacec570c9a0d9fc61234e718d0bc031bbf1fdc042ed3b2a9ed6d"
+    },
+    {
+      "path": "src/components/dashboard/ActivityTable.tsx",
+      "sha256": "83e304e0ed51b4d963ca797ef5322aff0255d8fe3bd1ba1eac1d0d162b7e27f1"
+    },
+    {
+      "path": "src/components/dashboard/Charts.tsx",
+      "sha256": "969e7a40f19279c1773b5b548260506a8d677b68db2a34352acc9a0a1d92fe53"
+    },
+    {
+      "path": "src/components/dashboard/KpiCards.tsx",
+      "sha256": "6478745c8a5ece0639c50588d58cb488539bba5c814a958c2b3391205f11593a"
+    },
+    {
+      "path": "src/components/layout/Header.tsx",
+      "sha256": "f2a0e7cebb83fdd788f3bd5da629a700aa4605d514fa518bd9669ba2d4db1d52"
+    },
+    {
+      "path": "src/components/layout/Sidebar.tsx",
+      "sha256": "f44736b0f57e9a96c65c2bf566efd3ee0cc4ffdd24dfb8b46e98d37ab9fd7f76"
+    },
+    {
+      "path": "src/lib/api/auth.ts",
+      "sha256": "9fb1291180f633c02b94990f27ee93778a8846b883017895bebb2a1101b468d8"
+    },
+    {
+      "path": "src/lib/api/errors.ts",
+      "sha256": "a59436fadc29515af368b9d0d5f4425880a4b98385dc4902189ec57ce1969e61"
+    },
+    {
+      "path": "src/lib/api/handler.ts",
+      "sha256": "d2b02bc7f30f8c3da7fbdc541c59ea30d302a7d9c5a1767998c8d46fb3740dc6"
+    },
+    {
+      "path": "src/lib/api/index.ts",
+      "sha256": "ec9b90eb9b6e419f0708e2cc7db1951fef3b49340ca3c0aad11ff2cbd1de5ddd"
+    },
+    {
+      "path": "src/lib/api/responses.ts",
+      "sha256": "23089813778660e1b40e0a754a0d526107199c067167d684b3ea1899290db74a"
+    },
+    {
+      "path": "src/lib/api/validation.ts",
+      "sha256": "04b6b7a9d836dd7e7ef3b0616661450e41b50728a420ee1bc58566eac6a25faa"
+    },
+    {
+      "path": "src/lib/supabase/admin.ts",
+      "sha256": "f7fa201939ecb1a9ba940fb7adbd3919be2967508c790b2a4f54c7569a6a0dfe"
+    },
+    {
+      "path": "tests/analytics-header-honesty.test.mjs",
+      "sha256": "20342eee34ad0b465a6b5b806b472738de50b47cd97ffd2c600a50c9c3492c79"
+    },
+    {
+      "path": "tests/api-validation.test.mjs",
+      "sha256": "c74e974d6a491e46c330d2fe8a0edce16063ab3e5aad3ac6406920c0c3d40785"
+    },
+    {
+      "path": "tests/home-sample-provenance.test.mjs",
+      "sha256": "ccc09d5170154447533d9a4646e7fada40d40efeae4621d2841b2ec48cff1f15"
+    },
+    {
+      "path": "tests/strategy-preview.test.mjs",
+      "sha256": "79efabfad721e47ce001330bc6fe98ba5ea6e61d9f4d0f9ccb1f80017cfd4fd5"
+    },
+    {
+      "path": "package.json",
+      "sha256": "eaf3b7d42b81e7653a059b725e24a969daaf979ecca9c3d78d8b632f842cc4f5"
+    },
+    {
+      "path": "package-lock.json",
+      "sha256": "8bdc3b4b786c94753676d5ce8e05e03321b271d9b773f571872004bf28a39463"
+    },
+    {
+      "path": "next.config.ts",
+      "sha256": "614bce25b089c3f19b1e17a6346c74b858034040154c6621e7d35303004767cc"
+    },
+    {
+      "path": "eslint.config.mjs",
+      "sha256": "2b13e29128445e517ce3699ba566487c044df70a016f4039f55bc23068f62345"
+    },
+    {
+      "path": "scripts/check-build.mjs",
+      "sha256": "249ac44a4063dab2db65a83dcb087d420dc9cb9f08a325d3344841d481994582"
+    },
+    {
+      "path": "scripts/browser-fixture.mjs",
+      "sha256": "44a81c063f8bd9b6bde6be945f6fbc206f6e4a3f88307d9a90792c17b9c44bc8"
+    },
+    {
+      "path": "scripts/browser-fixtures/backend.mjs",
+      "sha256": "08a8775a202bdf58ddd5be3ce0176ebb4be71bce0035faebe28251c76b99d89f"
+    }
+  ]
+}
