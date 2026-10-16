@@ -5325,3 +5325,13 @@ runtime is repaired. Archive delivery is unused. New-head seven-job CI and
 exact Dashboard release remain decisive. User migration SHA remains
 a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc.
 No Supabase write, Railway activation, other project or account-wide change.
+
+**October16 CI decision after actual failure:** two-way run38979594404 still
+has SQL1/3 image-preparation failures. Before supersession frontend and
+ordinary2 pass; ordinary1 and SQL2/4 remain in progress and are not accepted.
+The reviewed fallback3057a04 retains exact original image contents via
+verified official Docker Hub publishers after rate limiting; original four-way
+scheduling is restored. All106 focused checks pass0.784s, zero skips, with
+workflow validation passing. One corrected-head complete run remains required.
+The exact e004800 Dashboard preview dpl_7mZv7RVYxGbpqNWtKob5zNyYJYuD is
+READY36s with expected repository/branch/biggrizzly11/source; it is not production.

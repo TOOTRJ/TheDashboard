@@ -1,5 +1,27 @@
 # Secret-free Dashboard verification
 
+## October16 exact-content mirror repair — superseding failed scheduling experiment
+
+Actual run38979594404 at e004800 shows two-way scheduling does not fix the
+quota: SQL1/3 fail image preparation. Before the planned superseding push,
+frontend passes1m47s and ordinary2 passes; ordinary1 and SQL2/4 are still running.
+The incomplete run is not seven-job acceptance. Existing automatic concurrency
+cancellation will retain its unfinished/canceled states; none count as passes.
+
+The replacement restores original four-way SQL scheduling and adds only a
+rate-limit-triggered switch to the two official Docker Hub repositories whose
+raw manifest/config bytes match the original pins. Five total pull attempts,
+the shared240-second pull phase, subsequent30-second inspect/tag/inspect
+limits, all source/lease guards, test inventory and job/child limits remain.
+Actual selected-source RepoDigests are verified; no ECR digest is invented.
+[Metadata, publisher proof and remaining availability limits](CI-IMAGE-MIRRORS-2026-10-16.md).
+
+Root's complete focused policy/native-wheel/pull/pure-archive/sharding checks
+pass106 cases, zero skips,0.784s after scheduling restoration. Actual workflow
+validation passes. These mock/pure cases are not actual registry or SQL
+acceptance; the corrected head must finish every required job. Earlier
+two-way policy observations below retain their historical experiment scope.
+
 ## October16 bounded concurrency repair — new-head acceptance pending
 
 The reviewed first mitigation changes only PostgreSQL matrix max-parallel4→2

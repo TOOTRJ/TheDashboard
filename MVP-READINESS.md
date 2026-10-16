@@ -9,11 +9,13 @@ replacement/logout checks pass within their documented scope. Lint retains80
 visible warnings, including48 newly enabled compiler diagnostics tracked in
 QA-01C; one mouse-menu activation remains to retest in the app follow-up.
 
-The selected minimal CI mitigation lowers concurrent SQL jobs from4 to2 while
-keeping all four required shards and existing image identities/deadlines.
-Its real new-head seven-job acceptance and PR104 release are next. Native
-archive delivery is deferred. Production remains PR103 until the exact release
-is verified; no database migration or Railway activation is performed here.
+The two-way scheduling experiment still encounters ECR quota. Its replacement
+restores original four-way scheduling and uses verified official Docker Hub
+mirrors at the exact original manifest/config hashes after a rate limit.
+All four required shards and existing identities/deadlines remain;106 focused
+checks pass. Complete new-head seven-job acceptance and PR104 release are next.
+Native archive delivery is deferred. Production remains PR103 until the exact
+release is verified; no migration or Railway activation is performed here.
 The October13 CI observation below is the latest settled pre-repair result.
 
 Latest exact-head CI is [run38464960221](https://github.com/TOOTRJ/TheDashboard/actions/runs/38464960221)

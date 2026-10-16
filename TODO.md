@@ -11,14 +11,18 @@ New compiler findings remain visible as warnings only for their observed14
 legacy file/rule pairs; QA-01C tracks removal. Full332 frontend cases,
 TypeScript and isolated production build pass. Browser and release gates remain.
 
-The chosen first CI repair is PostgreSQL max-parallel4→2, retaining all four
-required shards, original image verifier/pins, pull policy, coverage and
-deadlines. Policy/helper and pure archive checks pass58 cases; native archive
-delivery is deferred. This reduces simultaneous pull pressure without claiming
-a proven registry cause or guaranteed availability. One complete new-head
-seven-job run must decide acceptance; two SQL waves may increase elapsed time.
-PR104 release precedes the separate app release. October13 notes below retain
-their original observations and limits.
+The two-way concurrency experiment does not resolve ECR quota: actual
+run38979594404 at e004800 has SQL1/3 preparation failures. Before supersession,
+frontend and ordinary2 pass; ordinary1 and SQL2/4 are still running. Those
+unfinished jobs are not accepted results. The reviewed repair uses official
+Docker Hub mirrors serving the exact original manifest/config bytes, only
+after a classified ECR rate limit, within five total attempts and one shared
+240-second pull budget. Original four-way SQL scheduling is restored; all
+four shards, image identities, assertions and timeouts remain mandatory.
+All106 focused CI checks and workflow validation pass. Archive delivery is
+deferred. A complete new-head seven-job run decides release acceptance.
+PR104 release precedes the separate app release. [Mirror evidence](CI-IMAGE-MIRRORS-2026-10-16.md).
+October13 notes below retain their original observations and limits.
 
 **Latest ordered checkpoint — 2026-10-13:** PR104 head
 `81474c1f9b65ac0defe0da4a1c061aa88c417561` is pushed and its exact Dashboard
