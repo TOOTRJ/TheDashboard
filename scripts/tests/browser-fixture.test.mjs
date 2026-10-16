@@ -29,12 +29,14 @@ test('browser child drops inherited credentials and fixes both providers to owne
     PATH: '/bin', API_SECRET_KEY: 'private-api', VERCEL_TOKEN: 'private-vercel',
     NEXT_PUBLIC_SUPABASE_URL: 'https://fxpxsciltakyypunglzr.supabase.co',
     NEXT_PUBLIC_SUPABASE_ANON_KEY: 'private-supabase', PYTHONPATH: '/unreviewed', NODE_OPTIONS: '--inspect',
+    NPM_CONFIG_MAXSOCKETS: '999',
   });
   assert.equal(env.NEXT_PUBLIC_SUPABASE_URL, 'http://127.0.0.1:12345');
   assert.equal(env.NEXT_PUBLIC_SUPABASE_ANON_KEY, FIXTURE_KEY);
   assert.equal(env.NEXT_PUBLIC_VN_API_URL, 'http://127.0.0.1:12345');
   assert.equal(env.API_SECRET_KEY, 'dashboard-browser-fixture-api-key');
   assert.equal(env.SUPABASE_SERVICE_ROLE_KEY, FIXTURE_ADMIN_KEY);
+  assert.equal(env.NPM_CONFIG_MAXSOCKETS, '4');
   assert.equal(env.NODE_OPTIONS, undefined); assert.equal(env.PYTHONPATH, undefined);
   assert.equal(env.VERCEL_TOKEN, undefined);
   assert.ok(!Object.values(env).some(v => String(v).includes('private-api')));
