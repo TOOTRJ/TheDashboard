@@ -1,5 +1,33 @@
 # Secret-free Dashboard verification
 
+## October16 bounded concurrency repair — new-head acceptance pending
+
+The reviewed first mitigation changes only PostgreSQL matrix max-parallel4→2
+and its exact policy/mutation tests. All four shard values, fail-fastfalse,
+image verifier/pins, pull attempts/bounds, tests, skips, permissions and job/
+child timeouts remain. GitHub's [matrix concurrency semantics](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/run-job-variations#defining-the-maximum-number-of-concurrent-jobs)
+limit simultaneous jobs without removing queued combinations. Two SQL waves
+may increase elapsed workflow time. This is not proof of the registry cause
+or future availability. The archive prototype is unused; transport redesign
+is deferred. Every actual new-head job remains mandatory before merging.
+
+The candidate's full policy/helper module passes24 cases in0.858s; root's
+composed policy plus pure archive check passes58 in4.430s. Actual workflow
+validation passes. Original missing-yaml setup failure is retained; a new
+private CPython3.12.14/PyYAML6.0.3 policy-only environment uses the complete
+tracked hash block, public PyPI and no shared configuration change. Root's
+attempt to additionally import an unchanged wheel module fails for absent
+packaging; the subsequent58-case run excludes that unnecessary module and
+does not claim it tested. Hosted CI installs the full existing locked graph.
+
+The already tested build helper also fixes task-owned npm maxsockets at4,
+overriding inherited values without changing locks, registry, retries or
+deadlines. Its existing regressions are adopted fromd16c8ee; final new-lock
+frontend/build checks are recorded inDEPENDENCY-REVIEW.md. No registry login,
+publisher, artifact upload, shared Docker state or account setting is added.
+
+## Historical verification checkpoints
+
 Prepared 2026-10-12 for QA-01A. The repository now has three independent GitHub
 Actions verification gates in [.github/workflows/verification.yml](.github/workflows/verification.yml).
 They run on pull requests, main pushes and explicit dispatch, with only

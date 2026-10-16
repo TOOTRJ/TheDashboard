@@ -1,6 +1,20 @@
 # Evolutionary trading bot MVP readiness
 
-## Authoritative current status — 2026-10-13
+## Authoritative current status — 2026-10-16
+
+The October14 critical/high framework fixes are implemented locally through
+exact Next/config16.4.2. Full332 frontend cases, TypeScript, fresh isolated
+build, zero-production-advisory audit and compiled fake-account protection/
+replacement/logout checks pass within their documented scope. Lint retains80
+visible warnings, including48 newly enabled compiler diagnostics tracked in
+QA-01C; one mouse-menu activation remains to retest in the app follow-up.
+
+The selected minimal CI mitigation lowers concurrent SQL jobs from4 to2 while
+keeping all four required shards and existing image identities/deadlines.
+Its real new-head seven-job acceptance and PR104 release are next. Native
+archive delivery is deferred. Production remains PR103 until the exact release
+is verified; no database migration or Railway activation is performed here.
+The October13 CI observation below is the latest settled pre-repair result.
 
 Latest exact-head CI is [run38464960221](https://github.com/TOOTRJ/TheDashboard/actions/runs/38464960221)
 at81474c1: six jobs PASS, SQL4 image preparation FAIL, zero SQL4 tests executed.

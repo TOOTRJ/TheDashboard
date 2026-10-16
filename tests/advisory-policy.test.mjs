@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { assessAudit } from "../scripts/check-advisories.mjs";
 
 const policy = JSON.parse(readFileSync(new URL("../security/advisory-exceptions.json", import.meta.url), "utf8"));
-const now = new Date("2026-10-12T22:00:00Z");
+const now = new Date("2026-10-16T22:00:00Z");
 function fixture() {
   const names = Object.keys(policy.exceptions[0].affected_packages);
   const vulnerabilities = Object.fromEntries(names.map((name) => [name, {
@@ -37,8 +37,8 @@ test("fails closed on additional advisories, changed versions, runtime paths and
     (v) => { v.lock.packages["node_modules/braces"].version = "3.0.4"; },
     (v) => { v.lock.packages["node_modules/braces"].dev = false; },
     (v) => { v.report.vulnerabilities.braces.nodes = ["node_modules/other/node_modules/braces"]; },
-    (v) => { v.policy.exceptions[0].expires_on = "2026-10-12"; },
-    (v) => { v.policy.exceptions[0].reviewed_on = "2026-10-13"; },
+    (v) => { v.policy.exceptions[0].expires_on = "2026-10-16"; },
+    (v) => { v.policy.exceptions[0].reviewed_on = "2026-10-17"; },
     (v) => { v.policy.exceptions[0].severity = "critical"; },
     (v) => { v.policy.exceptions.push(structuredClone(v.policy.exceptions[0])); },
   ]) { const value = fixture(); mutate(value); assert.throws(() => evaluate(value)); }

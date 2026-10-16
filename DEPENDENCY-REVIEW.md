@@ -1,4 +1,68 @@
-# Dependency security review — current advisory review 2026-10-12
+# Dependency security review — current advisory review 2026-10-16
+
+## October14 security update — local repair, release pending
+
+The [official update](https://nextjs.org/blog/nextjs-security-update-october-14-2026)
+publishes two critical and one high fix. The prior16.3.8 pin is affected;
+the security minimum is16.4.1. Fresh official registry metadata confirms
+stable16.4.2 and matching ESLint configuration, now exact-pinned locally.
+Their peers accept existing Node24, React/DOM/Is19.2.8 and ESLint9.39.5.
+
+| Advisory | Published finding and repair |
+| --- | --- |
+| [GHSA-673q-mjm6-r5xr](https://github.com/vercel/next.js/security/advisories/GHSA-673q-mjm6-r5xr) | Critical typed-array use-cache RCE; Next16.0.0 through16.4.0 affected,16.4.1 patched. |
+| [GHSA-2464-fhr4-w9xw](https://github.com/vercel/next.js/security/advisories/GHSA-2464-fhr4-w9xw) | Critical SVG/Image Optimization RCE; applicable16.x range includes16.3.8, fix16.4.1. The lock already has the documented Sharp0.35.5 workaround; hosted native bytes were not inspected. |
+| [GHSA-p3m5-59mp-jv5r](https://github.com/vercel/next.js/security/advisories/GHSA-p3m5-59mp-jv5r) | High Server Actions denial of service; Next16.0.0 through16.4.0 affected,16.4.1 patched. |
+
+Scoped source review found no use-cache, Cache Components or use-server
+declaration. This limits demonstrated reachability; it does not justify
+retaining the affected framework. Upstream RSC advisories target server-dom
+packages; changing React core alone would not replace Next's bundled fix.
+
+The public-registry lock update and clean project-only installation use empty
+task npm configs/cache, no lifecycle scripts and no app credentials. Lock SHA256
+is`8bdc3b4b786c94753676d5ce8e05e03321b271d9b773f571872004bf28a39463`.
+Next platform/env/plugin and the configuration's newer lint dependency graph
+update; unrelated production dependencies and Python locks remain unchanged.
+Source-map-js1.2.2 and Sharp0.35.5 remain present. No global tool upgrade.
+
+Actual updated audit: zero production findings; five dev graph entries from
+the same unpatched braces3.0.3 advisory. The exact config/plugin paths are
+rebound to16.4.2 and reviewed October16; October26 expiry is unchanged.
+The scanner still rejects new/runtime findings and unknown paths.
+
+Initial frontend run passes331/332: the policy test's fixed October12 clock
+correctly refuses the October16-reviewed exception. Updating its explicit
+clock/future-review/expiry fixtures preserves rejection cases. The complete
+rerun passes332/332, zero skips,22992.752208ms. TypeScript and a fresh isolated
+fake-configuration production build also pass under the new lock.
+
+The new lint preset initially reports48 errors and32 existing warnings.
+These compiler diagnostics span14 existing files and remain enabled as
+warnings only for observed rule/file pairs. Other rules/files keep their
+enforcement. [React guidance](https://react.dev/reference/eslint-plugin-react-hooks)
+permits gradual diagnostic adoption; React Compiler is not enabled. QA-01C
+tracks deliberate state/ref repairs and baseline removal. Zero errors does
+not mean zero findings. Hosted exploit resistance and complete release
+acceptance are not established by these local checks.
+
+Older sections below retain their dated package graph and findings.
+
+Actual compiled fake-browser verification under Next16.4.2 confirms protected
+Probes redirects to login; Alice login shows only her10,000 fixture account;
+logout returns to login; Bob login and refresh show only his800,000 account
+with Alice absent. Keyboard logout and subsequent direct Portfolio navigation
+return to login. One Bob mouse-menu attempt did not navigate; the same visible
+action completes with End/Return. Its cause is unproved and the app follow-up
+must retest mouse activation; no universal menu-success claim is made.
+
+The first browser fixture build could not inspect its owned process group
+because the sandbox returned EPERM. Its parent/group were independently absent
+before its exact marked copy was removed. The second fixture runs with its
+required owned-process inspection; parent58236 is verified before normal
+termination, exits0, and its exact marked copy is absent. No real account,
+provider, hosted database or cloud configuration is involved. Final lint is
+zero errors/80 warnings, including the48 acknowledged compiler findings.
 
 ## Implemented advisory repair — 2026-10-12
 

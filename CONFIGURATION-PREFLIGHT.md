@@ -5295,3 +5295,33 @@ API controller and schema/privilege preparation are paused; neither the new
 controller nor proposed grants have been executed. No new remote push, merge,
 deployment, migration, activation, account setting or shared credential change
 is part of this checkpoint. Railway remains closed; no user setup is needed now.
+
+### 2026-10-16 — Security repair and minimal CI mitigation
+
+Fresh helper checks match GitHub repository1141090963/user16749816, Supabase
+The Dashboard/fxpxsciltakyypunglzr/owner cqfnnaunmupdyobkyqfo, and the exact
+Railway project/workspace/production/service. Railway retains its ordinary
+closed deployment cf05895d-adc5-427f-873e-82ad6606e5a1 and original settings.
+The signed-in Vercel browser confirms the-dashboard/project
+prj_wFUe9k9USVreOQcmQKNWRAVsx5fH and team
+team_8iNNxiNjrOseD4gdSCHkQEzF/slug orderoftheredjester. Dedicated CLI auth is
+absent; no default-profile fallback, login, link or environment pull is used.
+
+Next/config16.4.2 address the published October14 update. Updated audit passes
+production0/full5 unchanged dev braces entries; the exact exception expiry
+stays October26. Full332 frontend cases, TypeScript, isolated original-config
+build and compiled fake-account protection/replacement/logout checks pass.
+Initial stale-policy-clock, lint and sandbox process-query failures remain
+recorded. Final lint has0errors/80visible warnings; QA-01C tracks the scoped
+compiler baseline. One mouse-menu activation remains to retest in the app
+follow-up. Both exact owned fixture copies are removed; final fixture exits0.
+[Research and acceptance limits](DEPENDENCY-REVIEW.md).
+
+SQL concurrency4→2 preserves every required shard, image, assertion, privilege
+and deadline. Candidate24policy/helper and root58policy/pure-archive checks
+pass. Initial missing-dependency setup observations remain separate; only a
+new private hash-locked PyYAML policy environment is created. No shared Python
+runtime is repaired. Archive delivery is unused. New-head seven-job CI and
+exact Dashboard release remain decisive. User migration SHA remains
+a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc.
+No Supabase write, Railway activation, other project or account-wide change.
