@@ -35,12 +35,30 @@ PINS = (
      "config": "sha256:febd0be41adb897a0ab8f1f1c693d8912669ea60c4940e076e9946b60e210ef0"},
 )
 
+MIRRORS = {
+    "public.ecr.aws/supabase/postgres": {
+        "repository": "docker.io/supabase/postgres",
+        "digest_repositories": ("docker.io/supabase/postgres", "supabase/postgres"),
+    },
+    "public.ecr.aws/supabase/postgrest": {
+        "repository": "docker.io/postgrest/postgrest",
+        "digest_repositories": ("docker.io/postgrest/postgrest", "postgrest/postgrest"),
+    },
+}
 
-def verify_image(metadata: dict, pin: dict) -> None:
+
+def verify_image(metadata: dict, pin: dict, source_repository: str | None = None) -> None:
     # Docker normalizes Docker Hub's official library names in RepoDigests.
-    # These explicit aliases all refer to this same pinned official image.
+    # Verify the real selected source; retagging never creates an ECR RepoDigest.
+    source_repository = pin["repository"] if source_repository is None else source_repository
+    if source_repository == pin["repository"]:
+        repositories = pin.get("digest_repositories", (pin["repository"],))
+    elif source_repository == MIRRORS.get(pin["repository"], {}).get("repository"):
+        repositories = MIRRORS[pin["repository"]]["digest_repositories"]
+    else:
+        raise ValueError("Fixture source repository is not a reviewed original or mirror")
     expected = {f"{repository}@{pin['manifest']}"
-                for repository in pin.get("digest_repositories", (pin["repository"],))}
+                for repository in repositories}
     if (metadata.get("Architecture") != "amd64" or metadata.get("Os") != "linux"
             or not expected.intersection(metadata.get("RepoDigests", []))
             or metadata.get("Id") not in {pin["manifest"], pin["config"]}):
@@ -51,13 +69,15 @@ def error_class(stderr: str) -> str:
     """Return only a fixed class; never publish Docker output or credentials."""
     text = stderr[:16384].lower() if isinstance(stderr, str) else ""
     patterns = (
+        # A permanent refusal must not become mirror permission just because
+        # the same bounded diagnostic also mentions a rate limit or HTTP429.
+        ("authorization-denied", ("unauthorized", "authentication required", "pull access denied", "access denied", r"\b40[13]\b")),
+        ("manifest-unavailable", ("manifest unknown", "manifest not found", "no matching manifest")),
+        ("daemon-unavailable", ("cannot connect to the docker daemon", "is the docker daemon running", "connection refused", "no such file or directory")),
         ("rate-limited", ("toomanyrequests", "too many requests", "rate limit", r"\b429\b")),
         ("registry-unavailable", (r"\b50[0234]\b", "service unavailable", "bad gateway")),
         ("network-timeout", ("tls handshake timeout", "i/o timeout", "context deadline exceeded", "connection timed out")),
         ("transport-reset", ("connection reset", "unexpected eof", "temporary failure in name resolution")),
-        ("manifest-unavailable", ("manifest unknown", "manifest not found", "no matching manifest")),
-        ("authorization-denied", ("unauthorized", "authentication required", "pull access denied", "access denied", r"\b40[13]\b")),
-        ("daemon-unavailable", ("cannot connect to the docker daemon", "is the docker daemon running", "connection refused", "no such file or directory")),
     )
     for category, candidates in patterns:
         if any(re.search(pattern, text) for pattern in candidates):
@@ -193,9 +213,11 @@ def _prepare(inherited: dict[str, str], host: str, shard: int, config: OwnedDock
     def elapsed() -> float:
         return round(max(0.0, time.monotonic() - pin_started), 3)
 
-    def command(pin: dict, operation: str, args: list[str], timeout: float = 30, attempt: int = 1) -> tuple[str, str | None]:
+    def command(pin: dict, operation: str, args: list[str], timeout: float = 30, attempt: int = 1,
+                *, source_repository: str) -> tuple[str, str | None]:
         config.check()
-        diagnostic(pin, operation, "starting", attempt=attempt, pin_elapsed_seconds=elapsed())
+        diagnostic(pin, operation, "starting", attempt=attempt, pin_elapsed_seconds=elapsed(),
+                   source_repository=source_repository)
         started = time.monotonic()
         try:
             result = subprocess.run(["docker", "--config", str(config.path), "--host", host, *args], env=env, text=True,
@@ -206,61 +228,74 @@ def _prepare(inherited: dict[str, str], host: str, shard: int, config: OwnedDock
             category = "cli-unavailable"
         except KeyboardInterrupt:
             diagnostic(pin, operation, "cancelled", attempt=attempt, error_class="cancelled",
-                       elapsed_seconds=round(max(0.0, time.monotonic() - started), 3), pin_elapsed_seconds=elapsed())
+                       elapsed_seconds=round(max(0.0, time.monotonic() - started), 3), pin_elapsed_seconds=elapsed(),
+                       source_repository=source_repository)
             raise
         else:
             if not result.returncode:
                 diagnostic(pin, operation, "completed", attempt=attempt,
-                           elapsed_seconds=round(max(0.0, time.monotonic() - started), 3), pin_elapsed_seconds=elapsed())
+                           elapsed_seconds=round(max(0.0, time.monotonic() - started), 3), pin_elapsed_seconds=elapsed(),
+                           source_repository=source_repository)
                 return result.stdout, None
             category = error_class(result.stderr)
         diagnostic(pin, operation, "failed", attempt=attempt, error_class=category,
-                   elapsed_seconds=round(max(0.0, time.monotonic() - started), 3), pin_elapsed_seconds=elapsed())
+                   elapsed_seconds=round(max(0.0, time.monotonic() - started), 3), pin_elapsed_seconds=elapsed(),
+                   source_repository=source_repository)
         return "", category
 
-    def required(pin: dict, operation: str, args: list[str]) -> str:
-        output, category = command(pin, operation, args)
+    def required(pin: dict, operation: str, args: list[str], source_repository: str) -> str:
+        output, category = command(pin, operation, args, source_repository=source_repository)
         if category:
             raise RuntimeError(f"Required fixture {operation} failed: {pin['repository']}@{pin['manifest']} ({category})") from None
         return output
 
-    def pull(pin: dict, reference: str) -> None:
+    def pull(pin: dict) -> tuple[str, str]:
+        source_repository = pin["repository"]
+        reference = f"{source_repository}@{pin['manifest']}"
         deadline = pin_started + PULL_BUDGET_SECONDS
         initial = INITIAL_OFFSETS_SECONDS[shard - 1] + jitter_seconds()
-        diagnostic(pin, "pull", "staggering", shard=shard, delay_seconds=initial, pin_elapsed_seconds=elapsed())
+        diagnostic(pin, "pull", "staggering", shard=shard, delay_seconds=initial, pin_elapsed_seconds=elapsed(),
+                   source_repository=source_repository)
         time.sleep(initial)
         category = "network-timeout"
         for attempt in range(1, PULL_ATTEMPTS + 1):
             remaining = deadline - time.monotonic()
             if remaining <= 0:
                 break
-            _, category = command(pin, "pull", ["pull", "--platform", "linux/amd64", reference], remaining, attempt)
+            _, category = command(pin, "pull", ["pull", "--platform", "linux/amd64", reference], remaining, attempt,
+                                  source_repository=source_repository)
             if category is None:
                 if time.monotonic() <= deadline:
-                    return
+                    return reference, source_repository
                 category = "network-timeout"
                 diagnostic(pin, "pull", "deadline-exhausted", attempt=attempt,
-                           error_class=category, pin_elapsed_seconds=elapsed())
+                           error_class=category, pin_elapsed_seconds=elapsed(), source_repository=source_repository)
                 break
             if category not in TRANSIENT_ERRORS or attempt == PULL_ATTEMPTS:
                 break
             delay = RETRY_DELAYS_SECONDS[attempt - 1] + jitter_seconds()
             if deadline - time.monotonic() <= delay:
                 break
+            if category == "rate-limited" and source_repository == pin["repository"] and pin["repository"] in MIRRORS:
+                source_repository = MIRRORS[pin["repository"]]["repository"]
+                reference = f"{source_repository}@{pin['manifest']}"
+                diagnostic(pin, "pull", "mirror-selected", attempt=attempt,
+                           error_class=category, pin_elapsed_seconds=elapsed(), source_repository=source_repository)
             diagnostic(pin, "pull", "retrying", attempt=attempt, error_class=category,
-                       delay_seconds=delay, pin_elapsed_seconds=elapsed())
+                       delay_seconds=delay, pin_elapsed_seconds=elapsed(), source_repository=source_repository)
             time.sleep(delay)
         raise RuntimeError(f"Required fixture pull failed: {reference} ({category})") from None
 
     for pin in PINS:
         pin_started = time.monotonic()
-        reference = f"{pin['repository']}@{pin['manifest']}"
-        pull(pin, reference)
-        verify_image(json.loads(required(pin, "inspect-pulled", ["image", "inspect", reference]))[0], pin)
+        reference, source_repository = pull(pin)
+        verify_image(json.loads(required(pin, "inspect-pulled", ["image", "inspect", reference], source_repository))[0],
+                     pin, source_repository)
         # The existing harness resolves these exact tags then runs the immutable ID.
         # Only this new disposable runner daemon is retagged, never a local daemon.
-        required(pin, "tag-fixture", ["image", "tag", reference, pin["tag"]])
-        verify_image(json.loads(required(pin, "inspect-fixture", ["image", "inspect", pin["tag"]]))[0], pin)
+        required(pin, "tag-fixture", ["image", "tag", reference, pin["tag"]], source_repository)
+        verify_image(json.loads(required(pin, "inspect-fixture", ["image", "inspect", pin["tag"]], source_repository))[0],
+                     pin, source_repository)
 
 
 def main() -> int:

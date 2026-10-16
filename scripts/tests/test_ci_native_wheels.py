@@ -95,6 +95,13 @@ class NativeWheelTests(unittest.TestCase):
         self.stack.enter_context(patch.object(wheels.sys, "platform", "linux"))
         self.stack.enter_context(patch.object(wheels.platform, "machine", return_value="x86_64"))
 
+    def prepare_image(self, pin, execute, clock, output, *, jitter=0):
+        with patch.object(images, "PINS", (pin,)), patch.object(images.subprocess, "run", side_effect=execute), \
+             patch.object(images.time, "sleep", side_effect=clock.sleep), \
+             patch.object(images.time, "monotonic", side_effect=clock.monotonic), \
+             patch.object(images, "jitter_seconds", return_value=jitter), patch("sys.stdout", output):
+            images.prepare(self.hosted())
+
     def test_pure_validation_accepts_complete_bound_bundle_without_hosted_environment(self):
         self.stage([wheel_bytes(), wheel_bytes("nativefixture", "2.0", "cp312-cp312-manylinux_2_36_x86_64")])
         with patch.dict(os.environ, {}, clear=True), patch.object(wheels.subprocess, "run") as execute:
@@ -276,6 +283,143 @@ class NativeWheelTests(unittest.TestCase):
         for message, category in samples:
             with self.subTest(category=category):
                 self.assertEqual(images.error_class(message + " synthetic-private-token"), category)
+
+    def test_rate_limit_changes_once_to_the_verified_mirror_and_tags_the_actual_source(self):
+        for pin in images.PINS[:2]:
+            mirror = images.MIRRORS[pin["repository"]]
+            reference = mirror["repository"] + "@" + pin["manifest"]
+            metadata = {"Architecture": "amd64", "Os": "linux", "Id": pin["config"],
+                        "RepoDigests": [mirror["digest_repositories"][-1] + "@" + pin["manifest"]]}
+            events, output, clock = [], io.StringIO(), PullClock()
+            def execute(command, **kwargs):
+                args = docker_args(command); events.append((args, kwargs))
+                self.assertNotIn("HOME", kwargs["env"])
+                self.assertNotIn("DOCKER_AUTH_CONFIG", kwargs["env"])
+                if args[0] == "pull":
+                    if sum(event[0][0] == "pull" for event in events) == 1:
+                        clock.now += 2
+                        return subprocess.CompletedProcess(command, 1, "", "429 synthetic-private-token")
+                    clock.now += 3
+                return subprocess.CompletedProcess(command, 0, json.dumps([metadata]) if args[:2] == ["image", "inspect"] else "", "")
+            with self.subTest(pin=pin["repository"]):
+                self.prepare_image(pin, execute, clock, output, jitter=3)
+            pulls = [(args, kwargs) for args, kwargs in events if args[0] == "pull"]
+            self.assertEqual([args[-1] for args, _ in pulls], [pin["repository"] + "@" + pin["manifest"], reference])
+            self.assertEqual([kwargs["timeout"] for _, kwargs in pulls], [237, 222])
+            self.assertEqual(clock.sleeps, [3, 13])
+            self.assertEqual([args for args, _ in events if args[:2] == ["image", "tag"]],
+                             [["image", "tag", reference, pin["tag"]]])
+            self.assertEqual([args[-1] for args, _ in events if args[:2] == ["image", "inspect"]],
+                             [reference, pin["tag"]])
+            reports = [json.loads(line) for line in output.getvalue().splitlines()]
+            self.assertEqual(len([r for r in reports if r.get("state") == "mirror-selected"]), 1)
+            self.assertEqual([r["source_repository"] for r in reports if r.get("operation") == "pull" and r.get("state") == "starting"],
+                             [pin["repository"], mirror["repository"]])
+            self.assertTrue(all(r["source_repository"] == mirror["repository"] for r in reports
+                                if r.get("operation") in {"inspect-pulled", "tag-fixture", "inspect-fixture"}))
+            self.assertNotIn("synthetic-private-token", output.getvalue())
+            self.assertFalse(list(self.root.glob("dashboard-ci-docker-*")))
+
+    def test_mirror_transition_keeps_five_total_attempts_and_never_bounces_to_ecr(self):
+        pin = images.PINS[0]; mirror = images.MIRRORS[pin["repository"]]["repository"]
+        events, output, clock = [], io.StringIO(), PullClock()
+        errors = ["503 unavailable", "429 rate limit", "503 unavailable", "429 rate limit", "503 unavailable"]
+        def execute(command, **kwargs):
+            args = docker_args(command); events.append((args, kwargs)); clock.now += 1
+            self.assertEqual(args[0], "pull")
+            return subprocess.CompletedProcess(command, 1, "", errors[len(events) - 1])
+        with self.assertRaisesRegex(RuntimeError, "registry-unavailable"):
+            self.prepare_image(pin, execute, clock, output)
+        self.assertEqual(len(events), 5)
+        self.assertEqual([args[-1] for args, _ in events],
+                         [repo + "@" + pin["manifest"] for repo in [pin["repository"], pin["repository"], mirror, mirror, mirror]])
+        self.assertEqual([kwargs["timeout"] for _, kwargs in events], [240, 229, 208, 167, 106])
+        self.assertEqual(clock.sleeps, [0, 10, 20, 40, 60])
+        self.assertEqual(output.getvalue().count('"state": "mirror-selected"'), 1)
+        self.assertFalse(list(self.root.glob("dashboard-ci-docker-*")))
+
+    def test_permanent_or_unknown_ecr_failure_never_selects_a_mirror_even_with_429_wording(self):
+        for error in ("unauthorized", "403 rate limit", "unauthorized 429", "manifest unknown 429",
+                      "Cannot connect to the docker daemon 429", "unknown synthetic-private-token"):
+            pin = images.PINS[0]; events, output, clock = [], io.StringIO(), PullClock()
+            def execute(command, **kwargs):
+                events.append(docker_args(command))
+                return subprocess.CompletedProcess(command, 1, "", error)
+            with self.subTest(error=error), self.assertRaises(RuntimeError):
+                self.prepare_image(pin, execute, clock, output)
+            self.assertEqual(events, [["pull", "--platform", "linux/amd64", pin["repository"] + "@" + pin["manifest"]]])
+            self.assertEqual(clock.sleeps, [0])
+            self.assertNotIn("mirror-selected", output.getvalue())
+            self.assertNotIn("synthetic-private-token", output.getvalue())
+
+    def test_permanent_mirror_failure_stops_without_canonical_retry(self):
+        for error in ("unauthorized", "manifest unknown", "unknown synthetic-private-token"):
+            pin = images.PINS[0]; events, output, clock = [], io.StringIO(), PullClock()
+            def execute(command, **kwargs):
+                events.append(docker_args(command))
+                return subprocess.CompletedProcess(command, 1, "", "429" if len(events) == 1 else error)
+            with self.subTest(error=error), self.assertRaises(RuntimeError):
+                self.prepare_image(pin, execute, clock, output)
+            self.assertEqual([args[-1] for args in events], [pin["repository"] + "@" + pin["manifest"],
+                             images.MIRRORS[pin["repository"]]["repository"] + "@" + pin["manifest"]])
+            self.assertEqual(clock.sleeps, [0, 10])
+            self.assertFalse(list(self.root.glob("dashboard-ci-docker-*")))
+
+    def test_identity_failure_never_triggers_another_pull_or_an_unverified_tag(self):
+        for use_mirror in (False, True):
+            pin = images.PINS[0]; events, output, clock = [], io.StringIO(), PullClock()
+            selected = images.MIRRORS[pin["repository"]]["repository"] if use_mirror else pin["repository"]
+            other = pin["repository"] if use_mirror else images.MIRRORS[pin["repository"]]["repository"]
+            metadata = {"Architecture": "amd64", "Os": "linux", "Id": pin["config"],
+                        "RepoDigests": [other + "@" + pin["manifest"]]}
+            def execute(command, **kwargs):
+                args = docker_args(command); events.append(args)
+                if use_mirror and len(events) == 1:
+                    return subprocess.CompletedProcess(command, 1, "", "429")
+                return subprocess.CompletedProcess(command, 0, json.dumps([metadata]) if args[:2] == ["image", "inspect"] else "", "")
+            with self.subTest(mirror=use_mirror), self.assertRaises(ValueError):
+                self.prepare_image(pin, execute, clock, output)
+            self.assertEqual(sum(args[0] == "pull" for args in events), 2 if use_mirror else 1)
+            self.assertEqual(events[-1], ["image", "inspect", selected + "@" + pin["manifest"]])
+            self.assertFalse(any(args[:2] == ["image", "tag"] for args in events))
+
+    def test_final_fixture_inspection_requires_the_actual_mirror_digest_without_invented_ecr_digest(self):
+        pin = images.PINS[0]; mirror = images.MIRRORS[pin["repository"]]["repository"]
+        events, output, clock = [], io.StringIO(), PullClock()
+        def execute(command, **kwargs):
+            args = docker_args(command); events.append(args)
+            if len(events) == 1:
+                return subprocess.CompletedProcess(command, 1, "", "429")
+            repository = pin["repository"] if args[-1] == pin["tag"] else mirror
+            metadata = {"Architecture": "amd64", "Os": "linux", "Id": pin["config"],
+                        "RepoDigests": [repository + "@" + pin["manifest"]]}
+            return subprocess.CompletedProcess(command, 0, json.dumps([metadata]) if args[:2] == ["image", "inspect"] else "", "")
+        with self.assertRaises(ValueError):
+            self.prepare_image(pin, execute, clock, output)
+        self.assertEqual(sum(args[0] == "pull" for args in events), 2)
+        self.assertEqual(events[-2:], [["image", "tag", mirror + "@" + pin["manifest"], pin["tag"]],
+                                      ["image", "inspect", pin["tag"]]])
+
+    def test_mirror_late_success_or_timeout_cannot_restart_the_original_deadline(self):
+        for outcome in ("late-success", "timeout"):
+            pin = images.PINS[0]; events, output, clock = [], io.StringIO(), PullClock()
+            def execute(command, **kwargs):
+                args = docker_args(command); events.append((args, kwargs["timeout"]))
+                if len(events) == 1:
+                    clock.now += 1
+                    return subprocess.CompletedProcess(command, 1, "", "429")
+                clock.now += kwargs["timeout"] + (0.1 if outcome == "late-success" else 0)
+                if outcome == "timeout":
+                    raise subprocess.TimeoutExpired(command, kwargs["timeout"])
+                return subprocess.CompletedProcess(command, 0, "", "")
+            with self.subTest(outcome=outcome), self.assertRaisesRegex(RuntimeError, "network-timeout"):
+                self.prepare_image(pin, execute, clock, output)
+            self.assertEqual([timeout for _, timeout in events], [240, 229])
+            self.assertEqual([args[-1] for args, _ in events], [pin["repository"] + "@" + pin["manifest"],
+                             images.MIRRORS[pin["repository"]]["repository"] + "@" + pin["manifest"]])
+            self.assertTrue(all(args[0] == "pull" for args, _ in events))
+            self.assertEqual(clock.sleeps, [0, 10])
+            self.assertFalse(list(self.root.glob("dashboard-ci-docker-*")))
 
     def test_transient_pull_retries_same_exact_pin_within_original_budget_without_stderr_output(self):
         pin = images.PINS[0]

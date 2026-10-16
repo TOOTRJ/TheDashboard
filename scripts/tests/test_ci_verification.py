@@ -144,6 +144,38 @@ print("fixed child environment passed")'''
             with self.subTest(change=change), self.assertRaises(ValueError):
                 images.verify_image({**metadata, **change}, pin)
 
+    def test_exact_mirror_identity_requires_the_selected_verified_repository(self):
+        self.assertEqual(images.MIRRORS, {
+            "public.ecr.aws/supabase/postgres": {
+                "repository": "docker.io/supabase/postgres",
+                "digest_repositories": ("docker.io/supabase/postgres", "supabase/postgres"),
+            },
+            "public.ecr.aws/supabase/postgrest": {
+                "repository": "docker.io/postgrest/postgrest",
+                "digest_repositories": ("docker.io/postgrest/postgrest", "postgrest/postgrest"),
+            },
+        })
+        for pin in images.PINS[:2]:
+            mirror = images.MIRRORS[pin["repository"]]
+            for alias in mirror["digest_repositories"]:
+                metadata = {"Id": pin["config"], "Architecture": "amd64", "Os": "linux",
+                            "RepoDigests": [alias + "@" + pin["manifest"]]}
+                images.verify_image(metadata, pin, mirror["repository"])
+                images.verify_image({**metadata, "Id": pin["manifest"]}, pin, mirror["repository"])
+                with self.assertRaises(ValueError):
+                    images.verify_image(metadata, pin)
+                for change in ({"Architecture": "arm64"}, {"Os": "windows"}, {"RepoDigests": []},
+                               {"Id": "sha256:" + "0" * 64},
+                               {"RepoDigests": [alias + "@sha256:" + "0" * 64]},
+                               {"RepoDigests": [pin["repository"] + "@" + pin["manifest"]]},
+                               {"RepoDigests": ["docker.io/supabase/postgrest@" + pin["manifest"]]},
+                               {"RepoDigests": ["foreign.invalid/postgres@" + pin["manifest"]]}):
+                    with self.subTest(pin=pin["repository"], alias=alias, change=change), self.assertRaises(ValueError):
+                        images.verify_image({**metadata, **change}, pin, mirror["repository"])
+                for unreviewed in ("docker.io/supabase/postgrest", "docker.io/attacker/postgres", alias.removeprefix("docker.io/")):
+                    with self.subTest(source=unreviewed), self.assertRaises(ValueError):
+                        images.verify_image(metadata, pin, unreviewed)
+
     def test_fixture_pins_match_the_reviewed_platform_registry_evidence(self):
         evidence = json.loads((SCRIPTS / "check-ci-images-evidence.json").read_text())
         self.assertEqual(evidence["checked"], "2026-10-12")
