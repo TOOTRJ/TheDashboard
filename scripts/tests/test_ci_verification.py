@@ -291,14 +291,26 @@ print("fixed child environment passed")'''
         mutation = copy.deepcopy(original); mutation["jobs"]["frontend"]["strategy"] = policy.WORKER_STRATEGY
         with self.assertRaises(ValueError): policy.validate_workflow(yaml.safe_dump(mutation))
 
+    def test_postgres_concurrency_is_exactly_two_without_removing_any_required_shard(self):
+        original = yaml.safe_load(policy.WORKFLOW.read_text())
+        expected = {"fail-fast": False, "max-parallel": 2, "matrix": {"shard": [1, 2, 3, 4]}}
+        self.assertEqual(policy.POSTGRES_STRATEGY, expected)
+        self.assertEqual(original["jobs"]["postgres"]["strategy"], expected)
+        policy.validate_workflow(yaml.safe_dump(original))
+        for parallel in (0, 1, 3, 4, 8, False, True, 2.0, "2"):
+            mutation = copy.deepcopy(original)
+            mutation["jobs"]["postgres"]["strategy"]["max-parallel"] = parallel
+            with self.subTest(parallel=parallel), self.assertRaises(ValueError):
+                policy.validate_workflow(yaml.safe_dump(mutation))
+
     def test_required_postgres_matrix_keeps_every_shard_and_explicit_integration_authority(self):
         original = yaml.safe_load(policy.WORKFLOW.read_text())
         for strategy in (
-            {"fail-fast": False, "max-parallel": 4, "matrix": {"shard": [1, 2, 3]}},
-            {"fail-fast": False, "max-parallel": 4, "matrix": {"shard": [1, 2, 3, 4, 5]}},
-            {"fail-fast": True, "max-parallel": 4, "matrix": {"shard": [1, 2, 3, 4]}},
+            {"fail-fast": False, "max-parallel": 2, "matrix": {"shard": [1, 2, 3]}},
+            {"fail-fast": False, "max-parallel": 2, "matrix": {"shard": [1, 2, 3, 4, 5]}},
+            {"fail-fast": True, "max-parallel": 2, "matrix": {"shard": [1, 2, 3, 4]}},
             {"fail-fast": False, "max-parallel": 8, "matrix": {"shard": [1, 2, 3, 4]}},
-            {"fail-fast": False, "max-parallel": 4, "matrix": {"shard": [True, 2, 3, 4]}},
+            {"fail-fast": False, "max-parallel": 2, "matrix": {"shard": [True, 2, 3, 4]}},
             {**policy.POSTGRES_STRATEGY, "matrix": {"shard": [1, 2, 3, 4], "exclude": [{"shard": 4}]}},
         ):
             mutation = copy.deepcopy(original); mutation["jobs"]["postgres"]["strategy"] = strategy
