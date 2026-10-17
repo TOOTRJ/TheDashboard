@@ -822,17 +822,11 @@
 }
 
 /* ========================================
-   FOCUS RING ANIMATION
+   KEYBOARD FOCUS RING
    ======================================== */
 *:focus-visible {
   outline: 2px solid var(--neon-cyan);
   outline-offset: 2px;
-  animation: focus-pulse 2s ease-in-out infinite;
-}
-
-@keyframes focus-pulse {
-  0%, 100% { outline-color: var(--neon-cyan); }
-  50% { outline-color: var(--neon-pink); }
 }
 
 /* ========================================

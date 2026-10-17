@@ -1,0 +1,222 @@
+{
+  "browser": {
+    "analytics": {
+      "account_export_disabled_with_reason": true,
+      "analysis_unavailable_reason": true,
+      "fixed_stats": [
+        "64%",
+        "2.4x",
+        "$842",
+        "-$312",
+        "1:2.7"
+      ],
+      "keyboard_Markets_then_ArrowRight_Strategy": true,
+      "no_search_on_analytics": true,
+      "page_and_header_sample_labels": true,
+      "performance_90_day_labels": [
+        "Jul 20",
+        "Oct 13"
+      ]
+    },
+    "cleanup": {
+      "exact_owned_copy_absent": true,
+      "fixture_exit": 0,
+      "next_process_group": 54867,
+      "normal_parent_SIGTERM": true,
+      "owner_marker_and_exact_Node_command_verified": true,
+      "parent_pid": 54623,
+      "tab_closed": true
+    },
+    "dialog": {
+      "Escape_and_Close_remove_all_dialog_nodes": true,
+      "body_pointer_events_after_close": "auto",
+      "description_identifies_fictional_data": true,
+      "fictional_copy_and_explorer_unavailable": true,
+      "focus_animation": "none",
+      "focus_outline": "solid",
+      "focus_returns_original_button": "View sample buy LINK trade details",
+      "header_aria_hidden_after_close": null,
+      "native_Enter_and_Space_open": true
+    },
+    "header_sidebar": {
+      "collapsed_status": "Trading status: live trading unavailable",
+      "expanded_status": "Live trading unavailable",
+      "profile_wallet_API_keys_disabled_with_reason": true,
+      "settled_Analytics_link_only_active": true,
+      "theme_light_and_dark_actual_html_classes": true,
+      "theme_restored": "dark"
+    },
+    "home": {
+      "descending_total_on_page_two_observed": true,
+      "filter_resets_page_one": true,
+      "global_SOL_7_count": 0,
+      "global_SOL_90_count": 3,
+      "global_SOL_and_local_BTC_count": 0,
+      "next_page": "2 of 8, 60 trades",
+      "range_trade_counts": {
+        "30": 39,
+        "7": 8,
+        "90": 60
+      },
+      "sample_and_demo_provenance": true
+    },
+    "mobile": {
+      "analytics_document_width": 382,
+      "dialog_Escape_removes_and_restores_original_button": true,
+      "home_document_width": 390,
+      "mobile_account_unavailable_actions": true,
+      "navigation_Enter_opens_and_Terminal_link_closes_sheet": true,
+      "viewport": [
+        390,
+        844
+      ],
+      "viewport_reset": true
+    },
+    "owner": "24a738f3-afa3-4e60-bde3-a294f28a5ee8",
+    "scope": "owned loopback with fake Alice; no hosted account or provider",
+    "tab": "35"
+  },
+  "build": {
+    "compile_seconds_displayed": 8.5,
+    "fake_credentials_only": true,
+    "installation_seconds_displayed": 14,
+    "locked_packages": 460,
+    "private_log_sha256": "0ef1afe40ba54fc8357c2816ce8da4e366707a6710951c3b528c01725a77697e",
+    "snapshot_bytes": 1342314,
+    "snapshot_files": 155,
+    "typescript_seconds_displayed": 7.3
+  },
+  "date": "2026-10-13",
+  "format": "dashboard-final-app-synthetic-acceptance-v1",
+  "frontend": {
+    "duration_ms": 22366.724167,
+    "failed": 0,
+    "passed": 379,
+    "private_log_sha256": "bd12cc09554e475ce51cb10df7b88dcedd1386f87eb334c296d19c3ebf37eff1",
+    "skipped": 0,
+    "unchanged_head_and_clean_worktree_before_after": true
+  },
+  "historical_failures_retained": {
+    "cb29_dialog": "modal removed but keyboard focus returned to body",
+    "d16_dialog": "visible empty closed dialog and aria-hidden header remained",
+    "f4ea_first_build": "300-second locked npm installation timeout; no app server",
+    "f4ea_second_build": "npm ECONNRESET; no app server; underlying cause unproved"
+  },
+  "limits": {
+    "complete_accessibility_audit": false,
+    "continuous_paper_mvp_accepted": false,
+    "hosted_release_accepted": false,
+    "live_trading_authorized": false,
+    "native_worker_bridge_proved": false,
+    "provider_request_exercised": false,
+    "supabase_write_or_RLS_proved": false
+  },
+  "runtime": {
+    "lockfile_sha256": "a6c5c1d1cd80203a5a9b191ca3828c551783f10d09e7e2d7d8af32c74919a86b",
+    "next": "16.3.8",
+    "node": "24.19.0"
+  },
+  "source_commit": "c029931e4ed5a0f7a05ad5b242538e008bf7a21f",
+  "source_files": [
+    {
+      "path": "scripts/check-build.mjs",
+      "sha256": "249ac44a4063dab2db65a83dcb087d420dc9cb9f08a325d3344841d481994582"
+    },
+    {
+      "path": "scripts/tests/browser-fixture.test.mjs",
+      "sha256": "f072e94c88345ad973bcef28ca9f39c12beebeaf5b0e54bb35372d2aebef0a2c"
+    },
+    {
+      "path": "scripts/tests/check-build.test.mjs",
+      "sha256": "c9e047cd67fdbf4b310eed1cf5c7d4441e678794136454a859df6165b62a4692"
+    },
+    {
+      "path": "src/app/(dashboard)/analytics/page.tsx",
+      "sha256": "04da4aa2b12bb81ded0d6072d96d1338c6f3548c49cf4427571aa006b36522a4"
+    },
+    {
+      "path": "src/app/(dashboard)/page.tsx",
+      "sha256": "1f5003d1396558ab2eebe250db82f91fd15fbfe2eae5b065ea792d9a9ded1f12"
+    },
+    {
+      "path": "src/app/(dashboard)/strategies/page.tsx",
+      "sha256": "df53f9a862d7d22a211fa7e48fc84c3da29c4297d965a4cf6782cb30a088f404"
+    },
+    {
+      "path": "src/app/api/v1/sentiment/route.ts",
+      "sha256": "5c337cb184309c7688b3aaf72d0b745567031f6a292a2669f6e724b5a5fd0838"
+    },
+    {
+      "path": "src/app/api/v1/test/route.ts",
+      "sha256": "0fe69728777a1030c181e5ff26cba753d700f4c8ed778e421fb1e4ba8011dca4"
+    },
+    {
+      "path": "src/app/globals.css",
+      "sha256": "df69e76b71faacec570c9a0d9fc61234e718d0bc031bbf1fdc042ed3b2a9ed6d"
+    },
+    {
+      "path": "src/components/dashboard/ActivityTable.tsx",
+      "sha256": "83e304e0ed51b4d963ca797ef5322aff0255d8fe3bd1ba1eac1d0d162b7e27f1"
+    },
+    {
+      "path": "src/components/dashboard/Charts.tsx",
+      "sha256": "969e7a40f19279c1773b5b548260506a8d677b68db2a34352acc9a0a1d92fe53"
+    },
+    {
+      "path": "src/components/dashboard/KpiCards.tsx",
+      "sha256": "6478745c8a5ece0639c50588d58cb488539bba5c814a958c2b3391205f11593a"
+    },
+    {
+      "path": "src/components/layout/Header.tsx",
+      "sha256": "f2a0e7cebb83fdd788f3bd5da629a700aa4605d514fa518bd9669ba2d4db1d52"
+    },
+    {
+      "path": "src/components/layout/Sidebar.tsx",
+      "sha256": "f44736b0f57e9a96c65c2bf566efd3ee0cc4ffdd24dfb8b46e98d37ab9fd7f76"
+    },
+    {
+      "path": "src/lib/api/auth.ts",
+      "sha256": "9fb1291180f633c02b94990f27ee93778a8846b883017895bebb2a1101b468d8"
+    },
+    {
+      "path": "src/lib/api/errors.ts",
+      "sha256": "a59436fadc29515af368b9d0d5f4425880a4b98385dc4902189ec57ce1969e61"
+    },
+    {
+      "path": "src/lib/api/handler.ts",
+      "sha256": "d2b02bc7f30f8c3da7fbdc541c59ea30d302a7d9c5a1767998c8d46fb3740dc6"
+    },
+    {
+      "path": "src/lib/api/index.ts",
+      "sha256": "ec9b90eb9b6e419f0708e2cc7db1951fef3b49340ca3c0aad11ff2cbd1de5ddd"
+    },
+    {
+      "path": "src/lib/api/responses.ts",
+      "sha256": "23089813778660e1b40e0a754a0d526107199c067167d684b3ea1899290db74a"
+    },
+    {
+      "path": "src/lib/api/validation.ts",
+      "sha256": "04b6b7a9d836dd7e7ef3b0616661450e41b50728a420ee1bc58566eac6a25faa"
+    },
+    {
+      "path": "src/lib/supabase/admin.ts",
+      "sha256": "f7fa201939ecb1a9ba940fb7adbd3919be2967508c790b2a4f54c7569a6a0dfe"
+    },
+    {
+      "path": "tests/analytics-header-honesty.test.mjs",
+      "sha256": "20342eee34ad0b465a6b5b806b472738de50b47cd97ffd2c600a50c9c3492c79"
+    },
+    {
+      "path": "tests/api-validation.test.mjs",
+      "sha256": "c74e974d6a491e46c330d2fe8a0edce16063ab3e5aad3ac6406920c0c3d40785"
+    },
+    {
+      "path": "tests/home-sample-provenance.test.mjs",
+      "sha256": "ccc09d5170154447533d9a4646e7fada40d40efeae4621d2841b2ec48cff1f15"
+    },
+    {
+      "path": "tests/strategy-preview.test.mjs",
+      "sha256": "79efabfad721e47ce001330bc6fe98ba5ea6e61d9f4d0f9ccb1f80017cfd4fd5"
+    }
+  ]
+}

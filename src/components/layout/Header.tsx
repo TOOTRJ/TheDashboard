@@ -3,13 +3,11 @@
 import * as React from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { 
-  Bell, 
   ChevronDown, 
   Menu, 
   Search, 
   TrendingUp, 
   TrendingDown,
-  Wifi,
   Signal,
   LogOut,
   User,
@@ -37,15 +35,15 @@ import { getMarketTicker } from "@/lib/mock";
 const titleMap: Record<string, { title: string; description: string }> = {
   "/": {
     title: "Trading Terminal",
-    description: "Real-time portfolio tracking and market analysis",
+    description: "Sample portfolio charts and activity previews",
   },
   "/strategies": {
-    title: "Strategy Backtester",
-    description: "Test and analyze trading strategies with historical data",
+    title: "Strategy Concepts",
+    description: "Example strategies and independent charts; historical evaluation unavailable",
   },
   "/analytics": {
-    title: "Market Analytics",
-    description: "Deep dive into your trading performance and market trends",
+    title: "Sample Analytics",
+    description: "Sample trading charts and fixed example metrics",
   },
   "/nestegg": {
     title: "Nestegg",
@@ -133,6 +131,8 @@ export function Header({ onOpenMobileNav }: { onOpenMobileNav: () => void }) {
   React.useEffect(() => { setMounted(true); }, []);
 
   const headerCopy = React.useMemo(() => titleMap[pathname] ?? titleMap["/"], [pathname]);
+  const showSearch = pathname === "/";
+  const showSampleRange = pathname === "/" || pathname === "/analytics";
 
   const displayName =
     profile?.full_name ||
@@ -176,18 +176,8 @@ export function Header({ onOpenMobileNav }: { onOpenMobileNav: () => void }) {
         
         <MarketTicker />
         
-        <div className="flex items-center gap-3 slide-left">
-          <Button 
-            variant="outline" 
-            size="icon" 
-            aria-label="Notifications"
-            className="relative border-[#00fff5]/20 hover:border-[#00fff5]/40 hover:bg-[#00fff5]/10 hover:text-[#00fff5] transition-all duration-300 hover:scale-105"
-          >
-            <Bell className="h-4 w-4" />
-            <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-[#ff3366] text-[8px] font-bold flex items-center justify-center animate-pulse">
-              3
-            </span>
-          </Button>
+        <div className="flex flex-wrap items-center gap-3 slide-left">
+          <span className="text-xs text-muted-foreground">Notifications unavailable</span>
           
           <ThemeToggle />
           
@@ -222,18 +212,21 @@ export function Header({ onOpenMobileNav }: { onOpenMobileNav: () => void }) {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator className="bg-[#00fff5]/10" />
-                <DropdownMenuItem className="focus:bg-[#00fff5]/10 focus:text-[#00fff5] cursor-pointer transition-colors">
+                <DropdownMenuItem disabled aria-describedby="account-settings-unavailable">
                   <User className="h-4 w-4 mr-2" />
-                  Profile
+                  Profile unavailable
                 </DropdownMenuItem>
-                <DropdownMenuItem className="focus:bg-[#00fff5]/10 focus:text-[#00fff5] cursor-pointer transition-colors">
+                <DropdownMenuItem disabled aria-describedby="account-settings-unavailable">
                   <Settings className="h-4 w-4 mr-2" />
-                  Wallet Settings
+                  Wallet settings unavailable
                 </DropdownMenuItem>
-                <DropdownMenuItem className="focus:bg-[#00fff5]/10 focus:text-[#00fff5] cursor-pointer transition-colors">
+                <DropdownMenuItem disabled aria-describedby="account-settings-unavailable">
                   <Key className="h-4 w-4 mr-2" />
-                  API Keys
+                  API keys unavailable
                 </DropdownMenuItem>
+                <DropdownMenuLabel id="account-settings-unavailable" className="text-xs font-normal text-muted-foreground">
+                  Profile, wallet settings and API key management are not available.
+                </DropdownMenuLabel>
                 <DropdownMenuSeparator className="bg-[#00fff5]/10" />
                 <DropdownMenuItem
                   onClick={handleSignOut}
@@ -255,50 +248,61 @@ export function Header({ onOpenMobileNav }: { onOpenMobileNav: () => void }) {
         </div>
       </div>
       
-      <div className="flex flex-wrap items-center gap-3">
-        <div className={`relative flex-1 min-w-[220px] transition-all duration-300 ${isSearchFocused ? 'scale-[1.02]' : ''}`}>
-          <Search className={`pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transition-colors duration-300 ${
-            isSearchFocused ? 'text-[#00fff5]' : 'text-muted-foreground'
-          }`} />
-          <Input
-            value={searchQuery}
-            onChange={(event) => setSearchQuery(event.target.value)}
-            onFocus={() => setIsSearchFocused(true)}
-            onBlur={() => setIsSearchFocused(false)}
-            placeholder="Search assets, transactions..."
-            className={`pl-9 border-[#00fff5]/20 bg-[#00fff5]/5 transition-all duration-300 ${
-              isSearchFocused 
-                ? 'border-[#00fff5]/50 shadow-[0_0_20px_rgba(0,255,245,0.15)] bg-[#00fff5]/10' 
-                : 'focus:border-[#00fff5]/40'
-            } placeholder:text-muted-foreground`}
-          />
-          {isSearchFocused && (
-            <div className="absolute inset-0 rounded-md pointer-events-none">
-              <div className="absolute inset-0 rounded-md border border-[#00fff5]/30 animate-pulse" />
+      {showSampleRange ? (
+        <div className="flex flex-wrap items-center gap-3">
+          {showSearch ? (
+            <div className={`relative flex-1 min-w-[220px] transition-all duration-300 ${isSearchFocused ? 'scale-[1.02]' : ''}`}>
+              <Search className={`pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transition-colors duration-300 ${
+                isSearchFocused ? 'text-[#00fff5]' : 'text-muted-foreground'
+              }`} />
+              <Input
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                onFocus={() => setIsSearchFocused(true)}
+                onBlur={() => setIsSearchFocused(false)}
+                aria-label="Search sample activity"
+                placeholder="Search sample assets or transaction hashes..."
+                className={`pl-9 border-[#00fff5]/20 bg-[#00fff5]/5 transition-all duration-300 ${
+                  isSearchFocused
+                    ? 'border-[#00fff5]/50 shadow-[0_0_20px_rgba(0,255,245,0.15)] bg-[#00fff5]/10'
+                    : 'focus:border-[#00fff5]/40'
+                } placeholder:text-muted-foreground`}
+              />
+              {isSearchFocused && (
+                <div className="absolute inset-0 rounded-md pointer-events-none">
+                  <div className="absolute inset-0 rounded-md border border-[#00fff5]/30 animate-pulse" />
+                </div>
+              )}
             </div>
+          ) : null}
+          {mounted ? (
+            <Select value={dateRange} onValueChange={(value) => {
+              const option = dateRangeOptions.find(option => option.value === value);
+              if (option) setDateRange(option.value);
+            }}>
+              <SelectTrigger aria-label="Sample date range" aria-describedby="sample-date-range-scope" className="w-[180px] border-[#00fff5]/20 bg-[#00fff5]/5 focus:border-[#00fff5]/40 focus:ring-[#00fff5]/20 transition-all duration-300 hover:bg-[#00fff5]/10">
+                <SelectValue placeholder="Sample date range" />
+              </SelectTrigger>
+              <SelectContent className="border-[#00fff5]/20 bg-card/95 backdrop-blur-xl">
+                {dateRangeOptions.map((option) => (
+                  <SelectItem
+                    key={option.value}
+                    value={option.value}
+                    className="focus:bg-[#00fff5]/10 focus:text-[#00fff5] cursor-pointer transition-colors"
+                  >
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <div className="w-[180px] h-9 rounded-md border border-[#00fff5]/20 bg-[#00fff5]/5" />
           )}
+          <p id="sample-date-range-scope" className="w-full text-xs text-muted-foreground">
+            Sample range filters dated examples only. Allocation, exchange-volume and fixed stat examples stay unchanged.
+          </p>
         </div>
-        {mounted ? (
-          <Select value={dateRange} onValueChange={(value) => setDateRange(value as typeof dateRange)}>
-            <SelectTrigger className="w-[180px] border-[#00fff5]/20 bg-[#00fff5]/5 focus:border-[#00fff5]/40 focus:ring-[#00fff5]/20 transition-all duration-300 hover:bg-[#00fff5]/10">
-              <SelectValue placeholder="Date range" />
-            </SelectTrigger>
-            <SelectContent className="border-[#00fff5]/20 bg-card/95 backdrop-blur-xl">
-              {dateRangeOptions.map((option) => (
-                <SelectItem
-                  key={option.value}
-                  value={option.value}
-                  className="focus:bg-[#00fff5]/10 focus:text-[#00fff5] cursor-pointer transition-colors"
-                >
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        ) : (
-          <div className="w-[180px] h-9 rounded-md border border-[#00fff5]/20 bg-[#00fff5]/5" />
-        )}
-      </div>
+      ) : null}
     </header>
   );
 }

@@ -16,7 +16,7 @@ function createResponse<T>(
         timestamp: new Date().toISOString(),
       },
     },
-    { status }
+    { status, headers: { "Cache-Control": "no-store" } }
   );
 }
 
@@ -84,4 +84,12 @@ export function serverError(message = "Internal server error") {
     },
     500
   );
+}
+
+export function unavailable() {
+  return createResponse({ success: false, error: { code: "SERVICE_UNAVAILABLE", message: "API service is unavailable" } }, 503);
+}
+
+export function conflict() {
+  return createResponse({ success: false, error: { code: "CONFLICT", message: "A record conflicts with existing data" } }, 409);
 }

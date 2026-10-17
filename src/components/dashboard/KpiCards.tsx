@@ -6,7 +6,6 @@ import { Line, LineChart, ResponsiveContainer } from "recharts";
 
 import { useDashboardFilters } from "@/components/layout/DashboardProvider";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 import { getKpiSnapshots } from "@/lib/mock";
 
 const iconMap: Record<string, React.ElementType> = {
@@ -99,7 +98,7 @@ export function KpiCards() {
                     />
                   </div>
                   <span className="text-xs uppercase tracking-wider text-muted-foreground font-medium">
-                    {kpi.title}
+                    Sample {kpi.title}
                   </span>
                 </div>
                 <div 
@@ -169,7 +168,7 @@ export function KpiCards() {
               )}
               <p className="mt-3 text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-2">
                 <span className="inline-block w-1 h-1 rounded-full bg-current animate-pulse" />
-                vs. previous period
+                sample change over selected range
               </p>
             </CardContent>
           </Card>

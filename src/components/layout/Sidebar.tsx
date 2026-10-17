@@ -221,22 +221,17 @@ export function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onMobileOpenC
         
         <div className="mt-auto px-4 py-4">
           {!collapsed ? (
-            <div className="rounded-lg border border-[#ff00ff]/20 bg-gradient-to-br from-[#ff00ff]/10 to-transparent p-3 text-xs relative overflow-hidden group cursor-pointer hover:border-[#ff00ff]/40 transition-all duration-300">
-              {/* Animated shine effect */}
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-              
+            <div className="rounded-lg border border-[#ff00ff]/20 bg-gradient-to-br from-[#ff00ff]/10 to-transparent p-3 text-xs">
               <p className="text-[#ff00ff] font-bold uppercase tracking-wider flex items-center gap-2">
-                <Zap className="h-3 w-3 animate-pulse" />
-                Pro Mode
+                <Zap className="h-3 w-3" aria-hidden="true" />
+                Trading status
               </p>
-              <p className="mt-1 text-muted-foreground">Advanced trading features enabled</p>
+              <p className="mt-1 text-muted-foreground">Live trading unavailable</p>
             </div>
           ) : (
-            <div className="flex justify-center">
-              <div className="relative">
-                <div className="h-3 w-3 rounded-full bg-[#ff00ff]" />
-                <div className="absolute inset-0 h-3 w-3 rounded-full bg-[#ff00ff] animate-ping opacity-50" />
-              </div>
+            <div className="flex justify-center" title="Trading status: live trading unavailable">
+              <span className="h-3 w-3 rounded-full bg-muted-foreground" aria-hidden="true" />
+              <span className="sr-only">Trading status: live trading unavailable</span>
             </div>
           )}
         </div>

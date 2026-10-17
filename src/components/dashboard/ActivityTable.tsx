@@ -10,7 +10,6 @@ import {
   ChevronsUpDown,
   ExternalLink,
   Copy,
-  Check,
   Search,
   Sparkles
 } from "lucide-react";
@@ -19,7 +18,7 @@ import { useDashboardFilters } from "@/components/layout/DashboardProvider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -69,8 +68,8 @@ export function ActivityTable() {
   const [sortDirection, setSortDirection] = React.useState<SortDirection>("desc");
   const [currentPage, setCurrentPage] = React.useState(1);
   const [selectedItem, setSelectedItem] = React.useState<TradeItem | null>(null);
+  const detailsTrigger = React.useRef<HTMLButtonElement | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
-  const [copiedHash, setCopiedHash] = React.useState(false);
   const [isVisible, setIsVisible] = React.useState(false);
 
   React.useEffect(() => {
@@ -86,12 +85,6 @@ export function ActivityTable() {
   React.useEffect(() => {
     setCurrentPage(1);
   }, [dateRange, searchQuery, localQuery]);
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedHash(true);
-    setTimeout(() => setCopiedHash(false), 2000);
-  };
 
   const data = getTradeFeed(dateRange);
   let filtered = searchTradeFeed(data, searchQuery);
@@ -140,10 +133,10 @@ export function ActivityTable() {
           <div>
             <h2 className="text-sm font-semibold uppercase tracking-wider text-[#00fff5] flex items-center gap-2">
               <Sparkles className="h-4 w-4 animate-pulse" />
-              Recent Trades
+              Sample Activity
             </h2>
             <p className="text-xs text-muted-foreground mt-1">
-              Your latest trading activity across all connected wallets
+              Generated trade examples with fictional identifiers; no account trades are loaded
             </p>
           </div>
           <div className="relative w-full sm:max-w-xs group">
@@ -151,7 +144,8 @@ export function ActivityTable() {
             <Input
               value={localQuery}
               onChange={(event) => setLocalQuery(event.target.value)}
-              placeholder="Filter by asset or tx hash..."
+              aria-label="Filter sample activity"
+              placeholder="Filter sample asset or fictional hash..."
               className="pl-9 border-[#00fff5]/20 bg-[#00fff5]/5 focus:border-[#00fff5]/40 focus:shadow-[0_0_10px_rgba(0,255,245,0.2)] transition-all duration-300"
             />
           </div>
@@ -224,7 +218,10 @@ export function ActivityTable() {
                               ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'}
                             `}
                             style={{ transitionDelay: `${index * 50}ms` }}
-                            onClick={() => setSelectedItem(item)}
+                            onClick={() => {
+                              detailsTrigger.current = null;
+                              setSelectedItem(item);
+                            }}
                           >
                             <TableCell className="font-mono text-xs text-muted-foreground">
                               {formatDateTime(item.timestamp)}
@@ -243,9 +240,19 @@ export function ActivityTable() {
                               </div>
                             </TableCell>
                             <TableCell>
-                              <span className="text-sm font-semibold text-foreground group-hover:text-[#00fff5] transition-colors">
+                              <button
+                                type="button"
+                                aria-label={`View sample ${item.type.toLowerCase()} ${item.asset} trade details`}
+                                aria-haspopup="dialog"
+                                className="text-left text-sm font-semibold text-foreground group-hover:text-[#00fff5] transition-colors"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  detailsTrigger.current = event.currentTarget;
+                                  setSelectedItem(item);
+                                }}
+                              >
                                 {item.asset}
-                              </span>
+                              </button>
                             </TableCell>
                             <TableCell className="font-mono text-sm">
                               {item.amount.toLocaleString("en-US", { maximumFractionDigits: 4 })}
@@ -281,7 +288,7 @@ export function ActivityTable() {
               <div className="flex items-center justify-between">
                 <p className="text-xs text-muted-foreground">
                   Page <span className="text-[#00fff5] font-mono">{currentPage}</span> of{" "}
-                  <span className="font-mono">{totalPages}</span> • {sorted.length} trades
+                  <span className="font-mono">{totalPages}</span> • {sorted.length} sample trades
                 </p>
                 <div className="flex items-center gap-2">
                   <Button
@@ -312,7 +319,16 @@ export function ActivityTable() {
       </Card>
 
       <Dialog open={!!selectedItem} onOpenChange={(open) => !open && setSelectedItem(null)}>
-        <DialogContent className="border-[#00fff5]/20 bg-card/95 backdrop-blur-xl scale-in">
+        <DialogContent
+          className="border-[#00fff5]/20 bg-card/95 backdrop-blur-xl scale-in"
+          onCloseAutoFocus={(event) => {
+            if (detailsTrigger.current?.isConnected) {
+              event.preventDefault();
+              detailsTrigger.current.focus();
+            }
+            detailsTrigger.current = null;
+          }}
+        >
           {/* Animated border */}
           <div className="absolute inset-0 rounded-lg overflow-hidden pointer-events-none">
             <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#00fff5] to-transparent animate-[data-flow_2s_linear_infinite]" />
@@ -322,8 +338,11 @@ export function ActivityTable() {
           <DialogHeader>
             <DialogTitle className="text-[#00fff5] uppercase tracking-wider flex items-center gap-2">
               <Sparkles className="h-4 w-4 animate-pulse" />
-              Trade Details
+              Sample Trade Details
             </DialogTitle>
+            <DialogDescription>
+              Generated example with fictional identifiers. No account transaction or live quote is loaded.
+            </DialogDescription>
           </DialogHeader>
           {selectedItem && (
             <div className="space-y-4">
@@ -397,39 +416,44 @@ export function ActivityTable() {
               
               <div className="space-y-3">
                 <div>
-                  <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Transaction Hash</p>
+                  <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Fictional Transaction Hash</p>
                   <div className="flex items-center gap-2">
                     <code className="flex-1 rounded-lg bg-muted/30 px-3 py-2 font-mono text-sm text-[#00fff5] border border-[#00fff5]/10">
                       {selectedItem.txHash}
                     </code>
                     <Button 
+                      type="button"
                       variant="outline" 
                       size="icon"
+                      disabled
+                      aria-label="Copy unavailable"
+                      aria-describedby="sample-trade-links-unavailable"
                       className="h-9 w-9 border-[#00fff5]/20 hover:bg-[#00fff5]/10 hover:scale-105 transition-all duration-300"
-                      onClick={() => copyToClipboard(selectedItem.txHash)}
                     >
-                      {copiedHash ? (
-                        <Check className="h-4 w-4 text-[#39ff14] scale-in" />
-                      ) : (
-                        <Copy className="h-4 w-4" />
-                      )}
+                      <Copy className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
                 <div>
-                  <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Wallet</p>
+                  <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Fictional Wallet</p>
                   <code className="block rounded-lg bg-muted/30 px-3 py-2 font-mono text-sm text-muted-foreground border border-[#00fff5]/10">
                     {selectedItem.wallet}
                   </code>
                 </div>
               </div>
+              <p id="sample-trade-links-unavailable" className="text-xs text-muted-foreground">
+                Copy and explorer actions are unavailable for these fictional, abbreviated identifiers.
+              </p>
               
               <Button 
+                type="button"
                 variant="outline" 
+                disabled
+                aria-describedby="sample-trade-links-unavailable"
                 className="w-full border-[#00fff5]/20 hover:bg-[#00fff5]/10 hover:text-[#00fff5] hover:border-[#00fff5]/40 transition-all duration-300 group btn-glow"
               >
                 <ExternalLink className="mr-2 h-4 w-4 group-hover:scale-110 transition-transform" />
-                View on Explorer
+                Explorer unavailable
               </Button>
             </div>
           )}

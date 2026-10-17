@@ -1,7 +1,6 @@
 "use client";
 
-import * as React from "react";
-import { Download, TrendingUp, Zap, Target, BarChart2 } from "lucide-react";
+import { Download, BarChart2 } from "lucide-react";
 import {
   Area,
   AreaChart,
@@ -24,7 +23,6 @@ import {
   getPortfolioSeries,
   getPnlSeries,
   getWinRateSeries,
-  getCryptoPriceSeries,
   getVolumeByExchange,
 } from "@/lib/mock";
 
@@ -36,24 +34,12 @@ const NEON_COLORS = {
   yellow: "#ffff00",
 };
 
-function downloadCsv(filename: string, rows: string[][]) {
-  const csv = rows.map((row) => row.map((cell) => `"${cell}"`).join(",")).join("\n");
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
-  link.click();
-  URL.revokeObjectURL(url);
-}
-
 export default function AnalyticsPage() {
   const { dateRange } = useDashboardFilters();
 
   const portfolioData = getPortfolioSeries(dateRange);
   const pnlData = getPnlSeries(dateRange);
   const winRateData = getWinRateSeries(dateRange);
-  const priceData = getCryptoPriceSeries(dateRange);
   const volumeData = getVolumeByExchange();
 
   return (
@@ -61,36 +47,27 @@ export default function AnalyticsPage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold uppercase tracking-wider text-[#00fff5] neon-text-cyan">
-            Performance Analytics
+            Sample Analytics
           </h2>
           <p className="text-xs text-muted-foreground mt-1">
-            Deep dive into your trading metrics and market performance
+            Local sample charts and fixed example metrics. No account or trading bot performance is loaded.
           </p>
         </div>
-        <Button
-          variant="outline"
-          className="border-[#00fff5]/20 hover:bg-[#00fff5]/10 hover:text-[#00fff5] hover:border-[#00fff5]/40"
-          onClick={() =>
-            downloadCsv(
-              "trading-analytics.csv",
-              [
-                ["date", "portfolio_value", "pnl", "win_rate", "btc_price", "eth_price", "sol_price"],
-                ...portfolioData.map((point, index) => [
-                  point.date,
-                  point.value.toString(),
-                  pnlData[index]?.value?.toString() ?? "0",
-                  winRateData[index]?.value?.toString() ?? "0",
-                  priceData[index]?.btc?.toString() ?? "0",
-                  priceData[index]?.eth?.toString() ?? "0",
-                  priceData[index]?.sol?.toString() ?? "0",
-                ]),
-              ]
-            )
-          }
-        >
-          <Download className="mr-2 h-4 w-4" />
-          Export CSV
-        </Button>
+        <div className="space-y-1">
+          <Button
+            type="button"
+            variant="outline"
+            disabled
+            aria-describedby="analytics-export-unavailable"
+            className="border-[#00fff5]/20"
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Export CSV unavailable
+          </Button>
+          <p id="analytics-export-unavailable" className="max-w-xs text-xs text-muted-foreground">
+            These sample charts are not connected to an account export.
+          </p>
+        </div>
       </div>
 
       <Tabs defaultValue="performance" className="space-y-4">
@@ -120,10 +97,10 @@ export default function AnalyticsPage() {
             <Card className="lg:col-span-2 border-[#00fff5]/20 bg-card/80 backdrop-blur-sm">
               <CardHeader>
                 <h3 className="text-sm font-semibold uppercase tracking-wider text-[#00fff5]">
-                  Portfolio Growth
+                  Sample Portfolio Growth
                 </h3>
                 <p className="text-xs text-muted-foreground">
-                  Total portfolio value over the selected time period
+                  Generated portfolio series for the sample date range
                 </p>
               </CardHeader>
               <CardContent className="h-[280px]">
@@ -173,35 +150,35 @@ export default function AnalyticsPage() {
             <Card className="border-[#39ff14]/20 bg-card/80 backdrop-blur-sm">
               <CardHeader>
                 <h3 className="text-sm font-semibold uppercase tracking-wider text-[#39ff14]">
-                  Key Insights
+                  About These Samples
                 </h3>
-                <p className="text-xs text-muted-foreground">AI-generated performance analysis</p>
+                <p className="text-xs text-muted-foreground">Local examples with no account performance analysis</p>
               </CardHeader>
               <CardContent className="space-y-4 text-sm">
                 <div className="flex items-start gap-3 rounded-lg border border-[#39ff14]/20 bg-[#39ff14]/5 p-3">
-                  <TrendingUp className="h-5 w-5 text-[#39ff14] mt-0.5" />
+                  <BarChart2 className="h-5 w-5 text-[#39ff14] mt-0.5" />
                   <div>
-                    <p className="font-medium text-[#39ff14]">Strong Uptrend</p>
+                    <p className="font-medium text-[#39ff14]">Generated Trend Examples</p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Portfolio is up 12.4% this period, outperforming BTC by 3.2%
+                      Portfolio, P&L and win-rate charts use generated local samples for the selected sample range.
                     </p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3 rounded-lg border border-[#00fff5]/20 bg-[#00fff5]/5 p-3">
-                  <Target className="h-5 w-5 text-[#00fff5] mt-0.5" />
+                  <BarChart2 className="h-5 w-5 text-[#00fff5] mt-0.5" />
                   <div>
-                    <p className="font-medium text-[#00fff5]">High Win Rate</p>
+                    <p className="font-medium text-[#00fff5]">Fixed Example Values</p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      64% of trades profitable. Consider increasing position sizes.
+                      Exchange volume and strategy stats are fixed examples. They do not change with the sample range.
                     </p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3 rounded-lg border border-[#ff00ff]/20 bg-[#ff00ff]/5 p-3">
-                  <Zap className="h-5 w-5 text-[#ff00ff] mt-0.5" />
+                  <BarChart2 className="h-5 w-5 text-[#ff00ff] mt-0.5" />
                   <div>
-                    <p className="font-medium text-[#ff00ff]">SOL Momentum</p>
+                    <p className="font-medium text-[#ff00ff]">Analysis Unavailable</p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Solana positions showing strongest performance this week.
+                      No AI analysis or historical strategy evaluation has been performed for these examples.
                     </p>
                   </div>
                 </div>
@@ -215,9 +192,9 @@ export default function AnalyticsPage() {
             <Card className="lg:col-span-2 border-[#ff00ff]/20 bg-card/80 backdrop-blur-sm">
               <CardHeader>
                 <h3 className="text-sm font-semibold uppercase tracking-wider text-[#ff00ff]">
-                  P&L Trend
+                  Sample P&L Trend
                 </h3>
-                <p className="text-xs text-muted-foreground">Realized profit and loss over time</p>
+                <p className="text-xs text-muted-foreground">Generated example values, not realized account profit or loss</p>
               </CardHeader>
               <CardContent className="h-[280px]">
                 <ResponsiveContainer width="100%" height="100%">
@@ -266,9 +243,9 @@ export default function AnalyticsPage() {
             <Card className="border-[#bf00ff]/20 bg-card/80 backdrop-blur-sm">
               <CardHeader>
                 <h3 className="text-sm font-semibold uppercase tracking-wider text-[#bf00ff]">
-                  Volume Analysis
+                  Sample Exchange Volume
                 </h3>
-                <p className="text-xs text-muted-foreground">Trading activity by platform</p>
+                <p className="text-xs text-muted-foreground">Fixed platform examples; independent of the sample date range</p>
               </CardHeader>
               <CardContent className="h-[280px]">
                 <ResponsiveContainer width="100%" height="100%">
@@ -318,9 +295,9 @@ export default function AnalyticsPage() {
             <Card className="lg:col-span-2 border-[#ffff00]/20 bg-card/80 backdrop-blur-sm">
               <CardHeader>
                 <h3 className="text-sm font-semibold uppercase tracking-wider text-[#ffff00]">
-                  Win Rate Trend
+                  Sample Win Rate Trend
                 </h3>
-                <p className="text-xs text-muted-foreground">Percentage of profitable trades over time</p>
+                <p className="text-xs text-muted-foreground">Generated example percentages for the sample date range</p>
               </CardHeader>
               <CardContent className="h-[280px]">
                 <ResponsiveContainer width="100%" height="100%">
@@ -370,9 +347,9 @@ export default function AnalyticsPage() {
             <Card className="border-[#00fff5]/20 bg-card/80 backdrop-blur-sm">
               <CardHeader>
                 <h3 className="text-sm font-semibold uppercase tracking-wider text-[#00fff5]">
-                  Strategy Stats
+                  Fixed Sample Stats
                 </h3>
-                <p className="text-xs text-muted-foreground">Key trading metrics</p>
+                <p className="text-xs text-muted-foreground">Example metrics; not calculated from these charts or your trades</p>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
@@ -396,7 +373,7 @@ export default function AnalyticsPage() {
                 <div className="rounded-lg border border-[#bf00ff]/20 bg-[#bf00ff]/5 p-3">
                   <div className="flex items-center gap-2 mb-2">
                     <BarChart2 className="h-4 w-4 text-[#bf00ff]" />
-                    <span className="text-sm font-medium text-[#bf00ff]">Risk/Reward</span>
+                    <span className="text-sm font-medium text-[#bf00ff]">Example Risk/Reward</span>
                   </div>
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-muted-foreground">Average R:R Ratio</span>

@@ -1,6 +1,12 @@
 # Dependency security review — current advisory review 2026-10-16
 
-## October14 security update — local repair, release pending
+## Current framework release acceptance — October16 Denver / October17 UTC
+
+SEC-05B is complete: exact Next.js and eslint-config-next16.4.2 are released in PR104 merge `9403e14bce9439060b468f8eb5fd2763149603f9`, whose tree matches accepted head225466a. All seven jobs in [run38984914265](https://github.com/TOOTRJ/TheDashboard/actions/runs/38984914265) pass; exact Dashboard production is READY with four successful read-only checks. Existing React/DOM/Is19.2.8 and the reviewed lock remain unchanged. [Release receipt and boundaries](RELEASE-ACCEPTANCE-2026-10-16.md).
+
+The production audit is clean; five development graph entries remain from unpatched braces3.0.3. Its exact path/version exception was reviewed October16 and still expires October26. SEC-05 maintenance and QA-01C warning removal remain open. The separate app's fresh local receipt records379 tests, types, build and scoped synthetic-browser checks, with zero lint errors/69 warnings. All29 recorded source inputs match after rebase, but its final-head CI and hosted release remain pending. Later successful mouse logout observations do not establish the cause of the earlier failure. [Dated app receipt](APP-ACCEPTANCE-2026-10-16.md).
+
+## October14 security update — historical local repair before release
 
 The [official update](https://nextjs.org/blog/nextjs-security-update-october-14-2026)
 publishes two critical and one high fix. The prior16.3.8 pin is affected;
