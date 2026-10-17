@@ -1,0 +1,271 @@
+{
+  "authority": {
+    "authenticated_principal": false,
+    "calibrated_clock": false,
+    "committed_readback": false,
+    "hosted_authority": false,
+    "lease_authority": false,
+    "live_trading_authority": false,
+    "native_admission": false,
+    "provider_attested": false,
+    "running_authority": false
+  },
+  "base_commit": "41d4ed00e40956736e1564ebd1e048c629894f6f",
+  "date": "2026-10-13",
+  "format": "dashboard-v3-security-offline-integration-receipt-v1",
+  "frozen_files": [
+    {
+      "frozen_commit": "b1ab59f4e6d5ae9a134a21235ba9a7f4343332fd",
+      "path": "services/vonneumann/HTTP-TLS-ISOLATION-CONTRACT.md",
+      "sha256": "0540539766090720a06dbf239e740b6bfbb4434b6a04874fb9f98f7e760ad769"
+    },
+    {
+      "frozen_commit": "45d2b7aabbb889f4ff628c02a1864e7206192a0d",
+      "path": "services/vonneumann/JUPITER-PROSPECTIVE-SOURCE-V3-CONTRACT.md",
+      "sha256": "d1f9f1458671da41185b5524864bd729c542a9daabffd89ace4ac8e33853afdc"
+    },
+    {
+      "frozen_commit": "45d2b7aabbb889f4ff628c02a1864e7206192a0d",
+      "path": "services/vonneumann/PROVIDER-ACQUISITION-V3-CONTRACT.md",
+      "sha256": "fcaa8f1bd9cbd7da04a766323cfffca20329b5039595b9af4823110d4fe9dfde"
+    },
+    {
+      "frozen_commit": "45d2b7aabbb889f4ff628c02a1864e7206192a0d",
+      "path": "services/vonneumann/PROVIDER-METADATA-POLICY-2026-10-13.md",
+      "sha256": "f29571ecf1f92ec7547d4b313670925c1786e9fc5da05d1b88673564631edb80"
+    },
+    {
+      "frozen_commit": "45d2b7aabbb889f4ff628c02a1864e7206192a0d",
+      "path": "services/vonneumann/PROVIDER-RECORDED-TRANSPORT-V3-CONTRACT.md",
+      "sha256": "254b0ab3a061720d7a5a7413a518979ade761d16cfed329bae037db6e8818413"
+    },
+    {
+      "frozen_commit": "45d2b7aabbb889f4ff628c02a1864e7206192a0d",
+      "path": "services/vonneumann/R3-03-NATIVE-SOURCE-JOIN-DESIGN.md",
+      "sha256": "6811c3e3de6c8b3479679475868e6c29dcd713e08ba0eda47265c32bcd8845ed"
+    },
+    {
+      "frozen_commit": "45d2b7aabbb889f4ff628c02a1864e7206192a0d",
+      "path": "services/vonneumann/R3-03A1-SCHEMA-DRAFT.md",
+      "sha256": "3fba92f5f248ac998af6c470417b822de77017da7fb2f5e1d022a6e213df34c8"
+    },
+    {
+      "frozen_commit": "45d2b7aabbb889f4ff628c02a1864e7206192a0d",
+      "path": "services/vonneumann/R3-03A1-SCHEMA-POLICY-DRAFT.json",
+      "sha256": "fda73b470b3eb8107717d9585531338cb15685946aa3d374cc236f32de2c1c42"
+    },
+    {
+      "frozen_commit": "45d2b7aabbb889f4ff628c02a1864e7206192a0d",
+      "path": "services/vonneumann/SOURCE-ADMISSION-V3-CONTRACT.md",
+      "sha256": "f8e750dec18d0ea0f09b9a3a6c42a7dc37489aa7f79952a295d19c7d36044e84"
+    },
+    {
+      "frozen_commit": "b1ab59f4e6d5ae9a134a21235ba9a7f4343332fd",
+      "path": "services/vonneumann/tests/test_http_tls_inheritance.py",
+      "sha256": "8707486a52d8f231e394a924c6cd71b064fe74182c42cb7f5389a7633e83bfa9"
+    },
+    {
+      "frozen_commit": "45d2b7aabbb889f4ff628c02a1864e7206192a0d",
+      "path": "services/vonneumann/tests/test_original_packet_reserve_v3.py",
+      "sha256": "a286a98671fc8d24b7f47b8040472394b137f70d5eafa7071aa36f72327c8bb7"
+    },
+    {
+      "frozen_commit": "45d2b7aabbb889f4ff628c02a1864e7206192a0d",
+      "path": "services/vonneumann/tests/test_prospective_source_v3.py",
+      "sha256": "54e785b9d2cbdfdb030c2cb72a61d20c08e5f755f79a4d72a4e3c3bbe6f24c07"
+    },
+    {
+      "frozen_commit": "45d2b7aabbb889f4ff628c02a1864e7206192a0d",
+      "path": "services/vonneumann/tests/test_provider_acquisition_v3.py",
+      "sha256": "0af26afe31ef0266518a7878aabd6d9390da167a12bb8c7089c5c25a29a2f7bb"
+    },
+    {
+      "frozen_commit": "45d2b7aabbb889f4ff628c02a1864e7206192a0d",
+      "path": "services/vonneumann/tests/test_provider_optional_metadata_v3.py",
+      "sha256": "c97b753583c4211bddfec7a4237a0396b3ef6ce6d77cd8f19b0357ccf1a4e3e9"
+    },
+    {
+      "frozen_commit": "45d2b7aabbb889f4ff628c02a1864e7206192a0d",
+      "path": "services/vonneumann/tests/test_provider_recorded_transport_v3.py",
+      "sha256": "3885b83a7e8eb7fabeec9370a819989e2083e21ac17ff2408ef546b84733f63f"
+    },
+    {
+      "frozen_commit": "45d2b7aabbb889f4ff628c02a1864e7206192a0d",
+      "path": "services/vonneumann/tests/test_source_admission_v3.py",
+      "sha256": "b23d0d963a44e0356b3b20c85db005b41854729787b3d24a12ce6d04b72279dd"
+    },
+    {
+      "frozen_commit": "b1ab59f4e6d5ae9a134a21235ba9a7f4343332fd",
+      "path": "services/vonneumann/vonneumann/db/command_http.py",
+      "sha256": "49fd7cfae62318f3182d6d1232d660417a18c7e9077a9c29254f96cc73e92226"
+    },
+    {
+      "frozen_commit": "b1ab59f4e6d5ae9a134a21235ba9a7f4343332fd",
+      "path": "services/vonneumann/vonneumann/http_tls.py",
+      "sha256": "604328cbd5fc6d6ff83261141b954a03d9e440b57c755040cfd87402e85a159d"
+    },
+    {
+      "frozen_commit": "b1ab59f4e6d5ae9a134a21235ba9a7f4343332fd",
+      "path": "services/vonneumann/vonneumann/market/birdeye_candles.py",
+      "sha256": "21592f2df6222636ffc8c91bbde3db908a795134ab5223cac71a9695da0a9976"
+    },
+    {
+      "frozen_commit": "b1ab59f4e6d5ae9a134a21235ba9a7f4343332fd",
+      "path": "services/vonneumann/vonneumann/market/birdeye_feed.py",
+      "sha256": "fecd82cafc7072f08a7a611934522efb94d70c86b61a4d6135a81dd78fed289a"
+    },
+    {
+      "frozen_commit": "b1ab59f4e6d5ae9a134a21235ba9a7f4343332fd",
+      "path": "services/vonneumann/vonneumann/market/jupiter_feed.py",
+      "sha256": "c8816023dd89843ac1398d9f2aa04708421672a07bb770eca71ecc9a89c3b0dd"
+    },
+    {
+      "frozen_commit": "45d2b7aabbb889f4ff628c02a1864e7206192a0d",
+      "path": "services/vonneumann/vonneumann/market/prospective_source_v3.py",
+      "sha256": "f512703e2965b4128afeea175d2a0604cdb5bc58e9ab95257c3e659ada88043a"
+    },
+    {
+      "frozen_commit": "45d2b7aabbb889f4ff628c02a1864e7206192a0d",
+      "path": "services/vonneumann/vonneumann/market/provider_acquisition_v3.py",
+      "sha256": "27a13e85beb44d8b7236eca04e6cdfcba064854d02271873c95dfa5454ce3a06"
+    },
+    {
+      "frozen_commit": "45d2b7aabbb889f4ff628c02a1864e7206192a0d",
+      "path": "services/vonneumann/vonneumann/market/provider_derivation_v3.py",
+      "sha256": "1663b618a7b828d4c813b3e2561d10122292293f796ea25c9513225ce83440d6"
+    },
+    {
+      "frozen_commit": "45d2b7aabbb889f4ff628c02a1864e7206192a0d",
+      "path": "services/vonneumann/vonneumann/market/provider_recorded_transport_v3.py",
+      "sha256": "9549a4d461138e980259ed6d68b2644c3b3010642892425dabd44a0104a0d46f"
+    },
+    {
+      "frozen_commit": "45d2b7aabbb889f4ff628c02a1864e7206192a0d",
+      "path": "services/vonneumann/vonneumann/market/source_admission_v3.py",
+      "sha256": "b821b469f50b6fe3554851d348822059a33facb5a77e6133290e1c3283fb9bc6"
+    },
+    {
+      "frozen_commit": "45d2b7aabbb889f4ff628c02a1864e7206192a0d",
+      "path": "services/vonneumann/vonneumann/market/source_admission_v3_policy.py",
+      "sha256": "305793e9dd9069be3fb215918df121696a2a22fbf240a5de89a9b2254c630403"
+    },
+    {
+      "frozen_commit": "b1ab59f4e6d5ae9a134a21235ba9a7f4343332fd",
+      "path": "services/vonneumann/vonneumann/server/auth.py",
+      "sha256": "18bd7c366f9cce643c08f8e9dd28f7b51bdaddc8e4824e2df4b3af8453515048"
+    }
+  ],
+  "frozen_final_source_commit": "45d2b7aabbb889f4ff628c02a1864e7206192a0d",
+  "frozen_scope_sha256": "942f5f1d4004ec225af22382f690eebfea20709c73c465b20c5c08a3638dc843",
+  "frozen_source_chain": [
+    "737453957def9b91f446f70060b978337251b48b",
+    "ee5515eda7eaad38e4f97f9c0b7947fecd740e18",
+    "a78e7348603cc58498c9b6c03a19149de5755b3a",
+    "282c08722f886cde8bb89aa6932032ecc4e20d25",
+    "0785ab48c605d3b9468154773eb5ceb7a49d0c61",
+    "45d2b7aabbb889f4ff628c02a1864e7206192a0d"
+  ],
+  "frozen_tls_commit": "b1ab59f4e6d5ae9a134a21235ba9a7f4343332fd",
+  "limits": {
+    "continuous_cadence_or_quota_verified": false,
+    "full_ordinary_suite_verified": false,
+    "full_seven_check_ci_verified": false,
+    "installed_package_binary_attestation": false,
+    "model_join_verified": false,
+    "native_raw_parser_join_verified": false,
+    "native_sql_join_verified": false,
+    "production_worker_activated": false,
+    "remote_provider_certificate_verified": false,
+    "single_admission_five_second_budget_verified": false
+  },
+  "observations": [
+    "Existing Starlette deprecation warning and asyncio slow-callback notices appeared.",
+    "The combined run exited successfully; no warning was changed or dependency installed.",
+    "An initial metadata-only inspection queried irrelevant absent pandas; the runtime inventory was corrected to used dependencies without source or test changes.",
+    "Runtime metadata observation is not installed-wheel integrity attestation or hosted image proof.",
+    "Suite duration includes fixture construction and repeated positive/adversarial validations; it is not a per-command benchmark."
+  ],
+  "policy_sha256": {
+    "acquisition": "912fd28c718311f9b6f72cf0327a7c6b5f4ec7cc4033744d3306064ed869ac89",
+    "prospective_source": "3be1de572d954859002546e5d525ddb0fbda71a5ca844368381a98395571aad1",
+    "recorded_transport": "a62184b94f88dbc248a6f3569e171a60e8a0a530addf8ed8aa943b10433f055e",
+    "source_admission": "2c48b61440f7d61f9567fa295da1c9c98a4483c2c834ec7074412d261f085640"
+  },
+  "runtime": {
+    "ca_bundle_sha256": "9cc2a774b5198dcff14d9be1e66091f538975d867ce029a96bce15a55dfd730f",
+    "implementation": "cpython",
+    "openssl": "OpenSSL 3.5.8 25 Aug 2026",
+    "packages": {
+      "aiohttp": "3.14.3",
+      "anyio": "4.15.1",
+      "certifi": "2026.7.22",
+      "cryptography": "50.0.1",
+      "httpcore": "1.0.9",
+      "httpx": "0.28.1",
+      "numpy": "2.5.3",
+      "pydantic": "2.13.5"
+    },
+    "python": "3.12.14"
+  },
+  "unchanged_lock_sha256": {
+    "requirements-dev.txt": "3f2ba893f04efc310a10df16792d00a0b2e4c441d72ac3ed58d9d94bfc276f87",
+    "requirements.txt": "35ff125f03568ce2f940890110ef6eafa88c76d20f964fac552d773e01bf066b"
+  },
+  "verification": {
+    "bytecode_writes": false,
+    "cases": 308,
+    "dotenv_loading": false,
+    "errors": 0,
+    "exit_code": 0,
+    "failures": 0,
+    "historical_contracts_byte_identical": true,
+    "inherited_credentials": false,
+    "launch_environment_keys": [
+      "PATH",
+      "PYTHONDONTWRITEBYTECODE",
+      "PYTHON_DOTENV_DISABLED",
+      "PYTHONPATH"
+    ],
+    "module_case_counts": {
+      "tests.test_auth_security": 16,
+      "tests.test_birdeye_candles": 23,
+      "tests.test_command_http": 15,
+      "tests.test_exact_provider_feeds": 22,
+      "tests.test_feed_reliability": 16,
+      "tests.test_http_tls_inheritance": 14,
+      "tests.test_original_packet_reserve_v3": 1,
+      "tests.test_prospective_source_v3": 36,
+      "tests.test_provider_acquisition_v3": 31,
+      "tests.test_provider_optional_metadata_v3": 7,
+      "tests.test_provider_recorded_transport_v3": 33,
+      "tests.test_quote_source_feed": 28,
+      "tests.test_source_admission_v3": 40,
+      "tests.test_swap_quote": 16,
+      "tests.test_worker_admission_http": 10
+    },
+    "network": "mocked-or-test-owned-loopback-port0-no-provider-or-database",
+    "ordered_modules": [
+      "tests.test_http_tls_inheritance",
+      "tests.test_command_http",
+      "tests.test_auth_security",
+      "tests.test_birdeye_candles",
+      "tests.test_feed_reliability",
+      "tests.test_quote_source_feed",
+      "tests.test_exact_provider_feeds",
+      "tests.test_swap_quote",
+      "tests.test_worker_admission_http",
+      "tests.test_provider_acquisition_v3",
+      "tests.test_provider_optional_metadata_v3",
+      "tests.test_prospective_source_v3",
+      "tests.test_provider_recorded_transport_v3",
+      "tests.test_source_admission_v3",
+      "tests.test_original_packet_reserve_v3"
+    ],
+    "process_wall_deadline_supervisor": false,
+    "scope": "selected-combined-offline-tests-not-full-worker-or-hosted-CI",
+    "settings": "test-owned-fake-settings-only",
+    "skips": 0,
+    "source_scope_byte_comparison": true,
+    "unittest_duration_seconds": "454.440"
+  }
+}
