@@ -19,6 +19,7 @@ from tests.postgres.harness import OPT_IN, SqlFailure
 from tests.measure_provider_ga_research import literal
 from tests.test_provider_contract import OWNER, RUN, WORKER, EPOCH, MONO, raw_capture, source_inputs
 from tests.test_portable_restoration import inputs_of, prepare_restored_next
+from tests.restoration_fixture_clock import planned_wait_us, validate_observed_slot, SETUP_TIMEOUT_SECONDS
 from vonneumann.research import provider_portable_ga_model as ga, portable_partitioned_checkpoint as cp, numeric_wire as numbers
 from vonneumann.research import portable_restoration as restore, portable_restoration_wire as wire
 
@@ -225,6 +226,58 @@ class PortableRestorationNativeTests(unittest.TestCase):
         observed_second = decision_us // 1000000
         return observed_second, received_at, observed_second
 
+    def schedule_bootstrap_history_window(self):
+        """One genuine setup wait before the lease and first source capture.
+
+        Bootstrap keeps the actually eligible completed bar. Staying away from
+        its next 900-second boundary provides the positive restart fixture with
+        current warm history; this never refreshes an already original request.
+        """
+        query = 'SELECT floor(extract(epoch FROM clock_timestamp())*1000000);'
+        before_us = int(self.db.scalar(query))
+        delay_us = planned_wait_us(before_us)
+        delay = f'{delay_us // 1000000}.{delay_us % 1000000:06d}'
+        started = time.monotonic()
+        after_us = int(self.db.scalar('SELECT pg_sleep(' + delay + ');' + query,
+                                     timeout=SETUP_TIMEOUT_SECONDS))
+        phase_us = validate_observed_slot(before_us, after_us)
+        return {'observed_before_us': before_us, 'planned_wait_us': delay_us,
+                'observed_after_us': after_us, 'observed_phase_us': phase_us,
+                'host_elapsed_seconds': time.monotonic() - started,
+                'setup_only_timeout_seconds': SETUP_TIMEOUT_SECONDS,
+                'run_or_lease_created_before_wait': False, 're_pacing_performed': False}
+
+    def assert_restart_history_ready(self, data, at):
+        """Required precondition for both retirement and reused-ID exercises."""
+        engine = data['engine']; lifecycle = engine['lifecycle']; ema = engine['ema']
+        try:
+            self.assertTrue(lifecycle['restart_required'])
+            self.assertFalse(lifecycle['risk']['active'])
+            self.assertEqual(engine['cohort']['phase'], 'aborted')
+            self.assertGreaterEqual(ema['count'], ga.EMA_WARMUP_BARS)
+            self.assertIsNotNone(ema['last_end'])
+            self.assertLessEqual(ema['last_end'], at)
+            self.assertLessEqual(at, ema['last_end'] + ga.base.CANDLE_SECONDS,
+                                 'The retirement fixture requires current retained warm history')
+        except AssertionError:
+            # Fixed synthetic state fields only; do not add SQL/clock reads or
+            # successful-path output inside the original source allowance.
+            try:
+                print(json.dumps({'restoration_fixture_readiness_failure': {
+                    'action_second': at, 'ema_count': ema['count'],
+                    'ema_last_end_second': ema['last_end'],
+                    'remaining_history_window_seconds': None if ema['last_end'] is None
+                        else ema['last_end'] + ga.base.CANDLE_SECONDS - at,
+                    'restart_required': lifecycle['restart_required'],
+                    'cohort_phase': engine['cohort']['phase'],
+                    'risk_active': lifecycle['risk']['active'],
+                    'signals_after': lifecycle['signals_after'],
+                    'generation': engine['generation'],
+                }}, sort_keys=True), flush=True)
+            except Exception:
+                pass
+            raise
+
     def assert_equivalent(self, previous, following, context):
         restored, checked = context
         inputs = inputs_of(following[0])
@@ -362,6 +415,7 @@ class PortableRestorationNativeTests(unittest.TestCase):
         self.assertFalse(result.retry_authority); self.assertFalse(result.hosted_authority)
 
     def test_captured_current_head_equivalence_retains_retired_ids_after_original_pair(self):
+        bootstrap_schedule = self.schedule_bootstrap_history_window()
         self.fixture.create(); original = self.fixture.bootstrap(); self.fixture.commit(original[2])
         row = original
         for serial, action in enumerate(('pause', 'resume'), 60):
@@ -374,6 +428,10 @@ class PortableRestorationNativeTests(unittest.TestCase):
         state = row[3].accept(row[0]); data = state.to_dict()
         at, received_at, decision_at = self.current_source_clock(state, pace_integral_action=True)
         captured_started = time.monotonic()
+        self.assert_restart_history_ready(data, at)
+        original_ids = {account['id'] for account in original[0].state.to_dict()['accounts']}
+        original_history_end = data['engine']['ema']['last_end']
+        generation_before = data['engine']['generation']
         initial_at = int(datetime.fromisoformat(original[0].transition['evidence']['inputs']['event_at']).timestamp())
         received_mono = MONO + received_at - initial_at
         mono = MONO + decision_at - initial_at
@@ -399,6 +457,12 @@ class PortableRestorationNativeTests(unittest.TestCase):
         state = self.timed_source_phase('protective_ledger_acceptance', lambda: row[3].accept(row[0]))
         decision = self.timed_source_phase('decision_model', lambda:
             ga.prepare_decision(state, frame, None, source_inputs(at, wall=decision_at, mono=mono, generation=1, serial=71), ledger=row[3]))
+        operations = decision.operations
+        retired_ids = [operation['id'] for operation in operations if operation['kind'] == 'retire']
+        birth_ids = [operation['id'] for operation in operations if operation['kind'] == 'birth']
+        self.assertEqual(len(retired_ids), 8); self.assertEqual(set(retired_ids), original_ids)
+        self.assertEqual(len(birth_ids), 8); self.assertEqual(len(set(birth_ids)), 8)
+        self.assertTrue(original_ids.isdisjoint(birth_ids))
         capture = self.timed_source_phase('decision_checkpoint', lambda: cp.capture_owned_candidate(decision))
         decision_wire = self.timed_source_phase('decision_transport', lambda:
             cp.prepare_transport(decision, capture, previous=row[1], command_id=str(UUID(int=97000000 + decision.state.revision))))
@@ -415,6 +479,12 @@ class PortableRestorationNativeTests(unittest.TestCase):
         receipt_us = frame['quote']['document']['received_wall_us']
         protective_guard = json.loads(decision_context[1])['receipt']['guard_observed_at']
         print(json.dumps({'restoration_native_source_sequence': 'same-original-frame-once',
+            'pre_bootstrap_history_window_schedule': bootstrap_schedule,
+            'original_received_wall_us': receipt_us, 'original_action_second': at,
+            'original_history_end_second': original_history_end,
+            'original_action_minus_history_end_seconds': at - original_history_end,
+            'generation_before_original_pair': generation_before,
+            'generation_after_original_pair': restored.state.to_dict()['engine']['generation'],
             'positive_v2_pre_acquisition_pacing': True,
             'pre_acquisition_target_fraction_us': 950000,
             'original_observed_receipt_fraction_us': receipt_us % 1000000,
@@ -439,6 +509,7 @@ class PortableRestorationNativeTests(unittest.TestCase):
         context = self.capture_context_before_source(row, serial=74)
         state = row[3].accept(row[0]); data = state.to_dict()
         at, received_at, decision_at = self.current_source_clock(state)
+        self.assert_restart_history_ready(data, at)
         received_mono = MONO + received_at - initial_at
         mono = MONO + decision_at - initial_at
         frame = ga.source.make_frame(raw_capture(price='100', block=901,
@@ -451,6 +522,7 @@ class PortableRestorationNativeTests(unittest.TestCase):
         self.commit_source_once(row, following); row = following
         self.assert_equivalent(before_protective, row, self.restore_captured_context(before_protective, context))
         state = row[3].accept(row[0]); restored = self.load(row)
+        self.assert_restart_history_ready(state.to_dict(), at)
         original_inputs = source_inputs(at, wall=decision_at, mono=mono, generation=2, serial=75)
         reused_inputs = replace(original_inputs, ids=(old_id,) + original_inputs.ids[1:])
         checked = self.identities(row, restored.checkpoint.expected, reused_inputs.ids)

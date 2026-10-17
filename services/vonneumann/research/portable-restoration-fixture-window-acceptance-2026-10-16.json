@@ -1,0 +1,198 @@
+{
+  "changed_inputs": {
+    "services/vonneumann/tests/postgres/test_portable_restoration_native.py": "0bda1e7c20b688c92b74c33a6693ed532b3bd55cfd9f9892c196adf5d1c7bc16",
+    "services/vonneumann/tests/restoration_fixture_clock.py": "a938822c3fee326c7135a12d73fcfac2549a12464a843dbeca52ddace39f1b1c",
+    "services/vonneumann/tests/test_portable_restoration_fixture_clock.py": "129028af65b0dd55af05de3aa55dea53e56a1578995c33d35e6f87378a1be91b"
+  },
+  "continuous_paper_acceptance": false,
+  "discovery_only": {
+    "baseline_repeated_ids": 54,
+    "executes_tests": false,
+    "exhaustive_disjoint_occurrences": true,
+    "log": {
+      "filename": "final-discovery.log",
+      "sha256": "db8ce81caca5b64194749471f6b125a9cd397957d8f79436516a3eb8a45cdeb1"
+    },
+    "ordinary_occurrences": 2475,
+    "ordinary_shards": [
+      1045,
+      1430
+    ],
+    "sql_occurrences": 602,
+    "sql_shards": [
+      94,
+      128,
+      143,
+      237
+    ],
+    "warning_retained": "Starlette HTTPX2 migration deprecation"
+  },
+  "format": "dashboard-native-restoration-fixture-window-local-evidence-v1",
+  "hosted_acceptance": false,
+  "hosted_prior_run": {
+    "actual_failure_whole_source_clock_recorded": false,
+    "all_four_image_preparation_steps_passed": true,
+    "duration": "38m16s",
+    "failed_jobs": 1,
+    "failure": "test_captured_current_head_equivalence_retains_retired_ids_after_original_pair: original ID remained in restored active accounts",
+    "head": "6695010b5e9b828d8013dc78fefbb29026f80647",
+    "id": 38981368987,
+    "outcome": "failure",
+    "passed_jobs": 6,
+    "precise_historical_boundary_attribution_proved": false,
+    "sql1_duration": "37m10s",
+    "sql2_duration": "22m37s",
+    "sql3_duration": "34m8s",
+    "sql4_duration": "25m59s",
+    "sql4_failures": 1,
+    "sql4_job": 117243040732,
+    "sql4_optional_measurement_skips": 2,
+    "sql4_tests_executed": 235,
+    "sql4_tests_reported": 237
+  },
+  "live_trading_authority": false,
+  "native_regressions": {
+    "actual_observations": [
+      {
+        "decision_commit_host_seconds_from_action_sample": 2.7428,
+        "decision_guard_seconds_from_original_receipt": 2.824089,
+        "generation_after_original_pair": 1,
+        "generation_before_original_pair": 0,
+        "laboratory_host_phase_seconds": {
+          "decision_checkpoint": 0.2093969580018893,
+          "decision_model": 0.026236250065267086,
+          "decision_native_submission": 1.0880263339495286,
+          "decision_transport": 0.04067045799456537,
+          "fresh_operator_head_and_catalog": 0.1795140829635784,
+          "pre_acquisition_clock_pacing": 0.1967957919696346,
+          "protective_checkpoint": 0.21429324999917299,
+          "protective_ledger_acceptance": 0.019980959012173116,
+          "protective_model": 0.015483916969969869,
+          "protective_submission_and_native_readback": 0.9302421669708565,
+          "protective_transport": 0.00933625001925975
+        },
+        "original_action_minus_history_end_seconds": 202,
+        "original_action_second": 1792195402,
+        "original_history_end_second": 1792195200,
+        "original_observed_receipt_fraction_us": 959970,
+        "original_receipt_to_action_wall_seconds": 0.040029,
+        "original_received_wall_us": 1792195401959970,
+        "pair_and_both_delayed_equivalences_host_seconds_from_action_sample": 3.538153,
+        "positive_v2_pre_acquisition_pacing": true,
+        "pre_acquisition_target_fraction_us": 950000,
+        "pre_bootstrap_history_window_schedule": {
+          "host_elapsed_seconds": 0.09785445802845061,
+          "observed_after_us": 1792195393824729,
+          "observed_before_us": 1792195393724343,
+          "observed_phase_us": 193824729,
+          "planned_wait_us": 0,
+          "re_pacing_performed": false,
+          "run_or_lease_created_before_wait": false,
+          "setup_only_timeout_seconds": 60
+        },
+        "protective_guard_seconds_from_original_receipt": 1.223698,
+        "protective_submit_and_current_readback_host_seconds_from_action_sample": 1.356541,
+        "protective_submit_current_readback_and_independent_oracle_host_seconds": 1.113271,
+        "restoration_native_source_sequence": "same-original-frame-once"
+      },
+      {
+        "combined_original_protective_outcome": "uncertain-until-fresh-getter",
+        "decision_submitted": false,
+        "failed_guard_instant_observed": false,
+        "fresh_original_command_found": true,
+        "laboratory_host_phase_seconds": {
+          "protective_submission_and_native_readback": 0.9553369579371065
+        },
+        "original_command_id": "00000000-0000-0000-0000-000005f5e103",
+        "original_command_sha256": "b4ef397d6ea8ec55879e354320283dd164a0ae97168582cdeaff77c7c2e4a186",
+        "retry_performed": false
+      },
+      {
+        "accepted_command_id": "00000000-0000-0000-0000-000005b8d802",
+        "accepted_guard_observed_at": "2026-10-17T00:03:44.533507+00:00",
+        "accepted_manifest_sha256": "53b7771ecf0c3d14d70eb86a6274765c02ec5f690caa5777295590429ac6bbd5",
+        "accepted_revision": "2",
+        "derived_original_source_deadline_us": 1792195429737972,
+        "estimated_source_age_seconds_at_later_observation": 9.530803,
+        "failed_branch_attribution_authority": false,
+        "failed_guard_instant_observed": false,
+        "laboratory_host_phase_seconds": {
+          "protective_native_submission": 0.1173327500000596
+        },
+        "lease_expired_at_later_observation": false,
+        "lease_until_us": "1792195482337660",
+        "native_source_failure_observation": "after-original-refusal-and-rollback",
+        "observed_at_us": "1792195431530803",
+        "original_command_found_after_failure": false,
+        "original_command_id": "00000000-0000-0000-0000-000005e69ec3",
+        "original_command_sha256": "6184c5c51ac7d4c8a56cee9ded388b30797b642cd46865cf76211f83d42471a8",
+        "original_received_wall_us": 1792195424737972,
+        "receipt_age_seconds_at_later_observation": 6.792831,
+        "retry_performed": false,
+        "source_deadline_elapsed_at_later_observation": true
+      }
+    ],
+    "failures": 0,
+    "launcher_seconds": 57.195380333,
+    "log": {
+      "bytes": 4722,
+      "filename": "native-restoration-final.log",
+      "mode": "0600",
+      "sha256": "b3a3cd444e3d60c36d506d80a55858e75e8f8d36444a4297473c67316f81e9a8"
+    },
+    "platform": "local Colima linux/arm64 PostgreSQL17.6.1.095",
+    "post_run_remaining_labeled_fixture_containers": 0,
+    "skips": 0,
+    "tests": 5,
+    "unittest_seconds": 55.722
+  },
+  "preserved": {
+    "all_retirement_equivalence_oracle_and_reuse_assertions": true,
+    "future_seconds": 2,
+    "lease_seconds": 60,
+    "original_frame_ids_and_one_submission": true,
+    "original_history_argument": null,
+    "source_seconds": 5,
+    "sql_group_deadline_seconds": 2400
+  },
+  "pure_regressions": {
+    "failures": 0,
+    "provenance": "implementer-observed final tool stdout: exit0, Ran7 tests in2.166s, OK; no filesystem log retained; reviewed exact input hashes",
+    "retained_log": false,
+    "scope": "no SQL/Docker/provider I/O; actual begin_sql constructor with only SqlSession mocked",
+    "seconds": 2.166,
+    "skips": 0,
+    "tests": 7
+  },
+  "remaining_gates": [
+    "complete all seven jobs on repaired exact head",
+    "exact Dashboard preview/source and authorized merge",
+    "exact production source/alias and four read-only smokes"
+  ],
+  "review_date_local": "2026-10-16",
+  "schedule": {
+    "existing_harness_setup_timeout_seconds": 60,
+    "existing_server_statement_timeout_ms": 59000,
+    "history_readiness_checked_for_both_retirement_exercises": true,
+    "max_planned_wait_seconds": 56,
+    "one_wait_before_run_lease_and_source": true,
+    "overshoot_refuses_without_repacing": true,
+    "period_seconds": 900,
+    "safe_phase_seconds_inclusive": [
+      6,
+      850
+    ]
+  },
+  "scope": "synthetic original-v2 local fixture; no hosted or runtime authority",
+  "source_parent_commit": "6695010b5e9b828d8013dc78fefbb29026f80647",
+  "unchanged_inputs": {
+    ".github/workflows/verification.yml": "637aec26b0cf858c5844ae6ddbe8eab19450c29b3aa9566dd0a81050a2b423fb",
+    "scripts/check-ci-images.py": "9e6b31f1b441caa49abe784643d05754667fa83a156a4ea34b46bf76df83213f",
+    "scripts/check-worker.py": "be75136c0592a7a2da26707a3d7e4c1e7e740dda639776f6759d23ed64357af1",
+    "services/vonneumann/db-contract/research/portable_native.sql": "76e23d44a296c838238e5545c9ea498eb86d2ac5caee9798236aee1f8a5bf5c4",
+    "services/vonneumann/requirements-dev.txt": "3f2ba893f04efc310a10df16792d00a0b2e4c441d72ac3ed58d9d94bfc276f87",
+    "services/vonneumann/tests/postgres/harness.py": "d53dbcf420fddaccad3d3e1cc2f6e374ce29f00887bef4d59c28b9f780ee47fe",
+    "services/vonneumann/vonneumann/research/provider_portable_ga_model.py": "e53486d35be4fdf642df85c33c9b9c278a82ba2016905a60e6870e59ae5df9ec",
+    "services/vonneumann/vonneumann/research/provider_source.py": "a3c152613041f95a4a36cc7888464b5c5ae0379e6ca7f9f09a8b825ca7dd4acf"
+  }
+}

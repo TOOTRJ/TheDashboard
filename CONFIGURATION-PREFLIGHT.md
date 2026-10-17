@@ -5335,3 +5335,17 @@ scheduling is restored. All106 focused checks pass0.784s, zero skips, with
 workflow validation passing. One corrected-head complete run remains required.
 The exact e004800 Dashboard preview dpl_7mZv7RVYxGbpqNWtKob5zNyYJYuD is
 READY36s with expected repository/branch/biggrizzly11/source; it is not production.
+
+
+## October16 native fixture freshness correction
+
+Completed exact-head run38981368987 at6695010 has six passing jobs and the single
+SQL4 retirement assertion failure; all original-image preparations pass. The
+reviewed test-only correction establishes current retained warm history before
+retirement and reuse, with one bounded wait before run/lease/source creation.
+Seven pure cases and five actual local ARM native cases pass, zero skips, while
+all production code, SQL and admission/deadline limits remain unchanged.
+Discovery retains602 SQL occurrences and54 repetitions;2475 ordinary occurrences
+include the new regressions. This does not accept the repaired hosted head or
+release. Require all seven new-head jobs and exact Dashboard deployment checks.
+[Full observations and limits](services/vonneumann/RESTORATION-FIXTURE-WINDOW-REPAIR.md).

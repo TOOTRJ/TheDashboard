@@ -16,9 +16,14 @@ All four required shards and existing identities/deadlines remain;106 focused
 checks pass. Complete new-head seven-job acceptance and PR104 release are next.
 Native archive delivery is deferred. Production remains PR103 until the exact
 release is verified; no migration or Railway activation is performed here.
-The October13 CI observation below is the latest settled pre-repair result.
+The completed October16 [run38981368987](https://github.com/TOOTRJ/TheDashboard/actions/runs/38981368987)
+passes six jobs; SQL4 fails the retired-ID assertion after all four image
+preparations succeed. The test-only current-history correction passes seven pure
+regressions and all five local ARM native cases (55.722s, zero skips), with the
+original model/SQL/guards and retirement assertions preserved. A complete new-head
+run remains required. [Repair and limits](services/vonneumann/RESTORATION-FIXTURE-WINDOW-REPAIR.md).
 
-Latest exact-head CI is [run38464960221](https://github.com/TOOTRJ/TheDashboard/actions/runs/38464960221)
+Historical October13 exact-head CI is [run38464960221](https://github.com/TOOTRJ/TheDashboard/actions/runs/38464960221)
 at81474c1: six jobs PASS, SQL4 image preparation FAIL, zero SQL4 tests executed.
 The35m2s run is settled and PR104 remains open. Five bounded pulls still hit
 registry quota, so release now depends on reviewed content/transport verification
@@ -31,8 +36,8 @@ prototype passes14 actual local PostgreSQL cases. These results do not prove
 the native source/clock/journal/restore/reader joins or hosted operation.
 Production remains the exact PR103 source below, and Railway remains closed.
 
-Immediate work is narrowed to the image-delivery blocker, then PR104 release
-and the already tested app fixes. The unused archive verifier and one cached
+Immediate work is narrowed to complete hosted acceptance of the native fixture
+correction, then PR104 release and the already tested app fixes. The unused archive verifier and one cached
 ARM export are exploratory evidence, not an accepted CI delivery path. API
 baseline/controller preparation and broader native prototypes are paused until
 those releases; no additional user setup is currently required.

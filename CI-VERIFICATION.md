@@ -803,3 +803,17 @@ mandatory; producer/missing/cancelled/corrupt failures must fail the aggregate.
 Current direct verifier/workflow/pins and2400-second SQL deadlines are unchanged.
 Actual archive size, byte-hours, transfer/load tails and source-format provenance
 must be measured before adoption; no mirror/publisher/shared-credential change.
+
+
+## October16 native fixture freshness correction
+
+Completed exact-head run38981368987 at6695010 has six passing jobs and the single
+SQL4 retirement assertion failure; all original-image preparations pass. The
+reviewed test-only correction establishes current retained warm history before
+retirement and reuse, with one bounded wait before run/lease/source creation.
+Seven pure cases and five actual local ARM native cases pass, zero skips, while
+all production code, SQL and admission/deadline limits remain unchanged.
+Discovery retains602 SQL occurrences and54 repetitions;2475 ordinary occurrences
+include the new regressions. This does not accept the repaired hosted head or
+release. Require all seven new-head jobs and exact Dashboard deployment checks.
+[Full observations and limits](services/vonneumann/RESTORATION-FIXTURE-WINDOW-REPAIR.md).

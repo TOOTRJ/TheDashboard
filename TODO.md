@@ -7,8 +7,7 @@ Next/config16.3.8 are replaced locally by exact16.4.2 with matching compiler/
 lint dependencies; direct React/DOM/Is19.2.8 remain compatible and unchanged.
 The updated audit has zero production findings and the same five development
 entries for unpatched braces, with October26 exception expiry unchanged.
-New compiler findings remain visible as warnings only for their observed14
-legacy file/rule pairs; QA-01C tracks removal. Full332 frontend cases,
+New compiler findings remain visible as warnings only for their observed14 legacy files /16 rule-file pairs; QA-01C tracks removal. Full332 frontend cases,
 TypeScript and isolated production build pass. Browser and release gates remain.
 
 The two-way concurrency experiment does not resolve ECR quota: actual
@@ -22,6 +21,18 @@ four shards, image identities, assertions and timeouts remain mandatory.
 All106 focused CI checks and workflow validation pass. Archive delivery is
 deferred. A complete new-head seven-job run decides release acceptance.
 PR104 release precedes the separate app release. [Mirror evidence](CI-IMAGE-MIRRORS-2026-10-16.md).
+
+**Current fixture correction:** completed run38981368987 at6695010 finishes38m16s
+with six passing jobs. SQL4 fails one retired-ID assertion after successful
+original-pair admission; all four image preparations pass. A missing current-
+warm-history precondition is repaired only in the synthetic fixture, with one
+bounded pre-bootstrap wait and stronger retirement/reuse assertions. Seven pure
+regressions and all five actual local ARM native cases pass (55.722s, zero skips).
+SQL discovery retains602 occurrences/54 baseline repetitions; ordinary discovery
+is2475 across1045/1430. These are local proof and discovery, not new-head hosted
+acceptance. Production model/SQL/source5/lease60/future2/SQL2400 limits are unchanged.
+A complete seven-job run on the repaired head still precedes merge and release.
+[Fixture repair and evidence](services/vonneumann/RESTORATION-FIXTURE-WINDOW-REPAIR.md).
 October13 notes below retain their original observations and limits.
 
 **Latest ordered checkpoint — 2026-10-13:** PR104 head
