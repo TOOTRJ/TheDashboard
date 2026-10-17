@@ -1,0 +1,114 @@
+{
+  "application_acceptance": {
+    "both_posts_created_201_and_no_store": true,
+    "cleanup_independent_absence": true,
+    "cleanup_matches_all_original_fields_and_both_ids_atomically": true,
+    "independent_committed_sql_readback": true,
+    "new_post_or_cleanup_retry": false,
+    "selected_single_rows_match": true,
+    "synthetic_sentiment_date": "1900-01-01",
+    "synthetic_sentiment_id": "984a4732-9c88-4f58-8a9b-bad8b505f048",
+    "synthetic_test_id": "709edf26-f0a6-45f4-ae60-b62cbee7ed86",
+    "unrelated_rows_deleted": 0
+  },
+  "boundary": "Externally serialized Dashboard administration; target table locks do not freeze GRANT/REVOKE, role, schema or default administration. This operator summary binds retained private observations and is not provider-authenticated proof.",
+  "format": "dashboard-api-baseline-operator-acceptance-v1",
+  "github": {
+    "accepted_head": "2bf1485f3603fda0e162c7cc91947d3738dcd54f",
+    "identical_tree": "f912e040769d555c9de02db71af70256c33f31cd",
+    "merge": "89c7979d278ba7d14c9157248eb5a152fc00a06b",
+    "pr": 106,
+    "repository": "TOOTRJ/TheDashboard",
+    "repository_id": 1141090963,
+    "required_jobs_passed": 7,
+    "run_url": "https://github.com/TOOTRJ/TheDashboard/actions/runs/39011604302"
+  },
+  "live_trading": false,
+  "local_env_permissions": "0600",
+  "observed_date_utc": "2026-10-17",
+  "other_projects_modified": false,
+  "permissions": {
+    "anon": [],
+    "authenticated": [],
+    "automatic_retry": false,
+    "lock_timeout_seconds": 1,
+    "one_original_issuance": true,
+    "owner_grants_preserved": true,
+    "service_role": [
+      "SELECT",
+      "INSERT"
+    ],
+    "sql_bytes": 183796,
+    "sql_sha256": "845881acec402a5e610434bdc0bad8ea95c2584c8458d01bd07d1ef62132d885",
+    "statement_timeout_seconds": 10,
+    "supervised_elapsed_seconds": 2.95940825,
+    "tables": [
+      "market_sentiment",
+      "test_events"
+    ],
+    "wall_budget_seconds": 60,
+    "whole_operation_or_commit_deadline_claimed": false
+  },
+  "postconditions": {
+    "after_counts": {
+      "attributes": 27,
+      "bad_expression": 0,
+      "bad_native_lookup": 0,
+      "dependencies": 32,
+      "expressions": 10,
+      "functions": 7,
+      "objects": 28,
+      "operators": 3,
+      "shared_dependencies": 4
+    },
+    "all_28_original_catalog_identities_preserved": true,
+    "before_counts": {
+      "attributes": 27,
+      "bad_expression": 0,
+      "bad_native_lookup": 0,
+      "dependencies": 32,
+      "expressions": 10,
+      "functions": 7,
+      "objects": 28,
+      "operators": 3,
+      "shared_dependencies": 8
+    },
+    "complete_independent_structural_match": true,
+    "host_context_schema_acl_locale_watchers_preserved": true,
+    "protected_fields_unchanged": [
+      "structure",
+      "identities",
+      "collisions",
+      "context",
+      "format",
+      "complete",
+      "limits"
+    ],
+    "rls_owner_policy_role_default_changes": false,
+    "table_creation_or_alteration": false
+  },
+  "private_evidence_sha256": {
+    "api_after_cleanup": "de55d445b56b95b5e157bd3be94a89eb4437ba293cbe7af936e37ec81f12ec40",
+    "final_catalog_readback": "8e12a3729e1c0254258da7e4b1fee3da6490e4004306b3b31858b87bee99f15d",
+    "original_after_apply": "678c3b6c32cac6c7660c7225038682cfb9106f57e2a0b5655fefb3a38070ea95",
+    "release_gate": "a1558cdf15ca86571aa0566cd77e9f187de2a508626f52d27a633ac22e5eb977",
+    "reviewed_preflight": "7e53a0e830a52a60b850e27211a051d7a06e4b1d8c477c6b1723ee55f4e33609",
+    "rollback_reference": "65bca44ca313c28f97ca455d7de1725c450c220062820924bb268605540b9898"
+  },
+  "production": {
+    "canonical_origin": "https://the-dashboard-chi.vercel.app",
+    "deployment_id": "dpl_2rXZXrrpCx9ZHMtbLB8q3JxHuFs5",
+    "duration_seconds": 19,
+    "four_fresh_smokes_before_and_after_cutover": true,
+    "project_id": "prj_wFUe9k9USVreOQcmQKNWRAVsx5fH",
+    "state": "READY",
+    "team_id": "team_8iNNxiNjrOseD4gdSCHkQEzF"
+  },
+  "railway_activation": false,
+  "shared_credentials_changed": false,
+  "target": {
+    "id": "fxpxsciltakyypunglzr",
+    "name": "The Dashboard",
+    "owner": "cqfnnaunmupdyobkyqfo"
+  }
+}

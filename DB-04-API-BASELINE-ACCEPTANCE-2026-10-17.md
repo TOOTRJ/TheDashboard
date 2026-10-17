@@ -1,5 +1,25 @@
 # DB-04 independent API foundation — 2026-10-17
 
+DB-04's API foundation and exact-project permissions cutover are complete.
+[PR106](https://github.com/TOOTRJ/TheDashboard/pull/106) passes all seven required
+jobs on exact head `2bf1485f3603fda0e162c7cc91947d3738dcd54f` in
+[run39011604302](https://github.com/TOOTRJ/TheDashboard/actions/runs/39011604302).
+It merges as `89c7979d278ba7d14c9157248eb5a152fc00a06b`; both Git trees are
+`f912e040769d555c9de02db71af70256c33f31cd`. Exact Dashboard production
+`dpl_2rXZXrrpCx9ZHMtbLB8q3JxHuFs5` is READY in 19 seconds and serves the canonical
+alias. Four fresh application checks pass before and after the cutover.
+
+Only the two reviewed tables' direct API grants changed. Their final complete
+permission envelopes and all protected catalog/context facts pass independent
+readback. Both production POST paths also pass selected-row and committed-SQL
+acceptance; only their two marked synthetic rows were removed, by exact IDs and
+all original fields. [Durable operator summary](supabase/audits/2026-10-17-api-baseline-acceptance.json).
+No hosted table creation/alteration or migration-history rewrite was needed.
+Railway remains closed. The dated pre-release observations below retain their
+original scope; the final rollout section records the subsequent change.
+
+## Pre-release construction checkpoint (retained)
+
 The independent baseline and separate permissions step pass all **19 owned
 PostgreSQL/PostgREST tests**, zero skips, in 36.825 seconds. A fresh read-only
 catalog from the exact Dashboard Supabase project matches the entire independent
@@ -82,7 +102,7 @@ permissions mode, after verified target identity, under a dedicated 196,608-byte
 SQL cap. The generic 65,536-byte query cap is unchanged. A failed identity
 refresh retires prior admission. Uncertain requests are not retried.
 
-## Hosted observation and rollout boundary
+## Pre-release hosted observation and rollout boundary
 
 Fresh identity checks confirm `The Dashboard` / `fxpxsciltakyypunglzr`, owner
 `cqfnnaunmupdyobkyqfo`. The complete catalog equals the independent structure
@@ -115,3 +135,58 @@ after fresh exact-shape/identity/final-ACL checks; it never drops tables/data,
 disables RLS or resets defaults. Existing Dashboard-only authorization covers
 reviewed rollout; target mismatch or an unresolved boundary requires stopping.
 Railway stays closed and all live-trading gates remain open.
+
+## Final hosted permissions and application acceptance
+
+Fresh target verification again selects only `The Dashboard` /
+`fxpxsciltakyypunglzr`, organization `cqfnnaunmupdyobkyqfo`. The preflight
+binds the ordinary postgres installer, full independent structure, all 28 original
+identities, broad-before permissions, raw public-schema ACL and reviewed locale/
+watcher context. The host uses ICU `en-US`; recorded and actual collation versions
+both equal 153.120. The two enabled PostgREST watcher bodies were reviewed against
+their actual definitions: the DDL watcher excludes GRANT/REVOKE and no objects
+are dropped. No watcher, locale or shared setting was disabled or changed.
+This accepts permissions-only on existing exact tables, not fresh hosted CREATE
+under an unmeasured locale.
+
+The private executor binds held verified source bytes, four fixed historical
+receipt hashes, a reviewed preflight and the exact seven-job/production release
+attestation. Its no-argument Management method emits only the reviewed ACL mode:
+183,796 UTF-8 bytes, SHA256
+`845881acec402a5e610434bdc0bad8ea95c2584c8458d01bd07d1ef62132d885`.
+The dedicated 196,608-byte cap does not change the generic 65,536-byte query cap.
+One original operation is recorded before issuance; no automatic retry occurred.
+The supervised operation completed in 2.959408 seconds within a 60-second caller budget, with
+1-second lock and 10-second statement limits. These are not an absolute COMMIT deadline or
+proof of global administrative exclusion.
+
+Independent fresh clients require complete final envelopes: anon/authenticated
+have no table privileges; service_role has only SELECT/INSERT; postgres's owner
+grants remain. Structure, identities, collisions, context, format, completeness,
+limits, raw schema ACL, installer, roles/defaults, locale and watcher hashes
+remain equal to the accepted preflight. Objects 28, attributes 27, ordinary
+dependencies 32, expressions 10, per-root functions 7 and operators 3 are unchanged;
+shared dependencies change only 8→4 as expected for the ACL edges. No RLS,
+policy, owner, role, creator default, column default, constraint or index changes
+occurred. The same full postcondition validator is used for later original-scope
+reconciliation. Private receipt hashes are retained in the durable summary.
+
+After exact production/source verification, `/api/v1/test` and
+`/api/v1/sentiment` each receive one original clearly synthetic POST. The latter
+uses preflight-absent date 1900-01-01, score 50 and neutral sentiment. Each 201
+no-store response contains the exact selected single row and is independently
+read back through SQL. Cleanup is separately latched once: one atomic statement
+locks both proven IDs, matches every original field, requires both matches before
+either DELETE, then verifies independent absence. Zero unrelated rows are
+deleted. Login 200, anonymous root 307, anonymous API 401 and authenticated
+limit-zero API 200 pass again. No provider, wallet or trading operation occurs.
+
+A 12,006-byte rollback reference is prepared and source-reviewed but unexecuted.
+It takes the fixed locks, checks exact final direct ACLs, restores only the
+original eight privileges to the three API roles, and verifies the original
+ACLs before COMMIT. A separately needed rollback must first reverify the full
+gold/28 identities/final matrices/context and administrative quiescence; its short
+transaction does not make those external checks atomic. Retain original-scope
+readback on uncertainty. No rollback was needed. The user's existing migration
+edit remains unstaged and byte-identical. The local ignored `.env` permission
+was restricted 0644→0600 without changing contents or any shared credential.
