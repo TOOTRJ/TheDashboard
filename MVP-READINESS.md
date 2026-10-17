@@ -2,6 +2,12 @@
 
 ## Authoritative current status — 2026-10-16
 
+PR104 is merged as `9403e14bce9439060b468f8eb5fd2763149603f9` after all seven jobs pass at225466a in [run38984914265](https://github.com/TOOTRJ/TheDashboard/actions/runs/38984914265). Exact Dashboard production is READY from that merge and four read-only application checks pass. SEC-05B's exact Next/config16.4.2 release is complete; the braces exception expires October26 and QA-01C compiler-warning cleanup remains open. [Release receipt and precise limits](RELEASE-ACCEPTANCE-2026-10-16.md).
+
+Next is the separate app's final-head CI and exact-target release, then the reviewed two-table API baseline/grants, followed by the worker source/clock/epoch/ID/journal/restoration/reader and closed-hosted joins. The rebased app preserves all29 local acceptance inputs; its379-case/type/build/scoped-browser receipt still describes historical7ddsource and does not accept the hosted app. Keep Railway closed. The [Jupiter documentation recheck](JUPITER-DATA-RECHECK-2026-10-16.md) informs the selected prospective profile; deeper data quality, cost, calibration and capacity research remains required. The finite original owner hour remains accepted, while continuous paper and every live-trading gate remain open.
+
+## Historical checkpoints before PR104 acceptance
+
 The October14 critical/high framework fixes are implemented locally through
 exact Next/config16.4.2. Full332 frontend cases, TypeScript, fresh isolated
 build, zero-production-advisory audit and compiled fake-account protection/

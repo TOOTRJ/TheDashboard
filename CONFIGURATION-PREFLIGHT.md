@@ -1,6 +1,8 @@
 # Dashboard configuration and access preflight
 
-**Current automated release gate — 2026-10-12 Denver / 2026-10-13 UTC:**
+**Current release — October16 Denver / October17 UTC:** PR104 passes all seven exact-head jobs at225466a and merges as `9403e14bce9439060b468f8eb5fd2763149603f9` with an identical tree. Vercel `the-dashboard` / `prj_wFUe9k9USVreOQcmQKNWRAVsx5fH`, team `team_8iNNxiNjrOseD4gdSCHkQEzF` / `orderoftheredjester`, is verified before production acceptance. Deployment `dpl_3BF3uXqubvA6uy1YomrgXezAofKj` is READY37s from that merge on the canonical alias; login200, anonymous root307 to login, anonymous API401 and authenticated zero-row API200 all pass. Exact Next/config16.4.2 are released. No Supabase mutation, Railway activation, shared credential or other-project change accompanies these checks. [Release evidence and remaining app/schema/worker gates](RELEASE-ACCEPTANCE-2026-10-16.md). All earlier baselines and pending-release statements below retain their dated scope.
+
+**Historical automated release gate — 2026-10-12 Denver / 2026-10-13 UTC:**
 PR102 is merged at `58808efaf2c025ea865f7429723599081edae491` after all seven
 secret-free hosted jobs pass on its exact source. Dashboard production is READY
 with four read-only checks. QA-01A closes within automated scope; QA-01B real

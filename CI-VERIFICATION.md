@@ -1,5 +1,11 @@
 # Secret-free Dashboard verification
 
+## Current exact-source acceptance — October16 Denver / October17 UTC
+
+PR104 head `225466a5810e955a928681c8cd319f53416d9128` passes all seven required jobs in [run38984914265](https://github.com/TOOTRJ/TheDashboard/actions/runs/38984914265), total26m48s. Frontend takes1m50s; ordinary groups18m55s/8m57s; PostgreSQL groups26m45s/21m53s/18m57s/26m44s. Merge `9403e14bce9439060b468f8eb5fd2763149603f9` has the exact accepted tree. Its verified Dashboard production deployment is READY, with all four read-only application checks passing. [Full release receipt and boundaries](RELEASE-ACCEPTANCE-2026-10-16.md).
+
+This supersedes the pending status in the dated experiments below. Original four-way SQL scheduling and every required shard, image identity and deadline remain; the verified mirror recovery and test-only history preconditions now have complete hosted acceptance. The separate rebased app still requires its own final-head CI/release; local379-case and synthetic-browser evidence does not replace it. Continuous paper operation, real-provider/native runtime joins and live trading remain outside this CI acceptance.
+
 ## October16 exact-content mirror repair — superseding failed scheduling experiment
 
 Actual run38979594404 at e004800 shows two-way scheduling does not fix the
