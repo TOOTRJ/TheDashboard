@@ -37,8 +37,6 @@ const eslintConfig = defineConfig([
     files: ["src/components/probes/PaperDashboard.tsx"],
     rules: {
       "react-hooks/set-state-in-effect": "warn",
-      "react-hooks/immutability": "warn",
-      "react-hooks/refs": "warn",
     },
   },
   // Override default ignores of eslint-config-next.
