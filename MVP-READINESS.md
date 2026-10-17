@@ -1,6 +1,47 @@
 # Evolutionary trading bot MVP readiness
 
-## Authoritative current status — 2026-10-12
+## Authoritative current status — 2026-10-16
+
+The October14 critical/high framework fixes are implemented locally through
+exact Next/config16.4.2. Full332 frontend cases, TypeScript, fresh isolated
+build, zero-production-advisory audit and compiled fake-account protection/
+replacement/logout checks pass within their documented scope. Lint retains80
+visible warnings, including48 newly enabled compiler diagnostics tracked in
+QA-01C; one mouse-menu activation remains to retest in the app follow-up.
+
+The two-way scheduling experiment still encounters ECR quota. Its replacement
+restores original four-way scheduling and uses verified official Docker Hub
+mirrors at the exact original manifest/config hashes after a rate limit.
+All four required shards and existing identities/deadlines remain;106 focused
+checks pass. Complete new-head seven-job acceptance and PR104 release are next.
+Native archive delivery is deferred. Production remains PR103 until the exact
+release is verified; no migration or Railway activation is performed here.
+The completed October16 [run38981368987](https://github.com/TOOTRJ/TheDashboard/actions/runs/38981368987)
+passes six jobs; SQL4 fails the retired-ID assertion after all four image
+preparations succeed. The test-only current-history correction passes seven pure
+regressions and all five local ARM native cases (55.722s, zero skips), with the
+original model/SQL/guards and retirement assertions preserved. A complete new-head
+run remains required. [Repair and limits](services/vonneumann/RESTORATION-FIXTURE-WINDOW-REPAIR.md).
+
+Historical October13 exact-head CI is [run38464960221](https://github.com/TOOTRJ/TheDashboard/actions/runs/38464960221)
+at81474c1: six jobs PASS, SQL4 image preparation FAIL, zero SQL4 tests executed.
+The35m2s run is settled and PR104 remains open. Five bounded pulls still hit
+registry quota, so release now depends on reviewed content/transport verification
+and actual export/load evidence. No hosted result is replaced by a local pass.
+The separate final app source passes379/379 plus desktop/mobile fake-browser
+controls and dialog focus recovery. Local worker security/source/model/parser
+joins pass their scoped checks. The complete composed ordinary shards now
+execute2,005 cases with zero unexpected skips; a separate actor/catalog-only
+prototype passes14 actual local PostgreSQL cases. These results do not prove
+the native source/clock/journal/restore/reader joins or hosted operation.
+Production remains the exact PR103 source below, and Railway remains closed.
+
+Immediate work is narrowed to complete hosted acceptance of the native fixture
+correction, then PR104 release and the already tested app fixes. The unused archive verifier and one cached
+ARM export are exploratory evidence, not an accepted CI delivery path. API
+baseline/controller preparation and broader native prototypes are paused until
+those releases; no additional user setup is currently required.
+
 
 The supervised, zero-cost paper hour is accepted. The original owner run reached
 revision 514 with 504 accepted prices, one GA replacement, eight equally funded
@@ -9,22 +50,61 @@ owner history and repeat read passed. This proves a finite mechanical pilot;
 continuous evolution, exact process restoration and strategy performance remain
 unaccepted. [Original evidence](supabase/audits/2026-10-08-owner-hour-first-replacement.json).
 
-PR96 and [PR97](https://github.com/TOOTRJ/TheDashboard/pull/97) are merged. The
-current reviewed source baseline is `67cff30`; PR97 production
-`dpl_ASo5z4Zc6APWsUPseQVrvw52Aici` was verified READY with its canonical alias
-and four read-only release probes. The dedicated Dashboard sign-in saved; the
-older PR96 login request is resolved. The root review freshly reverified this exact baseline deployment and all four
-read-only probes; the historical owner-hour acceptance was not repeated.
+PR99–PR103 are merged. The last verified production source is PR103 merge
+`92d3d4313e4a8648a0d65bebd41b5029b55826be`; its exact Dashboard deployment
+`dpl_T2Rq6Lyz8mBCnpfGjXPCZRY1tT7h` was READY with the canonical alias and
+four read-only application checks. The historical owner-hour acceptance was
+not repeated. PR97's earlier snapshot is historical, not the current baseline.
 
-The portable integer-mutation model, versioned checkpoint and compact transport
-are built as offline research code. Source-bound synthetic tests and independent
-SQL mutation-primitive comparisons pass. This review reproduced a strict
-configuration defect: Python boolean/integer equality permits some incorrectly
-typed configuration values to match the expected dictionary. Repair and test
-that boundary before the full independent version 2 SQL proof. The portable model
-is therefore **built with a known validation repair pending**, not fully validated
-or selected by the hosted writer. Native version 2 admission, restored execution,
-retention and hosted activation are not implemented by PR97.
+[PR104](https://github.com/TOOTRJ/TheDashboard/pull/104) contains the corrected
+complete original-v2 SQL semantics, guarded atomic native laboratory admission,
+original-wire restoration, measured conservative retention, an inert checkpoint
+inspector, NEST-05A result/reply ordering fixes, and bounded synthetic browser
+acceptance. Strict boolean/integer configuration rejection is already repaired
+in PR99. Focused local proofs pass; this does not establish complete release
+acceptance or a real-provider runtime.
+
+The previously completed exact-source [run38444382423](https://github.com/TOOTRJ/TheDashboard/actions/runs/38444382423)
+at `c04be4fb536c593541603a7e7c6c1140771b139d` completes33m57s. Frontend, both
+ordinary groups and SQL1–3 pass, including historical/current source-lineage
+repairs. SQL4 again refuses one original restoration decision. The test-only
+follow-up paces acquisition before its first recorded receipt to avoid spending
+almost a second on the legacy integral action. It preserves the actual receipt,
+unchanged five-second guard and negative expiry/reconciliation cases; all five
+native cases pass34.233s locally. PR104 remains open until all seven actual
+new-head jobs and exact release checks pass. These are paced laboratory proofs,
+not unpaced continuous-runtime or latency-tail acceptance.
+See [CI-VERIFICATION.md](CI-VERIFICATION.md).
+
+The reviewed follow-up also repairs Portfolio session publication and owned
+write acknowledgments, makes Reports/Settings sample actions explicit, and
+passes finite compiled fake-browser cases. Its complete local frontend suite
+at `0609db36b168a803283d57e3302a54c8ebbecaaa` passes 332/332, zero skips.
+The safe owned-process refusal diagnostics preserve cleanup requirements.
+These app and local test results do not replace the seven hosted jobs or the
+exact Vercel release gate. The prospective worker remains closed.
+
+The latest completed [run38458301073](https://github.com/TOOTRJ/TheDashboard/actions/runs/38458301073)
+at 22bd538 finishes 36m17s: frontend, both ordinary groups and SQL1–3 pass.
+SQL4 fails only immutable registry image preparation, before any SQL case.
+The reviewed bounded coordination repair is adopted locally as 41d4ed0 and
+passes 53 integrated mock/policy checks. It preserves images, guards, every
+required SQL occurrence and deadlines. A complete repaired-head run remains
+the next release gate; the READY exact preview does not replace that gate.
+
+The separate reviewed prospective-source/recorder branch passes107 combined
+offline checks; the independently constructed two-EMA model passes20 focused
+checks, with explicit paper-cost provenance and exact microsecond cohort bounds.
+Those local commits have not yet joined this release or a native runtime.
+Full raw source admission, authenticated epoch/inventory registries and original
+readback remain the next dependency; no research authority flag is activated.
+
+The subsequent factory-owned checkpoint optimization is adopted locally as
+`4685741`. Its14 new ownership/continuity cases and16 existing restoration cases
+pass; root's five actual native cases pass32.342s with unchanged source/lease
+guards. SQL4's subsequent complete hosted group passes with the same original
+pair; a complete corrected-head hosted run is still pending, so PR104's merge gate
+and the worker's closed status remain in force.
 
 Railway remains at ordinary closed deployment
 `cf05895d-adc5-427f-873e-82ad6606e5a1`, with the original variable map restored and
@@ -34,12 +114,14 @@ production migration. No live funding, signing or swaps are available or authori
 
 | Order | Remaining gate | Dependency and acceptance |
 | --- | --- | --- |
-| 1 | Repair strict portable configuration validation | Reject boolean/integer substitutions, wrong types, unknown/missing fields and rehashed invalid configurations before construction or admission. Recheck unchanged legacy behavior. |
-| 2 | Complete independent original version 2 SQL semantics | PAPER-COMPACT-03B3C2B2B follows the repair. Bind complete policy/configuration/wire/prior chain; derive selection, mutation, genomes, lineage, economics, source, risk and assessments independently. Reject consistent-looking forged periods. |
-| 3 | Implement the atomic native compact contract | PAPER-COMPACT-03 follows complete semantics: original-ID receipts/replay, component pins, allocated identities, journal/history/outbox/provenance, final lease/source checks, installer/capability isolation and reserved Stop resources. |
-| 4 | Prove exact restoration and safe retention | PAPER-COMPACT-04 then PAPER-COMPACT-05: decode pinned state and match the full next wire; settle uncertain original commands; verify dependency-safe archives/readback before hot pruning. Measure physical storage and filled-budget Stop behavior. |
-| 5 | Join new-version dashboard and closed deployment acceptance | Compatible owner-only old/new history, assessments, ancestry, precision and controls must pass alongside native/package/rollback tests. Reverify exact targets before a reviewed closed migration/deployment. |
-| 6 | Accept bounded multi-window operation and fault/load behavior | After the preceding gates and measured provider/resource budgets, prove repeated windows, held-position interruption, process kill/overlap/recovery, original-ID settlement, complete owner replay and closed cleanup. Continuous operation needs an explicitly accepted operating profile. |
+| 1 | Release the bounded PR104 laboratory and app repairs | Resolve persistent registry preparation quota with reviewed immutable runtime content/export/load/producer evidence; retain restoration/source/lease guards, exhaustive occurrences and deadlines. Require all seven actual test jobs and exact-source/project release checks. |
+| 2 | Freeze real-provider v3 source/trust/model interfaces | Preserve synthetic v2 and existing v5 meanings. The recommended Jupiter-only prospective profile retains original observations and explicitly sampled close-only bars; it is not historical OHLCV or executable-quote evidence. |
+| 3 | Implement recorded acquisition and model in parallel | After interface freeze, bind authenticated recorder scope, original raw bytes/IDs, integer clocks/process epochs, causal availability, gap refusal and the two EMA genes. Hashes alone do not authenticate a source. |
+| 4 | Implement the v3 atomic native operator | Independently reparse evidence, enforce current scope/epochs, original-ID replay, final source/lease checks, complete projection pins and reserved data-free Stop. |
+| 5 | Join restoration, measured retention and offline owner/API/UI fixtures | These can overlap after stable native contracts. Prove original-command reconciliation and retained holdings; measure physical growth and Stop reserves; preserve old/new reader compatibility. |
+| 6 | Install and accept the closed hosted package | Prepare migration validation and rollback, reverify exact targets, then prove authenticated owner reads/controls against the installed package before activation. |
+| 7 | Accept bounded multi-window and fault operation | Prove repeated windows, held-position interruption, kill/overlap/recovery, original-ID settlement, provider failure behavior and complete owner replay. |
+| 8 | Accept sustained resource/quota/recovery operation | Measure provider limits, latency, physical storage and Railway cost against the approved $20/month design ceiling. A finite pilot does not establish continuous readiness. |
 
 Security/dependency review and secret-free CI; dashboard/API honesty and privacy;
 representative data, fill and objective research; and project-only Railway

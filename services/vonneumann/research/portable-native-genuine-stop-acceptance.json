@@ -1,0 +1,134 @@
+{
+  "accepted": true,
+  "accepted_trace_future_timestamps": false,
+  "authority": {
+    "final_visible_instant_freshness": false,
+    "hosted": false,
+    "native_production_admission": false,
+    "restoration": false,
+    "retention_deletion": false
+  },
+  "elapsed_seconds": 664.320501,
+  "final_native_stats": {
+    "commands": 8,
+    "lease_unexpired": true,
+    "revision": 9,
+    "status": "stopped",
+    "used_bytes": 722093
+  },
+  "fixture": {
+    "image": "public.ecr.aws/supabase/postgres:17.6.1.095",
+    "image_id": "sha256:965e2dfb5a23a0d6541b6106541e777b303656ebabd4e878746b189d550c0a66",
+    "network": "none",
+    "postgres_version": "17.6"
+  },
+  "fixture_seeded_native_head": false,
+  "format": "ga-portable-native-real-bar-offline-acceptance-lab-v1",
+  "genuine_bar_seconds": [
+    1791864000,
+    1791864900
+  ],
+  "genuine_bar_utc": [
+    "2026-10-13T04:00:00+00:00",
+    "2026-10-13T04:15:00+00:00"
+  ],
+  "heartbeats": 31,
+  "held_positions": 8,
+  "held_positions_sha256": "331fa6970da6ac3d760941f0d675eaafdee77d6fb1ae5f8fdd5a7570a1d91f8a",
+  "maximum_seconds": 970,
+  "native_sql_sha256": "76e23d44a296c838238e5545c9ea498eb86d2ac5caee9798236aee1f8a5bf5c4",
+  "probe_source_sha256": "c505e18fb3c5403d59f7f16aeed1f4fc4f84d26439af1ac7bb380f51026cf052",
+  "scope": "UUID-owned offline PostgreSQL fixture only; literal synthetic provider documents; no network/provider/account/process changes",
+  "source_label": "synthetic-exact-fixture-v1",
+  "source_relaxations": false,
+  "trace": [
+    {
+      "command_id": "00000000-0000-0000-0000-000005ba5ea2",
+      "command_sha256": "f2640847893d919f7bc1ce87bb5692e2ea07955b123330b2347ffa8910319a92",
+      "guard_observed_at": "2026-10-13T04:04:15.204393+00:00",
+      "manifest_sha256": "79f5966f89d9cbc454a9a2fd07408d31b41f0cf21fecc97778540fe165fcac35",
+      "positions": 0,
+      "revision": "2",
+      "server_second": 1791864255,
+      "server_utc": "2026-10-13T04:04:15+00:00",
+      "stage": "bootstrap"
+    },
+    {
+      "command_id": "00000000-0000-0000-0000-000005ba5ea3",
+      "command_sha256": "3fc1158692f5a7d33ff09cd639db8d503837724b81006d6706ce6a58675096c1",
+      "guard_observed_at": "2026-10-13T04:04:17.211402+00:00",
+      "manifest_sha256": "f38a8dd7195d00f223a6c303f84eff3870335057e97f134e80c4bf215468ad89",
+      "positions": 0,
+      "revision": "3",
+      "server_second": 1791864257,
+      "server_utc": "2026-10-13T04:04:17+00:00",
+      "stage": "warmup_quote"
+    },
+    {
+      "command_id": "00000000-0000-0000-0000-000005ba5ea4",
+      "command_sha256": "68cc50d587dfc3168a083365e65f006acdca17c1cd5fbf4906567d6c0f7e5946",
+      "guard_observed_at": "2026-10-13T04:04:19.253349+00:00",
+      "manifest_sha256": "b33d673a819e9f9ae99e36589c3526ce944f7065e3cd198507766a3c7fb1a6e8",
+      "positions": 0,
+      "revision": "4",
+      "server_second": 1791864259,
+      "server_utc": "2026-10-13T04:04:19+00:00",
+      "stage": "cohort_evaluating"
+    },
+    {
+      "command_id": "00000000-0000-0000-0000-000005ba5ea5",
+      "command_sha256": "04e17250ca464820fe0c8f2428da9e1ef1c7b1133d724141dc55ceee361d6cb9",
+      "guard_observed_at": "2026-10-13T04:15:08.983957+00:00",
+      "manifest_sha256": "33c38b2bce6be5e240784f891b027dabd5010a21c6c51103c13f0a550620d47c",
+      "positions": 0,
+      "revision": "5",
+      "server_second": 1791864909,
+      "server_utc": "2026-10-13T04:15:09+00:00",
+      "stage": "genuine_next_bar_quote"
+    },
+    {
+      "command_id": "00000000-0000-0000-0000-000005ba5ea6",
+      "command_sha256": "4b0d4a5510dd551026c1c7738c692e639b93b8443732d8f1b47d807cb71e261a",
+      "guard_observed_at": "2026-10-13T04:15:10.090174+00:00",
+      "manifest_sha256": "d23c9e798096e9a08eccf80b7843a8613626e89435d16ec261b6a5d4358edfe0",
+      "positions": 0,
+      "revision": "6",
+      "server_second": 1791864910,
+      "server_utc": "2026-10-13T04:15:10+00:00",
+      "stage": "genuine_next_bar_signal"
+    },
+    {
+      "command_id": "00000000-0000-0000-0000-000005ba5ea7",
+      "command_sha256": "58ea196296ef53d3b0b97db0f3d677afd01758409c822b2d9350f05f7376945a",
+      "guard_observed_at": "2026-10-13T04:15:11.028649+00:00",
+      "manifest_sha256": "8c5383c585ec9fa640bef28f678285fa9963a36d78db9f5854032f71f9b90bcb",
+      "positions": 0,
+      "revision": "7",
+      "server_second": 1791864911,
+      "server_utc": "2026-10-13T04:15:11+00:00",
+      "stage": "later_genuine_entry_quote"
+    },
+    {
+      "command_id": "00000000-0000-0000-0000-000005ba5ea8",
+      "command_sha256": "34720152085bc2cca84535e0cd54dcfe4c28ca65353ee4cdd0efa18561a78657",
+      "guard_observed_at": "2026-10-13T04:15:12.129414+00:00",
+      "manifest_sha256": "81ea37284fad0e0dd13d78c08f5e2b060edebc6c05acad7764c5c816bfa8e47b",
+      "positions": 8,
+      "revision": "8",
+      "server_second": 1791864912,
+      "server_utc": "2026-10-13T04:15:12+00:00",
+      "stage": "held_positions"
+    },
+    {
+      "command_id": "00000000-0000-0000-0000-000005ba5ea9",
+      "command_sha256": "82898e6bba2b155591e36349b738b9fd5a86dff14471092ed403319ae6fec813",
+      "guard_observed_at": "2026-10-13T04:15:13.476886+00:00",
+      "manifest_sha256": "67cc7bf105887e9be919bfbed5524c5162a36ea217e41dedd9923245d93470f7",
+      "positions": 8,
+      "revision": "9",
+      "server_second": 1791864913,
+      "server_utc": "2026-10-13T04:15:13+00:00",
+      "stage": "held_position_data_free_stop"
+    }
+  ]
+}

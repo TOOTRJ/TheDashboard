@@ -1,0 +1,60 @@
+{
+  "accepted": true,
+  "actual_postgresql_cases": 38,
+  "actual_seconds": 426.599,
+  "authority": {
+    "hosted": false,
+    "native_admission": false,
+    "profitability": false,
+    "restoration": false
+  },
+  "date": "2026-10-12",
+  "defensive_checks": [
+    "all new original-v2 functions explicitly pin pg_catalog,pg_temp",
+    "semantic catalogs fully qualified",
+    "private original-v2 numeric namespace preserves old v1 numeric source",
+    "benign temporary relation/type sentinels never evaluated",
+    "read-only success and refusal preserve fixture rows"
+  ],
+  "format": "ga-portable-sql-defensive-acceptance-research-v2",
+  "historical_acceptance_receipt_sha256": "c2fe62b9346b5cc95b96f52d6757bd9b74a3f537696b8eda6ee512ad7ff40d19",
+  "historical_semantic_commit": "03caa6409b5793168eefbf378c0ec613408fd88e",
+  "ordinary_package_cases": 4,
+  "ordinary_seconds": 0.582,
+  "original_v1_sources_sha256": {
+    "db-contract/research/assessment_transition.sql": "6af9cec6722c53e2995de01d75d62deab63381d407313939123cc41e8590dde3",
+    "db-contract/research/causal_risk.sql": "6132cedbe15d3d88997bfafc319cee08848bb9c38b4c9be86d8ee284644aab37",
+    "db-contract/research/economic_transition.sql": "c12a98685b4f20bc7ceaa3a31995b527379fba505bc1a59ecaf8c54143ef5801",
+    "db-contract/research/locked_checkpoint.sql": "40973039c4ec1fd0af8a2836818ab75db60b6e75ec41e2f217adc078d2863542",
+    "db-contract/research/numeric_wire.sql": "adc7dbe2ce3ef51d860b8c09430a24759522cb7284dc73e40804dbd8880675b1",
+    "db-contract/research/optimizer_graph.sql": "aade55e4f7a41980ddb6faf1dc34d27373324375373e950e42d26e8700ef326b",
+    "db-contract/research/optimizer_rng.sql": "bc761910b7e4dda3b1fe938f6847f8439ff3e62685b55320c44030e1a464a993",
+    "db-contract/research/optimizer_transition.sql": "25c352d013ef663ac4de318032548d8281e4bc0c3ab8a62063e4410bc57ec8ab",
+    "db-contract/research/portable_period_mutation.sql": "605dfb89940b9dcee0a0f9d2f756e51621de7ee003bc9b997a5bf537c0992777",
+    "db-contract/research/source_transition.sql": "4f1c5b506fa2e9253cd3e7940f9b4d9f429d81561f73a4676ca8db7c3450cede",
+    "vonneumann/research/partitioned_checkpoint.py": "4752288ddaba3835270701253874b246522c5e760a602d616c862f37f42d1aa7",
+    "vonneumann/research/provider_checkpoint.py": "877b511ac97425dc66d1bbb255f74541c7b51053daed29acc7196ecf406c97c7",
+    "vonneumann/research/provider_ga_model.py": "4343e38c9ccf864144abbb843e1b4936b2441954ade42c573c986dbc1d87f242"
+  },
+  "portable_sql_sources_sha256": {
+    "db-contract/research/portable_assessment_transition.sql": "38321b8952ada745e2b2cbb558f2e86057cf34f72b7f54e7c226d661ba357c6c",
+    "db-contract/research/portable_causal_risk.sql": "9365bb0882579cc25088f1487c6aab8f25549dbe6a7d37b996797aae3b26284a",
+    "db-contract/research/portable_configuration.sql": "ae43e9f757124291e369240f1dc07c64885c77a2b5eeec7c27448b200e7233dc",
+    "db-contract/research/portable_economic_transition.sql": "46372357ff94a98cb8226cee74392bd3efc0b8bbda3e7865c17a13f033609148",
+    "db-contract/research/portable_locked_checkpoint.sql": "260762936fb80d7be1b821f582d8941961b7971defe54a4fe03734c6ccdec5fe",
+    "db-contract/research/portable_model_period_mutation.sql": "4f4ef89459e6e612ad2b8ded7bc0f9b77c993fccfb204fbc1316fa549651c532",
+    "db-contract/research/portable_numeric_wire.sql": "0f392d3eba0ac6eb6db1b58e1b78cc6a5c1688267e6695b2ec1d9d5e4f132307",
+    "db-contract/research/portable_optimizer_graph.sql": "79450d713d06cb03992e7f4c5c42707830f26964d0e91d1af851d4b32761ca25",
+    "db-contract/research/portable_optimizer_rng.sql": "500e02df7f9e1d6e67ea67059b598c6f43c86458c891d2fd843ee66a8134038b",
+    "db-contract/research/portable_optimizer_transition.sql": "459844f56dbd630378fc68599cfd5acc3b9a559104a2ab43e817356f56ca4ff2",
+    "db-contract/research/portable_source_transition.sql": "f01ff1dc52c629bdc454cdd36a99b5d099f0ca0249771d7d9c8c2b054891bd41",
+    "db-contract/research/portable_transition.sql": "0261ca93f1f5a39861315365a4e001cf60856952eabf94083ce750510a5a4bda"
+  },
+  "scope": "owned isolated PostgreSQL17.6; original-v2 value semantics and defensive lookup behavior only; no deployment or runtime admission",
+  "skipped": 0,
+  "test_sources_sha256": {
+    "tests/postgres/test_portable_locked_checkpoint.py": "95063f27f20c70beb8d178a92c64412d5046677cc59567535295197c21c4d266",
+    "tests/postgres/test_portable_transition.py": "76f4c5b93bc764d06039145ce5108cdd36b1a5df0e4f90ecd23e89709d5c004e",
+    "tests/test_portable_sql_contract.py": "f50e1ced35321bb2321a650ca4c013b6e078252bb9ca8c55156283f02f3f7e9f"
+  }
+}

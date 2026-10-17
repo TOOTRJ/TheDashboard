@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { useAuth } from "@/components/auth/AuthProvider";
 import type { createNesteggWorkspaceScope } from "@/lib/nestegg/session-scope";
+import { createNesteggPublicationClock, type NesteggPublication } from "@/lib/nestegg/result-identity";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -27,6 +28,7 @@ import { cn } from "@/lib/utils";
 
 type Props = {
   workspaceScope: ReturnType<typeof createNesteggWorkspaceScope>;
+  captureWorkspaceIntent: () => NesteggPublication;
   inputs: NesteggInputs;
   marketScenario: NesteggScenarioId;
   cloudScenarios: SavedNesteggScenario[];
@@ -34,8 +36,9 @@ type Props = {
   onLoadScenario: (row: SavedNesteggScenario) => void;
   onRefreshCloud: () => Promise<void>;
   cloudRefreshing?: boolean;
-  onCloudSaved: (row: SavedNesteggScenario) => void;
-  onCloudScenarioDeleted: (deletedId: string) => Promise<void>;
+  onCloudSaved: (row: SavedNesteggScenario, publication: NesteggPublication) => void;
+  onCloudRenamed: (row: SavedNesteggScenario, publication: NesteggPublication) => void;
+  onCloudScenarioDeleted: (deletedId: string, publication: NesteggPublication) => Promise<void>;
   /** When a cloud plan tab is selected: overwrite that row with current workspace + label. */
   canSaveActivePlan?: boolean;
   dirtyActivePlan?: boolean;
@@ -47,6 +50,7 @@ type Props = {
 
 export function NesteggSavedPlanTabsToolbar({
   workspaceScope,
+  captureWorkspaceIntent,
   inputs,
   marketScenario,
   cloudScenarios,
@@ -55,6 +59,7 @@ export function NesteggSavedPlanTabsToolbar({
   onRefreshCloud,
   cloudRefreshing = false,
   onCloudSaved,
+  onCloudRenamed,
   onCloudScenarioDeleted,
   canSaveActivePlan = false,
   dirtyActivePlan = false,
@@ -68,6 +73,8 @@ export function NesteggSavedPlanTabsToolbar({
   const [editingId, setEditingId] = React.useState<string | null>(null);
   const [editName, setEditName] = React.useState("");
   const [deleteTarget, setDeleteTarget] = React.useState<SavedNesteggScenario | null>(null);
+  const operationClock = React.useRef(createNesteggPublicationClock());
+  const editLocal = () => { operationClock.current.invalidate(); };
 
   const activeRow = React.useMemo(
     () => cloudScenarios.find((s) => s.id === activeSavedScenarioId) ?? null,
@@ -75,6 +82,7 @@ export function NesteggSavedPlanTabsToolbar({
   );
 
   React.useEffect(() => {
+    operationClock.current.invalidate();
     setEditingId(null);
     setSaveNewOpen(false);
     setNewPlanName("");
@@ -91,9 +99,12 @@ export function NesteggSavedPlanTabsToolbar({
   const handleSaveNew = async () => {
     const request = workspaceScope.capture();
     if (!request.isCurrent() || user?.id !== request.ownerId) return;
+    const publication = captureWorkspaceIntent(), operation = operationClock.current.next();
+    const isCurrent = () => request.isCurrent() && publication.isCurrent() && operation.isCurrent();
+    const savedName = newPlanName, savedInputs = { ...inputs }, savedScenario = marketScenario;
     try {
-      const row = await insertNesteggScenarioToSupabase(newPlanName, inputs, marketScenario, request);
-      if (!request.isCurrent()) return;
+      const row = await insertNesteggScenarioToSupabase(savedName, savedInputs, savedScenario, request);
+      if (!isCurrent()) return;
       if (!row) {
         toast.error("Could not save", {
           description:
@@ -103,53 +114,59 @@ export function NesteggSavedPlanTabsToolbar({
       }
       setNewPlanName("");
       setSaveNewOpen(false);
-      onCloudSaved(row);
-      await onRefreshCloud();
-      if (!request.isCurrent()) return;
+      // Selecting the newly saved row retires this dialog's generation. Acknowledge the
+      // confirmed write while its original workspace is current, before that transition.
       toast.success("New plan saved", { description: row.name });
+      onCloudSaved(row, publication);
+      await onRefreshCloud();
     } catch {
-      if (request.isCurrent()) toast.error("Unable to complete the saved-plan operation");
+      if (isCurrent()) toast.error("Unable to complete the saved-plan operation");
     }
   };
 
   const handleDelete = async (id: string) => {
     const request = workspaceScope.capture();
     if (!request.isCurrent()) return;
+    const publication = captureWorkspaceIntent(), operation = operationClock.current.next();
+    const isCurrent = () => request.isCurrent() && publication.isCurrent() && operation.isCurrent();
     try {
       const ok = await deleteNesteggScenarioFromSupabase(id, request);
-      if (!request.isCurrent()) return;
+      if (!isCurrent()) return;
       if (ok) {
-        await onCloudScenarioDeleted(id);
-        if (!request.isCurrent()) return;
-        toast.message("Scenario removed");
+        // The parent may select a replacement plan and retire this operation.
+        // Close and acknowledge the confirmed, still-owned dialog first; a late
+        // parent completion must never change a newer dialog.
         setDeleteTarget(null);
+        toast.message("Scenario removed");
+        await onCloudScenarioDeleted(id, publication);
       } else {
         toast.error("Delete failed");
       }
     } catch {
-      if (request.isCurrent()) toast.error("Unable to complete the saved-plan operation");
+      if (isCurrent()) toast.error("Unable to complete the saved-plan operation");
     }
   };
 
   const handleRenameSave = async (id: string) => {
     const request = workspaceScope.capture();
     if (!request.isCurrent()) return;
+    const publication = captureWorkspaceIntent(), operation = operationClock.current.next();
+    const isCurrent = () => request.isCurrent() && publication.isCurrent() && operation.isCurrent();
+    const savedName = editName;
     try {
-      const next = await updateNesteggScenarioNameInSupabase(id, editName, request);
-      if (!request.isCurrent()) return;
+      const next = await updateNesteggScenarioNameInSupabase(id, savedName, request);
+      if (!isCurrent()) return;
       if (!next) {
         toast.error("Rename failed");
         return;
       }
       setEditingId(null);
+      onCloudRenamed(next, publication);
       await onRefreshCloud();
-      if (!request.isCurrent()) return;
-      if (activeSavedScenarioId === id) {
-        onLoadScenario(next);
-      }
+      if (!isCurrent()) return;
       toast.success("Renamed", { description: next.name });
     } catch {
-      if (request.isCurrent()) toast.error("Unable to complete the saved-plan operation");
+      if (isCurrent()) toast.error("Unable to complete the saved-plan operation");
     }
   };
 
@@ -225,7 +242,7 @@ export function NesteggSavedPlanTabsToolbar({
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      setDeleteTarget(s);
+                      editLocal(); setDeleteTarget(s);
                     }}
                   >
                     <X className="h-3.5 w-3.5 opacity-90" aria-hidden />
@@ -248,12 +265,12 @@ export function NesteggSavedPlanTabsToolbar({
             <Input
               id="rename-plan-inline"
               value={editName}
-              onChange={(e) => setEditName(e.target.value)}
+              onChange={(e) => { editLocal(); setEditName(e.target.value); }}
               className="h-9 border-[#00fff5]/30 bg-background/60 text-sm"
               autoFocus
               onKeyDown={(e) => {
                 if (e.key === "Enter" && editingId) void handleRenameSave(editingId);
-                if (e.key === "Escape") setEditingId(null);
+                if (e.key === "Escape") { editLocal(); setEditingId(null); }
               }}
             />
           </div>
@@ -266,7 +283,7 @@ export function NesteggSavedPlanTabsToolbar({
             >
               Apply name
             </Button>
-            <Button type="button" size="sm" variant="ghost" onClick={() => setEditingId(null)}>
+            <Button type="button" size="sm" variant="ghost" onClick={() => { editLocal(); setEditingId(null); }}>
               Cancel
             </Button>
           </div>
@@ -328,7 +345,7 @@ export function NesteggSavedPlanTabsToolbar({
                     size="sm"
                     disabled={authLoading || !user}
                     className="border-[#00fff5]/35 bg-[#00fff5]/8 hover:bg-[#00fff5]/15 text-foreground"
-                    onClick={() => setSaveNewOpen(true)}
+                    onClick={() => { editLocal(); setSaveNewOpen(true); }}
                   >
                     <Copy className="mr-2 h-4 w-4" aria-hidden />
                     Duplicate
@@ -340,7 +357,7 @@ export function NesteggSavedPlanTabsToolbar({
                     size="sm"
                     className="border-[#00fff5]/35 bg-transparent hover:bg-[#00fff5]/10"
                     onClick={() => {
-                      setSaveNewOpen(false);
+                      editLocal(); setSaveNewOpen(false);
                       setNewPlanName("");
                     }}
                   >
@@ -370,7 +387,7 @@ export function NesteggSavedPlanTabsToolbar({
                   size="sm"
                   disabled={authLoading || !user}
                   className="border-[#00fff5]/35 bg-[#00fff5]/8 hover:bg-[#00fff5]/15 text-foreground"
-                  onClick={() => setSaveNewOpen(true)}
+                  onClick={() => { editLocal(); setSaveNewOpen(true); }}
                 >
                   <Copy className="mr-2 h-4 w-4" aria-hidden />
                   Duplicate
@@ -384,7 +401,7 @@ export function NesteggSavedPlanTabsToolbar({
                   size="sm"
                   className="border-[#00fff5]/35 bg-transparent hover:bg-[#00fff5]/10"
                   onClick={() => {
-                    setSaveNewOpen(false);
+                    editLocal(); setSaveNewOpen(false);
                     setNewPlanName("");
                   }}
                 >
@@ -404,7 +421,7 @@ export function NesteggSavedPlanTabsToolbar({
               className="h-9 w-9 text-muted-foreground hover:text-[#00fff5]"
               aria-label={`Rename ${activeRow.name}`}
               onClick={() => {
-                setEditingId(activeRow.id);
+                editLocal(); setEditingId(activeRow.id);
                 setEditName(activeRow.name);
               }}
             >
@@ -416,7 +433,7 @@ export function NesteggSavedPlanTabsToolbar({
               variant="ghost"
               className="h-9 w-9 text-muted-foreground hover:text-[#ff3366]"
               aria-label={`Delete ${activeRow.name}`}
-              onClick={() => setDeleteTarget(activeRow)}
+              onClick={() => { editLocal(); setDeleteTarget(activeRow); }}
             >
               <X className="h-4 w-4" aria-hidden />
             </Button>
@@ -442,13 +459,13 @@ export function NesteggSavedPlanTabsToolbar({
               <Input
                 id="nestegg-new-plan-name"
                 value={newPlanName}
-                onChange={(e) => setNewPlanName(e.target.value)}
+                onChange={(e) => { editLocal(); setNewPlanName(e.target.value); }}
                 placeholder="e.g. Baseline 65 / SS at 67"
                 className="border-[#00fff5]/25 bg-[#00fff5]/8"
                 onKeyDown={(e) => {
                   if (e.key === "Enter") void handleSaveNew();
                   if (e.key === "Escape") {
-                    setSaveNewOpen(false);
+                    editLocal(); setSaveNewOpen(false);
                     setNewPlanName("");
                   }
                 }}
@@ -469,7 +486,7 @@ export function NesteggSavedPlanTabsToolbar({
                 variant="ghost"
                 size="sm"
                 onClick={() => {
-                  setSaveNewOpen(false);
+                  editLocal(); setSaveNewOpen(false);
                   setNewPlanName("");
                 }}
               >
@@ -480,7 +497,7 @@ export function NesteggSavedPlanTabsToolbar({
         ) : null}
       </div>
 
-      <Dialog open={deleteTarget !== null} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+      <Dialog open={deleteTarget !== null} onOpenChange={(open) => { if (!open) { editLocal(); setDeleteTarget(null); } }}>
         <DialogContent className="border-[#ff00ff]/25 bg-card/95 backdrop-blur-xl sm:max-w-md" showCloseButton>
           <DialogHeader>
             <DialogTitle>Delete saved plan?</DialogTitle>
@@ -491,7 +508,7 @@ export function NesteggSavedPlanTabsToolbar({
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2 sm:gap-0">
-            <Button type="button" variant="outline" onClick={() => setDeleteTarget(null)}>
+            <Button type="button" variant="outline" onClick={() => { editLocal(); setDeleteTarget(null); }}>
               Cancel
             </Button>
             <Button

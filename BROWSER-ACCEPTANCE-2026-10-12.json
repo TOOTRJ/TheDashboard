@@ -1,0 +1,194 @@
+{
+  "all_observed_cases_accepted": false,
+  "historical_core_cases_accepted": true,
+  "overall_acceptance": "partial; final-source export artifacts remain unresolved",
+  "application_commit": "360f5b1adfee3ea6f8b0201c650b0eb76958085d",
+  "application_source_sha256": {
+    "src/app/(dashboard)/nestegg/page.tsx": "a3e8111ca3dfbda7bc1784d0345c0f5b22b948b5d5550b58d35097127c7c2ca2",
+    "src/components/auth/AuthProvider.tsx": "4d1ebc680ba3ecb34fd3faadbab0c658c53688215cc752a2a0f62d1513de4988",
+    "src/components/nestegg/NesteggSavedPlanTabsToolbar.tsx": "0fc0fe3b752cfd584f8201894c172e39613bb4286fe20528914d13906e44bfa6",
+    "src/components/probes/PaperDashboard.tsx": "ef72a31c2d557b2156eb555270def76d9fca98d0b01c3fe8bc9467917211f681"
+  },
+  "cases": [
+    {
+      "id": "auth-alice",
+      "observed": "Real login form/SDK/SSR navigation admitted synthetic Alice and owner plan1 currentSavings10000."
+    },
+    {
+      "id": "nest-x-y-x",
+      "observed": "Full calculation completed with Re-run analysis; consecutive input edits10000\u219245678\u219210000 retired full results, showed deterministic interim chart and Inputs changed warning, then quick simulation."
+    },
+    {
+      "barrier": {
+        "id": "5917f9a9-e8c6-434c-9aee-9647ce40318a",
+        "method": "PATCH",
+        "owner": "10000000-0000-4000-8000-000000000001",
+        "sequence": 32
+      },
+      "id": "nest-save-a-select-b",
+      "observed": "Captured A save held before B selected; explicit release kept B label/selection/currentSavings70000."
+    },
+    {
+      "id": "nest-delete-active",
+      "observed": "Confirmed synthetic plan2 deletion acknowledged Scenario removed; dialog absent after exit animation and replacement plan1 selected with saved45678."
+    },
+    {
+      "id": "paper-start-lost",
+      "observed": "Lost Start acknowledgement retained original run; refresh exposed pending/reconciliation; settle reached running and followed only acknowledged configured run."
+    },
+    {
+      "id": "paper-stop-lost",
+      "observed": "Lost Stop response retained original stop; refreshed stop latch yes; settlement traced original configured operation, stopped with1 retained position/reconciliation required.",
+      "settlement_original_id": "a3000000-0000-4000-8000-000000000001",
+      "stop_original_id": "a4000000-0000-4000-8000-000000000001"
+    },
+    {
+      "id": "paper-unknown-policy",
+      "observed": "future-window-v9/future-score-v2 explicitly unrecognized; completed row selection provenance unverified, aborted rows withheld."
+    },
+    {
+      "id": "paper-unknown-contract",
+      "observed": "Refresh refused incompatible version; explicit alert preserved last complete revision3 snapshot."
+    },
+    {
+      "barrier": "10000000-0000-4000-8000-000000000001:193",
+      "id": "paper-late-owner-history",
+      "observed": "A original page held; Bob sign-in aborted old signal; releasing A kept B rows/run and no A private rows."
+    },
+    {
+      "id": "paper-closed-worker",
+      "observed": "Both worker read endpoints closed, Start/Stop/Settle disabled, retained owner history remained available."
+    },
+    {
+      "barrier": "20000000-0000-4000-8000-000000000002:219",
+      "id": "paper-late-owner-control",
+      "observed": "B Start response held; A new sign-in retained A configured/history IDs and fresh current state after original B reply released.",
+      "original_start_id": "b3000000-0000-4000-8000-000000000001"
+    },
+    {
+      "id": "private-view-signout",
+      "observed": "Synthetic signout removed entire private paper view and displayed sign-in required."
+    }
+  ],
+  "checked_console_errors_and_warnings": [],
+  "date_denver": "2026-10-12",
+  "final_launcher_verification": {
+    "all_non_overridden_inputs_equal_application_commit": true,
+    "source_copy_excludes_private_configuration": true,
+    "test_only_next_config_override": true,
+    "tracked_frontend_inputs": 151,
+    "unique_owner_header_and_exact_csp_readiness": true
+  },
+  "format": "dashboard-browser-acceptance-synthetic-v1",
+  "limits": [
+    "Synthetic fixture has no cloud authority; no production, real RPC, provider, wallet, TLS or native integration acceptance.",
+    "Browser export download wait timed out; no downloaded-file or print-dialog acceptance claimed. CSV/provenance has separate controlled regression evidence.",
+    "Broad QA-01B honest-action, storage, hosted old/new version and new native projection coverage remains open.",
+    "Home still has misleading LIVE FEED/YOUR HOLDINGS labels for mock data; APP-01 remains open.",
+    "Screenshot observed in tool result; no screenshot file artifact was exported."
+  ],
+  "portable_inspector_observations": {
+    "application_commit": "a367be5",
+    "application_source_sha256": {
+      "scripts/browser-fixtures/portable-checkpoint-page.tsx": "c0fa995ae95f392f384686ab6c605a16a7619223fdfdb4e960f0bcb5cfa26d78",
+      "src/components/probes/PortableCheckpointInspector.tsx": "4e3b1c4c07139076c4f81cd32b357eb5beba1d38d76c7315b57c162c0b68aa09",
+      "src/lib/probes/portable-checkpoint-inspector.ts": "98b8d8f3748756c2706ba345f20101b15e3d9996495d3f9c780759ebaba43434",
+      "tests/probes/fixtures/portable-checkpoint-inspector.json": "790d2d31f99a42582f2211a8d0109504fafd5bd6fae66d3c28b62ae0e4624739"
+    },
+    "cases": [
+      {
+        "id": "native-lab-readback",
+        "observed": "Original owned laboratory Stop readback displayed revision3, stopped,13 verified original pins, fixed2 EMA periods per account, exact USD cash and explicitly false running/restoration/hosted authority."
+      },
+      {
+        "id": "exact-held-position-display",
+        "observed": "Pure held-position demonstration displayed8 holdings and original exact quantities, entry price and cash debits without reducing the stored precision."
+      },
+      {
+        "id": "unknown-format",
+        "observed": "Changing format cleared every private checkpoint table and displayed unavailable or incompatible."
+      },
+      {
+        "id": "pending-receipt",
+        "observed": "Pending receipt left no checkpoint data published."
+      },
+      {
+        "id": "missing-pin",
+        "observed": "Missing original dependency pin left no checkpoint data published."
+      },
+      {
+        "id": "historical",
+        "observed": "Revision8 clearly labeled historical; supplied current revision9. The recorded guard time was expressly not a current freshness guarantee."
+      },
+      {
+        "id": "foreign-owner",
+        "observed": "Synthetic foreign owner cleared checkpoint data and refused publication."
+      },
+      {
+        "id": "signed-out-scope",
+        "observed": "Synthetic signed-out scope removed the private view and reported no scoped checkpoint selected."
+      },
+      {
+        "id": "two-windows",
+        "observed": "Pure2-window fixture displayed revision36/generation2 and current accounts; cumulative completed-window history explicitly unavailable, not fabricated from generation."
+      },
+      {
+        "id": "real-fixture-logout",
+        "observed": "Actual header Sign Out retired fake Alice session and navigated to login."
+      }
+    ],
+    "checked_console_errors_and_warnings": [],
+    "date_utc": "2026-10-13",
+    "fixture_cookie_host_unique": true,
+    "fixture_tab_closed": true,
+    "limits": [
+      "Scope controls are synthetic props; no authenticated database-reader or AuthProvider-to-native-inspector join is accepted.",
+      "Two-window and held-position records are pure synthetic demonstrations; only the explicitly labeled native-lab record preserves a real owned laboratory readback.",
+      "Original bytes/hash verification is not independent semantic validation, provider authenticity, history completeness, lease restoration or runtime authority.",
+      "No screenshot artifact, download, native API, hosted worker, cloud mutation or provider operation is claimed."
+    ],
+    "scope": "Actual Next production build and React publication from public original-wire fixtures; synthetic supplied owner/scope bindings, not an authenticated native reader."
+  },
+  "scope": "actual Next production build, React, AuthProvider and Supabase SDK against owned synthetic loopback services",
+  "final_source_export_followup": {
+    "application_commit": "897ec2ad369d82ccef80b05a4bbd475f630a1a3b",
+    "date_utc": "2026-10-13",
+    "scope": "Actual final-source production build using owned fake loopback backend, unique cookie hostname and real form/SDK/SSR login; export artifact acceptance remains unresolved.",
+    "fixture_owner": "b699e38a-c703-4e63-be86-c7738b249a3d",
+    "source_copy_proof": {
+      "tracked_inputs": 153,
+      "byte_equal_nonoverridden_inputs": 152,
+      "explicit_test_override": "next.config.ts",
+      "nonoverridden_aggregate_sha256": "0c6198c70392cda0d4dc8d3349c1cfe7974aa82c569b10dd93cd2a4d37658a06",
+      "mismatches": []
+    },
+    "observations": [
+      {
+        "id": "final-source-login",
+        "observed": "Actual form login and Nestegg page admitted fake Alice plan1 with currentSavings10000; walkthrough Skip exposed actual export menu."
+      },
+      {
+        "id": "csv-artifact-unresolved",
+        "accepted": false,
+        "observed": "Download CSV click displayed Download started. Concurrent registered15s download wait and click returned no download artifact; no file-content acceptance claimed."
+      },
+      {
+        "id": "print-artifact-unresolved",
+        "accepted": false,
+        "observed": "Print / Save as PDF click displayed Print dialog opened success message, but no report tab or print dialog was observable. NEST-07 remains open; success toast is not acceptance."
+      },
+      {
+        "id": "final-source-signout",
+        "observed": "Actual header Sign Out keyboard activation retired fake Alice, removed private Nestegg view and navigated to the real login form."
+      }
+    ],
+    "checked_console_errors_and_warnings": [],
+    "fixture_tab_closed": true,
+    "owned_launcher_exit_code": 0,
+    "limits": [
+      "No downloaded-file/PDF/print-dialog acceptance.",
+      "No cloud/provider/native-reader/worker mutation or operation.",
+      "Source-copy equality applies to this final897ec2a follow-up; it does not rewrite prior360f5b1/a367be5 observations."
+    ]
+  }
+}

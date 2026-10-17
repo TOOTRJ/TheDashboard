@@ -1,0 +1,215 @@
+{
+  "accepted_metadata_observations": [
+    {
+      "candidate_repository": "docker.io/supabase/postgres",
+      "candidate_tag": "17.6.1.095",
+      "canonical_fixture_tag": "public.ecr.aws/supabase/postgres:17.6.1.095",
+      "comparisons": {
+        "calculated_config_hash_equals_independent_original_config": true,
+        "calculated_manifest_hash_equals_independent_original_manifest": true,
+        "config_byte_count_equals_original_manifest_descriptor": true,
+        "config_is_linux_amd64": true,
+        "manifest_config_descriptor_equals_independent_original_config": true,
+        "manifest_header_equals_calculated_manifest_hash": true,
+        "tag_amd64_descriptor_equals_independent_original_manifest": true
+      },
+      "elapsed_seconds": 1.487502,
+      "original_config": {
+        "bytes": 13529,
+        "platform": {
+          "architecture": "amd64",
+          "os": "linux"
+        },
+        "raw_sha256": "sha256:972aabc75779f6e535f87e1669f36edbab02cdf8bf3f47d13579963c119adefb",
+        "rootfs_diff_id_count": 29,
+        "rootfs_type": "layers",
+        "status_after_redirect": 200,
+        "url": "https://registry-1.docker.io/v2/supabase/postgres/blobs/sha256:972aabc75779f6e535f87e1669f36edbab02cdf8bf3f47d13579963c119adefb"
+      },
+      "original_manifest": {
+        "bytes": 5775,
+        "config_descriptor": {
+          "digest": "sha256:972aabc75779f6e535f87e1669f36edbab02cdf8bf3f47d13579963c119adefb",
+          "mediaType": "application/vnd.oci.image.config.v1+json",
+          "size": 13529
+        },
+        "docker_content_digest": "sha256:4c087262afbfbb47da86e2863a52d7e424eb21ab589f732d77eeaab51be8e521",
+        "layer_descriptor_count": 29,
+        "raw_sha256": "sha256:4c087262afbfbb47da86e2863a52d7e424eb21ab589f732d77eeaab51be8e521",
+        "status": 200,
+        "url": "https://registry-1.docker.io/v2/supabase/postgres/manifests/sha256:4c087262afbfbb47da86e2863a52d7e424eb21ab589f732d77eeaab51be8e521"
+      },
+      "registry_api_repository": "supabase/postgres",
+      "tag": {
+        "bytes": 1609,
+        "docker_content_digest": "sha256:965e2dfb5a23a0d6541b6106541e777b303656ebabd4e878746b189d550c0a66",
+        "raw_sha256": "sha256:965e2dfb5a23a0d6541b6106541e777b303656ebabd4e878746b189d550c0a66",
+        "status": 200,
+        "unique_linux_amd64_descriptor": {
+          "digest": "sha256:4c087262afbfbb47da86e2863a52d7e424eb21ab589f732d77eeaab51be8e521",
+          "platform": {
+            "architecture": "amd64",
+            "os": "linux"
+          },
+          "size": 5775
+        }
+      }
+    },
+    {
+      "candidate_repository": "docker.io/postgrest/postgrest",
+      "candidate_tag": "v14.5",
+      "canonical_fixture_tag": "public.ecr.aws/supabase/postgrest:v14.5",
+      "comparisons": {
+        "calculated_config_hash_equals_independent_original_config": true,
+        "calculated_manifest_hash_equals_independent_original_manifest": true,
+        "config_byte_count_equals_original_manifest_descriptor": true,
+        "config_is_linux_amd64": true,
+        "manifest_config_descriptor_equals_independent_original_config": true,
+        "manifest_header_equals_calculated_manifest_hash": true,
+        "tag_amd64_descriptor_equals_independent_original_manifest": true
+      },
+      "elapsed_seconds": 1.450029,
+      "original_config": {
+        "bytes": 485,
+        "platform": {
+          "architecture": "amd64",
+          "os": "linux"
+        },
+        "raw_sha256": "sha256:af0a6dad76305650c215449d905a124ae5ad3bcd0f04c01845a0cea17d4e0960",
+        "rootfs_diff_id_count": 1,
+        "rootfs_type": "layers",
+        "status_after_redirect": 200,
+        "url": "https://registry-1.docker.io/v2/postgrest/postgrest/blobs/sha256:af0a6dad76305650c215449d905a124ae5ad3bcd0f04c01845a0cea17d4e0960"
+      },
+      "original_manifest": {
+        "bytes": 527,
+        "config_descriptor": {
+          "digest": "sha256:af0a6dad76305650c215449d905a124ae5ad3bcd0f04c01845a0cea17d4e0960",
+          "mediaType": "application/vnd.docker.container.image.v1+json",
+          "size": 485
+        },
+        "docker_content_digest": "sha256:bb289d00570b569525e1e22fb77c49cd17c17ca3f41da9ee2b4351a35027551b",
+        "layer_descriptor_count": 1,
+        "raw_sha256": "sha256:bb289d00570b569525e1e22fb77c49cd17c17ca3f41da9ee2b4351a35027551b",
+        "status": 200,
+        "url": "https://registry-1.docker.io/v2/postgrest/postgrest/manifests/sha256:bb289d00570b569525e1e22fb77c49cd17c17ca3f41da9ee2b4351a35027551b"
+      },
+      "registry_api_repository": "postgrest/postgrest",
+      "tag": {
+        "bytes": 1137,
+        "docker_content_digest": "sha256:b574528fe109c8343c1247155734d03df8c34b462f342dca0ccc20244fc36ef9",
+        "raw_sha256": "sha256:b574528fe109c8343c1247155734d03df8c34b462f342dca0ccc20244fc36ef9",
+        "status": 200,
+        "unique_linux_amd64_descriptor": {
+          "digest": "sha256:bb289d00570b569525e1e22fb77c49cd17c17ca3f41da9ee2b4351a35027551b",
+          "platform": {
+            "architecture": "amd64",
+            "os": "linux"
+          },
+          "size": 527
+        }
+      }
+    }
+  ],
+  "evidence_scope": "Public registry manifest and image-config HTTP metadata only; original bytes were hashed in memory and only the selected safe facts were retained.",
+  "format": "dashboard-ci-official-image-mirror-metadata-v1",
+  "independent_original_pins": {
+    "comparison_rule": "Manifest/config constants were held independently before the registry requests. Equalities below compare calculated raw-byte hashes to those constants, not to values declared by the candidate tag.",
+    "python_pin_unchanged_and_not_requeried": {
+      "config": "sha256:febd0be41adb897a0ab8f1f1c693d8912669ea60c4940e076e9946b60e210ef0",
+      "digest_repositories": [
+        "docker.io/library/python",
+        "library/python",
+        "python"
+      ],
+      "manifest": "sha256:1aaa65a85fda306ffb8b910824d4e93bdce61e212c7e87168123ea3073b41a1a",
+      "repository": "docker.io/library/python",
+      "tag": "python:3.12.14-slim-bookworm"
+    },
+    "requested_pin_values": [
+      {
+        "config": "sha256:972aabc75779f6e535f87e1669f36edbab02cdf8bf3f47d13579963c119adefb",
+        "manifest": "sha256:4c087262afbfbb47da86e2863a52d7e424eb21ab589f732d77eeaab51be8e521",
+        "repository": "public.ecr.aws/supabase/postgres",
+        "tag": "public.ecr.aws/supabase/postgres:17.6.1.095"
+      },
+      {
+        "config": "sha256:af0a6dad76305650c215449d905a124ae5ad3bcd0f04c01845a0cea17d4e0960",
+        "manifest": "sha256:bb289d00570b569525e1e22fb77c49cd17c17ca3f41da9ee2b4351a35027551b",
+        "repository": "public.ecr.aws/supabase/postgrest",
+        "tag": "public.ecr.aws/supabase/postgrest:v14.5"
+      }
+    ],
+    "source_path": "scripts/check-ci-images.py",
+    "source_sha256_before_mirror_implementation": "1d28e16d3db54c5ed5f709c872f0e0b6470e2c85a2a9cdda8d02b2618efc3d5f"
+  },
+  "limits": [
+    "No Docker command, daemon request, image pull, layer download, image load, tag mutation, container, push, cloud project mutation or credential/configuration change was performed.",
+    "No raw config JSON/Env, token, Authorization header, signed redirect URL or application credential is included.",
+    "This records actual selected observations and in-memory hash comparisons; original manifest/config bodies and exact per-request timestamps were not archived.",
+    "The raw manifest hash binds its original config/layer descriptors, but compressed layers and their decompressed DiffIDs were not downloaded or revalidated here.",
+    "Tag resolution is a point-in-time observation. Proposed fallback must pull the independently held original platform digest, not trust the mutable tag.",
+    "Registry metadata availability does not prove GitHub-runner availability, actual Docker pull success, post-pull RepoDigests or native SQL acceptance.",
+    "This evidence authorizes no fixture selection or fallback by itself. Implementation and an actual CI run require separate review."
+  ],
+  "observed_on": "2026-10-16",
+  "official_publisher_sources": [
+    {
+      "interpretation": "Supabase itself references these Docker Hub publisher namespaces. These newer Compose versions were not adopted; the original pinned versions remain unchanged.",
+      "observed_references": [
+        "supabase/postgres:17.6.1.136",
+        "postgrest/postgrest:v14.18"
+      ],
+      "url": "https://raw.githubusercontent.com/supabase/supabase/master/docker/docker-compose.yml"
+    },
+    {
+      "interpretation": "Official Supabase version history explicitly references the requested upstream PostgREST publisher and tag.",
+      "observed_entry": "2026-02-16: postgrest/postgrest:v14.5 (prev postgrest/postgrest:v14.3)",
+      "url": "https://github.com/supabase/supabase/blob/master/docker/versions.md"
+    },
+    {
+      "interpretation": "Publisher documentation, not proof that any candidate manifest equals the project pin.",
+      "observed_reference": "Supabase Docker Hub and the official Compose/version history",
+      "url": "https://supabase.com/docs/guides/self-hosting/docker"
+    }
+  ],
+  "rejected_metadata_observations": [
+    {
+      "anonymous_initial_status": 401,
+      "anonymous_token_status": 200,
+      "authenticated_anonymous_tag_status": 404,
+      "candidate_repository": "docker.io/supabase/postgrest",
+      "candidate_tag": "v14.5",
+      "challenge_validated": true,
+      "elapsed_seconds": 0.772194,
+      "reason": "Requested tag unavailable; this candidate is not an accepted mirror. The 404 does not establish that every tag or the repository is nonexistent.",
+      "url": "https://registry-1.docker.io/v2/supabase/postgrest/manifests/v14.5"
+    }
+  ],
+  "request_handling": {
+    "anonymous_initial_status": 401,
+    "anonymous_jwt_kept_only_in_memory": true,
+    "anonymous_token_status": 200,
+    "authorization_forwarded_to_config_redirect": false,
+    "challenge_values_validated": true,
+    "config_redirect_host": "production.cloudfront.docker.com",
+    "exact_challenge_realm": "https://auth.docker.io/token",
+    "exact_challenge_scopes": [
+      "repository:supabase/postgres:pull",
+      "repository:supabase/postgrest:pull",
+      "repository:postgrest/postgrest:pull"
+    ],
+    "exact_challenge_service": "registry.docker.io",
+    "individual_response_byte_cap": 1048576,
+    "inherited_key_logging_disabled_by_empty_child_environment": true,
+    "jwt_or_authorization_value_published": false,
+    "private_credentials_or_shared_docker_configuration_used": false,
+    "proxy_inheritance_disabled": true,
+    "registry_origin": "https://registry-1.docker.io",
+    "request_timeout_seconds": 15,
+    "signed_redirect_urls_published": false,
+    "tls_minimum": "TLSv1.2",
+    "verified_tls_with_hostname_checking": true
+  },
+  "timestamp_scope": "Observation date is the task date. Exact per-request wall timestamps were not retained; no timestamp has been reconstructed."
+}

@@ -1,0 +1,47 @@
+{
+  "format": "nestegg-calendar-units-reproduction-v1",
+  "date": "2026-10-13",
+  "sources": {
+    "constants.ts": "012c7707f0039c92e2c471f8986c42002e106b37a7032e545716c9e193d19b6c",
+    "projections.ts": "9f8e1308d79e7cdd5b7803dca18da00eda42a1a0fb198896ca016702cc998e1b",
+    "retirement-cashflow.ts": "ffe5425dcb2e60c170fec7298415a57c826510870f1cdaa6f41dd54bfb088b4e",
+    "monte-carlo.ts": "89f501ebbf6e2e61b46465bfc95b9578b2521363233f8190a8b116bc23ce9f70",
+    "rmd.ts": "e162567d7caf22bf952fdbfcf307893a724ff3a8ca8a8356ff430eb2900dbe7d"
+  },
+  "cases": [
+    {
+      "name": "asymmetric-couple-horizon",
+      "primaryCurrentAge": 60,
+      "spouseCurrentAge": 40,
+      "primaryEndAge": 90,
+      "spouseEndAge": 90,
+      "currentPrimaryAxisEnd": 90,
+      "currentProjectedMonths": 360,
+      "independentRequiredElapsedMonths": 600,
+      "independentPrimaryAxisEnd": 110
+    },
+    {
+      "name": "today-dollar-first-retirement-month",
+      "month": 361,
+      "currentSpend": 5000,
+      "todayDollars": 5000,
+      "annualInflation": 0.025,
+      "yearsUntilRetirement": 30,
+      "independentSpendAt30Years": 10487.83789540893
+    },
+    {
+      "name": "zero-return-minimum-clamp",
+      "inputAnnualReturnPercent": 0,
+      "monthlyContribution": 0,
+      "initialSavings": 100000,
+      "currentEndOfYearSavings": 100500,
+      "independentNoReturnEndSavings": 100000
+    }
+  ],
+  "limitations": [
+    "Exact current formulas replayed without edits.",
+    "Independent elapsed-horizon arithmetic and constant-inflation example only.",
+    "No calibrated returns, taxes, mortality, benefits or personal-account data.",
+    "Not a model-change acceptance or empirical retirement probability."
+  ]
+}

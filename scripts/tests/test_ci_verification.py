@@ -144,6 +144,38 @@ print("fixed child environment passed")'''
             with self.subTest(change=change), self.assertRaises(ValueError):
                 images.verify_image({**metadata, **change}, pin)
 
+    def test_exact_mirror_identity_requires_the_selected_verified_repository(self):
+        self.assertEqual(images.MIRRORS, {
+            "public.ecr.aws/supabase/postgres": {
+                "repository": "docker.io/supabase/postgres",
+                "digest_repositories": ("docker.io/supabase/postgres", "supabase/postgres"),
+            },
+            "public.ecr.aws/supabase/postgrest": {
+                "repository": "docker.io/postgrest/postgrest",
+                "digest_repositories": ("docker.io/postgrest/postgrest", "postgrest/postgrest"),
+            },
+        })
+        for pin in images.PINS[:2]:
+            mirror = images.MIRRORS[pin["repository"]]
+            for alias in mirror["digest_repositories"]:
+                metadata = {"Id": pin["config"], "Architecture": "amd64", "Os": "linux",
+                            "RepoDigests": [alias + "@" + pin["manifest"]]}
+                images.verify_image(metadata, pin, mirror["repository"])
+                images.verify_image({**metadata, "Id": pin["manifest"]}, pin, mirror["repository"])
+                with self.assertRaises(ValueError):
+                    images.verify_image(metadata, pin)
+                for change in ({"Architecture": "arm64"}, {"Os": "windows"}, {"RepoDigests": []},
+                               {"Id": "sha256:" + "0" * 64},
+                               {"RepoDigests": [alias + "@sha256:" + "0" * 64]},
+                               {"RepoDigests": [pin["repository"] + "@" + pin["manifest"]]},
+                               {"RepoDigests": ["docker.io/supabase/postgrest@" + pin["manifest"]]},
+                               {"RepoDigests": ["foreign.invalid/postgres@" + pin["manifest"]]}):
+                    with self.subTest(pin=pin["repository"], alias=alias, change=change), self.assertRaises(ValueError):
+                        images.verify_image({**metadata, **change}, pin, mirror["repository"])
+                for unreviewed in ("docker.io/supabase/postgrest", "docker.io/attacker/postgres", alias.removeprefix("docker.io/")):
+                    with self.subTest(source=unreviewed), self.assertRaises(ValueError):
+                        images.verify_image(metadata, pin, unreviewed)
+
     def test_fixture_pins_match_the_reviewed_platform_registry_evidence(self):
         evidence = json.loads((SCRIPTS / "check-ci-images-evidence.json").read_text())
         self.assertEqual(evidence["checked"], "2026-10-12")
@@ -291,6 +323,18 @@ print("fixed child environment passed")'''
         mutation = copy.deepcopy(original); mutation["jobs"]["frontend"]["strategy"] = policy.WORKER_STRATEGY
         with self.assertRaises(ValueError): policy.validate_workflow(yaml.safe_dump(mutation))
 
+    def test_postgres_concurrency_is_exactly_four_without_removing_any_required_shard(self):
+        original = yaml.safe_load(policy.WORKFLOW.read_text())
+        expected = {"fail-fast": False, "max-parallel": 4, "matrix": {"shard": [1, 2, 3, 4]}}
+        self.assertEqual(policy.POSTGRES_STRATEGY, expected)
+        self.assertEqual(original["jobs"]["postgres"]["strategy"], expected)
+        policy.validate_workflow(yaml.safe_dump(original))
+        for parallel in (0, 1, 2, 3, 8, False, True, 4.0, "4"):
+            mutation = copy.deepcopy(original)
+            mutation["jobs"]["postgres"]["strategy"]["max-parallel"] = parallel
+            with self.subTest(parallel=parallel), self.assertRaises(ValueError):
+                policy.validate_workflow(yaml.safe_dump(mutation))
+
     def test_required_postgres_matrix_keeps_every_shard_and_explicit_integration_authority(self):
         original = yaml.safe_load(policy.WORKFLOW.read_text())
         for strategy in (
@@ -310,6 +354,32 @@ print("fixed child environment passed")'''
             mutation = copy.deepcopy(original)
             mutation["jobs"]["postgres"]["steps"][-1]["env"] = changed
             with self.subTest(env=changed), self.assertRaises(ValueError):
+                policy.validate_workflow(yaml.safe_dump(mutation))
+
+    def test_image_preparation_shard_environment_is_exact_step_scoped_and_cannot_bypass_setup(self):
+        original = yaml.safe_load(policy.WORKFLOW.read_text())
+        policy.validate_workflow(yaml.safe_dump(original))
+        image = next(step for step in original['jobs']['postgres']['steps'] if step.get('name') == policy.IMAGE_PREP_STEP)
+        self.assertEqual(image['env'], policy.WORKER_SHARD_ENV)
+        self.assertEqual(image['run'], policy.IMAGE_PREP_COMMAND)
+        for environment in (None, {}, {'DASHBOARD_TEST_SHARD': '1'},
+                            {'DASHBOARD_TEST_SHARD': '${{ github.event.inputs.shard }}'},
+                            {**policy.WORKER_SHARD_ENV, 'DOCKER_CONFIG': '/shared/docker'},
+                            {**policy.WORKER_SHARD_ENV, 'SUPABASE_SERVICE_ROLE_KEY': 'never-copy'}):
+            mutation = copy.deepcopy(original)
+            step = next(step for step in mutation['jobs']['postgres']['steps'] if step.get('name') == policy.IMAGE_PREP_STEP)
+            if environment is None: step.pop('env')
+            else: step['env'] = environment
+            with self.subTest(environment=environment), self.assertRaises(ValueError):
+                policy.validate_workflow(yaml.safe_dump(mutation))
+        for change in ('delete', 'duplicate', 'after-integration', 'renamed'):
+            mutation = copy.deepcopy(original); steps = mutation['jobs']['postgres']['steps']
+            step = next(step for step in steps if step.get('name') == policy.IMAGE_PREP_STEP)
+            if change == 'delete': steps.remove(step)
+            elif change == 'duplicate': steps.insert(steps.index(step), copy.deepcopy(step))
+            elif change == 'after-integration': steps.remove(step); steps.append(step)
+            else: step['name'] = 'Unreviewed preparation'
+            with self.subTest(change=change), self.assertRaises(ValueError):
                 policy.validate_workflow(yaml.safe_dump(mutation))
 
     def test_native_wheel_preparation_and_exact_owned_execution_path_cannot_be_removed_or_misplaced(self):

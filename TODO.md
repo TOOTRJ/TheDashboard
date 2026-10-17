@@ -1,14 +1,94 @@
 # Dashboard audit and implementation backlog
 
-## Current execution plan — reviewed 2026-10-12
+## Current execution plan — reviewed 2026-10-16
+
+**October16 immediate release:** the October14 Next advisories are published.
+Next/config16.3.8 are replaced locally by exact16.4.2 with matching compiler/
+lint dependencies; direct React/DOM/Is19.2.8 remain compatible and unchanged.
+The updated audit has zero production findings and the same five development
+entries for unpatched braces, with October26 exception expiry unchanged.
+New compiler findings remain visible as warnings only for their observed14 legacy files /16 rule-file pairs; QA-01C tracks removal. Full332 frontend cases,
+TypeScript and isolated production build pass. Browser and release gates remain.
+
+The two-way concurrency experiment does not resolve ECR quota: actual
+run38979594404 at e004800 has SQL1/3 preparation failures. Before supersession,
+frontend and ordinary2 pass; ordinary1 and SQL2/4 are still running. Those
+unfinished jobs are not accepted results. The reviewed repair uses official
+Docker Hub mirrors serving the exact original manifest/config bytes, only
+after a classified ECR rate limit, within five total attempts and one shared
+240-second pull budget. Original four-way SQL scheduling is restored; all
+four shards, image identities, assertions and timeouts remain mandatory.
+All106 focused CI checks and workflow validation pass. Archive delivery is
+deferred. A complete new-head seven-job run decides release acceptance.
+PR104 release precedes the separate app release. [Mirror evidence](CI-IMAGE-MIRRORS-2026-10-16.md).
+
+**Current fixture correction:** completed run38981368987 at6695010 finishes38m16s
+with six passing jobs. SQL4 fails one retired-ID assertion after successful
+original-pair admission; all four image preparations pass. A missing current-
+warm-history precondition is repaired only in the synthetic fixture, with one
+bounded pre-bootstrap wait and stronger retirement/reuse assertions. Seven pure
+regressions and all five actual local ARM native cases pass (55.722s, zero skips).
+SQL discovery retains602 occurrences/54 baseline repetitions; ordinary discovery
+is2475 across1045/1430. These are local proof and discovery, not new-head hosted
+acceptance. Production model/SQL/source5/lease60/future2/SQL2400 limits are unchanged.
+A complete seven-job run on the repaired head still precedes merge and release.
+[Fixture repair and evidence](services/vonneumann/RESTORATION-FIXTURE-WINDOW-REPAIR.md).
+October13 notes below retain their original observations and limits.
+
+**Latest ordered checkpoint — 2026-10-13:** PR104 head
+`81474c1f9b65ac0defe0da4a1c061aa88c417561` is pushed and its exact Dashboard
+preview is READY. [Run38464960221](https://github.com/TOOTRJ/TheDashboard/actions/runs/38464960221)
+finishes35m2s with six passing jobs; SQL4 fails all five bounded original-pin
+image pulls in preparation and executes zero SQL cases. No merge or rerun.
+The pull coordination passes its mock checks but cannot resolve persistent
+registry quota. The immediate release task is the smallest reviewed image
+delivery repair that preserves the original immutable images and every required
+SQL case/deadline. The closed runtime-content archive verifier passes34 pure
+checks, and one cached ARM export has been measured, but neither proves an
+amd64 consumer load or a working same-run artifact path. Choose and prove that
+path before another complete CI run; do not broaden the implementation batch
+or retry unchanged CI for a green result.
+
+In parallel, the final separate app source `c029931` passes379 frontend cases,
+zero skips, plus rebuilt desktop/mobile synthetic browser checks. Home/Analytics
+are labeled samples; unsupported profile/wallet/key/export/backtest actions
+explain their unavailable state. A real stuck-dialog defect is repaired, and
+Enter/Space/Escape/Close restore the original button focus with a static outline.
+The source-bound receipt is committed in local app branch `5690e6f`; release
+composition with the eventual accepted CI base remains open. The old installation
+timeout/ECONNRESET and partial dialog failures remain dated evidence.
+
+Worker TLS+source and model+parser joins are committed locally as
+`028d39c`/`7cdecab`, with308 combined scoped checks,20 model checks and16 actual
+parser SQL checks. The complete composed ordinary shards now execute2,005
+cases with zero unexpected skips, recorded in local commit`7f12b34`. The first
+launch omitted Node from PATH; that failed launch remains recorded alongside
+the successful complete correction. The separate B1 actor/catalog prototype
+passes14 actual owned PostgreSQL cases and is committed locally as`05fa535`.
+Its first setup error remains recorded. This is actor-only local acceptance;
+CI fixture portability and clock/epoch/original-ID/journal/reader joins stay open.
+An unused whole-year household calendar contract is also committed locally
+as`4e03074` with four hand-worked fixtures; it changes no Nestegg calculation.
+
+Current dependency order: CI content/transport acceptance → PR104 release →
+separate app/API release and reviewed table baseline/grants; in parallel,
+accepted composed worker tests and local actor/catalog proof → trusted clock/epoch/ID/
+journal bindings → operator/restore/retention/UI joins → closed hosted package
+→ bounded faults/windows → sustained resource/quota/cost acceptance. Nestegg
+shared calendar/ledger integration follows its explicit units contract. Keep
+Railway closed and the two EMA genes; no extra user setup is needed for these
+offline steps. The October14 security response and deeper empirical/cost/
+capacity/calibration research remain required. API baseline/controller work
+is prepared but paused until the CI and app release blockers are resolved;
+no proposed catalog controller or privilege migration has been executed.
 
 **Implementation follow-up:** SEC-05A's compatible source-map-js repair and exact
 expiring development exception are implemented; production audit is now clean.
 The original findings below describe the pre-repair review. October14 security
 response remains open. TYPE1 is also repaired with unchanged canonical wires;
-complete independent v2 SQL is next. Privacy/CI progress is recorded with each
+the corrected independent original-v2 SQL laboratory now passes 38 actual PostgreSQL cases; bounded native/restoration/retention laboratory joins also pass, while production-profile joins remain open. Privacy/CI progress is recorded with each
 reviewed implementation section. NEST-06A account/session isolation is now implemented;
-QA-01B real browser acceptance and NEST-05A same-account result identity remain open.
+NEST-05A result identity and same-account reply ordering are implemented locally and pass controlled plus real synthetic-browser cases. Their release review is pending; broader QA-01B remains open.
 QA-01A is now complete within its automated verification scope. PR102's exact
 head `cbdc5d010f1f2e37ca50ca7d4528e8f85149e153` passes all seven hosted jobs in
 [run38326660837](https://github.com/TOOTRJ/TheDashboard/actions/runs/38326660837):
@@ -30,20 +110,18 @@ Checked items retain their bounded acceptance scope; an open parent is a rollup
 of remaining gates, not a second implementation job. Do not treat checkbox
 counts as a completion percentage.
 
-**Verified implementation baseline:** PR99–PR102 are merged; the accepted CI
-merge is `58808efaf2c025ea865f7429723599081edae491`. PR96/97 and their
+**Verified implementation baseline:** PR99–PR103 are merged; the last verified
+production source is `92d3d4313e4a8648a0d65bebd41b5029b55826be`. PR102's accepted
+CI merge is `58808efaf2c025ea865f7429723599081edae491`. PR96/97 and their
 `67cff30e82d6847a6d1b3f03276308646e8083a4` main snapshot are historical. The original hosted
 owner hour at revision 514 is accepted (504 prices, one replacement, two closed
 trades, eight children, 32 acknowledged events). Railway is provisioned and
 restored to ordinary closed mode. This proves finite zero-cost mechanics, not
 continuous operation, restart restoration, realistic execution or profitability.
 Portable v2 model/partition/transport and the mutation primitive exist offline;
-complete independent v2 SQL, native admission and restoration do not.
+complete independent original-v2 SQL and guarded native laboratory admission are now implemented locally. Explicit decoder/restoration and retention inventory experiments are implemented; actual native restoration joins, retained storage measurements and an inert new inspector now pass locally. Authenticated reader and real-provider hosted joins remain separate acceptance gates.
 
-**Remaining review blockers:** complete independent v2 SQL semantics and native
-admission/restoration remain unfinished; Nestegg can mix old simulation results
-with current inputs, and several dashboard actions still report unsupported
-success. The review's bool/int alias, account-draft leak and compatible production
+**Remaining review blockers:** the new offline SQL/native/restoration slices need their composed release checks and production-profile joins. The Nestegg stale-result defect is repaired locally; several other dashboard actions still report unsupported success. The review's bool/int alias, account-draft leak and compatible production
 dependency advisory are repaired in PR99–PR101. The advisory gate now requires
 zero production findings and only the exact expiring development exception.
 SEC-05B still tracks the announced October 14 Next security response; inspect the
@@ -54,9 +132,11 @@ and realistic trading/data evaluation remain separate open gates.
 | --- | --- | --- |
 | P0 access boundary, every remote operation | Before the operation; serialize cloud writes | Exact GitHub/Vercel/Supabase/Railway project and owner verification; preserve shared credentials/other projects. Preview still shares production DB values, so initial tests stay offline. |
 | P1 security and QA, start now | Parallel with the worker and app lanes; release joins require their relevant checks | SEC-05B October 14 response and QA-01B real browser coverage; SEC-05A and QA-01A are complete within their recorded scope. No forced Next 14 downgrade. |
+| P1 provider transport privacy | Before new hosted credential-bearing I/O; implement alongside the prospective recorder | SEC-06: explicit verified TLS contexts that ignore inherited key-log/CA/proxy settings, and owned request-log suppression with concurrency/cleanup proofs. Cover legacy HTTPX/aiohttp paths as well as the new recorder; preserve shared environment and unrelated logging. |
 | P1 worker step1 — complete | Rejection-only repair verified before the next SQL gate | PAPER-COMPACT-TYPE1: exact policy types for v2; decide legacy v1 compatibility; adversarial rehash tests. Freeze corrected model/config/operator/component versions. |
-| P1 worker step2 | After TYPE1; close full semantics before native admission | PAPER-COMPACT-03B3C2B2B: independently validate original complete v2 evidence in SQL, including actual child mutation. Compose prior economics/source/causal/risk/assessment proofs without stripping policy or relabeling versions. |
+| P1 worker step2 — offline proof accepted, release pending | Corrected original-v2 semantics precede native admission | PAPER-COMPACT-03B3C2B2B: independently validate original complete v2 evidence in SQL, including actual child mutation. Compose prior economics/source/causal/risk/assessment proofs without stripping policy or relabeling versions. |
 | P1 worker step3 | After complete v2 semantics | PAPER-COMPACT-03: atomic native journal, dependency pins, original-ID receipt/replay, final source/lease admission, reserved Stop, history/relay/projections, reviewed forward package. Include PAPER-ASSESSMENT-PROVENANCE1 in this format. |
+| P1 forward runtime profile | Freeze after original-v2 proofs, before any real-provider native/hosted join | PAPER-RUNTIME-V3: preserve original synthetic v2 journals; explicitly version real Jupiter acquisition/source/clock/config/model/command/projection/reader contracts. Do not relabel real data as synthetic. |
 | P1 worker step4 | Design/fixtures can overlap step3 after version freeze; final proof needs its durable receipt contract | PAPER-COMPACT-04: independent restoration, exact next-command equivalence, pending original-command reconciliation and retained holdings. Loading a checkpoint grants no running authority. |
 | P1 worker step5 | Retention design/load fixtures can overlap step3/4; safe pruning and final acceptance require their pins/restore proofs | PAPER-COMPACT-05: original receipt lookup, immutable dependency preservation, measured table/index/TOAST/storage budgets, long-history owner reads and relay/Stop safety. No speculative deletion. |
 | P1 native UI compatibility | Mock parser/fixtures after projection draft; final browser/read acceptance joins native package and restoration | PAPER-UI-V2: explicit model/operator/assessment/source versions, multi-window history, correct ancestry and unknown-version states; retain old v5 reader meanings. |
@@ -91,6 +171,130 @@ assumptions. Dashboard is the sole Jupiter consumer in TheOrder per the user;
 organization-wide limits still apply, but no other-application inventory answer
 is pending. Research is a deliverable with evidence and acceptance criteria,
 not a reason to repeat already completed pilot/setup work.
+
+**Prospective source progress — 2026-10-13:** the separate source branch has107
+passing combined offline acquisition/source/metadata/recorded-transport checks.
+It requires915 genuinely observed contiguous minutes for61 sampled15-minute
+closes, original immutable records and independent native admission/seal bindings.
+The separate fresh two-EMA model passes20 focused cases, including two complete
+synthetic cohorts, held Stop, same-package restart, A→B→A epoch refusal and the
+actual-microsecond hour boundary. Reviewed local commits are not yet integrated
+into this release. Native raw-body admission, authenticated epochs/complete
+inventory, restoration and hosted acceptance follow them; the next pure schema
+slice does not issue source or database authority.
+
+**SEC-06 implementation progress:** the separate reviewed local TLS slice has160
+passing scoped cases, including real owned TLS handshakes and cold-import
+inheritance refusal. The new recorder separately suppresses its owned credential-
+bearing request logs. Neither slice is yet integrated/released or accepted in
+the hosted image; keep the SEC-06 parent open through those joins.
+
+**Additional reviewed progress — 2026-10-13:** the pure prospective A1 source
+slice now passes41 scoped cases, with all authority flags false. The independent
+A2A raw parser passes16 actual isolated PostgreSQL cases in5.618s; finite timestamp
+parity and selected maximum-body measurements do not close authenticated native
+admission, worst-case resources or warmup. These remain local research commits.
+Next native work must freeze the complete actor/package/epoch/original-ID,
+terminal-closure, control-journal and trusted reader-availability contracts before
+implementation; the parser alone grants no source or trading authority.
+
+Portfolio session publication and exact owned-row acknowledgment repairs are
+adopted locally asedbf4d55 (51 controlled cases, compiler/lint and fake build).
+Reports/Settings honest previews are adopted as846c00b (five controlled cases,
+compiler/lint and fake build). Their combined real synthetic-browser review and
+complete integrated CI/release remain required. Strategy mock backtests, Home/
+Analytics provenance, header actions and APP-03 input/schema validation remain
+separate next app tasks; no false report or billing completion is accepted.
+
+**SEC-06 research finding:** Python's default TLS context can inherit
+`SSLKEYLOGFILE` even when HTTPX uses `trust_env=False`; the installed aiohttp also
+constructs a default context at import. This is a conditional exposure, not a
+claim that key logging occurred. Before hosted credential-bearing I/O, construct
+verified contexts directly with the pinned CA bundle, hostname/certificate checks,
+TLS≥1.2 and no key logging. Prove fake inherited paths remain untouched in owned
+subprocesses. The new recorder must also prevent private endpoint/header/body
+exposure through HTTPX/httpcore logs, existing filters, custom record factories,
+timeouts and cancellation while preserving unrelated tasks. Deeper measurements
+must establish runtime/CA provenance and complete cleanup/latency behavior.
+[CPython behavior](https://github.com/python/cpython/blob/v3.12.14/Lib/ssl.py),
+[pinned HTTPX](https://github.com/encode/httpx/blob/0.28.1/httpx/_config.py),
+[aiohttp context](https://github.com/aio-libs/aiohttp/blob/v3.14.3/aiohttp/connector.py).
+
+**CI reliability follow-up — 2026-10-13:** after PR104's current restoration and
+whole-module scheduling repairs, add bounded private-safe phase/module timing
+and immutable-image retry diagnostics. Classify registry preparation separately
+from actual SQL deadline failures. A future fixture archive or repository-linked
+mirror must preserve original digests, validate every received blob, hard-fail
+producer/missing/corrupt/cancelled evidence and retain mandatory SQL execution.
+Measure transfer/load tails, byte-hours, cache poisoning/eviction boundaries and
+account entitlements before choosing transport; no new publisher permission,
+shared credential or billing change is implied. Keep the2400-second SQL limit
+and exhaustive occurrences unchanged. [Deep research and ordered CI candidates](services/vonneumann/CI-FIXTURE-RELIABILITY-RESEARCH-2026-10-13.md).
+
+## Five-priority implementation batch — local review, 2026-10-12
+
+**2026-10-13 release follow-up:** PR104 remains open. Its latest completed head
+`c04be4f`/run38444382423 finishes33m57s: frontend, both ordinary groups and SQL1–3
+pass, including both source-lineage corrections. SQL4 fails one original
+restoration decision;237 cases/1472.116s include two allowed timing skips. A
+genuine first receipt only3,545 microseconds into its second spent0.996455s
+waiting for the legacy integral action; this observation supports preparation
+timing investigation, not attribution of the unobserved failed guard clock.
+The reviewed test-only repair paces acquisition before the first designated
+receipt, then preserves that genuine receipt and all five-second/source/lease
+checks. All five native cases pass34.233s locally, including genuine expiry
+rollback and post-COMMIT reconciliation. Require all seven new-head jobs before
+merge; neither a paced fixture nor earlier passes establish runtime tails.
+Preserve all earlier expiry/hash/timeout failures as dated evidence.
+Local proof counts below are bounded historical evidence, not hosted acceptance.
+[Completed runs, repairs and limits](CI-VERIFICATION.md#completed-head-c04be4f-and-pre-acquisition-fixture-pacing--2026-10-13).
+The current readiness overview now reflects PR99–PR104 and separates the
+implemented synthetic/native laboratory from the remaining real-provider joins.
+
+The reviewed immutable factory-owned checkpoint cache is adopted locally as
+`4685741`, preserving all first/untrusted full audits and canonical wires.
+Fourteen dedicated cases include70 pre-change complete wire comparisons;
+16 existing restoration cases also pass. Root's unchanged five native cases
+pass32.342s, zero skips. New2414 ordinary/602 SQL discovery retains all original
+occurrences and54 repeated IDs. Complete next-head hosted CI/release remains
+required; local faster phases do not establish hosted operating tails.
+[Factory ownership and trust limits](services/vonneumann/OWNED-CHECKPOINT-RESOLUTION-CONTRACT.md).
+
+The working `codex/dashboard-five-priorities` branch now contains corrected
+original-v2 independent SQL, NEST-05A identity/cloud-order repairs, a real
+synthetic-browser harness and observed cases, fresh primary-source research,
+guarded native atomic admission, explicit original-wire restoration, and a
+conservative retained-artifact inventory. These are local review commits;
+production remains the previously verified PR103 source until new CI/release
+acceptance is recorded. No migration or worker activation occurred.
+
+The fresh report distinguishes documented policy from measurements and retains
+open data/cost/strategy research: [research](FIVE-PRIORITIES-RESEARCH-2026-10-12.md),
+[paired protocol](services/vonneumann/PAIRED-RESEARCH-CONTRACT.md),
+[commit timing](services/vonneumann/NATIVE-COMMIT-EDGE-RESEARCH.md).
+The actual browser record covers current Nestegg X→Y→X, held SaveA→SelectB,
+active-plan deletion, paper lost acknowledgments/original IDs, incompatible
+contracts/policies and late cross-account history/control replies. Download
+and broad honest-action/authenticated-native/hosted acceptance are not claimed.
+[Browser observations and limits](BROWSER-ACCEPTANCE-2026-10-12.json).
+
+The final native clock package now passes25 actual SQL cases including a bounded
+projection-header regression; a separate genuine-bar probe preserves8 held positions
+at Stop with original replay unchanged. Restoration has16 ordinary and3 actual
+native cases, retained storage is measured without pruning, and the inert inspector
+passes14 controlled plus actual browser cases. Final frontend has271 passing cases.
+These bounded proofs precede authenticated-reader/hosted acceptance.
+
+Continue in order: exact-head seven-job CI and scoped release → forward real-provider
+source/trust/interface freeze → recorded acquisition and model contracts → native
+operator/epoch rollover → exact restoration, measured raw/history/Stop budgets and
+offline owner/API/old-new reader fixtures → reviewed closed package/migration →
+exact-target hosted owner/read/control join → hosted fault/multi-window → longer resource/quota/recovery
+acceptance. [Eight forward gates and parallel work](services/vonneumann/PAPER-RUNTIME-V3-PLAN.md).
+The nine-test closed proposal is not an implemented runtime. Unknown history rights,
+coverage, actual quota behavior and physical growth remain research/measurement gates. The October14 security response still awaits
+published ranges. Whole audit, continuous paper and empirical/live gates remain
+open; checked subproofs must not erase those parents.
 
 ## Historical implementation and release checkpoints
 
@@ -495,7 +699,9 @@ Preflight evidence and remaining setup are tracked in [the access report](CONFIG
 - [ ] **SEC-05 — P1: Repair current dependency advisories and maintain upstream security response.** Next/config remain exact16.3.8; prior September patch installation is complete. The 2026-10-12 full/production npm scans now report six/one high-severity affected package entries, from source-map-js and braces advisories; older zero results are historical. See [current paths and decisions](DEPENDENCY-REVIEW.md). Next/config16.4.0 are now stable, but that release does not establish the upcoming security fixes. Parent stays open for the following leaves and existing ESLint/plugin, HTTPX2, SSR cookie/cache-header and platform-lock maintenance.
 - [x] **SEC-05A — P1: Review and repair the two reported advisory paths.** source-map-js is locked1.2.2; its bounded invalid-offset regression fails1.2.1 and passes the reviewed fix. Exact security snapshot passes183 Node tests, TypeScript, isolated build and zero-error lint; repaired production audit is zero. Five high dev graph entries remain from unpatched braces3.0.3. The exact dev-only path/version exception expires2026-10-26 and is due for October14/upstream re-review; check-advisories rejects changed/new/runtime findings, scanner errors, expiry and malformed/unbounded graphs. This is visible bounded acceptance, not a claim braces is fixed. No Next14 downgrade or global changes. [Current repair/exception](DEPENDENCY-REVIEW.md). ParentSEC-05/05B and broader runtime/tool maintenance remain open.
 
-- [ ] **SEC-05B — P1, due 2026-10-14: Review the announced Next security update as soon as published.** The [October8 official notice](https://nextjs.org/blog/upcoming-nextjs-security-update-october-2026) announces two critical and one high upstream fix; impact/affected versions/instructions are pending. Review the actual advisories and compatible patched Next/config versions, test Auth/proxy/build paths and release to the exact Dashboard project. Do not claim current installed versions are definitely affected or16.4.0 fixes these undisclosed issues. No scheduler/account-wide change is implied by this task.
+- [ ] **SEC-05B — P1, local repair verified; release pending.** The [October14 release](https://nextjs.org/blog/nextjs-security-update-october-14-2026) publishes two critical and one high fix;16.3.8 is affected and16.4.1 is the security minimum. Exact16.4.2 Next/config are implemented with compatible existing React19.2.8. Local332 frontend cases, TypeScript, isolated build and advisory checks pass; fresh Auth/proxy browser and exact-source CI/release remain required. Braces is still unpatched; its exact dev-only exception expiry remains October26. [Current research and repair](DEPENDENCY-REVIEW.md). No scheduler or account-wide changes.
+
+- [ ] **SEC-06 — P1: Integrate and accept isolated credential-bearing HTTP behavior.** Reviewed local TLS commit `b1ab59f4e6d5ae9a134a21235ba9a7f4343332fd` passes160 scoped cases; the new recorded transport's owned logging/TLS/deadline slice passes33 cases within107 combined acquisition/source tests. Integrate each reviewed slice after PR104's release gate, run complete relevant regressions, verify the immutable non-root image and actual pinned CA/runtime/entrypoint, then accept closed hosted credential-bearing I/O before any recorder activation. Preserve other tasks' environment, log filters, credentials and processes. No global context monkeypatch, inherited key-log/CA/proxy fallback, secret-bearing response/log exception, automatic retry or unverified custom record factory. **Deeper research:** complete cold-import paths, cancellation/cleanup tails, logger concurrency and malicious runtime limits, CA maintenance, target-host memory/CPU and secret-safe diagnostics. Local fake-keylog and owned TLS proofs do not establish that a leak occurred or that the hosted image is accepted.
 
 - [x] **RELEASE-01 — Repair this project's Vercel Git deployment authorization.** **Verified in [PR #10](https://github.com/TOOTRJ/TheDashboard/pull/10):** the dedicated credential authenticates as **biggrizzly11** (ID `16749816`), and GitHub attributes both source commit author/committer and the merge to that account. Automatic preview `dpl_99zV4MVWj8Xu312AEvASESgMj28f` is READY on source `d945dcdea7fbc3fffe7dede218ffaab9f740579d`; automatic production `dpl_EqbEvGzqe3RK7CD5mLscyf32SmiQ` is READY on merge `e9045b4f133f81fc75d5552e531c43a6259c3500`, with the production alias independently verified. Login/redirect, unauthenticated 401, authenticated zero-row API read, and a bounded error-log scan pass. Shared GitHub CLI still identifies as RedJester14; global Git/auth, historical commit authors, Vercel team/installation settings, billing, and other projects were unchanged. Historical RedJester14 attempts remain blocked; their history was not rewritten or bypassed. Use the repository-pinned helper and verified local identity for future releases. The limited token cannot read GitHub's combined check-status view; inspect the exact approved Vercel deployment directly instead of broadening permissions. This closes Git deployment authorization only, not worker or trading readiness.
 - [x] **REL-01 — Make failures visible and durable.** Replace swallowed persistence errors and endless log-only tick retries with structured errors, health/degraded/failed states, bounded retry rules, and user-visible outcomes. Preserve data when a read fails; do not turn all query failures into empty-success results. Acceptance: injected DB/feed/startup failures are distinguishable from empty datasets and successful operations, without exposing secrets. **Local completion:** acknowledged owner-scoped writes, finite transport timeouts, per-colony write serialization/cancellation draining, supervised terminal failures, safe provider errors, retained query results/retry, saved terminal diagnostics, and explicit unsaved/reconciliation warnings pass regression tests. Expired price-cache fallback and fabricated zero prices are removed. Automatic write/provider retries are disabled. Deployed readiness/recovery, optional historical-data policy, and candle freshness remain under SVC-02/ENG-02/ENG-03/DATA tasks.
@@ -663,7 +869,7 @@ Research began **2026-09-30** and was updated **2026-10-06/07** in [WORKER-HOSTI
 - [ ] **NEST-06 — Correct plan, portfolio-link, and browser-storage state.** A zero linked portfolio retains old savings; restoring saved plans conflicts with the linked badge; the shared browser draft key can expose one account's plan to another account on the same device. Scope drafts by user, define link/override semantics, and clear or migrate state appropriately. Acceptance: logout/login, zero portfolio, restored plans, and manual overrides show consistent provenance. Sources: [storage](src/lib/nestegg/storage.ts), [Nestegg page](src/app/(dashboard)/nestegg/page.tsx).
 - [x] **NEST-06A — P1: Isolate drafts and asynchronous publication by account/session.** Owner-tagged v2 drafts never claim/read the unowned v1 draft. A keyed opaque login workspace retires private views, hydration/refresh/save/delete/portfolio/autosave/MC/focus replies across account/logout/re-login/Strict Mode replacement. Per-request clients verify current owner/login and bind its original token; owner predicates/RLS remain. Ordinary refresh keeps stable session identity; opaque-token changes conservatively remount without embedding credentials in keys.21 focused cases and204 complete Node cases, TypeScript, zero-error lint and isolated build pass. No real two-user browser acceptance claimed (QA-01B); device storage is scoped, not encrypted. Same-account result identity/calibration and broad NEST-06 remain open. [Contract and limits](NESTEGG-ACCOUNT-ISOLATION.md).
 
-- [ ] **NEST-05A — P1, parallel with the worker SQL lane: Bind all results and exports to their input/model identity.** Retained light/full results can mix with edited inputs during debounce and in charts/cards/insights/comparisons/exports. First slice: capture inputs and tag results with opaque workspace, input/scenario, model/seed policy, purpose/path count and request generation. Require both the existing session guard and current calculation generation for result/progress/error/finally publication; gate every consumer immediately and publish a coherent full-analysis bundle. Saved-row comparisons need their own generation and failure state. Test X→Y, X→Y→X, identical-input overlaps, partial failures and late callbacks; current results or explicit pending/unavailable states must reach every consumer/export. Second slice: separate list-request/workspace-intent generations for refresh/save/select/save-new/rename replies; a captured write may finish, but its late reply must not replace newer inputs, selection, name or dirty baseline. Preserve NEST-06A token/owner/session guards. Controlled regressions precede QA-01B real browser acceptance. These state repairs do not depend on RES-05; distribution/tail/calibration/formula changes remain RES-05/NEST-05.
+- [ ] **NEST-05A — Implemented locally; current release acceptance pending. P1, parallel with the worker SQL lane: Bind all results and exports to their input/model identity.** Retained light/full results can mix with edited inputs during debounce and in charts/cards/insights/comparisons/exports. First slice: capture inputs and tag results with opaque workspace, input/scenario, model/seed policy, purpose/path count and request generation. Require both the existing session guard and current calculation generation for result/progress/error/finally publication; gate every consumer immediately and publish a coherent full-analysis bundle. Saved-row comparisons need their own generation and failure state. Test X→Y, X→Y→X, identical-input overlaps, partial failures and late callbacks; current results or explicit pending/unavailable states must reach every consumer/export. Second slice: separate list-request/workspace-intent generations for refresh/save/select/save-new/rename replies; a captured write may finish, but its late reply must not replace newer inputs, selection, name or dirty baseline. Preserve NEST-06A token/owner/session guards. Controlled regressions precede QA-01B real browser acceptance. These state repairs do not depend on RES-05; distribution/tail/calibration/formula changes remain RES-05/NEST-05.
 - [ ] **NEST-07 — Fix export/print success reporting.** `window.open` with `noopener` can return null, leaving blank output while UI reports success. Generate a reliable export artifact or print path and report actual completion/error. Acceptance: exported values match the current input/result version, and blocked popups/failed rendering cannot produce false success. Sources: [report export](src/lib/nestegg/export-report.ts), [export menu](src/components/nestegg/NesteggExportMenu.tsx).
 
 **Research follow-up — 2026-10-08 finite pilot:** Before continuous paper operation, measure command/journal growth separately from PostgreSQL compressed column bytes and total relation/index/TOAST storage. Database compression does not change the 262,144-byte application/SQL admission checks. A proposed prior-checkpoint reference must preserve one original immutable wire request for replay, verify the same owner/run/revision under the run lock, and independently bound expanded logical validation; the inner v4 model currently has its own capacity rejection. Removing the repeated before-state alone does not bound growing after-state histories, candidate accounts or positions. Investigate active-state versus immutable historical-ledger separation, sealed checkpoint/version ownership, retention pins and verified archive/recovery before deleting any referenced command. Prove lost-reply, rollback, freshness at final commit, retained Stop capacity, corruption rejection and complete source/RNG/account restoration with real offline PostgreSQL tests before proposing a new production contract. Primary sources: [PostgreSQL TOAST](https://www.postgresql.org/docs/17/storage-toast.html), [JSON operations](https://www.postgresql.org/docs/17/functions-json.html). This is a research requirement, not an implemented v6 migration or continuous-operation approval.
@@ -1106,7 +1312,8 @@ Research began **2026-09-30** and was updated **2026-10-06/07** in [WORKER-HOSTI
   Complete original-v2 SQL B2B remains the next worker gate.
 
 
-- [ ] **PAPER-COMPACT-03B3C2B2B — Validate complete portable v2 semantics independently in SQL.**
+- [ ] **PAPER-COMPACT-03B3C2B2B — Offline proof accepted; current release acceptance pending. Validate complete portable v2 semantics independently in SQL.**
+  Corrected laboratory passes38 actual PostgreSQL cases/zero skips and4 ordinary source checks. It independently composes complete original-v2 evidence, accepted priors and actual child mutation; private catalog/type lookup is hardened. [Contract](services/vonneumann/PORTABLE-SQL-CONTRACT.md), [defensive evidence](services/vonneumann/research/portable-sql-defensive-acceptance.json). Historical instructions below explain the original gap; they are not a request to redo this proof.
   Dependency: TYPE1 and frozen corrected model/config/operator/component contract.
   Bind original v2 headers/config/operator/graph/software/counters and canonical
   wire/dependencies; compose economics/source/causal/risk/assessment with actual
@@ -1136,6 +1343,7 @@ Research began **2026-09-30** and was updated **2026-10-06/07** in [WORKER-HOSTI
   v2 wire has no standalone serialized search-spec field to invent or strip.
 
 - [ ] **PAPER-COMPACT-03 — Prepare the reviewed forward SQL/native contract.**
+  Guarded original-v2 native laboratory passes24 final-clock PostgreSQL cases plus1 bounded projection-header regression, zero skips: original-ID replay/readback, atomic journal/13pins/events/projections, scope/ACL/catalog/rollback/refusal and recognized-COMMIT guard freshness. A genuine-bar664.320501s probe retains8 held positions at Stop, and3 original-native restoration joins plus a33-command physical storage experiment pass within their recorded source bounds. These do not install a production package or establish final-visible-instant freshness. Composed release checks, real-provider/native restoration, long-run physical/resource tails and migration/authenticated reader joins remain. [Native contract](services/vonneumann/PORTABLE-NATIVE-CONTRACT.md).
   **Constraint reviewed by03A:** adopt a reviewed stable partition and enforce
   dependency-safe journal retention/rate/Stop budgets before finalization.
   Smaller requests still grow with every accepted command. The old one-window
@@ -1157,8 +1365,14 @@ Research began **2026-09-30** and was updated **2026-10-06/07** in [WORKER-HOSTI
   The research SQL wrapper is not a candidate production migration.
 
 - [ ] **PAPER-COMPACT-04 — Implement and accept explicit checkpoint restoration.**
-  Begin with the reviewed GA-only two-EMA profile. The current optimizer encoder
-  is not a decoder and ExactState remains bootstrap-only. Decode only pinned
+  Original synthetic-v2 restoration is implemented locally with16 ordinary cases
+  and3 actual native joins, including78 full/compact next-command comparisons in
+  the original15-case subset. Final CI and real-provider/hosted restoration remain
+  separate gates; do not repeat those accepted bounded laboratory subproofs as
+  though no decoder exists. [Restoration contract](services/vonneumann/PORTABLE-RESTORATION-CONTRACT.md).
+  Carry the reviewed GA-only two-EMA profile into the new real-provider format.
+  Its old generic optimizer encoder/ExactState path does not provide the new
+  format's decoder or restart proof. Decode only pinned
   allowlisted types/dependencies/policies, preserving RNG, order/aliases,
   cohort genomes/results, source epoch/watermark, indicators, risk, balances and
   pending decisions. Verify the entire next prepared wire against uninterrupted
@@ -1191,6 +1405,8 @@ Research began **2026-09-30** and was updated **2026-10-06/07** in [WORKER-HOSTI
   sensitivity, cross-version comparability and compact immutable assessment
   records. This is required before comparing results across worker-policy changes.
 
+- [ ] **PAPER-RUNTIME-V3 — P1: Freeze an honest real-provider runtime profile before hosting the new engine.** Original portablev2 deliberately pins `synthetic-exact-fixture-v1`; preserve its immutable journals, wires, model/operator/assessment meanings and proofs. Define a coherent forward configuration/model/source/clock/checkpoint/command/SQL/projection/reader contract for retained Jupiter PriceV3 acquisition evidence and licensed contiguous historical warmup. Accept raw publication/hash/decoder provenance, chain/receipt ordering, direct database-time age/future bounds, restart epochs, errors/rate limits and next-command/old-history compatibility. No scalar replacement, future-time fixture advance, lease restoration or original-ID substitution establishes this profile. Then prepare and rehearse the exact-project closed package/migration/rollback before hosted paper activation. **Further deep research:** measure clock/error/quota/resource tails and source-data authenticity limits, with the existing two EMA genes retained.
+
 - [ ] **PAPER-UI-V2 — P1: Join native v2 projection and browser compatibility.**
   Current page version 1/durability 5 readers and ancestry version 2 restart_clone
   semantics retain their meaning; none denotes portable model version 2. Draft
@@ -1209,6 +1425,7 @@ Research began **2026-09-30** and was updated **2026-10-06/07** in [WORKER-HOSTI
 - [ ] **QA-01 — P1: Complete reproducible automated and browser acceptance.** Extensive worker/SQL/Node harnesses, explicit package checks and the secret-free GitHub workflow now exist. QA-01A has actual exact-head acceptance across all seven jobs, including real owned PostgreSQL/PostgREST and nested native TLS/SCRAM contracts. The earlier review counts in [AUDIT-REVIEW-2026-10-12.md](AUDIT-REVIEW-2026-10-12.md) remain dated snapshots. Parent stays open for actual browser/React/end-to-end acceptance and relevant warning cleanup; CI does not prove hosted owner/session or continuous paper operation.
 - [x] **QA-01A — Secret-free CI and explicit local checks, hosted acceptance complete.** PR102 head `cbdc5d010f1f2e37ca50ca7d4528e8f85149e153` passes all seven jobs in run38326660837: frontend Node/types/lint/advisories/fresh fake-configuration build, two exhaustive hash-locked ordinary groups and four required owned PostgreSQL/PostgREST groups. Ordinary discovery retains all2,266 occurrences/54 repeated IDs; 1,733 cases execute and414 opt-in skip records are reported separately. SQL retains all533 occurrences/54 repeated IDs, executes523 outer cases, reports10 allowlisted non-gating measurement skips and passes15 additional inner native-driver cases. No unexpected skips or failures. Read-only checkout, no application secrets/deploy/artifact upload, strict source/coverage hashes, reviewed image pins, owned current-lock native wheels and original child deadlines remain enforced. Merge58808ef has the same tree; exact Dashboard production and four read-only checks pass. No migration or worker activation. [Commands, detailed receipt and limits](CI-VERIFICATION.md); configuration section113.
 - [ ] **QA-01B — P1, parallel fixtures; final join at release: Add actual browser/React acceptance.** Cover A/B account replacement/logout, storage and late replies, Auth routing, honest actions, old/new paper views and original-ID controls. Current VM/custom-hook tests are useful regression checks, not actual browser/React/Auth/TLS/native acceptance. Use mocked/offline fixtures first; hosted checks require exact targets and a reviewed write-safe plan.
+- [ ] **QA-01C — Remove the legacy React compiler warning baseline.** Next16.4.2's lint preset newly reports48 findings across14 existing files:18 set-state-in-effect,2 immutability and28 refs. They remain enabled as warnings only for observed file/rule pairs. Prioritize PaperDashboard's nonreactive render-time ref reads before continuous hosted paper acceptance, preserving fresh handler/session/target and cancellation guards. Review state/effect findings alongside app repairs; remove each override after appropriate regression/browser acceptance. This is visible migration debt, not fixed findings or a per-occurrence freeze.
 
 - [ ] **QA-02 — Update operational and product documentation.** Replace generic setup guidance with actual Next.js/Python startup, environment variable names, mode distinctions, risk boundaries, schema/migration flow, authentication, provider quotas, recovery, test commands, and known limitations. Document worker topology and experimental assumptions. Acceptance: a clean local environment can run the deterministic research profile without production credentials. Sources: [README](README.md), [Nestegg README](README-NESTEGG.md), [multi-strategy design](services/vonneumann/DESIGN-multi-strategy-multi-colony.md).
 
@@ -1250,3 +1467,103 @@ These items prepare a later real trading implementation; current authorization e
 **RES-03 next deep-research checkpoint — completed candles (2026-09-30):** verify Birdeye V3 entitlements, shared account quotas/compute-unit cost, completion-latency distributions, sparse-asset gaps, and revisions older than the two-minute overlap. Seek provider clarification of contradictory `outlier` flag documentation; the adapter deliberately leaves that parameter at the provider default. Define restart/checkpoint and gap-recovery policy, dataset licensing/version hashes, and scaled-token unit handling before performance comparisons. A five-second completion margin and rejecting gaps/revisions are local policies, not guarantees of market finality. Research simulation warmup/evaluation scheduling under ENG-06 before presenting optimizer rankings.
 
 **RES-02/RES-03 checkpoint — execution and data rights (2026-09-30):** Jupiter Price V3 is a USD reference, while Swap V2 amount-specific orders have distinct managed/build fee paths. Slippage tolerance is not realized cost; priority-fee aggregates may already include tips; refundable rent is not a permanent expense. Follow the dated primary sources and unresolved calibration questions in the execution contract. The user confirmed Jupiter permits backtesting retention, resolving that question for this project. Do not request that approval again. Separate Birdeye entitlements/retention and any future combined-data redistribution remain distinct research questions; no redistribution is currently planned. Use selected historical windows with immutable experiment snapshots, and record actual Jupiter quote/receipt evidence only during bounded paper research when needed. Synthetic/offline accounting work can proceed independently. Public research candidates need actual partition/completeness, point-in-time provenance and license review, not just a download link.
+
+
+### 2026-10-13 rendered app acceptance and parallel next slices
+
+Portfolio and Reports/Settings now have finite actual compiled fake-browser
+acceptance, including keyboard/mobile/theme, owned acknowledgments and a delayed
+old response across client-side account replacement. Exact cleanup is complete;
+[BROWSER receipt](BROWSER-ACCEPTANCE-2026-10-13.json) preserves the real-versus-
+synthetic limits. Broader Header/Home/Analytics and complete a11y remain open.
+An existing local helper's exact-group inspection fails one complete frontend
+follow-up; metadata-only diagnostics are the immediate CI reliability follow-up,
+without omitting the case, accepting unknown absence or widening guards.
+
+The next independent app candidates are now built/reviewed locally: Strategies
+removes fabricated historical results and clearly separates external charts;
+APP-03 adds bounded original request reads, strict limit/calendar/scalar/source
+validation, lazy safe configuration, no-store/errors and minimal returned-shape
+acknowledgments. Their final integration/browser/complete CI/release gates remain.
+API table migration provenance/full row types/persistence need exact Dashboard
+catalog review and a separate DB-04 forward plan before any schema application.
+Deep research still includes real resource/latency/storage tails, realistic
+cost/holdout evaluation and native reader/closure/full-journal capacity: a
+915-minute source trace uses3660 source writes before fence/control overhead,
+so the4096-row research envelope must not be assumed adequate for a60s lease.
+
+**Latest local release verification:** source
+`0609db36b168a803283d57e3302a54c8ebbecaaa` passes the complete frontend suite,
+332/332 with zero skips, in 22,623.090834 ms. Safe owned-inspection refusal
+diagnostics are implemented without widening cleanup/time limits or accepting
+unknown absence. The earlier full-run inspection failure remains unattributed.
+Push this reviewed batch, require all seven exact-head jobs, then verify the
+exact Dashboard Vercel release before authorized merge and production checks.
+
+**API schema finding and next parallel step:** the dated exact-project
+[catalog receipt](supabase/audits/2026-10-13-api-schema-readonly.json) confirms
+an integer 0…100 sentiment score, nullable source/timestamps, existing constraints
+and indexes, RLS without policies, and broad direct table grants. A reviewed
+28-case API follow-up rejects fractional scores before database access, preserving
+normalized integral JSON values without coercion. Integrate it after the current
+release, then review DB-04 schema reproducibility and table-specific effective
+privileges with offline SQL/PostgREST and rollback proof before any migration.
+Catalog metadata alone does not close persistence, authorization or full row
+validation. No application rows, schema or ACL were changed during inspection.
+
+**Release blocker after push:** exact head 22bd538 / run38458301073 has a
+passing frontend job, but SQL4 fails image preparation in 48 seconds after
+three anonymous registry rate-limit responses; no SQL executes in that job.
+Let the other jobs finish, preserve their exact evidence, implement reviewed
+bounded pull coordination, and require a complete new-head run. Vercel's exact
+preview is READY but production remains PR103. The separate combined API/
+Strategies branch now passes 366 frontend cases, compiler/lint and a fresh
+fake build, with actual keyboard/mobile and compiled HTTP guard observations;
+it remains local and does not replace PR104's release gate.
+
+**RES-05 bounded research progress:** current-source synthetic replays confirm
+the 360-versus-600-month asymmetric household horizon, missing accumulation-year
+inflation ($5,000 versus $10,487.84), and the silent 0%→0.5% effective-return
+floor. [Calendar/units/accounting proposal](NESTEGG-CALENDAR-UNITS-RESEARCH-2026-10-13.md)
+orders a shared versioned monthly ledger before dependent formula/chart changes.
+Current BLS/SSA/IRS references inform the units and benefit/distribution scope;
+full tax, survivor, distribution and probability calibration remain deeper
+research gates. These three reproductions change no financial formulas or data.
+
+The bounded CI pull repair is adopted locally as 41d4ed0, with 53 integrated
+mock/policy checks passing. New discovery retains all original tests plus eleven
+pull/capability cases (2,425 ordinary occurrences; SQL remains 602). Collect the
+current run's remaining SQL results before pushing; both ordinary groups have
+passed. Require all seven complete actual jobs at the repaired head before merge.
+The next local app branch additionally contains the reviewed Analytics/Header
+honesty slice; Home fixture provenance/actions and their combined browser/build
+acceptance follow. Exact legacy TLS plus prospective recorder/source integration
+is being prepared offline, preserving historical contracts and false authority
+flags. None of these local candidates activates the worker or closes the audit.
+
+Current run 38458301073 is now fully settled: six PASS, one image-preparation
+failure, total 36m17s. Push the repaired batch with that evidence preserved;
+require all seven new-head jobs and exact release verification before merge.
+The separate final app integration passes 379 frontend cases, compiler and
+zero-error lint. Its latest combined Home/Analytics browser/build acceptance
+is still pending, and the former 366-case/Strategies receipt remains bound to
+its older source. TLS/source integration passes 308 offline cases; native
+identity, durable recorder, restoration and hosted joins remain separate gates.
+
+The final app fake build subsequently times out after the existing 300-second
+locked dependency-installation limit, before any app server or Home/Analytics
+browser interaction. Normal owned cleanup removes its exact build copy. This
+is setup failure evidence, not a browser pass or an identified registry cause.
+Investigate bounded installation diagnostics before another attempt; retain the
+379-case source proof and keep the final browser/build gate open.
+
+**2026-10-13 API privilege prerequisite:** one exact-project read-only catalog
+request confirms postgres ownership, no policy/column/PUBLIC grants, no
+transitive membership, and all eight effective table privileges for anon,
+authenticated and service_role on the two API tables. Only service_role bypasses
+RLS. This does not prove an anonymous row leak or REST TRUNCATE exposure. The
+proposed table-only repair is no anon/authenticated privileges and service
+SELECT+INSERT, preserving defaults/roles/schema/RLS/data/unrelated objects.
+Concrete baseline/ACL SQL, owned SQL/PostgREST tests and reviewed rollout are
+next; no hosted grants or rows changed.
+[Exact evidence, proposed delta and remaining gates](DB-04-API-PERMISSIONS-REVIEW-2026-10-13.md).

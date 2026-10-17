@@ -201,14 +201,55 @@ class ResearchConfigurationTypeTests(OfflineTestMixin, unittest.TestCase):
     def test_repair_provenance_keeps_historical_evidence_and_binds_current_sources(self):
         historical_path = ROOT / 'research/2026-10-12-config-type-review.json'
         historical = json.loads(historical_path.read_text())
-        repair = json.loads((ROOT / 'research/configuration-type-repair-measurements.json').read_text())
+        repair_path = ROOT / 'research/configuration-type-repair-measurements.json'
+        portable_path = ROOT / 'research/portable-ga-model-type-repair-measurements.json'
+        repair = json.loads(repair_path.read_text())
+        portable = json.loads(portable_path.read_text())
         self.assertEqual(hashlib.sha256(historical_path.read_bytes()).hexdigest(), repair['historical_defect_artifact_sha256'])
         self.assertTrue(all(row['actual']['accepted'] for row in historical['results']))
         self.assertTrue(all(not row['actual']['accepted'] for row in repair['results']))
-        for name, expected in repair['source_sha256'].items():
-            self.assertEqual(hashlib.sha256((ROOT / name).read_bytes()).hexdigest(), expected)
         for name in ('provider_ga_model.py', 'provider_portable_ga_model.py'):
             path = 'vonneumann/research/' + name
             self.assertEqual(repair['source_before'][path], historical['source_sha256'][path])
         self.assertFalse(repair['native_admission'])
         self.assertFalse(repair['restoration_authority'])
+        lineage = json.loads((ROOT / 'research/owned-checkpoint-cache-source-lineage.json').read_text())
+        self.assertEqual(set(lineage), {'format', 'date', 'cache_commit', 'changed_source_paths',
+            'historical_measurements', 'historical_defect_sha256', 'source_before', 'source_after',
+            'golden_fixture', 'golden_source_before', 'verification_scope', 'authority'})
+        self.assertEqual(lineage['format'], 'ga-owned-checkpoint-cache-source-lineage-research-v1')
+        self.assertEqual(lineage['date'], '2026-10-13')
+        self.assertEqual(lineage['cache_commit'], 'd55bff696694c69dde87577565c496d1f72ea93a')
+        expected_history = {
+            'research/configuration-type-repair-measurements.json': '0843296d6f677f089f897a5b41e9dc8de23ca1f32a0de2ea8a0925bd57adef05',
+            'research/portable-ga-model-type-repair-measurements.json': '8a520851e022f2ee079226687714a6b98df5d7632c2e240b5e3fd49bc826a146',
+        }
+        self.assertEqual(lineage['historical_measurements'], expected_history)
+        for path, expected in expected_history.items():
+            self.assertEqual(hashlib.sha256((ROOT / path).read_bytes()).hexdigest(), expected)
+        self.assertEqual(lineage['historical_defect_sha256'], repair['historical_defect_artifact_sha256'])
+        before = dict(repair['source_sha256'])
+        for path, expected in portable['source_sha256'].items():
+            if path in before: self.assertEqual(before[path], expected)
+            before[path] = expected
+        self.assertEqual(lineage['source_before'], before)
+        self.assertEqual(set(lineage['source_after']), set(before))
+        changed = {'vonneumann/research/provider_portable_checkpoint.py',
+            'vonneumann/research/portable_partitioned_checkpoint.py', 'tests/test_research_configuration_types.py'}
+        self.assertEqual(lineage['changed_source_paths'], sorted(changed))
+        self.assertEqual({path for path in before if lineage['source_after'][path] != before[path]}, changed)
+        for path, expected in lineage['source_after'].items():
+            self.assertEqual(hashlib.sha256((ROOT / path).read_bytes()).hexdigest(), expected)
+        self.assertEqual(lineage['golden_fixture'], {'path': 'tests/fixtures/owned-checkpoint-cache-wire-baseline.json',
+            'sha256': 'ba9985083f9d96cd8212e8e1642725a62bdc1f7cba2fdc61764b1e7a9ce2c2c3'})
+        golden_path = ROOT / lineage['golden_fixture']['path']
+        self.assertEqual(hashlib.sha256(golden_path.read_bytes()).hexdigest(), lineage['golden_fixture']['sha256'])
+        golden = json.loads(golden_path.read_text())
+        self.assertEqual(lineage['golden_source_before'], golden['source_before'])
+        self.assertEqual(set(golden['source_before']), {'vonneumann/research/provider_portable_checkpoint.py',
+            'vonneumann/research/portable_partitioned_checkpoint.py', 'vonneumann/research/provider_portable_ga_model.py'})
+        for path, expected in golden['source_before'].items(): self.assertEqual(expected, before[path])
+        self.assertEqual(lineage['verification_scope'], 'Historical source lineage and present file bindings; pre-change golden source provenance; original configuration adversarial regression. No new native or trajectory measurements.')
+        self.assertEqual(set(lineage['authority']), {'native_admission', 'restoration_authority',
+            'hosted_activation', 'performance_calibration', 'provider_authenticated', 'live_trading_authority'})
+        for flag in lineage['authority'].values(): self.assertIs(flag, False)

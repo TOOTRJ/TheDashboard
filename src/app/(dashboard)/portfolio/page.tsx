@@ -1,11 +1,13 @@
 "use client";
 
 import * as React from "react";
-import { toast } from "sonner";
+import { toast, type ExternalToast } from "sonner";
 import Link from "next/link";
 import { ArrowRight, Pencil, Plus, Save, Target, Trash2, Wallet, X } from "lucide-react";
 
 import { useAuth } from "@/components/auth/AuthProvider";
+import { sessionIdentity } from "@/lib/auth/session-guard";
+import { createNesteggWorkspaceScope, type NesteggRequestScope } from "@/lib/nestegg/session-scope";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -24,23 +26,67 @@ import {
 import { computeRequiredMonthlySavings } from "@/lib/nestegg/future-value";
 
 export default function PortfolioPage() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, session, loading } = useAuth();
+  const ownerId = user?.id ?? null;
+  const identity = sessionIdentity(session?.access_token);
+  const boundary = React.useMemo(() => ownerId && identity ? {
+    key: crypto.randomUUID(), scope: createNesteggWorkspaceScope(ownerId, identity),
+  } : null, [ownerId, identity]);
+  if (loading) return <p role="status">Checking your Portfolio session…</p>;
+  if (!boundary || !user || !session || session.user.id !== user.id) {
+    return <p role="status">Sign in to manage your portfolio accounts.</p>;
+  }
+  return <PortfolioWorkspace key={boundary.key} workspaceScope={boundary.scope} />;
+}
+
+export function PortfolioWorkspace({ workspaceScope }: {
+  workspaceScope: ReturnType<typeof createNesteggWorkspaceScope>;
+}) {
   const [accounts, setAccounts] = React.useState<PortfolioAccount[]>([]);
   const [loading, setLoading] = React.useState(true);
-
+  const [loadError, setLoadError] = React.useState(false);
+  const [readAttempt, setReadAttempt] = React.useState(0);
   const [newName, setNewName] = React.useState("");
   const [newBalance, setNewBalance] = React.useState("");
-  const [adding, setAdding] = React.useState(false);
-
   const [editingId, setEditingId] = React.useState<string | null>(null);
   const [editName, setEditName] = React.useState("");
   const [editBalance, setEditBalance] = React.useState("");
-  const [saving, setSaving] = React.useState(false);
-
   const [goalAmount, setGoalAmount] = React.useState("");
   const [goalYear, setGoalYear] = React.useState("");
   const [goalSaved, setGoalSaved] = React.useState({ amount: 0, year: null as number | null });
-  const [savingGoal, setSavingGoal] = React.useState(false);
+  const [pending, setPending] = React.useState<string | null>(null);
+  const mutationActive = React.useRef<NesteggRequestScope | null>(null);
+  const goalRevision = React.useRef(0);
+  const ownedToasts = React.useRef(new Set<string>());
+  const adding = pending === "add";
+  const saving = pending === "edit";
+  const savingGoal = pending === "goal" || pending === "undo";
+  const busy = pending !== null;
+
+  const notify = (kind: "success" | "error", message: string, options?: ExternalToast) => {
+    if (!workspaceScope.isCurrent()) return;
+    const ids = ownedToasts.current;
+    while (ids.size >= 8) {
+      const oldest = ids.values().next().value!;
+      ids.delete(oldest); toast.dismiss(oldest);
+    }
+    const id = crypto.randomUUID(); ids.add(id);
+    toast[kind](message, { ...options, id,
+      onDismiss: () => ids.delete(id), onAutoClose: () => ids.delete(id),
+    });
+  };
+
+  React.useLayoutEffect(() => {
+    const ids = ownedToasts.current;
+    workspaceScope.activate();
+    mutationActive.current = null;
+    setPending(null);
+    return () => {
+      workspaceScope.dispose();
+      for (const id of ids) toast.dismiss(id);
+      ids.clear();
+    };
+  }, [workspaceScope]);
 
   const total = accounts.reduce((sum, a) => sum + a.balance, 0);
   const goalDirty =
@@ -48,54 +94,75 @@ export default function PortfolioPage() {
     (goalYear ? Number(goalYear) : null) !== goalSaved.year;
 
   React.useEffect(() => {
-    if (authLoading) return;
-    if (!user) {
-      setAccounts([]);
-      setLoading(false);
-      return;
-    }
+    const request = workspaceScope.capture();
     let cancelled = false;
-    (async () => {
-      const [rows, goal] = await Promise.all([
-        fetchPortfolioAccounts(),
-        fetchPortfolioGoal(),
-      ]);
-      if (!cancelled) {
+    const current = () => !cancelled && request.isCurrent();
+    setLoading(true); setLoadError(false);
+    void (async () => {
+      try {
+        const [rows, goal] = await Promise.all([
+          fetchPortfolioAccounts(request), fetchPortfolioGoal(request),
+        ]);
+        if (!current()) return;
         setAccounts(rows);
         setGoalAmount(goal.goal > 0 ? String(goal.goal) : "");
         setGoalYear(goal.goalYear != null ? String(goal.goalYear) : "");
         setGoalSaved({ amount: goal.goal, year: goal.goalYear });
-        setLoading(false);
+      } catch {
+        if (current()) setLoadError(true);
+      } finally {
+        if (current()) setLoading(false);
       }
     })();
     return () => { cancelled = true; };
-  }, [user, authLoading]);
+  }, [workspaceScope, readAttempt]);
 
-  const handleSaveGoal = async () => {
-    const prev = { ...goalSaved };
-    setSavingGoal(true);
-    const amount = Number(goalAmount) || 0;
-    const year = goalYear ? Number(goalYear) : null;
-    const ok = await updatePortfolioGoal(amount, year);
-    setSavingGoal(false);
-    if (!ok) {
-      toast.error("Could not save goal");
-      return;
+  // Serialize this workspace's mutations, including double clicks before React
+  // paints pending state. A retired workspace can finish a server write, but it
+  // cannot publish into a replacement login or issue a retained Undo.
+  const mutate = async (kind: string, action: (request: NesteggRequestScope) => Promise<void>) => {
+    const request = workspaceScope.capture();
+    if (!request.isCurrent() || mutationActive.current) return;
+    mutationActive.current = request; setPending(kind);
+    try { await action(request); }
+    catch {
+      if (request.isCurrent()) notify("error", kind === "undo" ? "Could not revert goal" : "Could not save portfolio change");
+    } finally {
+      if (mutationActive.current === request) {
+        mutationActive.current = null;
+        if (request.isCurrent()) setPending(null);
+      }
     }
+  };
+
+  const handleSaveGoal = () => mutate("goal", async (request) => {
+    const prev = { ...goalSaved };
+    const amount = goalAmount === "" ? 0 : Number(goalAmount);
+    const year = goalYear === "" ? null : Number(goalYear);
+    const revision = ++goalRevision.current;
+    const ok = await updatePortfolioGoal(amount, year, request);
+    if (!request.isCurrent()) return;
+    if (!ok) { notify("error", "Could not save goal"); return; }
     setGoalSaved({ amount, year });
-    toast.success("Portfolio goal saved", {
+    notify("success", "Portfolio goal saved", {
       action: {
         label: "Undo",
-        onClick: async () => {
-          await updatePortfolioGoal(prev.amount, prev.year);
-          setGoalAmount(prev.amount > 0 ? String(prev.amount) : "");
-          setGoalYear(prev.year != null ? String(prev.year) : "");
-          setGoalSaved(prev);
-          toast.success("Goal reverted");
+        onClick: () => {
+          if (!request.isCurrent() || goalRevision.current !== revision) return;
+          return mutate("undo", async (undoRequest) => {
+            ++goalRevision.current;
+            const reverted = await updatePortfolioGoal(prev.amount, prev.year, undoRequest);
+            if (!undoRequest.isCurrent()) return;
+            if (!reverted) { notify("error", "Could not revert goal"); return; }
+            setGoalAmount(prev.amount > 0 ? String(prev.amount) : "");
+            setGoalYear(prev.year != null ? String(prev.year) : "");
+            setGoalSaved(prev);
+            notify("success", "Goal reverted");
+          });
         },
       },
     });
-  };
+  });
 
   const goalProgress = goalSaved.amount > 0 ? Math.min(100, Math.round((total / goalSaved.amount) * 100)) : 0;
 
@@ -114,72 +181,47 @@ export default function PortfolioPage() {
     return req;
   }, [total, goalSaved.amount, goalSaved.year]);
 
-  const handleAdd = async () => {
+  const handleAdd = () => mutate("add", async (request) => {
     const name = newName.trim();
-    if (!name) {
-      toast.error("Enter an account name");
-      return;
-    }
-    const bal = Number(newBalance) || 0;
-    setAdding(true);
-    const row = await insertPortfolioAccount(name, bal);
-    setAdding(false);
-    if (!row) {
-      toast.error("Could not add account");
-      return;
-    }
+    if (!name) { notify("error", "Enter an account name"); return; }
+    const balance = newBalance === "" ? 0 : Number(newBalance);
+    const row = await insertPortfolioAccount(name, balance, request);
+    if (!request.isCurrent()) return;
+    if (!row) { notify("error", "Could not add account"); return; }
     setAccounts((prev) => [...prev, row].sort((a, b) => a.name.localeCompare(b.name)));
-    setNewName("");
-    setNewBalance("");
-    toast.success("Account added", { description: row.name });
-  };
+    setNewName(""); setNewBalance("");
+    notify("success", "Account added");
+  });
 
   const startEdit = (account: PortfolioAccount) => {
-    setEditingId(account.id);
-    setEditName(account.name);
-    setEditBalance(String(account.balance));
+    if (!workspaceScope.isCurrent() || mutationActive.current) return;
+    setEditingId(account.id); setEditName(account.name); setEditBalance(String(account.balance));
   };
-
   const cancelEdit = () => {
-    setEditingId(null);
-    setEditName("");
-    setEditBalance("");
+    if (!workspaceScope.isCurrent() || mutationActive.current) return;
+    setEditingId(null); setEditName(""); setEditBalance("");
   };
-
-  const handleSaveEdit = async () => {
+  const handleSaveEdit = () => mutate("edit", async (request) => {
     if (!editingId) return;
-    setSaving(true);
     const row = await updatePortfolioAccount(editingId, {
-      name: editName.trim() || "Untitled",
-      balance: Number(editBalance) || 0,
-    });
-    setSaving(false);
-    if (!row) {
-      toast.error("Could not save changes");
-      return;
-    }
-    setAccounts((prev) =>
-      prev
-        .map((a) => (a.id === row.id ? row : a))
-        .sort((a, b) => a.name.localeCompare(b.name))
-    );
-    setEditingId(null);
-    toast.success("Account updated", { description: row.name });
-  };
-
-  const handleDelete = async (id: string) => {
-    const account = accounts.find((a) => a.id === id);
-    const ok = await deletePortfolioAccount(id);
-    if (!ok) {
-      toast.error("Could not delete account");
-      return;
-    }
+      name: editName.trim() || "Untitled", balance: editBalance === "" ? 0 : Number(editBalance),
+    }, request);
+    if (!request.isCurrent()) return;
+    if (!row) { notify("error", "Could not save changes"); return; }
+    setAccounts((prev) => prev.map((a) => a.id === row.id ? row : a).sort((a, b) => a.name.localeCompare(b.name)));
+    setEditingId(null); setEditName(""); setEditBalance("");
+    notify("success", "Account updated");
+  });
+  const handleDelete = (id: string) => mutate("delete", async (request) => {
+    const ok = await deletePortfolioAccount(id, request);
+    if (!request.isCurrent()) return;
+    if (!ok) { notify("error", "Could not delete account"); return; }
     setAccounts((prev) => prev.filter((a) => a.id !== id));
-    if (editingId === id) cancelEdit();
-    toast.success("Account removed", { description: account?.name });
-  };
+    if (editingId === id) { setEditingId(null); setEditName(""); setEditBalance(""); }
+    notify("success", "Account removed");
+  });
 
-  if (authLoading || loading) {
+  if (loading) {
     return (
       <div className="space-y-6 pb-10">
         <PageHeader total={0} loading />
@@ -194,20 +236,12 @@ export default function PortfolioPage() {
     );
   }
 
-  if (!user) {
-    return (
-      <div className="space-y-6 pb-10">
-        <PageHeader total={0} />
-        <Card className="border-[#00fff5]/20 bg-card/80 backdrop-blur-sm">
-          <CardContent className="py-12 text-center">
-            <p className="text-sm text-muted-foreground">
-              Sign in to manage your portfolio accounts.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  if (loadError) return (
+    <div role="alert" className="space-y-3">
+      <p>Portfolio data is unavailable. Your saved accounts and goal have not been verified.</p>
+      <Button type="button" onClick={() => setReadAttempt((n) => n + 1)}>Retry portfolio read</Button>
+    </div>
+  );
 
   return (
     <div className="space-y-6 pb-10">
@@ -246,7 +280,8 @@ export default function PortfolioPage() {
                 step={1000}
                 placeholder="e.g. 1000000"
                 value={goalAmount}
-                onChange={(e) => setGoalAmount(e.target.value)}
+                disabled={busy}
+                onChange={(e) => { ++goalRevision.current; setGoalAmount(e.target.value); }}
                 className="h-8 border-[#39ff14]/20 bg-[#39ff14]/5 focus:border-[#39ff14]/40 font-mono text-sm"
               />
             </div>
@@ -265,14 +300,15 @@ export default function PortfolioPage() {
                 step={1}
                 placeholder={`e.g. ${new Date().getFullYear() + 20}`}
                 value={goalYear}
-                onChange={(e) => setGoalYear(e.target.value)}
+                disabled={busy}
+                onChange={(e) => { ++goalRevision.current; setGoalYear(e.target.value); }}
                 className="h-8 border-[#39ff14]/20 bg-[#39ff14]/5 focus:border-[#39ff14]/40 font-mono text-sm"
               />
             </div>
             <Button
               type="button"
               onClick={handleSaveGoal}
-              disabled={savingGoal || !goalDirty}
+              disabled={busy || !goalDirty}
               className="h-8 shrink-0 border border-[#39ff14]/30 bg-[#39ff14]/10 text-[#39ff14] hover:bg-[#39ff14]/20 text-xs disabled:opacity-40"
             >
               <Save className="mr-1.5 h-3.5 w-3.5" aria-hidden />
@@ -370,6 +406,7 @@ export default function PortfolioPage() {
                   <Input
                     id={`edit-name-${account.id}`}
                     value={editName}
+                    disabled={busy}
                     onChange={(e) => setEditName(e.target.value)}
                     className="h-8 border-[#ff00ff]/20 bg-[#ff00ff]/5 focus:border-[#ff00ff]/40 font-medium text-sm"
                     autoFocus
@@ -388,6 +425,7 @@ export default function PortfolioPage() {
                     min={0}
                     step={100}
                     value={editBalance}
+                    disabled={busy}
                     onChange={(e) => setEditBalance(e.target.value)}
                     className="h-8 border-[#ff00ff]/20 bg-[#ff00ff]/5 focus:border-[#ff00ff]/40 font-mono text-sm"
                   />
@@ -397,7 +435,7 @@ export default function PortfolioPage() {
                     type="button"
                     size="sm"
                     onClick={handleSaveEdit}
-                    disabled={saving}
+                    disabled={busy}
                     className="h-8 bg-[#ff00ff]/15 border border-[#ff00ff]/30 text-[#ff99ff] hover:bg-[#ff00ff]/25 text-xs"
                   >
                     {saving ? "Saving…" : "Save"}
@@ -406,6 +444,8 @@ export default function PortfolioPage() {
                     type="button"
                     size="sm"
                     variant="ghost"
+                    disabled={busy}
+                    aria-label="Cancel account edit"
                     onClick={cancelEdit}
                     className="h-8 text-muted-foreground hover:text-foreground"
                   >
@@ -433,6 +473,8 @@ export default function PortfolioPage() {
                     variant="ghost"
                     size="icon"
                     className="h-7 w-7 text-muted-foreground hover:text-[#00fff5]"
+                    disabled={busy}
+                    aria-label={`Edit ${account.name}`}
                     onClick={() => startEdit(account)}
                   >
                     <Pencil className="h-3.5 w-3.5" />
@@ -442,6 +484,8 @@ export default function PortfolioPage() {
                     variant="ghost"
                     size="icon"
                     className="h-7 w-7 text-muted-foreground hover:text-[#ff3366]"
+                    disabled={busy}
+                    aria-label={`Delete ${account.name}`}
                     onClick={() => handleDelete(account.id)}
                   >
                     <Trash2 className="h-3.5 w-3.5" />
@@ -464,6 +508,7 @@ export default function PortfolioPage() {
                 id="new-account-name"
                 placeholder="e.g. 401(k), Roth IRA, Brokerage"
                 value={newName}
+                disabled={busy}
                 onChange={(e) => setNewName(e.target.value)}
                 className="h-8 border-[#00fff5]/20 bg-[#00fff5]/5 focus:border-[#00fff5]/40 text-sm"
                 onKeyDown={(e) => {
@@ -485,6 +530,7 @@ export default function PortfolioPage() {
                 step={100}
                 placeholder="0"
                 value={newBalance}
+                disabled={busy}
                 onChange={(e) => setNewBalance(e.target.value)}
                 className="h-8 border-[#00fff5]/20 bg-[#00fff5]/5 focus:border-[#00fff5]/40 font-mono text-sm"
                 onKeyDown={(e) => {
@@ -495,7 +541,7 @@ export default function PortfolioPage() {
             <Button
               type="button"
               onClick={handleAdd}
-              disabled={adding || !newName.trim()}
+              disabled={busy || !newName.trim()}
               className="h-8 shrink-0 border border-[#00fff5]/30 bg-[#00fff5]/10 text-[#00fff5] hover:bg-[#00fff5]/20 text-xs"
             >
               <Plus className="mr-1.5 h-3.5 w-3.5" aria-hidden />

@@ -39,6 +39,8 @@ POSTGRES_SHARD_STEP = "Required integration (missing Docker, failed setup or opt
 POSTGRES_SHARD_ENV = {**WORKER_SHARD_ENV, "DASHBOARD_NATIVE_SQL_WHEELS": "${{ runner.temp }}/dashboard-native-wheels"}
 POSTGRES_SHARD_COMMAND = f'{PYTHON} scripts/check-worker.py postgres --allow-isolated-postgres --shard "$DASHBOARD_TEST_SHARD"'
 POSTGRES_STRATEGY = {"fail-fast": False, "max-parallel": 4, "matrix": {"shard": [1, 2, 3, 4]}}
+IMAGE_PREP_STEP = "Pull and verify reviewed immutable amd64 fixture manifests"
+IMAGE_PREP_COMMAND = f'{PYTHON} scripts/check-ci-images.py --prepare-images'
 NATIVE_WHEELS_PREP_STEP = "Prepare owned hash-locked native SQL wheels"
 NATIVE_WHEELS_PREP_COMMAND = f'{PYTHON} scripts/check-ci-native-wheels.py --destination "$RUNNER_TEMP/dashboard-native-wheels"'
 SHARD_JOBS = {
@@ -109,6 +111,7 @@ def validate_workflow(source: str) -> None:
         npm_steps = []
         shard_steps = 0
         native_preparation = 0
+        image_preparation = 0
         for step in job.get("steps", []):
             if "if" in step or step.get("continue-on-error"):
                 raise ValueError("Required checks cannot be bypassed")
@@ -122,7 +125,13 @@ def validate_workflow(source: str) -> None:
                     raise ValueError("Shard step must pass only the reviewed static matrix selection and scope command")
                 if name == "postgres" and native_preparation != 1:
                     raise ValueError("Owned native SQL wheels must be prepared before required integration")
+                if name == "postgres" and image_preparation != 1:
+                    raise ValueError("Reviewed fixture images must be prepared before required integration")
                 shard_steps += 1
+            elif name == "postgres" and step.get("name") == IMAGE_PREP_STEP:
+                if step.get("env") != WORKER_SHARD_ENV or step.get("run") != IMAGE_PREP_COMMAND:
+                    raise ValueError("Image preparation requires only the reviewed static SQL matrix shard")
+                image_preparation += 1
             elif "env" in step:
                 raise ValueError("Other steps cannot receive environment settings or credentials")
             if "uses" in step and step["uses"] not in ACTION_PINS:
@@ -145,6 +154,8 @@ def validate_workflow(source: str) -> None:
             raise ValueError("Exactly one required step must execute the reviewed scope matrix selection")
         if name == "postgres" and native_preparation != 1:
             raise ValueError("Exactly one owned native SQL wheel preparation step is required")
+        if name == "postgres" and image_preparation != 1:
+            raise ValueError("Exactly one reviewed fixture image preparation step is required")
     for name, required in REQUIRED_COMMANDS.items():
         commands = {line.strip() for step in jobs[name]["steps"]
                     for line in step.get("run", "").splitlines() if line.strip()}

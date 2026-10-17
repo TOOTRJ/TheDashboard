@@ -1,0 +1,819 @@
+{
+  "child_artifacts": [
+    {
+      "budget": 4,
+      "manifest": {
+        "payload": {
+          "bytes": 352421,
+          "file": "result.json",
+          "sha256": "7f192974d377e4ce97890faac1df208b651321f00f7f3a3fca36707e26cb237c"
+        },
+        "schema_version": "ema-research-artifact-v1"
+      },
+      "result_id": "3c98a152eeda2db08d6fb4aca1bee9db33f43eb27e6f0e034057915c257c2801",
+      "seed": "0"
+    },
+    {
+      "budget": 8,
+      "manifest": {
+        "payload": {
+          "bytes": 366205,
+          "file": "result.json",
+          "sha256": "af08ef7b7af21f98a623d1c8f76aac98807cb67f51f30789d06363791a2c42ef"
+        },
+        "schema_version": "ema-research-artifact-v1"
+      },
+      "result_id": "92592dce5f209345ca0066133d1c72454bfd29c7e31535124e63014d225c3c88",
+      "seed": "0"
+    },
+    {
+      "budget": 4,
+      "manifest": {
+        "payload": {
+          "bytes": 352416,
+          "file": "result.json",
+          "sha256": "522a4dd68f6288bfa7eca4b2c6e846e8e4214f18c6ff3eed4c89b4d7584c840a"
+        },
+        "schema_version": "ema-research-artifact-v1"
+      },
+      "result_id": "b054805492bfc32a443c2016025d48348df7a8f1d78816900b38cfca8b7d2cfb",
+      "seed": "1"
+    },
+    {
+      "budget": 8,
+      "manifest": {
+        "payload": {
+          "bytes": 354880,
+          "file": "result.json",
+          "sha256": "e2274349ba7164f2b7e9df10c31639b9ae0fa0c06d70e6d629a0f1bd1a5ab1dd"
+        },
+        "schema_version": "ema-research-artifact-v1"
+      },
+      "result_id": "8d5eb99cf0523309b636fc290c002d7d7304f795f30403603a50fc92e4ee3ee9",
+      "seed": "1"
+    }
+  ],
+  "claims": {
+    "calibrated_execution": false,
+    "empirical_performance": false,
+    "independent_market_samples": false,
+    "native_admission": false,
+    "production_solver_compared": false,
+    "runtime_savings": false
+  },
+  "dataset": {
+    "availability_semantics": "modeled",
+    "dataset_id": "3dbd9c7dca91fa058372c1a6f401f55a825b557f4ee9ea4ce5504be571615c09",
+    "frame_count": 385,
+    "frames_sha256": "747db52cf815795f2eb8ca3524c4d2356105d3cb61ee964c5d794090d6af6658",
+    "playback_policy": "synthetic-whole-frame-once-v1",
+    "quote_currency": "USD",
+    "schema_version": "market-dataset-v1",
+    "source_kind": "synthetic_fixture",
+    "valuation_policy": "usd-reference-only-v1",
+    "volume_unit": "synthetic_base_token"
+  },
+  "distributions": [
+    {
+      "budget": 4,
+      "equal_count": 2,
+      "ga_minus_random_fitness": {
+        "maximum": 0.0,
+        "median": 0.0,
+        "minimum": 0.0
+      },
+      "greater_count": 0,
+      "inference": "descriptive_only",
+      "less_count": 0,
+      "seed_pairs": 2
+    },
+    {
+      "budget": 8,
+      "equal_count": 2,
+      "ga_minus_random_fitness": {
+        "maximum": 0.0,
+        "median": 0.0,
+        "minimum": 0.0
+      },
+      "greater_count": 0,
+      "inference": "descriptive_only",
+      "less_count": 0,
+      "seed_pairs": 2
+    }
+  ],
+  "network_denied": true,
+  "outer_manifest": {
+    "payload": {
+      "bytes": 1442101,
+      "file": "result.json",
+      "sha256": "df6723fcf8979a8399179e8d15dcec2516ce71a8773407dd823dd42f8c5b187b"
+    },
+    "schema_version": "ema-research-artifact-v1"
+  },
+  "paired_rows": [
+    {
+      "budget": 4,
+      "exhaustive_training_accounts_charged": 24,
+      "ga_minus_controls": {
+        "buy-hold-100": {
+          "fitness": 0.17822275239462002,
+          "max_drawdown": -0.10194811247602997,
+          "net_pnl": -25.673472557439936,
+          "num_trades": -1,
+          "roi": -0.025673472557439937,
+          "total_costs": -2.025696415747242
+        },
+        "buy-hold-25": {
+          "fitness": 0.049802211218154195,
+          "max_drawdown": -0.02811028967875706,
+          "net_pnl": -6.418368139359927,
+          "num_trades": -1,
+          "roi": -0.006418368139359927,
+          "total_costs": -0.5064241039368105
+        },
+        "cash": {
+          "fitness": 0.0,
+          "max_drawdown": 0.0,
+          "net_pnl": 0.0,
+          "num_trades": 0,
+          "roi": 0.0,
+          "total_costs": 0.0
+        },
+        "fixed-ema-09-21": {
+          "fitness": 0.0,
+          "max_drawdown": 0.0,
+          "net_pnl": 0.0,
+          "num_trades": 0,
+          "roi": 0.0,
+          "total_costs": 0.0
+        },
+        "grid": {
+          "fitness": 0.0,
+          "max_drawdown": 0.0,
+          "net_pnl": 0.0,
+          "num_trades": 0,
+          "roi": 0.0,
+          "total_costs": 0.0
+        }
+      },
+      "ga_minus_random": {
+        "fitness": 0.0,
+        "max_drawdown": 0.0,
+        "net_pnl": 0.0,
+        "num_trades": 0,
+        "roi": 0.0,
+        "total_costs": 0.0
+      },
+      "holdout_summaries": {
+        "buy-hold-100": {
+          "cash": 1025.67347255744,
+          "fitness": -0.17822275239462002,
+          "max_drawdown": 0.10194811247602997,
+          "net_pnl": 25.673472557439936,
+          "num_trades": 1,
+          "roi": 0.025673472557439937,
+          "total_costs": 2.025696415747242,
+          "trade_net_pnl": 25.673472557439936
+        },
+        "buy-hold-25": {
+          "cash": 1006.4183681393599,
+          "fitness": -0.049802211218154195,
+          "max_drawdown": 0.02811028967875706,
+          "net_pnl": 6.418368139359927,
+          "num_trades": 1,
+          "roi": 0.006418368139359927,
+          "total_costs": 0.5064241039368105,
+          "trade_net_pnl": 6.418368139359984
+        },
+        "cash": {
+          "cash": 1000.0,
+          "fitness": 0.0,
+          "max_drawdown": 0.0,
+          "net_pnl": 0.0,
+          "num_trades": 0,
+          "roi": 0.0,
+          "total_costs": 0.0,
+          "trade_net_pnl": 0.0
+        },
+        "fixed-ema-09-21": {
+          "cash": 1000.0,
+          "fitness": 0.0,
+          "max_drawdown": 0.0,
+          "net_pnl": 0.0,
+          "num_trades": 0,
+          "roi": 0.0,
+          "total_costs": 0.0,
+          "trade_net_pnl": 0.0
+        },
+        "ga": {
+          "cash": 1000.0,
+          "fitness": 0.0,
+          "max_drawdown": 0.0,
+          "net_pnl": 0.0,
+          "num_trades": 0,
+          "roi": 0.0,
+          "total_costs": 0.0,
+          "trade_net_pnl": 0.0
+        },
+        "grid": {
+          "cash": 1000.0,
+          "fitness": 0.0,
+          "max_drawdown": 0.0,
+          "net_pnl": 0.0,
+          "num_trades": 0,
+          "roi": 0.0,
+          "total_costs": 0.0,
+          "trade_net_pnl": 0.0
+        },
+        "random": {
+          "cash": 1000.0,
+          "fitness": 0.0,
+          "max_drawdown": 0.0,
+          "net_pnl": 0.0,
+          "num_trades": 0,
+          "roi": 0.0,
+          "total_costs": 0.0,
+          "trade_net_pnl": 0.0
+        }
+      },
+      "requests": {
+        "ga": {
+          "additional_computed_evaluations": 0,
+          "budget": 4,
+          "duplicate_trials": 0,
+          "elite_score_reuses": 0,
+          "score_cache_hits": 4,
+          "unique_trials": 4
+        },
+        "random": {
+          "additional_computed_evaluations": 0,
+          "budget": 4,
+          "duplicate_trials": 0,
+          "elite_score_reuses": 0,
+          "score_cache_hits": 4,
+          "unique_trials": 4
+        }
+      },
+      "seed": "0",
+      "training_selected_ids": {
+        "buy-hold-100": "buy-hold-100",
+        "buy-hold-25": "buy-hold-25",
+        "cash": "cash",
+        "fixed-ema-09-21": "fixed-ema-09-21",
+        "ga": "ema-05-45",
+        "grid": "ema-03-15",
+        "random": "ema-05-45"
+      }
+    },
+    {
+      "budget": 8,
+      "exhaustive_training_accounts_charged": 24,
+      "ga_minus_controls": {
+        "buy-hold-100": {
+          "fitness": 0.17822275239462002,
+          "max_drawdown": -0.10194811247602997,
+          "net_pnl": -25.673472557439936,
+          "num_trades": -1,
+          "roi": -0.025673472557439937,
+          "total_costs": -2.025696415747242
+        },
+        "buy-hold-25": {
+          "fitness": 0.049802211218154195,
+          "max_drawdown": -0.02811028967875706,
+          "net_pnl": -6.418368139359927,
+          "num_trades": -1,
+          "roi": -0.006418368139359927,
+          "total_costs": -0.5064241039368105
+        },
+        "cash": {
+          "fitness": 0.0,
+          "max_drawdown": 0.0,
+          "net_pnl": 0.0,
+          "num_trades": 0,
+          "roi": 0.0,
+          "total_costs": 0.0
+        },
+        "fixed-ema-09-21": {
+          "fitness": 0.0,
+          "max_drawdown": 0.0,
+          "net_pnl": 0.0,
+          "num_trades": 0,
+          "roi": 0.0,
+          "total_costs": 0.0
+        },
+        "grid": {
+          "fitness": 0.0,
+          "max_drawdown": 0.0,
+          "net_pnl": 0.0,
+          "num_trades": 0,
+          "roi": 0.0,
+          "total_costs": 0.0
+        }
+      },
+      "ga_minus_random": {
+        "fitness": 0.0,
+        "max_drawdown": 0.0,
+        "net_pnl": 0.0,
+        "num_trades": 0,
+        "roi": 0.0,
+        "total_costs": 0.0
+      },
+      "holdout_summaries": {
+        "buy-hold-100": {
+          "cash": 1025.67347255744,
+          "fitness": -0.17822275239462002,
+          "max_drawdown": 0.10194811247602997,
+          "net_pnl": 25.673472557439936,
+          "num_trades": 1,
+          "roi": 0.025673472557439937,
+          "total_costs": 2.025696415747242,
+          "trade_net_pnl": 25.673472557439936
+        },
+        "buy-hold-25": {
+          "cash": 1006.4183681393599,
+          "fitness": -0.049802211218154195,
+          "max_drawdown": 0.02811028967875706,
+          "net_pnl": 6.418368139359927,
+          "num_trades": 1,
+          "roi": 0.006418368139359927,
+          "total_costs": 0.5064241039368105,
+          "trade_net_pnl": 6.418368139359984
+        },
+        "cash": {
+          "cash": 1000.0,
+          "fitness": 0.0,
+          "max_drawdown": 0.0,
+          "net_pnl": 0.0,
+          "num_trades": 0,
+          "roi": 0.0,
+          "total_costs": 0.0,
+          "trade_net_pnl": 0.0
+        },
+        "fixed-ema-09-21": {
+          "cash": 1000.0,
+          "fitness": 0.0,
+          "max_drawdown": 0.0,
+          "net_pnl": 0.0,
+          "num_trades": 0,
+          "roi": 0.0,
+          "total_costs": 0.0,
+          "trade_net_pnl": 0.0
+        },
+        "ga": {
+          "cash": 1000.0,
+          "fitness": 0.0,
+          "max_drawdown": 0.0,
+          "net_pnl": 0.0,
+          "num_trades": 0,
+          "roi": 0.0,
+          "total_costs": 0.0,
+          "trade_net_pnl": 0.0
+        },
+        "grid": {
+          "cash": 1000.0,
+          "fitness": 0.0,
+          "max_drawdown": 0.0,
+          "net_pnl": 0.0,
+          "num_trades": 0,
+          "roi": 0.0,
+          "total_costs": 0.0,
+          "trade_net_pnl": 0.0
+        },
+        "random": {
+          "cash": 1000.0,
+          "fitness": 0.0,
+          "max_drawdown": 0.0,
+          "net_pnl": 0.0,
+          "num_trades": 0,
+          "roi": 0.0,
+          "total_costs": 0.0,
+          "trade_net_pnl": 0.0
+        }
+      },
+      "requests": {
+        "ga": {
+          "additional_computed_evaluations": 0,
+          "budget": 8,
+          "duplicate_trials": 3,
+          "elite_score_reuses": 2,
+          "score_cache_hits": 8,
+          "unique_trials": 5
+        },
+        "random": {
+          "additional_computed_evaluations": 0,
+          "budget": 8,
+          "duplicate_trials": 0,
+          "elite_score_reuses": 0,
+          "score_cache_hits": 8,
+          "unique_trials": 8
+        }
+      },
+      "seed": "0",
+      "training_selected_ids": {
+        "buy-hold-100": "buy-hold-100",
+        "buy-hold-25": "buy-hold-25",
+        "cash": "cash",
+        "fixed-ema-09-21": "fixed-ema-09-21",
+        "ga": "ema-05-45",
+        "grid": "ema-03-15",
+        "random": "ema-03-30"
+      }
+    },
+    {
+      "budget": 4,
+      "exhaustive_training_accounts_charged": 24,
+      "ga_minus_controls": {
+        "buy-hold-100": {
+          "fitness": 0.17822275239462002,
+          "max_drawdown": -0.10194811247602997,
+          "net_pnl": -25.673472557439936,
+          "num_trades": -1,
+          "roi": -0.025673472557439937,
+          "total_costs": -2.025696415747242
+        },
+        "buy-hold-25": {
+          "fitness": 0.049802211218154195,
+          "max_drawdown": -0.02811028967875706,
+          "net_pnl": -6.418368139359927,
+          "num_trades": -1,
+          "roi": -0.006418368139359927,
+          "total_costs": -0.5064241039368105
+        },
+        "cash": {
+          "fitness": 0.0,
+          "max_drawdown": 0.0,
+          "net_pnl": 0.0,
+          "num_trades": 0,
+          "roi": 0.0,
+          "total_costs": 0.0
+        },
+        "fixed-ema-09-21": {
+          "fitness": 0.0,
+          "max_drawdown": 0.0,
+          "net_pnl": 0.0,
+          "num_trades": 0,
+          "roi": 0.0,
+          "total_costs": 0.0
+        },
+        "grid": {
+          "fitness": 0.0,
+          "max_drawdown": 0.0,
+          "net_pnl": 0.0,
+          "num_trades": 0,
+          "roi": 0.0,
+          "total_costs": 0.0
+        }
+      },
+      "ga_minus_random": {
+        "fitness": 0.0,
+        "max_drawdown": 0.0,
+        "net_pnl": 0.0,
+        "num_trades": 0,
+        "roi": 0.0,
+        "total_costs": 0.0
+      },
+      "holdout_summaries": {
+        "buy-hold-100": {
+          "cash": 1025.67347255744,
+          "fitness": -0.17822275239462002,
+          "max_drawdown": 0.10194811247602997,
+          "net_pnl": 25.673472557439936,
+          "num_trades": 1,
+          "roi": 0.025673472557439937,
+          "total_costs": 2.025696415747242,
+          "trade_net_pnl": 25.673472557439936
+        },
+        "buy-hold-25": {
+          "cash": 1006.4183681393599,
+          "fitness": -0.049802211218154195,
+          "max_drawdown": 0.02811028967875706,
+          "net_pnl": 6.418368139359927,
+          "num_trades": 1,
+          "roi": 0.006418368139359927,
+          "total_costs": 0.5064241039368105,
+          "trade_net_pnl": 6.418368139359984
+        },
+        "cash": {
+          "cash": 1000.0,
+          "fitness": 0.0,
+          "max_drawdown": 0.0,
+          "net_pnl": 0.0,
+          "num_trades": 0,
+          "roi": 0.0,
+          "total_costs": 0.0,
+          "trade_net_pnl": 0.0
+        },
+        "fixed-ema-09-21": {
+          "cash": 1000.0,
+          "fitness": 0.0,
+          "max_drawdown": 0.0,
+          "net_pnl": 0.0,
+          "num_trades": 0,
+          "roi": 0.0,
+          "total_costs": 0.0,
+          "trade_net_pnl": 0.0
+        },
+        "ga": {
+          "cash": 1000.0,
+          "fitness": 0.0,
+          "max_drawdown": 0.0,
+          "net_pnl": 0.0,
+          "num_trades": 0,
+          "roi": 0.0,
+          "total_costs": 0.0,
+          "trade_net_pnl": 0.0
+        },
+        "grid": {
+          "cash": 1000.0,
+          "fitness": 0.0,
+          "max_drawdown": 0.0,
+          "net_pnl": 0.0,
+          "num_trades": 0,
+          "roi": 0.0,
+          "total_costs": 0.0,
+          "trade_net_pnl": 0.0
+        },
+        "random": {
+          "cash": 1000.0,
+          "fitness": 0.0,
+          "max_drawdown": 0.0,
+          "net_pnl": 0.0,
+          "num_trades": 0,
+          "roi": 0.0,
+          "total_costs": 0.0,
+          "trade_net_pnl": 0.0
+        }
+      },
+      "requests": {
+        "ga": {
+          "additional_computed_evaluations": 0,
+          "budget": 4,
+          "duplicate_trials": 0,
+          "elite_score_reuses": 0,
+          "score_cache_hits": 4,
+          "unique_trials": 4
+        },
+        "random": {
+          "additional_computed_evaluations": 0,
+          "budget": 4,
+          "duplicate_trials": 0,
+          "elite_score_reuses": 0,
+          "score_cache_hits": 4,
+          "unique_trials": 4
+        }
+      },
+      "seed": "1",
+      "training_selected_ids": {
+        "buy-hold-100": "buy-hold-100",
+        "buy-hold-25": "buy-hold-25",
+        "cash": "cash",
+        "fixed-ema-09-21": "fixed-ema-09-21",
+        "ga": "ema-03-45",
+        "grid": "ema-03-15",
+        "random": "ema-03-45"
+      }
+    },
+    {
+      "budget": 8,
+      "exhaustive_training_accounts_charged": 24,
+      "ga_minus_controls": {
+        "buy-hold-100": {
+          "fitness": 0.17822275239462002,
+          "max_drawdown": -0.10194811247602997,
+          "net_pnl": -25.673472557439936,
+          "num_trades": -1,
+          "roi": -0.025673472557439937,
+          "total_costs": -2.025696415747242
+        },
+        "buy-hold-25": {
+          "fitness": 0.049802211218154195,
+          "max_drawdown": -0.02811028967875706,
+          "net_pnl": -6.418368139359927,
+          "num_trades": -1,
+          "roi": -0.006418368139359927,
+          "total_costs": -0.5064241039368105
+        },
+        "cash": {
+          "fitness": 0.0,
+          "max_drawdown": 0.0,
+          "net_pnl": 0.0,
+          "num_trades": 0,
+          "roi": 0.0,
+          "total_costs": 0.0
+        },
+        "fixed-ema-09-21": {
+          "fitness": 0.0,
+          "max_drawdown": 0.0,
+          "net_pnl": 0.0,
+          "num_trades": 0,
+          "roi": 0.0,
+          "total_costs": 0.0
+        },
+        "grid": {
+          "fitness": 0.0,
+          "max_drawdown": 0.0,
+          "net_pnl": 0.0,
+          "num_trades": 0,
+          "roi": 0.0,
+          "total_costs": 0.0
+        }
+      },
+      "ga_minus_random": {
+        "fitness": 0.0,
+        "max_drawdown": 0.0,
+        "net_pnl": 0.0,
+        "num_trades": 0,
+        "roi": 0.0,
+        "total_costs": 0.0
+      },
+      "holdout_summaries": {
+        "buy-hold-100": {
+          "cash": 1025.67347255744,
+          "fitness": -0.17822275239462002,
+          "max_drawdown": 0.10194811247602997,
+          "net_pnl": 25.673472557439936,
+          "num_trades": 1,
+          "roi": 0.025673472557439937,
+          "total_costs": 2.025696415747242,
+          "trade_net_pnl": 25.673472557439936
+        },
+        "buy-hold-25": {
+          "cash": 1006.4183681393599,
+          "fitness": -0.049802211218154195,
+          "max_drawdown": 0.02811028967875706,
+          "net_pnl": 6.418368139359927,
+          "num_trades": 1,
+          "roi": 0.006418368139359927,
+          "total_costs": 0.5064241039368105,
+          "trade_net_pnl": 6.418368139359984
+        },
+        "cash": {
+          "cash": 1000.0,
+          "fitness": 0.0,
+          "max_drawdown": 0.0,
+          "net_pnl": 0.0,
+          "num_trades": 0,
+          "roi": 0.0,
+          "total_costs": 0.0,
+          "trade_net_pnl": 0.0
+        },
+        "fixed-ema-09-21": {
+          "cash": 1000.0,
+          "fitness": 0.0,
+          "max_drawdown": 0.0,
+          "net_pnl": 0.0,
+          "num_trades": 0,
+          "roi": 0.0,
+          "total_costs": 0.0,
+          "trade_net_pnl": 0.0
+        },
+        "ga": {
+          "cash": 1000.0,
+          "fitness": 0.0,
+          "max_drawdown": 0.0,
+          "net_pnl": 0.0,
+          "num_trades": 0,
+          "roi": 0.0,
+          "total_costs": 0.0,
+          "trade_net_pnl": 0.0
+        },
+        "grid": {
+          "cash": 1000.0,
+          "fitness": 0.0,
+          "max_drawdown": 0.0,
+          "net_pnl": 0.0,
+          "num_trades": 0,
+          "roi": 0.0,
+          "total_costs": 0.0,
+          "trade_net_pnl": 0.0
+        },
+        "random": {
+          "cash": 1000.0,
+          "fitness": 0.0,
+          "max_drawdown": 0.0,
+          "net_pnl": 0.0,
+          "num_trades": 0,
+          "roi": 0.0,
+          "total_costs": 0.0,
+          "trade_net_pnl": 0.0
+        }
+      },
+      "requests": {
+        "ga": {
+          "additional_computed_evaluations": 0,
+          "budget": 8,
+          "duplicate_trials": 2,
+          "elite_score_reuses": 2,
+          "score_cache_hits": 8,
+          "unique_trials": 6
+        },
+        "random": {
+          "additional_computed_evaluations": 0,
+          "budget": 8,
+          "duplicate_trials": 0,
+          "elite_score_reuses": 0,
+          "score_cache_hits": 8,
+          "unique_trials": 8
+        }
+      },
+      "seed": "1",
+      "training_selected_ids": {
+        "buy-hold-100": "buy-hold-100",
+        "buy-hold-25": "buy-hold-25",
+        "cash": "cash",
+        "fixed-ema-09-21": "fixed-ema-09-21",
+        "ga": "ema-03-20",
+        "grid": "ema-03-15",
+        "random": "ema-03-20"
+      }
+    }
+  ],
+  "protocol_id": "9d0c45fecb6fb71c50534405f6112f8869edacf9cf7b45e6844e89d62c6a8a22",
+  "provider_database_env_imports_denied": true,
+  "recorded_utc": "2026-10-13T02:20:18.198788+00:00",
+  "result_id": "107c6eda1ebd4151fc0d6eaa168727d39b35a079391399f737ebb8f477235ede",
+  "scope": "synthetic_mechanics_only",
+  "sequential_children": true,
+  "source_sha256": {
+    "services/vonneumann/vonneumann/core/clock.py": "16c5e9d1db0ed2ddb2003a532fc9a7e1fb317a1a7d2217fa1a450680abc7ac6c",
+    "services/vonneumann/vonneumann/core/colony_config.py": "8aaa552e05fcf944b53d23a32a240147614c3298f11f0c3ba3f4d6a52cb27fe2",
+    "services/vonneumann/vonneumann/core/equity_metrics.py": "38af0245f42cef862fa5e126fdb500f41864c9582900babff3ed687878de8831",
+    "services/vonneumann/vonneumann/core/evolution.py": "e82d9a1fc7b5a76b33f17196f4e7d1826861531a86404091499f7e5e8f37ee46",
+    "services/vonneumann/vonneumann/core/execution.py": "6e846f3b4a791bfdc6097d819e468dce444805c357ba56a31c68f71e95011c8d",
+    "services/vonneumann/vonneumann/core/gene_registry.py": "5a8737170344d3fc9d27ac9e346bcc699ae5935b0d5e0b7a31cd751691a1d1f4",
+    "services/vonneumann/vonneumann/core/genome.py": "ba31f3d5b6416c5ab5b1a778db7a30d99df1a744a75b035dd1f9e154f66840c8",
+    "services/vonneumann/vonneumann/core/market_validation.py": "7fcd14681d29815c0c142aba2dd7e61ec8515c7684826a3fc461e058608ff7e5",
+    "services/vonneumann/vonneumann/core/probe.py": "e396e216e666f13a12597cf978b4e9aabc7fa5260382a2dff31d698e88c6f704",
+    "services/vonneumann/vonneumann/core/search_random.py": "f08dc67cae68a26fa17dc017b9be1b4e9d1a8fcd2cd7a494cba90eb13884db5a",
+    "services/vonneumann/vonneumann/core/signal_profile.py": "4009fa3398594f82f733f742c0d8b40cb24eea25cac8b1c56df90d2136bc7003",
+    "services/vonneumann/vonneumann/core/types.py": "d6729e90269e6acab498701e9fdb8ef6e5de73bcd3d799e4b77dc0da09f8097d",
+    "services/vonneumann/vonneumann/market/candles.py": "b677bb8063ca881c0f56e9beb618d35cbbb096d342f7f885a50d6dac2443366b",
+    "services/vonneumann/vonneumann/market/dataset.py": "ff5cd764881c8441e9f6e0ce5b59b45b41976c57c66230360b133242ff41a8c2",
+    "services/vonneumann/vonneumann/market/feed.py": "dd6edbfd955166d7c45b04ca1f489e132d1f68aec0fcc2c1becb223846a8efd7",
+    "services/vonneumann/vonneumann/market/replay_feed.py": "de06c980e8343731e5d30a269811e344593467323be5de73f742236163abbe1f",
+    "services/vonneumann/vonneumann/research/artifacts.py": "3af38d9d86fe203d6b77b24738a42dd261a78ccbbfc2c74d7a35a031db594f52",
+    "services/vonneumann/vonneumann/research/protocol.py": "f473b290017059a9497ed3cdf6e377bd0d640e1dff94d96191e76cef2d0ab135",
+    "services/vonneumann/vonneumann/research/runner.py": "3eb4188258dac58fb0587e9a25d2f08453cb3bd173ed77cf06a07c1bb53239cd",
+    "services/vonneumann/vonneumann/research/search.py": "2d7aa812698ab8a086a0237a4a236a81be952bd87725b1dbe56284bfa546a7d0"
+  },
+  "steps": [
+    {
+      "result": {
+        "assets": [
+          "SOL/USDC"
+        ],
+        "availability_semantics": "modeled",
+        "candle_coverage": {
+          "SOL/USDC": {
+            "count": 385,
+            "first_start": 1704067200,
+            "last_end": 1704090300
+          }
+        },
+        "dataset_id": "3dbd9c7dca91fa058372c1a6f401f55a825b557f4ee9ea4ce5504be571615c09",
+        "first_observed_at": 1704067260.0,
+        "frame_count": 385,
+        "last_observed_at": 1704090300.0,
+        "network": "synthetic",
+        "quote_currency": "USD",
+        "schema_version": "market-dataset-v1",
+        "source_kind": "synthetic_fixture",
+        "volume_unit": "synthetic_base_token"
+      },
+      "seconds": 0.211025,
+      "step": "dataset"
+    },
+    {
+      "result": {
+        "artifact_id": "f8b3244c09e23349492678722ef4b71f4fb6ea594509b17f742727a8a15cfd61",
+        "children": 0,
+        "scope": "synthetic_mechanics_only",
+        "verification": "plan"
+      },
+      "seconds": 0.173707,
+      "step": "plan"
+    },
+    {
+      "result": {
+        "artifact_id": "107c6eda1ebd4151fc0d6eaa168727d39b35a079391399f737ebb8f477235ede",
+        "children": 4,
+        "scope": "synthetic_mechanics_only",
+        "verification": "run"
+      },
+      "seconds": 1.051864,
+      "step": "run"
+    },
+    {
+      "result": {
+        "artifact_id": "107c6eda1ebd4151fc0d6eaa168727d39b35a079391399f737ebb8f477235ede",
+        "children": 4,
+        "scope": "synthetic_mechanics_only",
+        "verification": "full_replay_equal"
+      },
+      "seconds": 1.315262,
+      "step": "verify"
+    }
+  ],
+  "timing_scope": "contended_local_mechanics_smoke_not_benchmark",
+  "version": "paired-protocol-cli-smoke-receipt-v1"
+}

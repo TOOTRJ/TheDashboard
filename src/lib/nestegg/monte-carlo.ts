@@ -23,6 +23,10 @@ export function effectiveAnnualVolatilityPercent(inputs: NesteggInputs): number 
   return ANNUAL_VOLATILITY_BY_RISK[inputs.riskProfile] ?? ANNUAL_VOLATILITY_BY_RISK.moderate;
 }
 
+/** Identity metadata for the existing formulas and seed implementation; no calibration claim. */
+export const NESTEGG_MC_MODEL_VERSION = "nestegg-monthly-normal-v1";
+export const NESTEGG_MC_SEED_POLICY = "fnv1a-input-json-mulberry32-path-v1";
+
 const DEFAULT_PATHS = 900;
 const MAX_PATHS = 1500;
 
@@ -483,7 +487,8 @@ export type ScenarioMonteCompareRow = {
   medianDepletionAge: number | null;
 };
 
-const COMPARE_PATHS = 350;
+export const NESTEGG_MC_COMPARE_PATHS = 350;
+const COMPARE_PATHS = NESTEGG_MC_COMPARE_PATHS;
 
 export function runMonteCarloScenarioComparison(
   inputs: NesteggInputs,

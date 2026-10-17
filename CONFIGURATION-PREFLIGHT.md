@@ -4768,3 +4768,584 @@ semantics before native effects, restoration, retention and hosted acceptance.
 NEST-05A result identity then cloud reply ordering can proceed independently;
 QA-01B mocked browser fixtures and SEC-05B advisory research can also proceed
 in parallel. Exact-project cloud writes and activations remain serialized.
+
+
+## 114. Five-priority implementation and local acceptance — 2026-10-12 Denver / 2026-10-13 UTC
+
+Fresh read-only metadata verifies GitHub `TOOTRJ/TheDashboard` /1141090963
+under `biggrizzly11` /16749816, Vercel `the-dashboard`
+/prj_wFUe9k9USVreOQcmQKNWRAVsx5fH under team_8iNNxiNjrOseD4gdSCHkQEzF,
+and Supabase `The Dashboard` /fxpxsciltakyypunglzr under
+cqfnnaunmupdyobkyqfo. Railway `The Dashboard Worker`
+/38facb49-4de9-4d66-85aa-2861e0306dcf, production
+/9bbe52c6-2305-467a-bf39-8d5e1a98e4e4 and workspace
+/f3fcd4b2-e424-4c6b-ac33-91196ccc96e1 also match. No other project contents,
+shared credentials, account/billing configuration, migration or runtime
+activation changed. The user's pre-existing colony migration edit retains SHA256
+`a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc`
+and remains unstaged. Commits use verified repository-local biggrizzly11 attribution,
+with inherited author/committer variables removed.
+
+The `codex/dashboard-five-priorities` implementation contains:
+
+- Independent original-v2 configuration, locked dependency and complete semantic
+  SQL, including economics/source/causal/risk/assessment/graph/RNG/selection and
+  actual integer child mutation. Corrected38-case actual PostgreSQL suite passes,
+  zero skips,426.599s;4 ordinary source/Unicode checks pass. The unpublished draft's
+  temporary relation/type influence is repaired with explicit pg_catalog,pg_temp,
+  qualified catalogs and a private v2 numeric fork. Oldv1 source bytes stay unchanged.
+  [Contract](services/vonneumann/PORTABLE-SQL-CONTRACT.md).
+- NEST-05A model/input/calculation/request/purpose/path identity, coherent full
+  bundles, saved-row failure/retry and same-account cloud intent ordering.
+  Active deletion closes/acknowledges its original dialog before replacement
+  selection. Controlled and actual browser cases pass; calculation formulas and
+  distributions stay unchanged. [Contract](NESTEGG-RESULT-IDENTITY.md).
+- Fake-credential, unique-cookie-host actual Next/React browser fixtures without
+  a cloud proxy. Ready requires exact owner marker and CSP. Owned cleanup drains
+  preparation, closes the backend even after child failure, and verifies only
+  the recorded PGID; ambiguous/live/foreign metadata fails closed. All21 focused
+  fixture cases pass, zero skips,31.918s; the separate paper adapter case contains
+  31 assertions and also passes in the complete271-case frontend suite.
+  The actual used launcher exits0, its exact Next group has no members and its
+  owned copy is removed. This is trusted public-source execution, not an OS sandbox.
+  [Contract](BROWSER-FIXTURE-CONTRACT.md).
+- Primary-source security/Jupiter/Birdeye/quota/history/cost/evolutionary research,
+  seven fee-provenance and seven paired-protocol tests, and a synthetic plan/run/
+  verify exercise with full ledgers. This is no empirical advantage or realistic
+  fill calibration. October14 security ranges remain unpublished at the check.
+  [Report](FIVE-PRIORITIES-RESEARCH-2026-10-12.md).
+- Original-v2 guarded native laboratory atomic journal, original receipt/replay,
+  thirteen pins, history/events/projections and owner-scoped exact readback.
+  Final all-history clock suite passes24 actual SQL cases, zero skips,75.576s;
+  additional bounded projection-header SQL regression passes1 case,2.754s.
+  Native min/max clock admission includes every supplied history receipt.
+  The frozen genuine-bar positive probe passes664.320501s across real04:00→04:15
+  bars:31 original lease renewals,8 admitted commands and8 positions retained
+  exactly at stopped revision9. Original Stop replay is unchanged, complete
+  projection equals original checkpoint, logical retained bytes722093 and owned
+  cleanup finishes. Earlier failed probes are not accepted. This is freshness
+  checked during recognized COMMIT processing, not a later visible-instant bound.
+  [Contract](services/vonneumann/PORTABLE-NATIVE-CONTRACT.md),
+  [genuine-clock receipt](services/vonneumann/research/portable-native-genuine-stop-acceptance.json).
+  Independent review subsequently repairs the probe CLI's output/PID collision
+  and final-publication ownership checks. Both opt-ins/deadline precede I/O;
+  canonical parent descriptors and exclusive0600 nofollow leaves are rechecked
+  before success. Thirteen ordinary isolation cases pass0.017s. Existing or
+  replaced files stay untouched. Timed run() and native SQL are byte-identical;
+  the old genuine-clock receipt remains tied to its original CLI, with no new
+  timed acceptance claim. This is not an OS sandbox against a hostile same-user process.
+- Bounded original-wire fixed-class/RNG restoration:16 ordinary cases pass,
+  zero skips,120.684s; the original15-case subset contains78 byte-exact full/compact
+  next-command comparisons. Three actual native joins pass27.457s. Current-head
+  original identity proof is mandatory; historical loading grants no lease,
+  capability or running authority. [Contract](services/vonneumann/PORTABLE-RESTORATION-CONTRACT.md).
+- Conservative supplied-artifact retention with7 focused/property cases,64 seeded
+  inventories and no deletion authority. Final-native actual33-command trace
+  retains429 pins/15 deduplicated components,42 events,8 identities and all IDs;
+  60 original-ID plus60 complete checkpoint reads pass. Selected original text
+  is671205bytes; logical charge935775;13 owned table/index physical allocations
+  are1744896bytes against294912 baseline. The1-case measurement passes47.301s.
+  This small control-only trace is not a real-source/long-run storage forecast,
+  WAL/archive measurement, completeness or safe-pruning proof.
+  [Policy](services/vonneumann/RETAINED-ARTIFACT-POLICY.md).
+- Inert bounded original-v2 checkpoint inspector:14 parser/React cases pass;
+  actual browser observes native-lab Stop, exact8-position and2-window synthetic
+  demonstrations, historical labels, unknown/missing/pending refusal and immediate
+  scope/sign-out clearing. Synthetic scope props do not prove authenticated reader
+  integration. Cumulative history remains explicitly unavailable; oldv5 reader
+  meanings and controls are unchanged. No optimizer/RNG restore or running authority.
+  [Observations](BROWSER-ACCEPTANCE-2026-10-12.json).
+- Explicit closed forward-v3 proposal:9 ordinary cases pass, zero skips,0.041s.
+  It freezes source/config/model/command/checkpoint/projection/reader names, separate
+  market/process epochs and8 ordered implementation gates. Budgets/package hashes
+  stay null; runtime use always refuses. This is a review proposal, not implemented
+  real-provider runtime/native admission. [Plan](services/vonneumann/PAPER-RUNTIME-V3-PLAN.md).
+
+Final integrated frontend passes271 Node cases, zero skips,32.138s; TypeScript,
+workflow capability check and scoped lint pass. Earlier complete lint had zero
+errors/32 pre-existing warnings. Actual browser core cases use the360f5b1 source
+and final inspector files usea367be5; receipts state separate source boundaries.
+The original full frontend copy proof covers150 non-overridden tracked inputs of151.
+No browser download/print or broad honest-action/native-auth/hosted acceptance is
+claimed. Home still labels mock content as live; APP-01 remains open.
+
+Earlier semantic/research-head ordinary groups executed1751 cases and reported2188
+with audited SQL opt-in skips. Final discovery-only inventory is2398 ordinary
+occurrences split1045/1353 and600 SQL occurrences split94/175/126/205; both retain54
+baseline repeated IDs. These are discovery, not new actual hosted execution.
+All seven exact-head hosted jobs and project/source/author/current-alias release
+checks remain required before merge. Production is the previously accepted PR103
+source while this review proceeds. [CI receipt and limits](CI-VERIFICATION.md).
+
+Originalv2 remains `synthetic-exact-fixture-v1`. Preserve its journals while building
+an explicit real-provider runtime/config/model/source/clock/command/SQL/projection/
+reader fork with original acquisition/warmup provenance. Next serial gates are
+forward source/trust/interface freeze → recorded acquisition/model → scoped native
+operator → restoration, measured retention and offline authorization/API/old-new UI
+→ reviewed closed migration/package → exact hosted owner/read/control join → hosted
+fault/multi-window → longer resource/quota/recovery acceptance. Recorder/model,
+research/UI fixtures can overlap after contracts freeze; cloud operations remain
+serialized. The $20/month initial hosting ceiling persists. Continuous paper,
+empirical strategy, full audit and all live-trading gates remain open.
+
+The initial PR104 head6e5b12b starts seven actual hosted jobs inrun38346070509;
+frontend passes2m40s. The ownership repair requires a new exact-head run, so this
+partial earlier result cannot authorize merge. Dedicated Vercel project checks
+passed initially, then API verification failed and the isolated auth file was
+absent. An exact-profile device session ended without saving authentication.
+Release remains gated on fresh exact-target/source/author verification; no shared
+profile/credentials were used or altered. Additional primary-source research
+records the460-pair grid, a pinned public Hummingbot V1/float-amount limitation,
+account-specific Birdeye retention uncertainty and a Jupiter-only prospective
+observed-mark option. No licensed corpus or provider-key request occurred.
+
+Read-only browser identity verification after the CLI session failure confirms
+`the-dashboard` /prj_wFUe9k9USVreOQcmQKNWRAVsx5fH in project settings and
+owner team_8iNNxiNjrOseD4gdSCHkQEzF atorderoftheredjester's Team ID display.
+Only owner identity metadata is read at team level; no shared settings change.
+The dedicated CLI remains unauthenticated, so full API-based source/alias release
+checks are still pending. Supabase name/ref/organization/local link and GitHub
+name/immutable repository/account are reverified before the corrected branch push.
+
+Final Linux portability review replaces the fixed macOS-only CLI path with
+Darwin/private/tmp and Linux/tmp anchors; unsupported platforms refuse before
+I/O. Environment/default temporary paths cannot override this, and private
+parent depth follows the actual anchor. Fifteen local ordinary cases pass
+0.018s; fifteen exact controller/test-class cases pass on cached Linuxarm64
+CPython3.12.14 as a nonroot user, networknone/read-only/no host mounts,0.013s.
+Its owned container is removed. The latter uses extracted exact source and
+excludes full worker imports/amd64/SQL/timed acceptance. Independent review
+verifies unchanged native SQL and timed run() bytes. Final exact-head full CI
+remains mandatory; earlier macOS proof and partial CI do not replace it.
+
+## 115. Final-source browser follow-up and CI repairs — 2026-10-13 UTC
+
+Final-source897ec2a browser follow-up uses one owned fake loopback fixture with
+unique hostname/cookies. Its153 tracked frontend inputs are checked against the
+committed head:152 non-overridden files match byte-for-byte, and only
+next.config.ts has the explicitly reviewed fixture override. Aggregate pin
+`0c6198c70392cda0d4dc8d3349c1cfe7974aa82c569b10dd93cd2a4d37658a06`
+is recorded separately from the earlier150-of151/core/inspector proofs.
+Actual fake Alice form/SDK/SSR login admits currentSavings10000. CSV click shows
+Download started, but a correctly registered concurrent15s download wait returns
+no artifact. Print click shows its success message without an observable report
+tab/print dialog. Neither artifact is accepted, and NEST-07 remains open.
+Actual keyboard Sign Out removes the private view and reaches login; console
+errors/warnings are empty. The owned tab is closed; launcher93816 exits0, the exact
+launcher/Next93907 processes are absent and the marked copy is removed. No other
+process/tab or cloud service is stopped. [Source-bound observations](BROWSER-ACCEPTANCE-2026-10-12.json).
+
+Exact PR104head897ec2a/run38349686661 frontend passes2m21s, but ordinary1 and
+SQL4 fail. Two ordinary import-boundary tests hardcode a missing macOS interpreter;
+the reviewed8275903 fix uses sys.executable with unchanged sanitized boundaries
+and20/10s limits. Both focused cases pass31.031s, zero skips. SQL4's retired-ID
+restoration case expires at the five-second native source/lease guard; its
+preparation choreography remains under review. No guard is widened, failed head
+accepted, migration performed, worker activated or production release claimed.
+[CI failure evidence and required new acceptance](CI-VERIFICATION.md).
+
+Forward dependencies are clarified: initial source/trust/interface freeze precedes
+implementation, while actual runtime hashes/quota/tails join the final package.
+Offline owner/API/UI fixtures precede a closed additive migration; exact hosted
+owner/read/control acceptance follows that installed schema and precedes activation.
+This resolves the former circular hosted-reader-before-migration requirement.
+The user completes a fresh device login, and the waiting dedicated Dashboard
+profile successfully saves it. Fresh API verification matches GitHub repository
+1141090963/user16749816, Vercel prj_wFUe9k9USVreOQcmQKNWRAVsx5fH/team
+team_8iNNxiNjrOseD4gdSCHkQEzF and Supabase fxpxsciltakyypunglzr/organization
+cqfnnaunmupdyobkyqfo with exact names/local links. Read-only owner identity and
+Git binding are also checked in the existing authorized browser. The current
+production remains PR103sha92d3d4313e4a8648a0d65bebd41b5029b55826be,
+deployment dpl_T2Rq6Lyz8mBCnpfGjXPCZRY1tT7h: exact repository/source/author,
+project/team, READY/current production alias and all four read-only smokes pass.
+No shared credential, other project, configuration, migration or worker changes
+are made. New final-source CI/release acceptance remains required before merge.
+
+The original897ec2a run finally fails SQL2 at the2400s child deadline; its partial
+log also marks the latest-bootstrap-receipt case FAIL without a final traceback.
+SQL1/3 pass32m36s/18m40s. Whole-module relocation41c214d uses that actual scheduling
+evidence and preserves exhaustive coverage, original fixture segments and all
+deadlines; ten existing sharding cases pass0.006s. Native restoration choreography
+is repaired with the original five-second rule unchanged: prior load before
+fresh capture, actual current-head/oracle snapshot before one original decision,
+then delayed immutable full/compact equivalence with no later submission. A
+three-case revision passes24.439s; final affected representation/reporting case
+passes17.695s. Stored native guard intervals are1.646198s and2.895655s after the
+unchanged original fractional receipt. True receipt→integral action delay is
+0.483848s; host action-stage intervals are separately labeled. Earlier expiry,
+causal defer and one-microsecond representation failures remain dated evidence,
+not accepted or rebased requests. This does not claim cold restart within five
+seconds, real-provider/new-v3 clock correctness or Railway CPU performance.
+The separate latest-history negative fixture now passes1 actual PostgreSQL case,
+zero skips,3.103s: a one-time explicitly adversarial later receipt is claimed60s
+ahead of a valid unchanged producer baseline; native-first future refusal and
+complete table equality pass. This is not sealed producer-valid continuation.
+The new whole-module partition is94/158/143/205, with2398 ordinary/600 SQL
+occurrences and54 repeated IDs retained. Full corrected exact-head CI and release
+remain required. Railway project/environment/workspace,
+service/settings and latestcf05895d-adc5-427f-873e-82ad6606e5a1 SUCCESS are rechecked
+read-only with the project token. This is identity/settings continuity, not a fresh
+mode/image/TLS/auth/pilot acceptance or worker activation.
+
+## 116. Resumed ordered work and completed failed CI evidence — 2026-10-13
+
+The user authorizes continuation of all ordered next steps. Read-only identity
+verification again matches GitHub TOOTRJ/TheDashboard/1141090963 and
+biggrizzly11/16749816, Vercel the-dashboard/prj_wFUe9k9USVreOQcmQKNWRAVsx5fH
+owned by team_8iNNxiNjrOseD4gdSCHkQEzF, and Supabase The Dashboard/
+fxpxsciltakyypunglzr owned by cqfnnaunmupdyobkyqfo; local links also match.
+Railway's project token verifies The Dashboard Worker/
+38facb49-4de9-4d66-85aa-2861e0306dcf, production environment
+9bbe52c6-2305-467a-bf39-8d5e1a98e4e4 and Red Jester's Projects/
+f3fcd4b2-e424-4c6b-ac33-91196ccc96e1. These are target checks, not activation
+acceptance. No shared login, account setting or another project's data changes.
+The user's existing migration retains SHA256
+a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc.
+
+Fresh authorized browser inspection reads the completed c58177a
+run38357623351: frontend2m1s, ordinary11m28s/10m41s and SQL1/3 in36m42s/28m37s
+pass; SQL4 fails15m39s at original restoration admission and SQL2 fails40m57s
+with its2400-second parent timeout during the complete source-transition trace.
+The source-or-lease refusal's actual failed branch is not recorded. Preserve
+the failed original and both deadlines; later diagnostic observation cannot be
+represented as a clock captured at that guard. Immutable image preparation
+succeeded, so prior registry failures remain separate infrastructure evidence.
+
+The reviewed whole defining source-transition module moves SQL2→SQL4. All600
+ordered discovered occurrences and54 repeated IDs remain identical, and only
+its30 occurrences change group. Counts become94/128/143/235, with unchanged
+1500/2400-second child limits. Ten existing sharding/fixture/environment tests
+pass0.007s. This proves selection coverage, not completion on hosted runners.
+Complete new-head CI and scoped release checks remain required before merge.
+The readiness overview is reconciled with PR99–PR104; original-v2 laboratory
+proofs are distinguished from unimplemented real-provider/hosted joins.
+[CI research, failure propagation and deeper measurements](services/vonneumann/CI-FIXTURE-RELIABILITY-RESEARCH-2026-10-13.md).
+
+The reviewed restoration repair moves both duplicate equivalence calculations
+after the once-only original pair, retaining independently captured actual
+prior/protective heads and scoped oracles, complete state/13 wires/full+compact
+equality, current decision readback, retired-ID and stale/no-write assertions.
+Four native cases pass33.380s and16 ordinary restoration cases pass52.863s,
+zero skips. Genuine native guard intervals are1.658530s/2.816193s after the same
+first receipt; these are local observations, not hosted or cold-restore bounds.
+The new genuinely expired-original case proves one source refusal/live lease,
+original-ID absence and complete rollback; its later observation is explicitly
+not the failed guard clock. A pure output-error subproof preserves the original
+SQL exception without a database call. Native/model/source/decoder versions,
+SQL hash and all guard limits remain unchanged. Exact owned fixture cleanup
+completes, with no provider or hosted database request.
+
+Final discovery includes the additional refusal case:2399 ordinary occurrences
+1045/1354 and601 SQL occurrences94/128/143/236, still54 original repeated IDs.
+Selection SHA256 be75136c0592a7a2da26707a3d7e4c1e7e740dda639776f6759d23ed64357af1;
+ordinary e1f774da9b5d8e47d5d4941aeb2f53e3867b4a3f08dccd7b89c8037a8c857262;
+SQL 7ea5fd730d7d91975c5b62f9fbf81ec02b8fd37a6ad324b3b25a3b153f06718c.
+These source inventories do not establish executed counts or complete CI.
+
+## 117. Completed revised CI and dedicated-auth status — 2026-10-13
+
+Head360d4a2/run38420675259 completes35m5s: frontend, both ordinary groups and
+SQL1–3 pass; SQL4 reports236 cases/1499.558s with one original restoration
+decision error and two allowed optional timing skips. The moved complete
+source-transition suite passes. The original five-second native allowance
+remains unchanged and PR104 is not merged. Later rollback diagnostics observe
+source age beyond its derived deadline and a live lease; they do not recover
+the actual failed guard clock. See the source-bound CI report.
+
+The dedicated Vercel auth file is absent at the fresh release check. A scoped
+login window expires without saving authentication; a ready-for-login question
+is pending before another link is generated. No default/shared profile is read
+or changed. Browser metadata verifies the exact Dashboard project, team and
+Git repository; PR-bot preview READY alone is not a complete source/author/alias
+release verification. Offline implementation proceeds while authentication is
+pending. No production deployment, migration, worker activation or provider
+credential operation is performed by this checkpoint.
+
+The next test-only repair retains the unchanged original pair and actual
+current-head/catalog/oracles, removes one ACTOR client startup by placing full
+native readback after explicit COMMIT, and retains a separate fresh operator
+connection before decision. Five actual native cases pass36.091s, zero skips;
+the new after-COMMIT failure case finds the original committed row without a
+retry/decision. Final discovery is2400 ordinary/602 SQL occurrences with54
+repeated IDs and unchanged selection/limits. The measured pure catalog query
+does not use JIT; no server setting is tuned. Full next-head CI remains required.
+
+## 118. Completed current-head failure and parallel offline progress — 2026-10-13
+
+Head4edff598/run38429396878 completes39m36s with six jobs passing. SQL4 reports
+237 cases/1442.718s, one original restoration decision error and two allowed
+optional timing skips. The complete source-transition trace and actual
+post-COMMIT original reconciliation pass. The fixed phase observations identify
+1.647129434s of repeated capture/transport preparation; neither those timings
+nor the later receipt-age diagnostic is the actual failed native guard clock.
+The source/lease budgets and original wire/ID remain unchanged. PR104 stays open;
+no production release, migration or worker activation occurs.
+
+The separate reviewed local recorded-acquisition slice passes107 combined cases.
+The fresh independent prospective model passes20 cases/125.704s, zero skips,
+with all authority false. The private legacy TLS hardening slice passes160 scoped
+cases. Those local commits are not yet integrated into this release, installed
+native source admission, the worker image or a hosted paper runtime. New pure
+source/native envelope work must independently reparse original bodies and
+retain its explicit supplied-context trust limits before the native join.
+
+Dedicated Vercel authentication remains pending the user's ready-for-login
+response. Existing scoped-profile and immutable project boundaries are preserved;
+offline work continues without shared credential fallback or cloud changes.
+
+## 119. Factory-owned checkpoint optimization and native recheck — 2026-10-13
+
+The reviewed five-file cache commit is adopted as4685741 without its separate
+SEC-06 TLS parent. Root verifies its old checkpoint/model hashes match the
+pre-change golden fixture. All first-factory/untrusted full validators, canonical
+wire meanings, source/lease budgets and original-ID semantics stay intact.
+Author verification passes14 dedicated cases including70 pre-change complete
+wire records and16 existing restoration cases, zero skips. Root independently
+passes five unchanged actual native cases in32.342s, zero skips, with original
+guard offsets0.904890s/1.827126s and a0.183815s action delay. These local timing
+observations do not establish hosted tails or a calibrated speedup.
+
+Final discovery is2414 ordinary occurrences1045/1369 and602 SQL occurrences
+94/128/143/237, retaining54 repeated IDs and unchanged selection/limits. Full
+new-head hosted CI and exact scoped release checks still gate merge. The user's
+existing migration remains unchanged; no cloud schema, worker activation,
+provider credential, shared configuration or another project is modified.
+
+## 120. Hosted restoration pass and retained source lineage — 2026-10-13
+
+Head35d6aac/run38438232967 completes37m58s with frontend, ordinary1 and SQL1/3/4
+passing. SQL4's237-case report has only two allowed timing skips; the original
+restoration pair now passes with guard offsets1.361904s/2.612940s. Ordinary2 and
+SQL2 fail only checkpoint-source hashes compared against historical pre-cache
+receipts. The run remains failed and PR104 is unmerged.
+
+Root adopts the reviewed ordinary lineage correction as3c643d7; all six affected
+cases pass5.484s, zero skips. The retention correction pins the exact historical
+source contract and new lineage artifact, replaces only two checkpoint hashes
+and checks all ten current model sources. The unchanged actual retention trace
+passes38.017s, zero skips:33 commands,60 original-ID/13-pin reads and final Stop
+while flat. A new source-bound receipt preserves all older measurement files.
+Source/lease/SQL budgets, native/model wires and all storage/control assertions
+remain unchanged. Complete corrected-head CI and release verification still gate
+merge; these fixture measurements do not establish continuous hosted readiness.
+
+Dedicated Vercel authentication remains pending the user's ready-for-login
+response. The existing user-edited migration remains at its preserved SHA256.
+No production migration, worker activation, provider credential, shared account
+configuration or other project changes occur in this checkpoint.
+
+## 121. Completed lineage acceptance and paced restoration fixture — 2026-10-13
+
+Headc04be4f/run38444382423 completes33m57s with six jobs passing, including both
+historical/current source-lineage repairs. SQL4 reports237 cases/1472.116s, one
+original restoration decision error and two allowed timing skips. PR104 remains
+unmerged. All jobs settle before another push; no failed request is retried.
+The observed first receipt fraction3,545us incurs0.996455s integral-action delay;
+its later receipt-age diagnostic does not recover the actual failed guard clock.
+
+The reviewed test-only positive acquisition pacing occurs before its first
+designated receipt and preserves the subsequent real timestamp. All five native
+cases pass34.233s locally with unchanged original IDs/wires, source5/lease60/
+future2 guards, expiry rollback and post-COMMIT reconciliation. Full current-head,
+13-wire and independent full/compact oracle checks remain. The precise source
+and limited observations are recorded in the new laboratory receipt. Complete
+new-head CI and exact project/source/author/alias release verification remain
+required; no unpaced continuous-runtime or hosted latency guarantee is inferred.
+
+The independently reviewed source A1 slice passes41 actual offline cases; the
+parser-only A2A prototype passes16 actual isolated PostgreSQL cases5.618s with
+all nine authority flags false. They remain private local research commits,
+separate from this release and from authenticated native admission. Wider actor,
+clock, epoch/ID/terminal-closure and full original journal bindings remain open.
+
+The Portfolio session/owned-acknowledgment repair is adopted locally asedbf4d55;
+its51 controlled cases, scoped compiler/lint and fake18-route build pass. Global
+success notices contain no private account values; owned cleanup preserves
+unrelated notices and retired Undo cannot write. Actual browser and full merged
+head CI acceptance remain separate gates. Reports/Settings honest previews are
+also reviewed locally, with their five controlled cases and fake build passing.
+
+Dedicated Vercel authentication remains pending the ready-for-login response.
+The Dashboard-only profile and exact immutable target boundaries remain intact.
+The user's existing migration still hashes toa62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc.
+No production migration, worker activation, provider/wallet action, shared cloud
+setting or other project changes occur in this checkpoint.
+
+
+Root's actual combined fake-browser review now accepts the finite Reports/
+Settings and Portfolio interactions recorded inBROWSER-ACCEPTANCE-2026-10-13.json.
+The original delayed Bob response is released once after new Alice's actual
+read and cannot populate Alice's workspace. Add/edit/delete/goal/Undo all use
+actual synthetic acknowledgments; account data and source authority are not
+inferred from them. The browser tab and exact owned server/backend/source copy
+are cleaned up; viewport override is reset. No real database/account is used.
+
+The complete local frontend follow-up has an unresolved exact-group OS-inspection
+failure in an existing helper test. Scoped23 fixture cases and an independent
+one-case diagnostic pass, but neither replaces that full failure. Closed
+refusal metadata is being reviewed without relaxing cleanup or1000ms inspection
+limits. The current source still needs complete new-head CI and release checks.
+
+### 2026-10-13 — Local release checks and API catalog observation
+
+The complete frontend suite at `0609db36b168a803283d57e3302a54c8ebbecaaa`
+passes 332 cases, zero skips, in 22,623.090834 ms. The owned inspection diagnostic
+adds safe refusal metadata without changing process selection, cleanup or timeout
+requirements. The earlier inspection failure remains recorded without inferred
+attribution. New-head hosted CI and release checks remain pending.
+
+Fresh read-only verification matches the allowed GitHub repository/user, Vercel
+project/team, Supabase project/organization, and Railway project/workspace/
+environment. Vercel's browser settings identify `the-dashboard`, project
+`prj_wFUe9k9USVreOQcmQKNWRAVsx5fH`, team
+`team_8iNNxiNjrOseD4gdSCHkQEzF`, slug `orderoftheredjester`; no setting changes.
+Dedicated Vercel CLI authentication is still absent; the default profile is unused.
+
+One exact-project read-only catalog query records the two existing API tables in
+[the dated receipt](supabase/audits/2026-10-13-api-schema-readonly.json), SHA-256
+`25d9362d0c22df79f54898cf15933e522a65f0ec479db76205d35d489d53012f`.
+No row data, schema or ACL is changed. `market_sentiment.score` is an integer
+with a 0…100 constraint, exposing the next API validator's fractional-value
+mismatch. Both tables have RLS enabled, no policies, nullable `source` and
+`created_at`, and broad direct grants. RLS does not replace review of privileges
+such as TRUNCATE. The separate reviewed API integer alignment and DB-04 plan
+must preserve the actual schema and establish effective-role/consumer needs
+before any table-specific privilege migration. No global role/default-grant or
+owner-policy change is inferred from this catalog observation.
+
+Pushed head 22bd538 creates exact Dashboard preview
+`dpl_584BwNfUphmYcqh6HbqErJKv42ic`, READY in 58 seconds, at
+`the-dashboard-pgblsovlh-orderoftheredjester.vercel.app`. The verified project
+browser displays the expected source commit, repository, branch and
+`biggrizzly11` author. GitHub run38458301073 frontend passes 2m37s; SQL4 fails
+the reviewed immutable image pull with rate limits before any integration test.
+The other jobs remain running at this observation. No merge, CLI credential
+fallback, production replacement, migration or worker activation follows.
+
+### 2026-10-13 — Settled81474 CI and local final app acceptance
+
+Immediately before the81474 push, fresh read-only GitHub, exact Vercel project/
+team, Supabase project/organization and Railway project/workspace/environment
+checks match the allowed immutable targets. GitHub PR104 remains open at
+`81474c1f9b65ac0defe0da4a1c061aa88c417561`. The exact linked preview
+`dpl_EwKi7hgmUme1x6XbQnKSva2zebzT` is READY40s with the expected repository,
+branch, author and source. GitHub run38464960221 settles35m2s: six jobs pass;
+SQL4 fails all five bounded original-pin image pulls and runs zero SQL cases.
+No merge/rerun/cancellation or production promotion is performed. The next
+content-export experiment cannot be adopted without actual runtime and
+producer/consumer failure proof. Dedicated Vercel CLI auth remains absent;
+signed-in browser verification uses no fallback credential or setting change.
+
+Separate local app source`c029931` builds with fake-only configuration and
+passes379 frontend cases/zero skips in22366.724167ms with unchanged clean source
+before/after. Actual desktop/mobile samples, range/filter/sort/pagination,
+Analytics tabs, disabled unsupported actions and dialog closure/focus recovery
+are source-bound in its local final receipt committed as`5690e6f`. Temporary
+viewport is reset, tab35 closed, exact owner/command checked before normal
+parent54623 stop, fixture exit0 and exact owned build copy absent. No real
+account/database/provider is used. Its release still requires composition
+with the accepted CI base and exact project checks. All earlier build and
+dialog failures remain recorded.
+
+Worker joins`028d39c`/`7cdecab` retain exact frozen TLS/source/model/parser
+bytes and original proof limits. Local308/20/16 proofs do not confer native
+source, actor, clock, epoch, journal, hosted or trading authority. The B1
+actor-only14-case experiment is reviewed for an owned network-none cached
+PostgreSQL fixture only. Railway remains closed at its earlier ordinary
+deployment; Supabase tables/ACL/rows are unchanged. User migration hash remains
+`a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc`.
+No shared credentials/settings/processes or other projects are changed.
+
+**2026-10-13 API privilege prerequisite:** one exact-project read-only catalog
+request confirms postgres ownership, no policy/column/PUBLIC grants, no
+transitive membership, and all eight effective table privileges for anon,
+authenticated and service_role on the two API tables. Only service_role bypasses
+RLS. This does not prove an anonymous row leak or REST TRUNCATE exposure. The
+proposed table-only repair is no anon/authenticated privileges and service
+SELECT+INSERT, preserving defaults/roles/schema/RLS/data/unrelated objects.
+Concrete baseline/ACL SQL, owned SQL/PostgREST tests and reviewed rollout are
+next; no hosted grants or rows changed.
+[Exact evidence, proposed delta and remaining gates](DB-04-API-PERMISSIONS-REVIEW-2026-10-13.md).
+
+### 2026-10-13 — Completed local worker proofs and narrowed release focus
+
+The separate composed worker source`7cdecab` now passes both complete ordinary
+shards:2,005 cases execute, zero unexpected skips. The first shard's initial
+launch omitted Node from PATH and failed its actual Node prerequisite; the
+complete corrected shard passes without changing source or assertions. The
+other accepted shard is retained with its original context. Local evidence
+commit`7f12b34` records both contexts, all audited skips and the original failure.
+
+The separate B1 actor/catalog-only prototype at`05fa535` passes14 actual local
+PostgreSQL cases after a narrow PL/pgSQL record/alias collision repair. Its
+first setup failure ran zero cases and remains in the evidence. The local ARM
+fixture result does not establish CI platform portability, source/clock/epoch/
+journal/reader integration, a hosted migration or continuous operation.
+
+One bounded cached ARM Docker export measures359,817,216 bytes in13.004341s
+for export/inventory, with original ARM manifest/config bytes present. Its
+owned export/config files are removed. No image is pulled, loaded, retagged,
+deleted or run by this measurement. It does not prove amd64 export/load or
+RepoDigest restoration. The closed pure archive prototype is adopted locally
+as`0dbc305`, passes34 controlled checks and changes no current workflow.
+
+The immediate focus is the smallest reviewed immutable image-delivery repair,
+all required new-head checks, PR104 release, then the tested app release.
+API controller and schema/privilege preparation are paused; neither the new
+controller nor proposed grants have been executed. No new remote push, merge,
+deployment, migration, activation, account setting or shared credential change
+is part of this checkpoint. Railway remains closed; no user setup is needed now.
+
+### 2026-10-16 — Security repair and minimal CI mitigation
+
+Fresh helper checks match GitHub repository1141090963/user16749816, Supabase
+The Dashboard/fxpxsciltakyypunglzr/owner cqfnnaunmupdyobkyqfo, and the exact
+Railway project/workspace/production/service. Railway retains its ordinary
+closed deployment cf05895d-adc5-427f-873e-82ad6606e5a1 and original settings.
+The signed-in Vercel browser confirms the-dashboard/project
+prj_wFUe9k9USVreOQcmQKNWRAVsx5fH and team
+team_8iNNxiNjrOseD4gdSCHkQEzF/slug orderoftheredjester. Dedicated CLI auth is
+absent; no default-profile fallback, login, link or environment pull is used.
+
+Next/config16.4.2 address the published October14 update. Updated audit passes
+production0/full5 unchanged dev braces entries; the exact exception expiry
+stays October26. Full332 frontend cases, TypeScript, isolated original-config
+build and compiled fake-account protection/replacement/logout checks pass.
+Initial stale-policy-clock, lint and sandbox process-query failures remain
+recorded. Final lint has0errors/80visible warnings; QA-01C tracks the scoped
+compiler baseline. One mouse-menu activation remains to retest in the app
+follow-up. Both exact owned fixture copies are removed; final fixture exits0.
+[Research and acceptance limits](DEPENDENCY-REVIEW.md).
+
+SQL concurrency4→2 preserves every required shard, image, assertion, privilege
+and deadline. Candidate24policy/helper and root58policy/pure-archive checks
+pass. Initial missing-dependency setup observations remain separate; only a
+new private hash-locked PyYAML policy environment is created. No shared Python
+runtime is repaired. Archive delivery is unused. New-head seven-job CI and
+exact Dashboard release remain decisive. User migration SHA remains
+a62079713f387e1fa8abbf22ac4e109a163ba22c6fa4a2bb751bf0fa026793cc.
+No Supabase write, Railway activation, other project or account-wide change.
+
+**October16 CI decision after actual failure:** two-way run38979594404 still
+has SQL1/3 image-preparation failures. Before supersession frontend and
+ordinary2 pass; ordinary1 and SQL2/4 remain in progress and are not accepted.
+The reviewed fallback3057a04 retains exact original image contents via
+verified official Docker Hub publishers after rate limiting; original four-way
+scheduling is restored. All106 focused checks pass0.784s, zero skips, with
+workflow validation passing. One corrected-head complete run remains required.
+The exact e004800 Dashboard preview dpl_7mZv7RVYxGbpqNWtKob5zNyYJYuD is
+READY36s with expected repository/branch/biggrizzly11/source; it is not production.
+
+
+## October16 native fixture freshness correction
+
+Completed exact-head run38981368987 at6695010 has six passing jobs and the single
+SQL4 retirement assertion failure; all original-image preparations pass. The
+reviewed test-only correction establishes current retained warm history before
+retirement and reuse, with one bounded wait before run/lease/source creation.
+Seven pure cases and five actual local ARM native cases pass, zero skips, while
+all production code, SQL and admission/deadline limits remain unchanged.
+Discovery retains602 SQL occurrences and54 repetitions;2475 ordinary occurrences
+include the new regressions. This does not accept the repaired hosted head or
+release. Require all seven new-head jobs and exact Dashboard deployment checks.
+[Full observations and limits](services/vonneumann/RESTORATION-FIXTURE-WINDOW-REPAIR.md).

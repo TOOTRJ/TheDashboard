@@ -8,12 +8,12 @@
       "version": "3.0.3",
       "severity": "high",
       "scope": "development-only",
-      "reviewed_on": "2026-10-12",
+      "reviewed_on": "2026-10-16",
       "expires_on": "2026-10-26",
-      "reason": "No published patched version. This exact development-only lint dependency path uses reviewed static patterns and bounded check processes; production audit must be clean. Re-review with the October 14 Next security release or an upstream patch, whichever is first.",
+      "reason": "No published patched braces version on October 16. Re-reviewed the exact development-only lint dependency path after the Next 16.4.2 security update; fixed source/test patterns and bounded check processes remain. Production audit must be clean. Expiry is unchanged; re-review on an upstream patch or before October 26.",
       "affected_packages": {
-        "@next/eslint-plugin-next": "16.3.8",
-        "eslint-config-next": "16.3.8",
+        "@next/eslint-plugin-next": "16.4.2",
+        "eslint-config-next": "16.4.2",
         "fast-glob": "3.3.1",
         "micromatch": "4.0.8",
         "braces": "3.0.3"

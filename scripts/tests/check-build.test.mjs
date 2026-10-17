@@ -51,11 +51,13 @@ test("build subprocess receives only fake app settings and owned npm paths", () 
     SUPABASE_SERVICE_ROLE_KEY: "never-copy", NEXT_PUBLIC_SUPABASE_URL: "https://real.example",
     NEXT_PUBLIC_VN_API_URL: "https://real-worker.example", RAILWAY_TOKEN: "never-copy",
     NODE_OPTIONS: "--require malicious.cjs", NPM_CONFIG_USERCONFIG: "/real-home/.npmrc",
+    NPM_CONFIG_MAXSOCKETS: "999",
   });
   assert.equal(env.PATH, "/test/bin");
   assert.equal(env.NEXT_PUBLIC_SUPABASE_URL, "https://dashboard-ci.invalid");
   assert.equal(env.NPM_CONFIG_USERCONFIG, "/tmp/dashboard-owned-test/empty-user-npmrc");
   assert.equal(env.NPM_CONFIG_GLOBALCONFIG, "/tmp/dashboard-owned-test/empty-global-npmrc");
+  assert.equal(env.NPM_CONFIG_MAXSOCKETS, "4");
   assert.equal(env.SUPABASE_SERVICE_ROLE_KEY, "dashboard-ci-fake-secret-with-no-access");
   assert.equal(Object.values(env).some(value => value.includes("never-copy")), false);
   for (const key of ["HOME", "VERCEL_TOKEN", "RAILWAY_TOKEN", "NODE_OPTIONS", "NEXT_PUBLIC_VN_API_URL"]) {
@@ -78,6 +80,7 @@ test("real build boundary uses a new install, literal arguments and no shell", a
     assert.equal(call.options.cwd, prepared.directory);
     assert.equal(call.options.shell, false);
     assert.equal(call.options.env.NEXT_PUBLIC_SUPABASE_URL, "https://dashboard-ci.invalid");
+    assert.equal(call.options.env.NPM_CONFIG_MAXSOCKETS, "4");
     assert.ok(call.options.timeout > 0 && call.options.timeout <= 600_000);
   }
 });

@@ -1,0 +1,27 @@
+{
+  "accepted": true,
+  "authority": {
+    "final_visible_instant_freshness": false,
+    "hosted": false,
+    "native_production_admission": false,
+    "restoration": false,
+    "retention_deletion": false
+  },
+  "caller_clock_override": false,
+  "cases": 24,
+  "date": "2026-10-12",
+  "format": "ga-portable-native-history-clock-acceptance-lab-v1",
+  "future_tolerance_seconds": 2,
+  "historical_native_clock_acceptance_sha256": "d730a67801fb91da2aa023a6bd41a036a13e3af0d5290b239b589152685e57a5",
+  "historical_native_clock_commit": "0f1c04eb83665df817f2c6dc5b750025dd079008",
+  "native_sql_sha256": "76e23d44a296c838238e5545c9ea498eb86d2ac5caee9798236aee1f8a5bf5c4",
+  "native_test_sha256": "b26aaac6e2b1eef6d9b68a9d4b3ea072843833fc8c1272bc0ae556fc328e846b",
+  "new_case_scope": "stale/future document tags in deliberately invalid unused control history refuse before semantic writes; complete valid decision-history negatives require real-bar join",
+  "original_v2_headers_and_value_semantics_changed": false,
+  "receipt_age_seconds": 5,
+  "remaining_clock_gate": "genuine-bar complete value-valid future/stale decision-history refusal and held-position Stop for this exact corrected package",
+  "scope": "rejection-only min/max receipt bounds across quote and all supplied bootstrap/decision/recovery history documents; private combined anchors repeated at final function and recognized COMMIT guard",
+  "seconds": 75.576,
+  "skipped": 0,
+  "source_age_seconds": 30
+}

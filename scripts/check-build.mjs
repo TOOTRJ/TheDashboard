@@ -90,6 +90,7 @@ export function buildEnvironment(directory, inherited = process.env) {
     NPM_CONFIG_USERCONFIG: path.join(directory, "empty-user-npmrc"),
     NPM_CONFIG_GLOBALCONFIG: path.join(directory, "empty-global-npmrc"),
     NPM_CONFIG_CACHE: path.join(directory, "npm-cache"),
+    NPM_CONFIG_MAXSOCKETS: "4",
     NPM_CONFIG_AUDIT: "false", NPM_CONFIG_FUND: "false",
   });
   return env;

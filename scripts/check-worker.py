@@ -44,7 +44,11 @@ POSTGRES_HEAVY_MODULE_SHARDS = {
     "tests.postgres.test_exact_transition_contract": 1,
     "tests.postgres.test_harness": 1,
     "tests.postgres.test_causal_risk": 2,
-    "tests.postgres.test_source_transition": 2,
+    # c58177a's shard2 exceeds2400s during the complete source trace while
+    # shard4 completes its205 cases in15m39s. Move all30 original defining
+    # module occurrences together; no alias, fixture segment or limit changes.
+    # The new hosted run must establish that this distribution completes.
+    "tests.postgres.test_source_transition": 4,
     "tests.postgres.test_fenced_commands": 2,
     "tests.postgres.test_lifecycle_contract": 2,
     "tests.postgres.test_lifecycle_adversarial": 2,
@@ -58,6 +62,10 @@ POSTGRES_HEAVY_MODULE_SHARDS = {
     "tests.postgres.test_legacy_retirement": 3,
     "tests.postgres.test_installer_boundary": 3,
     "tests.postgres.test_expired_paper_maintenance": 3,
+    # PR104's actual shard2 reaches the new full semantic module after37m;
+    # shard3 finishes18m40s. Keep this module intact on the shorter shard.
+    # The2400s child deadline, every occurrence and fixture segment stay fixed.
+    "tests.postgres.test_portable_transition": 3,
     "tests.postgres.test_portable_period_mutation": 4,
     "tests.postgres.test_native_sql": 4,
     "tests.postgres.test_session_auth": 4,
