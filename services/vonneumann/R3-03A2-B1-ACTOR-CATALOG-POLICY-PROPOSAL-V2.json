@@ -1,0 +1,254 @@
+{
+  "bootstrap": {
+    "reference_namespace": "vn_jupiter_b1_fixture_anchor",
+    "reference_owner": "trusted-fixture-bootstrap-not-restricted-installer-or-actor",
+    "restricted_installer": "no-createrole-superuser-createdb-replication-bypassrls-or-foreign-schema-capability",
+    "role_creation": "trusted-owned-fixture-bootstrap-only"
+  },
+  "bounds": {
+    "catalog_objects": "1024",
+    "input_total_bytes": "4096",
+    "installed_bindings": "16",
+    "oid_max": "4294967295",
+    "output_bytes": "8192",
+    "parameter_acl_entries": "64",
+    "role_membership_edges": "256",
+    "role_name_bytes": "63",
+    "role_nodes": "64"
+  },
+  "capabilities": [
+    "verify_actor",
+    "read_scoped_binding"
+  ],
+  "catalog_excluded_value_cells": [
+    "vn_jupiter_actor_catalog_research_v3.actor_bindings.installation_manifest_sha256",
+    "vn_jupiter_actor_catalog_research_v3.accepted_pins.actor_catalog_package_sha256",
+    "vn_jupiter_actor_catalog_research_v3.accepted_pins.installation_manifest_sha256",
+    "vn_jupiter_actor_catalog_research_v3.accepted_pins.catalog_manifest_sha256",
+    "vn_jupiter_actor_catalog_research_v3.accepted_pins.role_closure_sha256",
+    "vn_jupiter_b1_fixture_anchor.installer_reference.actor_catalog_package_sha256",
+    "vn_jupiter_b1_fixture_anchor.installer_reference.installation_manifest_sha256",
+    "vn_jupiter_b1_fixture_anchor.installer_reference.catalog_manifest_sha256",
+    "vn_jupiter_b1_fixture_anchor.installer_reference.role_closure_sha256"
+  ],
+  "entrypoints": {
+    "get_scoped_binding": {
+      "arguments": [
+        "owner_id",
+        "run_id",
+        "market_epoch",
+        "requested_binding_id"
+      ],
+      "return": "BindingLookup"
+    },
+    "verify_scoped_actor": {
+      "arguments": [
+        "owner_id",
+        "run_id",
+        "market_epoch",
+        "required_capability"
+      ],
+      "return": "ActorCatalogEvidence"
+    }
+  },
+  "fields": {
+    "AcceptedPins": [
+      "actor_catalog_package_sha256",
+      "installation_manifest_sha256",
+      "catalog_manifest_sha256",
+      "role_closure_sha256"
+    ],
+    "ActorCatalogEvidence": [
+      "format",
+      "actor_catalog_policy_sha256",
+      "scope",
+      "principal_binding_id",
+      "session_user_oid",
+      "session_user_name",
+      "profile",
+      "capability_checked",
+      "actor_catalog_package_sha256",
+      "installation_manifest_sha256",
+      "accepted_catalog_sha256",
+      "observed_catalog_sha256",
+      "role_closure_sha256",
+      "limits"
+    ],
+    "BindingCore": [
+      "principal_binding_id",
+      "session_user_oid",
+      "session_user_name",
+      "scope",
+      "profile",
+      "capabilities"
+    ],
+    "BindingLookup": [
+      "format",
+      "actor_catalog_policy_sha256",
+      "scope",
+      "requested_binding_id",
+      "resolution",
+      "evidence",
+      "limits"
+    ],
+    "DatabaseIdentity": [
+      "fixture_id",
+      "database_oid",
+      "database_name",
+      "server_version_num"
+    ],
+    "InstallationManifest": [
+      "format",
+      "actor_catalog_policy_sha256",
+      "actor_catalog_package_sha256",
+      "database_identity",
+      "scopes",
+      "bindings_core"
+    ],
+    "InstalledBinding": [
+      "principal_binding_id",
+      "session_user_oid",
+      "session_user_name",
+      "scope",
+      "profile",
+      "capabilities",
+      "installation_manifest_sha256"
+    ],
+    "InstallerReference": [
+      "fixture_id",
+      "database_oid",
+      "database_name",
+      "server_version_num",
+      "actor_catalog_package_sha256",
+      "installation_manifest_sha256",
+      "catalog_manifest_sha256",
+      "role_closure_sha256"
+    ],
+    "Limits": [
+      "provider_attested",
+      "calibrated_clock",
+      "original_identity_registry",
+      "epoch_registry",
+      "source_freshness",
+      "capture_retention",
+      "native_source_admission",
+      "committed_packet_readback",
+      "terminal_resolution",
+      "availability_authority",
+      "complete_inventory",
+      "history_seal",
+      "model_native_join",
+      "lease_authority",
+      "hosted_authority",
+      "running_authority",
+      "live_trading_authority"
+    ],
+    "MembershipEdge": [
+      "roleid",
+      "member",
+      "grantor",
+      "admin_option",
+      "inherit_option",
+      "set_option"
+    ],
+    "ParameterPrivilege": [
+      "parameter_name",
+      "grantor_oid",
+      "grantee_oid",
+      "privilege_kind",
+      "grantable"
+    ],
+    "PinValues": [
+      "actor_catalog_package_sha256",
+      "installation_manifest_sha256",
+      "catalog_manifest_sha256",
+      "role_closure_sha256"
+    ],
+    "RoleClosure": [
+      "format",
+      "actor_catalog_policy_sha256",
+      "nodes",
+      "edges",
+      "parameter_privileges"
+    ],
+    "RoleNode": [
+      "oid",
+      "name",
+      "login",
+      "inherit",
+      "superuser",
+      "createdb",
+      "createrole",
+      "replication",
+      "bypassrls",
+      "connection_limit",
+      "valid_until",
+      "rolconfig"
+    ],
+    "Scope": [
+      "owner_id",
+      "run_id",
+      "market_epoch"
+    ]
+  },
+  "format": "ga-jupiter-actor-catalog-policy-proposal-research-v3-b1-v2",
+  "formats": {
+    "ActorCatalogEvidence": "ga-jupiter-actor-catalog-evidence-research-v3-b1-v2",
+    "BindingLookup": "ga-jupiter-actor-catalog-binding-lookup-research-v3-b1-v2",
+    "InstallationManifest": "ga-jupiter-b1-installation-manifest-v2",
+    "RoleClosure": "ga-jupiter-b1-role-closure-v2"
+  },
+  "input_codec": "four-actual-text-values-plus-canonical-lexical-validation-no-origin-proof",
+  "limits": {
+    "availability_authority": false,
+    "calibrated_clock": false,
+    "capture_retention": false,
+    "committed_packet_readback": false,
+    "complete_inventory": false,
+    "epoch_registry": false,
+    "history_seal": false,
+    "hosted_authority": false,
+    "lease_authority": false,
+    "live_trading_authority": false,
+    "model_native_join": false,
+    "native_source_admission": false,
+    "original_identity_registry": false,
+    "provider_attested": false,
+    "running_authority": false,
+    "source_freshness": false,
+    "terminal_resolution": false
+  },
+  "namespace": "vn_jupiter_actor_catalog_research_v3",
+  "output_codec": "closed-json-evidence-not-original-receipt",
+  "preimages": {
+    "CatalogFingerprint": "source-bound-complete-owned-object-definitions-owners-acls-default-acls-constraints-indexes-triggers-functions-bindingcore-roleclosure-database-runtime-with-fixed-excluded-value-cells",
+    "InstallationManifest": "exact-listed-InstallationManifest-fields-and-BindingCore-rows-with-no-embedded-installation-manifest-digest",
+    "RoleClosure": "exact-listed-RoleClosure-fields-full-sorted-RoleNode-and-MembershipEdge-and-ParameterPrivilege-rows",
+    "codec": "sorted-key-compact-utf8-canonical-json-independent-bootstrap-and-guard-rederivation"
+  },
+  "profile": "actor-and-catalog-only",
+  "profiles": [
+    "recorder",
+    "reader",
+    "sealer",
+    "control"
+  ],
+  "rules": {
+    "actor": "actual-session-user-name-and-oid-plus-private-scoped-installer-binding",
+    "authority": "no-source-packet-model-runtime-authority",
+    "casts": "explicit-caller-casts-producing-identical-text-are-indistinguishable-and-not-rejected-as-origin",
+    "closure": "complete-role-nodes-and-membership-edges-roleid-member-grantor-admin-inherit-set-plus-effective-set-role-and-parameter-privileges-no-truncation",
+    "fingerprint": "independent-installer-accepted-definition-ownership-acl-role-session-manifest",
+    "foreign_lookup": "same-observed-absence-as-random-unknown-binding",
+    "hash_exclusion": "exact-listed-binding-manifest-and-accepted-reference-digest-value-cells-only-definitions-owners-acls-remain-included",
+    "input": "actual-text-value-canonical-lowercase-uuid-or-closed-capability-no-trim-normalization-null-or-extra-overload",
+    "null": "called-on-null-input-explicit-first-null-guards-fixed-refusal-not-strict-null-result",
+    "output": "closed-scalars-no-clock-process-env-secret-raw-provider-data",
+    "overflow": "refuse-complete-catalog-or-closure-over-bound",
+    "package": "actor-catalog-sql-artifact-only-not-caller-recorder-or-reader-attestation",
+    "pin_validation": "rederive-manifest-and-catalog-plus-compare-every-excluded-pin-with-separate-bootstrap-held-reference-never-adopt-current-drift",
+    "search_path": "pg_catalog,pg_temp-explicit-qualified-system-and-application-objects",
+    "unknown_or_true_limit": "refuse",
+    "write_effects": "none-from-two-actor-entrypoints-no-source-registry-or-journal"
+  }
+}

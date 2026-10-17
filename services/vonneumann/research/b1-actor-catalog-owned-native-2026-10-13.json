@@ -1,0 +1,321 @@
+{
+  "base_commit": "45d2b7aabbb889f4ff628c02a1864e7206192a0d",
+  "canonical_policy_sha256": "2618f8f4239460112df4b7b21138f103f265353233d35e779e874431057a7c06",
+  "current_native_attempt": {
+    "accepted_local_actor_catalog_fixture": true,
+    "bootstrap_receipt": {
+      "constructors": [
+        {
+          "body_sha256": "620ac7c57595654c6d81cde406513784107dd80bd6578239d293c761f7e5bc3c",
+          "cleanup_verified": true,
+          "constraint_children": "2",
+          "relation_children": "4",
+          "table": "vn_jupiter_b1_fixture_anchor.installer_reference",
+          "type_children": "2"
+        },
+        {
+          "body_sha256": "9aacdab1353ccd47eed314fbadf117fc00f83174e252fd473ea411ea094d7e50",
+          "cleanup_verified": true,
+          "constraint_children": "2",
+          "relation_children": "4",
+          "table": "vn_jupiter_b1_fixture_anchor.expected_functions",
+          "type_children": "2"
+        },
+        {
+          "body_sha256": "9ad16e993569ef142153ff6711e063ed9e357e05b541fd8a65847b99fd079195",
+          "cleanup_verified": true,
+          "constraint_children": "4",
+          "relation_children": "6",
+          "table": "vn_jupiter_actor_catalog_research_v3.actor_bindings",
+          "type_children": "2"
+        },
+        {
+          "body_sha256": "d540ced7d60a83ac29c6fc16063eea2137ded58c695544537d16b3a153924c07",
+          "cleanup_verified": true,
+          "constraint_children": "2",
+          "relation_children": "4",
+          "table": "vn_jupiter_actor_catalog_research_v3.accepted_pins",
+          "type_children": "2"
+        }
+      ],
+      "metadata_sizes": [
+        {
+          "canonical_preimage_bytes": "3713",
+          "helper": "_installation_preimage",
+          "max_metadata_bytes": "1048576",
+          "received_bytes": "4013"
+        },
+        {
+          "canonical_preimage_bytes": "2024",
+          "helper": "_role_closure",
+          "max_metadata_bytes": "1048576",
+          "received_bytes": "2352"
+        },
+        {
+          "canonical_preimage_bytes": "202971",
+          "helper": "_catalog_preimage",
+          "max_metadata_bytes": "1048576",
+          "received_bytes": "215899"
+        }
+      ],
+      "native_source_or_runtime_authority": false,
+      "package_sha256": "84b3167c6626911fd231f2eeb337e1df4ab645a89c723017ecb169cdabf93cad",
+      "pins": {
+        "K": "7d3be42b7b7a34cd24d2317686d608a59face6d8fa92b5b64fc3f35b706efd61",
+        "M": "0fc524cbc04649731d70fd6afaad26941131538cd9908bf4426a6be408bcc555",
+        "R": "e06404e636029645274adbcb2bdd5d8d39bb1678fca257df0912d9b437678cd8"
+      },
+      "policy_sha256": "2618f8f4239460112df4b7b21138f103f265353233d35e779e874431057a7c06"
+    },
+    "containers": [
+      {
+        "absent_after_run": true,
+        "id": "f3c8a99e7d5af6e9c15938585a888b1c94d5bad466d0c5d39c345c164bf220a9",
+        "label": "com.thedashboard.isolated-postgres-test",
+        "name": "dashboard-db03a-test-ec41a1a5277d42029e91473787870112",
+        "token": "ec41a1a5277d42029e91473787870112"
+      }
+    ],
+    "controller_seconds": 36.53464550001081,
+    "controller_sha256": "3f5243c8db448ca26e2f6fd8a9e4f25e2ad6f05b5fc2af5b7ad06e7930e9e401",
+    "daemon_after": {
+      "id": "7e62dd69-3357-4ce0-8b18-f1e54f3226d8",
+      "name": "colima"
+    },
+    "daemon_before": {
+      "id": "7e62dd69-3357-4ce0-8b18-f1e54f3226d8",
+      "name": "colima"
+    },
+    "discovered_cases": 14,
+    "errors": 0,
+    "exit_code": 0,
+    "failures": 0,
+    "image": {
+      "architecture": "arm64",
+      "id": "sha256:965e2dfb5a23a0d6541b6106541e777b303656ebabd4e878746b189d550c0a66",
+      "os": "linux",
+      "repo_digests": [
+        "public.ecr.aws/supabase/postgres@sha256:965e2dfb5a23a0d6541b6106541e777b303656ebabd4e878746b189d550c0a66"
+      ]
+    },
+    "image_identity": {
+      "image": "public.ecr.aws/supabase/postgres:17.6.1.095",
+      "image_id": "sha256:965e2dfb5a23a0d6541b6106541e777b303656ebabd4e878746b189d550c0a66",
+      "network": "none",
+      "postgres_version": "17.6"
+    },
+    "original_log_sha256": "8365a89efa2e510316347601f273f537d3d268909c7b2c7bce926cb3601cf41e",
+    "original_metadata_frames": [
+      {
+        "canonical_preimage_bytes": "3713",
+        "helper": "_installation_preimage",
+        "max_metadata_bytes": "1048576",
+        "received_bytes": "4013",
+        "sha256": "0fc524cbc04649731d70fd6afaad26941131538cd9908bf4426a6be408bcc555"
+      },
+      {
+        "canonical_preimage_bytes": "2024",
+        "helper": "_role_closure",
+        "max_metadata_bytes": "1048576",
+        "received_bytes": "2352",
+        "sha256": "e06404e636029645274adbcb2bdd5d8d39bb1678fca257df0912d9b437678cd8"
+      },
+      {
+        "canonical_preimage_bytes": "202971",
+        "helper": "_catalog_preimage",
+        "max_metadata_bytes": "1048576",
+        "received_bytes": "215899",
+        "sha256": "7d3be42b7b7a34cd24d2317686d608a59face6d8fa92b5b64fc3f35b706efd61"
+      }
+    ],
+    "outcomes": [
+      {
+        "id": "tests.postgres.test_actor_catalog_v3.ActorCatalogV3NativeTests.test_PUBLIC_parameter_privilege_not_omitted_from_all_actor_union",
+        "outcome": "pass"
+      },
+      {
+        "id": "tests.postgres.test_actor_catalog_v3.ActorCatalogV3NativeTests.test_actor_and_installer_private_reads_writes_helpers_replacement_deny",
+        "outcome": "pass"
+      },
+      {
+        "id": "tests.postgres.test_actor_catalog_v3.ActorCatalogV3NativeTests.test_all_eight_actual_sessions_share_K_with_distinct_verified_identity",
+        "outcome": "pass"
+      },
+      {
+        "id": "tests.postgres.test_actor_catalog_v3.ActorCatalogV3NativeTests.test_canonical_finalTEXT_and_explicit_equivalent_CAST_boundary",
+        "outcome": "pass"
+      },
+      {
+        "id": "tests.postgres.test_actor_catalog_v3.ActorCatalogV3NativeTests.test_complete_node_bound64_and_overflow65_no_truncation",
+        "outcome": "pass"
+      },
+      {
+        "id": "tests.postgres.test_actor_catalog_v3.ActorCatalogV3NativeTests.test_each_NULL_position_reaches_fixed_body_refusal_both_entries",
+        "outcome": "pass"
+      },
+      {
+        "id": "tests.postgres.test_actor_catalog_v3.ActorCatalogV3NativeTests.test_excluded_pins_and_current_drift_digest_do_not_become_gold",
+        "outcome": "pass"
+      },
+      {
+        "id": "tests.postgres.test_actor_catalog_v3.ActorCatalogV3NativeTests.test_found_foreign_and_unknown_lookup_no_identity_or_scope_oracle",
+        "outcome": "pass"
+      },
+      {
+        "id": "tests.postgres.test_actor_catalog_v3.ActorCatalogV3NativeTests.test_independent_source_body_and_native_guard_drift_refusal",
+        "outcome": "pass"
+      },
+      {
+        "id": "tests.postgres.test_actor_catalog_v3.ActorCatalogV3NativeTests.test_no_extra_roots_overloads_or_B2_B9_capability",
+        "outcome": "pass"
+      },
+      {
+        "id": "tests.postgres.test_actor_catalog_v3.ActorCatalogV3NativeTests.test_role_rename_dangerous_attribute_and_SET_membership_refuse",
+        "outcome": "pass"
+      },
+      {
+        "id": "tests.postgres.test_actor_catalog_v3.ActorCatalogV3NativeTests.test_strict_header_and_helper_execute_ACL_drift_refuse",
+        "outcome": "pass"
+      },
+      {
+        "id": "tests.postgres.test_actor_catalog_v3.ActorCatalogV3NativeTests.test_temp_shadow_preserves_shared_TEMP_and_qualified_guard",
+        "outcome": "pass"
+      },
+      {
+        "id": "tests.postgres.test_actor_catalog_v3.ActorCatalogV3NativeTests.test_z_role_recreation_cannot_reuse_original_OID_binding",
+        "outcome": "pass"
+      }
+    ],
+    "owned_config_absent": true,
+    "private_receipt_sha256": "e38f337f34b52bc54945d110a9185a50b03518fe1d3d4a1d135556ff111e1881",
+    "skips": 0,
+    "suite_seconds": 36.448576082941145,
+    "supervisor_timeout_used": false,
+    "tests_run": 14,
+    "whole_process_supervisor_seconds": 600
+  },
+  "date": "2026-10-13",
+  "first_native_attempt": {
+    "cause": "PL/pgSQL anchor variable r collided with SQL pg_roles alias r.oid",
+    "containers": [
+      {
+        "absent_after_run": true,
+        "id": "17d6b12b8b31416cc97944a277f30ef9d8e2d2791caef7ba5739ca2425b0a16f",
+        "label": "com.thedashboard.isolated-postgres-test",
+        "name": "dashboard-db03a-test-ab8cfa6112e94a2f894da0b9834df6aa",
+        "token": "ab8cfa6112e94a2f894da0b9834df6aa"
+      }
+    ],
+    "controller_seconds": 23.21974704193417,
+    "controller_sha256": "0724c4b66148dd3213c79687ffaf3cc543c65aebd2871233cec01ffb2d0dfe93",
+    "daemon_after": {
+      "id": "7e62dd69-3357-4ce0-8b18-f1e54f3226d8",
+      "name": "colima"
+    },
+    "daemon_before": {
+      "id": "7e62dd69-3357-4ce0-8b18-f1e54f3226d8",
+      "name": "colima"
+    },
+    "discovered_cases": 14,
+    "error_sqlstate": "42703",
+    "errors": 1,
+    "exit_code": 1,
+    "failures": 0,
+    "original_log_sha256": "e23da6a772bfa21065f5b64353700beffc71346775ff974c88bdc0a9a534a5b1",
+    "owned_config_absent": true,
+    "private_receipt_sha256": "6fa6ce0925547846163b705df6348254737d5adf9bac388939cebe5bdcc1bda2",
+    "repair": "only _catalog_preimage anchor variable/INTO and anchor fields renamed to anchor_ref; outside function original bytes preserved",
+    "skips": 0,
+    "sql_sha256": "3a30d8a94f5b25436cdb426b017d53a5d858e4b3239629e09a332177b7fd4845",
+    "suite_seconds": 23.095487541984767,
+    "supplied_partial_M_R_K_receipt": false,
+    "tests_run": 0
+  },
+  "format": "dashboard-b1-actor-catalog-owned-native-evidence-v1",
+  "historical_source_check_mutation_failure": {
+    "cases": 7,
+    "cause": "test first-occurrence replacement modified table constructor rather than intended four-TEXT entry header",
+    "failed_subcase": 1,
+    "no_sql_loader_or_policy_repair_for_this_test": true,
+    "passing_cases": 6,
+    "repair": "unique qualified function-header replacement plus unchanged-constructor assertion",
+    "seconds": "0.006"
+  },
+  "limits": {
+    "availability_authority": false,
+    "calibrated_clock": false,
+    "capture_retention": false,
+    "committed_packet_readback": false,
+    "complete_inventory": false,
+    "epoch_registry": false,
+    "history_seal": false,
+    "hosted_authority": false,
+    "lease_authority": false,
+    "live_trading_authority": false,
+    "model_native_join": false,
+    "native_source_admission": false,
+    "original_identity_registry": false,
+    "provider_attested": false,
+    "running_authority": false,
+    "source_freshness": false,
+    "terminal_resolution": false
+  },
+  "open_claim_gates": {
+    "binary_image_or_wheel_attestation": false,
+    "complete_control_journal": false,
+    "complete_native_source_ancestry": false,
+    "continuous_915_minute_warmup": false,
+    "durable_original_capture": false,
+    "epoch_registry": false,
+    "fence_clock_guard": false,
+    "full_4096_journal_capacity": false,
+    "full_edge256_parameter64_catalog1024_overflow_parity": false,
+    "full_ordinary_or_hostedCI": false,
+    "hosted_deployment": false,
+    "live_trade": false,
+    "native_history_seal": false,
+    "native_model_join": false,
+    "original_identity_registry": false,
+    "production_running_worker": false,
+    "source_deadline_or_running_cadence": false,
+    "terminal_tombstone_reconciliation": false,
+    "trusted_reader_delivery": false
+  },
+  "pure_source_verification": {
+    "cases": 7,
+    "environment": "empty-child-fixedPATH-PYTHONPATH-standard-dotenv-and-bytecode-disablement",
+    "errors": 0,
+    "failures": 0,
+    "python": "3.12.14",
+    "seconds": "0.004",
+    "skips": 0
+  },
+  "scope": "owned-fake-actor-catalog-only-not-source-journal-clock-model-hosted-or-live",
+  "source_files": [
+    {
+      "bytes": 8091,
+      "path": "services/vonneumann/db-contract/research/actor_catalog_v3_source.py",
+      "sha256": "ffc56bfefdc405cad7a3d61ed8f3d7206ae79105c9e5a5a15f6a677fade355b3"
+    },
+    {
+      "bytes": 57330,
+      "path": "services/vonneumann/db-contract/research/jupiter_actor_catalog_v3.sql",
+      "sha256": "84b3167c6626911fd231f2eeb337e1df4ab645a89c723017ecb169cdabf93cad"
+    },
+    {
+      "bytes": 22863,
+      "path": "services/vonneumann/tests/postgres/actor_catalog_v3_fixture.py",
+      "sha256": "29a5097b744cddbd0350e5eaaf122628a6bae62b6d64ad77be0e7c83cd8affa4"
+    },
+    {
+      "bytes": 15362,
+      "path": "services/vonneumann/tests/postgres/test_actor_catalog_v3.py",
+      "sha256": "a28b16e0c0b6033381101fa8cb7b52b64181464f198c7e6c1e54e4ffe6e42923"
+    },
+    {
+      "bytes": 5821,
+      "path": "services/vonneumann/tests/test_actor_catalog_v3_source.py",
+      "sha256": "a24765bdc7016e9f124cd4e2235d848afed759d7c6351f78dbfa3f88c15081a3"
+    }
+  ]
+}
