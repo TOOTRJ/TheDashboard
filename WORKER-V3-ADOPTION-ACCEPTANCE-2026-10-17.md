@@ -137,3 +137,24 @@ rollback is required: the parser SQL was exercised only in an owned research
 fixture, and this slice installs no hosted schema or worker state. Preserve the
 accepted API foundation and keep the worker closed. Later native or runtime
 adoptions require their own rollback review rather than assuming this scope.
+
+## Actual CI deadline and forward workload repair
+
+The exact combined PR107 head `dd2332dcdc1bb0b63153fabe267c8863fa25b7fb`
+finishes [run39014680277](https://github.com/TOOTRJ/TheDashboard/actions/runs/39014680277)
+with six passing jobs: frontend, ordinary1 and all four required PostgreSQL
+shards. Ordinary2 reaches its unchanged 1,500-second deadline late in the
+synthetic source-seal inventory. Its incomplete result is not accepted, and
+the head remains unmerged. All sixteen parser cases belong to the passed
+required SQL4 workload; no full native-source or hosted authority follows.
+
+The separately reviewed two-file redistribution keeps the complete prospective
+model opposite source admission. Eleven partition cases and a separate
+60-case timing diagnostic pass. The full balanced composition also passes: 2,084
+executed cases, zero unexpected skips, in 562.709/628.682 test seconds. Its
+private B1-inclusive source composition is distinct from PR107; actual final-head
+CI remains required.
+[Exact evidence and required new-head acceptance](CI-WORKLOAD-REPAIR-ACCEPTANCE-2026-10-17.md).
+The original local source inventories, runner hashes and results above remain
+historical facts; they are not relabeled as results of the changed runner.
+No B1 or UI repair is added to PR107 by this scheduling correction.
