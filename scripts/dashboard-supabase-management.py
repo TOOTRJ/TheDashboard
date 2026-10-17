@@ -1,16 +1,19 @@
 #!/usr/bin/env python3
 """Exact-project Management API, using existing Supabase CLI Keychain read only.
 
-No login/logout/write, token output, credential argv, redirect or proxy fallback.
+No login/logout/credential write, token output, credential argv, redirect or proxy fallback.
 Callers must first resolve verify(), then use a fixed permitted project path.
 """
 from __future__ import annotations
 import base64
+import hashlib
 import json
 import os
 from pathlib import Path
 import re
+import stat
 import subprocess
+import types
 import urllib.error
 import urllib.request
 
@@ -21,10 +24,40 @@ NAME = 'The Dashboard'
 BASE = 'https://api.supabase.com/v1/projects/' + REF
 ALLOWED = {'': frozenset({'GET'}), '/database/query': frozenset({'POST'}),
            '/postgrest': frozenset({'GET', 'PATCH'}), '/api-keys?reveal=true': frozenset({'GET'})}
+API_BASELINE_PERMISSIONS_EMITTER_SHA256 = '9286a31aac28bfcafe52c2f7eb90dd60b35712fd1e99a123fa4d7aee918f73ee'
 
 
 class Refused(RuntimeError):
     pass
+
+
+def _api_baseline_permissions_sql():
+    """Import only held, reviewed regular emitter bytes; never caller source."""
+    path = ROOT / 'scripts/dashboard_api_baseline.py'
+    try:
+        if ROOT.resolve(strict=True) != ROOT or path.parent.resolve(strict=True) != ROOT / 'scripts':
+            raise ValueError()
+        descriptor = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+        with os.fdopen(descriptor, 'rb') as source:
+            before = os.fstat(source.fileno())
+            if not stat.S_ISREG(before.st_mode) or not 0 < before.st_size <= 65536:
+                raise ValueError()
+            raw = source.read(65537)
+            after = os.fstat(source.fileno())
+            named = os.stat(path, follow_symlinks=False)
+            identity = lambda value: (value.st_dev, value.st_ino, value.st_size, value.st_mtime_ns, value.st_ctime_ns)
+            if (not stat.S_ISREG(named.st_mode) or identity(before) != identity(after)
+                    or identity(after) != identity(named) or len(raw) != before.st_size
+                    or hashlib.sha256(raw).hexdigest() != API_BASELINE_PERMISSIONS_EMITTER_SHA256):
+                raise ValueError()
+        module = types.ModuleType('dashboard_reviewed_api_baseline_permissions')
+        module.__file__ = str(path)
+        # Compile the verified held bytes rather than asking an import loader
+        # to reopen a filename after its identity/content checks.
+        exec(compile(raw, str(path), 'exec'), module.__dict__)
+        return module.baseline_sql(apply_acl=True)
+    except Exception:
+        raise Refused('Reviewed API baseline permissions source unavailable') from None
 
 
 def credential():
@@ -80,6 +113,8 @@ class Management:
             raise Refused('Supabase Management request failed; response suppressed; reconcile original operation') from None
 
     def verify(self):
+        # A failed refresh must not retain a previous identity admission.
+        self._verified = False
         value = self._request('')
         if (not isinstance(value, dict) or
             (value.get('id'), value.get('name'), value.get('organization_id')) != (REF, NAME, ORG)):
@@ -91,6 +126,15 @@ class Management:
         if type(source) is not str or not source or len(source.encode()) > 65536 or type(parameters) not in (tuple, list):
             raise Refused('Bounded query required')
         return self._request('/database/query', {'query': source, 'parameters': list(parameters), 'read_only': read_only})
+
+    def api_baseline_permissions(self):
+        """Issue only the fixed reviewed permissions operation after verify()."""
+        if getattr(self, '_verified', False) is not True:
+            raise Refused('Verified Dashboard project required for API permissions')
+        source = _api_baseline_permissions_sql()
+        if type(source) is not str or not source or len(source.encode('utf-8')) > 196608:
+            raise Refused('Bounded reviewed API permissions query required')
+        return self._request('/database/query', {'query': source, 'parameters': [], 'read_only': False})
 
     def postgrest(self):
         return self._request('/postgrest')
