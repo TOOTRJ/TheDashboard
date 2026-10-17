@@ -17,6 +17,7 @@ from types import MappingProxyType
 
 import httpx
 
+from ..http_tls import HTTPTLSError, verified_http_context
 from .command_protocol import canonical_json, canonical_uuid, bounded_integer, decimal_amount
 
 DASHBOARD_ORIGIN = "https://fxpxsciltakyypunglzr.supabase.co"
@@ -172,9 +173,13 @@ class DashboardCommandHTTPTransport:
             raise CommandHTTPError("invalid_bounds")
         self._bounds = bounds or CommandHTTPBounds()
         limits = httpx.Limits(max_connections=1, max_keepalive_connections=1, keepalive_expiry=5.0)
-        owned = httpx.AsyncHTTPTransport(verify=True, trust_env=False, proxy=None, retries=0,
+        try:
+            context = verified_http_context()
+        except HTTPTLSError:
+            raise CommandHTTPError("tls_configuration_unavailable") from None
+        owned = httpx.AsyncHTTPTransport(verify=context, trust_env=False, proxy=None, retries=0,
                                          http1=True, http2=False, limits=limits)
-        self._client = httpx.AsyncClient(transport=owned, verify=True, trust_env=False,
+        self._client = httpx.AsyncClient(transport=owned, verify=context, trust_env=False,
             follow_redirects=False, limits=limits, timeout=httpx.Timeout(
                 connect=self._bounds.connect_seconds, read=self._bounds.read_seconds,
                 write=self._bounds.write_seconds, pool=self._bounds.pool_seconds),

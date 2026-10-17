@@ -19,6 +19,9 @@ import time
 from dataclasses import dataclass
 from typing import Optional
 
+from ..http_tls import require_no_keylog, verified_http_context
+
+require_no_keylog()
 import aiohttp
 
 from .birdeye_candles import BirdeyeCandles
@@ -139,6 +142,7 @@ class JupiterFeed(MarketFeed):
             self._session = aiohttp.ClientSession(
                 timeout=aiohttp.ClientTimeout(total=5),
                 trust_env=False,
+                connector=aiohttp.TCPConnector(ssl=verified_http_context()),
             )
         return self._session
 

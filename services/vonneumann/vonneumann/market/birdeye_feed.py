@@ -13,6 +13,9 @@ import os
 import time
 from typing import Optional
 
+from ..http_tls import require_no_keylog, verified_http_context
+
+require_no_keylog()
 import aiohttp
 
 from .feed import MarketFeed, MarketTick
@@ -67,6 +70,8 @@ class BirdeyeFeed(MarketFeed):
             self._session = aiohttp.ClientSession(
                 headers=self._headers,
                 timeout=aiohttp.ClientTimeout(total=10),
+                trust_env=False,
+                connector=aiohttp.TCPConnector(ssl=verified_http_context()),
             )
         return self._session
 
