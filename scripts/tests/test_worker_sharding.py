@@ -1,5 +1,6 @@
 """Exhaustive bounded selection, source guards and original fixture semantics."""
 from collections import Counter
+import hashlib
 import importlib.util
 import io
 import os
@@ -31,7 +32,8 @@ class WorkerShardingTests(unittest.TestCase):
         one = cases('tests.test_provider_ga_components')
         two = cases('tests.test_portable_ga_model')
         new = cases('tests.test_future_added_module')
-        original = one + two + [one[0]] + new
+        third = cases('tests.test_source_admission_v3')
+        original = one + two + [one[0]] + new + third
         with self.source_fixture():
             tests, shards, coverage = worker.partition_offline(unittest.TestSuite(original))
             again = worker.partition_offline(unittest.TestSuite(original))
@@ -44,15 +46,20 @@ class WorkerShardingTests(unittest.TestCase):
         self.assertTrue(all(index in shards[worker.module_shard('tests.test_future_added_module')]
                             for index in range(5, 7)))
         self.assertEqual(coverage['runtime'], 'CPython 3.12.14')
+        self.assertEqual(coverage['declared_shards'], [1, 2, 3])
+        self.assertEqual(set(shards), {1, 2, 3})
+        self.assertEqual(shards[3], (7, 8))
         self.assertEqual(len(coverage['selection_source_sha256']), 64)
 
-    def test_prospective_model_moves_whole_opposite_source_admission_with_alias_fixture_segments(self):
+    def test_only_model_and_source_move_to_third_shard_with_original_alias_fixture_segments(self):
         model_name = 'tests.test_prospective_ga_v3_model'
         source_name = 'tests.test_source_admission_v3'
-        self.assertEqual(worker.module_shard(model_name), 1)
-        self.assertEqual(worker.module_shard(source_name), 2)
+        provider_name = 'tests.test_provider_ga_components'
+        portable_name = 'tests.test_portable_ga_model'
+        self.assertEqual(worker.module_shard(model_name), 3)
+        self.assertEqual(worker.module_shard(source_name), 3)
         events = []
-        modules = [ModuleType(name) for name in (model_name, source_name)]
+        modules = [ModuleType(name) for name in (model_name, source_name, provider_name, portable_name)]
         by_module = []
         for module in modules:
             label = module.__name__
@@ -66,40 +73,70 @@ class WorkerShardingTests(unittest.TestCase):
                 'test_last': lambda self, label=label: events.append((label, 'last')),
             })
             by_module.append((cls('test_first'), cls('test_last')))
-        model, source = by_module
-        original = (model[0], source[0], model[1], model[0], source[1])
+        model, source, provider, portable = by_module
+        original = (model[0], source[0], provider[0], model[1], model[0], portable[0], source[1], source[0])
         with self.source_fixture():
             tests, shards, coverage = worker.partition_offline(unittest.TestSuite(original))
-        self.assertEqual(shards, {1: (0, 2, 3), 2: (1, 4)})
-        self.assertEqual(coverage['baseline_repeated_ids'], 1)
+        self.assertEqual(shards, {1: (2,), 2: (5,), 3: (0, 1, 3, 4, 6, 7)})
+        self.assertEqual(coverage['baseline_repeated_ids'], 2)
         self.assertEqual(Counter(tests[i].id() for indices in shards.values() for i in indices),
                          Counter(case.id() for case in original))
-        self.assertEqual(coverage['declared_shards'], [1, 2])
+        self.assertEqual(coverage['declared_shards'], [1, 2, 3])
         with patch.dict(sys.modules, {module.__name__: module for module in modules}):
             baseline = unittest.TextTestRunner(stream=io.StringIO()).run(unittest.TestSuite(original))
             self.assertTrue(baseline.wasSuccessful())
             original_events = tuple(events)
-            for shard, module in ((1, model_name), (2, source_name)):
+            for shard, selected_modules in ((1, {provider_name}), (2, {portable_name}),
+                                            (3, {model_name, source_name})):
                 events.clear()
                 result = unittest.TextTestRunner(stream=io.StringIO()).run(worker.selected_suite(tests, shards[shard]))
                 self.assertTrue(result.wasSuccessful())
-                self.assertEqual(tuple(events), tuple(event for event in original_events if event[0] == module))
-                self.assertEqual(sum(event == (module, 'class setup') for event in events), 2)
+                self.assertEqual(tuple(events), tuple(event for event in original_events if event[0] in selected_modules))
+                for module in selected_modules:
+                    self.assertEqual(sum(event == (module, 'class setup') for event in events),
+                                     2 if shard == 3 else 1)
+
+    def test_every_unanchored_source_module_retains_the_original_two_way_fallback(self):
+        self.assertEqual(worker.OFFLINE_SHARDS, (1, 2, 3))
+        self.assertEqual(worker.OFFLINE_FALLBACK_SHARD_COUNT, 2)
+        expected_hints = {
+            'tests.test_prospective_ga_v3_model': 3,
+            'tests.test_source_admission_v3': 3,
+            'tests.test_provider_ga_components': 1,
+            'tests.test_portable_ga_model': 2,
+            'tests.test_ga_active_model': 2,
+            'tests.test_partitioned_checkpoint': 2,
+        }
+        self.assertEqual(worker.HEAVY_MODULE_SHARDS, expected_hints)
+        modules = {f'tests.test_future_unanchored_{index}' for index in range(500)}
+        modules.update('tests.' + '.'.join(path.relative_to(worker.WORKER / 'tests').with_suffix('').parts)
+                       for path in (worker.WORKER / 'tests').rglob('test_*.py'))
+        modules.update(path.stem for directory, pattern in
+                       ((worker.ROOT / 'scripts/tests', 'test_*.py'), (worker.ROOT / 'tests', '*_test.py'))
+                       for path in directory.glob(pattern))
+        for module in sorted(modules - expected_hints.keys()):
+            expected = 1 + int.from_bytes(hashlib.sha256(module.encode()).digest(), 'big') % 2
+            with self.subTest(module=module):
+                self.assertEqual(worker.module_shard(module), expected)
+                self.assertIn(worker.module_shard(module), (1, 2))
 
     def test_partition_rejects_omissions_duplicates_invented_members_split_modules_and_reordering(self):
-        tests = cases('tests.test_provider_ga_components') + cases('tests.test_portable_ga_model')
-        valid = {1: (0, 1), 2: (2, 3)}
+        tests = (cases('tests.test_provider_ga_components') + cases('tests.test_portable_ga_model')
+                 + cases('tests.test_prospective_ga_v3_model'))
+        valid = {1: (0, 1), 2: (2, 3), 3: (4, 5)}
         worker.validate_partition(tests, valid)
-        invalid = ({1: (0,), 2: (2, 3)}, {1: (0, 1, 1), 2: (2, 3)},
-                   {1: (0, 1), 2: (2, 3, 4)}, {1: (0, 2), 2: (1, 3)},
-                   {1: (1, 0), 2: (2, 3)}, {1: (0, 1), 2: ()},
-                   {1: (False, 1), 2: (2, 3)}, {1: (0, 1), 3: (2, 3)})
+        invalid = ({**valid, 1: (0,)}, {**valid, 1: (0, 1, 1)},
+                   {**valid, 2: (2, 3, 6)}, {**valid, 1: (0, 2), 2: (1, 3)},
+                   {**valid, 1: (1, 0)}, {**valid, 2: ()}, {**valid, 3: ()},
+                   {**valid, 1: (False, 1)}, {1: (0, 1), 2: (2, 3)},
+                   {**valid, 4: ()}, {**valid, '3': valid[3]})
         for shards in invalid:
             with self.subTest(shards=shards), self.assertRaises(RuntimeError):
                 worker.validate_partition(tests, shards)
 
     def test_source_or_case_change_changes_coverage_fingerprint(self):
-        original = cases('tests.test_provider_ga_components') + cases('tests.test_portable_ga_model')
+        original = (cases('tests.test_provider_ga_components') + cases('tests.test_portable_ga_model')
+                    + cases('tests.test_source_admission_v3'))
         with self.source_fixture():
             first = worker.partition_offline(unittest.TestSuite(original))[2]
             changed = worker.partition_offline(unittest.TestSuite(original + [original[0]]))[2]
@@ -163,16 +200,16 @@ class WorkerShardingTests(unittest.TestCase):
         self.assertEqual(sum(event[1] == 'class setup' for event in run(True)), 2)
 
     def test_cli_shard_is_explicit_retains_deadline_and_is_not_inherited_as_credentials(self):
-        with patch.object(worker.sys, 'argv', ['check-worker.py', 'offline', '--shard', '2']), patch.dict(os.environ, {
+        with patch.object(worker.sys, 'argv', ['check-worker.py', 'offline', '--shard', '3']), patch.dict(os.environ, {
             'PATH': '/test/bin', 'DASHBOARD_TEST_SHARD': '1', 'SUPABASE_SERVICE_ROLE_KEY': 'must-not-copy',
         }, clear=True), patch.object(worker, 'native_wheels_directory', return_value=Path('/test/native-wheels')), patch.object(worker.subprocess, 'run') as execute:
             execute.return_value.returncode = 0
             self.assertEqual(worker.main(), 0)
-            self.assertEqual(execute.call_args.args[0][-2:], ['--shard', '2'])
+            self.assertEqual(execute.call_args.args[0][-2:], ['--shard', '3'])
             self.assertEqual(execute.call_args.kwargs['timeout'], 1500)
             self.assertNotIn('DASHBOARD_TEST_SHARD', execute.call_args.kwargs['env'])
             self.assertNotIn('SUPABASE_SERVICE_ROLE_KEY', execute.call_args.kwargs['env'])
-        for args in (['offline', '--shard', '3'], ['postgres', '--allow-isolated-postgres', '--shard', '5'],
+        for args in (['offline', '--shard', '4'], ['postgres', '--allow-isolated-postgres', '--shard', '5'],
                      ['postgres', '--shard', '1']):
             with patch.object(worker.sys, 'argv', ['check-worker.py', *args]), self.assertRaises(SystemExit), patch('sys.stderr', io.StringIO()):
                 worker.main()

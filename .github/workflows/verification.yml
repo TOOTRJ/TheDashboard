@@ -64,14 +64,14 @@ jobs:
         run: node scripts/check-build.mjs
 
   worker:
-    name: Ordinary worker and helpers (shard ${{ matrix.shard }}/2; SQL opt-in skips reported)
+    name: Ordinary worker and helpers (shard ${{ matrix.shard }}/3; SQL opt-in skips reported)
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     strategy:
       fail-fast: false
-      max-parallel: 2
+      max-parallel: 3
       matrix:
-        shard: [1, 2]
+        shard: [1, 2, 3]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

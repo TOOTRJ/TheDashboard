@@ -1,0 +1,272 @@
+{
+  "client_date": "2026-10-18",
+  "format": "dashboard-release-and-three-shard-acceptance-v1",
+  "foundation_subset": {
+    "CI_accepted": false,
+    "attempt": 2,
+    "failed_job": {
+      "child_elapsed_seconds": 1500,
+      "elapsed_seconds": 1528,
+      "failure_kind": "subprocess.TimeoutExpired",
+      "id": 117841907561,
+      "last_reported_case": "tests.test_source_admission_v3.SourceSealTests.test_supplied_unavailable_readback_still_requires_original_acceptance_pins_and_position",
+      "status": "failure",
+      "test_assertion_failure_observed": false
+    },
+    "head": "ff115966588fdc998e12bc2185abece658be93dd",
+    "incorporated_through_accepted_composition": 108,
+    "pull_request": 107,
+    "run_id": 39017986755
+  },
+  "live_authority": false,
+  "railway_mutation": false,
+  "releases": {
+    "108": {
+      "CI_status": "success",
+      "actual_merged_tree": "f19d957ed8f49d8f750bc03e5d1a7451a501eb2c",
+      "head": "cad3f413ca858998fa953939cc41caa85f91ee7e",
+      "jobs": {
+        "frontend": {
+          "elapsed_seconds": 108,
+          "id": 117842054688,
+          "status": "success"
+        },
+        "ordinary1": {
+          "elapsed_seconds": 1520,
+          "id": 117842055087,
+          "status": "success"
+        },
+        "ordinary2": {
+          "elapsed_seconds": 1259,
+          "id": 117842054957,
+          "status": "success"
+        },
+        "sql1": {
+          "elapsed_seconds": 1546,
+          "id": 117842054999,
+          "status": "success"
+        },
+        "sql2": {
+          "elapsed_seconds": 1561,
+          "id": 117842055159,
+          "status": "success"
+        },
+        "sql3": {
+          "elapsed_seconds": 1098,
+          "id": 117842054935,
+          "status": "success"
+        },
+        "sql4": {
+          "elapsed_seconds": 1564,
+          "id": 117842054928,
+          "status": "success"
+        }
+      },
+      "merge_commit": "aabe1b02759fb3e76a27a29475243f50bcf37925",
+      "merge_tree_matches_tested": true,
+      "production": {
+        "alias_current_verified": true,
+        "canonical_alias": "the-dashboard-chi.vercel.app",
+        "duration_seconds": 16,
+        "environment": "production",
+        "id": "dpl_CWWkpcRZzoVajKS7Ztkf6ikiWGmD",
+        "source": "aabe1b02759fb3e76a27a29475243f50bcf37925",
+        "status": "READY",
+        "verified_utc": "2026-10-19T01:39:06.640346+00:00"
+      },
+      "prospective_merge": "d55a1ce74e0c3f79403c2ac611a964d82d314b24",
+      "prospective_tree_matches_tested": true,
+      "release_accepted": true,
+      "rerun_attempt": 2,
+      "run_id": 39018149085,
+      "smoke": {
+        "accepted": true,
+        "contract_checks": 4,
+        "helper_sha256": "1ff3be18e0901da156417ffffdc745118b2968113e5a2b163ee358ea30756648",
+        "writes": 0
+      },
+      "tested_checkout": "04980b2d8aed68eba61dd79841b03b4b3c40e5a1",
+      "tested_tree": "f19d957ed8f49d8f750bc03e5d1a7451a501eb2c"
+    },
+    "109": {
+      "CI_status": "success",
+      "actual_merged_tree": "20a79ed902608b6fddcc5a63c23b1273e6ce5f43",
+      "head": "15341d3d191f4758953247ade9e45350fee7c96a",
+      "jobs": {
+        "frontend": {
+          "elapsed_seconds": 98,
+          "id": 117842150828,
+          "status": "success"
+        },
+        "ordinary1": {
+          "elapsed_seconds": 886,
+          "id": 117842151070,
+          "status": "success"
+        },
+        "ordinary2": {
+          "elapsed_seconds": 856,
+          "id": 117842150957,
+          "status": "success"
+        },
+        "sql1": {
+          "elapsed_seconds": 2142,
+          "id": 117842150895,
+          "status": "success"
+        },
+        "sql2": {
+          "elapsed_seconds": 1341,
+          "id": 117842151045,
+          "status": "success"
+        },
+        "sql3": {
+          "elapsed_seconds": 1933,
+          "id": 117842151116,
+          "status": "success"
+        },
+        "sql4": {
+          "elapsed_seconds": 1584,
+          "id": 117842151006,
+          "status": "success"
+        }
+      },
+      "merge_commit": "a6aadce78c467d4ef364591c7d06e83013262d91",
+      "merge_tree_matches_tested": true,
+      "production": {
+        "alias_current_verified": true,
+        "canonical_alias": "the-dashboard-chi.vercel.app",
+        "duration_seconds": 20,
+        "environment": "production",
+        "id": "dpl_8j1Er44sp88nxDyn1J8xTpBawxBk",
+        "source": "a6aadce78c467d4ef364591c7d06e83013262d91",
+        "status": "READY",
+        "verified_utc": "2026-10-19T01:46:24.142015+00:00"
+      },
+      "prospective_merge": "9f54a5456ba665e165a057a6cc95d6e62e1a1d26",
+      "prospective_tree_matches_tested": true,
+      "release_accepted": true,
+      "rerun_attempt": 2,
+      "run_id": 39018620155,
+      "smoke": {
+        "accepted": true,
+        "contract_checks": 4,
+        "helper_sha256": "1ff3be18e0901da156417ffffdc745118b2968113e5a2b163ee358ea30756648",
+        "writes": 0
+      },
+      "tested_checkout": "bab60019ae864fd8844c9227b68297e6e5adbd5f",
+      "tested_tree": "20a79ed902608b6fddcc5a63c23b1273e6ce5f43"
+    }
+  },
+  "repository": {
+    "id": 1141090963,
+    "name": "TOOTRJ/TheDashboard"
+  },
+  "supabase_mutation": false,
+  "three_shard_repair": {
+    "changed_code_paths": [
+      "scripts/check-worker.py",
+      "scripts/check-ci.py",
+      ".github/workflows/verification.yml",
+      "scripts/tests/test_worker_sharding.py",
+      "scripts/tests/test_ci_verification.py"
+    ],
+    "child_deadlines_seconds": {
+      "ordinary": 1500,
+      "sql": 2400
+    },
+    "focused_tests": {
+      "errors": 0,
+      "failures": 0,
+      "passed": 37,
+      "receipt_sha256": "723c4a8daa026c485da10e80cc3f3c77a9acced4a5b73ce90d2ccd5e2445cf25",
+      "seconds": 1.574,
+      "skips": 0
+    },
+    "full_local_composition": {
+      "accepted": true,
+      "aggregate": {
+        "audited_skip_entries": 533,
+        "baseline_repeated_ids": 54,
+        "class_or_module_skip_entries": 15,
+        "discovered_occurrences": 2737,
+        "method_skip_entries": 518,
+        "tests_executed": 2085,
+        "tests_reported": 2603,
+        "unexpected_skips": 0
+      },
+      "all_source_before_after_unchanged": true,
+      "candidate_postimages_sha256": {
+        ".github/workflows/verification.yml": "c1444c97f8ce8d349dccb65c89964ade2bf731c76e9280ac4692dd78b376e349",
+        "scripts/check-ci.py": "2dc1cc7f90b150328e8c262044f1e405b608417ce39b66e6d409dd64a9925d7a",
+        "scripts/check-worker.py": "f9ad4a7a30cc65b0d5b4267c2213452114fc230b8dbf186dbbb30d859d06cd54",
+        "scripts/tests/test_ci_verification.py": "becec3607baea46b7caf537cb557fc6f51d0133d089be8421b8063cb1d5c4064",
+        "scripts/tests/test_worker_sharding.py": "386df12c137f233ac58dfaf605532e5ea87b2a6f841eb10d3fac6ca07b246f96"
+      },
+      "native_provider_or_hosted_acceptance": false,
+      "original_receipt_sha256": "32511415d2edf627ea42791b913c234841ba761590c78121c2cc4f350225a5fb",
+      "shards": {
+        "1": {
+          "executed": 815,
+          "exit_code": 0,
+          "original_summary": [
+            "Ran 989 tests in 812.318s",
+            "OK (skipped=182)"
+          ],
+          "outer_seconds": 815.2105952918064,
+          "owned_group_absent": true,
+          "selected_occurrences": 1072,
+          "unexpected_skips": 0
+        },
+        "2": {
+          "executed": 1210,
+          "exit_code": 0,
+          "original_summary": [
+            "Ran 1554 tests in 689.519s",
+            "OK (skipped=351)"
+          ],
+          "outer_seconds": 691.988339249976,
+          "owned_group_absent": true,
+          "selected_occurrences": 1605,
+          "unexpected_skips": 0
+        },
+        "3": {
+          "executed": 60,
+          "exit_code": 0,
+          "original_summary": [
+            "Ran 60 tests in 646.011s",
+            "OK"
+          ],
+          "outer_seconds": 648.154392125085,
+          "owned_group_absent": true,
+          "selected_occurrences": 60,
+          "unexpected_skips": 0
+        }
+      },
+      "source_composition": "cad3f41 + reviewed QA3 + five-file three-shard candidate",
+      "source_files": 887,
+      "source_manifest_sha256": "2222366b3a1394f377ab7c8709d8d23843319ed48768edb46562b8456008197f"
+    },
+    "hosted_CI": "PENDING",
+    "ordinary_shards": [
+      1,
+      2,
+      3
+    ],
+    "release": "PENDING",
+    "required_jobs": 8,
+    "sql_shards": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "workflow_validator": "pass"
+  },
+  "vercel_identity": {
+    "id": "prj_wFUe9k9USVreOQcmQKNWRAVsx5fH",
+    "name": "the-dashboard",
+    "team_id": "team_8iNNxiNjrOseD4gdSCHkQEzF",
+    "team_name": "redjester",
+    "team_slug": "orderoftheredjester"
+  },
+  "worker_closed": true
+}

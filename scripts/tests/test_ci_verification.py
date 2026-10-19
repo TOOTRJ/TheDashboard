@@ -299,16 +299,24 @@ print("fixed child environment passed")'''
             with self.subTest(event=event, config=config), self.assertRaises(ValueError):
                 policy.validate_workflow(yaml.safe_dump(mutation))
 
-    def test_worker_matrix_requires_both_bounded_shards_without_bypasses(self):
+    def test_worker_matrix_requires_all_three_bounded_shards_without_bypasses(self):
         original = yaml.safe_load(policy.WORKFLOW.read_text())
+        expected = {"fail-fast": False, "max-parallel": 3, "matrix": {"shard": [1, 2, 3]}}
+        self.assertEqual(policy.WORKER_STRATEGY, expected)
+        self.assertEqual(original["jobs"]["worker"]["strategy"], expected)
+        policy.validate_workflow(yaml.safe_dump(original))
         for strategy in (
-            {"fail-fast": False, "max-parallel": 2, "matrix": {"shard": [1]}},
-            {"fail-fast": False, "max-parallel": 2, "matrix": {"shard": [1, 2, 3]}},
-            {"fail-fast": True, "max-parallel": 2, "matrix": {"shard": [1, 2]}},
-            {"fail-fast": False, "max-parallel": 8, "matrix": {"shard": [1, 2]}},
-            {"fail-fast": False, "max-parallel": 2, "matrix": {"shard": [1, 2], "exclude": [{"shard": 2}]}},
-            {"fail-fast": False, "max-parallel": 2, "matrix": {"shard": [True, 2]}},
-            {"fail-fast": 0, "max-parallel": 2, "matrix": {"shard": [1, 2]}},
+            {**expected, "matrix": {"shard": [1, 2]}},
+            {**expected, "matrix": {"shard": [1, 3]}},
+            {**expected, "matrix": {"shard": [2, 3]}},
+            {**expected, "matrix": {"shard": [1, 2, 3, 4]}},
+            {**expected, "matrix": {"shard": [1, 2, 3, 3]}},
+            {**expected, "fail-fast": True},
+            {**expected, "max-parallel": 2},
+            {**expected, "max-parallel": 8},
+            {**expected, "matrix": {"shard": [1, 2, 3], "exclude": [{"shard": 3}]}},
+            {**expected, "matrix": {"shard": [True, 2, 3]}},
+            {**expected, "fail-fast": 0},
         ):
             mutation = copy.deepcopy(original); mutation["jobs"]["worker"]["strategy"] = strategy
             with self.subTest(strategy=strategy), self.assertRaises(ValueError):
