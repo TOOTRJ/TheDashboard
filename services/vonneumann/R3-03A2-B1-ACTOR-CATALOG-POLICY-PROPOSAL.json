@@ -1,0 +1,574 @@
+{
+  "bootstrap": {
+    "protected_anchor_read": "sealed-owner-only-exact-USAGE-and-SELECT-on-installer_reference-and-expected_functions-no-create-write-own-membership",
+    "reference_namespace": "vn_jupiter_b1_fixture_anchor",
+    "reference_owner": "trusted-fixture-bootstrap-not-restricted-installer-or-actor",
+    "restricted_installer": "installation-only-in-owned-B1-schema-no-dangerous-role-attributes-final-ownership-membership-create-write-revoked",
+    "role_creation": "trusted-owned-fixture-bootstrap-only",
+    "sealed_owner": "vn_jupiter_b1_sealed_owner-NOLOGIN-no-dangerous-attributes-or-membership-source-validated-before-transfer"
+  },
+  "bounds": {
+    "catalog_objects": "1024",
+    "input_total_bytes": "4096",
+    "installed_bindings": "16",
+    "oid_max": "4294967295",
+    "output_bytes": "8192",
+    "parameter_acl_entries": "64",
+    "role_membership_edges": "256",
+    "role_name_bytes": "63",
+    "role_nodes": "64"
+  },
+  "capabilities": [
+    "verify_actor",
+    "read_scoped_binding"
+  ],
+  "catalog_attributes": {
+    "column": [
+      "relation_oid",
+      "ordinal",
+      "name",
+      "type_name",
+      "type_oid",
+      "typmod",
+      "collation_name",
+      "collation_oid",
+      "not_null",
+      "dropped",
+      "identity",
+      "generated",
+      "storage",
+      "compression",
+      "options",
+      "fdw_options",
+      "default_expression"
+    ],
+    "constraint": [
+      "relation_oid",
+      "domain_oid",
+      "type",
+      "key_columns",
+      "foreign_fields",
+      "deferrable",
+      "deferred",
+      "validated",
+      "index_oid",
+      "parent_oid",
+      "inherited",
+      "local",
+      "no_inherit",
+      "definition"
+    ],
+    "dependency": [
+      "object_class_oid",
+      "object_oid",
+      "object_subid",
+      "referenced_class_oid",
+      "referenced_oid",
+      "referenced_subid",
+      "type"
+    ],
+    "index": [
+      "relation_oid",
+      "access_method",
+      "key_count",
+      "total_count",
+      "unique",
+      "primary",
+      "exclusion",
+      "immediate",
+      "valid",
+      "ready",
+      "live",
+      "nulls_not_distinct",
+      "key_columns",
+      "opclasses",
+      "collations",
+      "options",
+      "expressions",
+      "predicate",
+      "definition"
+    ],
+    "namespace": [
+      "original_name"
+    ],
+    "policy": [
+      "relation_oid",
+      "command",
+      "permissive",
+      "roles",
+      "qualification",
+      "check_expression"
+    ],
+    "relation": [
+      "relkind",
+      "persistence",
+      "access_method_name",
+      "access_method_oid",
+      "row_type_oid",
+      "toast_oid",
+      "reloptions",
+      "tablespace_oid",
+      "replica_identity",
+      "rls",
+      "forced_rls",
+      "partition_flag",
+      "partition_bound",
+      "inheritance_parents"
+    ],
+    "routine": [
+      "source_spec",
+      "language_oid",
+      "argument_type_oids",
+      "return_type_oid",
+      "owner_oid",
+      "support_oid",
+      "argument_defaults",
+      "configuration",
+      "body_sha256",
+      "definition"
+    ],
+    "rule": [
+      "relation_oid",
+      "type",
+      "enabled",
+      "instead",
+      "qualification",
+      "action"
+    ],
+    "trigger": [
+      "relation_oid",
+      "function_oid",
+      "name",
+      "type",
+      "enabled",
+      "internal",
+      "constraint_fields",
+      "arguments_hex",
+      "columns",
+      "when_expression",
+      "transition_tables"
+    ],
+    "type": [
+      "kind",
+      "category",
+      "relation_oid",
+      "base_oid",
+      "array_oid",
+      "element_oid",
+      "dimensions",
+      "typmod",
+      "delimiter",
+      "by_value",
+      "length",
+      "alignment",
+      "storage",
+      "not_null",
+      "collation_oid",
+      "default_expression",
+      "input_oid",
+      "output_oid",
+      "receive_oid",
+      "send_oid",
+      "typmod_in_oid",
+      "typmod_out_oid",
+      "analyze_oid",
+      "subscript_oid"
+    ]
+  },
+  "catalog_excluded_value_cells": [
+    "vn_jupiter_actor_catalog_research_v3.actor_bindings.installation_manifest_sha256",
+    "vn_jupiter_actor_catalog_research_v3.accepted_pins.actor_catalog_package_sha256",
+    "vn_jupiter_actor_catalog_research_v3.accepted_pins.installation_manifest_sha256",
+    "vn_jupiter_actor_catalog_research_v3.accepted_pins.catalog_manifest_sha256",
+    "vn_jupiter_actor_catalog_research_v3.accepted_pins.role_closure_sha256",
+    "vn_jupiter_b1_fixture_anchor.installer_reference.actor_catalog_package_sha256",
+    "vn_jupiter_b1_fixture_anchor.installer_reference.installation_manifest_sha256",
+    "vn_jupiter_b1_fixture_anchor.installer_reference.catalog_manifest_sha256",
+    "vn_jupiter_b1_fixture_anchor.installer_reference.role_closure_sha256"
+  ],
+  "catalog_schema": {
+    "constructor_children": "exact-root-bound-composite-array-toast-index-constraints-original-OIDs-plus-reviewed-PG17-DDL-spec-not-arbitrary-current-snapshot",
+    "function_common": "plpgsql-normal-called-on-null-input-parallel-unsafe-nonleakproof-cost100-rows0-no-default-variadic-out-transform-support-binary-sqlbody",
+    "functions": {
+      "_binding_core": [
+        "",
+        "jsonb",
+        "volatile",
+        "invoker"
+      ],
+      "_c14n": [
+        "jsonb",
+        "text",
+        "immutable",
+        "invoker"
+      ],
+      "_catalog_preimage": [
+        "",
+        "jsonb",
+        "volatile",
+        "invoker"
+      ],
+      "_checked_actor": [
+        "text,text,text,text",
+        "jsonb",
+        "volatile",
+        "invoker"
+      ],
+      "_installation_preimage": [
+        "",
+        "jsonb",
+        "volatile",
+        "invoker"
+      ],
+      "_role_closure": [
+        "",
+        "jsonb",
+        "volatile",
+        "invoker"
+      ],
+      "get_scoped_binding": [
+        "text,text,text,text",
+        "jsonb",
+        "volatile",
+        "definer"
+      ],
+      "verify_scoped_actor": [
+        "text,text,text,text",
+        "jsonb",
+        "volatile",
+        "definer"
+      ]
+    },
+    "object_order": [
+      "kind",
+      "namespace",
+      "identity",
+      "numeric-oid"
+    ],
+    "root_tables": {
+      "vn_jupiter_actor_catalog_research_v3": [
+        "actor_bindings",
+        "accepted_pins"
+      ],
+      "vn_jupiter_b1_fixture_anchor": [
+        "installer_reference",
+        "expected_functions"
+      ]
+    },
+    "source_expected": "external-reviewed-SQL-exact-eight-bodies-and-full-function-DDL-spec-before-installation-query-protected-by-bootstrap-anchor",
+    "unexpected_kind": "refuse-any-additional-root-or-namespace-object-or-unreviewed-dependency-before-snapshot-acceptance"
+  },
+  "entrypoints": {
+    "get_scoped_binding": {
+      "arguments": [
+        "owner_id",
+        "run_id",
+        "market_epoch",
+        "requested_binding_id"
+      ],
+      "return": "BindingLookup"
+    },
+    "verify_scoped_actor": {
+      "arguments": [
+        "owner_id",
+        "run_id",
+        "market_epoch",
+        "required_capability"
+      ],
+      "return": "ActorCatalogEvidence"
+    }
+  },
+  "fields": {
+    "ACLPrivilege": [
+      "grantor_oid",
+      "grantee_oid",
+      "privilege_kind",
+      "grantable"
+    ],
+    "AcceptedPins": [
+      "actor_catalog_package_sha256",
+      "installation_manifest_sha256",
+      "catalog_manifest_sha256",
+      "role_closure_sha256"
+    ],
+    "ActorCatalogEvidence": [
+      "format",
+      "actor_catalog_policy_sha256",
+      "scope",
+      "principal_binding_id",
+      "session_user_oid",
+      "session_user_name",
+      "profile",
+      "capability_checked",
+      "actor_catalog_package_sha256",
+      "installation_manifest_sha256",
+      "accepted_catalog_sha256",
+      "observed_catalog_sha256",
+      "role_closure_sha256",
+      "limits"
+    ],
+    "BindingCore": [
+      "principal_binding_id",
+      "session_user_oid",
+      "session_user_name",
+      "scope",
+      "profile",
+      "capabilities"
+    ],
+    "BindingLookup": [
+      "format",
+      "actor_catalog_policy_sha256",
+      "scope",
+      "requested_binding_id",
+      "resolution",
+      "evidence",
+      "limits"
+    ],
+    "CatalogFingerprint": [
+      "format",
+      "actor_catalog_policy_sha256",
+      "database_identity",
+      "invariant_runtime",
+      "catalog_objects",
+      "default_acl_rows",
+      "database_role_settings",
+      "protected_roles",
+      "bindings_core",
+      "expected_function_rows",
+      "role_closure"
+    ],
+    "CatalogObject": [
+      "kind",
+      "namespace",
+      "identity",
+      "oid",
+      "owner_oid",
+      "owner_name",
+      "attributes",
+      "acl_is_null",
+      "effective_acl"
+    ],
+    "DatabaseIdentity": [
+      "fixture_id",
+      "database_oid",
+      "database_name",
+      "server_version_num"
+    ],
+    "InstallationManifest": [
+      "format",
+      "actor_catalog_policy_sha256",
+      "actor_catalog_package_sha256",
+      "database_identity",
+      "scopes",
+      "bindings_core"
+    ],
+    "InstalledBinding": [
+      "principal_binding_id",
+      "session_user_oid",
+      "session_user_name",
+      "scope",
+      "profile",
+      "capabilities",
+      "installation_manifest_sha256"
+    ],
+    "InstallerReference": [
+      "fixture_id",
+      "database_oid",
+      "database_name",
+      "server_version_num",
+      "actor_catalog_package_sha256",
+      "installation_manifest_sha256",
+      "catalog_manifest_sha256",
+      "role_closure_sha256"
+    ],
+    "Limits": [
+      "provider_attested",
+      "calibrated_clock",
+      "original_identity_registry",
+      "epoch_registry",
+      "source_freshness",
+      "capture_retention",
+      "native_source_admission",
+      "committed_packet_readback",
+      "terminal_resolution",
+      "availability_authority",
+      "complete_inventory",
+      "history_seal",
+      "model_native_join",
+      "lease_authority",
+      "hosted_authority",
+      "running_authority",
+      "live_trading_authority"
+    ],
+    "MembershipEdge": [
+      "roleid",
+      "member",
+      "grantor",
+      "admin_option",
+      "inherit_option",
+      "set_option"
+    ],
+    "ParameterPrivilege": [
+      "parameter_name",
+      "grantor_oid",
+      "grantee_oid",
+      "privilege_kind",
+      "grantable"
+    ],
+    "PinValues": [
+      "actor_catalog_package_sha256",
+      "installation_manifest_sha256",
+      "catalog_manifest_sha256",
+      "role_closure_sha256"
+    ],
+    "RoleClosure": [
+      "format",
+      "actor_catalog_policy_sha256",
+      "nodes",
+      "edges",
+      "parameter_privileges"
+    ],
+    "RoleNode": [
+      "oid",
+      "name",
+      "login",
+      "inherit",
+      "superuser",
+      "createdb",
+      "createrole",
+      "replication",
+      "bypassrls",
+      "connection_limit",
+      "valid_until",
+      "rolconfig"
+    ],
+    "Scope": [
+      "owner_id",
+      "run_id",
+      "market_epoch"
+    ],
+    "SourceFunctionSpec": [
+      "signature",
+      "argument_type_names",
+      "argument_names",
+      "return_type_name",
+      "language",
+      "kind",
+      "owner_role_name",
+      "security_definer",
+      "volatility",
+      "parallel",
+      "strict",
+      "leakproof",
+      "returns_set",
+      "cost_text",
+      "rows_text",
+      "support_oid_text",
+      "variadic_oid_text",
+      "default_argument_count_text",
+      "all_argument_types",
+      "argument_modes",
+      "transform_types",
+      "binary",
+      "sql_body",
+      "local_settings",
+      "body_sha256",
+      "source_package_sha256",
+      "execute_role_names"
+    ]
+  },
+  "format": "ga-jupiter-actor-catalog-policy-proposal-research-v3-b1-v3",
+  "formats": {
+    "ActorCatalogEvidence": "ga-jupiter-actor-catalog-evidence-research-v3-b1-v3",
+    "BindingLookup": "ga-jupiter-actor-catalog-binding-lookup-research-v3-b1-v3",
+    "CatalogFingerprint": "ga-jupiter-b1-catalog-manifest-v3",
+    "InstallationManifest": "ga-jupiter-b1-installation-manifest-v3",
+    "RoleClosure": "ga-jupiter-b1-role-closure-v3"
+  },
+  "input_codec": "four-actual-text-values-plus-canonical-lexical-validation-no-origin-proof",
+  "invariant_runtime": {
+    "caller_values_outside_K": [
+      "session_user",
+      "current_user",
+      "role_oids",
+      "transaction_ids",
+      "backend_ids",
+      "application_name",
+      "socket_port",
+      "statement_clock"
+    ],
+    "function_local_settings": [
+      "DateStyle=ISO, YMD",
+      "IntervalStyle=postgres",
+      "TimeZone=UTC",
+      "client_encoding=UTF8",
+      "row_security=on",
+      "search_path=pg_catalog, pg_temp",
+      "standard_conforming_strings=on"
+    ],
+    "settings": [
+      "server_version_num",
+      "server_encoding",
+      "client_encoding",
+      "TimeZone",
+      "DateStyle",
+      "IntervalStyle",
+      "standard_conforming_strings",
+      "row_security"
+    ]
+  },
+  "limits": {
+    "availability_authority": false,
+    "calibrated_clock": false,
+    "capture_retention": false,
+    "committed_packet_readback": false,
+    "complete_inventory": false,
+    "epoch_registry": false,
+    "history_seal": false,
+    "hosted_authority": false,
+    "lease_authority": false,
+    "live_trading_authority": false,
+    "model_native_join": false,
+    "native_source_admission": false,
+    "original_identity_registry": false,
+    "provider_attested": false,
+    "running_authority": false,
+    "source_freshness": false,
+    "terminal_resolution": false
+  },
+  "namespace": "vn_jupiter_actor_catalog_research_v3",
+  "output_codec": "closed-json-evidence-not-original-receipt",
+  "preimages": {
+    "CatalogFingerprint": "exact-CatalogFingerprint-fields-with-complete-closed-per-kind-rows-source-expected-functions-original-fixture-OIDs-nine-fixed-exclusions-and-no-caller-session-identity",
+    "InstallationManifest": "exact-listed-InstallationManifest-fields-and-BindingCore-rows-with-no-embedded-installation-manifest-digest",
+    "RoleClosure": "exact-listed-RoleClosure-fields-full-sorted-RoleNode-and-MembershipEdge-and-ParameterPrivilege-rows",
+    "codec": "sorted-key-compact-utf8-canonical-json-independent-bootstrap-and-guard-rederivation"
+  },
+  "profile": "actor-and-catalog-only",
+  "profiles": [
+    "recorder",
+    "reader",
+    "sealer",
+    "control"
+  ],
+  "rules": {
+    "actor": "actual-session-user-name-and-oid-plus-private-scoped-installer-binding",
+    "authority": "no-source-packet-model-runtime-authority",
+    "casts": "explicit-caller-casts-producing-identical-text-are-indistinguishable-and-not-rejected-as-origin",
+    "closure": "deterministic-union-all-installed-actor-roots-full-structural-member-role-closure-all-original-edge-flags-plus-PUBLIC-and-reachable-parameter-ACL-no-grantor-reachability-no-truncation",
+    "fingerprint": "shared-fixed-invariant-runtime-and-complete-owned-source-accepted-catalog-protected-expected-function-definitions-independent-per-call-session-identity",
+    "foreign_lookup": "same-observed-absence-as-random-unknown-binding",
+    "hash_exclusion": "exact-listed-binding-manifest-and-accepted-reference-digest-value-cells-only-definitions-owners-acls-remain-included",
+    "input": "actual-text-value-canonical-lowercase-uuid-or-closed-capability-no-trim-normalization-null-or-extra-overload",
+    "null": "called-on-null-input-explicit-first-null-guards-fixed-refusal-not-strict-null-result",
+    "output": "closed-scalars-no-clock-process-env-secret-raw-provider-data",
+    "overflow": "refuse-complete-catalog-or-closure-over-bound",
+    "package": "actor-catalog-sql-artifact-only-not-caller-recorder-or-reader-attestation",
+    "pin_validation": "rederive-manifest-and-catalog-plus-compare-every-excluded-pin-with-separate-bootstrap-held-reference-never-adopt-current-drift",
+    "sealed_owner": "bootstrap-transfers-only-after-source-acceptance-installer-no-longer-can-replace-schema-tables-or-guards",
+    "search_path": "pg_catalog,pg_temp-explicit-qualified-system-and-application-objects",
+    "source_acceptance": "external-package-and-source-body-signature-definition-specs-first-bootstrap-validates-actual-definitions-before-seal-and-gold-not-current-snapshot-self-acceptance",
+    "unknown_or_true_limit": "refuse",
+    "write_effects": "none-from-two-actor-entrypoints-no-source-registry-or-journal"
+  }
+}

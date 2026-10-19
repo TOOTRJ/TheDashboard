@@ -13,6 +13,9 @@ import json
 import time
 from collections.abc import Mapping
 
+from ..http_tls import require_no_keylog, verified_http_context
+
+require_no_keylog()
 import aiohttp
 
 from .candles import MINUTE_RETENTION, MinuteCandle
@@ -77,6 +80,7 @@ the request watermarks; a retry must still cover the unavailable interval.
             self._session = aiohttp.ClientSession(
                 timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT_SECONDS),
                 trust_env=False,
+                connector=aiohttp.TCPConnector(ssl=verified_http_context()),
             )
         return self._session
 

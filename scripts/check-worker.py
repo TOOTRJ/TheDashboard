@@ -26,6 +26,9 @@ OFFLINE_SHARDS = (1, 2)
 POSTGRES_SHARDS = (1, 2, 3, 4)
 SHARDS_BY_MODE = {"offline": OFFLINE_SHARDS, "postgres": POSTGRES_SHARDS}
 HEAVY_MODULE_SHARDS = {
+    # Run 39014680277 hit 1500s with model and source admission on shard 2.
+    # Keep both whole modules opposite; cases and deadlines remain unchanged.
+    "tests.test_prospective_ga_v3_model": 1,
     "tests.test_provider_ga_components": 1,
     "tests.test_portable_ga_model": 2,
     "tests.test_ga_active_model": 2,

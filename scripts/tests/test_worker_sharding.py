@@ -46,6 +46,46 @@ class WorkerShardingTests(unittest.TestCase):
         self.assertEqual(coverage['runtime'], 'CPython 3.12.14')
         self.assertEqual(len(coverage['selection_source_sha256']), 64)
 
+    def test_prospective_model_moves_whole_opposite_source_admission_with_alias_fixture_segments(self):
+        model_name = 'tests.test_prospective_ga_v3_model'
+        source_name = 'tests.test_source_admission_v3'
+        self.assertEqual(worker.module_shard(model_name), 1)
+        self.assertEqual(worker.module_shard(source_name), 2)
+        events = []
+        modules = [ModuleType(name) for name in (model_name, source_name)]
+        by_module = []
+        for module in modules:
+            label = module.__name__
+            module.setUpModule = lambda label=label: events.append((label, 'module setup'))
+            module.tearDownModule = lambda label=label: events.append((label, 'module teardown'))
+            cls = type('ProspectiveFixtureCase', (unittest.TestCase,), {
+                '__module__': label,
+                'setUpClass': classmethod(lambda cls, label=label: events.append((label, 'class setup'))),
+                'tearDownClass': classmethod(lambda cls, label=label: events.append((label, 'class teardown'))),
+                'test_first': lambda self, label=label: events.append((label, 'first')),
+                'test_last': lambda self, label=label: events.append((label, 'last')),
+            })
+            by_module.append((cls('test_first'), cls('test_last')))
+        model, source = by_module
+        original = (model[0], source[0], model[1], model[0], source[1])
+        with self.source_fixture():
+            tests, shards, coverage = worker.partition_offline(unittest.TestSuite(original))
+        self.assertEqual(shards, {1: (0, 2, 3), 2: (1, 4)})
+        self.assertEqual(coverage['baseline_repeated_ids'], 1)
+        self.assertEqual(Counter(tests[i].id() for indices in shards.values() for i in indices),
+                         Counter(case.id() for case in original))
+        self.assertEqual(coverage['declared_shards'], [1, 2])
+        with patch.dict(sys.modules, {module.__name__: module for module in modules}):
+            baseline = unittest.TextTestRunner(stream=io.StringIO()).run(unittest.TestSuite(original))
+            self.assertTrue(baseline.wasSuccessful())
+            original_events = tuple(events)
+            for shard, module in ((1, model_name), (2, source_name)):
+                events.clear()
+                result = unittest.TextTestRunner(stream=io.StringIO()).run(worker.selected_suite(tests, shards[shard]))
+                self.assertTrue(result.wasSuccessful())
+                self.assertEqual(tuple(events), tuple(event for event in original_events if event[0] == module))
+                self.assertEqual(sum(event == (module, 'class setup') for event in events), 2)
+
     def test_partition_rejects_omissions_duplicates_invented_members_split_modules_and_reordering(self):
         tests = cases('tests.test_provider_ga_components') + cases('tests.test_portable_ga_model')
         valid = {1: (0, 1), 2: (2, 3)}

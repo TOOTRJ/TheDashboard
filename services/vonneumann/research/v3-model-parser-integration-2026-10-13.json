@@ -1,0 +1,291 @@
+{
+  "authority": {
+    "authenticated_principal": false,
+    "calibrated_clock": false,
+    "committed_readback": false,
+    "hosted_authority": false,
+    "lease_authority": false,
+    "live_trading_authority": false,
+    "native_admission": false,
+    "provider_attested": false,
+    "running_authority": false
+  },
+  "base_commit": "028d39c840d718f9abd918a7625e810f2aa476a3",
+  "date": "2026-10-13",
+  "format": "dashboard-v3-model-parser-integration-local-v1",
+  "frozen_files": [
+    {
+      "bytes": 8188,
+      "origin_commit": "5410e914d16f0ec906a471007e5fe8a345c8f012",
+      "path": "services/vonneumann/JUPITER-RAW-PARSER-V3-CONTRACT.md",
+      "sha256": "e0dd4ff48eb2dd262f785c188feaa4c965cfdf1f41d5dbeb56a436b96af1b5bf"
+    },
+    {
+      "bytes": 15850,
+      "origin_commit": "760f1553c9cc47fef6d7aa2a0410607c83bc7197",
+      "path": "services/vonneumann/PROSPECTIVE-GA-V3-MODEL-CONTRACT.md",
+      "sha256": "6dd81e87841bec987a903a1ae64fcc310c1b248945431c6cb603cf771b5efe8c"
+    },
+    {
+      "bytes": 36677,
+      "origin_commit": "5410e914d16f0ec906a471007e5fe8a345c8f012",
+      "path": "services/vonneumann/R3-03A2-NATIVE-EXPERIMENT-PLAN.md",
+      "sha256": "48bbf25be389e98eaaabc8d42cdbed1e0f007bde950a00989025bdaa65866df3"
+    },
+    {
+      "bytes": 17539,
+      "origin_commit": "5410e914d16f0ec906a471007e5fe8a345c8f012",
+      "path": "services/vonneumann/R3-03A2A-RAW-PARSER-EXPERIMENT-DESIGN.md",
+      "sha256": "c20e6fc335f80414fa17248e81f4455652924587c53992770ec6fba157d461d0"
+    },
+    {
+      "bytes": 20748,
+      "origin_commit": "5410e914d16f0ec906a471007e5fe8a345c8f012",
+      "path": "services/vonneumann/db-contract/research/jupiter_raw_parser_v3.sql",
+      "sha256": "1bcfa71e652f5c462e61bb891828d0d756e70d60a0141a1d203530e17f5e3a94"
+    },
+    {
+      "bytes": 17426,
+      "origin_commit": "5410e914d16f0ec906a471007e5fe8a345c8f012",
+      "path": "services/vonneumann/tests/postgres/test_jupiter_raw_parser_v3.py",
+      "sha256": "da238eecfae894350bb9c7017fded1b8d0f36320d86b2534372468cce8c0e85e"
+    },
+    {
+      "bytes": 47288,
+      "origin_commit": "760f1553c9cc47fef6d7aa2a0410607c83bc7197",
+      "path": "services/vonneumann/tests/test_prospective_ga_v3_model.py",
+      "sha256": "fb9d9f7fe8fdefe3b9f773ef31f6a45df9081a50d9a033d4e98f7e344fd24e1e"
+    },
+    {
+      "bytes": 65674,
+      "origin_commit": "760f1553c9cc47fef6d7aa2a0410607c83bc7197",
+      "path": "services/vonneumann/vonneumann/research/prospective_ga_v3_model.py",
+      "sha256": "71a6daff63187686c879227afc5d1207adc010b00c14d5f84b935befc233afb5"
+    },
+    {
+      "bytes": 12012,
+      "origin_commit": "760f1553c9cc47fef6d7aa2a0410607c83bc7197",
+      "path": "services/vonneumann/vonneumann/research/prospective_ga_v3_policy.py",
+      "sha256": "d53c584a0516293473585db691bbd4b5b2c7568f4772f580e045574117b034ab"
+    }
+  ],
+  "frozen_scope_sha256": "89b9470148ed58549a63d1ac6ed6f2cc84b5303f183b12565662744abd171269",
+  "limits": {
+    "authenticated_native_source_bridge": false,
+    "complete_ci": false,
+    "complete_ordinary_suite": false,
+    "complete_required_sql_suite": false,
+    "current_running_worker": false,
+    "hosted_acceptance": false,
+    "model_native_bridge": false,
+    "performance_benchmark": false,
+    "profitable_strategy": false,
+    "provider_acquisition": false
+  },
+  "model_verification": {
+    "environment": "Empty child environment with fixed PATH/PYTHONPATH, standard dotenv and bytecode disablement, OMP_NUM_THREADS=1 and OPENBLAS_NUM_THREADS=1",
+    "errors": 0,
+    "evidence_retention": "Tool-returned summary; no separate raw model log retained",
+    "exit_code": 0,
+    "failures": 0,
+    "module": "tests.test_prospective_ga_v3_model",
+    "network_denial": "Existing deny_network fixtures; no provider or native fixture",
+    "observed_summary": "Ran 20 tests in 198.587s; OK",
+    "skips": 0,
+    "suite_seconds": 198.587,
+    "supervisor_timeout_used": false,
+    "tests_run": 20,
+    "whole_process_supervisor_seconds": 600
+  },
+  "parser_environment": {
+    "DASHBOARD_DISABLE_DOTENV": "1",
+    "DASHBOARD_ISOLATED_POSTGRES_TESTS": "1",
+    "DOCKER_CONFIG": "Descriptor-owned empty mode0700 directory",
+    "DOCKER_HOST": "Exact approved local unix socket",
+    "LANG": "C",
+    "LC_ALL": "C",
+    "OMP_NUM_THREADS": "1",
+    "OPENBLAS_NUM_THREADS": "1",
+    "PATH": "/opt/homebrew/bin:/usr/bin:/bin",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTHONPATH": "Own integration services/vonneumann",
+    "TMPDIR": "New exclusive owned mode0700 directory",
+    "dotenv_claim": "The selected parser/A1 import graph does not import/call dotenv or application config loaders; the launch flag above is recorded literally rather than represented as the standard guard",
+    "standard_PYTHON_DOTENV_DISABLED_set": false
+  },
+  "parser_private_receipt_sha256": "b261f9fb569336d696410889e777ece6a4582112392ca1b9143156d7b564fa6e",
+  "parser_verification": {
+    "base": "028d39c840d718f9abd918a7625e810f2aa476a3",
+    "containers": [
+      {
+        "absent_after_normal_close": true,
+        "id": "ea42139a45f7ec40b4af06a797e95ee63dc9e7105b95da3a70daf9acb3c1f01e",
+        "name": "dashboard-db03a-test-203005a9d3514620a5505f9e33544a64",
+        "ownership_label": "com.thedashboard.isolated-postgres-test",
+        "ownership_value": "203005a9d3514620a5505f9e33544a64"
+      }
+    ],
+    "controller_seconds": 8.563877,
+    "controller_sha256": "76d7cf80dcf63ebdef921ec683cc40b4c2dc865da47738c84499a498f62f43bb",
+    "daemon": {
+      "id": "7e62dd69-3357-4ce0-8b18-f1e54f3226d8",
+      "name": "colima"
+    },
+    "daemon_after": {
+      "id": "7e62dd69-3357-4ce0-8b18-f1e54f3226d8",
+      "name": "colima"
+    },
+    "discovered_cases": 16,
+    "errors": 0,
+    "expected_cases": 16,
+    "failures": 0,
+    "format": "dashboard-v3-joined-parser-local-receipt-v1",
+    "hosted_authority": false,
+    "image": {
+      "architecture": "arm64",
+      "observed_docker_id": "sha256:965e2dfb5a23a0d6541b6106541e777b303656ebabd4e878746b189d550c0a66",
+      "observed_repo_digests": [
+        "public.ecr.aws/supabase/postgres@sha256:965e2dfb5a23a0d6541b6106541e777b303656ebabd4e878746b189d550c0a66"
+      ],
+      "os": "linux",
+      "platform_config_is_observed_docker_id": false,
+      "registry_evidence_sha256": "e9236478d2b8aa9ff10504f2cf697fa977e961ef91ccf579ff0829105d0f68b4",
+      "registry_platform_config": "sha256:35ebf7c6d3b77a430146b0a91974ed1fc14432b5741db4a3e41cd5f899b17f1a",
+      "registry_platform_manifest": "sha256:eb4503f2adfcd1e268644063ef506322beb669099d811b26c1b437de1bcfe3bf",
+      "tag": "public.ecr.aws/supabase/postgres:17.6.1.095"
+    },
+    "native_admission": false,
+    "observed_successful_parser_returns": 20,
+    "observer_faults": [],
+    "original_class_measurements": {
+      "admission_authority": false,
+      "fixture": {
+        "image": "public.ecr.aws/supabase/postgres:17.6.1.095",
+        "image_id": "sha256:965e2dfb5a23a0d6541b6106541e777b303656ebabd4e878746b189d550c0a66",
+        "network": "none",
+        "postgres_version": "17.6"
+      },
+      "observations": [
+        {
+          "body_bytes": 131072,
+          "client_elapsed_seconds": 0.07373758300673217,
+          "family_index": 0,
+          "projection_bytes": 1538
+        },
+        {
+          "body_bytes": 65536,
+          "client_elapsed_seconds": 0.05280466703698039,
+          "family_index": 1,
+          "projection_bytes": 1538
+        },
+        {
+          "body_bytes": 65536,
+          "client_elapsed_seconds": 0.053873791941441596,
+          "family_index": 2,
+          "projection_bytes": 1538
+        }
+      ],
+      "parser_policy_sha256": "e7fb225868e9401e5648487e9836d9c0aff817f2ba2cdd63a20b90b75aadb24e",
+      "provider_acquisition": false,
+      "sql_sha256": "1bcfa71e652f5c462e61bb891828d0d756e70d60a0141a1d203530e17f5e3a94"
+    },
+    "original_projection": {
+      "value": {
+        "asset": "SOL/USD",
+        "authority": {
+          "authenticated_principal": false,
+          "calibrated_clock": false,
+          "committed_readback": false,
+          "hosted_authority": false,
+          "lease_authority": false,
+          "live_trading_authority": false,
+          "native_admission": false,
+          "provider_attested": false,
+          "running_authority": false
+        },
+        "block_ref": "42",
+        "decimals": "9",
+        "denomination": "USD",
+        "estimated_source_second": "1800000000",
+        "format": "ga-jupiter-source-raw-parser-projection-research-v3",
+        "genesis_hash": "5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d",
+        "mint": "So11111111111111111111111111111111111111112",
+        "originals": [
+          {
+            "provider_family": "jupiter-price-v3",
+            "request_bytes": "208",
+            "request_sha256": "071305498f10bb90e36bc23b85661952f02f4f11be32d7394e493a952b8cbfe6",
+            "response_bytes": "131072",
+            "response_sha256": "8205f9b3e0ef68d55c9a8b16b5c1876ab01d8d35bca8bcfd699a9c1eec82e57a"
+          },
+          {
+            "provider_family": "solana-rpc",
+            "request_bytes": "228",
+            "request_sha256": "d6910a38865a7015dde8280729e0299e5707236c05d346b28daa1093ab6963bf",
+            "response_bytes": "80",
+            "response_sha256": "d4623e600dbc6619f92f8bd5b30abeb9d26f6338f39399c1b3fae534b07ee5c0"
+          },
+          {
+            "provider_family": "solana-rpc",
+            "request_bytes": "228",
+            "request_sha256": "266a4e6b4c3350146403923daf6f9e974207da68a2a24b3e934638eb0d2c07f8",
+            "response_bytes": "44",
+            "response_sha256": "07287549c8d60684dabadc115a5b65fb2636446ff51cf95335352946866e2337"
+          }
+        ],
+        "parser_policy_sha256": "e7fb225868e9401e5648487e9836d9c0aff817f2ba2cdd63a20b90b75aadb24e",
+        "price_decimal": "100.123456789012345678",
+        "source_profile": "jupiter-price-v3-prospective-minute-sampled-close-v1",
+        "valuation": "reference_mark"
+      },
+      "wire": "{\"asset\":\"SOL/USD\",\"authority\":{\"authenticated_principal\":false,\"calibrated_clock\":false,\"committed_readback\":false,\"hosted_authority\":false,\"lease_authority\":false,\"live_trading_authority\":false,\"native_admission\":false,\"provider_attested\":false,\"running_authority\":false},\"block_ref\":\"42\",\"decimals\":\"9\",\"denomination\":\"USD\",\"estimated_source_second\":\"1800000000\",\"format\":\"ga-jupiter-source-raw-parser-projection-research-v3\",\"genesis_hash\":\"5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d\",\"mint\":\"So11111111111111111111111111111111111111112\",\"originals\":[{\"provider_family\":\"jupiter-price-v3\",\"request_bytes\":\"208\",\"request_sha256\":\"071305498f10bb90e36bc23b85661952f02f4f11be32d7394e493a952b8cbfe6\",\"response_bytes\":\"131072\",\"response_sha256\":\"8205f9b3e0ef68d55c9a8b16b5c1876ab01d8d35bca8bcfd699a9c1eec82e57a\"},{\"provider_family\":\"solana-rpc\",\"request_bytes\":\"228\",\"request_sha256\":\"d6910a38865a7015dde8280729e0299e5707236c05d346b28daa1093ab6963bf\",\"response_bytes\":\"80\",\"response_sha256\":\"d4623e600dbc6619f92f8bd5b30abeb9d26f6338f39399c1b3fae534b07ee5c0\"},{\"provider_family\":\"solana-rpc\",\"request_bytes\":\"228\",\"request_sha256\":\"266a4e6b4c3350146403923daf6f9e974207da68a2a24b3e934638eb0d2c07f8\",\"response_bytes\":\"44\",\"response_sha256\":\"07287549c8d60684dabadc115a5b65fb2636446ff51cf95335352946866e2337\"}],\"parser_policy_sha256\":\"e7fb225868e9401e5648487e9836d9c0aff817f2ba2cdd63a20b90b75aadb24e\",\"price_decimal\":\"100.123456789012345678\",\"source_profile\":\"jupiter-price-v3-prospective-minute-sampled-close-v1\",\"valuation\":\"reference_mark\"}",
+      "wire_bytes": 1538,
+      "wire_sha256": "77b2116ba0ddf3915901a6f77ab25dcc3ea38757bc589fb5da930fb51886ea93"
+    },
+    "owned_empty_config_removed": true,
+    "provider_acquisition": false,
+    "skips": 0,
+    "status": "accepted_local_parser_only",
+    "suite": "tests.postgres.test_jupiter_raw_parser_v3",
+    "suite_passed": true,
+    "suite_seconds": 8.210665,
+    "tests_run": 16,
+    "whole_process_supervisor": false
+  },
+  "preceding_source_join": {
+    "all_28_current_hashes_match": true,
+    "frozen_scope_sha256": "942f5f1d4004ec225af22382f690eebfea20709c73c465b20c5c08a3638dc843",
+    "path": "services/vonneumann/research/v3-security-integration-2026-10-13.json",
+    "sha256": "7c2ea0ae6c4be4b5bccc2623d743b44f5908dc541c879101a6e557d4e027ba0e"
+  },
+  "runtime": {
+    "openssl": "OpenSSL 3.5.8 25 Aug 2026",
+    "python": "3.12.14"
+  },
+  "support_source_files": [
+    {
+      "path": "services/vonneumann/tests/postgres/harness.py",
+      "sha256": "d53dbcf420fddaccad3d3e1cc2f6e374ce29f00887bef4d59c28b9f780ee47fe"
+    },
+    {
+      "path": "services/vonneumann/tests/security_support.py",
+      "sha256": "d0ff1adaa35cd4dab046fae2ead824a0ee51cae0a1e501096a040c08cf8b7783"
+    },
+    {
+      "path": "scripts/check-ci-images.py",
+      "sha256": "1d28e16d3db54c5ed5f709c872f0e0b6470e2c85a2a9cdda8d02b2618efc3d5f"
+    },
+    {
+      "path": "scripts/check-ci-images-evidence.json",
+      "sha256": "e9236478d2b8aa9ff10504f2cf697fa977e961ef91ccf579ff0829105d0f68b4"
+    },
+    {
+      "path": "services/vonneumann/requirements.txt",
+      "sha256": "35ff125f03568ce2f940890110ef6eafa88c76d20f964fac552d773e01bf066b"
+    },
+    {
+      "path": "services/vonneumann/requirements-dev.txt",
+      "sha256": "3f2ba893f04efc310a10df16792d00a0b2e4c441d72ac3ed58d9d94bfc276f87"
+    }
+  ]
+}

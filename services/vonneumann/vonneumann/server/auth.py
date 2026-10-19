@@ -15,6 +15,9 @@ from dataclasses import dataclass
 from urllib.parse import urlsplit
 from uuid import UUID
 
+from ..http_tls import HTTPTLSError, require_no_keylog, verified_http_context
+
+require_no_keylog()
 import aiohttp
 from fastapi import Header, HTTPException
 
@@ -81,6 +84,7 @@ async def verify_token_with_provider(token: str) -> dict:
         async with aiohttp.ClientSession(
             timeout=aiohttp.ClientTimeout(total=AUTH_TIMEOUT_SECONDS),
             trust_env=False,
+            connector=aiohttp.TCPConnector(ssl=verified_http_context()),
         ) as session:
             async with session.get(
                 url,
@@ -107,7 +111,7 @@ async def verify_token_with_provider(token: str) -> dict:
                 if not isinstance(data, dict):
                     raise _auth_unavailable()
                 return data
-    except (aiohttp.ClientError, asyncio.TimeoutError, ValueError):
+    except (aiohttp.ClientError, asyncio.TimeoutError, ValueError, HTTPTLSError):
         # Provider response bodies and transport exceptions can contain secrets.
         raise _auth_unavailable() from None
 

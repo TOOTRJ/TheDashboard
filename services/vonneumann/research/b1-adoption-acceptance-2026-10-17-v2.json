@@ -1,0 +1,512 @@
+{
+  "B1_release_acceptance": false,
+  "acl_forward_repair": {
+    "frozen_snapshot_manifest_sha256": "c228c0f3a987ddeda98669f5eb9d7d0a9abc477d7c0243dbf98ab0d647c9360f",
+    "patch_sha256": "952f5908d935568492e59bb14bc507a6ec043056f356ca8d1d5560453e65189c",
+    "paths": [
+      "services/vonneumann/tests/postgres/actor_catalog_v3_fixture.py",
+      "services/vonneumann/tests/postgres/test_actor_catalog_v3.py"
+    ],
+    "repair": "Materialize independently checked exact owner-only actor_bindings ACL before K acceptance; assert exact ACL and original K restore after controlled grant/revoke and remain stable after ordinary authorized maintenance.",
+    "source_regular_files_in_that_frozen_snapshot": 879
+  },
+  "additional_path": {
+    "bytes": 5639,
+    "path": "services/vonneumann/tests/test_actor_catalog_v3_fixture_policy.py",
+    "pure_test_methods": 7,
+    "sha256": "a8fb61c761d3ea7b720abc49dcb3f0210b5f69ed21baf2d531ccd8b5376413a9"
+  },
+  "authority_limits": {
+    "availability_authority": false,
+    "calibrated_clock": false,
+    "capture_retention": false,
+    "committed_packet_readback": false,
+    "complete_inventory": false,
+    "epoch_registry": false,
+    "history_seal": false,
+    "hosted_authority": false,
+    "lease_authority": false,
+    "live_trading_authority": false,
+    "model_native_join": false,
+    "native_source_admission": false,
+    "original_identity_registry": false,
+    "provider_attested": false,
+    "running_authority": false,
+    "source_freshness": false,
+    "terminal_resolution": false
+  },
+  "candidate_new_paths": 14,
+  "canonical_policy_sha256": "2618f8f4239460112df4b7b21138f103f265353233d35e779e874431057a7c06",
+  "corrected_frozen879_adoption_inventory": {
+    "adoption_path_count": 14,
+    "paths": [
+      {
+        "bytes": 17254,
+        "path": "services/vonneumann/B1-ACTOR-CATALOG-CONTRACT.md",
+        "sha256": "ed7fd5f64e0786e0aced1202b2ca8356d0dc637074f673feb7f4f3f00ab695c4"
+      },
+      {
+        "bytes": 13036,
+        "path": "services/vonneumann/B1-ACTOR-CATALOG-WORKING-CANDIDATE.md",
+        "sha256": "677ca54af7f3c263bb02e7dfe199306020cc98b662500aa389b385908398ddbd"
+      },
+      {
+        "bytes": 16107,
+        "path": "services/vonneumann/R3-03A2-B1-ACTOR-CATALOG-PLAN.md",
+        "sha256": "6df5fb21793a3dd055003007392fa5eb6c8cbcc2d940d63972c3cd02a91c464f"
+      },
+      {
+        "bytes": 8537,
+        "path": "services/vonneumann/R3-03A2-B1-ACTOR-CATALOG-POLICY-PROPOSAL-V2.json",
+        "sha256": "c1e25e560cb14fb2b3eb14117024c708febf4a8acfd832fa5d9d52ac022ce5de"
+      },
+      {
+        "bytes": 16126,
+        "path": "services/vonneumann/R3-03A2-B1-ACTOR-CATALOG-POLICY-PROPOSAL.json",
+        "sha256": "468b195e5789e8df0cc9dfd26bcc76b57911f9d7268a1a7ad77e4f89eceb2351"
+      },
+      {
+        "bytes": 23360,
+        "path": "services/vonneumann/R3-03A2-B1-CATALOG-SCHEMA-DRAFT.md",
+        "sha256": "f13a0a820ab3e81067008d6afd9b0bda259713f848b8e0e2d649e109021cd9b4"
+      },
+      {
+        "bytes": 66481,
+        "path": "services/vonneumann/R3-03A2-NATIVE-LIFECYCLE-SCHEMA-PROPOSAL.md",
+        "sha256": "629bb304beddfdf84a73a5df2afe0ab56798f349ce4ae73c1efc63722443d554"
+      },
+      {
+        "bytes": 8091,
+        "path": "services/vonneumann/db-contract/research/actor_catalog_v3_source.py",
+        "sha256": "ffc56bfefdc405cad7a3d61ed8f3d7206ae79105c9e5a5a15f6a677fade355b3"
+      },
+      {
+        "bytes": 57330,
+        "path": "services/vonneumann/db-contract/research/jupiter_actor_catalog_v3.sql",
+        "sha256": "84b3167c6626911fd231f2eeb337e1df4ab645a89c723017ecb169cdabf93cad"
+      },
+      {
+        "bytes": 12603,
+        "path": "services/vonneumann/research/b1-actor-catalog-owned-native-2026-10-13.json",
+        "sha256": "5cc3ae3cb5f9e358aeb1939ff5eb18f86779c4acb05b52c63b0eff0d816eaf50"
+      },
+      {
+        "bytes": 26579,
+        "path": "services/vonneumann/tests/postgres/actor_catalog_v3_fixture.py",
+        "sha256": "6f6a845a43674c8759d4712ad22186280f43d5aa62a641842235ce3a96d36cb8"
+      },
+      {
+        "bytes": 18757,
+        "path": "services/vonneumann/tests/postgres/test_actor_catalog_v3.py",
+        "sha256": "cf2a79baa4c61c1ec1878dbb02f9b9031a93386f5d579e3e1cd4bd788dcfdb53"
+      },
+      {
+        "bytes": 5821,
+        "path": "services/vonneumann/tests/test_actor_catalog_v3_source.py",
+        "sha256": "a24765bdc7016e9f124cd4e2235d848afed759d7c6351f78dbfa3f88c15081a3"
+      },
+      {
+        "bytes": 5639,
+        "path": "services/vonneumann/tests/test_actor_catalog_v3_fixture_policy.py",
+        "sha256": "a8fb61c761d3ea7b720abc49dcb3f0210b5f69ed21baf2d531ccd8b5376413a9"
+      }
+    ],
+    "source_manifest_sha256": "c228c0f3a987ddeda98669f5eb9d7d0a9abc477d7c0243dbf98ab0d647c9360f",
+    "source_regular_files": 879
+  },
+  "corrected_native15": {
+    "errors": 0,
+    "exact_owned_container_absent": true,
+    "exit_code": 0,
+    "failures": 0,
+    "log_sha256": "168c0023fd1a0cf0052b7894d25ff9980b465fc35b66d23f3478c3955620830e",
+    "outer_seconds": 22.92311500001233,
+    "owned_empty_docker_configuration_removed": true,
+    "provider_or_hosted_activity": false,
+    "receipt_sha256": "949d776b0ce8328bbb553a5e107d82e1f24931e876444098231f15f9c979427a",
+    "reviewed_test_assertions": {
+      "actual_role_maintain_denial_observed": true,
+      "controlled_grant_is_rejected_catalog_drift": true,
+      "controlled_grant_permits_actual_analyze": true,
+      "exact_stored_acl_restored": true,
+      "full_original_K_restored": true,
+      "ordinary_authorized_analyze_preserves_full_K_and_ACL": true
+    },
+    "skips": 0,
+    "source_before_equals_after": true,
+    "source_native_runtime_activation": false,
+    "suite_seconds": 22.850456124986522,
+    "supervisor_seconds": 180,
+    "tests_executed": 15,
+    "timed_out": false
+  },
+  "corrected_pure_policy_tests": {
+    "errors": 0,
+    "exit_code": 0,
+    "failures": 0,
+    "log_sha256": "ff19fe95d3513173385b8d2277c68b411a4921608889b643caa3e6d8a083f8bf",
+    "native_SQL_or_Docker_executed": false,
+    "outer_seconds": 0.12846087501384318,
+    "receipt_sha256": "4c041ed84e31cdeeefb044667ea564a876a10a617cfe96fc7e75b46e82ecca0e",
+    "skips": 0,
+    "tests_executed": 7
+  },
+  "current_head_ordinary_composition": {
+    "B1_release_acceptance": false,
+    "accepted": true,
+    "actual_source_head": null,
+    "actual_source_head_note": "Not an actual Git head: dd233 base plus exactly two modified CI paths and fourteen previously absent B1 paths.",
+    "actual_tests_executed": 2084,
+    "actual_tests_reported": 2602,
+    "all_other880_source_files_unchanged": true,
+    "all_owned_child_groups_absent": true,
+    "approved_skip_entries": 533,
+    "base_commit": "dd2332dcdc1bb0b63153fabe267c8863fa25b7fb",
+    "candidate_added_paths": 14,
+    "child_deadline_seconds_each": 1500,
+    "class_or_module_skip_entries": 15,
+    "discovered_occurrences": 2736,
+    "durations": {
+      "ordinary_shard_outer_seconds": {
+        "1": 564.95908125,
+        "2": 630.675161708
+      },
+      "ordinary_shard_unittest_suite_seconds": {
+        "1": 562.709,
+        "2": 628.682
+      }
+    },
+    "expected_candidate_regular_files": 882,
+    "expected_current_base_regular_files": 868,
+    "extra_baseline_or_diagnostic_run_authorized_by_receipt": false,
+    "manifest_sha256": "acde518483be0646ace2d5a21a789947cb74b6ae43727c3087cca120f0373c38",
+    "method_skip_entries": 518,
+    "modified_base_paths": [
+      {
+        "path": "scripts/check-worker.py",
+        "sha256": "b2cc6f472ce8deaf0f491a6a2f930ba8e83143dae07d742c236ac42f365bb9f7"
+      },
+      {
+        "path": "scripts/tests/test_worker_sharding.py",
+        "sha256": "d9ca3e0c8d09cf4ce180b6dab1d7e1f0ad95b08f46ce761f93b0154cebe4191b"
+      }
+    ],
+    "no_SQL_Docker_provider_or_hosted_execution": true,
+    "not_started_discovered_occurrences": 134,
+    "ordinary_shards": 2,
+    "repeated_ids": 54,
+    "result_sha256": "53f9298410c6e421356f5a059a69b9fba102a479f971349d5c6e54ea547f687d",
+    "shards": {
+      "1": {
+        "exit_code": 0,
+        "log_sha256": "c97efe9697fadbd629f5caa5ba066ac159258fab04d4000ccc04d5701cf63e33",
+        "selected_occurrences": 1092,
+        "tests_executed": 835,
+        "tests_reported": 1009,
+        "timed_out": false
+      },
+      "2": {
+        "exit_code": 0,
+        "log_sha256": "27530eb86c5dff5a76f6c2784079b7062b9fbbfd1d5d44e0737dc7864c4e013c",
+        "selected_occurrences": 1644,
+        "tests_executed": 1249,
+        "tests_reported": 1593,
+        "timed_out": false
+      }
+    },
+    "source_before_equals_after": true,
+    "status": "accepted_local_only",
+    "total_nonexecuted_discovered_occurrences": 652,
+    "unexpected_skips": 0
+  },
+  "date": "2026-10-17",
+  "draft_lineage": {
+    "corrections": [
+      "Failed-run ACL-transition cause is source attribution, not retained before/after preimage evidence.",
+      "Indefinite local closed/unknown state remains until same-original committed Stop is verified; stale-head Stop does not prove native stopped or MVP Stop liveness."
+    ],
+    "original_markdown_file": "B1-ADOPTION-ACCEPTANCE-2026-10-17.original-draft.md",
+    "original_markdown_sha256": "69271c6f65466060e36bd46e5b030029ff86a94e9c567ecbfbbce38349d9c5fc",
+    "original_receipt_file": "B1-ADOPTION-ACCEPTANCE-2026-10-17.original-draft.json",
+    "original_receipt_sha256": "f9e54af126054bb6dcd96b397b9e14786f58f791655a06bba882337e9401d742"
+  },
+  "failed_native15": {
+    "errors": 4,
+    "failure_attribution": {
+      "corrected_later_run_exact_pre_post_acl_and_K_equality_proved": true,
+      "description": "Source inspection of PostgreSQL17 ACL handling and K acl_is_null projection attributes the four errors to NULL-versus-explicit owner-only ACL restoration.",
+      "failed_run_actual_before_after_acl_preimages_retained": false,
+      "specific_acl_transition_experimentally_observed_in_failed_run": false
+    },
+    "failures": 0,
+    "history_preserved": true,
+    "log_sha256": "649600bdc4724a0120cc7cad3440be94cf13fb7c96b2d3e832f65cc4650b1c63",
+    "passes": 11,
+    "receipt_sha256": "b42b99bd16208c789beb7ac2cede6fd382338a796c8302c26b361e060d8bdacb",
+    "skips": 0,
+    "tests_executed": 15
+  },
+  "final_required_CI": {
+    "accepted": null,
+    "actual_source_head": null,
+    "job_results": null,
+    "pull_request_created": false,
+    "required_jobs": 7,
+    "run_id": null,
+    "status": "pending_separate_actual_B1_PR_not_created"
+  },
+  "format": "dashboard-b1-adoption-sanitized-acceptance-v2",
+  "forward_changed_original_paths": [
+    "services/vonneumann/tests/postgres/actor_catalog_v3_fixture.py",
+    "services/vonneumann/tests/postgres/test_actor_catalog_v3.py"
+  ],
+  "frozen_policy_file_sha256": "468b195e5789e8df0cc9dfd26bcc76b57911f9d7268a1a7ad77e4f89eceb2351",
+  "frozen_sql_sha256": "84b3167c6626911fd231f2eeb337e1df4ab645a89c723017ecb169cdabf93cad",
+  "historical_native14": {
+    "errors": 0,
+    "failures": 0,
+    "historical_receipt_and_contract_unchanged": true,
+    "receipt_sha256": "5cc3ae3cb5f9e358aeb1939ff5eb18f86779c4acb05b52c63b0eff0d816eaf50",
+    "skips": 0,
+    "tests_executed": 14
+  },
+  "next_B2_boundary": [
+    "separately versioned descriptor and closed non-packet identity-role mapping",
+    "read-only original query/correlation mapping for non-packet actions",
+    "minimum structural D4 standalone commit and committed-getter isolation",
+    "recorder-self fence versus scope-recorder fence checked by actual control actor",
+    "finite fence/control transitions",
+    "one eleven-ID reservation with no provider I/O",
+    "precharged Stop attempt plus same-original readback; unresolved remains locally closed/unknown indefinitely unless same-original committed Stop is verified; stale-head refusal proves neither native stopped nor MVP Stop liveness",
+    "no capture, native source admission, availability, closure recycling, sealing, or model/runtime claim"
+  ],
+  "optional_design_documents": {
+    "B2_v3_proposal_sha256": "20252f84dc5f2346b214539dda4db3d7110fa8ff4344c18760565b6c8baf66c1",
+    "adoption": "May accompany B1 later as design-only documents after review; neither is accepted B2 runtime policy.",
+    "policy_freeze": false,
+    "root_commit_clock_note_sha256": "06cef8cd41b37385505ea32656967f4000fff7cb2f5d4273efccad9a0eb3d7bd",
+    "runtime_authority": false
+  },
+  "original_paths": [
+    {
+      "original_bytes": 17254,
+      "original_commit": "05fa5354743ac209fc950370570cafad1842e2d1",
+      "original_sha256": "ed7fd5f64e0786e0aced1202b2ca8356d0dc637074f673feb7f4f3f00ab695c4",
+      "path": "services/vonneumann/B1-ACTOR-CATALOG-CONTRACT.md",
+      "proposed_bytes": 17254,
+      "proposed_sha256": "ed7fd5f64e0786e0aced1202b2ca8356d0dc637074f673feb7f4f3f00ab695c4",
+      "unchanged_from_original": true
+    },
+    {
+      "original_bytes": 13036,
+      "original_commit": "05fa5354743ac209fc950370570cafad1842e2d1",
+      "original_sha256": "677ca54af7f3c263bb02e7dfe199306020cc98b662500aa389b385908398ddbd",
+      "path": "services/vonneumann/B1-ACTOR-CATALOG-WORKING-CANDIDATE.md",
+      "proposed_bytes": 13036,
+      "proposed_sha256": "677ca54af7f3c263bb02e7dfe199306020cc98b662500aa389b385908398ddbd",
+      "unchanged_from_original": true
+    },
+    {
+      "original_bytes": 16107,
+      "original_commit": "05fa5354743ac209fc950370570cafad1842e2d1",
+      "original_sha256": "6df5fb21793a3dd055003007392fa5eb6c8cbcc2d940d63972c3cd02a91c464f",
+      "path": "services/vonneumann/R3-03A2-B1-ACTOR-CATALOG-PLAN.md",
+      "proposed_bytes": 16107,
+      "proposed_sha256": "6df5fb21793a3dd055003007392fa5eb6c8cbcc2d940d63972c3cd02a91c464f",
+      "unchanged_from_original": true
+    },
+    {
+      "original_bytes": 8537,
+      "original_commit": "05fa5354743ac209fc950370570cafad1842e2d1",
+      "original_sha256": "c1e25e560cb14fb2b3eb14117024c708febf4a8acfd832fa5d9d52ac022ce5de",
+      "path": "services/vonneumann/R3-03A2-B1-ACTOR-CATALOG-POLICY-PROPOSAL-V2.json",
+      "proposed_bytes": 8537,
+      "proposed_sha256": "c1e25e560cb14fb2b3eb14117024c708febf4a8acfd832fa5d9d52ac022ce5de",
+      "unchanged_from_original": true
+    },
+    {
+      "original_bytes": 16126,
+      "original_commit": "05fa5354743ac209fc950370570cafad1842e2d1",
+      "original_sha256": "468b195e5789e8df0cc9dfd26bcc76b57911f9d7268a1a7ad77e4f89eceb2351",
+      "path": "services/vonneumann/R3-03A2-B1-ACTOR-CATALOG-POLICY-PROPOSAL.json",
+      "proposed_bytes": 16126,
+      "proposed_sha256": "468b195e5789e8df0cc9dfd26bcc76b57911f9d7268a1a7ad77e4f89eceb2351",
+      "unchanged_from_original": true
+    },
+    {
+      "original_bytes": 23360,
+      "original_commit": "05fa5354743ac209fc950370570cafad1842e2d1",
+      "original_sha256": "f13a0a820ab3e81067008d6afd9b0bda259713f848b8e0e2d649e109021cd9b4",
+      "path": "services/vonneumann/R3-03A2-B1-CATALOG-SCHEMA-DRAFT.md",
+      "proposed_bytes": 23360,
+      "proposed_sha256": "f13a0a820ab3e81067008d6afd9b0bda259713f848b8e0e2d649e109021cd9b4",
+      "unchanged_from_original": true
+    },
+    {
+      "original_bytes": 66481,
+      "original_commit": "05fa5354743ac209fc950370570cafad1842e2d1",
+      "original_sha256": "629bb304beddfdf84a73a5df2afe0ab56798f349ce4ae73c1efc63722443d554",
+      "path": "services/vonneumann/R3-03A2-NATIVE-LIFECYCLE-SCHEMA-PROPOSAL.md",
+      "proposed_bytes": 66481,
+      "proposed_sha256": "629bb304beddfdf84a73a5df2afe0ab56798f349ce4ae73c1efc63722443d554",
+      "unchanged_from_original": true
+    },
+    {
+      "original_bytes": 8091,
+      "original_commit": "05fa5354743ac209fc950370570cafad1842e2d1",
+      "original_sha256": "ffc56bfefdc405cad7a3d61ed8f3d7206ae79105c9e5a5a15f6a677fade355b3",
+      "path": "services/vonneumann/db-contract/research/actor_catalog_v3_source.py",
+      "proposed_bytes": 8091,
+      "proposed_sha256": "ffc56bfefdc405cad7a3d61ed8f3d7206ae79105c9e5a5a15f6a677fade355b3",
+      "unchanged_from_original": true
+    },
+    {
+      "original_bytes": 57330,
+      "original_commit": "05fa5354743ac209fc950370570cafad1842e2d1",
+      "original_sha256": "84b3167c6626911fd231f2eeb337e1df4ab645a89c723017ecb169cdabf93cad",
+      "path": "services/vonneumann/db-contract/research/jupiter_actor_catalog_v3.sql",
+      "proposed_bytes": 57330,
+      "proposed_sha256": "84b3167c6626911fd231f2eeb337e1df4ab645a89c723017ecb169cdabf93cad",
+      "unchanged_from_original": true
+    },
+    {
+      "original_bytes": 12603,
+      "original_commit": "05fa5354743ac209fc950370570cafad1842e2d1",
+      "original_sha256": "5cc3ae3cb5f9e358aeb1939ff5eb18f86779c4acb05b52c63b0eff0d816eaf50",
+      "path": "services/vonneumann/research/b1-actor-catalog-owned-native-2026-10-13.json",
+      "proposed_bytes": 12603,
+      "proposed_sha256": "5cc3ae3cb5f9e358aeb1939ff5eb18f86779c4acb05b52c63b0eff0d816eaf50",
+      "unchanged_from_original": true
+    },
+    {
+      "original_bytes": 22863,
+      "original_commit": "05fa5354743ac209fc950370570cafad1842e2d1",
+      "original_sha256": "29a5097b744cddbd0350e5eaaf122628a6bae62b6d64ad77be0e7c83cd8affa4",
+      "path": "services/vonneumann/tests/postgres/actor_catalog_v3_fixture.py",
+      "proposed_bytes": 26579,
+      "proposed_sha256": "6f6a845a43674c8759d4712ad22186280f43d5aa62a641842235ce3a96d36cb8",
+      "unchanged_from_original": false
+    },
+    {
+      "original_bytes": 15362,
+      "original_commit": "05fa5354743ac209fc950370570cafad1842e2d1",
+      "original_sha256": "a28b16e0c0b6033381101fa8cb7b52b64181464f198c7e6c1e54e4ffe6e42923",
+      "path": "services/vonneumann/tests/postgres/test_actor_catalog_v3.py",
+      "proposed_bytes": 18757,
+      "proposed_sha256": "cf2a79baa4c61c1ec1878dbb02f9b9031a93386f5d579e3e1cd4bd788dcfdb53",
+      "unchanged_from_original": false
+    },
+    {
+      "original_bytes": 5821,
+      "original_commit": "05fa5354743ac209fc950370570cafad1842e2d1",
+      "original_sha256": "a24765bdc7016e9f124cd4e2235d848afed759d7c6351f78dbfa3f88c15081a3",
+      "path": "services/vonneumann/tests/test_actor_catalog_v3_source.py",
+      "proposed_bytes": 5821,
+      "proposed_sha256": "a24765bdc7016e9f124cd4e2235d848afed759d7c6351f78dbfa3f88c15081a3",
+      "unchanged_from_original": true
+    }
+  ],
+  "original_source_commit": "05fa5354743ac209fc950370570cafad1842e2d1",
+  "portability_maintain_proposal": {
+    "frozen_failed_snapshot_manifest_sha256": "4353d0f69fdbaa752c2023bebde57ebb196072d66bfc69b3495fa889d5ccf323",
+    "scope": "Fixture-only current amd64 original/mirror validation, observed original ARM index store, canonical opt-in skip, pure policy tests and actual PG17 maintenance proof",
+    "sql_and_policy_changed": false
+  },
+  "prior_current_base_ordinary_composition": {
+    "B1_release_acceptance": false,
+    "accepted": true,
+    "actual_source_head": null,
+    "actual_source_head_note": "Private archive composition, not a Git commit; base and complete manifest identify the observed bytes.",
+    "actual_tests_executed": 2083,
+    "actual_tests_reported": 2601,
+    "added_B1_paths": 14,
+    "approved_skip_entries": 533,
+    "base_commit": "dd2332dcdc1bb0b63153fabe267c8863fa25b7fb",
+    "base_tracked_files": 868,
+    "child_deadline_seconds_each": 1500,
+    "discovered_occurrences": 2735,
+    "hosted_CI_acceptance": false,
+    "manifest_sha256": "f983823818c9d3c9083d0e2da11165c1909061065e41dfbe9e0aa871de2378b3",
+    "modified_base_paths": [],
+    "ordinary_shard_unittest_suite_seconds": {
+      "1": 416.774,
+      "2": 728.155
+    },
+    "receipt_sha256": "2c9658e43e7a36aa0952fcad538b38acd4326d9955146fb90190046be434d12f",
+    "repeated_ids": 54,
+    "source_before_equals_after": true,
+    "source_regular_files": 882,
+    "status": "accepted_local_only",
+    "unexpected_skips": 0
+  },
+  "production_release": {
+    "accepted": null,
+    "actual_source_head": null,
+    "deployment_id": null,
+    "exact_target_verification": null,
+    "smoke_results": null,
+    "status": "pending_separate_actual_B1_PR_and_release"
+  },
+  "receipt_preparation_lineage": {
+    "previous_files_preserved": true,
+    "previous_markdown_file": "B1-ADOPTION-ACCEPTANCE-2026-10-17.md",
+    "previous_markdown_sha256": "ce0bf91238b87e762ca43cb3121ffd094052a5636c5a9bcd35e1abb9a3d6a5ac",
+    "previous_receipt_file": "B1-ADOPTION-ACCEPTANCE-2026-10-17.json",
+    "previous_receipt_sha256": "036a1226aecfc66f9af6bcbfced7237e0a907cf08ffef122252e319543071a49"
+  },
+  "reviews": {
+    "independent_peer_review": "no scoped adoption blocker",
+    "root_independent_source_review": "no scoped adoption blocker",
+    "scope": "actor/catalog only; no lifecycle or runtime authority"
+  },
+  "rollback": {
+    "hosted_database_rollback_required": false,
+    "preserve_earlier_foundations_and_historical_Git_evidence": true,
+    "scope": "reviewed code revert of exact14 new adoption paths with normal CI and release verification"
+  },
+  "sanitization": {
+    "ROOT_write_scope_note": "This statement applies only to this agent preparing these private receipt files; it makes no claim that adoption/integration did not or will not modify repository files.",
+    "environment_or_tokens_included": false,
+    "private_actor_or_container_values_included": false,
+    "raw_catalog_or_preimages_included": false,
+    "this_receipt_preparation_ROOT_writes": false,
+    "this_receipt_preparation_executed_tests": false,
+    "this_receipt_preparation_remote_activity": false
+  },
+  "status": "scoped_native_and_balanced_ordinary_local_accepted_actual_B1_CI_and_release_pending",
+  "unchanged_original_paths": 11,
+  "workload_repair": {
+    "balanced_run_accepted_local_only": true,
+    "focused_sharding_tests": {
+      "errors": 0,
+      "executed": 11,
+      "failures": 0,
+      "log_sha256": "4c4fc5ed0a31325f8fa0aae417c4dd7d88d48b94409bfb629ab6c898f5327c52",
+      "skips": 0,
+      "suite_seconds": 0.008
+    },
+    "helper_sha256": "b2cc6f472ce8deaf0f491a6a2f930ba8e83143dae07d742c236ac42f365bb9f7",
+    "historical_CI_timeout": {
+      "child_deadline_seconds": 1500,
+      "earlier_local_success_does_not_supersede_CI_timeout": true,
+      "head": "dd2332dcdc1bb0b63153fabe267c8863fa25b7fb",
+      "ordinary_shard": 2,
+      "run_id": 39014680277
+    },
+    "model_cases": 20,
+    "model_inclusive_seconds": 122.732878041,
+    "new_discovery_occurrence_explanation": "One additional focused sharding regression: original2735 discovery/2083 executed becomes balanced2736/2084; no existing test occurrence removed.",
+    "projected_local_shard_seconds": {
+      "1": 539.507,
+      "2": 605.422
+    },
+    "projection_is_hosted_guarantee": false,
+    "scope": "Complete prospective model module moves to ordinary1; complete source admission module remains ordinary2. No selection, assertion, image, fixture, multiplicity, skip or deadline changes.",
+    "source_admission_cases": 40,
+    "source_admission_inclusive_seconds": 250.224282041,
+    "test_sha256": "d9ca3e0c8d09cf4ce180b6dab1d7e1f0ad95b08f46ce761f93b0154cebe4191b",
+    "timing_cases_executed": 60,
+    "timing_receipt_sha256": "0ef10e530c8bcae511765759310bf95adcf8dc4d34c36176ab7549d6f21b24dd",
+    "timing_skips": 0
+  }
+}
