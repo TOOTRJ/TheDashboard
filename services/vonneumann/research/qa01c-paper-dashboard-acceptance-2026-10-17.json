@@ -1,0 +1,193 @@
+{
+  "ROOT_or_cloud_changes": false,
+  "browser": {
+    "evidence_kind": "Parent-observed UI/DOM facts supplied to this subagent; no exported automation trace or screenshot filepath supplied",
+    "executor": "Parent /root through existing CUA browser session",
+    "flows": [
+      {
+        "after_release": "Fresh verified target enabled",
+        "before_release": "Worker unverified; configured target unavailable; Start and Stop disabled; trace only reads/no Start",
+        "held_worker_status_trace": 49,
+        "name": "Idle same-owner token replacement with fixed API override"
+      },
+      {
+        "after_old_reply_release": "Settle enabled with original Start retained, without manual Refresh",
+        "during_same_alice_reauthentication": "Worker pending and Settle disabled",
+        "held_start_trace": 173,
+        "name": "Retired control acknowledgment releases only its own busy state",
+        "original_start_id": "a3000000-0000-4000-8000-000000000001",
+        "outcome": "Running; no second Start",
+        "scenario": "pending-start",
+        "settle_id": "a3000000-0000-4000-8000-000000000001",
+        "settle_trace": 194
+      },
+      {
+        "held_page_trace": 247,
+        "held_run": "a2000000-0000-4000-8000-000000000001",
+        "name": "Deliberate history selection survives old response",
+        "outcome": "New selected run complete at revision3; release of aborted old response preserves selected a100 run",
+        "selected_run": "a1000000-0000-4000-8000-000000000001"
+      },
+      {
+        "after_release": {
+          "alice_original_intent": false,
+          "alice_private_rows": 0,
+          "bob_private_rows": 16,
+          "pending_fixture_barriers": 0
+        },
+        "bob_configured_run": "b2000000-0000-4000-8000-000000000001",
+        "bob_history_run": "b1000000-0000-4000-8000-000000000001",
+        "held_alice_start_trace": 317,
+        "name": "Account replacement rejects original-owner response"
+      }
+    ],
+    "limits": [
+      "Four finite browser flows, not all30 VM cases",
+      "Exact layout/passive and same-turn microtask races are deterministic VM evidence",
+      "No actual worker, hosted Supabase, provider, SQL persistence, trading or runtime-admission proof"
+    ],
+    "tab": 42,
+    "tab_closed": true
+  },
+  "cleanup": {
+    "all_frozen_source_hashes_unchanged": true,
+    "cleanup_request_sha256": "ced3be70b25ceedbaaed113e36f57adbd63e3d32b9c2de9a6fcb8286867aebb0",
+    "fixture_log_sha256": "8724d0657ca3d1a620ae5b27f94158acb5db2c7d579da58ec9a7542a8767dd70",
+    "format": "qa01c-exact-owned-cleanup-v1",
+    "initial_inspection": "Sandbox EPERM before any signal; repeated exact command/marker verification through scoped authorized escalation succeeded",
+    "owned_copy_absent": true,
+    "owned_processes": {
+      "next_process_group": "absent",
+      "runner_pid": "absent"
+    },
+    "ports": {
+      "62739": "connection refused; no loopback listener",
+      "62740": "connection refused; no loopback listener"
+    },
+    "runner_exit_code": 0,
+    "source_regular_files": 868,
+    "unrelated_processes_or_tabs_touched": false
+  },
+  "date": "2026-10-17",
+  "focused_checks": {
+    "focused_component_tests": {
+      "executed": 30,
+      "failed": 0,
+      "outer_seconds": 0.847,
+      "passed": 30,
+      "scope": "Actual TSX transpiled into deterministic VM hook harness; not actual React/browser acceptance",
+      "skipped": 0
+    },
+    "targeted_lint_final": {
+      "errors": 0,
+      "exit_code": 0,
+      "outer_seconds": 1.252,
+      "remaining_warning": "Existing react-hooks/set-state-in-effect unconfigured API branch; override preserved",
+      "warnings": 1
+    },
+    "typecheck": {
+      "exit_code": 0,
+      "incremental": false,
+      "outer_seconds": 2.502
+    }
+  },
+  "focused_logs": {
+    "paper-dashboard-browse-final.log": "8c4ac381029581951b8ad625202fbaf3038179c6933219484c56e5d955ddeded",
+    "paper-targeted-lint-browse.log": "694c702dabed48dc6a8dd36dd85095784cbb6ee406f12ea34a140498a09279c4",
+    "paper-types-browse.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "format": "dashboard-qa01c-paper-dashboard-adoption-acceptance-v1",
+  "fresh_compiled_fixture": {
+    "app_origin": "http://dashboard-fixture-6796bfc9-69da-4f06-81d1-f259058bc96c.localhost:62740",
+    "backend_origin": "http://127.0.0.1:62739",
+    "build": {
+      "compiled_seconds": 3.3,
+      "configuration": "Synthetic loopback configuration/CSP replaces original config only in owned copy; not original deployment-header acceptance",
+      "exit_code": 0,
+      "timeout_seconds": 600,
+      "typescript_seconds": 2.8
+    },
+    "fresh_install": {
+      "flags": [
+        "ci",
+        "--include=dev",
+        "--ignore-scripts",
+        "--no-audit",
+        "--no-fund"
+      ],
+      "home_cache_npmrc": "Private HOME/cache and empty user/global npmrc; no inherited application credentials or proxies",
+      "lock_unchanged": true,
+      "packages_added": 462,
+      "registry": "https://registry.npmjs.org",
+      "reported_seconds": 6,
+      "timeout_seconds": 300
+    },
+    "next_process_group": 48945,
+    "no_cloud_authority": true,
+    "owned_copy": "/private/tmp/dashboard-ci-build-2xYsWO",
+    "owner": "6796bfc9-69da-4f06-81d1-f259058bc96c",
+    "parent_pid": 48878,
+    "readiness": "Login200 plus exact ownership header and CSP",
+    "reviewed_frontend_inputs": 155,
+    "runner_sha256": "3afcda47b516e679534cb98909a9466a5476c233e37dde8caf9cce7e4f9793b8",
+    "runtime_versions": {
+      "eslint-config-next": "16.4.2",
+      "next": "16.4.2",
+      "react": "19.2.8",
+      "react-dom": "19.2.8"
+    }
+  },
+  "private_evidence_hashes": {
+    "browser-cleanup-request.json": "ced3be70b25ceedbaaed113e36f57adbd63e3d32b9c2de9a6fcb8286867aebb0",
+    "browser-cleanup-result.json": "8b9e8e2a4a04fbee5211ddb83d2d0b8180915f8f3cad601352bbd24210c385e1",
+    "browser-launch.json": "faaa6726f8518d3f498298a0c8cebf03fb5fa20d6e4c286cea1952b787ca29a8",
+    "browser-ready.json": "6192179c14b63c25501149355d86339f6afeb743adb75804f327e4a49f965c31",
+    "paper-browser-fixture.log": "8724d0657ca3d1a620ae5b27f94158acb5db2c7d579da58ec9a7542a8767dd70"
+  },
+  "remaining_acceptance": [
+    "Parent adoption onto current accepted source, full ordinary frontend checks and original-config build as required",
+    "Exact final PR CI and production release/smokes remain pending for this private QA slice",
+    "Other QA-01C warnings/components and hosted worker/runtime joins remain separate work"
+  ],
+  "repair": {
+    "busy_finalization": "Only the exact matching flight can clear its own ref and rendered busy state; retained original IDs/intent survive retired replies.",
+    "credential_identity": "Immutable owner/token/API identity tags verification; layout retirement masks stale controls and rejects stale handlers/read/reply publication.",
+    "history_identity": "Layout-owned selected/follow/refresh/API/credential/legacy-reader context plus per-request browse generation blocks stale closure reads and publication; same-run reselect permits subsequent polls.",
+    "lint_scope": "Only PaperDashboard refs and immutability warning overrides removed; existing set-state-in-effect warning and other-file scopes retained.",
+    "render_state": "Rendered control intent and busy state use React state; refs remain synchronous handler/effect guards."
+  },
+  "reviews": {
+    "peer": "v2_sql_implementation read-only reviewed exact final component/test/config hashes; no blocker; no peer execution",
+    "root": "Reviewed repair and authorized narrow adjacent history correction"
+  },
+  "rollback": "Reviewed code-only revert of the three paths followed by normal validation; this private addition requires no hosted database rollback",
+  "scope": "Private three-file PaperDashboard repair and finite synthetic browser acceptance; not hosted worker/runtime acceptance",
+  "source": {
+    "all_868_post_browser_hashes_match_frozen_manifest": true,
+    "all_other_865_files_unchanged": true,
+    "archive_sha256": "35a7df38d6674bf61037f6148d42408e5263fb60f039edebaea3304181c0eb88",
+    "base_commit": "dd2332dcdc1bb0b63153fabe267c8863fa25b7fb",
+    "changed_paths": {
+      "eslint.config.mjs": {
+        "after": "9578a737f80936ebc6bdc7ad51828aeee74d554cf31e4664e357df9f8f306cab",
+        "before": "2b13e29128445e517ce3699ba566487c044df70a016f4039f55bc23068f62345"
+      },
+      "src/components/probes/PaperDashboard.tsx": {
+        "after": "c568b363fa0dbbb3fc2be04d1887a03fbe09c0fcbf77a072d4dc09d76d67f9fb",
+        "before": "ef72a31c2d557b2156eb555270def76d9fca98d0b01c3fe8bc9467917211f681"
+      },
+      "tests/probes/paper-dashboard.test.mjs": {
+        "after": "42a055a85f53bbfafe91d8e7c37863037d69cdfc6133e5b01bfd4580e5742a4e",
+        "before": "b82731862a84f04c8156f1a4d779873b2adddea3b2286ea8c0c4ad79e82638ad"
+      }
+    },
+    "final_diff_sha256": "4189d3d8272753fa10322cf1643750790fa6f878c5a69b5a5061cccf670400d6",
+    "focused_receipt_sha256": "023d40baf152f98d03a6ffc3e246a393ac0215905992f0ea114f547d46202a72",
+    "regular_files": 868
+  },
+  "tooling_history": {
+    "cleanup_inspection": "Sandbox EPERM before any signal; repeated exact command/marker verification through scoped authorized escalation succeeded",
+    "parent_browser_continuation": "Existing parent-selected browser successfully executed finite proof; root GitHubCI38 and Vercel36 preserved",
+    "subagent_browser_attempt": "createBrowserTab(iab, own localhost URL, visible=false) refused: browser unavailable; listBrowsers returned empty; no tab created"
+  }
+}

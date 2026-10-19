@@ -1,0 +1,133 @@
+{
+  "actual_source_head": null,
+  "advisories": {
+    "accepted_exception": "GHSA-vfj7-8cjw-p6xm",
+    "full_findings": 5,
+    "production_findings": 0,
+    "scope": "Existing exact development-only braces exception; expiry remains2026-10-26"
+  },
+  "archive_sha256": "90470d52a3f057f54bcaeb4bb045a4c07c820cfe37201c74a392ba285b028b9d",
+  "base_commit": "cad3f413ca858998fa953939cc41caa85f91ee7e",
+  "build": {
+    "counts": {
+      "bytes": 1346969,
+      "files": 155
+    },
+    "originalConfigurationUnchanged": true,
+    "passed": true,
+    "reviewedInputs": 155,
+    "sourceBase": "cad3f413ca858998fa953939cc41caa85f91ee7e",
+    "versions": {
+      "eslint": "9.39.5",
+      "eslint-config-next": "16.4.2",
+      "next": "16.4.2",
+      "react": "19.2.8",
+      "react-dom": "19.2.8",
+      "typescript": "5.9.3"
+    }
+  },
+  "cleanup": {
+    "build_child_pids_absent": true,
+    "exact_build_copy_absent": true,
+    "only_own_node_compile_cache_removed": true,
+    "owned_temporary_directory_empty": true,
+    "test_or_build_retry": false
+  },
+  "date": "2026-10-17",
+  "final_CI_and_release_accepted": false,
+  "format": "qa01c-composed-frontend-public-acceptance-v1",
+  "historical_browser_focused_receipt_sha256": "3647593ed9fe6a71f267e005957225bb9eed7f5984021c12f0fb784b62cd2f2a",
+  "limits": [
+    "Local macOS acceptance is not amd64 GitHub CI",
+    "At verification time required hosted jobs were blocked before starting by account payment/spending; local checks do not waive them",
+    "No hosted Supabase/Railway/provider/account operation, actual worker or trading acceptance"
+  ],
+  "original_receipt_sha256": "595ee77bf4920eb8e4b6b25ab33b1ebf82822e9ca2e87bc517a60c74d22ece83",
+  "overlay_paths": {
+    "eslint.config.mjs": {
+      "after": "9578a737f80936ebc6bdc7ad51828aeee74d554cf31e4664e357df9f8f306cab",
+      "before": "2b13e29128445e517ce3699ba566487c044df70a016f4039f55bc23068f62345"
+    },
+    "src/components/probes/PaperDashboard.tsx": {
+      "after": "c568b363fa0dbbb3fc2be04d1887a03fbe09c0fcbf77a072d4dc09d76d67f9fb",
+      "before": "ef72a31c2d557b2156eb555270def76d9fca98d0b01c3fe8bc9467917211f681"
+    },
+    "tests/probes/paper-dashboard.test.mjs": {
+      "after": "42a055a85f53bbfafe91d8e7c37863037d69cdfc6133e5b01bfd4580e5742a4e",
+      "before": "b82731862a84f04c8156f1a4d779873b2adddea3b2286ea8c0c4ad79e82638ad"
+    }
+  },
+  "results": [
+    {
+      "exit_code": 0,
+      "log_sha256": "4bcc184599719fb4b8c4994fe05cc9d578d4b5821d8d79e1c20aba7127994437",
+      "name": "clean-install",
+      "outer_seconds": 6.309973292,
+      "timed_out": false,
+      "timeout_seconds": 300
+    },
+    {
+      "cancelled": 0,
+      "exit_code": 0,
+      "fail": 0,
+      "log_sha256": "d95b75900f6e9b6c9ae64e4c2b148729087f2c2ad260394791a7c0201ff4274d",
+      "name": "all-node",
+      "outer_seconds": 22.371783834,
+      "pass": 389,
+      "skipped": 0,
+      "tests": 389,
+      "timed_out": false,
+      "timeout_seconds": 180,
+      "todo": 0
+    },
+    {
+      "exit_code": 0,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "name": "full-types",
+      "outer_seconds": 5.207473416999999,
+      "timed_out": false,
+      "timeout_seconds": 120
+    },
+    {
+      "errors": 0,
+      "exit_code": 0,
+      "log_sha256": "553f6bb107060cc77a247d0ee2c22acbf5e02b344a2490bf686bbb7ea526c4c1",
+      "name": "whole-eslint",
+      "outer_seconds": 7.78781725,
+      "timed_out": false,
+      "timeout_seconds": 180,
+      "warnings": 40
+    },
+    {
+      "exit_code": 0,
+      "log_sha256": "68da731d4bff5db9ec6bd5da30d86f45031aad5b66ff67b00f68983b6036de40",
+      "name": "advisory-gate",
+      "outer_seconds": 5.2879042080000005,
+      "timed_out": false,
+      "timeout_seconds": 270
+    },
+    {
+      "exit_code": 0,
+      "log_sha256": "5f28349b9255bbf32d82218cf9f6e505dd06c5124b68bd71924d7475ebf5624f",
+      "name": "fresh-original-config-build",
+      "outer_seconds": 13.975954999999999,
+      "timed_out": false,
+      "timeout_seconds": 940
+    }
+  ],
+  "runtime": {
+    "node": "v24.19.0",
+    "npm": "11.9.0",
+    "packages": {
+      "eslint": "9.39.5",
+      "eslint-config-next": "16.4.2",
+      "next": "16.4.2",
+      "react": "19.2.8",
+      "react-dom": "19.2.8",
+      "typescript": "5.9.3"
+    }
+  },
+  "source_hashes_unchanged": true,
+  "source_manifest_sha256": "d2b5315e6174329340599c5728c78d7d3aa6febf5982af22b0536fa889b64217",
+  "source_regular_files": 887
+}

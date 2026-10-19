@@ -8,6 +8,16 @@ import { fetchColonyRuns } from '@/lib/probes/probes-supabase';
 import type { ColonyRun } from '@/lib/probes/types';
 
 type Props = { owner: string; token: string; apiOverride?: PaperAPI; legacyReader?: typeof fetchColonyRuns };
+type ControlTarget = ReturnType<typeof workerControls>;
+type ControlIntent = Readonly<{ action: 'start' | 'stop' | 'settle'; run: string; start: string; stop: string; browse: number }>;
+type CredentialIdentity = Readonly<{ owner: string; token: string; api: PaperAPI | null }>;
+type VerifiedControls = Readonly<{ identity: CredentialIdentity; ids: ControlTarget }>;
+
+function matchesControlTarget(original: ControlTarget | null, controls: ControlTarget | null) {
+  return original === null || (controls !== null && original.run === controls.run
+    && original.start === controls.start && original.stop === controls.stop);
+}
+
 export function PaperDashboard(props: Props) {
   // Account replacement remounts all private history and retained control state before paint.
   return <PaperDashboardSession key={props.owner} {...props} />;
@@ -18,14 +28,15 @@ export function PaperDashboardSession({ owner, token, apiOverride, legacyReader 
   const [snapshot, setSnapshot] = React.useState<Awaited<ReturnType<typeof runSnapshot>> | null>(null);
   const [eventCount, setEventCount] = React.useState<number | null>(null);
   const [legacy, setLegacy] = React.useState<ColonyRun[]>([]);
-  const [status, setStatus] = React.useState<Record<string, unknown> | null>(null);
-  const [controls, setControls] = React.useState<ReturnType<typeof workerControls> | null>(null);
-  const verified = React.useRef<ReturnType<typeof workerControls> | null>(null);
+  const [observedStatus, setStatus] = React.useState<Record<string, unknown> | null>(null);
+  const [controlState, setControls] = React.useState<VerifiedControls | null>(null);
+  const verified = React.useRef<VerifiedControls | null>(null);
   const [closed, setClosed] = React.useState(false);
   const [follow, setFollow] = React.useState<{ run: string; browse: number } | null>(null);
   const browse = React.useRef(0);
   const controlEpoch = React.useRef(0);
-  const intent = React.useRef<{ action: 'start' | 'stop' | 'settle'; run: string; start: string; stop: string; browse: number } | null>(null);
+  const intent = React.useRef<ControlIntent | null>(null);
+  const [retainedIntent, setRetainedIntent] = React.useState<ControlIntent | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [workerError, setWorkerError] = React.useState<string | null>(null);
   const [historyError, setHistoryError] = React.useState<string | null>(null);
@@ -33,19 +44,35 @@ export function PaperDashboardSession({ owner, token, apiOverride, legacyReader 
   const [refresh, setRefresh] = React.useState(0);
   const archive = React.useRef<{ run: string; revision: number; request: string } | null>(null);
   const operation = React.useRef<object | null>(null);
-  const credentials = React.useMemo(() => ({ active: true, owner, token }), [owner, token]);
-  React.useLayoutEffect(() => { credentials.active = true; return () => { credentials.active = false; }; }, [credentials]);
+  const [inFlight, setInFlight] = React.useState<object | null>(null);
   const api = React.useMemo(() => {
     try { return apiOverride ?? paperAPI(token, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
       process.env.NEXT_PUBLIC_VN_API_URL || ''); }
     catch { return null; }
   }, [token, apiOverride]);
+  const credentials = React.useMemo<CredentialIdentity>(() => ({ owner, token, api }), [owner, token, api]);
+  const activeCredentials = React.useRef<CredentialIdentity | null>(null);
+  React.useLayoutEffect(() => {
+    activeCredentials.current = credentials;
+    return () => { if (activeCredentials.current === credentials) activeCredentials.current = null; };
+  }, [credentials]);
+  const historyContext = React.useMemo(() => ({ selected, follow, refresh, api, credentials, legacyReader }),
+    [selected, follow, refresh, api, credentials, legacyReader]);
+  const activeHistoryContext = React.useRef<typeof historyContext | null>(null);
+  React.useLayoutEffect(() => {
+    activeHistoryContext.current = historyContext;
+    return () => { if (activeHistoryContext.current === historyContext) activeHistoryContext.current = null; };
+  }, [historyContext]);
+  // Render only verification from this credential/API generation. Refs remain
+  // synchronous handler/effect guards, never the source of rendered UI state.
+  const controls = controlState?.identity === credentials ? controlState.ids : null;
+  const status = controls === null ? null : observedStatus;
   React.useEffect(() => {
     if (!api) { verified.current = null; setControls(null); setStatus(null); setClosed(false); setWorkerError('The paper worker endpoint is not configured.'); return; }
     const client = api;
     const controller = new AbortController();
     let timer: ReturnType<typeof setTimeout> | undefined;
-    const current = () => !controller.signal.aborted;
+    const current = () => !controller.signal.aborted && activeCredentials.current === credentials;
     async function worker() {
       const epoch = controlEpoch.current;
       try {
@@ -60,12 +87,13 @@ export function PaperDashboardSession({ owner, token, apiOverride, legacyReader 
         const ids = workerControls(rawControls.value, owner), s = workerStatus(rawStatus.value, owner, ids.run);
         if (s.request_id !== ids.start) throw Error();
         if (current() && epoch === controlEpoch.current) {
-          verified.current = ids; setStatus(s); setControls(ids); setClosed(false); setWorkerError(null);
+          const checked = { identity: credentials, ids };
+          verified.current = checked; setStatus(s); setControls(checked); setClosed(false); setWorkerError(null);
           const original = intent.current;
           if (!operation.current && original && original.run === ids.run && original.start === ids.start && original.stop === ids.stop
             && ((original.action !== 'stop' && ['running', 'stopped'].includes(String(s.phase))) || (original.action === 'stop' && s.phase === 'stopped'))) {
             if (original.action !== 'stop' && original.browse === browse.current) setFollow({ run: ids.run, browse: original.browse });
-            intent.current = null; setPending(null); setError(null);
+            intent.current = null; setRetainedIntent(null); setPending(null); setError(null);
           }
         }
       } catch { if (current() && epoch === controlEpoch.current) { verified.current = null; setStatus(null); setControls(null); setClosed(false); setWorkerError('Unable to verify the paper worker. Committed history is still available; controls require verified worker status.'); } }
@@ -76,23 +104,28 @@ export function PaperDashboardSession({ owner, token, apiOverride, legacyReader 
     }
     void poll();
     return () => { controller.abort(); clearTimeout(timer); };
-  }, [api, owner, refresh]);
+  }, [api, owner, refresh, credentials]);
   React.useEffect(() => {
     if (!api) return;
     const client = api;
     const controller = new AbortController();
     let timer: ReturnType<typeof setTimeout> | undefined;
-    const current = () => !controller.signal.aborted;
+    const current = () => !controller.signal.aborted && activeCredentials.current === credentials
+      && activeHistoryContext.current === historyContext;
     async function history() {
+      if (!current()) return;
+      const originalBrowse = browse.current;
+      const currentHistory = () => current() && browse.current === originalBrowse;
       try {
         const [directory, old] = await Promise.all([discoverRuns(client, owner, controller.signal), legacyReader(owner, controller.signal)]);
-        if (current()) { setRuns(directory); setLegacy(old); }
+        if (!currentHistory()) return;
+        setRuns(directory); setLegacy(old);
         const next = follow && follow.browse === browse.current && directory.some(r => r.runId === follow.run) ? follow.run : null;
         const run = next ?? selected ?? (directory.find(r => !r.archive)?.runId || null);
-        if (!run) { if (current()) setHistoryError(null); return; }
+        if (!run) { if (currentHistory()) setHistoryError(null); return; }
         const [data, events] = await Promise.all([runSnapshot(client, owner, run, controller.signal), eventSnapshot(client, owner, run, controller.signal)]);
-        if (current()) { setSelected(run); setSnapshot(data); setEventCount(events.length); setHistoryError(null); if (next) setFollow(null); }
-      } catch { if (current()) setHistoryError('Unable to refresh committed history. The last complete snapshot remains shown; refresh to retry reads.'); }
+        if (currentHistory()) { setSelected(run); setSnapshot(data); setEventCount(events.length); setHistoryError(null); if (next) setFollow(null); }
+      } catch { if (currentHistory()) setHistoryError('Unable to refresh committed history. The last complete snapshot remains shown; refresh to retry reads.'); }
     }
     async function poll() {
       await history();
@@ -100,51 +133,63 @@ export function PaperDashboardSession({ owner, token, apiOverride, legacyReader 
     }
     void poll();
     return () => { controller.abort(); clearTimeout(timer); };
-  }, [api, owner, selected, refresh, legacyReader, follow]);
-  const sameTarget = !intent.current || (controls !== null && intent.current.run === controls.run
-    && intent.current.start === controls.start && intent.current.stop === controls.stop);
+  }, [api, owner, selected, refresh, legacyReader, follow, credentials, historyContext]);
+  const sameTarget = matchesControlTarget(retainedIntent, controls);
   async function command(action: 'start' | 'stop' | 'settle') {
-    if (!api || !controls || operation.current || archive.current || !sameTarget
-      || !verified.current || verified.current.run !== controls.run || verified.current.start !== controls.start
-      || verified.current.stop !== controls.stop) return;
+    const checked = verified.current;
+    if (!api || !controls || activeCredentials.current !== credentials || operation.current || archive.current
+      || !matchesControlTarget(intent.current, controls) || !checked || checked.identity !== credentials
+      || !matchesControlTarget(checked.ids, controls)) return;
     if (action === 'settle' && (status?.busy === true || !['pending', 'drained'].includes(String(status?.phase)))) return;
     if (intent.current && action !== 'settle' && action !== intent.current.action) return;
     const original = intent.current ?? { action, ...controls, browse: browse.current };
-    intent.current = original;
+    intent.current = original; setRetainedIntent(original);
     controlEpoch.current += 1;
     const flight = {}; operation.current = flight;
+    setInFlight(flight);
     const originalCredentials = credentials;
     setPending(action); setError(null);
     try {
       const result = workerStatus(await api.worker(action, { request_id: action === 'stop' ? original.stop : original.start }), owner, original.run);
-      if (!originalCredentials.active) return;
-      if (!verified.current || verified.current.run !== original.run || verified.current.start !== original.start
-        || verified.current.stop !== original.stop || result.request_id !== original.start) throw Error();
+      if (activeCredentials.current !== originalCredentials) return;
+      if (!verified.current || verified.current.identity !== originalCredentials
+        || !matchesControlTarget(original, verified.current.ids) || result.request_id !== original.start) throw Error();
       if (action === 'stop' && result.stop_requested !== true) throw Error();
       controlEpoch.current += 1;
       setStatus(result);
       if (original.action !== 'stop' && browse.current === original.browse) setFollow({ run: original.run, browse: original.browse });
       if (['pending', 'drained'].includes(String(result.phase))) setPending(original.action);
-      else { intent.current = null; setPending(null); }
+      else { intent.current = null; setRetainedIntent(null); setPending(null); }
       setRefresh(n => n + 1);
-    } catch { if (originalCredentials.active) setError('Control acknowledgment is uncertain. Inspect status before settlement; no new run or control ID has been generated.'); }
-    finally { if (operation.current === flight) operation.current = null; }
+    } catch { if (activeCredentials.current === originalCredentials) setError('Control acknowledgment is uncertain. Inspect status before settlement; no new run or control ID has been generated.'); }
+    finally {
+      if (operation.current === flight) {
+        operation.current = null;
+        if (activeCredentials.current !== null) setInFlight(current => current === flight ? null : current);
+      }
+    }
   }
   async function archiveRun() {
-    if (!api || !selected || !snapshot || operation.current || intent.current) return;
+    if (!api || !selected || !snapshot || activeCredentials.current !== credentials || operation.current || intent.current) return;
     if (archive.current && archive.current.run !== selected) return;
     archive.current ??= { run: selected, revision: snapshot.revision, request: crypto.randomUUID() };
     const original = archive.current;
     const flight = {}; operation.current = flight;
+    setInFlight(flight);
     const originalCredentials = credentials;
     setPending('archive');
     try {
       const receipt = record(await api.read('archive_run', { run: original.run, expected_revision: original.revision, request_id: original.request }));
-      if (!originalCredentials.active) return;
+      if (activeCredentials.current !== originalCredentials) return;
       if (receipt.owner_id !== owner || receipt.run_id !== original.run || receipt.request_id !== original.request || receipt.revision !== original.revision || receipt.archived !== true) throw Error();
       archive.current = null; setPending(null); setError(null); setRefresh(n => n + 1);
-    } catch { if (originalCredentials.active) setError('Archive outcome is uncertain. Refresh to inspect the original receipt; holdings and history remain retained.'); }
-    finally { if (operation.current === flight) operation.current = null; }
+    } catch { if (activeCredentials.current === originalCredentials) setError('Archive outcome is uncertain. Refresh to inspect the original receipt; holdings and history remain retained.'); }
+    finally {
+      if (operation.current === flight) {
+        operation.current = null;
+        if (activeCredentials.current !== null) setInFlight(current => current === flight ? null : current);
+      }
+    }
   }
   const run = snapshot?.runs.at(-1)?.data;
   const members = React.useMemo(() => snapshot ? latestEntities(snapshot.probes).map(row => ({ row, details: probeDetails(row.data) })) : [], [snapshot]);
@@ -165,14 +210,14 @@ export function PaperDashboardSession({ owner, token, apiOverride, legacyReader 
       {!sameTarget && <p role="alert">The configured worker changed while an original request was retained. Settlement is blocked for the new target; the original run and IDs remain retained.</p>}
       {status?.requires_reconciliation === true && <p role="status">The worker requires reconciliation. Committed history may precede the failure; a new worker cannot resume this run.</p>}
       <div className="flex flex-wrap gap-3">
-        <button className="rounded border px-3 py-2 disabled:opacity-50" disabled={!controls || !sameTarget || !!operation.current || (pending !== null && pending !== 'start') || status?.phase !== 'fresh'} onClick={() => void command('start')}>Start configured pilot</button>
-        <button className="rounded border px-3 py-2 disabled:opacity-50" disabled={!controls || !sameTarget || !!operation.current || (pending !== null && pending !== 'stop')} onClick={() => void command('stop')}>Stop and retain holdings</button>
-        <button className="rounded border px-3 py-2 disabled:opacity-50" disabled={!controls || !sameTarget || !!operation.current || !['pending', 'drained'].includes(String(status?.phase)) || status?.busy === true || pending === 'archive'} onClick={() => void command('settle')}>Settle original operation</button>
+        <button className="rounded border px-3 py-2 disabled:opacity-50" disabled={!controls || !sameTarget || inFlight !== null || (pending !== null && pending !== 'start') || status?.phase !== 'fresh'} onClick={() => void command('start')}>Start configured pilot</button>
+        <button className="rounded border px-3 py-2 disabled:opacity-50" disabled={!controls || !sameTarget || inFlight !== null || (pending !== null && pending !== 'stop')} onClick={() => void command('stop')}>Stop and retain holdings</button>
+        <button className="rounded border px-3 py-2 disabled:opacity-50" disabled={!controls || !sameTarget || inFlight !== null || !['pending', 'drained'].includes(String(status?.phase)) || status?.busy === true || pending === 'archive'} onClick={() => void command('settle')}>Settle original operation</button>
         <button className="rounded border px-3 py-2" onClick={() => setRefresh(n => n + 1)}>Refresh status and history</button>
       </div>
       <p className="text-sm">Stopping preserves positions and cash. A restart requires reconciliation; automatic resume is unavailable.</p>
       {pending && <p role="status">Original {pending} request retained; inspect status before continuing.</p>}
-      {intent.current && <p className="break-all text-sm">Original control run: {intent.current.run}.</p>}
+      {retainedIntent && <p className="break-all text-sm">Original control run: {retainedIntent.run}.</p>}
       {error && <p role="alert" className="text-red-400">{error}</p>}
       {workerError && <p role="alert" className="text-red-400">{workerError}</p>}
       {historyError && <p role="alert" className="text-red-400">{historyError}</p>}
@@ -190,7 +235,7 @@ export function PaperDashboardSession({ owner, token, apiOverride, legacyReader 
       <p className="text-sm">Committed at {String(run.committed_at)}. Source at {String(run.source_at ?? 'unavailable')}. These are committed observations, not a current market mark.</p>
       <p>{eventCount ?? 'Unverified'} durable events · {snapshot?.trades.length} trade versions · {snapshot?.evaluations.length} evaluations.</p>
       <p className="text-sm">Scenario cost policy: {costs?.version ?? 'not recorded'}. Fee {costs?.fee ?? 'not recorded'} bps · slippage {costs?.slippage ?? 'not recorded'} bps · half-spread {costs?.halfSpread ?? 'not recorded'} bps. These assumptions have not been calibrated to executable fills.</p>
-      <button className="rounded border px-3 py-2 disabled:opacity-50" disabled={run.status !== 'stopped' || !!operation.current || (pending !== null && pending !== 'archive')} onClick={() => void archiveRun()}>Archive stopped run, retain history</button>
+      <button className="rounded border px-3 py-2 disabled:opacity-50" disabled={run.status !== 'stopped' || inFlight !== null || (pending !== null && pending !== 'archive')} onClick={() => void archiveRun()}>Archive stopped run, retain history</button>
     </div>}
     {members.length > 0 && <div className="overflow-auto"><table className="w-full text-sm"><caption className="text-left mb-2">Committed candidate balances in USD · frozen at revision {snapshot?.revision}</caption><thead><tr><th scope="col" className="text-left">Candidate</th><th scope="col">Generation</th><th scope="col">Fast / slow EMA</th><th scope="col">Account cash</th><th scope="col">Reference equity</th><th scope="col">Terminal capital</th><th scope="col">State</th></tr></thead><tbody>
       {members.map(({ row, details: d }) => { const b = d.balance; return <tr key={b.id} className="border-t"><th scope="row" className="py-2 text-left font-normal">{String(row.data.name)}</th><td className="text-center">{d.generation ?? 'Not recorded'}</td><td className="text-center">{d.genes ? `${d.genes.fast} / ${d.genes.slow}` : 'Not recorded'}</td><td className="text-center">${displayUSD(b.economicCash)}</td><td className="text-center">{b.equity === null ? 'Unavailable' : `$${displayUSD(b.equity)}`}</td><td className="text-center">{b.terminalCash === null ? 'Unavailable' : `$${displayUSD(b.terminalCash)}`}</td><td className="text-center">{b.retired ? 'Retired' : run?.status === 'running' ? 'Current cohort member' : 'Retained, worker not running'}</td></tr>; })}
