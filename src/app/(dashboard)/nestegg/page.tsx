@@ -481,20 +481,8 @@ export function NesteggWorkspace({ ownerId, workspaceScope }: {
     });
   }, [inputs.currentSavings, inputs.annualReturnPercent, inputs.salaryGrowthPercent, inputs.monthlyContribution, inputs.inflationPercent, portfolioGoal, portfolioGoalYear]);
 
-  const goalProbability = React.useMemo(() => {
-    if (!lightMc || !portfolioGoal || portfolioGoal <= 0) return null;
-    const retirementIdx = lightMc.bandSeries.findIndex(
-      (p) => p.age >= inputs.retirementAge
-    );
-    if (retirementIdx < 0) return null;
-    const band = lightMc.bandSeries[retirementIdx]!;
-    if (band.p10 >= portfolioGoal) return 0.95;
-    if (band.p25 >= portfolioGoal) return 0.8;
-    if (band.p50 >= portfolioGoal) return 0.55;
-    if (band.p75 >= portfolioGoal) return 0.3;
-    if (band.p90 >= portfolioGoal) return 0.12;
-    return 0.05;
-  }, [lightMc, portfolioGoal, inputs.retirementAge]);
+  // Retirement-age bands do not estimate the probability of a separate goal date.
+  const goalProbability = null;
 
   const horizonAge = planHorizonAge(inputs);
 

@@ -31,24 +31,24 @@ function ProbeTradeLog({ probeId }: Props) {
   const [attempt, setAttempt] = React.useState(0);
 
   React.useEffect(() => {
-    let cancelled = false;
+    const abort = new AbortController();
     setLoading(true);
-    fetchProbeTrades(probeId)
+    fetchProbeTrades(probeId, abort.signal)
       .then((data) => {
-        if (!cancelled) {
+        if (!abort.signal.aborted) {
           setTrades(data);
           setError(false);
           setLoading(false);
         }
       })
       .catch(() => {
-        if (!cancelled) {
+        if (!abort.signal.aborted) {
           setError(true);
           setLoading(false);
         }
       });
     return () => {
-      cancelled = true;
+      abort.abort();
     };
   }, [probeId, attempt]);
 

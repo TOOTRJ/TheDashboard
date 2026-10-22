@@ -72,3 +72,24 @@ Official Jupiter skills are pinned under `.agents/skills`; their upstream text i
 Prefer current official endpoint documentation/OpenAPI over cached skill claims. The pinned integration skill contains an obsolete volume-based rate-limit table and overly broad authentication statements; the current portal describes organization-wide quotas and limited keyless access. Recheck endpoint-specific authentication, fees, routing, and rate limits before coding. Use decimal/integer token-atomic conversion rather than copying floating-point `Math.round(human * 10 ** decimals)`. Reconcile uncertain submissions before any future authorized retry; a fresh order is not a safe substitute for transaction-state reconciliation.
 
 The project-only `.codex/config.toml` enables `jupiter_docs` with just `search_jupiter` and `query_docs_filesystem_jupiter`. It excludes `submit_feedback`; do not send unsolicited messages to Jupiter. Do not add the trading MCP, run the Jupiter CLI, or invoke the upstream all-agent installer as an implicit extension of this documentation setup. Consult the documented isolation and deferred-tool decisions first.
+
+## Helius research tools
+
+The user explicitly requested the Helius MCP. Read `HELIUS-TOOLING.md` before use.
+The project-only Codex configuration launches the pinned local package through
+`/usr/bin/python3 -I -B scripts/dashboard-helius-mcp.py`; do not replace it with a
+floating `npx` invocation or add a global/Claude configuration. Its private key,
+Node runtime, dependency lock, HOME and cache stay under ignored `ssl/`. Never
+print the key, pass it in command arguments, upload this directory, or fall back
+to shared Helius config, wallet files, shell environment or credentials.
+
+Only the six configured read tool groups are enabled. Account/billing, signing,
+transfers, staking, webhook management and local preference/JWT tools remain
+excluded. Read calls still consume provider quota; keep them bounded. The
+version-specific Node preload suppresses the reviewed Helius feedback endpoint;
+it is not a general network or filesystem sandbox. Keep required telemetry fields
+neutral (`_feedback="read-only request"`, `_feedbackTool="dashboard-read"`,
+`_model="local-client"`), and never include private task context or reasoning.
+Re-review package code, tool domains, dependency/advisory results and the preload
+before any version update. MCP access does not authorize wallet funding, signing,
+transaction broadcast, live trading, paid upgrades or account-wide changes.
