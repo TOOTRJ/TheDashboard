@@ -1,0 +1,206 @@
+{
+  "B2_status": {
+    "candidate": "pinned private V6 attempt",
+    "current_status_markdown": "B2-NATIVE-EXPERIMENTS-2026-10-21.md",
+    "current_status_record": "B2-NATIVE-EXPERIMENTS-2026-10-21.json",
+    "current_status_summary": "V11b bounded19-case laboratory pass; full B2 acceptance, runtime/test-path adoption and hosting remain open. See current_status_record.",
+    "discovered": 14,
+    "errors": 1,
+    "evidence_time_scope": "Dated release-time V6/V7 checkpoint; subsequent authoritative status is in the linked B2 experiment record.",
+    "executed": 0,
+    "exit_code": 1,
+    "failure_stage": "setUpClass / compare_constructors",
+    "followup": "Further diagnostic preparation is not accepted implementation.",
+    "owned_child_group_absent": true,
+    "owned_container_absence_verified": true,
+    "prior_attempts_preserved": [
+      "V4: setup failure, pg_catalog.boolean does not exist (42704)",
+      "V5: prelaunch validation mismatch between SQL bool and loader boolean; not executed"
+    ],
+    "receipt_sha256": "e3058583d08e291a226c210811279a3d8c9b0bf6b6e299a71e20061f53ae19ab",
+    "refusal": "b2_independent_constructor_mismatch",
+    "root_reviewed_followup": {
+      "candidate": "private V7 diagnostic",
+      "discovered": 14,
+      "evidence_scope": "Parent/root observed diagnostic report; the pinned original V6 receipt above remains unchanged.",
+      "executed": 0,
+      "native_accepted": false,
+      "next": "Private forward fixture correction, with all comparisons retained; unexecuted at this record.",
+      "reported_cause": "Reference original_operations constructor omitted the held-source deferred committed_original_guard constraint trigger; installed/reference constraint counts are 8/7."
+    },
+    "source_hashes_unchanged": true,
+    "timed_out": false
+  },
+  "boundaries": {
+    "B2_adopted": false,
+    "B2_native_accepted": false,
+    "Railway_fresh_target_check": false,
+    "Railway_metadata_failure_classified": false,
+    "Railway_mutation": false,
+    "Supabase_fresh_target_check": false,
+    "Supabase_mutation": false,
+    "continuous_paper_accepted": false,
+    "credentials_or_protected_migration_changed_by_this_documentation": false,
+    "live_trading_authority": false
+  },
+  "ci": {
+    "all_completed_successfully": true,
+    "hosted_case_counts_not_transcribed": true,
+    "jobs": [
+      {
+        "completed_at": "2026-10-19T01:55:37Z",
+        "conclusion": "success",
+        "duration_seconds": 81,
+        "id": 117852738776,
+        "name": "Frontend tests, types, lint and isolated build",
+        "started_at": "2026-10-19T01:54:16Z",
+        "status": "completed"
+      },
+      {
+        "completed_at": "2026-10-19T02:13:22Z",
+        "conclusion": "success",
+        "duration_seconds": 1146,
+        "id": 117852738957,
+        "name": "Ordinary worker and helpers (shard 1/3; SQL opt-in skips reported)",
+        "started_at": "2026-10-19T01:54:16Z",
+        "status": "completed"
+      },
+      {
+        "completed_at": "2026-10-19T02:20:42Z",
+        "conclusion": "success",
+        "duration_seconds": 1586,
+        "id": 117852738961,
+        "name": "Required owned PostgreSQL and PostgREST (shard 4/4)",
+        "started_at": "2026-10-19T01:54:16Z",
+        "status": "completed"
+      },
+      {
+        "completed_at": "2026-10-19T02:20:28Z",
+        "conclusion": "success",
+        "duration_seconds": 1572,
+        "id": 117852738970,
+        "name": "Required owned PostgreSQL and PostgREST (shard 3/4)",
+        "started_at": "2026-10-19T01:54:16Z",
+        "status": "completed"
+      },
+      {
+        "completed_at": "2026-10-19T02:30:34Z",
+        "conclusion": "success",
+        "duration_seconds": 2178,
+        "id": 117852738984,
+        "name": "Required owned PostgreSQL and PostgREST (shard 1/4)",
+        "started_at": "2026-10-19T01:54:16Z",
+        "status": "completed"
+      },
+      {
+        "completed_at": "2026-10-19T02:10:11Z",
+        "conclusion": "success",
+        "duration_seconds": 955,
+        "id": 117852739006,
+        "name": "Ordinary worker and helpers (shard 3/3; SQL opt-in skips reported)",
+        "started_at": "2026-10-19T01:54:16Z",
+        "status": "completed"
+      },
+      {
+        "completed_at": "2026-10-19T02:04:29Z",
+        "conclusion": "success",
+        "duration_seconds": 613,
+        "id": 117852739028,
+        "name": "Ordinary worker and helpers (shard 2/3; SQL opt-in skips reported)",
+        "started_at": "2026-10-19T01:54:16Z",
+        "status": "completed"
+      },
+      {
+        "completed_at": "2026-10-19T02:31:53Z",
+        "conclusion": "success",
+        "duration_seconds": 2257,
+        "id": 117852739036,
+        "name": "Required owned PostgreSQL and PostgREST (shard 2/4)",
+        "started_at": "2026-10-19T01:54:16Z",
+        "status": "completed"
+      }
+    ],
+    "required_jobs": 8,
+    "run_id": 39187444654,
+    "url": "https://github.com/TOOTRJ/TheDashboard/actions/runs/39187444654"
+  },
+  "current_Railway_incident_record": "RAILWAY-INCIDENT-ASSESSMENT-2026-10-21.md",
+  "current_Railway_status_record": "B2-NATIVE-EXPERIMENTS-2026-10-21.json#Railway_access_checkpoint",
+  "current_Railway_status_summary": "Replacement token and exact project/service/configuration checks succeed; current runtime mode/image/TLS/Auth remain unverified. Outage/security assessment, scoped historical credential review and restoration block hosted activation. See linked current checkpoint and incident record.",
+  "evidence": {
+    "original_release_sha256": "bd11545d32a2759a4c7d64648bba76a0c2f66fc453a00a9c604023cfd806ba24",
+    "original_smoke_sha256": "82e1d858bdd1d261b4db316c779eacfb325d96eba46ed8fa88572ad2f0607e8e"
+  },
+  "format": "dashboard-pr110-release-closeout-v1",
+  "post_merge_ci_confirmation": {
+    "conclusion": "success",
+    "evidence_scope": "Later parent/root read-only run and job verification on merged main; additional to the original PR receipt, not acceptance of a later documentation head.",
+    "required_jobs": 8,
+    "run_id": 39704739120,
+    "source_head": "02f90563c5ececd4f89a3dd92796601b9abdce7b",
+    "status": "completed",
+    "successful_jobs": 8,
+    "url": "https://github.com/TOOTRJ/TheDashboard/actions/runs/39704739120"
+  },
+  "pull_request": {
+    "actual_merge": "02f90563c5ececd4f89a3dd92796601b9abdce7b",
+    "actual_merged_tree": "9dfb3786ab3488124cacb9f7eef2f39b89f2b592",
+    "base_before_merge": "a6aadce78c467d4ef364591c7d06e83013262d91",
+    "head": "b42f8f80450e896baf4b9cd0cd5f13bb06a6c153",
+    "merged_at_utc": "2026-10-22T01:16:35Z",
+    "number": 110,
+    "tested_checkout": "7b6d45ba3883b6ecde5aaac9f86b8fc8908e21f3",
+    "tested_merged_tree_equal": true,
+    "tested_tree": "9dfb3786ab3488124cacb9f7eef2f39b89f2b592",
+    "url": "https://github.com/TOOTRJ/TheDashboard/pull/110"
+  },
+  "record_date_local": "2026-10-21",
+  "release_accepted": true,
+  "repository": {
+    "account": "biggrizzly11",
+    "account_id": 16749816,
+    "id": 1141090963,
+    "name": "TOOTRJ/TheDashboard"
+  },
+  "scope_notes": [
+    "CI/release acceptance is bound to the listed immutable source and tree, not the later documentation head.",
+    "Local discovery/execution and hosted job conclusions retain distinct evidence scopes.",
+    "At release verification Railway metadata failure was unclassified; neither expiry nor current worker state was inferred. See the separate current B2 checkpoint and incident record for the preserved diagnostic, completed replacement, later successful checks and outage/security assessment.",
+    "No database, worker, provider, wallet or account-wide change accompanies this release record."
+  ],
+  "smoke": {
+    "accepted": true,
+    "checks": {
+      "anonymous_api_status": 401,
+      "anonymous_root_location": "/login",
+      "anonymous_root_status": 307,
+      "authenticated_data_rows": 0,
+      "authenticated_zero_row_status": 200,
+      "login_status": 200
+    },
+    "contract_checks": 4,
+    "expected_deployment": "dpl_4DiPn3ojEE4pfLftypmeL4dXRTHk",
+    "expected_source": "02f90563c5ececd4f89a3dd92796601b9abdce7b",
+    "format": "dashboard-pr110-production-readonly-smoke-v1",
+    "hostname": "the-dashboard-chi.vercel.app",
+    "verified_utc": "2026-10-22T01:19:09.857Z",
+    "writes": 0
+  },
+  "timezone": "America/Denver",
+  "vercel": {
+    "build_seconds": 22,
+    "canonical_alias": "the-dashboard-chi.vercel.app",
+    "current_alias_verified": true,
+    "dashboard_url": "https://vercel.com/orderoftheredjester/the-dashboard/4DiPn3ojEE4pfLftypmeL4dXRTHk",
+    "deployment_url": "https://the-dashboard-9kzsrrjsa-orderoftheredjester.vercel.app",
+    "identity_evidence": "signed-in browser project and team general settings; no CLI auth fallback",
+    "production_id": "dpl_4DiPn3ojEE4pfLftypmeL4dXRTHk",
+    "project_id": "prj_wFUe9k9USVreOQcmQKNWRAVsx5fH",
+    "project_name": "the-dashboard",
+    "source": "02f90563c5ececd4f89a3dd92796601b9abdce7b",
+    "status": "READY",
+    "team_id": "team_8iNNxiNjrOseD4gdSCHkQEzF",
+    "team_slug": "orderoftheredjester"
+  },
+  "verification_utc": "2026-10-22T01:20:22.622137+00:00"
+}

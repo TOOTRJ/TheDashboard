@@ -1,0 +1,116 @@
+{
+  "format": "dashboard-railway-incident-assessment-v1",
+  "date_local": "2026-10-21",
+  "timezone": "America/Denver",
+  "inventory": {
+    "checked_at_utc": "2026-10-22T01:52:37.472788+00:00",
+    "project_identity_verified": true,
+    "service_identity_verified": true,
+    "latest_deployment": {
+      "id": "cf05895d-adc5-427f-873e-82ad6606e5a1",
+      "status": "SUCCESS"
+    },
+    "variable_names": [
+      "PYTHON_DOTENV_DISABLED",
+      "RAILWAY_ENVIRONMENT",
+      "RAILWAY_ENVIRONMENT_ID",
+      "RAILWAY_ENVIRONMENT_NAME",
+      "RAILWAY_PRIVATE_DOMAIN",
+      "RAILWAY_PROJECT_ID",
+      "RAILWAY_PROJECT_NAME",
+      "RAILWAY_PUBLIC_DOMAIN",
+      "RAILWAY_SERVICE_DASHBOARD_PAPER_WORKER_URL",
+      "RAILWAY_SERVICE_ID",
+      "RAILWAY_SERVICE_NAME",
+      "RAILWAY_STATIC_URL",
+      "SUPABASE_PUBLISHABLE_KEY",
+      "SUPABASE_URL",
+      "VN_ALLOWED_ORIGINS",
+      "VN_DATABASE_CA_PEM",
+      "VN_DOTENV_DISABLED",
+      "VN_ENVIRONMENT",
+      "VN_SERVICE_MODE"
+    ],
+    "unexpected_names_for_review": [],
+    "configured_closed_mode": true,
+    "configured_vn_dotenv_disabled": true,
+    "configured_python_dotenv_disabled": true,
+    "management_token_runtime_present": false,
+    "values_output": false,
+    "mutations": false,
+    "limit": "Configuration query; not a fresh in-container auth/TLS or deployed-image acceptance"
+  },
+  "inventory_original_sha256": "b29758555f208f8abff6621b4595a5a45148c84155206789a6461f0fc102acff",
+  "target": {
+    "project": {
+      "id": "38facb49-4de9-4d66-85aa-2861e0306dcf",
+      "name": "The Dashboard Worker"
+    },
+    "workspace": {
+      "id": "f3fcd4b2-e424-4c6b-ac33-91196ccc96e1",
+      "name": "Red Jester's Projects"
+    },
+    "environment": {
+      "id": "9bbe52c6-2305-467a-bf39-8d5e1a98e4e4",
+      "name": "production"
+    },
+    "service": {
+      "id": "8e78ad4b-1d8f-43e7-898a-3882ac5053d7",
+      "name": "dashboard-paper-worker"
+    }
+  },
+  "official_sources": {
+    "status": "https://status.railway.com/",
+    "disclosure": "https://blog.railway.com/p/security-disclosure-wednesday-october-21st",
+    "status_latest_update_seen_utc": "2026-10-22T01:22:00Z",
+    "status_observation": "Major platform outage; builds/deployments paused. API metadata queries nevertheless succeeded during this assessment.",
+    "disclosure_scope": "Potential unauthorized access to stored environment variables; provider recommends credential rotation and unusual-activity review. Specific Dashboard impact is unconfirmed."
+  },
+  "past_token_error": {
+    "classification": "project_token_not_found",
+    "replacement_success": true,
+    "cause_proven": false
+  },
+  "historical_credential_classes": {
+    "provider": [
+      "JUPITER_API_KEY",
+      "BIRDEYE_API_KEY",
+      "VN_SOLANA_RPC_URL"
+    ],
+    "finite_native": [
+      "VN_ECONOMIC_PASSWORD",
+      "VN_RELAY_PASSWORD"
+    ],
+    "finite_native_cleanup_record": "supabase/audits/2026-10-08-owner-hour-first-replacement.json",
+    "current_absence_proves_historical_nonexposure": false,
+    "provider_active_status_and_cross_project_dependencies_verified": false
+  },
+  "not_observed_as_Railway_runtime_credentials": [
+    "Railway management token",
+    "Supabase service-role/secret key",
+    "Supabase master database password",
+    "GitHub token",
+    "Vercel token",
+    "wallet signing key"
+  ],
+  "absence_evidence_limit": "The not-observed list describes reviewed records/current inventory; it is not a full provider incident investigation or proof of nonexposure.",
+  "next_order": [
+    "Review Dashboard-specific provider key usage and provider/audit activity without outputting secrets.",
+    "Confirm dependencies and replace/revoke still-valid previously hosted private credentials within the authorized Dashboard scope. Do not rotate shared account/project-signing credentials implicitly.",
+    "Fresh exact-Dashboard metadata check of original finite identity registry revocation, NOLOGIN, expiry and sessions belonging only to those exact identities; never re-enable them or terminate unrelated sessions.",
+    "After platform recovery and reviewed rotation, reverify exact identities and closed deployment/Auth/TLS; then resume remaining hosted acceptance gates."
+  ],
+  "boundaries": {
+    "credential_values_output": false,
+    "credential_values_saved_in_receipt": false,
+    "credentials_rotated": false,
+    "Railway_mutations": false,
+    "Supabase_mutations": false,
+    "Vercel_mutations": false,
+    "worker_activated": false,
+    "other_projects_inspected": false,
+    "other_projects_modified": false,
+    "full_security_clearance": false,
+    "full_hosted_acceptance": false
+  }
+}

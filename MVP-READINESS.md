@@ -1,6 +1,14 @@
 # Evolutionary trading bot MVP readiness
 
-## Authoritative current status — 2026-10-16
+## Authoritative current status — 2026-10-21
+
+The app/API baseline, worker foundations/B1, Paper Dashboard controls and the eight-job CI repair have completed their respective release checks through PR110. PR107's failed standalone subset was incorporated through PR108's passing composition; its failure remains historical evidence. PR110's actual merge is `02f9056`, with the identical tested tree, exact READY production and four passing read-only application checks. [Latest release evidence](RELEASE-PR110-ACCEPTANCE-2026-10-21.md).
+
+The B2 installation/getter/reserved-Stop experiment now passes all 19 local cases with zero errors, failures or skips, normal owned cleanup and unchanged source. Its tested source is retained as a [review-only bundle](services/vonneumann/research/b2-review-2026-10-21/README.md). Independent byte/counter accounting and controlled getter/duplicate races precede first-slice source adoption; the remaining native source, recovery, reader and closed-hosted joins follow. Earlier failures remain diagnostic evidence. Continuous paper operation, realistic economics and sustained resource/quota/cost acceptance remain open; every live-trading gate remains separate. Use [TODO.md](TODO.md) for the current dependency order and [the B2 experiment record](B2-NATIVE-EXPERIMENTS-2026-10-21.md) for the proof's limits. The October 16 and earlier sections below are historical; they do not reopen completed app/API releases or account setup.
+
+Railway's replacement token and exact service configuration now verify successfully, including configured closed mode and no current runtime database/provider/native secret. The provider's October 21 outage/security notice adds a separate gate: review historical Dashboard credentials and their dependencies, perform scoped rotation/usage checks as needed, and wait for deployment recovery before hosted activation. Current configuration does not prove historical exposure absent. Local native work can proceed independently. [Incident assessment](RAILWAY-INCIDENT-ASSESSMENT-2026-10-21.md).
+
+## Historical status after PR104 — 2026-10-16
 
 PR104 is merged as `9403e14bce9439060b468f8eb5fd2763149603f9` after all seven jobs pass at225466a in [run38984914265](https://github.com/TOOTRJ/TheDashboard/actions/runs/38984914265). Exact Dashboard production is READY from that merge and four read-only application checks pass. SEC-05B's exact Next/config16.4.2 release is complete; the braces exception expires October26 and QA-01C compiler-warning cleanup remains open. [Release receipt and precise limits](RELEASE-ACCEPTANCE-2026-10-16.md).
 

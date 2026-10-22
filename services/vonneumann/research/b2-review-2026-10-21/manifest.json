@@ -1,0 +1,65 @@
+{
+  "automatic_execution": false,
+  "base_commit": "a6aadce78c467d4ef364591c7d06e83013262d91",
+  "candidate_manifest_sha256": "f238558b99bbf59e199fd9e8a1c8d0b5b29584aa7b5bea4e3b6d4c7d09f3efc9",
+  "candidate_paths": [
+    {
+      "UTF8_bytes": 24425,
+      "path": "services/vonneumann/B2-INSTALLATION-STOP-NATIVE-CANDIDATE-2026-10-18.md",
+      "sha256": "82903dc504a12882986f77fc5c5a0f4563414e39138caddf1b353d2cdc8459f0"
+    },
+    {
+      "UTF8_bytes": 12027,
+      "path": "services/vonneumann/db-contract/research/allocation_control_v3_source.py",
+      "sha256": "cdbfa5c524f9c4850784672e3c0bbd506672dda64ac32e2c1ef5d881d8ecfbb0"
+    },
+    {
+      "UTF8_bytes": 81247,
+      "path": "services/vonneumann/db-contract/research/jupiter_allocation_control_v3.sql",
+      "sha256": "cc94cf28c51342564dd5f070109e77f4a3bb62e8ec9ecd62efa29e0c12fb39d0"
+    },
+    {
+      "UTF8_bytes": 32126,
+      "path": "services/vonneumann/research/b2-finite-experiment-policy-2026-10-18-v3.json",
+      "sha256": "0a1c8663f4f6cbf9b299cab11fcdd00a379dbe3ca3493b706ddafca9b75c0f1a"
+    },
+    {
+      "UTF8_bytes": 43460,
+      "path": "services/vonneumann/tests/postgres/allocation_control_v3_fixture.py",
+      "sha256": "081365d61102626d0aab0b7773f627e172477d630eaa9ed9c5eef74e517c3d4e"
+    },
+    {
+      "UTF8_bytes": 21647,
+      "path": "services/vonneumann/tests/postgres/test_allocation_control_v3.py",
+      "sha256": "228700920c5a9b86eba17d95631b02fe6b0b3cb4f63653d89167a4e46b60640e"
+    }
+  ],
+  "controller_sha256": "334820b4d801aa76e63b4a6cf5357f07d8388e1c555d10600a29627b750de49f",
+  "current_released_main": "02f90563c5ececd4f89a3dd92796601b9abdce7b",
+  "format": "dashboard-b2-review-only-source-bundle-v1",
+  "full_B2_accepted": false,
+  "hosted_migration": false,
+  "laboratory_result": {
+    "all_source_files_unchanged": 896,
+    "discovered": 19,
+    "errors": 0,
+    "executed": 19,
+    "failures": 0,
+    "normal_owned_cleanup_verified": true,
+    "skips": 0,
+    "suite_seconds": 82.50464570801705
+  },
+  "limits": [
+    "Source retained for review and later explicit adoption only; current worker and test discovery do not load this patch.",
+    "The postgres-owned anchor broker is confined to the closed local laboratory; production requires reviewed dedicated NOLOGIN ownership.",
+    "Maximum admitted-wire/escaping, complete getter concurrency, full seven-pin Stop and remaining transitions are separate gates.",
+    "Current provider/runtime authority fields remain false; no hosted changes or live trading follows."
+  ],
+  "original_receipt_sha256": "fc533b9a7554c0b65f76b208a9140f5717a85de5bf13d730dd1f18bd4a550d7b",
+  "patch_sha256": "27ed0cfc08ad4ff2e26e2dd4d25f3a255c512f4dc2e27c01c15f85606ac7e9a9",
+  "raw_log_sha256": "60d0cf84e867ddf5337b3ded4bb63cf0dbd919c3d1c45d4c54cad6fb61149513",
+  "review_only": true,
+  "runtime_or_test_path_adoption": false,
+  "snapshot_manifest_sha256": "c7ff229f33ecfbbd351f3aa0226a5f7aecfdabfd5db2a40c43fee915f8744f7c",
+  "source_version": "V11b"
+}
