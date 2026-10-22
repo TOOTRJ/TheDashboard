@@ -34,7 +34,7 @@ HASH_INSTALL = f"{PYTHON} -m pip install --require-hashes --only-binary=:all: -r
 WORKER_SHARD_STEP = "Ordinary discovery with explicit skip audit and sanitized environment"
 WORKER_SHARD_ENV = {"DASHBOARD_TEST_SHARD": "${{ matrix.shard }}"}
 WORKER_SHARD_COMMAND = f'{PYTHON} scripts/check-worker.py offline --shard "$DASHBOARD_TEST_SHARD"'
-WORKER_STRATEGY = {"fail-fast": False, "max-parallel": 2, "matrix": {"shard": [1, 2]}}
+WORKER_STRATEGY = {"fail-fast": False, "max-parallel": 3, "matrix": {"shard": [1, 2, 3]}}
 POSTGRES_SHARD_STEP = "Required integration (missing Docker, failed setup or opt-in skips fail)"
 POSTGRES_SHARD_ENV = {**WORKER_SHARD_ENV, "DASHBOARD_NATIVE_SQL_WHEELS": "${{ runner.temp }}/dashboard-native-wheels"}
 POSTGRES_SHARD_COMMAND = f'{PYTHON} scripts/check-worker.py postgres --allow-isolated-postgres --shard "$DASHBOARD_TEST_SHARD"'

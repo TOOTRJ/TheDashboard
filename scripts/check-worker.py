@@ -21,14 +21,18 @@ SUPPORTED_PYTHON = (3, 12, 14)
 CHILD_DEADLINES = {"offline": 1500, "postgres": 2400}
 # The hosted log's large gaps include the NEXT module's class setup. Keep the
 # 32-window provider traces opposite portable three-seed/four-window traces.
-# New modules use a stable SHA-256 partition, never an exclusion list.
-OFFLINE_SHARDS = (1, 2)
+# Preserve the existing two-way SHA-256 fallback for every other module. Only
+# the two explicitly anchored model/source modules move to the new third shard.
+OFFLINE_SHARDS = (1, 2, 3)
+OFFLINE_FALLBACK_SHARD_COUNT = 2
 POSTGRES_SHARDS = (1, 2, 3, 4)
 SHARDS_BY_MODE = {"offline": OFFLINE_SHARDS, "postgres": POSTGRES_SHARDS}
 HEAVY_MODULE_SHARDS = {
-    # Run 39014680277 hit 1500s with model and source admission on shard 2.
-    # Keep both whole modules opposite; cases and deadlines remain unchanged.
-    "tests.test_prospective_ga_v3_model": 1,
+    # Run 39014680277 hit 1500s; moving only the model opposite source still
+    # left a later hosted deadline failure. Isolate both complete modules on
+    # shard 3 without remapping any other module or changing cases/deadlines.
+    "tests.test_prospective_ga_v3_model": 3,
+    "tests.test_source_admission_v3": 3,
     "tests.test_provider_ga_components": 1,
     "tests.test_portable_ga_model": 2,
     "tests.test_ga_active_model": 2,
@@ -204,7 +208,8 @@ def module_shard(module: str, mode: str = "offline") -> int:
     if mode not in SHARDS_BY_MODE:
         raise RuntimeError("Unreviewed verification scope")
     hints = HEAVY_MODULE_SHARDS if mode == "offline" else POSTGRES_HEAVY_MODULE_SHARDS
-    return hints.get(module, 1 + int.from_bytes(hashlib.sha256(module.encode()).digest(), "big") % len(SHARDS_BY_MODE[mode]))
+    fallback_count = OFFLINE_FALLBACK_SHARD_COUNT if mode == "offline" else len(POSTGRES_SHARDS)
+    return hints.get(module, 1 + int.from_bytes(hashlib.sha256(module.encode()).digest(), "big") % fallback_count)
 
 
 def validate_partition(tests, shards, mode: str = "offline") -> None:
@@ -350,7 +355,7 @@ def main() -> int:
     parser.add_argument("mode", choices=("offline", "postgres"))
     parser.add_argument("--allow-isolated-postgres", action="store_true")
     parser.add_argument("--shard", type=int,
-                        help="Execute a declared module-cohesive shard: offline 1..2 or postgres 1..4; omit for full discovery")
+                        help="Execute a declared module-cohesive shard: offline 1..3 or postgres 1..4; omit for full discovery")
     parser.add_argument("--sanitized-child", action="store_true", help=argparse.SUPPRESS)
     args = parser.parse_args()
     require_supported_python()

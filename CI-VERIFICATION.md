@@ -1,5 +1,11 @@
 # Secret-free Dashboard verification
 
+## Current releases and three-group ordinary repair — October18
+
+[PR108](https://github.com/TOOTRJ/TheDashboard/pull/108) and [PR109](https://github.com/TOOTRJ/TheDashboard/pull/109) have complete seven-job actual acceptance on their exact composed sources, matching actual main-merge trees and verified production. PR107's standalone subset still fails an ordinary1,500-second timeout; those changes are released through the fully tested PR108 composition and the failure is not relabeled.
+
+The separate forward repair declares three ordinary groups and four required PostgreSQL groups, plus frontend: **eight jobs**. Only the complete prospective-model and source-admission modules move to ordinary3; every other old heavy hint/SHA256 modulo2 assignment stays. Thirty-seven focused policy/partition regressions and the actual workflow validator pass. The full local three-group composition passes2,085 executed cases with zero unexpected skips, all54 repeated IDs, unchanged887-file source and all owned groups absent. Actual eight-job final-head CI/release remains pending. Assertions, original repeated occurrences and fixture segments, skip auditing, SQL matrix/images,1,500/2,400-second child deadlines and30/50-minute job limits are unchanged. No application secret or cloud credential is added. [Actual source/evidence and remaining boundaries](RELEASE-CI-ACCEPTANCE-2026-10-18.md).
+
 ## Current exact-source acceptance — October16 Denver / October17 UTC
 
 PR104 head `225466a5810e955a928681c8cd319f53416d9128` passes all seven required jobs in [run38984914265](https://github.com/TOOTRJ/TheDashboard/actions/runs/38984914265), total26m48s. Frontend takes1m50s; ordinary groups18m55s/8m57s; PostgreSQL groups26m45s/21m53s/18m57s/26m44s. Merge `9403e14bce9439060b468f8eb5fd2763149603f9` has the exact accepted tree. Its verified Dashboard production deployment is READY, with all four read-only application checks passing. [Full release receipt and boundaries](RELEASE-ACCEPTANCE-2026-10-16.md).
