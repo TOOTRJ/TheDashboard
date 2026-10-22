@@ -1,0 +1,414 @@
+{
+  "Railway_access_checkpoint": {
+    "allowed_project_id": "38facb49-4de9-4d66-85aa-2861e0306dcf",
+    "blocks_local_B2_work": false,
+    "current_name_only_inventory": {
+      "Railway_system_names": 11,
+      "both_dotenv_disable_flags": true,
+      "configured_closed": true,
+      "database_native_or_provider_secret_runtime_names_present": false,
+      "explicit_names": [
+        "PYTHON_DOTENV_DISABLED",
+        "VN_DOTENV_DISABLED",
+        "SUPABASE_URL",
+        "SUPABASE_PUBLISHABLE_KEY",
+        "VN_DATABASE_CA_PEM",
+        "VN_ALLOWED_ORIGINS",
+        "VN_ENVIRONMENT",
+        "VN_SERVICE_MODE"
+      ],
+      "historical_exposure_absent_proved": false,
+      "management_token_runtime_name_present": false,
+      "observed_utc": "2026-10-22T01:52:37.472788Z",
+      "total_names": 19,
+      "unexpected_names": false,
+      "values_copied": false
+    },
+    "current_running_image_verified": false,
+    "current_worker_mode_verified": false,
+    "deployment_metadata": {
+      "CPU": 0.25,
+      "draining_seconds": 30,
+      "health_timeout_seconds": 60,
+      "id": "cf05895d-adc5-427f-873e-82ad6606e5a1",
+      "memory_MB": 500,
+      "outbound_IPv6": true,
+      "overlap_seconds": 0,
+      "replicas": 1,
+      "restart_policy": "NEVER",
+      "sleep_enabled": false,
+      "status": "SUCCESS"
+    },
+    "earlier_failure": {
+      "HTTP_status": 200,
+      "allowed_project_id": "38facb49-4de9-4d66-85aa-2861e0306dcf",
+      "blocks_local_B2_work": false,
+      "classification": "Fixed whitelist literal matched in memory; no token or raw response printed.",
+      "current_worker_mode_verified": false,
+      "evidence_scope": "Parent/root read-only provider diagnostic report after PR110 release verification.",
+      "expiry_or_revocation_reason_known": false,
+      "mutation": false,
+      "operation": "First project-token identity query",
+      "production_environment_id": "9bbe52c6-2305-467a-bf39-8d5e1a98e4e4",
+      "project_identity_verified": false,
+      "provider_error_category": "project_token_not_found",
+      "provider_protocol": "GraphQL",
+      "requested_user_action": "Create fresh project-only production-scoped token for the allowed Dashboard Worker project and replace ignored mode-0600 ssl/railway-project-token.txt; never paste it into chat.",
+      "service_identity_verified": false,
+      "user_action_pending": true
+    },
+    "evidence_scope": "Later parent/root read-only replacement-token identity, service metadata and name-only inventory; separate from PR110 release-time and native laboratory acceptance.",
+    "fresh_TLS_and_authentication_verified": false,
+    "incident": {
+      "Dashboard_account_compromise_confirmed": false,
+      "assessment_record": "RAILWAY-INCIDENT-ASSESSMENT-2026-10-21.md",
+      "builds_restored_at_observation": false,
+      "credentials_rotated_by_this_documentation": false,
+      "current_name_inventory_complete": true,
+      "downstream_dependency_and_rotation_plan_complete": false,
+      "historical_credential_inventory_complete": false,
+      "hosted_activation_blocked": true,
+      "latest_observed_status_update_utc": "2026-10-22T01:22:00Z",
+      "major_outage": true,
+      "official_security_disclosure": "https://blog.railway.com/p/security-disclosure-wednesday-october-21st",
+      "official_status": "https://status.railway.com/",
+      "required_next": [
+        "Determine historical Dashboard-service credential exposure and downstream consumers without logging values.",
+        "Review relevant service/provider usage for anomalies within authorized scope.",
+        "Plan any required scoped rotation, coordinated consumer updates and old-credential retirement; identify shared consumers first.",
+        "Require platform restoration and subsequent exact-target runtime/image/TLS/Auth acceptance before hosted activation."
+      ],
+      "security_disclosure_date": "2026-10-21"
+    },
+    "mutation": false,
+    "old_token_failure_cause_known": false,
+    "old_token_incident_causality_proved": false,
+    "production_environment_id": "9bbe52c6-2305-467a-bf39-8d5e1a98e4e4",
+    "project_identity_verified": true,
+    "project_name": "The Dashboard Worker",
+    "replacement_token_completed": true,
+    "service_id": "8e78ad4b-1d8f-43e7-898a-3882ac5053d7",
+    "service_identity_verified": true,
+    "service_name": "dashboard-paper-worker",
+    "user_action_pending": false,
+    "workspace_id": "f3fcd4b2-e424-4c6b-ac33-91196ccc96e1",
+    "workspace_name": "Red Jester's Projects"
+  },
+  "V11b": {
+    "actual_source_head": null,
+    "all_source_hashes_unchanged": true,
+    "base_commit": "a6aadce78c467d4ef364591c7d06e83013262d91",
+    "cached_image": {
+      "architecture": "arm64",
+      "id": "sha256:965e2dfb5a23a0d6541b6106541e777b303656ebabd4e878746b189d550c0a66",
+      "os": "linux",
+      "repo_digests": [
+        "public.ecr.aws/supabase/postgres@sha256:965e2dfb5a23a0d6541b6106541e777b303656ebabd4e878746b189d550c0a66"
+      ]
+    },
+    "candidate_source_pins": {
+      "services/vonneumann/B2-INSTALLATION-STOP-NATIVE-CANDIDATE-2026-10-18.md": "82903dc504a12882986f77fc5c5a0f4563414e39138caddf1b353d2cdc8459f0",
+      "services/vonneumann/db-contract/research/allocation_control_v3_source.py": "cdbfa5c524f9c4850784672e3c0bbd506672dda64ac32e2c1ef5d881d8ecfbb0",
+      "services/vonneumann/db-contract/research/jupiter_allocation_control_v3.sql": "cc94cf28c51342564dd5f070109e77f4a3bb62e8ec9ecd62efa29e0c12fb39d0",
+      "services/vonneumann/research/b2-finite-experiment-policy-2026-10-18-v3.json": "0a1c8663f4f6cbf9b299cab11fcdd00a379dbe3ca3493b706ddafca9b75c0f1a",
+      "services/vonneumann/tests/postgres/allocation_control_v3_fixture.py": "081365d61102626d0aab0b7773f627e172477d630eaa9ed9c5eef74e517c3d4e",
+      "services/vonneumann/tests/postgres/test_allocation_control_v3.py": "228700920c5a9b86eba17d95631b02fe6b0b3cb4f63653d89167a4e46b60640e"
+    },
+    "change_from_V9b": {
+      "SQL_changes": "Exactly two (c->'body') parenthesizations before ARRAY key subtraction.",
+      "diagnostic_DETAIL_added": false,
+      "fixture_change": "Held SQL digest follows corrected source.",
+      "loader_policy_broker_and_refusal_catches_unchanged": true,
+      "test_bytes_unchanged": true
+    },
+    "cleanup": {
+      "normal_exact_owned_container_absence": true,
+      "owned_child_group_absent": true,
+      "owned_empty_config_removed": true
+    },
+    "completed_utc": "2026-10-22T01:42:53.605630+00:00",
+    "controlled_benchmark": false,
+    "errors": 0,
+    "exit_code": 0,
+    "expected_failures": 0,
+    "failures": 0,
+    "original_native_or_B2_acceptance_flag": false,
+    "outer_elapsed_seconds": 82.6860718340613,
+    "outer_guard_seconds": 240,
+    "scope": "Bounded local network-none ARM64 PostgreSQL17.6 laboratory; private composition, no hosted/provider/runtime action.",
+    "skips": 0,
+    "source_files": 896,
+    "started_utc": "2026-10-22T01:41:30.392437+00:00",
+    "successful": true,
+    "suite_elapsed_seconds": 82.50464570801705,
+    "supervisor_success": true,
+    "test_ids": [
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_actual_Stop_retained_rows_and_row_DML_include_deferred_update",
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_autocommit_and_sync_off_are_unsupported_and_leave_no_original",
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_broker_anchor_updates_block_until_transaction_end",
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_broker_direct_actor_execute_is_denied",
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_broker_locking_preserves_anchor_rows_and_releases_on_rollback",
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_broker_native_owner_cannot_update_anchor_rows",
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_broker_postlock_reauthorization_refuses_changed_trusted_input",
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_consistent_wrong_database_binding_refuses_without_state_DML",
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_early_constraints_and_second_new_operation_roll_back",
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_every_other_kind_refuses_without_any_table_write",
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_foreign_originals_and_wrong_scope_never_borrow_authority",
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_installation_then_reserved_Stop_and_exact_original_replays",
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_malformed_package_digest_refuses_before_known_finalization_cost",
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_null_and_mismatched_genesis_identity_refuse_before_staging",
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_null_capability_anchor_is_refused_by_closed_constructor",
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_original_aliases_cannot_overwrite_allocated_scope_or_Stop_ids",
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_original_provisional_independent_absence_then_committed_getter",
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_provisional_rollback_removes_all_staged_rows",
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_same_writer_getter_is_not_commit_evidence"
+    ],
+    "tests_discovered": 19,
+    "tests_executed": 19,
+    "timed_out": false,
+    "unexpected_successes": 0
+  },
+  "V8": {
+    "EOF_errors": {
+      "records": 5,
+      "same_cause_proved": false,
+      "status": "Consistent with the row-lock refusal, but the exact causes remain unproved.",
+      "underlying_stderr_retained": false
+    },
+    "actual_source_head": null,
+    "all_source_hashes_unchanged": true,
+    "assertion_failure_records": 9,
+    "base_commit": "a6aadce78c467d4ef364591c7d06e83013262d91",
+    "cached_image": {
+      "architecture": "arm64",
+      "id": "sha256:965e2dfb5a23a0d6541b6106541e777b303656ebabd4e878746b189d550c0a66",
+      "os": "linux",
+      "repo_digests": [
+        "public.ecr.aws/supabase/postgres@sha256:965e2dfb5a23a0d6541b6106541e777b303656ebabd4e878746b189d550c0a66"
+      ]
+    },
+    "candidate_source_pins": {
+      "services/vonneumann/B2-INSTALLATION-STOP-NATIVE-CANDIDATE-2026-10-18.md": "60c9d4e0b65680c71f216bd987257c010f034788934c9703a80154e6cfeddb8a",
+      "services/vonneumann/db-contract/research/allocation_control_v3_source.py": "83d1ea57d4264bcd961b9d8783674417e02e7d5b50f3ecd76b77b6605c6d5bcf",
+      "services/vonneumann/db-contract/research/jupiter_allocation_control_v3.sql": "2a2eace9e38971c567c2ac33b38f1ec1d37b6f7efc0c01fe588ddfeac92e0f18",
+      "services/vonneumann/research/b2-finite-experiment-policy-2026-10-18-v3.json": "0a1c8663f4f6cbf9b299cab11fcdd00a379dbe3ca3493b706ddafca9b75c0f1a",
+      "services/vonneumann/tests/postgres/allocation_control_v3_fixture.py": "aee8cced61b5c1f3991c64b867ec98f89f4db1c42f6e6cb5eff563c2bb22bb38",
+      "services/vonneumann/tests/postgres/test_allocation_control_v3.py": "a9bfd9782c045ad2686cdac7d34219b3c8c1b035125da7d443764c33d8ba8d6f"
+    },
+    "cleanup": {
+      "empty_owned_config_removed": true,
+      "normal_container_absence": true,
+      "owned_child_group_absent": true
+    },
+    "completed_utc": "2026-10-22T01:25:53.805785+00:00",
+    "controlled_benchmark": false,
+    "counting_note": "Failure records include subtests; five errors plus nine failures cannot be subtracted from fourteen methods to derive a passed-method count. Four named methods pass.",
+    "error_records": 5,
+    "exit_code": 1,
+    "observed_assertion_cause": {
+      "SQLSTATE": "42501",
+      "diagnosis": "The sealed native owner has SELECT but no UPDATE privilege required for row locking.",
+      "operation": "SELECT ... FOR SHARE",
+      "records": 9,
+      "relation": "vn_jupiter_b2_fixture_anchor.package_inputs"
+    },
+    "outer_elapsed_seconds": 20.932360792066902,
+    "outer_guard_seconds": 240,
+    "passed_methods": [
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_consistent_wrong_database_binding_refuses_without_state_DML",
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_every_other_kind_refuses_without_any_table_write",
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_malformed_package_digest_refuses_before_known_finalization_cost",
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_null_capability_anchor_is_refused_by_closed_constructor"
+    ],
+    "scope": "Owned network-none local ARM64 PostgreSQL17.6 laboratory; no provider/hosted activity.",
+    "skip_entries": 0,
+    "source_files": 896,
+    "started_utc": "2026-10-22T01:25:32.543204+00:00",
+    "suite_elapsed_seconds": 20.792970250127837,
+    "tests_discovered": 14,
+    "tests_executed": 14,
+    "timed_out": false
+  },
+  "V9b": {
+    "all_source_hashes_unchanged": true,
+    "assertion_failure_records": 3,
+    "candidate_source_pins": {
+      "services/vonneumann/B2-INSTALLATION-STOP-NATIVE-CANDIDATE-2026-10-18.md": "47ab38123d4d08c6a4fc7b60ea2d03bd94fb952f3e459018eace9e88fccf76c3",
+      "services/vonneumann/db-contract/research/allocation_control_v3_source.py": "cdbfa5c524f9c4850784672e3c0bbd506672dda64ac32e2c1ef5d881d8ecfbb0",
+      "services/vonneumann/db-contract/research/jupiter_allocation_control_v3.sql": "947bda42663bc4aa3b5c2375d1feb5ab34904ea784c8ec74d8518db6d6d8465f",
+      "services/vonneumann/research/b2-finite-experiment-policy-2026-10-18-v3.json": "0a1c8663f4f6cbf9b299cab11fcdd00a379dbe3ca3493b706ddafca9b75c0f1a",
+      "services/vonneumann/tests/postgres/allocation_control_v3_fixture.py": "0216df47c38623a51fe4241860f152de6a11fcc3ddcf885d86275065e079fa35",
+      "services/vonneumann/tests/postgres/test_allocation_control_v3.py": "228700920c5a9b86eba17d95631b02fe6b0b3cb4f63653d89167a4e46b60640e"
+    },
+    "diagnosis": "Generic b2_invalid_command masks two JSON-body key-subtraction precedence defects.",
+    "errors": 8,
+    "normal_exact_owned_cleanup": true,
+    "passed_methods": [
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_broker_direct_actor_execute_is_denied",
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_broker_native_owner_cannot_update_anchor_rows",
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_broker_postlock_reauthorization_refuses_changed_trusted_input",
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_consistent_wrong_database_binding_refuses_without_state_DML",
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_every_other_kind_refuses_without_any_table_write",
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_malformed_package_digest_refuses_before_known_finalization_cost",
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_null_and_mismatched_genesis_identity_refuse_before_staging",
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_null_capability_anchor_is_refused_by_closed_constructor"
+    ],
+    "skips": 0,
+    "status": "Failed nineteen-method broker experiment; not relabeled as V11b pass.",
+    "suite_elapsed_seconds": 42.80693949991837,
+    "tests_discovered": 19,
+    "tests_executed": 19
+  },
+  "adopted_into_repository_runtime": false,
+  "bounded_lab_suite_accepted": true,
+  "earlier_attempts_preserved": [
+    {
+      "evidence_scope": "Earlier parent-reviewed private attempt; not relabeled as V8.",
+      "status": "Setup failure: pg_catalog.boolean does not exist; SQLSTATE42704.",
+      "version": "V4"
+    },
+    {
+      "status": "Prelaunch validation mismatch between SQL bool and loader boolean; not executed.",
+      "version": "V5"
+    },
+    {
+      "controller_sha256": "a9c51194713fe5a4d1e9f162e540be99ed480b85e1299cebc5da4e297d52d895",
+      "discovered": 14,
+      "errors": 1,
+      "executed": 0,
+      "failure": "b2_independent_constructor_mismatch",
+      "original_receipt_sha256": "e3058583d08e291a226c210811279a3d8c9b0bf6b6e299a71e20061f53ae19ab",
+      "owned_cleanup_verified": true,
+      "raw_log_sha256": "ff415337a8c9d59c68401c1d5907ec5909063696501facc8bd240e5006a2bf50",
+      "snapshot_manifest_sha256": "ae2be9bf9d812852624c907104e1da804d6541003a3a0120bd5bb13157541b8c",
+      "version": "V6"
+    },
+    {
+      "evidence_scope": "Parent/root-reviewed diagnostic; original private evidence retained.",
+      "status": "Zero of fourteen methods executed; diagnostic identifies original_operations actual8/reference7 constraints because reference fixture omitted committed_original_guard.",
+      "version": "V7"
+    }
+  ],
+  "evidence": {
+    "V11b": {
+      "candidate_manifest_sha256": "f238558b99bbf59e199fd9e8a1c8d0b5b29584aa7b5bea4e3b6d4c7d09f3efc9",
+      "controller_sha256": "334820b4d801aa76e63b4a6cf5357f07d8388e1c555d10600a29627b750de49f",
+      "original_receipt_sha256": "fc533b9a7554c0b65f76b208a9140f5717a85de5bf13d730dd1f18bd4a550d7b",
+      "raw_log_sha256": "60d0cf84e867ddf5337b3ded4bb63cf0dbd919c3d1c45d4c54cad6fb61149513",
+      "snapshot_manifest_sha256": "c7ff229f33ecfbbd351f3aa0226a5f7aecfdabfd5db2a40c43fee915f8744f7c"
+    },
+    "V8_candidate_manifest_sha256": "22098b35282506e7f7a2261ff83987b38174ebff8f651b74b4a0809fc5198e1b",
+    "V8_controller_sha256": "f21c5e24c6dc0f9c052dad3249da223455c31ed3d0feb9773e8838b4ee85123f",
+    "V8_original_receipt_sha256": "fccaf10c6ddde11a2b37fd2cf0bb84e2c9289c1f5271dd3de70022feff1bb514",
+    "V8_previous_snapshot_manifest_sha256": "f082aca5ce0eb5f62ac6303cd9cad4f0f7a35ee4848a8262a28af0bde058e85e",
+    "V8_raw_log_sha256": "504b0d34b299db071e6b7b0d3b672d3286576d2422e24b1c3b812fe24ffd75fd",
+    "V8_snapshot_manifest_sha256": "937298c641daffdc8930841b35a1323b5c887417a5db90ecf3c74e48393e00ee",
+    "V9b": {
+      "candidate_manifest_sha256": "7b5e774d0549f696faaf212afc17876ee6ac1213e9cc0af9147febfe2cb33126",
+      "controller_sha256": "3d596c809831c439c503273d24ee5674aa51ae499770bd189e26e51446c6c254",
+      "original_receipt_sha256": "e3d7831d2fd1d91ff0327687a30809a2d70786335353deb558a25cc1c5c5f7d1",
+      "raw_log_sha256": "7f725b914ea0390d2ffa76ebd4872ca38884b1eae30476a3d0c116e01c1ec7d5",
+      "snapshot_manifest_sha256": "223d926491a114d0078da42c48bdefc771aef462113ff34685b88dcbb6e336c9"
+    }
+  },
+  "format": "dashboard-private-B2-native-experiment-status-v1",
+  "full_B2_native_accepted": false,
+  "historical_V9_proposal": {
+    "added_broker_gate_methods": 5,
+    "design": "Static narrow SECURITY DEFINER lock broker owned by the existing trusted fixture anchor owner postgres; no anchor UPDATE grant to the sealed native owner.",
+    "evidence_time_scope": "Historical V9 preparation before the separately executed V9b and V11b sources.",
+    "frozen": false,
+    "production_owner_gate": "Dedicated NOLOGIN production anchor owner and managed privilege acceptance remain later work.",
+    "proposed_function_count": 17,
+    "proposed_method_count": 19,
+    "retained_original_methods": 14,
+    "runtime_authority": false,
+    "status": "Private preparation only; not frozen, executed or accepted."
+  },
+  "hosted_authority": false,
+  "latest_executed_attempt": "V11b",
+  "limits": [
+    "V11b is a bounded19-case local laboratory pass, not full B2/native admission, runtime/test-path adoption or hosted acceptance.",
+    "Failed V8 fourteen-method and V9b nineteen-method evidence remains source-bound and unchanged.",
+    "Future maximum-encoding, counter-vector and controlled-race acceptance cannot be inferred from the finite passing path.",
+    "Raw logs/catalogs/source snapshots remain private; this record keeps pins and sanitized summaries.",
+    "PR110 release acceptance is independent; no Supabase/Railway/provider/wallet action accompanies this documentation."
+  ],
+  "primary_references": {
+    "Railway_security_disclosure": "https://blog.railway.com/p/security-disclosure-wednesday-october-21st",
+    "Railway_status": "https://status.railway.com/",
+    "operator_precedence": "https://www.postgresql.org/docs/17/sql-syntax-lexical.html#SQL-PRECEDENCE",
+    "row_lock_privileges": "https://www.postgresql.org/docs/17/sql-select.html",
+    "security_definer_hardening": "https://www.postgresql.org/docs/17/sql-createfunction.html#SQL-CREATEFUNCTION-SECURITY"
+  },
+  "publication_identity_preflight": {
+    "GitHub_account_id": 16749816,
+    "GitHub_repository_id": 1141090963,
+    "Railway_user_token_action_pending": false,
+    "Railway_verification_scope": "Replacement-token project/workspace/production/service metadata and current name-only configuration follow-up; no fresh in-container mode/image/TLS/Auth or hosted acceptance.",
+    "Railway_verified": true,
+    "Supabase_SQL_executed": false,
+    "Supabase_mutation": false,
+    "Supabase_organization_id": "cqfnnaunmupdyobkyqfo",
+    "Supabase_project_id": "fxpxsciltakyypunglzr",
+    "Supabase_project_name": "The Dashboard",
+    "Vercel_project_id": "prj_wFUe9k9USVreOQcmQKNWRAVsx5fH",
+    "Vercel_team_id": "team_8iNNxiNjrOseD4gdSCHkQEzF",
+    "Vercel_team_slug": "orderoftheredjester",
+    "evidence_scope": "Later parent/root identity-only checks before documentation publication; separate from PR110 release-time and V11b experiment records."
+  },
+  "record_date_local": "2026-10-21",
+  "remaining_first_slice_gates": {
+    "controlled_native_races_pending": [
+      "Simultaneous identical originals waiting on scope: reconcile winner COMMIT through exact-original getter without new UUID.",
+      "Parent SELECT getter snapshot held across COMMIT: coherent absent/head0 or complete/head1, never mixed."
+    ],
+    "current_base_composition_and_actual_CI_accepted": false,
+    "dedicated_NOLOGIN_production_anchor_owner": false,
+    "expected_inst_plus_Stop_counter_vector_not_yet_independently_accepted": {
+      "bootstrap_rows": 6,
+      "declared_keys": 62,
+      "derived_key_touches": 68,
+      "derived_row_DML_touches": 33,
+      "logical_writes": 31,
+      "retained_rows_including_bootstrap": 35
+    },
+    "future_maximum_review": [
+      "false has one more encoded byte than true",
+      "first-slice null-head assumptions must be revisited before extending kinds"
+    ],
+    "independent_encoding_and_complete_response_plus_LF": false,
+    "independent_getter_pin_closures_to_verify": {
+      "Stop": 6,
+      "installation": 3
+    },
+    "independent_oracle_requirement": "Do not copy native _cost as its own oracle; distinguish logical credits from physical PG cost.",
+    "later_full_maxima_depend_on_remaining_nine_kinds": [
+      "distinct-seven-pin Stop",
+      "sixteen positions",
+      "seventy-pin getter maximum"
+    ]
+  },
+  "review_only_source_bundle": {
+    "README": "services/vonneumann/research/b2-review-2026-10-21/README.md",
+    "automatic_execution": false,
+    "manifest": "services/vonneumann/research/b2-review-2026-10-21/manifest.json",
+    "manifest_sha256": "997e51307eb8ec57a5fbb5a0b3ad23c78f53b62ed2e2cb9a19bca5f9161f0545",
+    "patch_sha256": "27ed0cfc08ad4ff2e26e2dd4d25f3a255c512f4dc2e27c01c15f85606ac7e9a9",
+    "runtime_or_test_path_adoption": false,
+    "six_source_postimages_match_executed_candidate": true
+  },
+  "timezone": "America/Denver",
+  "unused_diagnostic_versions": [
+    {
+      "executed": false,
+      "status": "Preserved unused intermediate diagnostic.",
+      "version": "V10"
+    },
+    {
+      "executed": false,
+      "status": "Preserved unused intermediate diagnostic; distinct from executed V11b.",
+      "version": "V11"
+    }
+  ]
+}

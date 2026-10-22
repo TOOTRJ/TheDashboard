@@ -4,7 +4,17 @@ The user approved a **$20/month ceiling for the initial paper pilot** on 2026-10
 This is a spending constraint, not a selected paid subscription, resource estimate,
 production cadence or approval to change account-wide billing for other projects.
 
-## Authoritative worker status — 2026-10-12
+## Authoritative worker status — 2026-10-21
+
+The replacement production-scoped token passes the exact Dashboard project/workspace/environment and service checks at October 22 01:52 UTC / October 21 Denver. Deployment `cf05895d-adc5-427f-873e-82ad6606e5a1` remains the latest SUCCESS; the configured mode is closed and both dotenv-disable flags are set. The 19-variable inventory contains only platform metadata, public Supabase URL/publishable key, public CA, allowed origins and closed-mode configuration; no current database/provider/native secret or Railway management token is present. These are read-only configuration observations, not fresh in-container image/Auth/TLS acceptance. The earlier `project_token_not_found` failure remains diagnostic evidence; its cause is not proven.
+
+Dashboard releases through PR110 are accepted, but the new B2/native/reader/recovery package remains under local validation. The original finite owner hour does not establish current continuous operation. [Current implementation order](TODO.md), [latest release](RELEASE-PR110-ACCEPTANCE-2026-10-21.md), and [private B2 experiment evidence](B2-NATIVE-EXPERIMENTS-2026-10-21.md) supersede older pending implementation statements below. Preserve the $20/month pilot ceiling and keep activation closed until the applicable gates pass; no repeat account, Docker or certificate setup is currently required.
+
+Railway's [official status](https://status.railway.com/) reports a major outage and paused deployments, with a separate [October 21 security disclosure](https://blog.railway.com/p/security-disclosure-wednesday-october-21st) recommending rotation of credentials stored there. Current absence does not establish that earlier temporary provider/native variables were never exposed. Complete the Dashboard-only historical credential/dependency assessment and any necessary rotation/usage review before hosted activation; keep the worker closed while builds are paused. [Scoped incident assessment](RAILWAY-INCIDENT-ASSESSMENT-2026-10-21.md). No credentials or services have been changed in response to this checkpoint.
+
+The token file is the helper's single authoritative source. **Do not add the replacement to `.env`, Vercel or worker runtime variables.** An older local `.env` copy is unused by the helper; previous statements below that both copies matched describe their historical checkpoint. Do not use shared login/link commands or change another project's credentials.
+
+## Historical worker checkpoint — 2026-10-12
 
 The service is provisioned and remains in ordinary **closed mode** at deployment
 `cf05895d-adc5-427f-873e-82ad6606e5a1`. The original owner hour completed at
