@@ -55,14 +55,52 @@ export async function fetchProbe(id: string): Promise<Probe | null> {
   return data as Probe | null;
 }
 
-export async function fetchProbeTrades(probeId: string): Promise<Trade[]> {
-  const { data, error } = await supabase()
-    .from("vn_trades")
-    .select("*")
-    .eq("probe_id", probeId)
-    .order("opened_at", { ascending: false });
-  if (error || !Array.isArray(data)) throw new ProbeDataError("trade history");
-  return data as Trade[];
+/** Complete bounded trade scan. Separate pages are not a database snapshot:
+ * detected count/identity drift refuses; same-count edits need a versioned reader.
+ */
+export async function fetchProbeTrades(probeId: string, signal?: AbortSignal): Promise<Trade[]> {
+  if (!historyString(probeId)) throw new ProbeDataError("trade history without a selected probe");
+  const abort = new AbortController();
+  const cancel = () => abort.abort();
+  signal?.addEventListener("abort", cancel, { once: true });
+  if (signal?.aborted) cancel();
+  const timer = setTimeout(cancel, HISTORY_TIMEOUT_MS);
+  try {
+    const db = supabase();
+    const rows: Trade[] = [];
+    const ids = new Set<string>();
+    let expectedCount: number | undefined;
+    for (let page = 0; page < HISTORY_MAX_PAGES; page++) {
+      if (abort.signal.aborted) throw new ProbeDataError("trade history");
+      const { data, error, count } = await db.from("vn_trades")
+        .select("*", { count: "exact" }).eq("probe_id", probeId)
+        .order("opened_at", { ascending: false }).order("id", { ascending: true })
+        .range(rows.length, rows.length + HISTORY_PAGE_SIZE - 1).abortSignal(abort.signal);
+      if (abort.signal.aborted || error || !Array.isArray(data)
+        || typeof count !== "number" || !Number.isSafeInteger(count) || count < 0
+        || count > HISTORY_MAX_ROWS || data.length > HISTORY_PAGE_SIZE
+        || (expectedCount !== undefined && count !== expectedCount)
+        || rows.length + data.length > count) throw new ProbeDataError("trade history");
+      expectedCount = count;
+      for (const value of data as unknown[]) {
+        if (!value || typeof value !== "object" || Array.isArray(value)) throw new ProbeDataError("trade history");
+        const row = value as Record<string, unknown>;
+        if (!historyString(row.id) || row.probe_id !== probeId || ids.has(row.id)
+          || !historyDate(row.opened_at)) throw new ProbeDataError("trade history");
+        ids.add(row.id);
+        rows.push(row as unknown as Trade);
+      }
+      if (rows.length === expectedCount) return rows;
+      if (data.length === 0) throw new ProbeDataError("trade history");
+    }
+    throw new ProbeDataError("trade history");
+  } catch (error) {
+    if (error instanceof ProbeDataError) throw error;
+    throw new ProbeDataError("trade history");
+  } finally {
+    clearTimeout(timer);
+    signal?.removeEventListener("abort", cancel);
+  }
 }
 
 export async function fetchGenerationStats(runId: string): Promise<GenerationStats[]> {

@@ -82,6 +82,7 @@ export function buildEnvironment(directory, inherited = process.env) {
   }
   Object.assign(env, {
     CI: "true", NODE_ENV: "production", NEXT_TELEMETRY_DISABLED: "1",
+    DASHBOARD_OFFLINE_BUILD: "1",
     PYTHON_DOTENV_DISABLED: "1", NO_UPDATE_NOTIFIER: "1",
     NEXT_PUBLIC_SUPABASE_URL: "https://dashboard-ci.invalid",
     NEXT_PUBLIC_SUPABASE_ANON_KEY: "dashboard-ci-fake-public-key",

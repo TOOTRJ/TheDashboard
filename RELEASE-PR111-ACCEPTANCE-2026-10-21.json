@@ -1,0 +1,132 @@
+{
+  "format": "dashboard-pr111-release-closeout-v1",
+  "record_date_local": "2026-10-21",
+  "verification_utc": "2026-10-22T02:56:59.391759+00:00",
+  "release_accepted": true,
+  "repository": {
+    "name": "TOOTRJ/TheDashboard",
+    "id": 1141090963,
+    "account": "biggrizzly11",
+    "account_id": 16749816
+  },
+  "pull_request": {
+    "number": 111,
+    "url": "https://github.com/TOOTRJ/TheDashboard/pull/111",
+    "head": "764d00a1d0fb149269ff752be99d8965a70272df",
+    "base_before_merge": "02f90563c5ececd4f89a3dd92796601b9abdce7b",
+    "tested_checkout": "ebe02c7beb2199c36183ac9014971a7db663eb6e",
+    "actual_merge": "1fcbf0c84f4fcb5f8b06095e498df1a3965adea6",
+    "merged_at_utc": "2026-10-22T02:48:43Z",
+    "tested_tree": "aa7576cebc2608122324a8a8bba0d14d1f0c498c",
+    "actual_merged_tree": "aa7576cebc2608122324a8a8bba0d14d1f0c498c",
+    "tested_merged_tree_equal": true
+  },
+  "ci": {
+    "checkedAt": "2026-10-22T02:47:38.308371+00:00",
+    "run": {
+      "id": 39708763776,
+      "head_sha": "764d00a1d0fb149269ff752be99d8965a70272df",
+      "status": "completed",
+      "conclusion": "success",
+      "event": "pull_request",
+      "html_url": "https://github.com/TOOTRJ/TheDashboard/actions/runs/39708763776"
+    },
+    "jobs": [
+      {
+        "name": "Ordinary worker and helpers (shard 3/3; SQL opt-in skips reported)",
+        "head": "764d00a1d0fb149269ff752be99d8965a70272df",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "name": "Required owned PostgreSQL and PostgREST (shard 2/4)",
+        "head": "764d00a1d0fb149269ff752be99d8965a70272df",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "name": "Required owned PostgreSQL and PostgREST (shard 1/4)",
+        "head": "764d00a1d0fb149269ff752be99d8965a70272df",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "name": "Ordinary worker and helpers (shard 2/3; SQL opt-in skips reported)",
+        "head": "764d00a1d0fb149269ff752be99d8965a70272df",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "name": "Ordinary worker and helpers (shard 1/3; SQL opt-in skips reported)",
+        "head": "764d00a1d0fb149269ff752be99d8965a70272df",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "name": "Required owned PostgreSQL and PostgREST (shard 4/4)",
+        "head": "764d00a1d0fb149269ff752be99d8965a70272df",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "name": "Frontend tests, types, lint and isolated build",
+        "head": "764d00a1d0fb149269ff752be99d8965a70272df",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "name": "Required owned PostgreSQL and PostgREST (shard 3/4)",
+        "head": "764d00a1d0fb149269ff752be99d8965a70272df",
+        "status": "completed",
+        "conclusion": "success"
+      }
+    ]
+  },
+  "vercel": {
+    "project_name": "the-dashboard",
+    "project_id": "prj_wFUe9k9USVreOQcmQKNWRAVsx5fH",
+    "team_id": "team_8iNNxiNjrOseD4gdSCHkQEzF",
+    "team_slug": "orderoftheredjester",
+    "production_id": "dpl_Gs8rhCg6i9PNgwS1pRXipUtdZ9hG",
+    "status": "READY",
+    "build_seconds": 17,
+    "source": "1fcbf0c84f4fcb5f8b06095e498df1a3965adea6",
+    "canonical_alias": "the-dashboard-chi.vercel.app",
+    "current_alias_verified": true,
+    "deployment_url": "https://the-dashboard-1iknhnlpp-orderoftheredjester.vercel.app",
+    "dashboard_url": "https://vercel.com/orderoftheredjester/the-dashboard/Gs8rhCg6i9PNgwS1pRXipUtdZ9hG",
+    "identity_evidence": "Signed-in browser exact team/project general settings; dedicated profile only; no shared CLI auth fallback"
+  },
+  "smoke": {
+    "format": "dashboard-pr111-production-readonly-smoke-v1",
+    "verified_utc": "2026-10-22T02:55:31.586Z",
+    "hostname": "the-dashboard-chi.vercel.app",
+    "expected_deployment": "dpl_Gs8rhCg6i9PNgwS1pRXipUtdZ9hG",
+    "expected_source": "1fcbf0c84f4fcb5f8b06095e498df1a3965adea6",
+    "checks": {
+      "login_status": 200,
+      "anonymous_root_status": 307,
+      "anonymous_root_location": "/login",
+      "anonymous_api_status": 401,
+      "authenticated_zero_row_status": 200,
+      "authenticated_data_rows": 0
+    },
+    "contract_checks": 4,
+    "writes": 0,
+    "accepted": true
+  },
+  "boundaries": {
+    "current_uncommitted_batch_accepted_by_this_release": false,
+    "B2_runtime_adopted": false,
+    "continuous_paper_accepted": false,
+    "Supabase_mutation": false,
+    "Railway_mutation": false,
+    "provider_credentials_changed": false,
+    "live_trading_authority": false
+  },
+  "limits": [
+    "This release accepts only the listed PR111 tree and review archive/documentation scope.",
+    "The newer composed application, preview guard and pure research component require their own exact-head CI and release.",
+    "No full authenticated browser, hosted worker restoration or trading correctness is established by the four read-only smokes."
+  ]
+}

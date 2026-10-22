@@ -1,0 +1,64 @@
+{
+  "format": "dashboard-b2-v12-forward-review-bundle-v1",
+  "review_only": true,
+  "runtime_or_test_path_adoption": false,
+  "automatic_execution": false,
+  "base_bundle": "../b2-review-2026-10-21/manifest.json",
+  "base_patch_sha256": "27ed0cfc08ad4ff2e26e2dd4d25f3a255c512f4dc2e27c01c15f85606ac7e9a9",
+  "forward_patch_sha256": "5d12701dff4f4cddbac02765785e3c530d082aa5335851dbe4f66c55923f8f50",
+  "candidate_manifest_sha256": "9015972764ebb6a59c117a7a3f3007c876ad185532f38fc5c1b043630afa6527",
+  "snapshot_manifest_sha256": "c210e89103eed70dcbfd2843114e53a1a26dd74d8124477398268b1655fe250d",
+  "controller_sha256": "b98ec1f1cbd91c2d62440ae55e031d8221140ea5db7127311bd86ad24bb61e21",
+  "original_receipt_sha256": "fefdb47f1387c5d3ec2e801d5dd0b7018e2750249dd17f6ac7353532c1862e0e",
+  "raw_log_sha256": "eacda01db3bb3c440a3d3b87b03a60af7a5914e72d734854a17ccb66fdc51262",
+  "candidate_paths": [
+    {
+      "path": "services/vonneumann/B2-INSTALLATION-STOP-NATIVE-CANDIDATE-2026-10-18.md",
+      "UTF8_bytes": 28167,
+      "sha256": "2a51006b81bd161d7ab60fba3a0af49745c4b3cb9de8c844e383e2cbfdd2c4fc"
+    },
+    {
+      "path": "services/vonneumann/db-contract/research/allocation_control_v3_source.py",
+      "UTF8_bytes": 12027,
+      "sha256": "cdbfa5c524f9c4850784672e3c0bbd506672dda64ac32e2c1ef5d881d8ecfbb0"
+    },
+    {
+      "path": "services/vonneumann/db-contract/research/jupiter_allocation_control_v3.sql",
+      "UTF8_bytes": 81248,
+      "sha256": "4e1e55b7c565982067195fd8d818ac6dfef5dadbfae21dbc2ba35a96dd4771c0"
+    },
+    {
+      "path": "services/vonneumann/research/b2-finite-experiment-policy-2026-10-18-v3.json",
+      "UTF8_bytes": 32126,
+      "sha256": "0a1c8663f4f6cbf9b299cab11fcdd00a379dbe3ca3493b706ddafca9b75c0f1a"
+    },
+    {
+      "path": "services/vonneumann/tests/postgres/allocation_control_v3_fixture.py",
+      "UTF8_bytes": 43460,
+      "sha256": "d1658f20b02b4537ae55121ca9593507ba16081c2bad2abb4f98a2253d85a2e9"
+    },
+    {
+      "path": "services/vonneumann/tests/postgres/test_allocation_control_v3.py",
+      "UTF8_bytes": 39664,
+      "sha256": "0153606493ef4c8668def42a3381893f3801060b86f84258e63f2974b89cce01"
+    }
+  ],
+  "laboratory": {
+    "discovered": 24,
+    "executed": 24,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "suite_seconds": 65.25868508405983,
+    "source_files_unchanged": 896,
+    "normal_exact_cleanup": true
+  },
+  "full_B2_accepted": false,
+  "hosted_migration": false,
+  "limits": [
+    "Independent observed first-path accounting and controlled races are accepted local evidence; complete maximum-shape/byte/staging proof remains open.",
+    "Full seven-pin reserve must be rederived after the one-byte Accounting envelope correction.",
+    "Dedicated production broker ownership, current-base composition, actual CI and source adoption remain open."
+  ],
+  "archive_chain_reconstruction": "All six exact native-tested V12 postimages reconstructed in an owned temporary directory; actual runtime/test paths remain absent."
+}

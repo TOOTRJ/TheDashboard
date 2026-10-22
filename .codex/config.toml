@@ -5,3 +5,14 @@ url = "https://developers.jup.ag/docs/mcp"
 enabled_tools = ["search_jupiter", "query_docs_filesystem_jupiter"]
 startup_timeout_sec = 30
 tool_timeout_sec = 60
+
+# Dashboard-only pinned Helius reads. The launcher reads an ignored private key
+# and isolates HOME/environment; see HELIUS-TOOLING.md before tool use.
+[mcp_servers.helius]
+command = "/usr/bin/python3"
+args = ["-I", "-B", "/Users/redjester/Projects/Next/TheDashboard/scripts/dashboard-helius-mcp.py"]
+cwd = "/Users/redjester/Projects/Next/TheDashboard"
+enabled_tools = ["heliusWallet", "heliusAsset", "heliusTransaction", "heliusChain", "heliusCompression", "expandResult"]
+default_tools_approval_mode = "writes"
+startup_timeout_sec = 30
+tool_timeout_sec = 30

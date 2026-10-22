@@ -2,285 +2,153 @@ export type FVInputs = {
   currentBalance: number;
   goalAmount: number;
   monthsToGoal: number;
+  /** Effective annual return; contributions arrive at each month end. */
   annualReturnPercent: number;
-  /** Annual % increase applied to the base monthly contribution each year. */
+  /** Annual increase applied on contribution anniversaries. */
   annualEscalationPercent: number;
 };
 
+export const MONTHLY_SAVINGS_SEARCH_LIMIT = 200_000;
+export const MAX_GOAL_MONTHS = 100 * 12;
+
+export type SavingsRequirement = {
+  status: "calculated" | "above-limit" | "invalid-input" | "past-deadline";
+  monthly: number | null;
+};
 export type GoalProjectionPoint = {
   year: number;
-  goalPath: number;
+  goalPath: number | null;
   currentPath: number;
   goalLine: number;
 };
-
-export type GoalStatus = "on-track" | "ahead" | "behind" | "past-deadline" | "no-goal";
-
-export type TimelineSensitivityRow = {
-  year: number;
-  requiredMonthly: number;
-};
-
-export type ReturnSensitivityRow = {
-  returnPercent: number;
-  requiredMonthly: number;
-};
-
+export type GoalStatus = "on-track" | "ahead" | "behind" | "past-deadline" | "no-goal" | "above-limit" | "invalid-input";
+export type TimelineSensitivityRow = { year: number; requiredMonthly: number | null };
+export type ReturnSensitivityRow = { returnPercent: number; requiredMonthly: number | null };
 export type GoalProjectionResult = {
-  requiredMonthly: number;
+  requiredMonthly: number | null;
   series: GoalProjectionPoint[];
   currentPathEndBalance: number;
-  totalContributed: number;
-  totalGrowth: number;
+  totalContributed: number | null;
+  totalGrowth: number | null;
   status: GoalStatus;
   progressPercent: number;
-  extraSavingsNeeded: number;
+  extraSavingsNeeded: number | null;
   yearsAtCurrentPace: number | null;
   inflationAdjustedGoal: number;
   timelineSensitivity: TimelineSensitivityRow[];
   returnSensitivity: ReturnSensitivityRow[];
 };
 
+function validInputs(opts: FVInputs): boolean {
+  return [opts.currentBalance, opts.goalAmount, opts.monthsToGoal, opts.annualReturnPercent, opts.annualEscalationPercent].every(Number.isFinite) &&
+    opts.currentBalance >= 0 && opts.goalAmount >= 0 &&
+    Number.isInteger(opts.monthsToGoal) && opts.monthsToGoal >= 0 && opts.monthsToGoal <= MAX_GOAL_MONTHS &&
+    opts.annualReturnPercent > -100 && opts.annualReturnPercent <= 100 &&
+    opts.annualEscalationPercent >= -100 && opts.annualEscalationPercent <= 100;
+}
+
 function monthlyRateFromAnnual(annualPercent: number): number {
-  const r = annualPercent / 100;
-  return Math.pow(1 + r, 1 / 12) - 1;
+  return Math.pow(1 + annualPercent / 100, 1 / 12) - 1;
 }
 
-function simulateAccumulation(
-  startBalance: number,
-  baseMonthly: number,
-  months: number,
-  monthlyRate: number,
-  annualEscalation: number
-): { finalBalance: number; yearSnapshots: number[] } {
-  let balance = Math.max(0, startBalance);
-  const snapshots: number[] = [];
-
+function simulateAccumulation(startBalance: number, baseMonthly: number, months: number, monthlyRate: number, annualEscalation: number) {
+  let balance = startBalance;
+  const yearSnapshots: number[] = [];
   for (let m = 1; m <= months; m++) {
-    const yearIndex = Math.floor((m - 1) / 12);
-    const contribution = baseMonthly * Math.pow(1 + annualEscalation, yearIndex);
+    const contribution = baseMonthly * Math.pow(1 + annualEscalation, Math.floor((m - 1) / 12));
     balance = balance * (1 + monthlyRate) + contribution;
-
-    if (m % 12 === 0 || m === months) {
-      snapshots.push(Math.round(balance));
-    }
+    if (m % 12 === 0 || m === months) yearSnapshots.push(Math.round(balance));
   }
-
-  return { finalBalance: balance, yearSnapshots: snapshots };
+  return { finalBalance: balance, yearSnapshots };
 }
 
-/**
- * Binary search for the base monthly contribution that grows
- * `currentBalance` to `goalAmount` over `monthsToGoal`, with
- * contributions escalating annually. Returns 0 when growth alone
- * covers the goal, or -1 when the goal is not achievable even at
- * the upper bound.
- */
-export function computeRequiredMonthlySavings(opts: FVInputs): number {
-  const { currentBalance, goalAmount, monthsToGoal, annualReturnPercent, annualEscalationPercent } = opts;
-
-  if (monthsToGoal <= 0 || goalAmount <= 0) return 0;
-
-  const monthlyRate = monthlyRateFromAnnual(annualReturnPercent);
-  const escalation = annualEscalationPercent / 100;
-
-  const growthOnly = simulateAccumulation(currentBalance, 0, monthsToGoal, monthlyRate, 0);
-  if (growthOnly.finalBalance >= goalAmount) return 0;
-
-  const UPPER = 200_000;
-  const maxCheck = simulateAccumulation(currentBalance, UPPER, monthsToGoal, monthlyRate, escalation);
-  if (maxCheck.finalBalance < goalAmount) return -1;
-
-  let low = 0;
-  let high = UPPER;
-  let best = high;
-
-  for (let i = 0; i < 30; i++) {
+/** A finite search limit is not evidence that a goal is mathematically impossible. */
+export function solveSavingsRequirement(opts: FVInputs): SavingsRequirement {
+  if (!validInputs(opts)) return { status: "invalid-input", monthly: null };
+  if (opts.goalAmount === 0) return { status: "calculated", monthly: 0 };
+  if (opts.monthsToGoal === 0) return { status: "past-deadline", monthly: null };
+  const rate = monthlyRateFromAnnual(opts.annualReturnPercent);
+  const escalation = opts.annualEscalationPercent / 100;
+  const end = (monthly: number) => simulateAccumulation(opts.currentBalance, monthly, opts.monthsToGoal, rate, escalation).finalBalance;
+  const growthOnly = end(0);
+  if (!Number.isFinite(growthOnly)) return { status: "invalid-input", monthly: null };
+  if (growthOnly >= opts.goalAmount) return { status: "calculated", monthly: 0 };
+  const maximum = end(MONTHLY_SAVINGS_SEARCH_LIMIT);
+  if (!Number.isFinite(maximum)) return { status: "invalid-input", monthly: null };
+  if (maximum < opts.goalAmount) return { status: "above-limit", monthly: null };
+  let low = 0, high = MONTHLY_SAVINGS_SEARCH_LIMIT;
+  for (let i = 0; i < 64 && high - low > 1e-8; i++) {
     const mid = (low + high) / 2;
-    const { finalBalance } = simulateAccumulation(currentBalance, mid, monthsToGoal, monthlyRate, escalation);
-    if (finalBalance >= goalAmount) {
-      best = mid;
-      high = mid;
-    } else {
-      low = mid;
-    }
-    if (high - low < 0.5) break;
+    if (end(mid) >= opts.goalAmount) high = mid;
+    else low = mid;
   }
-
-  return Math.round(best / 5) * 5;
+  // Verify the lower $5 step, then round up if it misses. Nearest rounding can undershoot.
+  const lowerStep = Math.floor(high / 5) * 5;
+  return { status: "calculated", monthly: end(lowerStep) >= opts.goalAmount ? lowerStep : lowerStep + 5 };
 }
 
-/**
- * Estimate how many years it takes to reach `goalAmount` at the
- * current monthly contribution. Returns null if it would take
- * more than 80 years or the contribution is 0.
- */
-function estimateYearsAtCurrentPace(
-  currentBalance: number,
-  currentMonthly: number,
-  goalAmount: number,
-  annualReturnPercent: number,
-  annualEscalationPercent: number
-): number | null {
-  if (currentBalance >= goalAmount) return 0;
-  if (currentMonthly <= 0 && currentBalance < goalAmount) return null;
+/** Legacy numeric adapter: -1 means unavailable, never zero required savings. */
+export function computeRequiredMonthlySavings(opts: FVInputs): number {
+  return solveSavingsRequirement(opts).monthly ?? -1;
+}
 
-  const monthlyRate = monthlyRateFromAnnual(annualReturnPercent);
-  const escalation = annualEscalationPercent / 100;
-  let balance = Math.max(0, currentBalance);
-  const maxMonths = 80 * 12;
-
-  for (let m = 1; m <= maxMonths; m++) {
-    const yearIndex = Math.floor((m - 1) / 12);
-    balance = balance * (1 + monthlyRate) + currentMonthly * Math.pow(1 + escalation, yearIndex);
-    if (balance >= goalAmount) return Math.round((m / 12) * 10) / 10;
+function estimateYearsAtCurrentPace(opts: FVInputs, currentMonthly: number): number | null {
+  if (opts.currentBalance >= opts.goalAmount) return 0;
+  const rate = monthlyRateFromAnnual(opts.annualReturnPercent);
+  const escalation = opts.annualEscalationPercent / 100;
+  let balance = opts.currentBalance;
+  for (let m = 1; m <= 80 * 12; m++) {
+    balance = balance * (1 + rate) + currentMonthly * Math.pow(1 + escalation, Math.floor((m - 1) / 12));
+    if (balance >= opts.goalAmount) return Math.ceil((m / 12) * 10) / 10;
   }
-
   return null;
 }
 
-/**
- * Compute required monthly for several different target years.
- */
-function buildTimelineSensitivity(
-  opts: FVInputs,
-  targetYear: number
-): TimelineSensitivityRow[] {
-  const offsets = [-5, -3, 0, 3, 5, 10];
+/** Deterministic illustration only; no probability or retirement entitlement is inferred. */
+export function buildGoalProjectionSeries(opts: FVInputs & { currentMonthly: number; inflationPercent?: number }): GoalProjectionResult {
+  const { currentBalance, goalAmount, monthsToGoal, annualReturnPercent, annualEscalationPercent, currentMonthly, inflationPercent = 2.5 } = opts;
   const now = new Date().getFullYear();
-  const rows: TimelineSensitivityRow[] = [];
-
-  for (const offset of offsets) {
-    const year = targetYear + offset;
-    if (year <= now) continue;
-    const months = (year - now) * 12;
-    const req = computeRequiredMonthlySavings({ ...opts, monthsToGoal: months });
-    rows.push({ year, requiredMonthly: Math.max(0, req) });
-  }
-
-  return rows;
-}
-
-/**
- * Compute required monthly at different return assumptions.
- */
-function buildReturnSensitivity(opts: FVInputs): ReturnSensitivityRow[] {
-  const returns = [4, 5, 6, 7, 8, 9, 10];
-  return returns.map((r) => {
-    const req = computeRequiredMonthlySavings({ ...opts, annualReturnPercent: r });
-    return { returnPercent: r, requiredMonthly: Math.max(0, req) };
-  });
-}
-
-/**
- * Build the full goal projection with all metrics.
- */
-export function buildGoalProjectionSeries(
-  opts: FVInputs & { currentMonthly: number; inflationPercent?: number }
-): GoalProjectionResult {
-  const {
-    currentBalance,
-    goalAmount,
-    monthsToGoal,
-    annualReturnPercent,
-    annualEscalationPercent,
-    currentMonthly,
-    inflationPercent = 2.5,
-  } = opts;
-
-  const now = new Date().getFullYear();
-  const targetYear = now + Math.ceil(monthsToGoal / 12);
-
-  if (monthsToGoal <= 0) {
+  const requirement = solveSavingsRequirement(opts);
+  let valid = requirement.status !== "invalid-input" && Number.isFinite(currentMonthly) && currentMonthly >= 0 && Number.isFinite(inflationPercent) && inflationPercent > -100 && inflationPercent <= 100;
+  const rate = monthlyRateFromAnnual(annualReturnPercent), escalation = annualEscalationPercent / 100;
+  const currentRun = valid ? simulateAccumulation(currentBalance, currentMonthly, monthsToGoal, rate, escalation) : null;
+  if (currentRun && !Number.isFinite(currentRun.finalBalance)) valid = false;
+  const realGoal = valid ? goalAmount / Math.pow(1 + inflationPercent / 100, monthsToGoal / 12) : NaN;
+  if (!Number.isFinite(realGoal)) valid = false;
+  const progressPercent = valid && goalAmount > 0 ? Math.min(100, Math.round(currentBalance / goalAmount * 100)) : 0;
+  if (!valid || !currentRun || monthsToGoal === 0 || goalAmount === 0) {
     return {
-      requiredMonthly: 0,
-      series: [],
-      currentPathEndBalance: Math.round(currentBalance),
-      totalContributed: 0,
-      totalGrowth: 0,
-      status: "past-deadline",
-      progressPercent: goalAmount > 0 ? Math.min(100, Math.round((currentBalance / goalAmount) * 100)) : 0,
-      extraSavingsNeeded: 0,
-      yearsAtCurrentPace: null,
-      inflationAdjustedGoal: goalAmount,
-      timelineSensitivity: [],
-      returnSensitivity: [],
+      requiredMonthly: valid && goalAmount === 0 ? 0 : null,
+      series: [], currentPathEndBalance: Number.isFinite(currentBalance) ? Math.max(0, currentBalance) : 0,
+      totalContributed: null, totalGrowth: null,
+      status: !valid ? "invalid-input" : goalAmount === 0 ? "no-goal" : "past-deadline",
+      progressPercent, extraSavingsNeeded: null, yearsAtCurrentPace: null,
+      inflationAdjustedGoal: Number.isFinite(goalAmount) ? Math.max(0, goalAmount) : 0,
+      timelineSensitivity: [], returnSensitivity: [],
     };
   }
-
-  const requiredMonthly = computeRequiredMonthlySavings(opts);
-  const monthlyRate = monthlyRateFromAnnual(annualReturnPercent);
-  const escalation = annualEscalationPercent / 100;
-
-  const effectiveRequired = requiredMonthly === -1 ? 0 : requiredMonthly;
-  const goalRun = simulateAccumulation(currentBalance, effectiveRequired, monthsToGoal, monthlyRate, escalation);
-  const currentRun = simulateAccumulation(currentBalance, currentMonthly, monthsToGoal, monthlyRate, escalation);
-
-  const totalYears = goalRun.yearSnapshots.length;
-
-  const series: GoalProjectionPoint[] = [
-    {
-      year: now,
-      goalPath: Math.round(currentBalance),
-      currentPath: Math.round(currentBalance),
-      goalLine: goalAmount,
-    },
-  ];
-
-  for (let i = 0; i < totalYears; i++) {
-    series.push({
-      year: now + i + 1,
-      goalPath: goalRun.yearSnapshots[i]!,
-      currentPath: currentRun.yearSnapshots[i]!,
-      goalLine: goalAmount,
-    });
+  const requiredMonthly = requirement.monthly;
+  const goalRun = requiredMonthly === null ? null : simulateAccumulation(currentBalance, requiredMonthly, monthsToGoal, rate, escalation);
+  const series: GoalProjectionPoint[] = [{ year: now, goalPath: goalRun ? Math.round(currentBalance) : null, currentPath: Math.round(currentBalance), goalLine: goalAmount }];
+  for (let i = 0; i < currentRun.yearSnapshots.length; i++) {
+    series.push({ year: now + Math.min((i + 1) * 12, monthsToGoal) / 12, goalPath: goalRun?.yearSnapshots[i] ?? null, currentPath: currentRun.yearSnapshots[i]!, goalLine: goalAmount });
   }
-
-  let totalContributed = 0;
-  for (let m = 0; m < monthsToGoal; m++) {
-    const yearIndex = Math.floor(m / 12);
-    totalContributed += effectiveRequired * Math.pow(1 + escalation, yearIndex);
-  }
-  totalContributed = Math.round(totalContributed);
-
-  const totalGrowth = Math.max(0, Math.round(goalRun.finalBalance - currentBalance - totalContributed));
-  const progressPercent = goalAmount > 0 ? Math.min(100, Math.round((currentBalance / goalAmount) * 100)) : 0;
-
-  let status: GoalStatus;
-  if (requiredMonthly === 0) {
-    status = "ahead";
-  } else if (requiredMonthly === -1) {
-    status = "behind";
-  } else if (currentRun.finalBalance >= goalAmount) {
-    status = "on-track";
-  } else {
-    status = "behind";
-  }
-
-  const extraSavingsNeeded = Math.max(0, (requiredMonthly === -1 ? 0 : requiredMonthly) - currentMonthly);
-
-  const yearsAtCurrentPace = estimateYearsAtCurrentPace(
-    currentBalance, currentMonthly, goalAmount, annualReturnPercent, annualEscalationPercent
-  );
-
-  const yearsToGoal = monthsToGoal / 12;
-  const inflationAdjustedGoal = Math.round(goalAmount / Math.pow(1 + inflationPercent / 100, yearsToGoal));
-
-  const timelineSensitivity = buildTimelineSensitivity(opts, targetYear);
-  const returnSensitivity = buildReturnSensitivity(opts);
-
+  let contributed = 0;
+  if (requiredMonthly !== null) for (let m = 0; m < monthsToGoal; m++) contributed += requiredMonthly * Math.pow(1 + escalation, Math.floor(m / 12));
+  const totalContributed = goalRun ? Math.round(contributed) : null;
+  const totalGrowth = goalRun ? Math.round(goalRun.finalBalance - currentBalance - contributed) : null;
+  const status: GoalStatus = requiredMonthly === null ? "above-limit" : requiredMonthly === 0 ? "ahead" : currentRun.finalBalance >= goalAmount ? "on-track" : "behind";
+  const targetYear = now + monthsToGoal / 12;
+  const timelineSensitivity = [-5, -3, 0, 3, 5, 10].flatMap(offset => {
+    const months = monthsToGoal + offset * 12;
+    return months <= 0 ? [] : [{ year: targetYear + offset, requiredMonthly: solveSavingsRequirement({ ...opts, monthsToGoal: months }).monthly }];
+  });
+  const returnSensitivity = [4, 5, 6, 7, 8, 9, 10].map(returnPercent => ({ returnPercent, requiredMonthly: solveSavingsRequirement({ ...opts, annualReturnPercent: returnPercent }).monthly }));
   return {
-    requiredMonthly: Math.max(0, requiredMonthly),
-    series,
-    currentPathEndBalance: Math.round(currentRun.finalBalance),
-    totalContributed,
-    totalGrowth,
-    status,
-    progressPercent,
-    extraSavingsNeeded,
-    yearsAtCurrentPace,
-    inflationAdjustedGoal,
-    timelineSensitivity,
-    returnSensitivity,
+    requiredMonthly, series, currentPathEndBalance: Math.round(currentRun.finalBalance), totalContributed, totalGrowth, status, progressPercent,
+    extraSavingsNeeded: requiredMonthly === null ? null : Math.max(0, requiredMonthly - currentMonthly),
+    yearsAtCurrentPace: estimateYearsAtCurrentPace(opts, currentMonthly),
+    inflationAdjustedGoal: Math.round(realGoal),
+    timelineSensitivity, returnSensitivity,
   };
 }
