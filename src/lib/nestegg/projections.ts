@@ -31,6 +31,16 @@ export function planHorizonAge(inputs: NesteggInputs): number {
   return inputs.lifeExpectancy;
 }
 
+function retirementTiming(inputs: NesteggInputs) {
+  const planEndAge = planHorizonAge(inputs);
+  const totalMonths = Math.max(0, (planEndAge - inputs.currentAge) * 12);
+  const monthsWorking = Math.max(0, (inputs.retirementAge - inputs.currentAge) * 12);
+  const spouseWorkMonths = inputs.householdMode === "couple"
+    ? Math.max(0, Math.round((inputs.spouseRetirementAge - inputs.spouseCurrentAge) * 12))
+    : 0;
+  return { planEndAge, totalMonths, monthsWorking, spouseWorkMonths };
+}
+
 export type RunProjectionOptions = {
   /** When true, skips nested binary search for “extra monthly” (avoids infinite recursion). */
   skipSuggestedExtra?: boolean;
@@ -46,7 +56,6 @@ export function runProjection(
 ): ProjectionResult {
   const {
     currentAge,
-    retirementAge,
     currentSavings,
     monthlyContribution,
     monthlyRetirementSpending,
@@ -56,8 +65,6 @@ export function runProjection(
     oneTimeIncome,
     oneTimeExpense,
     householdMode,
-    spouseCurrentAge,
-    spouseRetirementAge,
     spouseMonthlyContribution,
     spouseSocialSecurityMonthly,
     enableTaxOnWithdrawals,
@@ -67,17 +74,10 @@ export function runProjection(
     taxDeferredSharePercent,
   } = inputs;
 
-  const planEndAge = planHorizonAge(inputs);
+  const { planEndAge, totalMonths, monthsWorking, spouseWorkMonths } = retirementTiming(inputs);
 
   const monthlyR = retirementMonthlyBaseReturn(inputs);
   const salaryGrowth = salaryGrowthPercent / 100;
-
-  const totalMonths = Math.max(0, (planEndAge - currentAge) * 12);
-  const monthsWorking = Math.max(0, (retirementAge - currentAge) * 12);
-  const spouseWorkMonths =
-    householdMode === "couple"
-      ? Math.max(0, Math.round((spouseRetirementAge - spouseCurrentAge) * 12))
-      : 0;
 
   const taxRate = clamp(marginalTaxRatePercent / 100, 0, 0.5);
   const deferredShare = clamp(taxDeferredSharePercent / 100, 0, 1);
@@ -87,6 +87,8 @@ export function runProjection(
   const series: ProjectionPoint[] = [];
   let nestEggAtRetirement = 0;
   let oneTimeApplied = false;
+  let firstYearMonths = 0;
+  let firstYearNetIncome = 0;
 
   for (let monthIdx = 1; monthIdx <= totalMonths; monthIdx++) {
     balance *= 1 + monthlyR;
@@ -118,6 +120,10 @@ export function runProjection(
       );
 
       const netFromPortfolio = spend - income;
+      if (firstYearMonths < 12) {
+        firstYearNetIncome -= netFromPortfolio;
+        firstYearMonths += 1;
+      }
 
       let rmdMonthly = 0;
       if (enableRmd && primaryAge >= rmdStartAge && deferredShare > 0) {
@@ -178,13 +184,11 @@ export function runProjection(
   // shortfall, including in the final modeled month.
   const lastsThroughLifeExpectancy = depletionAge === null;
 
-  let monthlyGapOrSurplus =
-    socialSecurityMonthly +
-    otherRetirementIncomeMonthly -
-    monthlyRetirementSpending;
-  if (householdMode === "couple") {
-    monthlyGapOrSurplus += spouseSocialSecurityMonthly;
-  }
+  // Keep the legacy estimate when there are no simulated retirement months.
+  const monthlyGapOrSurplus = firstYearMonths > 0
+    ? firstYearNetIncome / firstYearMonths
+    : socialSecurityMonthly + otherRetirementIncomeMonthly - monthlyRetirementSpending
+      + (householdMode === "couple" ? spouseSocialSecurityMonthly : 0);
 
   const { readiness, readinessScore, heroMessage, heroTone, suggestedExtraMonthly } =
     buildInsights({
@@ -389,24 +393,30 @@ export function mergeComparisonSeries(
     }));
 }
 
-/** First years of retirement: annual expenses vs income (inflation path). */
+/** Recurring retirement spending and income before portfolio draws. */
 export function buildRetirementCashflowYears(
   inputs: NesteggInputs,
   years = 15
 ): { year: string; expenses: number; income: number }[] {
-  const inflation = inputs.inflationPercent / 100;
+  const { totalMonths, monthsWorking, spouseWorkMonths } = retirementTiming(inputs);
+  const firstRetirementMonth = Math.floor(monthsWorking) + 1;
+  const lastMonth = Math.floor(totalMonths);
   const out: { year: string; expenses: number; income: number }[] = [];
-  const baseIncome =
-    inputs.socialSecurityMonthly +
-    inputs.otherRetirementIncomeMonthly +
-    (inputs.householdMode === "couple" ? inputs.spouseSocialSecurityMonthly : 0);
 
   for (let y = 0; y < years; y++) {
-    const expenses =
-      inputs.monthlyRetirementSpending * 12 * Math.pow(1 + inflation, y);
-    const income = baseIncome * 12 * Math.pow(1 + inflation, y);
+    const firstMonth = firstRetirementMonth + y * 12;
+    if (firstMonth > lastMonth) break;
+
+    const months = Math.min(12, lastMonth - firstMonth + 1);
+    let expenses = 0;
+    let income = 0;
+    for (let monthIdx = firstMonth; monthIdx < firstMonth + months; monthIdx++) {
+      const cashflow = retirementSpendAndIncome(inputs, monthIdx, monthsWorking, spouseWorkMonths);
+      expenses += cashflow.spend;
+      income += cashflow.income;
+    }
     out.push({
-      year: `Yr ${y + 1}`,
+      year: months === 12 ? `Yr ${y + 1}` : `Yr ${y + 1} (${months} mo)`,
       expenses: Math.round(expenses),
       income: Math.round(income),
     });
