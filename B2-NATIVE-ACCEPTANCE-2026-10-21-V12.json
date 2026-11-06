@@ -1,0 +1,170 @@
+{
+  "accepted_bounded_checks": {
+    "accounting_component_boolean_envelope": "false width covers ordinary false and Stop true",
+    "all_16_native_function_seals_plus_separate_anchor_broker_inventory_preserved": true,
+    "bootstrap_rows_included": 6,
+    "compact_UTF8_scalar_and_one_LF": true,
+    "declared_keys": 62,
+    "direct_Stop_fact_pins": 4,
+    "duplicate_original_waiter_reconciles_same_committed_original": true,
+    "first_path_retained_rows": 35,
+    "five_broker_gates_preserved": true,
+    "getter_pin_closures": [
+      3,
+      6
+    ],
+    "logical_writes": 31,
+    "nested_original_wire_escaping": true,
+    "parent_SELECT_snapshot_held_across_concurrent_commit": true,
+    "physical_PG_tuple_index_TOAST_WAL_cost_claim": false,
+    "staging_inclusive_key_touches": 68,
+    "staging_inclusive_row_touches": 33
+  },
+  "actual_git_source_head": null,
+  "authority": {
+    "continuous_paper_acceptance": false,
+    "full_B2_acceptance": false,
+    "hosted_execution": false,
+    "hosted_migration": false,
+    "live_trading": false,
+    "production_owner_privilege_proof": false,
+    "profitability_evidence": false,
+    "runtime_or_test_path_adoption": false
+  },
+  "base_commit": "a6aadce78c467d4ef364591c7d06e83013262d91",
+  "candidate_manifest_sha256": "9015972764ebb6a59c117a7a3f3007c876ad185532f38fc5c1b043630afa6527",
+  "candidate_path": "/private/tmp/dashboard-b2-accounting-races-v12-20261021-5qi8k13d",
+  "cleanup": {
+    "fallback_removal": false,
+    "normal_exact_owned_container_absence": true,
+    "owned_child_group_absent": true,
+    "owned_empty_config_removed": true
+  },
+  "completed_utc": "2026-10-22T02:23:07.830626+00:00",
+  "controller_sha256": "b98ec1f1cbd91c2d62440ae55e031d8221140ea5db7127311bd86ad24bb61e21",
+  "environment": {
+    "architecture": "local ARM64",
+    "concurrent_load_independently_measured": false,
+    "controlled_benchmark": false,
+    "image_id": "sha256:965e2dfb5a23a0d6541b6106541e777b303656ebabd4e878746b189d550c0a66",
+    "network": "none",
+    "postgres": "17.6",
+    "python": "3.12.14"
+  },
+  "evidence_scope": "root-executed private forward candidate; this documentation performs no execution or remote operation",
+  "execution": {
+    "elapsed_seconds": 65.25868508405983,
+    "errors": 0,
+    "expected_failures": 0,
+    "failures": 0,
+    "runtime": "3.12.14 (main, Aug 25 2026, 13:50:33) [Clang 22.1.3 ]",
+    "runtime_executable": "/private/tmp/dashboard-restoration-repair-20261016-j74at32l/venv/bin/python",
+    "skips": 0,
+    "successful": true,
+    "test_ids": [
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_actual_Stop_retained_rows_and_row_DML_include_deferred_update",
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_autocommit_and_sync_off_are_unsupported_and_leave_no_original",
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_bound_accounting_component_envelope_covers_both_boolean_widths",
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_broker_anchor_updates_block_until_transaction_end",
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_broker_direct_actor_execute_is_denied",
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_broker_locking_preserves_anchor_rows_and_releases_on_rollback",
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_broker_native_owner_cannot_update_anchor_rows",
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_broker_postlock_reauthorization_refuses_changed_trusted_input",
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_concurrent_same_original_waiter_reconciles_without_new_action",
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_consistent_wrong_database_binding_refuses_without_state_DML",
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_early_constraints_and_second_new_operation_roll_back",
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_every_other_kind_refuses_without_any_table_write",
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_first_path_observed_bytes_and_complete_counter_vectors",
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_foreign_originals_and_wrong_scope_never_borrow_authority",
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_getter_exact_pin_closures_and_nested_scalar_encoding",
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_getter_parent_statement_snapshot_stays_before_concurrent_commit",
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_installation_then_reserved_Stop_and_exact_original_replays",
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_malformed_package_digest_refuses_before_known_finalization_cost",
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_null_and_mismatched_genesis_identity_refuse_before_staging",
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_null_capability_anchor_is_refused_by_closed_constructor",
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_original_aliases_cannot_overwrite_allocated_scope_or_Stop_ids",
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_original_provisional_independent_absence_then_committed_getter",
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_provisional_rollback_removes_all_staged_rows",
+      "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_same_writer_getter_is_not_commit_evidence"
+    ],
+    "tests_discovered": 24,
+    "tests_run": 24,
+    "unexpected_successes": 0
+  },
+  "exit_code": 0,
+  "format": "dashboard-b2-native-v12-bounded-laboratory-acceptance-v1",
+  "new_methods": 5,
+  "original_19_methods_preserved": true,
+  "outer_elapsed_seconds": 65.36201345804147,
+  "outer_timeout_seconds": 240,
+  "preserved_prior_evidence": {
+    "V11b_raw_receipt_sha256": "fc533b9a7554c0b65f76b208a9140f5717a85de5bf13d730dd1f18bd4a550d7b",
+    "prior_failed_and_unused_versions_rewritten": false,
+    "record": "B2-NATIVE-EXPERIMENTS-2026-10-21.json"
+  },
+  "raw_log_bytes": 4956,
+  "raw_log_sha256": "eacda01db3bb3c440a3d3b87b03a60af7a5914e72d734854a17ccb66fdc51262",
+  "raw_receipt_sha256": "fefdb47f1387c5d3ec2e801d5dd0b7018e2750249dd17f6ac7353532c1862e0e",
+  "record_date_local": "2026-10-21",
+  "remaining_gates": [
+    "closed-admitted-shape maximum wire and capacity proof; symbolic serializer vectors are not native maximum business-state witnesses",
+    "full distinct-seven-pin Stop reserve derivation and admitted-state liveness; rederive after Boolean envelope repair",
+    "remaining nine allocator/control transitions",
+    "dedicated NOLOGIN production anchor owner and managed owner/ACL/revocation proof",
+    "current-base source composition, applicable ordinary and actual CI, separately reviewed first-slice adoption",
+    "capture retention, raw/current-clock admission, commit/replay, closure, trusted reader and minute/seal completeness",
+    "restoration/retention/UI joins; incident response; closed-hosted fault/window and sustained resource/quota/cost acceptance"
+  ],
+  "review_bundle": {
+    "README": "services/vonneumann/research/b2-review-2026-10-21-v12/README.md",
+    "all_six_runtime_or_test_paths_absent": true,
+    "forward_patch_hash_verified": true,
+    "forward_patch_sha256": "5d12701dff4f4cddbac02765785e3c530d082aa5335851dbe4f66c55923f8f50",
+    "manifest": "services/vonneumann/research/b2-review-2026-10-21-v12/manifest.json",
+    "manifest_sha256": "b7350775d869f557675b513bba1aee1b35999440834971437b37107eaa06ead5",
+    "reconstruction_evidence": "parent/root reported exact six-postimage temporary reconstruction"
+  },
+  "review_bundle_is_runtime_adoption": false,
+  "snapshot_manifest_sha256": "c210e89103eed70dcbfd2843114e53a1a26dd74d8124477398268b1655fe250d",
+  "source_files": [
+    {
+      "bytes": 28167,
+      "path": "B2-INSTALLATION-STOP-NATIVE-CANDIDATE-2026-10-18.md",
+      "sha256": "2a51006b81bd161d7ab60fba3a0af49745c4b3cb9de8c844e383e2cbfdd2c4fc"
+    },
+    {
+      "bytes": 12027,
+      "path": "db-contract/research/allocation_control_v3_source.py",
+      "sha256": "cdbfa5c524f9c4850784672e3c0bbd506672dda64ac32e2c1ef5d881d8ecfbb0"
+    },
+    {
+      "bytes": 81248,
+      "path": "db-contract/research/jupiter_allocation_control_v3.sql",
+      "sha256": "4e1e55b7c565982067195fd8d818ac6dfef5dadbfae21dbc2ba35a96dd4771c0"
+    },
+    {
+      "bytes": 32126,
+      "path": "research/b2-finite-experiment-policy-2026-10-18-v3.json",
+      "sha256": "0a1c8663f4f6cbf9b299cab11fcdd00a379dbe3ca3493b706ddafca9b75c0f1a"
+    },
+    {
+      "bytes": 43460,
+      "path": "tests/postgres/allocation_control_v3_fixture.py",
+      "sha256": "d1658f20b02b4537ae55121ca9593507ba16081c2bad2abb4f98a2253d85a2e9"
+    },
+    {
+      "bytes": 39664,
+      "path": "tests/postgres/test_allocation_control_v3.py",
+      "sha256": "0153606493ef4c8668def42a3381893f3801060b86f84258e63f2974b89cce01"
+    }
+  ],
+  "source_integrity": {
+    "before_and_after_hash_equal": true,
+    "files": 896,
+    "independent_peer_audit_reported_by_root": true
+  },
+  "started_utc": "2026-10-22T02:22:02.031791+00:00",
+  "status": "24_case_private_local_laboratory_pass_only",
+  "timed_out": false,
+  "timezone": "America/Denver"
+}

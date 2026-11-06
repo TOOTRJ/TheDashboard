@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // A fresh real Next/React app with synthetic loopback-only Auth/data.
 import { spawn, spawnSync } from 'node:child_process';
+import { constants as fsConstants } from 'node:fs';
 import net from 'node:net';
 import { readFile, writeFile, realpath, lstat, mkdir, copyFile } from 'node:fs/promises';
 import path from 'node:path';
@@ -293,10 +294,48 @@ export function runFixtureChild(command, args, options, timeout, guard) {
     });
   });
 }
-export function browserEnvironment(directory, backendOrigin, inherited) {
+function fixtureBackendURL(backendOrigin) {
   const url = new URL(backendOrigin);
-  if (url.protocol !== 'http:' || url.hostname !== '127.0.0.1' || url.origin !== backendOrigin) throw new Error('Backend must be exact loopback origin');
+  if (url.protocol !== 'http:' || url.hostname !== '127.0.0.1' || !url.port || Number(url.port) < 1 || url.origin !== backendOrigin) throw new Error('Backend must be exact loopback origin');
+  return url;
+}
+
+// The original source configuration must execute, including its phase guard.
+// The returned source only adds the owned fixture's transport restrictions.
+export function fixtureNextConfigSource(owner, backendOrigin) {
+  fixtureBackendURL(backendOrigin);
+  if (typeof owner !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(owner)) throw new Error('Fixture owner must be an owned UUID');
+  const connectPolicy = "connect-src 'self' " + backendOrigin + ' ' + backendOrigin.replace('http:', 'ws:');
+  return `import type { NextConfig } from 'next';
+import sourceConfiguration from './dashboard-fixture-source.config';
+type Configuration = NextConfig | ((phase: string, defaults: { defaultConfig: NextConfig }) => NextConfig | Promise<NextConfig>);
+export default async function configuration(phase: string, defaults: { defaultConfig: NextConfig }): Promise<NextConfig> {
+  const selected = sourceConfiguration as Configuration;
+  const original = typeof selected === 'function' ? await selected(phase, defaults) : selected;
+  if (!original || typeof original !== 'object' || Array.isArray(original)
+      || (original.headers !== undefined && typeof original.headers !== 'function')
+      || (original.allowedDevOrigins !== undefined && (!Array.isArray(original.allowedDevOrigins)
+          || original.allowedDevOrigins.some(value => typeof value !== 'string')))) throw new Error('Original Dashboard configuration is invalid');
+  const sourceHeaders = original.headers;
+  return { ...original,
+    allowedDevOrigins: [...new Set([...(original.allowedDevOrigins ?? []), '127.0.0.1'])],
+    async headers() {
+      const inherited = sourceHeaders ? await sourceHeaders.call(original) : [];
+      if (!Array.isArray(inherited)) throw new Error('Original Dashboard headers are invalid');
+      return [...inherited, {source:'/:path*',headers:[
+        {key:'X-Dashboard-Fixture-Owner',value:${JSON.stringify(owner)}},
+        {key:'Content-Security-Policy',value:${JSON.stringify(connectPolicy)}}
+      ]}];
+    }
+  };
+}
+`;
+}
+
+export function browserEnvironment(directory, backendOrigin, inherited) {
+  fixtureBackendURL(backendOrigin);
   return { ...buildEnvironment(directory, inherited), NODE_ENV: 'production',
+    DASHBOARD_BROWSER_FIXTURE_BUILD: '1',
     NEXT_PUBLIC_SUPABASE_URL: backendOrigin,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: FIXTURE_KEY,
     SUPABASE_SERVICE_ROLE_KEY: FIXTURE_ADMIN_KEY,
@@ -377,7 +416,9 @@ async function main() {
       // origin as well as all other cloud/worker origins. Real paper contract tests
       // use explicit component fixtures rather than weakening its project pin.
       const config = path.join(prepared.directory, 'next.config.ts');
-      await writeFile(config, `import type { NextConfig } from 'next';\nconst config: NextConfig = { allowedDevOrigins: ['127.0.0.1'], async headers() { return [{source:'/:path*',headers:[{key:'X-Dashboard-Fixture-Owner',value:${JSON.stringify(prepared.owner)}},{key:'Content-Security-Policy',value:${JSON.stringify(connectPolicy)}}]}]; }}; export default config;\n`);
+      await copyFile(config, path.join(prepared.directory, 'dashboard-fixture-source.config.ts'), fsConstants.COPYFILE_EXCL);
+      guard.assertOpen();
+      await writeFile(config, fixtureNextConfigSource(prepared.owner, backendOrigin));
       guard.assertOpen();
       const publicCopies = [
         ['scripts/browser-fixtures/paper-page.tsx', 'src/app/(dashboard)/paper-fixture/page.tsx'],

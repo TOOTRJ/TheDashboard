@@ -1,0 +1,353 @@
+--- V11b/services/vonneumann/B2-INSTALLATION-STOP-NATIVE-CANDIDATE-2026-10-18.md
++++ V12/services/vonneumann/B2-INSTALLATION-STOP-NATIVE-CANDIDATE-2026-10-18.md
+@@ -364,3 +364,60 @@
+ checks and static AST parsing only; no test, loader/controller, database, Docker,
+ provider or remote operation was executed. Independent review and root-owned
+ bounded native testing remain required.
++
++
++## Forward V12 independent observed accounting and controlled first-slice races
++
++V11b's original root-owned receipt
++`fc533b9a7554c0b65f76b208a9140f5717a85de5bf13d730dd1f18bd4a550d7b`
++records 19 actual methods, zero errors/failures/skips and normal owned cleanup,
++with all 896 source hashes unchanged. This is a bounded closed-laboratory first
++slice, not full B2 or production acceptance.
++
++V12 changes one SQL Accounting envelope component from true to false. JSON false
++is five bytes versus true's four. The prior all-cap component was one byte short
++for ordinary operations, even where other current first-path padding covered the
++total. The new test independently builds the symbolic component from descriptor
++limits and verifies both boolean widths against the held source component. This
++is not an invented native business state. The full future seven-pin reserve must
++still be re-derived: the generic calculator now conservatively charges an extra
++byte for Stop too, while the preserved 76533-byte descriptor reserve has not been
++changed or newly accepted. Current four-pin-path success cannot close that gate.
++
++The original 19 method bodies remain byte-identical. Five new methods check:
++(1) the policy-derived Accounting component boundary; (2) observed materialized
++row wires/metadata/declared keys and complete first-path counters; (3) exact three
++and six-pin getter closures, four direct Stop dependencies, nested wire escaping
++and the actual compact UTF8 scalar plus one LF; (4) a same-original waiter blocked
++on the winner's scope lock, then stale refusal and exact-original reconciliation;
++(5) one getter parent statement blocked on an owned coordinator lock while the
++writer commits, then coherent old absence/head and fresh committed readback.
++
++The observed-byte oracle reads actual stored row values and independently encodes
++the policy's selected raw-TEXT/metadata/key representation. It never calls _cost,
++uses its returned values or copies its future clock/resource padding. It derives
++35 retained rows including six bootstrap rows, 31 final-key logical writes and
++62 logical keys. The separate staging rule derives 33 row-DML touches and 68
++conservative key touches; these derived numbers are not a new physical PostgreSQL
++measurement. Pending selected row-image bytes are reconstructed from immutable
++retained originals, not claimed as raw WAL evidence. Generic escaping vectors are
++serializer contracts, not broader business admission or arbitrary padded witnesses.
++
++The race coordinator uses tracked backend IDs and a private advisory lock in a
++parent test SELECT; it installs no source hook or catalog object, uses no sleeps
++and adds no actor permission. Existing 1s lock, 10s statement, 15s transaction,
++20s session and 240s module bounds remain. All 24 IDs must execute uniquely, with
++the same original first statistics case. No catch, constructor comparison, broker
++grant, source-loader rule, policy cap or authority field changes.
++
++This proves only current first-path observed/accounting and snapshot behavior if
++accepted natively. It does not prove full7-pin Stop, all16 positions,70-pin closure,
++maximum lifetime database storage, HTTP envelopes, physical index/WAL/resident
++allocation, calibrated freshness or running authority. Provider process-cache and
++A1 seal budgets remain separate. The trusted-anchor postgres broker remains
++closed-lab-only; production NOLOGIN-owner review is still required.
++
++Preparation performed byte/hash checks and static AST parsing only. No test,
++source-loader/controller, database, Docker, provider or network operation was
++executed. All earlier frozen sources and original receipts remain unchanged.
++Independent review and root-owned bounded native execution remain required.
+--- V11b/services/vonneumann/db-contract/research/jupiter_allocation_control_v3.sql
++++ V12/services/vonneumann/db-contract/research/jupiter_allocation_control_v3.sql
+@@ -361,7 +361,7 @@
+  tw:=vn_jupiter_b2_allocation_research_v3._c14n(rec);
+  jr:=pg_catalog.jsonb_build_object('native_sequence',seq,'action_id',c->>'action_id','action_kind',c->>'action_kind','original_command_sha256',h,'original_result_sha256',h,'original_receipt_sha256',h,'previous_native_head_sha256',h); jw:=vn_jupiter_b2_allocation_research_v3._c14n(jr);
+  sh:=pg_catalog.jsonb_build_object('scope',scope,'native_sequence','16','native_head_sha256',h,'active_acquisition_epoch','ffffffff-ffff-ffff-ffff-ffffffffffff','active_fence_id',NULL,'fence_revision','16','source_mode','stopped','last_admission_sha256',NULL,'last_ingest_sequence','0','last_availability_sha256',NULL,'previous_seal_sha256',NULL); hw:=vn_jupiter_b2_allocation_research_v3._c14n(sh);
+- ac:='{"committed_positions":"16","logical_UTF8_bytes":"4194304","identity_rows":"96","domain_rows":"25","dependency_rows":"112","retained_rows":"271","row_writes":"512","index_entries":"1024","Stop_reserve_consumed":true}'::jsonb; aw:=vn_jupiter_b2_allocation_research_v3._c14n(ac);
++ ac:='{"committed_positions":"16","logical_UTF8_bytes":"4194304","identity_rows":"96","domain_rows":"25","dependency_rows":"112","retained_rows":"271","row_writes":"512","index_entries":"1024","Stop_reserve_consumed":false}'::jsonb; aw:=vn_jupiter_b2_allocation_research_v3._c14n(ac);
+  om:=pg_catalog.jsonb_build_object('scope',scope,'action_id',c->>'action_id','action_kind',c->>'action_kind','native_sequence',seq,'command_sha256',h,'result_sha256',h,'receipt_sha256',h,'command_bytes',pg_catalog.octet_length(cw)::text,'result_bytes',pg_catalog.octet_length(rw)::text,'receipt_bytes',pg_catalog.octet_length(tw)::text,'writer_xid8','18446744073709551615','writer_principal_binding_id','ffffffff-ffff-ffff-ffff-ffffffffffff','finalized',true,'final_function_observation',utc);
+  jm:=pg_catalog.jsonb_build_object('scope',scope,'action_id',c->>'action_id','native_sequence',seq,'journal_sha256',h,'journal_bytes',pg_catalog.octet_length(jw)::text);
+  sm:=pg_catalog.jsonb_build_object('scope',scope,'head_sha256',h,'head_bytes',pg_catalog.octet_length(hw)::text,'accounting_bytes',pg_catalog.octet_length(aw)::text);
+--- V11b/services/vonneumann/tests/postgres/allocation_control_v3_fixture.py
++++ V12/services/vonneumann/tests/postgres/allocation_control_v3_fixture.py
+@@ -26,7 +26,7 @@
+ SQL_PATH = ROOT / 'db-contract/research/jupiter_allocation_control_v3.sql'
+ LOADER_PATH = ROOT / 'db-contract/research/allocation_control_v3_source.py'
+ POLICY_PATH = ROOT / 'research/b2-finite-experiment-policy-2026-10-18-v3.json'
+-SOURCE_SHA256 = 'cc94cf28c51342564dd5f070109e77f4a3bb62e8ec9ecd62efa29e0c12fb39d0'
++SOURCE_SHA256 = '4e1e55b7c565982067195fd8d818ac6dfef5dadbfae21dbc2ba35a96dd4771c0'
+ LOADER_SHA256 = 'cdbfa5c524f9c4850784672e3c0bbd506672dda64ac32e2c1ef5d881d8ecfbb0'
+ POLICY_FILE_SHA256 = '0a1c8663f4f6cbf9b299cab11fcdd00a379dbe3ca3493b706ddafca9b75c0f1a'
+ POLICY_SHA256 = 'e5dca1d13839102fb1fdd261176393b73c770a95ab355eff74499169905bfba0'
+--- V11b/services/vonneumann/tests/postgres/test_allocation_control_v3.py
++++ V12/services/vonneumann/tests/postgres/test_allocation_control_v3.py
+@@ -16,6 +16,97 @@
+ from tests.postgres.allocation_control_v3_fixture import (
+     AllocationFixture, A, N, BEGIN, SETTINGS, canonical, literal, sha,
+ )
++
++
++
++# These are observations of materialized rows in the finite fixture. They are not
++# PostgreSQL physical tuple/index/WAL measurements or a new transport protocol.
++def scoped_rows(fixture,scope):
++    sw=canonical(scope);answer={}
++    for namespace,name,entries in fixture.snapshot():
++        if name in answer:raise AssertionError('b2_duplicate_observed_table')
++        answer[name]=[entry['row'] for entry in entries if entry['row']['scope_wire']==sw]
++    if set(answer)!={'package_inputs','actor_bindings','scope_state','original_operations',
++                     'journal_entries','identities','domain_facts','dependency_associations'}:
++        raise AssertionError('b2_observed_table_inventory')
++    return answer
++
++
++def decimal_text(value):
++    if type(value) not in (int,str) or type(value) is bool:
++        raise AssertionError('b2_observed_counter_type')
++    text=str(value)
++    if not text.isascii() or not text.isdecimal() or str(int(text))!=text:
++        raise AssertionError('b2_observed_counter_shape')
++    return text
++
++
++def observed_row_charge(table,row,scope):
++    """Policy representation of actual values, not the SQL upper calculator.
++
++    TEXT wires are charged as raw UTF8 once per stored occurrence. Closed logical
++    metadata and declared key arrays are separately canonical-encoded. This reads
++    actual committed observations and counters instead of invented upper padding.
++    """
++    size=lambda value:len(canonical(value).encode('utf8'))
++    wires=[];metadata={'scope':scope}
++    if table=='package_inputs':
++        wires=[row[k] for k in ('package_wire','actor_manifest_wire','genesis_wire')]
++        metadata.update(installation_id=row['installation_id'],expected_catalog_sha256=row['expected_catalog_sha256'],
++          **{k+'_bytes':str(len(row[k].encode('utf8'))) for k in ('package_wire','actor_manifest_wire','genesis_wire')})
++        keys=[['scope']]
++    elif table=='actor_bindings':
++        wires=[row['binding_wire']]
++        metadata.update(binding_id=row['binding_id'],session_oid=decimal_text(row['session_oid']),
++          session_name=row['session_name'],capabilities=row['capabilities'],binding_wire_bytes=str(len(wires[0].encode('utf8'))))
++        keys=[['binding_id'],['session_oid','session_name']]
++    elif table=='scope_state':
++        wires=[row['head_wire'],row['accounting_wire']]
++        metadata.update(head_sha256=sha(wires[0]),head_bytes=str(len(wires[0].encode('utf8'))),accounting_bytes=str(len(wires[1].encode('utf8'))))
++        keys=[['scope']]
++    elif table=='original_operations':
++        wires=[row[k] for k in ('command_wire','result_wire','receipt_wire') if row[k] is not None]
++        metadata.update(action_id=row['action_id'],action_kind=row['action_kind'],native_sequence=decimal_text(row['native_sequence']),
++          command_sha256=row['command_sha256'],result_sha256=row['result_sha256'],receipt_sha256=row['receipt_sha256'],
++          command_bytes=str(len(row['command_wire'].encode('utf8'))),result_bytes=str(len(row['result_wire'].encode('utf8'))),
++          receipt_bytes='0' if row['receipt_wire'] is None else str(len(row['receipt_wire'].encode('utf8'))),
++          writer_xid8=decimal_text(row['writer_xid8']),writer_principal_binding_id=row['writer_binding_id'],
++          finalized=row['finalized'],final_function_observation=row['final_function_observation'])
++        keys=[['action_id'],['scope','native_sequence'],['writer_xid8']]
++    elif table=='journal_entries':
++        wires=[row['journal_wire']]
++        metadata.update(action_id=row['action_id'],native_sequence=decimal_text(row['native_sequence']),
++          journal_sha256=row['journal_sha256'],journal_bytes=str(len(wires[0].encode('utf8'))))
++        keys=[['scope','native_sequence'],['action_id']]
++    elif table=='identities':
++        wires=[row['record_wire']]
++        metadata.update(original_id=row['original_id'],wire_bytes=str(len(wires[0].encode('utf8'))))
++        keys=[['original_id'],['scope','original_id']]
++    elif table=='domain_facts':
++        wires=[row['original_wire']]
++        metadata.update(semantic_kind=row['semantic_kind'],original_id=row['original_id'],wire_sha256=row['wire_sha256'],
++          native_sequence=decimal_text(row['native_sequence']),wire_bytes=str(len(wires[0].encode('utf8'))))
++        keys=[['semantic_kind','original_id','wire_sha256'],['scope','native_sequence','semantic_kind','original_id','wire_sha256']]
++    elif table=='dependency_associations':
++        metadata.update(action_id=row['action_id'],semantic_kind=row['semantic_kind'],original_id=row['original_id'],
++          wire_sha256=row['wire_sha256'],wire_bytes=decimal_text(row['wire_bytes']),ordinal=decimal_text(row['ordinal']))
++        keys=[['action_id','semantic_kind','original_id','wire_sha256'],['semantic_kind','original_id','wire_sha256','action_id']]
++    else:raise AssertionError('b2_unknown_observed_table')
++    if any(type(v) is not str for v in wires):raise AssertionError('b2_observed_wire_type')
++    raw=sum(len(v.encode('utf8')) for v in wires)
++    key_bytes=sum(size([metadata[field] for field in key]) for key in keys)
++    return dict(bytes=raw+size(metadata)+key_bytes,keys=len(keys))
++
++
++def observed_pin(kind,identity,wire):
++    return dict(semantic_kind=kind,original_id=identity,original_wire=wire,
++                wire_sha256=sha(wire),wire_bytes=str(len(wire.encode('utf8'))))
++
++
++def ordered_pins(pins):
++    keys=[(p['semantic_kind'],p['original_id'],p['wire_sha256']) for p in pins]
++    if len(keys)!=len(set(keys)):raise AssertionError('b2_duplicate_expected_pin')
++    return sorted(pins,key=lambda p:(p['semantic_kind'],p['original_id'],p['wire_sha256']))
+ 
+ 
+ @unittest.skipUnless(os.environ.get(OPT_IN)=='1','Requires isolated PostgreSQL opt-in')
+@@ -326,4 +417,167 @@
+         self.assertEqual(before,self.f.snapshot())
+ 
+ 
++    def test_bound_accounting_component_envelope_covers_both_boolean_widths(self):
++        # A symbolic component boundary, not a fabricated native business state.
++        import re
++        caps=self.f.policy['finite_caps_per_scope']
++        maximum=dict(committed_positions=str(caps['committed_events']),
++          logical_UTF8_bytes=str(caps['logical_UTF8_bytes_charged']),
++          identity_rows=str(caps['retained_identity_rows']),
++          domain_rows=str(self.f.policy['logical_storage']['row_caps_per_scope']['domain_facts']),
++          dependency_rows=str(caps['dependency_association_rows']),retained_rows=str(caps['logical_retained_rows']),
++          row_writes=str(caps['logical_row_writes_charged']),index_entries=str(caps['logical_index_entries_charged']),
++          Stop_reserve_consumed=False)
++        body=next(row['body'] for row in self.f.source.functions() if row['name']=='_cost')
++        matches=re.findall(r"\bac:='([^']+)'::jsonb;\s+aw:=",body)
++        self.assertEqual(1,len(matches),'b2_accounting_literal_review_required')
++        declared=json.loads(matches[0])
++        self.assertEqual(set(maximum),set(declared))
++        declared_bytes=len(canonical(declared).encode('utf8'))
++        for consumed in (False,True):
++            candidate=maximum|dict(Stop_reserve_consumed=consumed)
++            self.assertGreaterEqual(declared_bytes,len(canonical(candidate).encode('utf8')))
++        self.assertEqual(1,len(canonical(maximum).encode('utf8'))-len(canonical(maximum|dict(Stop_reserve_consumed=True)).encode('utf8')))
++        # Independently verify the encoded component with PostgreSQL's serializer.
++        observed=self.db.sql(SETTINGS+f"SELECT {N}._c14n({literal(canonical(maximum))}::jsonb);")
++        self.assertEqual(canonical(maximum)+'\n',observed.stdout)
++
++    def test_first_path_observed_bytes_and_complete_counter_vectors(self):
++        scope=self.s['scope'];policy=self.f.policy
++        declared_keys=policy['logical_storage']['index_keys']
++        actual_keys=json.loads(self.db.scalar(f"SELECT jsonb_object_agg(c.relname,(SELECT count(*) FROM pg_index i WHERE i.indrelid=c.oid)) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname IN({literal(A)},{literal(N)}) AND c.relkind='r';"))
++        self.assertEqual(declared_keys,actual_keys)
++        before=scoped_rows(self.f,scope)
++        self.assertEqual(6,sum(map(len,before.values())))
++        install=self.f.command(self.s);self.submit(install)
++        installed=scoped_rows(self.f,scope)
++        expected_install=dict(package_inputs=1,actor_bindings=4,scope_state=1,original_operations=1,
++          journal_entries=1,identities=15,domain_facts=3,dependency_associations=3)
++        self.assertEqual(expected_install,{name:len(rows) for name,rows in installed.items()})
++        a1=json.loads(installed['scope_state'][0]['accounting_wire'])
++        self.assertEqual(dict(committed_positions='1',identity_rows='15',domain_rows='3',dependency_rows='3',
++          retained_rows='29',row_writes='24',index_entries='48',Stop_reserve_consumed=False),
++          {key:value for key,value in a1.items() if key!='logical_UTF8_bytes'})
++        install_bytes=sum(observed_row_charge(name,row,scope)['bytes'] for name,rows in installed.items() for row in rows)
++        self.assertGreaterEqual(int(a1['logical_UTF8_bytes']),install_bytes)
++        self.assertLessEqual(int(a1['logical_UTF8_bytes'])+policy['Stop_reserve_vector']['logical_UTF8_bytes'],
++                             policy['finite_caps_per_scope']['logical_UTF8_bytes_charged'])
++        stop=self.f.command(self.s,'source_stop');self.submit(stop)
++        stopped=scoped_rows(self.f,scope)
++        expected_final=expected_install|dict(original_operations=2,journal_entries=2,dependency_associations=7)
++        self.assertEqual(expected_final,{name:len(rows) for name,rows in stopped.items()})
++        self.assertEqual(35,sum(map(len,stopped.values())))
++        a2=json.loads(stopped['scope_state'][0]['accounting_wire'])
++        self.assertEqual(dict(committed_positions='2',identity_rows='15',domain_rows='3',dependency_rows='7',
++          retained_rows='35',row_writes='31',index_entries='62',Stop_reserve_consumed=True),
++          {key:value for key,value in a2.items() if key!='logical_UTF8_bytes'})
++        changed={'scope_state':stopped['scope_state']}
++        for name in ('original_operations','journal_entries','dependency_associations'):
++            changed[name]=[row for row in stopped[name] if row['action_id']==stop['action_id']]
++        stop_bytes=sum(observed_row_charge(name,row,scope)['bytes'] for name,rows in changed.items() for row in rows)
++        self.assertGreaterEqual(int(a2['logical_UTF8_bytes'])-int(a1['logical_UTF8_bytes']),stop_bytes)
++        self.assertLessEqual(int(a2['logical_UTF8_bytes']),policy['finite_caps_per_scope']['logical_UTF8_bytes_charged'])
++        # Derive writes/keys from new retained row counts and the one updated
++        # scope key, then separately account the provisional original's extra DML.
++        observed_vectors=[]
++        for left,right in ((before,installed),(installed,stopped)):
++            inserts={name:len(right[name])-len(left[name]) for name in right if name not in ('package_inputs','actor_bindings','scope_state')}
++            logical_writes=sum(inserts.values())+1
++            keys=sum(count*actual_keys[name] for name,count in inserts.items())+actual_keys['scope_state']
++            observed_vectors.append((logical_writes,keys,logical_writes+inserts['original_operations'],keys+inserts['original_operations']*actual_keys['original_operations']))
++        self.assertEqual([(24,48,25,51),(7,14,8,17)],observed_vectors)
++        self.assertEqual((31,62,33,68),tuple(sum(v[i] for v in observed_vectors) for i in range(4)))
++        # Reconstruct the declared pending image from the retained immutable row;
++        # this is selected logical encoding, not observation of WAL/physical DML.
++        pending=0
++        for row in stopped['original_operations']:
++            image=row|dict(receipt_wire=None,receipt_sha256=None,finalized=False)
++            pending+=observed_row_charge('original_operations',image,scope)['bytes']
++        self.assertLessEqual(install_bytes+stop_bytes+pending,policy['finite_caps_per_scope']['encoded_row_DML_UTF8_upper_charged'])
++
++    def test_getter_exact_pin_closures_and_nested_scalar_encoding(self):
++        install=self.f.command(self.s);self.submit(install)
++        def capture(command):
++            result=self.db.sql(SETTINGS+self.f.call('get_original',self.f.query(command),self.s['actors']['reader']),role=self.s['actors']['reader'])
++            value=json.loads(result.stdout)
++            self.assertEqual(canonical(value)+'\n',result.stdout)
++            self.assertEqual(1,result.stdout.count('\n'))
++            self.assertLessEqual(len(result.stdout.encode('utf8')),self.f.policy['transport_budget']['new_B2_native_fixture_response_bytes_limit'])
++            self.assertGreater(len(result.stdout.encode('utf8')),sum(len(value[k].encode('utf8')) for k in ('original_command_wire','original_result_wire','original_receipt_wire'))+1)
++            return value
++        first=capture(install);self.assert_committed(install,first,1)
++        command_sha=sha(canonical(install));g=self.s['genesis'];scope=self.s['scope']
++        epoch=g['initial_acquisition_spec']|dict(scope=scope,ordinal='1',original_command_sha256=command_sha)
++        terminal=dict(format='ga-jupiter-b2-terminal-allocation-research-v3-v1',scope=scope,
++          installation_id=self.s['installation_id'],stop_action_id=self.s['stop_id'],
++          allocation_command_sha256=command_sha,first_native_sequence='1')
++        facts=ordered_pins([observed_pin('native_genesis_input',self.s['installation_id'],canonical(g)),
++          observed_pin('native_epoch_registration',epoch['registration_id'],canonical(epoch)),
++          observed_pin('native_terminal_allocation',self.s['stop_id'],canonical(terminal))])
++        self.assertEqual(facts,first['dependencies'])
++        self.assertEqual(facts,json.loads(first['original_result_wire'])['dependencies'])
++        stop=self.f.command(self.s,'source_stop');self.submit(stop)
++        second=capture(stop);self.assert_committed(stop,second,2)
++        ancestor=[observed_pin(kind,install['action_id'],first[field]) for kind,field in
++          (('native_command','original_command_wire'),('native_result','original_result_wire'),('native_receipt','original_receipt_wire'))]
++        self.assertEqual(ordered_pins(facts+ancestor),second['dependencies'])
++        self.assertEqual(ordered_pins(facts+[observed_pin('native_command',install['action_id'],canonical(install))]),
++                         json.loads(second['original_result_wire'])['dependencies'])
++        self.assertEqual(3,len(first['dependencies']));self.assertEqual(6,len(second['dependencies']))
++        caps=self.f.policy['wire_caps_UTF8']
++        for c,reply in ((install,first),(stop,second)):
++            self.assertLessEqual(len(canonical(c).encode('utf8')),caps['command'])
++            for field,cap in (('original_result_wire','result'),('original_receipt_wire','receipt')):
++                self.assertLessEqual(len(reply[field].encode('utf8')),caps[cap])
++        # Serializer vectors exercise escaping, not expanded business admission.
++        vectors=[dict(text='quote" backslash\\ slash/\n\t\b\f\r',unicode='é😀\u2028'),
++                 dict(original_wire=canonical(dict(text='"\\\n',unicode='é😀')))]
++        for value in vectors:
++            wire=canonical(value)
++            native=self.db.sql(SETTINGS+f'SELECT {N}._c14n({literal(wire)}::jsonb);')
++            self.assertEqual(wire+'\n',native.stdout)
++
++    def test_concurrent_same_original_waiter_reconciles_without_new_action(self):
++        c=self.f.command(self.s);role=self.s['actors']['installer']
++        winner=self.f.writer(role);waiter=self.f.writer(role)
++        try:
++            winner_pid=winner.backend_pid();waiter_pid=waiter.backend_pid()
++            winner.send(self.f.call('submit',c,role));self.assertTrue(json.loads(winner.line())['pending_commit'])
++            waiter.send(self.f.call('submit',c,role))
++            self.f.wait_for_blocker(waiter_pid,winner_pid)
++            winner.finish()
++            with self.assertRaisesRegex(RuntimeError,'b2_stale_head'):waiter.line()
++        finally:winner.close();waiter.close()
++        before=self.f.snapshot()
++        reply=self.f.get(c,self.s['actors']['reader']);self.assert_committed(c,reply,1)
++        self.assertEqual(before,self.f.snapshot())
++        rows=scoped_rows(self.f,self.s['scope'])
++        self.assertEqual([c['action_id']],[row['action_id'] for row in rows['original_operations']])
++        self.assertEqual('1',self.f.head(self.s)['native_sequence'])
++
++    def test_getter_parent_statement_snapshot_stays_before_concurrent_commit(self):
++        # The barrier is an owned coordinator lock in a private test statement,
++        # not an installed source hook or a production executor protocol change.
++        c=self.f.command(self.s);role=self.s['actors']['installer']
++        writer=self.f.writer(role);reader=self.f.writer(self.s['actors']['reader']);gate=self.f.anchor_session()
++        key=int(UUID(self.s['scope']['run_id'])) & 0x7fffffff
++        try:
++            writer.send(self.f.call('submit',c,role));self.assertTrue(json.loads(writer.line())['pending_commit'])
++            gate_pid=gate.backend_pid();reader_pid=reader.backend_pid()
++            gate.send(f'SELECT pg_catalog.pg_advisory_xact_lock(1275068433,{key});\n')
++            self.assertEqual('',gate.line())
++            query=literal(canonical(self.f.query(c)))
++            reader.send(f'SELECT {N}.get_original({query}) FROM (SELECT pg_catalog.pg_advisory_xact_lock(1275068433,{key})) AS owned_gate;\n')
++            self.f.wait_for_blocker(reader_pid,gate_pid)
++            writer.finish()
++            gate.finish('ROLLBACK;')
++            old=json.loads(reader.line());reader.finish('ROLLBACK;')
++            self.assertEqual('observed_absent_unknown',old['resolution'])
++            self.assertEqual(c['expected_head'],old['observed_head'])
++            self.assertIsNone(old['original_operation_pin'])
++        finally:writer.close();reader.close();gate.close()
++        current=self.f.get(c,self.s['actors']['reader']);self.assert_committed(c,current,1)
++        self.assertEqual('1',current['observed_head']['native_sequence'])
++
++
+ if __name__=='__main__':unittest.main()

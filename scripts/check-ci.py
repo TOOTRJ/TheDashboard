@@ -138,7 +138,7 @@ def validate_workflow(source: str) -> None:
                 raise ValueError("Action must be one of the reviewed full commit pins")
             if step.get("uses", "").startswith("actions/checkout@") and step.get("with", {}).get("persist-credentials") is not False:
                 raise ValueError("Checkout must not persist its read-only credential")
-            if step.get("uses", "").startswith("actions/setup-node@") and step.get("with") != {"node-version": "24.19.0", "package-manager-cache": False}:
+            if step.get("uses", "").startswith("actions/setup-node@") and step.get("with") != {"node-version": "24.22.2", "package-manager-cache": False}:
                 raise ValueError("Node runtime and uncached setup must remain reviewed")
             if step.get("uses", "").startswith("actions/setup-python@") and step.get("with") != {"python-version": "3.12.14", "architecture": "x64", "allow-prereleases": False}:
                 raise ValueError("Python runtime and release-only setup must remain reviewed")

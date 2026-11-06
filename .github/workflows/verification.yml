@@ -37,7 +37,7 @@ jobs:
           fetch-depth: 1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 24.19.0
+          node-version: 24.22.2
           package-manager-cache: false
       - name: Clean locked dependencies without lifecycle scripts
         env:
@@ -48,7 +48,7 @@ jobs:
           : > "$NPM_CONFIG_USERCONFIG"
           : > "$NPM_CONFIG_GLOBALCONFIG"
           npm ci --ignore-scripts --no-audit --no-fund
-      - name: Production advisories and exact expiring development exception
+      - name: Full and production dependency advisories
         run: node scripts/check-advisories.mjs
       - name: All Node regression files
         run: node --test tests/*.test.mjs tests/probes/*.test.mjs scripts/tests/*.test.mjs

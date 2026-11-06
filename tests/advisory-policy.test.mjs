@@ -3,24 +3,58 @@ import test from "node:test";
 import { readFileSync } from "node:fs";
 import { assessAudit } from "../scripts/check-advisories.mjs";
 
-const policy = JSON.parse(readFileSync(new URL("../security/advisory-exceptions.json", import.meta.url), "utf8"));
+const activePolicy = JSON.parse(readFileSync(new URL("../security/advisory-exceptions.json", import.meta.url), "utf8"));
+// Historical, synthetic inputs exercise the fail-closed exception evaluator.
+// They are never loaded by the release gate as active exceptions.
+const fixturePolicy = {
+  "version": 1,
+  "exceptions": [
+    {
+      "advisory": "GHSA-vfj7-8cjw-p6xm",
+      "url": "https://github.com/advisories/GHSA-vfj7-8cjw-p6xm",
+      "package": "braces",
+      "version": "3.0.3",
+      "severity": "high",
+      "scope": "development-only",
+      "reviewed_on": "2026-10-16",
+      "expires_on": "2026-10-26",
+      "reason": "No published patched braces version on October 16. Re-reviewed the exact development-only lint dependency path after the Next 16.4.2 security update; fixed source/test patterns and bounded check processes remain. Production audit must be clean. Expiry is unchanged; re-review on an upstream patch or before October 26.",
+      "affected_packages": {
+        "@next/eslint-plugin-next": "16.4.2",
+        "eslint-config-next": "16.4.2",
+        "fast-glob": "3.3.1",
+        "micromatch": "4.0.8",
+        "braces": "3.0.3"
+      }
+    }
+  ]
+};
 const now = new Date("2026-10-16T22:00:00Z");
 function fixture() {
-  const names = Object.keys(policy.exceptions[0].affected_packages);
+  const names = Object.keys(fixturePolicy.exceptions[0].affected_packages);
   const vulnerabilities = Object.fromEntries(names.map((name) => [name, {
     name, severity: "high", nodes: [`node_modules/${name}`],
-    via: name === "braces" ? [{ name, severity: "high", url: policy.exceptions[0].url }] : ["braces"],
+    via: name === "braces" ? [{ name, severity: "high", url: fixturePolicy.exceptions[0].url }] : ["braces"],
   }]));
   const lock = { packages: Object.fromEntries(names.map((name) => [`node_modules/${name}`, {
-    version: policy.exceptions[0].affected_packages[name], dev: true,
+    version: fixturePolicy.exceptions[0].affected_packages[name], dev: true,
   }])) };
   return { report: { auditReportVersion: 2, vulnerabilities,
     metadata: { vulnerabilities: { info: 0, low: 0, moderate: 0, high: names.length, critical: 0, total: names.length } } },
-  lock, policy: structuredClone(policy) };
+  lock, policy: structuredClone(fixturePolicy) };
 }
 function evaluate(value, options = {}) {
   return assessAudit(value.report, value.lock, value.policy, { mode: "full", now, ...options });
 }
+
+test("the active policy rejects the withdrawn braces exception and accepts a clean report", () => {
+  const value = { ...fixture(), policy: activePolicy };
+  assert.throws(() => evaluate(value), /Unreviewed advisory/);
+  value.report.vulnerabilities = {};
+  value.report.metadata.vulnerabilities.high = value.report.metadata.vulnerabilities.total = 0;
+  assert.deepEqual(evaluate(value).acceptedExceptions, []);
+  assert.equal(evaluate(value, { mode: "production" }).productionClean, true);
+});
 
 test("accepts only the exact reviewed development chain and requires clean production", () => {
   const value = fixture();

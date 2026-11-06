@@ -1,0 +1,548 @@
+{
+  "boundaries": {
+    "PR111_exact_documentation_release_accepted": true,
+    "continuous_paper_accepted": false,
+    "historical_receipts_rewritten": false,
+    "live_funding_signing_swaps_trading_authorized": false,
+    "new_batch_release_accepted": false,
+    "other_project_or_shared_account_changes": false,
+    "two_EMA_genes_preserved": true
+  },
+  "current_lanes": {
+    "B2": {
+      "production_adopted": false,
+      "receipt": "B2-NATIVE-ACCEPTANCE-2026-10-21-V12.json",
+      "status": "private local 24-case pass; maximum/reserve/adoption open"
+    },
+    "Helius_MCP": {
+      "MCP_provider_query_executed": true,
+      "MCP_provider_read_actions": 1,
+      "MCP_provider_read_scope": "heliusChain.getAccountInfo for public System Program only; executable/owner accepted",
+      "acceptance_receipt_path": "/private/tmp/dashboard-helius-mcp-acceptance-20261021.json",
+      "acceptance_receipt_sha256": "03d4209b1a04253c9af27311040f12ab3200b2465ed0acaf962fa2ac15c948b3",
+      "actual_configured_launcher_receipt": {
+        "accepted": true,
+        "catalog_accepted": true,
+        "configured_launcher": true,
+        "format": "dashboard-helius-restricted-mcp-acceptance-v1",
+        "known_telemetry_endpoint_suppressed_by_reviewed_preload": true,
+        "owned_child_closed": true,
+        "private_key_in_arguments": false,
+        "provider_read_actions": 1,
+        "public_system_program_account_returned": true,
+        "registered_tools": [
+          "expandResult",
+          "heliusAccount",
+          "heliusAsset",
+          "heliusChain",
+          "heliusCompression",
+          "heliusKnowledge",
+          "heliusStreaming",
+          "heliusTransaction",
+          "heliusWallet",
+          "heliusWrite"
+        ],
+        "stderr_bytes": 0,
+        "verified_utc": "2026-10-22T03:10:27.281Z",
+        "writes": 0
+      },
+      "application_dependencies_changed": false,
+      "catalog_test_accepted": true,
+      "current_chat_hotload_confirmed": false,
+      "current_chat_inventory_observation": "root confirms current ALL_TOOLS contains no Helius tools",
+      "current_chat_tools_hotloaded": false,
+      "direct_RPC_health": {
+        "HTTP_status": 200,
+        "evidence": "root-observed single request",
+        "mainnet": true,
+        "result": "ok",
+        "verified_TLS": true,
+        "writes": 0
+      },
+      "external_configured_launcher_connection_accepted": true,
+      "focused_verification_reported_by_root": {
+        "Node_cases_passed": 6,
+        "isolated_mock_catalog": "PASS",
+        "isolated_mock_network_attempts": 0,
+        "npm_audit_known_vulnerabilities": 0,
+        "npm_audit_lock_scope": "separate Helius runtime lock, not application lock",
+        "npm_ls_peer_warnings": "upstream peer conflicts / ELSPROBLEMS remain",
+        "python_cases_passed": 16,
+        "scoped_lint_errors": 0,
+        "two_new_JS_paths_scoped_lint_diagnostics": 0
+      },
+      "full_details": "HELIUS-TOOLING.md",
+      "general_network_or_filesystem_sandbox": false,
+      "global_or_other_agent_configuration_changes_authorized": false,
+      "installation_accepted": true,
+      "isolation": "ignored project ssl runtime; owned Node24/HOME/cache; application dependencies unchanged",
+      "known_telemetry_fetch_endpoint_suppressed": true,
+      "live_trading_authority": false,
+      "package": "helius-mcp@2.3.0",
+      "packages_installed_reported": 193,
+      "project_config": {
+        "args": [
+          "-I",
+          "-B",
+          "/Users/redjester/Projects/Next/TheDashboard/scripts/dashboard-helius-mcp.py"
+        ],
+        "codex_mcp_get_verified_reported_by_root": true,
+        "command": "/usr/bin/python3",
+        "cwd": "/Users/redjester/Projects/Next/TheDashboard",
+        "enabled_tools": [
+          "heliusWallet",
+          "heliusAsset",
+          "heliusTransaction",
+          "heliusChain",
+          "heliusCompression",
+          "expandResult"
+        ],
+        "env": null,
+        "excluded_groups": [
+          "heliusAccount",
+          "heliusWrite",
+          "heliusStreaming",
+          "heliusKnowledge"
+        ],
+        "inline_key": false
+      },
+      "runtime_prepared": true,
+      "runtime_version_reported": "2.3.0",
+      "signing_or_mutation_authority": false,
+      "status": "accepted project-only read-scoped external configured-launcher setup; Helius tools are not hot-loaded in current chat",
+      "user_key_file_saved_reported": true,
+      "user_requested": true
+    },
+    "Nestegg": {
+      "actual_browser_accepted": false,
+      "changes": [
+        "upward 5-dollar saving increments",
+        "explicit unavailable search-cap result",
+        "legitimate zero-return handling",
+        "remove fabricated goal probability"
+      ],
+      "compiled_synthetic_browser": {
+        "all_browser_routes_accepted": false,
+        "cap_case": {
+          "contributions": "Unavailable",
+          "current_pace_retained": 332955,
+          "extra_saving": "Unavailable",
+          "goal_display": 1000000000000,
+          "growth": "Unavailable",
+          "required_monthly": "Unavailable",
+          "status": "Above calculation limit"
+        },
+        "cleanup": {
+          "both_owned_listeners_closed": true,
+          "next_group": 86375,
+          "normal_exit_code": 0,
+          "owned_copy_absent": true,
+          "parent": 86132
+        },
+        "hosted_writes": 0,
+        "inspected_console": {
+          "errors": 0,
+          "warnings": 0
+        },
+        "live_or_provider_requests": 0,
+        "minor_open_issue": "Above-limit goal pace legend remains visible although its line is absent",
+        "only_owned_browser_tab_closed_reported_by_parent": true,
+        "ordinary_goal": {
+          "goal": 1000000,
+          "required_monthly_saving_display": 1010
+        },
+        "real_Supabase_two_user_RLS_accepted": false,
+        "receipt_path": "/private/tmp/dashboard-composed-browser-20261021.json",
+        "receipt_sha256": "8847a9538928c08ccacdedce1ab5c712981614ce26420811b54194428d9880e5",
+        "same_hostname_account_replacement": {
+          "Alice_prior_plan_and_1e12_goal_published": false,
+          "Bob_current_savings": 800000,
+          "Bob_goal": 1000000,
+          "Bob_goal_progress_percent": 80,
+          "Bob_plan_only": "BOBPRIVATEPLAN1",
+          "growth_only_saving_display": "None needed",
+          "sequence": [
+            "Alice logout",
+            "Bob login"
+          ]
+        },
+        "scope": "parent/root-observed actual compiled synthetic-loopback browser; not real Supabase Auth/two-user RLS",
+        "source_copy_original_guard_preserved": true,
+        "verified_utc": "2026-10-22T02:58:07.646170+00:00"
+      },
+      "composed_frontend_passes": 442,
+      "deferred": [
+        "household calendar/horizons",
+        "real/nominal inflation units",
+        "retirement ledger and RMD transfer accounting",
+        "return-distribution and probability calibration"
+      ],
+      "final_focused_repeat_accepted": true,
+      "final_repeat_accepted": true,
+      "latest_new_tests_passed": 11,
+      "latest_peer_corrections_included": true,
+      "new_tests": 11,
+      "prior_scope_tests_passed_before_latest_peer_corrections": 35,
+      "scoped_compiled_synthetic_browser_observed": true,
+      "source_files": 3,
+      "status": "prepared goal-math batch; tests/types/lint and scoped synthetic browser pass; minor legend/advisory and exact-head CI/release remain"
+    },
+    "PR111": {
+      "ci_run": 39708763776,
+      "final_CI_accepted": true,
+      "new_batch_candidates_covered": false,
+      "receipt": "RELEASE-PR111-ACCEPTANCE-2026-10-21.json",
+      "release_accepted": true,
+      "status": "merged and exact-tree released"
+    },
+    "composed_type_lint_advisory_gates": {
+      "advisories": {
+        "bounded_recheck": {
+          "Helius_runtime_audit_is_application_gate": false,
+          "exception_extended": false,
+          "failure_classification_reported_by_root": "full and production npm public bulk endpoint network timeouts",
+          "findings_counts": null,
+          "receipt": {
+            "accepted": false,
+            "earlier_incomplete_receipt": "/private/tmp/dashboard-composed-gates-20261021-Zyl1cj/receipt.json",
+            "format": "dashboard-public-advisory-bounded-recheck-v1",
+            "results": [
+              {
+                "accepted": false,
+                "errorCode": null,
+                "mode": "full",
+                "signal": null,
+                "status": 1
+              },
+              {
+                "accepted": false,
+                "errorCode": null,
+                "mode": "production",
+                "signal": null,
+                "status": 1
+              }
+            ],
+            "source_lock_unchanged": true,
+            "verified_utc": "2026-10-22T03:03:48.828Z"
+          },
+          "receipt_path": "/private/tmp/dashboard-advisory-recheck-20261021-3YXaRC/receipt.json",
+          "receipt_sha256": "41f87983ee3dd230fa2412c2c9ea2200c854b4e85822aebb796e48cb84eabe09"
+        },
+        "category": "generic public advisory scan failed",
+        "current_clean_result_established": false,
+        "elapsed_seconds": 120.07750212500001,
+        "exit_code": 1,
+        "new_findings_established": false,
+        "older_zero_production_five_exception_evidence": "historical only; does not replace current gate",
+        "status": "INCOMPLETE",
+        "timed_out": false
+      },
+      "app_source_unchanged_after_type_lint_checks_reported_by_root": true,
+      "lint": {
+        "by_rule": {
+          "@typescript-eslint/no-unused-vars": 18,
+          "react-hooks/exhaustive-deps": 3,
+          "react-hooks/immutability": 1,
+          "react-hooks/set-state-in-effect": 18
+        },
+        "errors": 0,
+        "fatal_errors": 0,
+        "files": 184,
+        "status": "PASS",
+        "warnings": 40
+      },
+      "receipt_path": "/private/tmp/dashboard-composed-gates-20261021-Zyl1cj/receipt.json",
+      "receipt_sha256": "6dfe57d0e416d475726822adfb4bbd3b9ec7c402dd66dc16da034ce0489dd26c",
+      "source_files": 241,
+      "source_unchanged": true,
+      "tests_repeated": false,
+      "types": {
+        "diagnostics": 0,
+        "status": "PASS"
+      }
+    },
+    "credentials": {
+      "current_closed_configuration_verified": true,
+      "finite_native_principals": {
+        "acceptance": true,
+        "all_NOLOGIN": true,
+        "all_exact_identities_found": true,
+        "all_expired": true,
+        "all_revoked": true,
+        "checked_at_utc": "2026-10-22T02:28:31.993654+00:00",
+        "found": 32,
+        "mutation": false,
+        "original_oid_mismatches": 0,
+        "original_records": 16,
+        "raw_credentials_or_hashes_output": false,
+        "read_only": true,
+        "reused_names": 0,
+        "session_termination": false,
+        "sessions_for_exact_principals": 0,
+        "target": {
+          "id": "fxpxsciltakyypunglzr",
+          "name": "The Dashboard",
+          "owner": "cqfnnaunmupdyobkyqfo"
+        },
+        "unique_original_principals": 32
+      },
+      "finite_recheck_receipt_sha256": "9dbb8509971a3eb45e448fe909eb5df3c1c4afd250f6bde7c314a69882285c3b",
+      "fresh_container_image_mode_TLS_Auth_accepted": false,
+      "manual_provider_creation_handoff": "pending; ignored mode-0600 destination prepared",
+      "prior_failed_local_assertion": "text/type normalization mismatch; fresh normalized original OID comparison passes",
+      "provider_key_dependency_scope": "user confirms all three historically deployed provider keys Dashboard-only",
+      "provider_rotation_accepted": false,
+      "railway_current_explicit_variable_names": 8,
+      "railway_current_total_names": 19
+    },
+    "dashboard": {
+      "CI_or_release_accepted": false,
+      "actual_1001_row_trade_browser_accepted": false,
+      "actual_browser_accepted": false,
+      "focused_tests_passed_reported_by_root": 20,
+      "guard_v5": {
+        "actual_browser_interactions_accepted": false,
+        "actual_composed_wrapped_browser_build": "READY",
+        "composed_files": 6,
+        "focused_tests_passed": 45,
+        "original_Next_config_preserved_in_owned_wrapper": true,
+        "original_generic_build": "PASS"
+      },
+      "offline_SDK_tests": 20,
+      "paths": 3,
+      "private_guard_v4": "superseded by composed guard v5",
+      "scoped_Nestegg_browser_observations": "see Nestegg compiled_synthetic_browser",
+      "status": "prepared history/guard batch; full442 and builds pass; trade browser/advisory and exact-head CI/release remain"
+    },
+    "earlier_frontend_composition": {
+      "elapsed_seconds_reported": 23.215,
+      "evidence_source": "parent/root observed execution",
+      "executed": 436,
+      "failures": 0,
+      "node": "24.19",
+      "passed": 436,
+      "private_log_path": "/private/tmp/dashboard-parallel-frontend-20261021.log",
+      "private_log_sha256": "9413c26f2eafd6d3a1a0874fc36a84b23b115101533192a0c5c1d23c2364e447",
+      "skips": 0,
+      "status": "working-tree local PASS; no hosted CI/release acceptance"
+    },
+    "empirical": {
+      "CI_or_release_accepted": false,
+      "candidate_path": "/private/tmp/dashboard-all-opportunity-costs-20261021-_8dlumjg",
+      "composition_log_sha256": "e5fee326b01f85ebc35ccc298c218757dba90c7212420a63b9dab7413415cb0c",
+      "composition_receipt_path": "/private/tmp/dashboard-audit-worker-20261021-trccxkde/fee-composition-receipt.json",
+      "composition_receipt_sha256": "a3c97779d097622cbc87802501754ca7af4a20505ca375015f6f38d5b7a99d46",
+      "composition_source_sha256": {
+        "services/vonneumann/tests/test_opportunity_costs.py": "e86412fbeb92bc1777b0211ee4f03391e9184e23c37594d5a50e38a076e390e0",
+        "services/vonneumann/vonneumann/research/fee_provenance.py": "e03ebdfc5b3dd8e1a349dcf9975a054b1f8508072e6fdc9f8408aac4f4e33f5c",
+        "services/vonneumann/vonneumann/research/opportunity_costs.py": "50e62d134519670d7caa4c2b3fe68332bba93e9c6890e7fb739a0be002312fdf"
+      },
+      "execution_evidence": "retained fresh locked CPython3.12.14 composition receipt",
+      "existing_fee_tests": 7,
+      "initial_private_smoke": {
+        "evidence": "parent/root observed clean env-i -S child; earlier scope",
+        "test_seconds_reported": 0.013,
+        "tests_passed": 14
+      },
+      "manifest_sha256": "7e52f082a263ee70ecbaca1fe1884a0fb9d10b214fb0c08497eafd873be2a31d",
+      "network_or_database_calls": false,
+      "new_tests": 14,
+      "pip_check": "PASS; parent/root observation",
+      "population_authentication_or_calibration": false,
+      "preparation_receipt_sha256": "ea772968a268883e649a17230c80fc8079f81bada22366bf0fd5331f8241c14f",
+      "runner_integration": false,
+      "source_unchanged": true,
+      "status": "prepared offline fee composition; no runner integration or exact-head CI/release acceptance",
+      "test_seconds_reported": 0.598,
+      "tests_passed": 21,
+      "working_tree_composed": true
+    },
+    "frontend_composition": {
+      "cancellations": 0,
+      "clean_env_i": true,
+      "dotenv_inherited": false,
+      "earlier_436_receipt_retained": true,
+      "elapsed_seconds_reported": 22.70247275,
+      "evidence_source": "parent/root observed final complete source composition including six new Helius Node tests",
+      "executed": 442,
+      "failures": 0,
+      "node": "24.19.0",
+      "passed": 442,
+      "private_log_path": "/private/tmp/dashboard-parallel-frontend-final-20261021.log",
+      "private_log_sha256": "47b4f1dc83f0889fcd6bbe0e0534f8f6bb3fbf991b5cdbe9f511c7c3aaa7135c",
+      "skips": 0,
+      "status": "prepared-batch local PASS; not yet accepted by exact-head CI/release",
+      "todos": 0
+    }
+  },
+  "deeper_research": [
+    "representative point-in-time data, missing/delayed/revised observations and survivorship",
+    "all-outcome execution costs, failed fees, refunds, liquidity/notional and valuation",
+    "experiment-family trial/exclusion/holdout access accounting",
+    "longer-prefix EMA initialization sensitivity",
+    "serial dependence, effective trials and statistical-method eligibility",
+    "Nestegg household units/calendar, benefit/tax/RMD transfers and probability calibration",
+    "measured target-host CPU/memory/storage/query/lock/WAL/quota/cost tails"
+  ],
+  "dependencies": [
+    {
+      "acceptance_after": [
+        "manual scoped keys and coordinated consumer update",
+        "old-key retirement and usage review",
+        "platform recovery and fresh exact closed-hosted checks"
+      ],
+      "lane": "credentials",
+      "parallel_now": true,
+      "predecessors": []
+    },
+    {
+      "acceptance_after": [
+        "admitted maximum/reserve proof",
+        "production owner design",
+        "current-base composition/actual CI",
+        "separate source adoption"
+      ],
+      "lane": "B2",
+      "parallel_now": true,
+      "predecessors": []
+    },
+    {
+      "acceptance_after": [
+        "peer corrections",
+        "actual browser",
+        "composed frontend/CI",
+        "exact verified release"
+      ],
+      "lane": "dashboard",
+      "parallel_now": true,
+      "predecessors": []
+    },
+    {
+      "acceptance_after": [
+        "final repeat and peer review",
+        "actual browser",
+        "composed frontend/CI",
+        "exact verified release"
+      ],
+      "lane": "Nestegg goal math",
+      "parallel_now": true,
+      "predecessors": []
+    },
+    {
+      "acceptance_after": [
+        "family/split/cost contracts",
+        "exact-domain adapter",
+        "authorized representative corpus/calibration",
+        "predeclared forward windows and untouched holdout"
+      ],
+      "lane": "empirical design",
+      "parallel_now": true,
+      "predecessors": []
+    },
+    {
+      "acceptance_after": [
+        "fresh closed image/configuration/TLS/Auth",
+        "bounded faults/windows",
+        "sustained resource/quota/cost",
+        "genuine 915-minute trace"
+      ],
+      "lane": "closed hosted portable paper",
+      "parallel_now": "runbook and fixture design only",
+      "predecessors": [
+        "incident response",
+        "complete native/source/clock/reader/model",
+        "restoration/retention/UI joins",
+        "migration/rollback review"
+      ]
+    }
+  ],
+  "format": "dashboard-parallel-audit-reconciliation-v1",
+  "open_minor_UI_followups": [
+    "Above-limit goal pace legend remains visible while corresponding line is absent"
+  ],
+  "record_date_local": "2026-10-21",
+  "released": {
+    "PR104": {
+      "ci_run": 38984914265,
+      "merge": "9403e14bce9439060b468f8eb5fd2763149603f9",
+      "narrow_items": [
+        "NEST-05A result identity and same-account publication ordering",
+        "PAPER-COMPACT-03B3C2B2B original-v2 offline SQL value-semantic proof",
+        "SEC-05B exact Next/config 16.4.2"
+      ],
+      "receipt": "RELEASE-ACCEPTANCE-2026-10-16.md",
+      "required_jobs_passed": 7
+    },
+    "PR105": {
+      "ci_run": 38987405700,
+      "merge": "aa96f708583299b67f005b2be024a00a01d94293",
+      "narrow_items": [
+        "APP-01 honest sample provenance and unavailable historical evaluation",
+        "APP-02 no fabricated action completion",
+        "APP-03 request/configuration/error validation"
+      ],
+      "receipt": "APP-RELEASE-ACCEPTANCE-2026-10-16.md",
+      "required_jobs_passed": 7
+    },
+    "PR106": {
+      "ci_run": 39011604302,
+      "merge": "89c7979d278ba7d14c9157248eb5a152fc00a06b",
+      "narrow_items": [
+        "independent two-table API baseline/ACL and actual persistence/owned cleanup"
+      ],
+      "receipt": "DB-04-API-BASELINE-ACCEPTANCE-2026-10-17.md",
+      "required_jobs_passed": 7
+    },
+    "PR108_109": {
+      "narrow_items": [
+        "worker foundations/B1 actor catalog",
+        "Paper Dashboard control and React-render repair"
+      ],
+      "receipt": "RELEASE-CI-ACCEPTANCE-2026-10-18.md"
+    },
+    "PR110": {
+      "ci_run": 39187444654,
+      "merge": "02f90563c5ececd4f89a3dd92796601b9abdce7b",
+      "narrow_items": [
+        "three-ordinary/four-SQL CI reliability composition"
+      ],
+      "post_merge_ci_run": 39704739120,
+      "receipt": "RELEASE-PR110-ACCEPTANCE-2026-10-21.json",
+      "required_jobs_passed": 8
+    },
+    "PR111": {
+      "build_seconds": 17,
+      "ci_run": 39708763776,
+      "head": "764d00a1d0fb149269ff752be99d8965a70272df",
+      "merge": "1fcbf0c84f4fcb5f8b06095e498df1a3965adea6",
+      "merged_at_utc": "2026-10-22T02:48:43Z",
+      "production": "dpl_Gs8rhCg6i9PNgwS1pRXipUtdZ9hG",
+      "receipt": "RELEASE-PR111-ACCEPTANCE-2026-10-21.json",
+      "receipt_sha256": "64be251fa07762497f3c99c65390fa7afaf828f59d64134ff87f590258a6af74",
+      "required_jobs_passed": 8,
+      "scope": "PR111 documentation and V11b review archive only; later prepared composition excluded",
+      "smoke": {
+        "accepted": true,
+        "checks": {
+          "anonymous_api_status": 401,
+          "anonymous_root_location": "/login",
+          "anonymous_root_status": 307,
+          "authenticated_data_rows": 0,
+          "authenticated_zero_row_status": 200,
+          "login_status": 200
+        },
+        "contract_checks": 4,
+        "expected_deployment": "dpl_Gs8rhCg6i9PNgwS1pRXipUtdZ9hG",
+        "expected_source": "1fcbf0c84f4fcb5f8b06095e498df1a3965adea6",
+        "format": "dashboard-pr111-production-readonly-smoke-v1",
+        "hostname": "the-dashboard-chi.vercel.app",
+        "verified_utc": "2026-10-22T02:55:31.586Z",
+        "writes": 0
+      },
+      "tested_checkout": "ebe02c7beb2199c36183ac9014971a7db663eb6e",
+      "tree": "aa7576cebc2608122324a8a8bba0d14d1f0c498c"
+    }
+  },
+  "scope": "This report is documentation reconciliation; the prepared combined batch also contains application, guard, fee-research and Helius tooling changes plus review-only V12 archive. No remote mutation or credential rotation is performed by this documentation lane.",
+  "timezone": "America/Denver"
+}

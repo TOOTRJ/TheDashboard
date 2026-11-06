@@ -1,13 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createBrowserBackend, FIXTURE_KEY, FIXTURE_ADMIN_KEY, FIXTURE_PASSWORD, FIXTURE_OWNERS } from '../browser-fixtures/backend.mjs';
-import { browserEnvironment, runFixtureChild, createFixtureLaunchGuard, createFixtureOwnedSteps,
+import { browserEnvironment, fixtureNextConfigSource, runFixtureChild, createFixtureLaunchGuard, createFixtureOwnedSteps,
   parseOwnedGroupState, ownedGroupIsQuiescent, ownedGroupIsActive, finishFixtureCleanup, fixtureFailureMetadata } from '../browser-fixture.mjs';
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import childProcess from 'node:child_process';
 import { syncBuiltinESMExports } from 'node:module';
+import vm from 'node:vm';
+import ts from 'typescript';
 
 async function fixture(t) {
   const backend = createBrowserBackend({ currentAge: 32, retirementAge: 65, lifeExpectancy: 90 });
@@ -32,6 +34,8 @@ test('browser child drops inherited credentials and fixes both providers to owne
     NPM_CONFIG_MAXSOCKETS: '999',
   });
   assert.equal(env.NEXT_PUBLIC_SUPABASE_URL, 'http://127.0.0.1:12345');
+  assert.equal(env.DASHBOARD_OFFLINE_BUILD, '1');
+  assert.equal(env.DASHBOARD_BROWSER_FIXTURE_BUILD, '1');
   assert.equal(env.NEXT_PUBLIC_SUPABASE_ANON_KEY, FIXTURE_KEY);
   assert.equal(env.NEXT_PUBLIC_VN_API_URL, 'http://127.0.0.1:12345');
   assert.equal(env.API_SECRET_KEY, 'dashboard-browser-fixture-api-key');
@@ -40,7 +44,7 @@ test('browser child drops inherited credentials and fixes both providers to owne
   assert.equal(env.NODE_OPTIONS, undefined); assert.equal(env.PYTHONPATH, undefined);
   assert.equal(env.VERCEL_TOKEN, undefined);
   assert.ok(!Object.values(env).some(v => String(v).includes('private-api')));
-  for (const url of ['https://127.0.0.1:12345', 'http://localhost:12345',
+  for (const url of ['http://127.0.0.1', 'http://127.0.0.1:0', 'https://127.0.0.1:12345', 'http://localhost:12345',
     'http://127.0.0.1:12345/', 'https://fxpxsciltakyypunglzr.supabase.co', 'http://user@127.0.0.1:12345']) {
     assert.throws(() => browserEnvironment('/private/tmp/owned-browser', url, {}));
   }
@@ -392,4 +396,69 @@ test('owned-group command failures, foreign metadata and unsupported platforms f
   assert.equal(ownedGroupIsQuiescent({ pid: 11 }, () => ({ status: 1, stdout: '', stderr: '' }), 'darwin'), true);
   assert.throws(() => ownedGroupIsQuiescent({ pid: 0 }, () => assert.fail('must not execute'), 'darwin'), /exact owned process group/);
   assert.throws(() => ownedGroupIsQuiescent({ pid: 11 }, () => assert.fail('must not execute'), 'win32'), /exact owned process group/);
+});
+
+function compiledFixtureConfig(original, owner = '10000000-0000-4000-8000-000000000001') {
+  const source = fixtureNextConfigSource(owner, 'http://127.0.0.1:12345');
+  const compiled = ts.transpileModule(source, { compilerOptions: {
+    module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022,
+  } }).outputText;
+  const exports = {};
+  vm.runInNewContext(compiled, { exports, require(name) {
+    assert.equal(name, './dashboard-fixture-source.config'); return { default: original };
+  } });
+  return exports.default;
+}
+
+test('compiled fixture wrapper executes the original phase function before adding restrictions', async () => {
+  const defaults = { defaultConfig: { reactStrictMode: false } }, observed = [];
+  const original = { reactStrictMode: true, allowedDevOrigins: ['retained.example'],
+    async headers() { assert.equal(this, original); return [{ source: '/retained', headers: [{ key: 'X-Retained', value: 'yes' }] }]; } };
+  const wrapped = compiledFixtureConfig(async (phase, options) => { observed.push({ phase, options }); return original; });
+  const result = await wrapped('phase-production-build', defaults);
+  assert.equal(observed.length, 1); assert.equal(observed[0].phase, 'phase-production-build');
+  assert.equal(observed[0].options, defaults); assert.equal(result.reactStrictMode, true);
+  assert.deepEqual(Array.from(result.allowedDevOrigins), ['retained.example', '127.0.0.1']);
+  const headers = JSON.parse(JSON.stringify(await result.headers()));
+  assert.equal(headers.length, 2); assert.equal(headers[0].source, '/retained');
+  assert.equal(headers[0].headers[0].value, 'yes');
+  assert.deepEqual(headers[1], { source: '/:path*', headers: [
+    { key: 'X-Dashboard-Fixture-Owner', value: '10000000-0000-4000-8000-000000000001' },
+    { key: 'Content-Security-Policy', value: "connect-src 'self' http://127.0.0.1:12345 ws://127.0.0.1:12345" },
+  ] });
+  assert.deepEqual(original.allowedDevOrigins, ['retained.example']);
+});
+
+test('compiled fixture wrapper propagates the actual original build guard refusal', async () => {
+  const source = await readFile(new URL('../../next.config.ts', import.meta.url), 'utf8');
+  for (const environment of [
+    { VERCEL: '1', VERCEL_ENV: 'preview', VERCEL_PROJECT_ID: 'prj_wFUe9k9USVreOQcmQKNWRAVsx5fH' },
+    { VERCEL_ENV: 'production', NEXT_PUBLIC_SUPABASE_URL: 'https://fxpxsciltakyypunglzr.supabase.co', NEXT_PUBLIC_SUPABASE_ANON_KEY: 'fake-only' },
+  ]) {
+    const exports = {};
+    vm.runInNewContext(ts.transpileModule(source, { compilerOptions: {
+      module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022,
+    } }).outputText, { exports, URL, process: { env: environment }, require(name) {
+      assert.equal(name, 'next/constants'); return { PHASE_PRODUCTION_BUILD: 'phase-production-build' };
+    } });
+    await assert.rejects(compiledFixtureConfig(exports.default)('phase-production-build', { defaultConfig: {} }), /Dashboard preview and unreviewed builds are blocked/);
+  }
+});
+
+test('compiled fixture wrapper retains the original object configuration', async () => {
+  const result = await compiledFixtureConfig({ reactStrictMode: true })('phase-production-build', { defaultConfig: {} });
+  assert.equal(result.reactStrictMode, true); assert.equal((await result.headers()).length, 1);
+});
+
+test('compiled fixture wrapper refuses invalid original configuration or header results', async () => {
+  for (const original of [null, undefined, [], { headers: 'invalid' }, { allowedDevOrigins: 'invalid' }, { allowedDevOrigins: [1] }]) {
+    await assert.rejects(compiledFixtureConfig(original)('phase-production-build', { defaultConfig: {} }), /Original Dashboard configuration is invalid/);
+  }
+  const result = await compiledFixtureConfig({ async headers() { return 'invalid'; } })('phase-production-build', { defaultConfig: {} });
+  await assert.rejects(result.headers(), /Original Dashboard headers are invalid/);
+});
+
+test('fixture wrapper source refuses non-owned origin or malformed owner input', () => {
+  assert.throws(() => fixtureNextConfigSource('not-a-uuid', 'http://127.0.0.1:12345'), /owned UUID/);
+  assert.throws(() => fixtureNextConfigSource('10000000-0000-4000-8000-000000000001', 'https://external.example'), /loopback/);
 });

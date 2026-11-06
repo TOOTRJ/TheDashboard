@@ -48,19 +48,22 @@ test("allowlisted source cannot escape through a symbolic link", async t => {
 test("build subprocess receives only fake app settings and owned npm paths", () => {
   const env = buildEnvironment("/tmp/dashboard-owned-test", {
     PATH: "/test/bin", LANG: "C", HOME: "/real-home", VERCEL_TOKEN: "never-copy",
+    VERCEL: "1", VERCEL_ENV: "preview", VERCEL_TARGET_ENV: "staging", VERCEL_PROJECT_ID: "foreign-project",
+    DASHBOARD_OFFLINE_BUILD: "0",
     SUPABASE_SERVICE_ROLE_KEY: "never-copy", NEXT_PUBLIC_SUPABASE_URL: "https://real.example",
     NEXT_PUBLIC_VN_API_URL: "https://real-worker.example", RAILWAY_TOKEN: "never-copy",
     NODE_OPTIONS: "--require malicious.cjs", NPM_CONFIG_USERCONFIG: "/real-home/.npmrc",
     NPM_CONFIG_MAXSOCKETS: "999",
   });
   assert.equal(env.PATH, "/test/bin");
+  assert.equal(env.DASHBOARD_OFFLINE_BUILD, "1");
   assert.equal(env.NEXT_PUBLIC_SUPABASE_URL, "https://dashboard-ci.invalid");
   assert.equal(env.NPM_CONFIG_USERCONFIG, "/tmp/dashboard-owned-test/empty-user-npmrc");
   assert.equal(env.NPM_CONFIG_GLOBALCONFIG, "/tmp/dashboard-owned-test/empty-global-npmrc");
   assert.equal(env.NPM_CONFIG_MAXSOCKETS, "4");
   assert.equal(env.SUPABASE_SERVICE_ROLE_KEY, "dashboard-ci-fake-secret-with-no-access");
   assert.equal(Object.values(env).some(value => value.includes("never-copy")), false);
-  for (const key of ["HOME", "VERCEL_TOKEN", "RAILWAY_TOKEN", "NODE_OPTIONS", "NEXT_PUBLIC_VN_API_URL"]) {
+  for (const key of ["HOME", "VERCEL_TOKEN", "VERCEL", "VERCEL_ENV", "VERCEL_TARGET_ENV", "VERCEL_PROJECT_ID", "RAILWAY_TOKEN", "NODE_OPTIONS", "NEXT_PUBLIC_VN_API_URL"]) {
     assert.equal(Object.hasOwn(env, key), false);
   }
 });
