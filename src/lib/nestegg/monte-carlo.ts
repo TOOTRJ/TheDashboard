@@ -1,7 +1,7 @@
 import type { NesteggInputs, NesteggScenarioId, ProjectionPoint } from "./types";
 import type { RiskProfile } from "./types";
 import { applyScenarioToInputs } from "./constants";
-import { planHorizonAge, runProjection } from "./projections";
+import { planHorizonAge, retirementMonthlyBaseReturn, runProjection } from "./projections";
 import { retirementSpendAndIncome } from "./retirement-cashflow";
 import { uniformLifetimeDivisor } from "./rmd";
 
@@ -23,8 +23,8 @@ export function effectiveAnnualVolatilityPercent(inputs: NesteggInputs): number 
   return ANNUAL_VOLATILITY_BY_RISK[inputs.riskProfile] ?? ANNUAL_VOLATILITY_BY_RISK.moderate;
 }
 
-/** V2 counts a funding shortfall in any modeled month, including the final month. */
-export const NESTEGG_MC_MODEL_VERSION = "nestegg-monthly-normal-v2";
+/** V3 preserves a zero return baseline and retains V2 final-month shortfall handling. */
+export const NESTEGG_MC_MODEL_VERSION = "nestegg-monthly-normal-v3";
 export const NESTEGG_MC_SEED_POLICY = "fnv1a-input-json-mulberry32-path-v1";
 
 const DEFAULT_PATHS = 900;
@@ -32,11 +32,6 @@ const MAX_PATHS = 1500;
 
 function clamp(n: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, n));
-}
-
-function monthlyRateFromAnnual(annualPercent: number): number {
-  const r = annualPercent / 100;
-  return Math.pow(1 + r, 1 / 12) - 1;
 }
 
 /** Deterministic mulberry32 PRNG for reproducible batches per (inputs, scenario). */
@@ -125,11 +120,9 @@ function simulatePath(
     retirementAge,
     currentSavings,
     monthlyContribution,
-    annualReturnPercent,
     salaryGrowthPercent,
     oneTimeIncome,
     oneTimeExpense,
-    riskProfile,
     householdMode,
     spouseCurrentAge,
     spouseRetirementAge,
@@ -142,11 +135,7 @@ function simulatePath(
   } = inputs;
 
   const planEndAge = planHorizonAge(inputs);
-  const riskAdj =
-    riskProfile === "conservative" ? -0.5 : riskProfile === "aggressive" ? 0.5 : 0;
-  const effectiveReturn = clamp(annualReturnPercent + riskAdj, 0.5, 15);
-
-  const baseMonthly = monthlyRateFromAnnual(effectiveReturn);
+  const baseMonthly = retirementMonthlyBaseReturn(inputs);
   const volMonthly = annualVolPercent / 100 / Math.sqrt(12);
 
   const salaryGrowth = salaryGrowthPercent / 100;
