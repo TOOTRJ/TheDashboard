@@ -15,7 +15,7 @@ import {
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/formatters";
 import type { GoalProjectionResult, GoalProjectionPoint } from "@/lib/nestegg/future-value";
-import { CheckCircle, Target, AlertTriangle, TrendingUp } from "lucide-react";
+import { CheckCircle, Target, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NEON = {
@@ -83,6 +83,7 @@ export function NesteggGoalChart({
   } = projection;
 
   const gap = goalAmount - currentPathEndBalance;
+  const hasGoalPace = series.some((point) => point.goalPath !== null);
 
   const statusConfig = {
     ahead: {
@@ -215,7 +216,7 @@ export function NesteggGoalChart({
                 <YAxis tickLine={false} axisLine={false} tick={{ fill: NEON.muted, fontSize: 10 }} tickFormatter={(v) => v >= 1_000_000 ? `$${(v / 1_000_000).toFixed(1)}M` : `$${(v / 1000).toFixed(0)}k`} />
                 <Tooltip content={(props) => <ChartTooltip active={props.active} payload={props.payload} />} />
                 <Legend wrapperStyle={{ fontSize: 11 }} formatter={(value) => <span className="text-muted-foreground uppercase tracking-wider">{value}</span>} />
-                <Line type="monotone" dataKey="goalPath" name="Goal pace" stroke={NEON.green} strokeWidth={2.5} dot={false} style={{ filter: `drop-shadow(0 0 8px ${NEON.green})` }} />
+                {hasGoalPace && <Line type="monotone" dataKey="goalPath" name="Goal pace" stroke={NEON.green} strokeWidth={2.5} dot={false} style={{ filter: `drop-shadow(0 0 8px ${NEON.green})` }} />}
                 <Line type="monotone" dataKey="currentPath" name="Current pace" stroke={NEON.cyan} strokeWidth={2} dot={false} style={{ filter: `drop-shadow(0 0 6px ${NEON.cyan})` }} />
                 <ReferenceLine y={goalAmount} stroke={NEON.yellow} strokeDasharray="6 4" strokeOpacity={0.6} label={{ value: "Goal", fill: NEON.yellow, fontSize: 10, position: "right" }} />
                 <ReferenceLine x={targetYear} stroke={NEON.pink} strokeDasharray="4 4" strokeOpacity={0.5} label={{ value: String(targetYear), fill: NEON.pink, fontSize: 10, position: "top" }} />
