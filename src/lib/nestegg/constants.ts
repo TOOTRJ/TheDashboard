@@ -37,6 +37,15 @@ export const SCENARIO_LABELS: Record<NesteggScenarioId, string> = {
   aggressive: "Aggressive",
 };
 
+function normalizeAnnualReturn(value: unknown): number {
+  const fallback = DEFAULT_NESTEGG_INPUTS.annualReturnPercent;
+  if (typeof value !== "number" && (typeof value !== "string" || !value.trim())) {
+    return fallback;
+  }
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
 /** Merge partial / JSON-loaded data with defaults (for storage round-trips). */
 export function normalizeNesteggInputs(raw: unknown): NesteggInputs {
   if (!raw || typeof raw !== "object") {
@@ -50,7 +59,7 @@ export function normalizeNesteggInputs(raw: unknown): NesteggInputs {
     lifeExpectancy: Number(o.lifeExpectancy) || DEFAULT_NESTEGG_INPUTS.lifeExpectancy,
     currentSavings: Number(o.currentSavings) || 0,
     monthlyContribution: Number(o.monthlyContribution) || 0,
-    annualReturnPercent: Number(o.annualReturnPercent) || DEFAULT_NESTEGG_INPUTS.annualReturnPercent,
+    annualReturnPercent: normalizeAnnualReturn(o.annualReturnPercent),
     monthlyRetirementSpending:
       Number(o.monthlyRetirementSpending) || DEFAULT_NESTEGG_INPUTS.monthlyRetirementSpending,
     inflationPercent: clampNum(Number(o.inflationPercent), 0, 8, DEFAULT_NESTEGG_INPUTS.inflationPercent),
@@ -154,7 +163,8 @@ export function applyScenarioToInputs(
   if (scenario === "conservative") {
     return {
       ...inputs,
-      annualReturnPercent: Math.max(1, inputs.annualReturnPercent - 2),
+      // A lower-return preset cannot raise an already-low assumption.
+      annualReturnPercent: Math.min(inputs.annualReturnPercent, Math.max(1, inputs.annualReturnPercent - 2)),
       inflationPercent: Math.min(8, inputs.inflationPercent + 0.5),
     };
   }

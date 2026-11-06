@@ -213,16 +213,19 @@ export function NesteggAllInputsPanel({
               <TipLabel
                 htmlFor="ai-annualReturn"
                 label="Expected annual return %"
-                tip="Expected average annual investment return before inflation"
+                tip="Annual return before inflation. In Base, 0% gives zero baseline growth; simulated returns can still vary."
               />
               <Input
                 id="ai-annualReturn"
                 type="number"
-                min={1}
+                min={0}
                 max={12}
                 step={0.25}
                 value={inputs.annualReturnPercent}
-                onChange={(e) => onChange({ annualReturnPercent: Number(e.target.value) })}
+                onChange={(e) => {
+                  const entered = e.currentTarget.valueAsNumber;
+                  if (Number.isFinite(entered)) onChange({ annualReturnPercent: entered });
+                }}
                 className={inputClass}
               />
             </div>

@@ -25,9 +25,9 @@ export function NesteggScenarioSelector({ value, onChange, className }: Props) {
             value={id}
             title={
               id === "base"
-                ? "Uses your entered return and inflation as-is."
+                ? "Starts with your entered assumptions before risk adjustments. A 0% return keeps a zero baseline."
                 : id === "conservative"
-                  ? "Lower returns and slightly higher inflation stress-test."
+                  ? "Lower returns when possible and stress-test with higher inflation."
                   : "Higher returns; use alongside conservative for range."
             }
             className="text-xs uppercase tracking-wider py-2.5 rounded-md transition-colors data-[state=active]:bg-[#00fff5]/15 data-[state=active]:text-[#00fff5] data-[state=active]:shadow-[0_0_16px_-4px_rgba(0,255,245,0.35)] data-[state=active]:ring-1 data-[state=active]:ring-[#00fff5]/40"

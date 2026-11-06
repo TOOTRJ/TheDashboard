@@ -90,9 +90,9 @@ const FIELDS: FieldDef[] = [
   {
     id: "qa-annualReturn",
     label: "Return %",
-    tip: "Expected average annual investment return before inflation",
+    tip: "Annual return before inflation. In Base, 0% gives zero baseline growth; simulated returns can still vary.",
     key: "annualReturnPercent",
-    min: 1,
+    min: 0,
     max: 12,
     step: 0.25,
   },
@@ -235,7 +235,14 @@ function QuickField({
         max={field.max}
         step={field.step}
         value={Number.isFinite(value) ? value : 0}
-        onChange={(e) => onChange(Number(e.target.value))}
+        onChange={(e) => {
+          if (field.key === "annualReturnPercent") {
+            const entered = e.currentTarget.valueAsNumber;
+            if (Number.isFinite(entered)) onChange(entered);
+          } else {
+            onChange(Number(e.target.value));
+          }
+        }}
         className={inputClass}
       />
     </div>

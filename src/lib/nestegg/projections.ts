@@ -7,9 +7,16 @@ import type {
 import { retirementSpendAndIncome } from "./retirement-cashflow";
 import { uniformLifetimeDivisor } from "./rmd";
 
-function monthlyRateFromAnnual(annualPercent: number): number {
-  const r = annualPercent / 100;
-  return Math.pow(1 + r, 1 / 12) - 1;
+/** Baseline growth shared by deterministic and stochastic retirement paths. */
+export function retirementMonthlyBaseReturn(
+  { annualReturnPercent, riskProfile }: Pick<NesteggInputs, "annualReturnPercent" | "riskProfile">
+): number {
+  // Explicit zero is a flat baseline; stochastic volatility is separate.
+  if (annualReturnPercent === 0) return 0;
+  const riskAdj =
+    riskProfile === "conservative" ? -0.5 : riskProfile === "aggressive" ? 0.5 : 0;
+  const annual = clamp(annualReturnPercent + riskAdj, 0.5, 15);
+  return Math.pow(1 + annual / 100, 1 / 12) - 1;
 }
 
 function clamp(n: number, min: number, max: number): number {
@@ -42,14 +49,12 @@ export function runProjection(
     retirementAge,
     currentSavings,
     monthlyContribution,
-    annualReturnPercent,
     monthlyRetirementSpending,
     salaryGrowthPercent,
     socialSecurityMonthly,
     otherRetirementIncomeMonthly,
     oneTimeIncome,
     oneTimeExpense,
-    riskProfile,
     householdMode,
     spouseCurrentAge,
     spouseRetirementAge,
@@ -64,11 +69,7 @@ export function runProjection(
 
   const planEndAge = planHorizonAge(inputs);
 
-  const riskAdj =
-    riskProfile === "conservative" ? -0.5 : riskProfile === "aggressive" ? 0.5 : 0;
-  const effectiveReturn = clamp(annualReturnPercent + riskAdj, 0.5, 15);
-
-  const monthlyR = monthlyRateFromAnnual(effectiveReturn);
+  const monthlyR = retirementMonthlyBaseReturn(inputs);
   const salaryGrowth = salaryGrowthPercent / 100;
 
   const totalMonths = Math.max(0, (planEndAge - currentAge) * 12);

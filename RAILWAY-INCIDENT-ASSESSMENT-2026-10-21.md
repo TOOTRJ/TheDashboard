@@ -1,5 +1,15 @@
 # Dashboard Railway incident assessment — 2026-10-21
 
+## November 6 replacement checkpoint
+
+The user supplied three replacements in the ignored, owner-only handoff. Four bounded read-only requests passed. Jupiter Price V3 returned a SOL/USD observation and slot. Birdeye OHLCV V3 returned a contiguous 915 completed minutes plus a boundary row outside the completed window. Helius returned the expected mainnet genesis and a recent block time for the Jupiter slot. Raw payloads stayed in process memory. Jupiter reported four requests remaining in that response. Sustained quota, endpoint permissions beyond these reads and hosted acceptance still need separate evidence.
+
+The exact Railway service still has eight configured variables. Its Variables panel contained none of the provider credential names. The current worker and Vercel require no replacement setting for this rotation. A later approved paper configuration or provider canary can receive the three validated values through explicit, scoped runtime injection. The legacy local dotenv files contain different Jupiter and Birdeye entries. Treat those as legacy values. The separate Helius MCP credential differs from the replacement RPC key. The old hosted Helius key could not be matched from the local dotenv files, so confirm its identity and MCP dependency in the provider account before revocation.
+
+The user subsequently confirmed provider-side revocation of the superseded credentials. A fresh four-request check against the replacements passed: Jupiter Price V3, Birdeye OHLCV V3, Helius mainnet genesis and Helius block time for the Jupiter slot. That verifies the replacements after the user-reported revocation. Keep the replacement keys active and preserve the closed rebuild artifact. Historical credential-bearing deployments are excluded from rollback because rollback can restore the old variables. [Closed recovery and remaining acceptance](RAILWAY-SETUP.md#current-closed-worker-recovery--2026-11-06).
+
+## October 21 baseline
+
 The replacement token works through the isolated helper. The exact allowed project, workspace, production environment and worker service match; the latest deployment remains `cf05895d-adc5-427f-873e-82ad6606e5a1` / SUCCESS. At October 22 01:52 UTC (October 21 Denver), read-only configuration queries show closed mode and both dotenv-disable flags set. No remote mutation or rotation accompanies this assessment. [Machine-readable evidence](RAILWAY-INCIDENT-ASSESSMENT-2026-10-21.json).
 
 ## Provider incident and the earlier failure

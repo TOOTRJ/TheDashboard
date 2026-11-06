@@ -38,9 +38,9 @@ export function NesteggQuickWhatIf({ inputs, onPatch, hideHeader = false }: Prop
       },
     },
     {
-      label: "Returns down 1%",
+      label: "Lower returns (up to 1 pt)",
       patch: {
-        annualReturnPercent: Math.max(0.5, inputs.annualReturnPercent - 1),
+        annualReturnPercent: Math.min(inputs.annualReturnPercent, Math.max(0.5, inputs.annualReturnPercent - 1)),
       },
     },
     {
@@ -52,7 +52,7 @@ export function NesteggQuickWhatIf({ inputs, onPatch, hideHeader = false }: Prop
     {
       label: "More conservative mix",
       patch: {
-        annualReturnPercent: Math.max(1, inputs.annualReturnPercent - 2),
+        annualReturnPercent: Math.min(inputs.annualReturnPercent, Math.max(1, inputs.annualReturnPercent - 2)),
         inflationPercent: Math.min(8, inputs.inflationPercent + 0.5),
       },
     },

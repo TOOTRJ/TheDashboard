@@ -46,15 +46,15 @@ Single fixed return path: **nominal** dollars, no explicit fees.
 
 ### Effective annual return
 
-1. **Risk profile:** Conservative **−0.5%**, Moderate **0%**, Aggressive **+0.5%** on the typed annual return, then **clamped** to **0.5%–15%** per year.
-2. **Monthly compounding:** \(r_{\text{month}} = (1 + r)^{1/12} - 1\) (`monthlyRateFromAnnual`).
+1. **Baseline:** An explicit **0%** after the market preset gives zero deterministic growth, regardless of risk profile. Monte Carlo still applies volatility around that baseline. For other inputs, keep the existing Conservative **−0.5 point**, Moderate **0 point**, and Aggressive **+0.5 point** adjustment and the **0.5%–15%** annual clamp.
+2. **Monthly compounding:** \(r_{\text{month}} = (1 + r)^{1/12} - 1\) (`retirementMonthlyBaseReturn`).
 
 ### Market preset (`applyScenarioToInputs`)
 
 | Preset | Effect |
 |--------|--------|
 | **Base** | No change |
-| **Conservative** | `annualReturnPercent = max(1, annual − 2)`; `inflationPercent = min(8, inflation + 0.5)` |
+| **Conservative** | `annualReturnPercent = min(annual, max(1, annual − 2))`; `inflationPercent = min(8, inflation + 0.5)`. An already-low return is never raised. |
 | **Aggressive** | `annualReturnPercent = min(12, annual + 2)` |
 
 ### Survivor modeling (couple, optional)
