@@ -15,6 +15,23 @@ const ERROR = { code: 'FIXTURE_REFUSAL', message: 'Synthetic fixture refused req
 const MAX_BODY = 65_536;
 const MAX_HISTORY = 512;
 const MAX_PENDING = 16;
+const TRADE_PATH = '/rest/v1/vn_trades';
+const TRADE_PAGE_CAP = 37;
+const TRADE_LIMIT = 200;
+
+function fixtureTrades(name, owner) {
+  // Emulate the verified ID tie-break when every opened timestamp matches.
+  const count = name === 'alice' ? 1001 : 2;
+  return Array.from({ length: count }, (_, index) => ({
+    id: `${owner.slice(0, -12)}${String(index + 101).padStart(12, '0')}`,
+    // Reuse the synthetic owner UUID as its single fixture-only probe ID.
+    probe_id: owner,
+    pair: `${name.toUpperCase()}-TRADE-${String(index + 1).padStart(4, '0')}/USDC`,
+    side: 'BUY', entry_price: 100, exit_price: 101, amount: 1,
+    pnl: 1, pnl_pct: 0.01, exit_reason: 'TAKE_PROFIT', mode: 'simulation',
+    opened_at: '2026-01-01T00:00:00.000001Z', closed_at: '2026-01-01T00:01:00Z',
+  }));
+}
 
 export function createBrowserBackend(defaultInputs) {
   const accounts = new Map();
@@ -34,7 +51,7 @@ export function createBrowserBackend(defaultInputs) {
       created_at: '2026-01-01T00:00:00Z', updated_at: '2026-01-01T00:00:00Z',
       is_anonymous: false };
     const savings = name === 'alice' ? [10_000, 70_000] : [800_000];
-    accounts.set(id, { user, profile: { id, email: user.email, full_name: `Fixture ${name}`,
+    accounts.set(id, { user, trades: fixtureTrades(name, id), profile: { id, email: user.email, full_name: `Fixture ${name}`,
       avatar_url: null, portfolio_goal: 1_000_000, portfolio_goal_year: 2050,
       created_at: user.created_at, updated_at: user.updated_at },
       plans: savings.map((amount, i) => ({ id: `${name}-plan-${i + 1}`, user_id: id,
@@ -93,14 +110,31 @@ export function createBrowserBackend(defaultInputs) {
     // Capture the original response BEFORE the delay. Delayed A cannot become B.
     const captured = structuredClone(value);
     const hold = holds.findIndex(h => h.method === req.method && h.path === entry.path
-      && (!h.owner || h.owner === entry.owner));
-    if (hold < 0) return send(res, status, captured, headers);
+      && (!h.owner || h.owner === entry.owner) && (h.offset === undefined || h.offset === entry.trade?.offset));
+    if (hold < 0) {
+      if (entry.trade) entry.trade.outcome = 'sent';
+      return send(res, status, captured, headers);
+    }
     holds.splice(hold, 1);
     if (pending.size >= MAX_PENDING) return send(res, 503, ERROR);
     const id = randomUUID();
-    const timer = setTimeout(() => { pending.delete(id); send(res, 504, ERROR); }, 90_000);
+    const heldAt = performance.now();
+    if (entry.trade) entry.trade.outcome = 'held';
+    const timer = setTimeout(() => {
+      pending.delete(id);
+      if (entry.trade) entry.trade.outcome = 'fixture-timeout';
+      send(res, 504, ERROR);
+    }, 90_000);
     pending.set(id, { id, entry, status, value: captured, headers, res, timer });
-    res.once('close', () => { clearTimeout(timer); pending.delete(id); });
+    res.once('close', () => {
+      clearTimeout(timer);
+      // A held response is captured and unsent. If still pending on close,
+      // the actual client transport disconnected before release or timeout.
+      if (pending.delete(id) && entry.trade) {
+        entry.trade.outcome = 'client-aborted';
+        entry.trade.heldMilliseconds = Math.round(performance.now() - heldAt);
+      }
+    });
   }
 
   const server = http.createServer(async (req, res) => {
@@ -122,6 +156,13 @@ export function createBrowserBackend(defaultInputs) {
       if (path === '/__fixture/control' && req.method === 'POST') {
         if (req.headers.apikey !== FIXTURE_KEY) return send(res, 403, ERROR);
         const control = await body(req);
+        if (control.action === 'hold' && control.path === TRADE_PATH
+          && control.method === 'GET' && accounts.has(control.owner)
+          && Number.isSafeInteger(control.offset) && control.offset >= 0 && control.offset < 1001
+          && holds.length < MAX_PENDING) {
+          holds.push({ method: 'GET', path: TRADE_PATH, owner: control.owner, offset: control.offset });
+          return send(res, 200, { accepted: true });
+        }
         if (control.action === 'hold' && ['GET', 'PATCH', 'POST', 'DELETE'].includes(control.method)
           && typeof control.path === 'string' && /^\/(rest\/v1\/(nestegg_scenarios|profiles|portfolio_accounts)|auth\/v1\/(user|logout))$/.test(control.path)
           && (!control.owner || accounts.has(control.owner)) && holds.length < MAX_PENDING) {
@@ -130,6 +171,7 @@ export function createBrowserBackend(defaultInputs) {
         }
         if (control.action === 'release' && typeof control.id === 'string' && pending.has(control.id)) {
           const p = pending.get(control.id); pending.delete(control.id); clearTimeout(p.timer);
+          if (p.entry.trade) p.entry.trade.outcome = 'released';
           send(p.res, p.status, p.value, p.headers);
           return send(res, 200, { accepted: true });
         }
@@ -169,6 +211,24 @@ export function createBrowserBackend(defaultInputs) {
       const table = /^\/rest\/v1\/([^/]+)$/.exec(path)?.[1];
       if (!TABLES.has(table)) return send(res, 404, ERROR);
       const account = accounts.get(owner);
+      if (table === 'vn_trades') {
+        if (req.method !== 'GET') return send(res, 405, ERROR);
+        const query = url.searchParams;
+        if (query.get('probe_id') !== `eq.${owner}`) return send(res, 403, ERROR);
+        const offsetText = query.get('offset') ?? '';
+        const offset = Number(offsetText);
+        if ([...query.keys()].length !== 5 || query.get('select') !== '*'
+          || query.get('order') !== 'opened_at.desc,id.asc' || query.get('limit') !== String(TRADE_LIMIT)
+          || !/^(0|[1-9][0-9]{0,3})$/.test(offsetText) || offset > 1001
+          || !(req.headers.prefer ?? '').split(',').some(value => value.trim() === 'count=exact')) {
+          return send(res, 400, ERROR);
+        }
+        const rows = account.trades.slice(offset, offset + TRADE_PAGE_CAP);
+        const total = account.trades.length;
+        entry.trade = { offset, limit: TRADE_LIMIT, returned: rows.length, total };
+        const range = rows.length ? `${offset}-${offset + rows.length - 1}/${total}` : `*/${total}`;
+        return deliver(req, res, entry, 200, rows, { 'content-range': range });
+      }
       const filter = table === 'profiles' ? 'id' : 'user_id';
       const ownerFilter = url.searchParams.get(filter);
       if ((req.method !== 'POST' && !table.startsWith('vn_') && ownerFilter !== `eq.${owner}`)

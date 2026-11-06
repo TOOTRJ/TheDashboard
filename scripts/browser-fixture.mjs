@@ -422,6 +422,7 @@ async function main() {
       guard.assertOpen();
       const publicCopies = [
         ['scripts/browser-fixtures/paper-page.tsx', 'src/app/(dashboard)/paper-fixture/page.tsx'],
+        ['scripts/browser-fixtures/trade-history-page.tsx', 'src/app/(dashboard)/trade-history-fixture/page.tsx'],
         ['scripts/browser-fixtures/paper-data.ts', 'src/app/(dashboard)/paper-fixture/paper-data.ts'],
         ['scripts/browser-fixtures/portable-checkpoint-page.tsx', 'src/app/(dashboard)/portable-fixture/page.tsx'],
         ['tests/probes/fixtures/portable-checkpoint-inspector.json', 'tests/probes/fixtures/portable-checkpoint-inspector.json'],
@@ -467,7 +468,9 @@ async function main() {
     const ready = { scope: 'synthetic-loopback-browser', appOrigin, backendOrigin,
       directory: prepared.directory, owner: prepared.owner, originalConfigReplacedOnlyInOwnedCopy: true,
       snapshotFiles: prepared.counts.files, snapshotBytes: prepared.counts.bytes,
-      copiedPublicFixtureRoute: '/paper-fixture', copiedPublicFixtureRoutes: ['/paper-fixture', '/portable-fixture'], isolatedCookieHostname: true,
+      copiedPublicFixtureRoute: '/paper-fixture',
+      copiedPublicFixtureRoutes: ['/paper-fixture', '/portable-fixture', '/trade-history-fixture'],
+      isolatedCookieHostname: true,
       parentPid: process.pid, nextProcessGroup: next.pid,
       credentials: 'fake only; no cloud authority' };
     process.stdout.write(JSON.stringify(ready) + '\n');

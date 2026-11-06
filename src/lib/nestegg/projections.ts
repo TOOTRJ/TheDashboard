@@ -173,8 +173,9 @@ export function runProjection(
     });
   }
 
-  const lastsThroughLifeExpectancy =
-    depletionAge === null || depletionAge >= planEndAge;
+  // An exact $0 balance is funded; a negative pre-floor balance marks a
+  // shortfall, including in the final modeled month.
+  const lastsThroughLifeExpectancy = depletionAge === null;
 
   let monthlyGapOrSurplus =
     socialSecurityMonthly +
@@ -279,7 +280,7 @@ function buildInsights(args: InsightArgs): {
   } else if (depletionAge !== null) {
     heroTone = "warning";
     const d = Math.ceil(depletionAge);
-    heroMessage = `Your savings may run out around age ${d}, before your planned horizon of ${planEndAge}.`;
+    heroMessage = `Your savings may fall short around age ${d}. Your planned horizon is age ${planEndAge}.`;
   } else {
     heroTone = "caution";
     heroMessage = `Review contributions and retirement spending — outcomes are sensitive to return and inflation assumptions.`;
@@ -300,7 +301,7 @@ function buildInsights(args: InsightArgs): {
       depletionAge
     )}. Modeling suggests roughly ${formatUsd(
       suggestedExtraMonthly
-    )} more per month (primary earner) while working could help you reach age ${planEndAge}.`;
+    )} more per month (primary earner) while working could help cover modeled spending through age ${planEndAge}.`;
     heroTone = "caution";
   }
 
@@ -321,36 +322,31 @@ function formatUsd(n: number): string {
   }).format(n);
 }
 
-/** Binary search extra primary monthly contribution to reach end of plan. */
+/** Find the smallest displayed $25 step that passes the same projection. */
 function estimateExtraMonthlyNeeded(inputs: NesteggInputs): number | null {
-  const skip = { skipSuggestedExtra: true } as const;
-  if (runProjection(inputs, skip).lastsThroughLifeExpectancy) return null;
+  const step = 25;
+  let low = 1;
+  let high = 20_000 / step;
+  let best: number | null = null;
 
-  let low = 0;
-  let high = 20000;
-  let best = high;
-  let found = false;
-
-  for (let i = 0; i < 26; i++) {
+  while (low <= high) {
     const mid = Math.floor((low + high) / 2);
+    const extra = mid * step;
     const trial = runProjection(
       {
         ...inputs,
-        monthlyContribution: inputs.monthlyContribution + mid,
+        monthlyContribution: inputs.monthlyContribution + extra,
       },
-      skip
+      { skipSuggestedExtra: true }
     );
     if (trial.lastsThroughLifeExpectancy) {
-      found = true;
-      best = mid;
-      high = mid;
+      best = extra;
+      high = mid - 1;
     } else {
       low = mid + 1;
     }
-    if (low > high) break;
   }
-  if (!found) return null;
-  return Math.round(best / 25) * 25;
+  return best;
 }
 
 export function mergeComparisonSeries(

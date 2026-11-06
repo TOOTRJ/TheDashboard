@@ -1,0 +1,574 @@
+diff --git a/services/vonneumann/B2-INSTALLATION-STOP-NATIVE-CANDIDATE-2026-10-18.md b/services/vonneumann/B2-INSTALLATION-STOP-NATIVE-CANDIDATE-2026-10-18.md
+--- a/services/vonneumann/B2-INSTALLATION-STOP-NATIVE-CANDIDATE-2026-10-18.md
++++ b/services/vonneumann/B2-INSTALLATION-STOP-NATIVE-CANDIDATE-2026-10-18.md
+@@ -421,3 +421,119 @@
+ source-loader/controller, database, Docker, provider or network operation was
+ executed. All earlier frozen sources and original receipts remain unchanged.
+ Independent review and root-owned bounded native execution remain required.
++
++
++## Forward V13: one paused recorder fence, then original Stop
++
++Prepared 2026-11-05 in a private directory only, from all six reconstructed and
++byte-verified V12 postimages. No candidate import, SQL, Docker, test, credential,
++provider, hosted or repository mutation was performed. The V12 raw result and
++review bundles remain unchanged. This is a new held-source closed laboratory
++candidate, not a hosted migration or source-adoption decision.
++
++### Exact additional transition
++
++`installation -> [one fence_acquire] -> source_stop`; no other operation is
++admitted. Acquire is restricted to position 2, paused mode, the original
++installed acquisition epoch, no held fence and revision zero. The real scoped
++recorder must have `fence_manage` and match the installed recorder binding;
++control/installer/reader or a foreign recorder cannot substitute an ID. The
++closed four-field acquire body requests exactly the decimal string `60000000`
++microseconds. Both expected-fence fields remain null in this slice; the exact
++previous HeadPin and installed no-fence state still bind admission.
++
++The operation and fence IDs are distinct fresh UUIDs with original allocation
++associations and separate `native_operation_id`/`fence_id` records. Both the
++scope-local precheck and original global unique indexes reject reused IDs. The
++source checks the original installation by the existing complete committed
++prefix verifier before minting the server-held fence. It writes the exact
++nine-field FenceRecord from the earlier lifecycle proposal and its distinct
++original pin. No caller can provide revision, issue/expiry time, or receipt.
++The issued time is sampled after locked validation; final-function observation
++is sampled after staging. The deferred guard reauthorizes the actual recorder,
++rederives the exact staged fence and both identity rows, checks the locked
++prior head and all existing budget/session conditions, then samples recognized
++COMMIT processing. Require `issued <= final <= commit < expires` and exactly
++60 seconds from issue to expiry; equality at expiry refuses. These are actual
++uncalibrated database observations, not a hard final-visible/WAL freshness or
++production clock claim. No test waits for expiry or alters a clock.
++
++Result and getter keep the pinned closed wire types. Acquire has five distinct
++direct pins (three installed facts, installation Command, exact new fence) and
++seven getter pins (three installed facts, fence and installation C/R/T). The
++verifier independently reconstructs the closed record/clock/identity associations
++from the exact originals, held epoch and bound writer in its one parent-statement
++snapshot; historical installation readback does not include later fence pins.
++Two table CHECK unions admit the new action and domain fact. The remaining
++function inventory, broker, roles, grants, exact source-loader contract,
++policy bytes, fixture constructor/catalog checks and public entries stay fixed.
++
++### Terminal path and accounting
++
++Admitting a fence while retaining V12's no-fence-only Stop would strand the
++reserved operation. This increment therefore accepts the original reserved Stop
++at position 3 against the exact committed acquire, its active fence ID/epoch and
++current head. Stop remains paused-to-stopped and does not require a live hold.
++It clears active fence and increments revision once; retained originals/identity/
++fence facts remain intact. Direct Stop pins number six (three installed facts,
++installation Command, acquire Command, retained fence); getter closure is ten
++(two ancestor C/R/T trios plus four domain facts). The V12 four-direct/six-closure
++no-fence Stop remains available after installation. This does not exercise an
++expired held-fence Stop, seven direct pins, or complete reserve liveness.
++
++The generic selected final/pending representation still charges each actual C/R,
++Receipt/Journal/head/accounting/metadata occurrence and every declared logical
++key; pending original and deferred update are separately charged. Acquire's
++ScopeHead upper envelope now holds a full UUID instead of null (34 more bytes
++in that component), only for acquire; existing install/Stop costs retain their
++shape. The maximum revision in this narrow path is two, so the existing two-digit
++upper width is conservative. The prior private November worksheet identified
++conditional full-seven-pin bounds but does not authorize wider source semantics
++or changes to the issued reserve constants. Existing logical/staging byte caps,
++position and Stop reserve checks stay fixed. Derived row/key touches are not
++physical PostgreSQL tuple/index/TOAST/WAL measurements.
++
++Hand ledger for the new three-operation path (including six bootstrap rows):
++
++| Operation | New retained rows | Final logical writes/keys | DML/key touches incl. staging |
++| --- | ---: | ---: | ---: |
++| Installation | 23 | 24 / 48 | 25 / 51 |
++| Acquire | 10 | 11 / 22 | 12 / 25 |
++| Stop with retained fence | 8 | 9 / 18 | 10 / 21 |
++| Total | 47 retained including bootstrap | 44 / 88 | 47 / 97 |
++
++Five additional native methods check actual clock/record/active-head/pin/encoded
++readback and independent selected row/key charges; non-recorder, foreign and
++closed-body refusal; fresh ID collision, stale/second acquire and original
++conflict; provisional rollback/early-trigger refusal and preserved terminal
++reserve; and complete original Stop-with-fence/readback/replay/no new fact state.
++The original 24 methods remain; exactly one method removes now-implemented
++`fence_acquire` from its unsupported-kind list. No other original method body
++changes. New code uses no artificial sleep or enlarged timeout.
++
++### Review and execution boundary
++
++All 29 unique tests, including the unchanged first statistics method in the
++same position, require a separately reviewed complete current-base snapshot and
++root-owned bounded runner. Keep the existing 240-second whole-module external
++bound, owned cached pinned PG17 image, network none and exact cleanup; no
++candidate runner is invoked here. The actual native test result is unknown.
++Do not infer SQL compilation, fixture constructor/catalog acceptance, sustained
++clock/expiry behavior, Resume/renew/release, other allocator kinds, complete
++seven-pin/capacity witness, production NOLOGIN-owner privileges, runtime
++adoption, worker readiness or live authority from static source preparation.
++
++## Forward V14: keep the source paused after fence acquisition
++
++Independent static review refused V13 before execution: the deferred commit
++guard built the next source mode as paused only for installation. Its fallback
++would mark a committed fence acquisition stopped, contradicting the admitted
++acquire result and preventing the original reserved Stop from using the held
++fence. V14 changes that one CASE to make only source_stop stopped. The already
++admitted installation and fence_acquire actions stay paused. No admission,
++expiry, accounting, getter, broker, ACL, or test change follows from this repair.
++
++The held SQL source changes from `cc4c1425de5035e0fd3b2e6c7dec40b90a06068b9795703fe7dd267e74dedea9`
++to `9d0e2b94f45919e0a734c0df1f72826068f60c9248d819a8d2d9de27a7fdbb1e`; the fixture source pin follows. All 29 test methods are
++byte-identical to V13. V13 remains frozen and unexecuted. This V14 candidate is
++also unexecuted and pending independent review and exact current-base composition.
+diff --git a/services/vonneumann/db-contract/research/jupiter_allocation_control_v3.sql b/services/vonneumann/db-contract/research/jupiter_allocation_control_v3.sql
+--- a/services/vonneumann/db-contract/research/jupiter_allocation_control_v3.sql
++++ b/services/vonneumann/db-contract/research/jupiter_allocation_control_v3.sql
+@@ -34,7 +34,7 @@
+ CREATE TABLE vn_jupiter_b2_allocation_research_v3.original_operations (
+   action_id text PRIMARY KEY,
+   scope_wire text NOT NULL REFERENCES vn_jupiter_b2_allocation_research_v3.scope_state(scope_wire),
+-  action_kind text NOT NULL CHECK (action_kind IN ('installation','source_stop')),
++  action_kind text NOT NULL CHECK (action_kind IN ('installation','fence_acquire','source_stop')),
+   native_sequence bigint NOT NULL CHECK (native_sequence BETWEEN 1 AND 16),
+   command_wire text NOT NULL,
+   command_sha256 text NOT NULL,
+@@ -71,7 +71,7 @@
+ 
+ -- TABLE vn_jupiter_b2_allocation_research_v3.domain_facts
+ CREATE TABLE vn_jupiter_b2_allocation_research_v3.domain_facts (
+-  semantic_kind text NOT NULL CHECK (semantic_kind IN ('native_genesis_input','native_terminal_allocation','native_epoch_registration')),
++  semantic_kind text NOT NULL CHECK (semantic_kind IN ('native_genesis_input','native_terminal_allocation','native_epoch_registration','native_fence_record')),
+   original_id text NOT NULL REFERENCES vn_jupiter_b2_allocation_research_v3.identities(original_id),
+   wire_sha256 text NOT NULL,
+   scope_wire text NOT NULL,
+@@ -360,7 +360,7 @@
+  rec:=pg_catalog.jsonb_build_object('format','ga-jupiter-b2-allocation-receipt-research-v3-v1','native_policy_sha256',c->>'native_policy_sha256','scope',scope,'action_id',c->>'action_id','action_kind',c->>'action_kind','original_command_sha256',h,'result_sha256',h,'native_sequence',seq,'previous_native_head_sha256',h,'admission_observation',NULL,'final_function_observation',utc,'commit_processing_observation',utc,'native_package_sha256',h,'catalog_manifest_sha256',h,'limits',vn_jupiter_b2_allocation_research_v3._limits());
+  tw:=vn_jupiter_b2_allocation_research_v3._c14n(rec);
+  jr:=pg_catalog.jsonb_build_object('native_sequence',seq,'action_id',c->>'action_id','action_kind',c->>'action_kind','original_command_sha256',h,'original_result_sha256',h,'original_receipt_sha256',h,'previous_native_head_sha256',h); jw:=vn_jupiter_b2_allocation_research_v3._c14n(jr);
+- sh:=pg_catalog.jsonb_build_object('scope',scope,'native_sequence','16','native_head_sha256',h,'active_acquisition_epoch','ffffffff-ffff-ffff-ffff-ffffffffffff','active_fence_id',NULL,'fence_revision','16','source_mode','stopped','last_admission_sha256',NULL,'last_ingest_sequence','0','last_availability_sha256',NULL,'previous_seal_sha256',NULL); hw:=vn_jupiter_b2_allocation_research_v3._c14n(sh);
++ sh:=pg_catalog.jsonb_build_object('scope',scope,'native_sequence','16','native_head_sha256',h,'active_acquisition_epoch','ffffffff-ffff-ffff-ffff-ffffffffffff','active_fence_id',CASE WHEN c->>'action_kind'='fence_acquire' THEN 'ffffffff-ffff-ffff-ffff-ffffffffffff' ELSE NULL END,'fence_revision','16','source_mode','stopped','last_admission_sha256',NULL,'last_ingest_sequence','0','last_availability_sha256',NULL,'previous_seal_sha256',NULL); hw:=vn_jupiter_b2_allocation_research_v3._c14n(sh);
+  ac:='{"committed_positions":"16","logical_UTF8_bytes":"4194304","identity_rows":"96","domain_rows":"25","dependency_rows":"112","retained_rows":"271","row_writes":"512","index_entries":"1024","Stop_reserve_consumed":false}'::jsonb; aw:=vn_jupiter_b2_allocation_research_v3._c14n(ac);
+  om:=pg_catalog.jsonb_build_object('scope',scope,'action_id',c->>'action_id','action_kind',c->>'action_kind','native_sequence',seq,'command_sha256',h,'result_sha256',h,'receipt_sha256',h,'command_bytes',pg_catalog.octet_length(cw)::text,'result_bytes',pg_catalog.octet_length(rw)::text,'receipt_bytes',pg_catalog.octet_length(tw)::text,'writer_xid8','18446744073709551615','writer_principal_binding_id','ffffffff-ffff-ffff-ffff-ffffffffffff','finalized',true,'final_function_observation',utc);
+  jm:=pg_catalog.jsonb_build_object('scope',scope,'action_id',c->>'action_id','native_sequence',seq,'journal_sha256',h,'journal_bytes',pg_catalog.octet_length(jw)::text);
+@@ -437,7 +437,7 @@
+ SET client_encoding = 'UTF8'
+ SET standard_conforming_strings = 'on'
+ AS $b2$
+-DECLARE sw text:=vn_jupiter_b2_allocation_research_v3._scope(scope); a jsonb; target vn_jupiter_b2_allocation_research_v3.original_operations%ROWTYPE; o record; j record; c jsonb; r jsonb; t jsonb; prev text; pins jsonb:='[]'; answer jsonb; body text; count_seen bigint:=0; d jsonb; g jsonb; spec jsonb; expected_record jsonb; expected_facts jsonb; epoch jsonb; terminal jsonb; utc jsonb; field text; role text;
++DECLARE sw text:=vn_jupiter_b2_allocation_research_v3._scope(scope); a jsonb; target vn_jupiter_b2_allocation_research_v3.original_operations%ROWTYPE; o record; j record; c jsonb; r jsonb; t jsonb; prev text; pins jsonb:='[]'; answer jsonb; body text; count_seen bigint:=0; d jsonb; g jsonb; spec jsonb; expected_record jsonb; expected_facts jsonb; base_facts jsonb; installation_pin jsonb; acquire_pin jsonb; fence_pin jsonb; fence jsonb; epoch jsonb; terminal jsonb; utc jsonb; field text; role text; issued bigint; expires bigint; acquisitions bigint;
+ BEGIN
+  a:=vn_jupiter_b2_allocation_research_v3._auth(scope,'read_original');
+  g:=(a->>'genesis_wire')::jsonb;
+@@ -445,6 +445,8 @@
+  IF NOT FOUND THEN RAISE EXCEPTION 'b2_original_absent'; END IF;
+  IF target.writer_xid8=pg_catalog.pg_current_xact_id_if_assigned() THEN RAISE EXCEPTION 'b2_writer_transaction'; END IF;
+  IF NOT target.finalized OR target.command_sha256 IS DISTINCT FROM expected_sha THEN RAISE EXCEPTION 'b2_original_refused'; END IF;
++ SELECT count(*) INTO acquisitions FROM vn_jupiter_b2_allocation_research_v3.original_operations WHERE scope_wire=sw AND action_kind='fence_acquire' AND finalized;
++ IF acquisitions>1 THEN RAISE EXCEPTION 'b2_original_assembly_refused'; END IF;
+  prev:=vn_jupiter_b2_allocation_research_v3._sha(vn_jupiter_b2_allocation_research_v3._c14n(pg_catalog.jsonb_build_object('format','ga-jupiter-b2-empty-head-research-v3-v1','native_policy_sha256','e5dca1d13839102fb1fdd261176393b73c770a95ab355eff74499169905bfba0','scope',scope)));
+  -- This STABLE function and its STABLE readers share one parent SELECT snapshot.
+  FOR o IN SELECT * FROM vn_jupiter_b2_allocation_research_v3.original_operations WHERE scope_wire=sw AND native_sequence<=target.native_sequence ORDER BY native_sequence LOOP
+@@ -452,7 +454,7 @@
+   IF count_seen IS DISTINCT FROM o.native_sequence OR NOT o.finalized OR o.writer_xid8=pg_catalog.pg_current_xact_id_if_assigned() OR vn_jupiter_b2_allocation_research_v3._sha(o.command_wire) IS DISTINCT FROM o.command_sha256 OR vn_jupiter_b2_allocation_research_v3._sha(o.result_wire) IS DISTINCT FROM o.result_sha256 OR vn_jupiter_b2_allocation_research_v3._sha(o.receipt_wire) IS DISTINCT FROM o.receipt_sha256 THEN RAISE EXCEPTION 'b2_original_assembly_refused'; END IF;
+   c:=o.command_wire::jsonb; r:=o.result_wire::jsonb; t:=o.receipt_wire::jsonb;
+   IF NOT vn_jupiter_b2_allocation_research_v3._keys(c,ARRAY['format','native_policy_sha256','scope','action_id','action_kind','expected_head','expected_fence_id','expected_fence_revision','body']) OR NOT vn_jupiter_b2_allocation_research_v3._keys(r,ARRAY['format','native_policy_sha256','scope','action_id','action_kind','native_sequence','original_command_sha256','dependencies','result_body','limits']) OR NOT vn_jupiter_b2_allocation_research_v3._keys(t,ARRAY['format','native_policy_sha256','scope','action_id','action_kind','original_command_sha256','result_sha256','native_sequence','previous_native_head_sha256','admission_observation','final_function_observation','commit_processing_observation','native_package_sha256','catalog_manifest_sha256','limits']) OR c->>'format' IS DISTINCT FROM 'ga-jupiter-b2-allocation-command-research-v3-v1' OR r->>'format' IS DISTINCT FROM 'ga-jupiter-b2-allocation-result-research-v3-v1' OR t->>'format' IS DISTINCT FROM 'ga-jupiter-b2-allocation-receipt-research-v3-v1' OR c->>'native_policy_sha256' IS DISTINCT FROM a#>>'{package,native_policy_sha256}' OR r->>'native_policy_sha256' IS DISTINCT FROM c->>'native_policy_sha256' OR t->>'native_policy_sha256' IS DISTINCT FROM c->>'native_policy_sha256' OR r->>'action_kind' IS DISTINCT FROM o.action_kind OR t->>'action_kind' IS DISTINCT FROM o.action_kind OR r->'limits' IS DISTINCT FROM vn_jupiter_b2_allocation_research_v3._limits() OR t->>'native_package_sha256' IS DISTINCT FROM a#>>'{package,native_package_sha256}' OR t->>'catalog_manifest_sha256' IS DISTINCT FROM a#>>'{package,catalog_manifest_sha256}' OR vn_jupiter_b2_allocation_research_v3._c14n(c) IS DISTINCT FROM o.command_wire OR vn_jupiter_b2_allocation_research_v3._c14n(r) IS DISTINCT FROM o.result_wire OR vn_jupiter_b2_allocation_research_v3._c14n(t) IS DISTINCT FROM o.receipt_wire OR r->'dependencies' IS DISTINCT FROM vn_jupiter_b2_allocation_research_v3._deps(r->'dependencies') THEN RAISE EXCEPTION 'b2_original_assembly_refused'; END IF;
+-  IF c->'scope' IS DISTINCT FROM scope OR c->>'action_id' IS DISTINCT FROM o.action_id OR c->>'action_kind' IS DISTINCT FROM o.action_kind OR c#>>'{expected_head,native_sequence}' IS DISTINCT FROM (o.native_sequence-1)::text OR c#>>'{expected_head,native_head_sha256}' IS DISTINCT FROM prev OR r->>'original_command_sha256' IS DISTINCT FROM o.command_sha256 OR r->>'action_id' IS DISTINCT FROM o.action_id OR r->'scope' IS DISTINCT FROM scope OR r->>'native_sequence' IS DISTINCT FROM o.native_sequence::text OR t->>'original_command_sha256' IS DISTINCT FROM o.command_sha256 OR t->>'result_sha256' IS DISTINCT FROM o.result_sha256 OR t->>'action_id' IS DISTINCT FROM o.action_id OR t->'scope' IS DISTINCT FROM scope OR t->>'native_sequence' IS DISTINCT FROM o.native_sequence::text OR t->>'previous_native_head_sha256' IS DISTINCT FROM prev OR t->'limits' IS DISTINCT FROM vn_jupiter_b2_allocation_research_v3._limits() OR t->'final_function_observation' IS DISTINCT FROM o.final_function_observation OR t->'admission_observation' IS DISTINCT FROM 'null'::jsonb THEN RAISE EXCEPTION 'b2_original_assembly_refused'; END IF;
++  IF c->'scope' IS DISTINCT FROM scope OR c->>'action_id' IS DISTINCT FROM o.action_id OR c->>'action_kind' IS DISTINCT FROM o.action_kind OR c->'expected_head' IS DISTINCT FROM pg_catalog.jsonb_build_object('native_sequence',(o.native_sequence-1)::text,'native_head_sha256',prev,'previous_seal_sha256',NULL) OR c->'expected_fence_id' IS DISTINCT FROM 'null'::jsonb OR c->'expected_fence_revision' IS DISTINCT FROM 'null'::jsonb OR r->>'original_command_sha256' IS DISTINCT FROM o.command_sha256 OR r->>'action_id' IS DISTINCT FROM o.action_id OR r->'scope' IS DISTINCT FROM scope OR r->>'native_sequence' IS DISTINCT FROM o.native_sequence::text OR t->>'original_command_sha256' IS DISTINCT FROM o.command_sha256 OR t->>'result_sha256' IS DISTINCT FROM o.result_sha256 OR t->>'action_id' IS DISTINCT FROM o.action_id OR t->'scope' IS DISTINCT FROM scope OR t->>'native_sequence' IS DISTINCT FROM o.native_sequence::text OR t->>'previous_native_head_sha256' IS DISTINCT FROM prev OR t->'limits' IS DISTINCT FROM vn_jupiter_b2_allocation_research_v3._limits() OR t->'final_function_observation' IS DISTINCT FROM o.final_function_observation OR t->'admission_observation' IS DISTINCT FROM 'null'::jsonb THEN RAISE EXCEPTION 'b2_original_assembly_refused'; END IF;
+   FOR utc IN SELECT value FROM pg_catalog.jsonb_array_elements(pg_catalog.jsonb_build_array(t->'final_function_observation',t->'commit_processing_observation')) LOOP
+    IF NOT vn_jupiter_b2_allocation_research_v3._keys(utc,ARRAY['observed_at_us','wall_lower_us','wall_upper_us']) THEN RAISE EXCEPTION 'b2_original_assembly_refused'; END IF;
+    FOREACH field IN ARRAY ARRAY['observed_at_us','wall_lower_us','wall_upper_us'] LOOP
+@@ -466,14 +468,33 @@
+     expected_record:=pg_catalog.jsonb_build_object('original_id',spec->>'original_id','identity_role',spec->>'identity_role','association',spec->'association','original_allocation_sha256',o.command_sha256,'first_native_sequence','1');
+     IF NOT EXISTS(SELECT 1 FROM vn_jupiter_b2_allocation_research_v3.identities i WHERE i.scope_wire=sw AND i.original_id=spec->>'original_id' AND i.record_wire=vn_jupiter_b2_allocation_research_v3._c14n(expected_record)) THEN RAISE EXCEPTION 'b2_original_assembly_refused'; END IF;
+    END LOOP;
+-   IF (SELECT count(*) FROM vn_jupiter_b2_allocation_research_v3.identities WHERE scope_wire=sw)<>15 THEN RAISE EXCEPTION 'b2_original_assembly_refused'; END IF;
++   IF (SELECT count(*) FROM vn_jupiter_b2_allocation_research_v3.identities WHERE scope_wire=sw)<>15+2*acquisitions THEN RAISE EXCEPTION 'b2_original_assembly_refused'; END IF;
+    epoch:=(g->'initial_acquisition_spec')||pg_catalog.jsonb_build_object('scope',scope,'ordinal','1','original_command_sha256',o.command_sha256);
+    terminal:=pg_catalog.jsonb_build_object('format','ga-jupiter-b2-terminal-allocation-research-v3-v1','scope',scope,'installation_id',a#>>'{package,installation_id}','stop_action_id',g->>'terminal_stop_action_id','allocation_command_sha256',o.command_sha256,'first_native_sequence','1');
+    expected_facts:=vn_jupiter_b2_allocation_research_v3._deps(pg_catalog.jsonb_build_array(vn_jupiter_b2_allocation_research_v3._pin('native_genesis_input',a#>>'{package,installation_id}',a->>'genesis_wire'),vn_jupiter_b2_allocation_research_v3._pin('native_epoch_registration',epoch->>'registration_id',vn_jupiter_b2_allocation_research_v3._c14n(epoch)),vn_jupiter_b2_allocation_research_v3._pin('native_terminal_allocation',g->>'terminal_stop_action_id',vn_jupiter_b2_allocation_research_v3._c14n(terminal))));
+-   IF r->'dependencies' IS DISTINCT FROM expected_facts OR r->'result_body' IS DISTINCT FROM (c->'body')-ARRAY['scope','policies'] OR (SELECT count(*) FROM vn_jupiter_b2_allocation_research_v3.domain_facts WHERE scope_wire=sw)<>3 THEN RAISE EXCEPTION 'b2_original_assembly_refused'; END IF;
++   IF r->'dependencies' IS DISTINCT FROM expected_facts OR r->'result_body' IS DISTINCT FROM (c->'body')-ARRAY['scope','policies'] OR (SELECT count(*) FROM vn_jupiter_b2_allocation_research_v3.domain_facts WHERE scope_wire=sw)<>3+acquisitions THEN RAISE EXCEPTION 'b2_original_assembly_refused'; END IF;
++   base_facts:=expected_facts;
++   installation_pin:=vn_jupiter_b2_allocation_research_v3._pin('native_command',o.action_id,o.command_wire);
++  ELSIF o.action_kind='fence_acquire' THEN
++   -- Independently reconstruct the record and identity rows from the original,
++   -- held epoch, bound writer and the original accepted clock observations.
++   fence:=r#>'{result_body,original_fence_record}';
++   IF o.native_sequence<>2 OR base_facts IS NULL OR acquire_pin IS NOT NULL OR o.writer_binding_id IS DISTINCT FROM g#>>'{initial_acquisition_spec,recorder_principal_binding_id}' OR NOT vn_jupiter_b2_allocation_research_v3._keys(r->'result_body',ARRAY['original_fence_record']) OR pg_catalog.jsonb_typeof(fence->'issued_at_us') IS DISTINCT FROM 'string' OR (fence->>'issued_at_us' ~ '^(0|[1-9][0-9]{0,18})$') IS DISTINCT FROM true OR pg_catalog.jsonb_typeof(c#>'{body,fence_id}') IS DISTINCT FROM 'string' OR (c#>>'{body,fence_id}' ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$') IS DISTINCT FROM true OR c#>>'{body,fence_id}' IS NOT DISTINCT FROM o.action_id THEN RAISE EXCEPTION 'b2_original_assembly_refused'; END IF;
++   IF c->'body' IS DISTINCT FROM pg_catalog.jsonb_build_object('fence_id',c#>>'{body,fence_id}','acquisition_epoch',g#>>'{initial_acquisition_spec,acquisition_epoch}','holder_principal_binding_id',o.writer_binding_id,'requested_duration_us','60000000') THEN RAISE EXCEPTION 'b2_original_assembly_refused'; END IF;
++   issued:=(fence->>'issued_at_us')::bigint; expires:=issued+60000000;
++   IF fence IS DISTINCT FROM pg_catalog.jsonb_build_object('fence_id',c#>>'{body,fence_id}','scope',scope,'holder_principal_binding_id',o.writer_binding_id,'acquisition_epoch',g#>>'{initial_acquisition_spec,acquisition_epoch}','revision','1','issued_at_us',issued::text,'expires_at_us',expires::text,'original_command_sha256',o.command_sha256,'native_sequence','2') OR issued>(t#>>'{final_function_observation,observed_at_us}')::bigint OR (t#>>'{commit_processing_observation,observed_at_us}')::bigint>=expires OR pg_catalog.octet_length(vn_jupiter_b2_allocation_research_v3._c14n(fence))>1024 THEN RAISE EXCEPTION 'b2_original_assembly_refused'; END IF;
++   FOREACH role IN ARRAY ARRAY['native_operation_id','fence_id'] LOOP
++    expected_record:=pg_catalog.jsonb_build_object('original_id',CASE WHEN role='fence_id' THEN c#>>'{body,fence_id}' ELSE o.action_id END,'identity_role',role,'association',scope||'{"packet_reservation_id":null}'::jsonb,'original_allocation_sha256',o.command_sha256,'first_native_sequence','2');
++    IF NOT EXISTS(SELECT 1 FROM vn_jupiter_b2_allocation_research_v3.identities i WHERE i.scope_wire=sw AND i.original_id=expected_record->>'original_id' AND i.record_wire=vn_jupiter_b2_allocation_research_v3._c14n(expected_record)) THEN RAISE EXCEPTION 'b2_original_assembly_refused'; END IF;
++   END LOOP;
++   fence_pin:=vn_jupiter_b2_allocation_research_v3._pin('native_fence_record',fence->>'fence_id',vn_jupiter_b2_allocation_research_v3._c14n(fence));
++   acquire_pin:=vn_jupiter_b2_allocation_research_v3._pin('native_command',o.action_id,o.command_wire);
++   expected_facts:=vn_jupiter_b2_allocation_research_v3._deps(base_facts||pg_catalog.jsonb_build_array(installation_pin,fence_pin));
++   IF r->'dependencies' IS DISTINCT FROM expected_facts OR NOT EXISTS(SELECT 1 FROM vn_jupiter_b2_allocation_research_v3.domain_facts d WHERE d.scope_wire=sw AND d.native_sequence=2 AND d.semantic_kind='native_fence_record' AND d.original_id=fence->>'fence_id' AND d.original_wire=fence_pin->>'original_wire' AND d.wire_sha256=fence_pin->>'wire_sha256') THEN RAISE EXCEPTION 'b2_original_assembly_refused'; END IF;
+   ELSIF o.action_kind='source_stop' THEN
+-   IF o.native_sequence<>2 OR o.action_id IS DISTINCT FROM g->>'terminal_stop_action_id' OR c->'body' IS DISTINCT FROM '{"expected_control_sha256":null,"expected_mode":"paused"}'::jsonb OR r->'result_body' IS DISTINCT FROM '{"previous_mode":"paused","resulting_mode":"stopped","previous_control_sha256":null,"resulting_fence_revision":"1"}'::jsonb THEN RAISE EXCEPTION 'b2_original_assembly_refused'; END IF;
+-   SELECT expected_facts||pg_catalog.jsonb_build_array(vn_jupiter_b2_allocation_research_v3._pin('native_command',z.action_id,z.command_wire)) INTO expected_facts FROM vn_jupiter_b2_allocation_research_v3.original_operations z WHERE z.scope_wire=sw AND z.native_sequence=1 AND z.action_kind='installation' AND z.finalized;
++   IF base_facts IS NULL OR o.native_sequence<>(CASE WHEN acquire_pin IS NULL THEN 2 ELSE 3 END) OR o.action_id IS DISTINCT FROM g->>'terminal_stop_action_id' OR c->'body' IS DISTINCT FROM '{"expected_control_sha256":null,"expected_mode":"paused"}'::jsonb OR r->'result_body' IS DISTINCT FROM pg_catalog.jsonb_build_object('previous_mode','paused','resulting_mode','stopped','previous_control_sha256',NULL,'resulting_fence_revision',CASE WHEN acquire_pin IS NULL THEN '1' ELSE '2' END) THEN RAISE EXCEPTION 'b2_original_assembly_refused'; END IF;
++   expected_facts:=base_facts||pg_catalog.jsonb_build_array(installation_pin);
++   IF acquire_pin IS NOT NULL THEN expected_facts:=expected_facts||pg_catalog.jsonb_build_array(acquire_pin,fence_pin); END IF;
+    IF r->'dependencies' IS DISTINCT FROM vn_jupiter_b2_allocation_research_v3._deps(expected_facts) THEN RAISE EXCEPTION 'b2_original_assembly_refused'; END IF;
+   ELSE RAISE EXCEPTION 'b2_kind_not_implemented';
+   END IF;
+@@ -519,7 +540,7 @@
+ BEGIN
+  IF wire IS NULL OR pg_catalog.octet_length(wire)>2048 THEN RAISE EXCEPTION 'b2_invalid_query'; END IF;
+  q:=wire::jsonb;
+- IF vn_jupiter_b2_allocation_research_v3._c14n(q)<>wire OR NOT vn_jupiter_b2_allocation_research_v3._keys(q,ARRAY['format','native_policy_sha256','scope','target_kind','target_id','expected_original_command_sha256','correlation']) OR q->>'format' IS DISTINCT FROM 'ga-jupiter-b2-original-query-research-v3-v1' OR q->>'native_policy_sha256' IS DISTINCT FROM 'e5dca1d13839102fb1fdd261176393b73c770a95ab355eff74499169905bfba0' OR (pg_catalog.jsonb_typeof(q->'target_kind') IS DISTINCT FROM 'string' OR q->>'target_kind' NOT IN('installation','source_stop')) OR pg_catalog.jsonb_typeof(q->'target_id')<>'string' OR (q->>'target_id' ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$') IS DISTINCT FROM true OR pg_catalog.jsonb_typeof(q->'expected_original_command_sha256')<>'string' OR (q->>'expected_original_command_sha256' ~ '^[0-9a-f]{64}$') IS DISTINCT FROM true OR q->'correlation' IS DISTINCT FROM pg_catalog.jsonb_build_object('kind','original_action_id','id',q->>'target_id') THEN RAISE EXCEPTION 'b2_invalid_query'; END IF;
++ IF vn_jupiter_b2_allocation_research_v3._c14n(q)<>wire OR NOT vn_jupiter_b2_allocation_research_v3._keys(q,ARRAY['format','native_policy_sha256','scope','target_kind','target_id','expected_original_command_sha256','correlation']) OR q->>'format' IS DISTINCT FROM 'ga-jupiter-b2-original-query-research-v3-v1' OR q->>'native_policy_sha256' IS DISTINCT FROM 'e5dca1d13839102fb1fdd261176393b73c770a95ab355eff74499169905bfba0' OR (pg_catalog.jsonb_typeof(q->'target_kind') IS DISTINCT FROM 'string' OR q->>'target_kind' NOT IN('installation','fence_acquire','source_stop')) OR pg_catalog.jsonb_typeof(q->'target_id')<>'string' OR (q->>'target_id' ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$') IS DISTINCT FROM true OR pg_catalog.jsonb_typeof(q->'expected_original_command_sha256')<>'string' OR (q->>'expected_original_command_sha256' ~ '^[0-9a-f]{64}$') IS DISTINCT FROM true OR q->'correlation' IS DISTINCT FROM pg_catalog.jsonb_build_object('kind','original_action_id','id',q->>'target_id') THEN RAISE EXCEPTION 'b2_invalid_query'; END IF;
+  sw:=vn_jupiter_b2_allocation_research_v3._scope(q->'scope'); a:=vn_jupiter_b2_allocation_research_v3._auth(q->'scope','read_original');
+  SELECT * INTO o FROM vn_jupiter_b2_allocation_research_v3.original_operations WHERE action_id=q->>'target_id' AND scope_wire=sw;
+  IF FOUND THEN
+@@ -542,13 +563,13 @@
+ SET client_encoding = 'UTF8'
+ SET standard_conforming_strings = 'on'
+ AS $b2$
+-DECLARE c jsonb; sw text; a jsonb; p jsonb; g jsonb; h jsonb; oldop record; st record; spec jsonb; ass jsonb; idrow jsonb; epoch jsonb; terminal jsonb; v jsonb; d jsonb; deps jsonb; ids jsonb:='[]'; facts jsonb:='[]'; r jsonb; cw text; ch text; rw text; seq bigint; cost jsonb; chk jsonb; ordinal bigint:=0; role text; expected_body jsonb;
++DECLARE c jsonb; sw text; a jsonb; p jsonb; g jsonb; h jsonb; oldop record; st record; spec jsonb; ass jsonb; idrow jsonb; epoch jsonb; terminal jsonb; v jsonb; d jsonb; deps jsonb; ids jsonb:='[]'; facts jsonb:='[]'; r jsonb; cw text; ch text; rw text; seq bigint; cost jsonb; chk jsonb; ordinal bigint:=0; role text; expected_body jsonb; prior record; prior_reply jsonb; prior_result jsonb; fence jsonb; issued bigint; expires bigint; final_obs jsonb;
+ BEGIN
+  IF wire IS NULL OR pg_catalog.octet_length(wire)>16384 THEN RAISE EXCEPTION 'b2_invalid_command'; END IF;
+  c:=wire::jsonb;
+  IF vn_jupiter_b2_allocation_research_v3._c14n(c) IS DISTINCT FROM wire OR NOT vn_jupiter_b2_allocation_research_v3._keys(c,ARRAY['format','native_policy_sha256','scope','action_id','action_kind','expected_head','expected_fence_id','expected_fence_revision','body']) OR c->>'format' IS DISTINCT FROM 'ga-jupiter-b2-allocation-command-research-v3-v1' OR c->>'native_policy_sha256' IS DISTINCT FROM 'e5dca1d13839102fb1fdd261176393b73c770a95ab355eff74499169905bfba0' OR pg_catalog.jsonb_typeof(c->'action_id') IS DISTINCT FROM 'string' OR (c->>'action_id' ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$') IS DISTINCT FROM true THEN RAISE EXCEPTION 'b2_invalid_command'; END IF;
+  sw:=vn_jupiter_b2_allocation_research_v3._scope(c->'scope');
+- IF c->>'action_kind' NOT IN('installation','source_stop') OR pg_catalog.jsonb_typeof(c->'action_kind') IS DISTINCT FROM 'string' THEN
++ IF c->>'action_kind' NOT IN('installation','fence_acquire','source_stop') OR pg_catalog.jsonb_typeof(c->'action_kind') IS DISTINCT FROM 'string' THEN
+   PERFORM vn_jupiter_b2_allocation_research_v3._auth(c->'scope','read_original'); RAISE EXCEPTION 'b2_kind_not_implemented';
+  END IF;
+  a:=vn_jupiter_b2_allocation_research_v3._auth(c->'scope','read_original');
+@@ -560,7 +581,7 @@
+  END IF;
+  PERFORM vn_jupiter_b2_fixture_anchor._lock_inputs(sw);
+  -- Reauthorize from a fresh statement snapshot while BOTH input rows are held.
+- a:=vn_jupiter_b2_allocation_research_v3._auth(c->'scope',CASE WHEN c->>'action_kind'='installation' THEN 'install' ELSE 'control' END); p:=a->'package'; g:=(a->>'genesis_wire')::jsonb;
++ a:=vn_jupiter_b2_allocation_research_v3._auth(c->'scope',CASE c->>'action_kind' WHEN 'installation' THEN 'install' WHEN 'fence_acquire' THEN 'fence_manage' ELSE 'control' END); p:=a->'package'; g:=(a->>'genesis_wire')::jsonb;
+  SELECT * INTO st FROM vn_jupiter_b2_allocation_research_v3.scope_state WHERE scope_wire=sw FOR UPDATE;
+  IF NOT FOUND OR pg_catalog.current_setting('synchronous_commit')<>'on' OR pg_catalog.current_setting('fsync')<>'on' THEN RAISE EXCEPTION 'b2_session_refused'; END IF;
+  IF EXISTS(SELECT 1 FROM vn_jupiter_b2_allocation_research_v3.original_operations WHERE writer_xid8=pg_catalog.pg_current_xact_id()) THEN RAISE EXCEPTION 'b2_one_new_operation'; END IF;
+@@ -602,18 +623,52 @@
+   facts:=pg_catalog.jsonb_build_array(vn_jupiter_b2_allocation_research_v3._pin('native_genesis_input',p->>'installation_id',a->>'genesis_wire'),vn_jupiter_b2_allocation_research_v3._pin('native_epoch_registration',epoch->>'registration_id',vn_jupiter_b2_allocation_research_v3._c14n(epoch)),vn_jupiter_b2_allocation_research_v3._pin('native_terminal_allocation',g->>'terminal_stop_action_id',vn_jupiter_b2_allocation_research_v3._c14n(terminal)));
+   deps:=vn_jupiter_b2_allocation_research_v3._deps(facts);
+   expected_body:=(c->'body') - ARRAY['scope','policies'];
++ ELSIF c->>'action_kind'='fence_acquire' THEN
++  -- Narrow next slice: only the original paused installed epoch, no existing
++  -- fence, no packet/pending state, and one exact scoped recorder binding.
++  IF seq<>2 OR h->>'source_mode' IS DISTINCT FROM 'paused' OR h->'active_fence_id' IS DISTINCT FROM 'null'::jsonb OR h->>'fence_revision' IS DISTINCT FROM '0' OR h->>'active_acquisition_epoch' IS DISTINCT FROM g#>>'{initial_acquisition_spec,acquisition_epoch}' OR a->>'binding_id' IS DISTINCT FROM g#>>'{initial_acquisition_spec,recorder_principal_binding_id}' OR pg_catalog.jsonb_typeof(c#>'{body,fence_id}') IS DISTINCT FROM 'string' OR (c#>>'{body,fence_id}' ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$') IS DISTINCT FROM true OR c->'body' IS DISTINCT FROM pg_catalog.jsonb_build_object('fence_id',c#>>'{body,fence_id}','acquisition_epoch',h->>'active_acquisition_epoch','holder_principal_binding_id',a->>'binding_id','requested_duration_us','60000000') THEN RAISE EXCEPTION 'b2_fence_acquire_refused'; END IF;
++  IF c->>'action_id' IS NOT DISTINCT FROM c#>>'{body,fence_id}' OR EXISTS(SELECT 1 FROM vn_jupiter_b2_allocation_research_v3.identities i WHERE i.original_id IN(c->>'action_id',c#>>'{body,fence_id}')) THEN RAISE EXCEPTION 'b2_identity_conflict'; END IF;
++  SELECT * INTO prior FROM vn_jupiter_b2_allocation_research_v3.original_operations z WHERE z.scope_wire=sw AND z.native_sequence=1 AND z.action_kind='installation' AND z.finalized;
++  IF NOT FOUND THEN RAISE EXCEPTION 'b2_installation_refused'; END IF;
++  prior_reply:=vn_jupiter_b2_allocation_research_v3._reply(c->'scope',prior.action_id,prior.command_sha256)::jsonb;
++  PERFORM 1 FROM vn_jupiter_b2_allocation_research_v3.journal_entries j WHERE j.scope_wire=sw AND j.native_sequence=1 AND j.journal_sha256=h->>'native_head_sha256';
++  IF NOT FOUND THEN RAISE EXCEPTION 'b2_stale_head'; END IF;
++  prior_result:=(prior_reply->>'original_result_wire')::jsonb;
++  issued:=(vn_jupiter_b2_allocation_research_v3._clock()->>'observed_at_us')::bigint;
++  IF issued<0 THEN RAISE EXCEPTION 'b2_fence_clock_refused'; END IF;
++  expires:=issued+60000000;
++  fence:=pg_catalog.jsonb_build_object('fence_id',c#>>'{body,fence_id}','scope',c->'scope','holder_principal_binding_id',a->>'binding_id','acquisition_epoch',h->>'active_acquisition_epoch','revision','1','issued_at_us',issued::text,'expires_at_us',expires::text,'original_command_sha256',ch,'native_sequence','2');
++  ass:=(c->'scope')||'{"packet_reservation_id":null}'::jsonb;
++  FOREACH role IN ARRAY ARRAY['native_operation_id','fence_id'] LOOP
++   ids:=ids||pg_catalog.jsonb_build_array(pg_catalog.jsonb_build_object('original_id',CASE WHEN role='fence_id' THEN c#>>'{body,fence_id}' ELSE c->>'action_id' END,'identity_role',role,'association',ass,'original_allocation_sha256',ch,'first_native_sequence','2'));
++  END LOOP;
++  facts:=pg_catalog.jsonb_build_array(vn_jupiter_b2_allocation_research_v3._pin('native_fence_record',fence->>'fence_id',vn_jupiter_b2_allocation_research_v3._c14n(fence)));
++  deps:=vn_jupiter_b2_allocation_research_v3._deps((prior_result->'dependencies')||pg_catalog.jsonb_build_array(vn_jupiter_b2_allocation_research_v3._pin('native_command',prior.action_id,prior.command_wire))||facts);
++  expected_body:=pg_catalog.jsonb_build_object('original_fence_record',fence);
+  ELSE
+-  IF seq<=1 OR h->>'source_mode' IS DISTINCT FROM 'paused' OR h->'active_fence_id' IS DISTINCT FROM 'null'::jsonb OR c->>'action_id' IS DISTINCT FROM g->>'terminal_stop_action_id' OR c->'body' IS DISTINCT FROM '{"expected_control_sha256":null,"expected_mode":"paused"}'::jsonb THEN RAISE EXCEPTION 'b2_Stop_refused'; END IF;
+-  -- The first slice has no Resume/fence implementation: actual four-pin path.
++  IF seq NOT IN(2,3) OR h->>'source_mode' IS DISTINCT FROM 'paused' OR (seq=2 AND (h->'active_fence_id' IS DISTINCT FROM 'null'::jsonb OR h->>'fence_revision' IS DISTINCT FROM '0')) OR (seq=3 AND (pg_catalog.jsonb_typeof(h->'active_fence_id') IS DISTINCT FROM 'string' OR h->>'fence_revision' IS DISTINCT FROM '1')) OR c->>'action_id' IS DISTINCT FROM g->>'terminal_stop_action_id' OR c->'body' IS DISTINCT FROM '{"expected_control_sha256":null,"expected_mode":"paused"}'::jsonb THEN RAISE EXCEPTION 'b2_Stop_refused'; END IF;
++  -- The original no-fence Stop path remains; the only additional path uses the
++  -- exact retained acquire original, without requiring a still-live hold.
+   SELECT COALESCE(pg_catalog.jsonb_agg(vn_jupiter_b2_allocation_research_v3._pin(semantic_kind,original_id,original_wire)),'[]') INTO deps FROM vn_jupiter_b2_allocation_research_v3.domain_facts WHERE scope_wire=sw;
+   SELECT * INTO oldop FROM vn_jupiter_b2_allocation_research_v3.original_operations WHERE scope_wire=sw AND action_kind='installation' AND finalized;
+   IF NOT FOUND THEN RAISE EXCEPTION 'b2_installation_refused'; END IF;
+   IF (oldop.command_wire::jsonb)->'body' IS DISTINCT FROM pg_catalog.jsonb_build_object('installation_id',p->>'installation_id','scope',c->'scope','policies',p->'policies','catalog_manifest_sha256',p->>'catalog_manifest_sha256','actor_manifest_sha256',p->>'actor_manifest_sha256','genesis_registry_sha256',vn_jupiter_b2_allocation_research_v3._sha(a->>'genesis_wire')) THEN RAISE EXCEPTION 'b2_package_refused'; END IF;
+-  deps:=vn_jupiter_b2_allocation_research_v3._deps(deps||pg_catalog.jsonb_build_array(vn_jupiter_b2_allocation_research_v3._pin('native_command',oldop.action_id,oldop.command_wire)));
++  IF seq=3 THEN
++   SELECT * INTO prior FROM vn_jupiter_b2_allocation_research_v3.original_operations z WHERE z.scope_wire=sw AND z.native_sequence=2 AND z.action_kind='fence_acquire' AND z.finalized;
++   IF NOT FOUND THEN RAISE EXCEPTION 'b2_Stop_refused'; END IF;
++   prior_reply:=vn_jupiter_b2_allocation_research_v3._reply(c->'scope',prior.action_id,prior.command_sha256)::jsonb;
++   prior_result:=(prior_reply->>'original_result_wire')::jsonb;
++   IF prior_result#>'{result_body,original_fence_record,fence_id}' IS DISTINCT FROM h->'active_fence_id' OR prior_result#>'{result_body,original_fence_record,acquisition_epoch}' IS DISTINCT FROM h->'active_acquisition_epoch' THEN RAISE EXCEPTION 'b2_Stop_refused'; END IF;
++   PERFORM 1 FROM vn_jupiter_b2_allocation_research_v3.journal_entries j WHERE j.scope_wire=sw AND j.native_sequence=2 AND j.journal_sha256=h->>'native_head_sha256';
++   IF NOT FOUND THEN RAISE EXCEPTION 'b2_stale_head'; END IF;
++   deps:=vn_jupiter_b2_allocation_research_v3._deps((prior_result->'dependencies')||pg_catalog.jsonb_build_array(vn_jupiter_b2_allocation_research_v3._pin('native_command',prior.action_id,prior.command_wire)));
++  ELSE
++   deps:=vn_jupiter_b2_allocation_research_v3._deps(deps||pg_catalog.jsonb_build_array(vn_jupiter_b2_allocation_research_v3._pin('native_command',oldop.action_id,oldop.command_wire)));
++  END IF;
+   expected_body:=pg_catalog.jsonb_build_object('previous_mode','paused','resulting_mode','stopped','previous_control_sha256',NULL,'resulting_fence_revision',((h->>'fence_revision')::bigint+1)::text);
+  END IF;
+  r:=pg_catalog.jsonb_build_object('format','ga-jupiter-b2-allocation-result-research-v3-v1','native_policy_sha256','e5dca1d13839102fb1fdd261176393b73c770a95ab355eff74499169905bfba0','scope',c->'scope','action_id',c->>'action_id','action_kind',c->>'action_kind','native_sequence',seq::text,'original_command_sha256',ch,'dependencies',deps,'result_body',expected_body,'limits',vn_jupiter_b2_allocation_research_v3._limits()); rw:=vn_jupiter_b2_allocation_research_v3._c14n(r);
+- IF pg_catalog.octet_length(rw)>131072 OR EXISTS(SELECT 1 FROM pg_catalog.jsonb_array_elements(facts) x WHERE (x->>'wire_bytes')::bigint>CASE x->>'semantic_kind' WHEN 'native_genesis_input' THEN 8192 WHEN 'native_epoch_registration' THEN 2048 WHEN 'native_terminal_allocation' THEN 1024 ELSE 0 END) THEN RAISE EXCEPTION 'b2_wire_bound'; END IF;
++ IF pg_catalog.octet_length(rw)>131072 OR EXISTS(SELECT 1 FROM pg_catalog.jsonb_array_elements(facts) x WHERE (x->>'wire_bytes')::bigint>CASE x->>'semantic_kind' WHEN 'native_genesis_input' THEN 8192 WHEN 'native_epoch_registration' THEN 2048 WHEN 'native_terminal_allocation' THEN 1024 WHEN 'native_fence_record' THEN 1024 ELSE 0 END) THEN RAISE EXCEPTION 'b2_wire_bound'; END IF;
+  cost:=vn_jupiter_b2_allocation_research_v3._cost(c,r,ids,facts);
+  chk:=vn_jupiter_b2_allocation_research_v3._budget(sw,c->>'action_kind',cost);
+  -- Full future finalization upper + every Stop component is checked BEFORE DML.
+@@ -627,7 +682,9 @@
+   ordinal:=ordinal+1;
+   INSERT INTO vn_jupiter_b2_allocation_research_v3.dependency_associations VALUES(c->>'action_id',sw,ordinal,d->>'semantic_kind',d->>'original_id',d->>'wire_sha256',(d->>'wire_bytes')::bigint);
+  END LOOP;
+- INSERT INTO vn_jupiter_b2_allocation_research_v3.original_operations(action_id,scope_wire,action_kind,native_sequence,command_wire,command_sha256,result_wire,result_sha256,writer_xid8,writer_binding_id,final_function_observation) VALUES(c->>'action_id',sw,c->>'action_kind',seq,wire,ch,rw,vn_jupiter_b2_allocation_research_v3._sha(rw),pg_catalog.pg_current_xact_id(),a->>'binding_id',vn_jupiter_b2_allocation_research_v3._clock());
++ final_obs:=vn_jupiter_b2_allocation_research_v3._clock();
++ IF c->>'action_kind'='fence_acquire' AND ((final_obs->>'observed_at_us')::bigint<issued OR (final_obs->>'observed_at_us')::bigint>=expires) THEN RAISE EXCEPTION 'b2_fence_clock_refused'; END IF;
++ INSERT INTO vn_jupiter_b2_allocation_research_v3.original_operations(action_id,scope_wire,action_kind,native_sequence,command_wire,command_sha256,result_wire,result_sha256,writer_xid8,writer_binding_id,final_function_observation) VALUES(c->>'action_id',sw,c->>'action_kind',seq,wire,ch,rw,vn_jupiter_b2_allocation_research_v3._sha(rw),pg_catalog.pg_current_xact_id(),a->>'binding_id',final_obs);
+  RETURN vn_jupiter_b2_allocation_research_v3._c14n(pg_catalog.jsonb_build_object('format','ga-jupiter-b2-provisional-research-v3-v1','native_policy_sha256','e5dca1d13839102fb1fdd261176393b73c770a95ab355eff74499169905bfba0','scope',c->'scope','action_id',c->>'action_id','action_kind',c->>'action_kind','original_command_sha256',ch,'pending_commit',true,'limits',vn_jupiter_b2_allocation_research_v3._limits()));
+ EXCEPTION WHEN unique_violation THEN RAISE EXCEPTION 'b2_identity_conflict'; WHEN invalid_text_representation OR numeric_value_out_of_range THEN RAISE EXCEPTION 'b2_invalid_command';
+ END;
+@@ -643,13 +700,13 @@
+ SET client_encoding = 'UTF8'
+ SET standard_conforming_strings = 'on'
+ AS $b2$
+-DECLARE o vn_jupiter_b2_allocation_research_v3.original_operations%ROWTYPE; c jsonb; r jsonb; a jsonb; p jsonb; g jsonb; st record; h jsonb; obs jsonb; rec jsonb; tw text; jw text; nexthead jsonb; ids jsonb; facts jsonb; cost jsonb; accounting jsonb; original_installation jsonb;
++DECLARE o vn_jupiter_b2_allocation_research_v3.original_operations%ROWTYPE; c jsonb; r jsonb; a jsonb; p jsonb; g jsonb; st record; h jsonb; obs jsonb; rec jsonb; tw text; jw text; nexthead jsonb; ids jsonb; facts jsonb; cost jsonb; accounting jsonb; original_installation jsonb; fence jsonb; issued bigint; expires bigint; role text; expected_record jsonb; next_fence text;
+ BEGIN
+  IF pg_catalog.btrim(pg_catalog.current_query(),E' \t\r\n\f'||pg_catalog.chr(11)) NOT IN('COMMIT','COMMIT;') THEN RAISE EXCEPTION 'b2_commit_form_refused'; END IF;
+  SELECT * INTO o FROM vn_jupiter_b2_allocation_research_v3.original_operations WHERE action_id=NEW.action_id FOR UPDATE;
+  IF NOT FOUND OR o.finalized OR o.writer_xid8<>pg_catalog.pg_current_xact_id() THEN RAISE EXCEPTION 'b2_commit_origin_refused'; END IF;
+  c:=o.command_wire::jsonb; r:=o.result_wire::jsonb;
+- a:=vn_jupiter_b2_allocation_research_v3._auth(c->'scope',CASE WHEN o.action_kind='installation' THEN 'install' ELSE 'control' END); p:=a->'package'; g:=(a->>'genesis_wire')::jsonb;
++ a:=vn_jupiter_b2_allocation_research_v3._auth(c->'scope',CASE o.action_kind WHEN 'installation' THEN 'install' WHEN 'fence_acquire' THEN 'fence_manage' ELSE 'control' END); p:=a->'package'; g:=(a->>'genesis_wire')::jsonb;
+  IF o.action_kind='installation' THEN original_installation:=c;
+  ELSE SELECT command_wire::jsonb INTO original_installation FROM vn_jupiter_b2_allocation_research_v3.original_operations WHERE scope_wire=o.scope_wire AND action_kind='installation' AND finalized;
+  END IF;
+@@ -660,11 +717,24 @@
+  SELECT COALESCE(pg_catalog.jsonb_agg(record_wire::jsonb),'[]') INTO ids FROM vn_jupiter_b2_allocation_research_v3.identities WHERE scope_wire=o.scope_wire AND record_wire::jsonb->>'original_allocation_sha256'=o.command_sha256;
+  SELECT COALESCE(pg_catalog.jsonb_agg(vn_jupiter_b2_allocation_research_v3._pin(semantic_kind,original_id,original_wire)),'[]') INTO facts FROM vn_jupiter_b2_allocation_research_v3.domain_facts WHERE scope_wire=o.scope_wire AND native_sequence=o.native_sequence;
+  cost:=vn_jupiter_b2_allocation_research_v3._cost(c,r,ids,facts); accounting:=vn_jupiter_b2_allocation_research_v3._budget(o.scope_wire,o.action_kind,cost);
++ IF o.action_kind='fence_acquire' THEN
++  fence:=r#>'{result_body,original_fence_record}';
++  IF o.native_sequence<>2 OR h->>'native_sequence' IS DISTINCT FROM '1' OR h->>'source_mode' IS DISTINCT FROM 'paused' OR h->'active_fence_id' IS DISTINCT FROM 'null'::jsonb OR h->>'fence_revision' IS DISTINCT FROM '0' OR h->>'active_acquisition_epoch' IS DISTINCT FROM g#>>'{initial_acquisition_spec,acquisition_epoch}' OR a->>'binding_id' IS DISTINCT FROM g#>>'{initial_acquisition_spec,recorder_principal_binding_id}' OR NOT vn_jupiter_b2_allocation_research_v3._keys(r->'result_body',ARRAY['original_fence_record']) OR pg_catalog.jsonb_typeof(fence->'issued_at_us') IS DISTINCT FROM 'string' OR (fence->>'issued_at_us' ~ '^(0|[1-9][0-9]{0,18})$') IS DISTINCT FROM true OR pg_catalog.jsonb_typeof(c#>'{body,fence_id}') IS DISTINCT FROM 'string' OR (c#>>'{body,fence_id}' ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$') IS DISTINCT FROM true OR c#>>'{body,fence_id}' IS NOT DISTINCT FROM o.action_id THEN RAISE EXCEPTION 'b2_fence_commit_refused'; END IF;
++  IF c->'body' IS DISTINCT FROM pg_catalog.jsonb_build_object('fence_id',c#>>'{body,fence_id}','acquisition_epoch',h->>'active_acquisition_epoch','holder_principal_binding_id',a->>'binding_id','requested_duration_us','60000000') THEN RAISE EXCEPTION 'b2_fence_commit_refused'; END IF;
++  issued:=(fence->>'issued_at_us')::bigint; expires:=issued+60000000;
++  IF fence IS DISTINCT FROM pg_catalog.jsonb_build_object('fence_id',c#>>'{body,fence_id}','scope',c->'scope','holder_principal_binding_id',a->>'binding_id','acquisition_epoch',h->>'active_acquisition_epoch','revision','1','issued_at_us',issued::text,'expires_at_us',expires::text,'original_command_sha256',o.command_sha256,'native_sequence','2') OR pg_catalog.octet_length(vn_jupiter_b2_allocation_research_v3._c14n(fence))>1024 OR facts IS DISTINCT FROM pg_catalog.jsonb_build_array(vn_jupiter_b2_allocation_research_v3._pin('native_fence_record',fence->>'fence_id',vn_jupiter_b2_allocation_research_v3._c14n(fence))) OR pg_catalog.jsonb_array_length(ids)<>2 THEN RAISE EXCEPTION 'b2_fence_commit_refused'; END IF;
++  FOREACH role IN ARRAY ARRAY['native_operation_id','fence_id'] LOOP
++   expected_record:=pg_catalog.jsonb_build_object('original_id',CASE WHEN role='fence_id' THEN c#>>'{body,fence_id}' ELSE o.action_id END,'identity_role',role,'association',(c->'scope')||'{"packet_reservation_id":null}'::jsonb,'original_allocation_sha256',o.command_sha256,'first_native_sequence','2');
++   IF NOT EXISTS(SELECT 1 FROM pg_catalog.jsonb_array_elements(ids) v WHERE v.value=expected_record) THEN RAISE EXCEPTION 'b2_fence_commit_refused'; END IF;
++  END LOOP;
++  next_fence:=fence->>'fence_id';
++ END IF;
+  obs:=vn_jupiter_b2_allocation_research_v3._clock();
+  IF (obs->>'observed_at_us')::bigint<(o.final_function_observation->>'observed_at_us')::bigint THEN RAISE EXCEPTION 'b2_clock_regression'; END IF;
++ IF o.action_kind='fence_acquire' AND (issued>(o.final_function_observation->>'observed_at_us')::bigint OR (obs->>'observed_at_us')::bigint>=expires) THEN RAISE EXCEPTION 'b2_fence_clock_refused'; END IF;
+  rec:=pg_catalog.jsonb_build_object('format','ga-jupiter-b2-allocation-receipt-research-v3-v1','native_policy_sha256','e5dca1d13839102fb1fdd261176393b73c770a95ab355eff74499169905bfba0','scope',c->'scope','action_id',o.action_id,'action_kind',o.action_kind,'original_command_sha256',o.command_sha256,'result_sha256',o.result_sha256,'native_sequence',o.native_sequence::text,'previous_native_head_sha256',h->>'native_head_sha256','admission_observation',NULL,'final_function_observation',o.final_function_observation,'commit_processing_observation',obs,'native_package_sha256',p->>'native_package_sha256','catalog_manifest_sha256',p->>'catalog_manifest_sha256','limits',vn_jupiter_b2_allocation_research_v3._limits()); tw:=vn_jupiter_b2_allocation_research_v3._c14n(rec);
+  jw:=vn_jupiter_b2_allocation_research_v3._c14n(pg_catalog.jsonb_build_object('native_sequence',o.native_sequence::text,'action_id',o.action_id,'action_kind',o.action_kind,'original_command_sha256',o.command_sha256,'original_result_sha256',o.result_sha256,'original_receipt_sha256',vn_jupiter_b2_allocation_research_v3._sha(tw),'previous_native_head_sha256',h->>'native_head_sha256'));
+- nexthead:=pg_catalog.jsonb_build_object('scope',c->'scope','native_sequence',o.native_sequence::text,'native_head_sha256',vn_jupiter_b2_allocation_research_v3._sha(jw),'active_acquisition_epoch',g#>>'{initial_acquisition_spec,acquisition_epoch}','active_fence_id',NULL,'fence_revision',CASE WHEN o.action_kind='installation' THEN '0' ELSE ((h->>'fence_revision')::bigint+1)::text END,'source_mode',CASE WHEN o.action_kind='installation' THEN 'paused' ELSE 'stopped' END,'last_admission_sha256',NULL,'last_ingest_sequence','0','last_availability_sha256',NULL,'previous_seal_sha256',NULL);
++ nexthead:=pg_catalog.jsonb_build_object('scope',c->'scope','native_sequence',o.native_sequence::text,'native_head_sha256',vn_jupiter_b2_allocation_research_v3._sha(jw),'active_acquisition_epoch',g#>>'{initial_acquisition_spec,acquisition_epoch}','active_fence_id',next_fence,'fence_revision',CASE WHEN o.action_kind='installation' THEN '0' ELSE ((h->>'fence_revision')::bigint+1)::text END,'source_mode',CASE WHEN o.action_kind='source_stop' THEN 'stopped' ELSE 'paused' END,'last_admission_sha256',NULL,'last_ingest_sequence','0','last_availability_sha256',NULL,'previous_seal_sha256',NULL);
+  IF pg_catalog.octet_length(tw)>4096 OR pg_catalog.octet_length(jw)>1024 OR pg_catalog.octet_length(vn_jupiter_b2_allocation_research_v3._c14n(nexthead))>2048 THEN RAISE EXCEPTION 'b2_wire_bound'; END IF;
+  UPDATE vn_jupiter_b2_allocation_research_v3.original_operations SET receipt_wire=tw,receipt_sha256=vn_jupiter_b2_allocation_research_v3._sha(tw),finalized=true WHERE action_id=o.action_id;
+  INSERT INTO vn_jupiter_b2_allocation_research_v3.journal_entries VALUES(o.scope_wire,o.native_sequence,o.action_id,jw,vn_jupiter_b2_allocation_research_v3._sha(jw));
+diff --git a/services/vonneumann/tests/postgres/allocation_control_v3_fixture.py b/services/vonneumann/tests/postgres/allocation_control_v3_fixture.py
+--- a/services/vonneumann/tests/postgres/allocation_control_v3_fixture.py
++++ b/services/vonneumann/tests/postgres/allocation_control_v3_fixture.py
+@@ -26,7 +26,7 @@
+ SQL_PATH = ROOT / 'db-contract/research/jupiter_allocation_control_v3.sql'
+ LOADER_PATH = ROOT / 'db-contract/research/allocation_control_v3_source.py'
+ POLICY_PATH = ROOT / 'research/b2-finite-experiment-policy-2026-10-18-v3.json'
+-SOURCE_SHA256 = '4e1e55b7c565982067195fd8d818ac6dfef5dadbfae21dbc2ba35a96dd4771c0'
++SOURCE_SHA256 = '9d0e2b94f45919e0a734c0df1f72826068f60c9248d819a8d2d9de27a7fdbb1e'
+ LOADER_SHA256 = 'cdbfa5c524f9c4850784672e3c0bbd506672dda64ac32e2c1ef5d881d8ecfbb0'
+ POLICY_FILE_SHA256 = '0a1c8663f4f6cbf9b299cab11fcdd00a379dbe3ca3493b706ddafca9b75c0f1a'
+ POLICY_SHA256 = 'e5dca1d13839102fb1fdd261176393b73c770a95ab355eff74499169905bfba0'
+diff --git a/services/vonneumann/tests/postgres/test_allocation_control_v3.py b/services/vonneumann/tests/postgres/test_allocation_control_v3.py
+--- a/services/vonneumann/tests/postgres/test_allocation_control_v3.py
++++ b/services/vonneumann/tests/postgres/test_allocation_control_v3.py
+@@ -231,7 +231,7 @@
+         self.refusal(c,'b2_one_new_operation',suffix=self.f.call('submit',second,self.s['actors']['installer'])+'COMMIT;\n')
+ 
+     def test_every_other_kind_refuses_without_any_table_write(self):
+-        for kind in ('epoch_registration','epoch_rollover','reader_epoch_registration','fence_acquire','fence_renew','fence_release','source_pause','source_resume','packet_reservation','capture_retention','source_admission','availability_retention','terminal_closure','inventory_seal'):
++        for kind in ('epoch_registration','epoch_rollover','reader_epoch_registration','fence_renew','fence_release','source_pause','source_resume','packet_reservation','capture_retention','source_admission','availability_retention','terminal_closure','inventory_seal'):
+             with self.subTest(kind=kind):
+                 self.refusal(self.f.command(self.s,kind,action_id=str(UUID(int=999990))),'b2_kind_not_implemented',profile='reader')
+ 
+@@ -580,4 +580,187 @@
+         self.assertEqual('1',current['observed_head']['native_sequence'])
+ 
+ 
++    def acquire_command(self,*,action_number=993001,fence_number=993002):
++        c=self.f.command(self.s,'fence_acquire',action_id=str(UUID(int=action_number)))
++        c['body']=dict(fence_id=str(UUID(int=fence_number)),acquisition_epoch=self.s['epoch'],
++            holder_principal_binding_id=self.s['bindings']['recorder'],requested_duration_us='60000000')
++        return c
++
++    def test_fence_acquire_original_clock_active_head_and_observed_charge(self):
++        install=self.f.command(self.s);self.submit(install)
++        reader=self.s['actors']['reader'];recorder=self.s['actors']['recorder'];scope=self.s['scope']
++        installed=self.f.get(install,reader)
++        initial=scoped_rows(self.f,scope)
++        c=self.acquire_command()
++        before=self.f.get(c,reader)
++        self.assertEqual('observed_absent_unknown',before['resolution'])
++        self.assertEqual(c['expected_head'],before['observed_head'])
++        writer=self.f.writer(recorder)
++        try:
++            writer.send(self.f.call('submit',c,recorder))
++            pending=json.loads(writer.line())
++            self.assertTrue(pending['pending_commit'])
++            self.assertEqual(sha(canonical(c)),pending['original_command_sha256'])
++            self.assertTrue(all(value is False for value in pending['limits'].values()))
++            self.assertEqual(before,self.f.get(c,reader))
++            writer.finish()  # Command completion is not treated as the receipt.
++        finally:writer.close()
++        reply=self.f.get(c,reader);result,receipt=self.assert_committed(c,reply,2)
++        fence=result['result_body']['original_fence_record']
++        issued=int(fence['issued_at_us']);expires=int(fence['expires_at_us'])
++        self.assertGreaterEqual(issued,0)
++        self.assertEqual(dict(fence_id=c['body']['fence_id'],scope=scope,
++            holder_principal_binding_id=self.s['bindings']['recorder'],acquisition_epoch=self.s['epoch'],
++            revision='1',issued_at_us=str(issued),expires_at_us=str(issued+60_000_000),
++            original_command_sha256=sha(canonical(c)),native_sequence='2'),fence)
++        self.assertLessEqual(issued,int(receipt['final_function_observation']['observed_at_us']))
++        self.assertLess(int(receipt['commit_processing_observation']['observed_at_us']),expires)
++        h=self.f.head(self.s)
++        self.assertEqual(('paused',self.s['epoch'],fence['fence_id'],'1','2'),
++            tuple(h[key] for key in ('source_mode','active_acquisition_epoch','active_fence_id','fence_revision','native_sequence')))
++        fence_pin=observed_pin('native_fence_record',fence['fence_id'],canonical(fence))
++        install_pin=observed_pin('native_command',install['action_id'],canonical(install))
++        expected=ordered_pins(installed['dependencies']+[install_pin,fence_pin])
++        self.assertEqual(5,len(expected));self.assertEqual(expected,result['dependencies'])
++        expected=ordered_pins(expected+[observed_pin(kind,install['action_id'],installed[field])
++          for kind,field in (('native_result','original_result_wire'),('native_receipt','original_receipt_wire'))])
++        self.assertEqual(7,len(expected));self.assertEqual(expected,reply['dependencies'])
++        raw=self.db.sql(SETTINGS+self.f.call('get_original',self.f.query(c),reader),role=reader).stdout
++        self.assertEqual(canonical(reply)+'\n',raw)
++        self.assertLessEqual(len(raw.encode('utf8')),8388608)
++        current=scoped_rows(self.f,scope)
++        a1=json.loads(initial['scope_state'][0]['accounting_wire'])
++        a2=json.loads(current['scope_state'][0]['accounting_wire'])
++        self.assertEqual(39,sum(map(len,current.values())))
++        self.assertEqual(dict(committed_positions='2',identity_rows='17',domain_rows='4',dependency_rows='8',
++          retained_rows='39',row_writes='35',index_entries='70',Stop_reserve_consumed=False),
++          {key:value for key,value in a2.items() if key!='logical_UTF8_bytes'})
++        changed={'scope_state':current['scope_state']}
++        for name in ('original_operations','journal_entries','dependency_associations'):
++            changed[name]=[row for row in current[name] if row['action_id']==c['action_id']]
++        changed['identities']=[row for row in current['identities'] if row['original_id'] in (c['action_id'],fence['fence_id'])]
++        changed['domain_facts']=[row for row in current['domain_facts'] if row['original_id']==fence['fence_id']]
++        self.assertEqual(1,len(changed['domain_facts']))
++        self.assertEqual(canonical(fence),changed['domain_facts'][0]['original_wire'])
++        self.assertEqual(2,len(changed['identities']))
++        for row in changed['identities']:
++            identity=row['original_id']
++            self.assertEqual(dict(original_id=identity,identity_role='fence_id' if identity==fence['fence_id'] else 'native_operation_id',
++                association=scope|dict(packet_reservation_id=None),original_allocation_sha256=sha(canonical(c)),first_native_sequence='2'),json.loads(row['record_wire']))
++        selected=[observed_row_charge(name,row,scope) for name,rows in changed.items() for row in rows]
++        self.assertEqual((11,22),(len(selected),sum(row['keys'] for row in selected)))
++        self.assertGreaterEqual(int(a2['logical_UTF8_bytes'])-int(a1['logical_UTF8_bytes']),sum(row['bytes'] for row in selected))
++        self.assertLessEqual(int(a2['logical_UTF8_bytes'])+self.f.policy['Stop_reserve_vector']['logical_UTF8_bytes'],
++          self.f.policy['finite_caps_per_scope']['logical_UTF8_bytes_charged'])
++        unchanged=self.f.snapshot()
++        replay=json.loads(self.db.scalar(SETTINGS+self.f.call('submit',c,reader),role=reader))
++        self.assertEqual(reply,replay);self.assertEqual(unchanged,self.f.snapshot())
++        historical=self.f.get(install,reader)
++        self.assertEqual(installed['original_result_wire'],historical['original_result_wire'])
++        self.assertEqual(installed['dependencies'],historical['dependencies'])
++
++    def test_fence_acquire_requires_installed_recorder_and_closed_exact_duration(self):
++        self.refusal(self.acquire_command(),'b2_fence_acquire_refused',profile='recorder')
++        self.submit(self.f.command(self.s));c=self.acquire_command()
++        for profile in ('control','installer','reader'):
++            with self.subTest(profile=profile):self.refusal(c,'b2_actor_scope_refused',profile=profile)
++        before=self.f.snapshot();foreign=self.other['actors']['recorder']
++        result=self.db.sql(BEGIN+SETTINGS+self.f.call('submit',c,foreign)+'COMMIT;\n',role=foreign,check=False)
++        self.assertNotEqual(0,result.returncode);self.assertIn('b2_actor_scope_refused',result.stderr)
++        self.assertEqual(before,self.f.snapshot())
++        for field,value in (('requested_duration_us',60000000),('requested_duration_us','60000001'),
++             ('holder_principal_binding_id',self.s['bindings']['control']),('acquisition_epoch',self.other['epoch']),
++             ('issued_at_us','0')):
++            with self.subTest(field=field,value=value):
++                bad=copy.deepcopy(c);bad['body'][field]=value
++                self.refusal(bad,'b2_fence_acquire_refused',profile='recorder')
++
++    def test_fence_acquire_identity_stale_and_active_hold_refuse(self):
++        self.submit(self.f.command(self.s));self.submit(self.f.command(self.other))
++        c=self.acquire_command()
++        for identity in (c['action_id'],self.s['stop_id'],self.other['epoch']):
++            with self.subTest(identity=identity):
++                bad=copy.deepcopy(c);bad['body']['fence_id']=identity
++                self.refusal(bad,'b2_identity_conflict',profile='recorder')
++        alias=copy.deepcopy(c);alias['action_id']=self.s['stop_id']
++        self.refusal(alias,'b2_identity_conflict',profile='recorder')
++        self.submit(c,'recorder')
++        altered=copy.deepcopy(c);altered['body']['requested_duration_us']='60000001'
++        self.refusal(altered,'b2_original_conflict',profile='recorder')
++        fresh=self.acquire_command(action_number=993011,fence_number=993012)
++        stale=copy.deepcopy(fresh);stale['expected_head']=c['expected_head']
++        self.refusal(stale,'b2_stale_head',profile='recorder')
++        self.refusal(fresh,'b2_fence_acquire_refused',profile='recorder')
++
++    def test_fence_acquire_provisional_rollback_and_early_guard_leave_no_facts(self):
++        self.submit(self.f.command(self.s));c=self.acquire_command();role=self.s['actors']['recorder']
++        before=self.f.snapshot()
++        writer=self.f.writer(role)
++        try:
++            writer.send(self.f.call('submit',c,role));self.assertTrue(json.loads(writer.line())['pending_commit'])
++            writer.finish('ROLLBACK;')
++        finally:writer.close()
++        self.assertEqual(before,self.f.snapshot())
++        self.assertEqual('observed_absent_unknown',self.f.get(c,self.s['actors']['reader'])['resolution'])
++        # Separate original ID after a proved rollback; no uncertain command reissue.
++        other=self.acquire_command(action_number=993021,fence_number=993022)
++        self.refusal(other,'b2_commit_form_refused',profile='recorder',suffix='SET CONSTRAINTS ALL IMMEDIATE;\nCOMMIT;\n')
++        stop=self.f.command(self.s,'source_stop');self.submit(stop)
++        self.assert_committed(stop,self.f.get(stop,self.s['actors']['reader']),2)
++        self.assertIsNone(self.f.head(self.s)['active_fence_id'])
++
++    def test_original_reserved_stop_after_acquire_retains_fence_and_exact_closure(self):
++        install=self.f.command(self.s);self.submit(install)
++        c=self.acquire_command();self.submit(c,'recorder')
++        reader=self.s['actors']['reader'];scope=self.s['scope']
++        i=self.f.get(install,reader);a=self.f.get(c,reader)
++        result,_=self.assert_committed(c,a,2)
++        fence=result['result_body']['original_fence_record']
++        before=scoped_rows(self.f,scope)
++        stop=self.f.command(self.s,'source_stop')
++        self.assertEqual(self.s['stop_id'],stop['action_id'])
++        self.refusal(stop,'b2_actor_scope_refused',profile='recorder')
++        self.submit(stop);reply=self.f.get(stop,reader)
++        stopped,_=self.assert_committed(stop,reply,3)
++        self.assertEqual(dict(previous_mode='paused',resulting_mode='stopped',previous_control_sha256=None,
++          resulting_fence_revision='2'),stopped['result_body'])
++        expected=ordered_pins(result['dependencies']+[observed_pin('native_command',c['action_id'],canonical(c))])
++        self.assertEqual(6,len(expected));self.assertEqual(expected,stopped['dependencies'])
++        ancestors=[observed_pin(kind,source['action_id'],saved[field]) for source,saved in ((install,i),(c,a))
++          for kind,field in (('native_command','original_command_wire'),('native_result','original_result_wire'),('native_receipt','original_receipt_wire'))]
++        expected=ordered_pins(i['dependencies']+[observed_pin('native_fence_record',fence['fence_id'],canonical(fence))]+ancestors)
++        self.assertEqual(10,len(expected));self.assertEqual(expected,reply['dependencies'])
++        h=self.f.head(self.s)
++        self.assertEqual(('stopped',None,'2','3'),tuple(h[key] for key in ('source_mode','active_fence_id','fence_revision','native_sequence')))
++        after=scoped_rows(self.f,scope)
++        self.assertEqual(before['domain_facts'],after['domain_facts'])
++        self.assertEqual(before['identities'],after['identities'])
++        self.assertEqual(47,sum(map(len,after.values())))
++        a3=json.loads(after['scope_state'][0]['accounting_wire'])
++        self.assertEqual(dict(committed_positions='3',identity_rows='17',domain_rows='4',dependency_rows='14',
++          retained_rows='47',row_writes='44',index_entries='88',Stop_reserve_consumed=True),
++          {key:value for key,value in a3.items() if key!='logical_UTF8_bytes'})
++        # The original UPDATE adds one DML and its three declared key touches per operation.
++        self.assertEqual((47,97),(int(a3['row_writes'])+len(after['original_operations']),
++          int(a3['index_entries'])+3*len(after['original_operations'])))
++        before_accounting=json.loads(before['scope_state'][0]['accounting_wire'])
++        chosen=[observed_row_charge('scope_state',after['scope_state'][0],scope)]
++        chosen += [observed_row_charge(name,row,scope) for name in ('original_operations','journal_entries','dependency_associations')
++          for row in after[name] if row['action_id']==stop['action_id']]
++        self.assertEqual((9,18),(len(chosen),sum(row['keys'] for row in chosen)))
++        self.assertGreaterEqual(int(a3['logical_UTF8_bytes'])-int(before_accounting['logical_UTF8_bytes']),sum(row['bytes'] for row in chosen))
++        # Reconstruct the three pending row images from retained exact C/R and
++        # final-function metadata; this is a separate selected logical charge.
++        pending=sum(observed_row_charge('original_operations',
++          row|dict(receipt_wire=None,receipt_sha256=None,finalized=False),scope)['bytes']
++          for row in after['original_operations'])
++        self.assertLessEqual(int(a3['logical_UTF8_bytes'])+pending,
++          self.f.policy['finite_caps_per_scope']['encoded_row_DML_UTF8_upper_charged'])
++        immutable=self.f.snapshot()
++        self.assertEqual(reply,json.loads(self.db.scalar(SETTINGS+self.f.call('submit',stop,reader),role=reader)))
++        self.assertEqual(a['original_result_wire'],self.f.get(c,reader)['original_result_wire'])
++        self.assertEqual(immutable,self.f.snapshot())
++        self.refusal(self.acquire_command(action_number=993031,fence_number=993032),'b2_fence_acquire_refused',profile='recorder')
++
++
+ if __name__=='__main__':unittest.main()

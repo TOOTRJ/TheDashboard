@@ -1,6 +1,6 @@
 # Helius MCP for The Dashboard
 
-Reviewed and installed locally on 2026-10-21. This is a development tool for
+Installed locally on 2026-10-21 and refreshed on 2026-11-05. This is a development tool for
 `TOOTRJ/TheDashboard`; installing it does not change the Railway worker, Vercel,
 Supabase, the application's package lock, or trading permissions.
 
@@ -19,13 +19,12 @@ verified. Cached documentation/npm pages still describe older releases.
 | Launcher | `scripts/dashboard-helius-mcp.py` |
 | Reviewed analytics suppression | `scripts/dashboard-helius-no-telemetry.mjs` |
 | Private API-key assignment | ignored `ssl/helius-mcp.env` |
-| Installed package and dependency lock | ignored `ssl/helius-mcp-runtime/` |
-| Verified Node 24.19.0 for macOS ARM64 | `ssl/helius-mcp-runtime/bin/node` |
-| Child home | `ssl/helius-mcp-runtime/home/` |
-| Child temporary files | `ssl/helius-mcp-runtime/tmp/` |
-| Installation-only npm cache | `ssl/helius-mcp-runtime/npm-cache/` |
-| Installed tree hashes | `ssl/helius-mcp-runtime/runtime-integrity.json` |
-| Install/audit/dependency evidence | `ssl/helius-mcp-runtime/installation-receipt.json`, `audit.json`, `dependency-tree.json` |
+| Active runtime root | ignored `ssl/helius-mcp-runtime-20261105/` |
+| Verified Node 24.22.2 for macOS ARM64 | `bin/node` under the active runtime root |
+| Child home and temporary files | `home/` and `tmp/` under that root |
+| Installation-only npm cache | `npm-cache/` under that root |
+| Dependency lock and installed tree hashes | `package-lock.json` and `runtime-integrity.json` under that root |
+| Refresh and audit evidence | `refresh-receipt.json` and `audit.json` under that root |
 
 The runtime root and its bin/home/tmp/npm-cache directories are owned mode 0700.
 Installed npm subdirectories normally use mode 0755 under that private root; none
@@ -156,12 +155,22 @@ details, wallet analysis or previous-result narratives in those fields.
 
 ## Installation evidence and remaining limits
 
-The runtime was installed with `npm install --ignore-scripts --no-audit
+The October runtime was installed with `npm install --ignore-scripts --no-audit
 --no-fund --save-exact`, using only its private home, npm configuration files,
 cache and temp directory. The exact lock covers 193 installed packages. A
 separate bounded npm audit completed with zero known vulnerabilities at every
 severity on 2026-10-21. An initial audit request timed out; that was not treated
-as a passing result. No audit fix, force option, or dependency override ran.
+as a passing result.
+
+The November 5 audit found [GHSA-27r3-jxmh-p828](https://github.com/advisories/GHSA-27r3-jxmh-p828)
+in `body-parser@2.3.0`. The refresh resolved it to 2.4.0 within Express's
+existing range, rebuilt the 193-package tree with `npm ci --ignore-scripts`,
+and returned zero findings in the fresh lock audit. The MCP package and
+telemetry preload bytes stayed the same. The refresh also verified the
+[official Node 24.22.2](https://nodejs.org/en/blog/release/v24.22.2) archive
+against its published SHA-256. The earlier ignored runtime remains separate.
+Existing chat connections may still use the previous process. A new connection
+uses the refreshed launcher and versioned runtime.
 
 `npm ls --all` still reports two upstream peer-range conflicts:
 `helius-sdk@3.3.0` requests older `@solana-program/system` and
@@ -173,9 +182,9 @@ catalog handshake. The SDK's writing paths remain excluded.
 | Artifact | SHA-256 |
 | --- | --- |
 | Official MCP tarball | `30c0f72d32f1f5cf805ee0f68debd06d0c2e556cfd481130ca89a7fe001aaa3f` |
-| Verified Node 24.19.0 binary | `27db838bb204ef7c21df2931f5656e4c8fb32e6e947f363a402b49714d32b5b1` |
-| Dependency lock | `065fb9500e575103b2edc5c0dab4f63c0f2d620d1044d2a06c577488e000d811` |
-| Installed-tree manifest | `4ba1ca4dc58a75f58997bab30d4f5d9c50e4419a5374df4b6cb1f187f6566659` |
+| Verified Node 24.22.2 binary | `b6fb419f0f43bb2fbca273700294dd2f3b685a64b60e8417c295f47646a70e4a` |
+| Dependency lock | `0367e42a3350ab36f7da806a2eaa525ccb62d540e4f97dbb8158ea86dc39342f` |
+| Installed-tree manifest | `548ae8ebfa8358e2f3bd2468fb756ee5be08a0442b316d5987b4bcc95f8d9caa` |
 
 The manifest covers 9,736 installed files and four relative package-bin links.
 The launcher refuses changed, missing or added dependency files before loading
@@ -191,7 +200,9 @@ preload denying fetch, HTTP(S), sockets and DNS and reporting zero outbound
 network attempts. No provider action was called in that test. Nested macOS
 `sandbox-exec` was unavailable, so the protocol test is not described as an OS
 sandbox. Actual provider read acceptance, effective client tool filtering and
-activation are separate checks performed by the release operator.
+activation are separate checks performed by the release operator. The November
+refresh passed 16 launcher tests, six preload tests and a fresh fake-key
+catalog handshake against the candidate with zero outbound attempts.
 
 ## Root connection acceptance
 

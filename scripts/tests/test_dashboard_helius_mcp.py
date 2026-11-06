@@ -36,7 +36,7 @@ class DashboardHeliusMcpTests(unittest.TestCase):
         self.addCleanup(self.execute.stop)
 
     def runtime_fixture(self):
-        runtime = self.ssl / 'helius-mcp-runtime'
+        runtime = self.root / dashboard.RUNTIME_DIRECTORY
         runtime.mkdir(mode=0o700)
         for name in ('bin', 'home', 'tmp', 'npm-cache'):
             (runtime / name).mkdir(mode=0o700)
@@ -52,7 +52,7 @@ class DashboardHeliusMcpTests(unittest.TestCase):
         node_hash = hashlib.sha256(node.read_bytes()).hexdigest()
         lock_hash = hashlib.sha256(lock.read_bytes()).hexdigest()
         manifest = {
-            'package': 'helius-mcp', 'version': dashboard.VERSION, 'node_version': '24.19.0',
+            'package': 'helius-mcp', 'version': dashboard.VERSION, 'node_version': '24.22.2',
             'node_sha256': node_hash, 'package_lock_sha256': lock_hash,
             'files': files, 'symlinks': links,
         }
@@ -145,7 +145,7 @@ class DashboardHeliusMcpTests(unittest.TestCase):
             result = dashboard.child_environment(FAKE_KEY, self.root)
         self.assertEqual(set(result), {'PATH', 'HOME', 'TMPDIR', 'LANG', 'NO_COLOR',
             'HELIUS_API_KEY', 'HELIUS_NETWORK', 'HELIUS_MCP_SHARED_CREDENTIAL'})
-        self.assertEqual(result['HOME'], str(self.ssl / 'helius-mcp-runtime/home'))
+        self.assertEqual(result['HOME'], str(self.root / dashboard.RUNTIME_DIRECTORY / 'home'))
         self.assertEqual(result['HELIUS_API_KEY'], FAKE_KEY)
         self.assertEqual(result['HELIUS_MCP_SHARED_CREDENTIAL'], '1')
         self.assertEqual(result['HELIUS_NETWORK'], 'mainnet-beta')
