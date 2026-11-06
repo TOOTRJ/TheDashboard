@@ -23,8 +23,8 @@ export function effectiveAnnualVolatilityPercent(inputs: NesteggInputs): number 
   return ANNUAL_VOLATILITY_BY_RISK[inputs.riskProfile] ?? ANNUAL_VOLATILITY_BY_RISK.moderate;
 }
 
-/** Identity metadata for the existing formulas and seed implementation; no calibration claim. */
-export const NESTEGG_MC_MODEL_VERSION = "nestegg-monthly-normal-v1";
+/** V2 counts a funding shortfall in any modeled month, including the final month. */
+export const NESTEGG_MC_MODEL_VERSION = "nestegg-monthly-normal-v2";
 export const NESTEGG_MC_SEED_POLICY = "fnv1a-input-json-mulberry32-path-v1";
 
 const DEFAULT_PATHS = 900;
@@ -86,7 +86,7 @@ export type MonteCarloResult = {
   medianEndingBalance: number;
   pessimisticEndingBalance: number;
   optimisticEndingBalance: number;
-  /** Median depletion age among paths that depleted before horizon (null if none). */
+  /** Median age of first modeled funding shortfall across failed paths (null if none). */
   medianDepletionAgeAmongFailures: number | null;
   /** ~10th percentile depletion age among depleted paths (weaker outcomes). */
   worstCaseDepletionAge: number | null;
@@ -251,7 +251,9 @@ function simulatePath(
   }
 
   const endingBalance = balances[snapIdx - 1] ?? Math.round(balance);
-  const lastsToHorizon = depletionAge === null || depletionAge >= planEndAge - 0.01;
+  // Match the deterministic path: $0 may be fully funded, but a recorded
+  // shortfall is a failure even when it occurs in the final modeled month.
+  const lastsToHorizon = depletionAge === null;
 
   return {
     nestEggAtRetirement: Math.round(nestEggAtRetirement),

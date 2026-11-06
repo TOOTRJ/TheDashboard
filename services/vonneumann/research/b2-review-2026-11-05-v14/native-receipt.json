@@ -1,0 +1,43 @@
+{
+  "base": "86f07f7bbab0b5543e14b3a4888fa1ee98d74b4b",
+  "candidate_patch_sha256": "81ac6052c824d69e914d726644b9be4be780a10627957175663a70b50d343f23",
+  "container_gone": true,
+  "controller_sha256": "a377499dc04ba61496035c623d93c60ac48e8ac5c4148f35a20e2d64421ee17a",
+  "elapsed": 63.88986466731876,
+  "end": "2026-11-06T03:46:26.116731+00:00",
+  "exit": 0,
+  "fallback_cleanup": false,
+  "fixture": {
+    "image": "public.ecr.aws/supabase/postgres:17.6.1.095",
+    "image_id": "sha256:965e2dfb5a23a0d6541b6106541e777b303656ebabd4e878746b189d550c0a66",
+    "network": "none",
+    "postgres_version": "17.6"
+  },
+  "group_gone": true,
+  "interrupted": false,
+  "manifest_sha256": "19bab5bd78b73f7cbcc66501892eadb148b5716252f654d98f85be5f5e9ac517",
+  "ordered_test_ids_sha256": "a6206fa1767c17826ce78eb60ab1c20ff51bb6812da323fdce37007bce848e05",
+  "prior_preflight_refusal": {
+    "cause": "macOS locale marker added to explicit child environment",
+    "controller_sha256": "f75cfbb6771f08d7a7d833ff761ce482f1b09befe20d709ed17179b4743d8c03",
+    "imports_or_container_started": false,
+    "raw_log_sha256": "fc17909678e98bbc2ea23beb7cc74c05e8806cd3e4e12b895696d2bb0d60761b",
+    "receipt_sha256": "d90b54b2a37e23e926b6475c5664a23a0dddb9423299b1324424c1d6eb8f8eb3"
+  },
+  "raw_log_sha256": "aca84bfa723971a563aac6deb37651fb43e9007a2b54201cad12a5096889b245",
+  "result": {
+    "elapsed": 63.68877470912412,
+    "errors": 0,
+    "expected_failures": 0,
+    "failures": 0,
+    "skips": 0,
+    "tests": 29,
+    "unexpected_successes": 0
+  },
+  "run_receipt_sha256": "5315ed91c69037fbfabe87b1b5fb591fd59361aebb82c9c0e8a790b3e7d3831a",
+  "snapshot_sha256": "faf151c9b183388c0da90f1a501d0bb55ba371082cb7d8ddf207803db447f010",
+  "source_count": 929,
+  "source_unchanged": true,
+  "start": "2026-11-06T03:45:22.226731+00:00",
+  "timeout": false
+}

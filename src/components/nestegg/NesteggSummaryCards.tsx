@@ -55,8 +55,8 @@ export function NesteggSummaryCards({ result, lifeExpectancy, tier = "all" }: Pr
       : "—";
 
   const longevityDetail = lastsThroughLifeExpectancy
-    ? "Portfolio stays above zero in this simulation."
-    : "Modeled balance reaches zero before your horizon.";
+    ? "No funding shortfall in this simulation."
+    : "Funding falls short during the modeled period.";
 
   const gapLabel =
     monthlyGapOrSurplus >= 0

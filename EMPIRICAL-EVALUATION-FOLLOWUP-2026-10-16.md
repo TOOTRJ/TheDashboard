@@ -41,3 +41,50 @@ This does not quantify unknown actual price error, forecast bias or loss: delta_
 **Acceptance:** versioned lower/base/stress assumptions have explicit notional, liquidity, delay, failure and fee bounds; unknown tails remain unresolved rather than a claimed universal cost bound. Separate mechanical scenario validation from later calibration against appropriately authorized observations. This memo authorizes no signing, submission or provider acquisition. Existing Jupiter retention permission stands; no reconfirmation is required.
 
 Sequence: freeze the family/split/cost contracts first; design independent fixture oracles next; empirical corpus and calibration collection require their separate scope and resource gates. No repository, CI, configuration, account or provider state changed. Public documentation was the only network research used; no tests, package installs or data/API-key requests ran.
+
+## November 5 implementation specification for the 460-pair comparison
+
+Keep the twenty-pair result and its artifacts readable under their original
+policy. Define a new offline protocol for the actual portable GA. The
+checked-in [integer mutation operator](services/vonneumann/vonneumann/core/integer_period_mutation.py)
+requires the fixed SOL/USD two-EMA profile and complete eight-member cohorts.
+The integer ranges 3–12 and 15–60 are disjoint, yielding exactly 10 × 46 = 460
+legal pairs. The [operational GA](services/vonneumann/vonneumann/core/strategies/genetic_algorithm.py)
+selects from a complete ordered cohort and replaces it. Preserve its offspring
+operator, ordering, tie behavior and private RNG streams in the adapter.
+
+1. **Test search on a frozen training window first.** Start both arms with the
+   same ordered eight period pairs. Score both with the same engine,
+   opportunity-cost assumptions, capital, fixed risk rules and causal warmup.
+   Compare budgets of 8, 16, 32 and 64 logical requests using complete cohorts
+   only. Random draws independently with replacement from the 460 pairs after
+   initialization. A repeated pair still costs a logical request; record unique
+   evaluations and cache hits separately. Predeclare one primary budget and
+   treat other budgets as sensitivity checks. Label repeated use of one
+   training window as a search benchmark.
+2. **Measure sequential behavior separately.** Give both arms the same
+   prespecified walk-forward windows, initial population and observation
+   availability. Score each cohort's own window before choosing the next. Fix
+   a separate causal deployment-selection rule for this experiment. One
+   generation's evaluation cannot be reused from another window just because
+   the periods match. Key any diagnostic cache by pair, exact interval and
+   warmup, market/cost versions, execution policy and starting state.
+3. **Hold the decision boundary constant.** Freeze the winner-selection rule
+   and deterministic tie handling before scoring. Replay the frozen winner of
+   each arm on fresh holdout accounts alongside fixed EMA, cash and passive
+   exposure. Charge a separately enumerated 460-pair exhaustive diagnostic to
+   its own budget and reveal it only after arm selection. Report net outcomes
+   with drawdown, failed attempts, opportunity coverage and cost uncertainty.
+   Treat seed repetitions within one market window as search variability.
+4. **Require mechanical proof before representative acquisition.** An
+   independent fixture enumerates all legal pairs, checks ordered shared
+   initialization, full-cohort budget accounting and production-operator
+   offspring against a direct invocation. The scorer must refuse unknown cost
+   data under the selected policy and prove the optimizer cannot access
+   holdout data. Preserve every failed or excluded run in the family record.
+   Synthetic success only accepts adapter mechanics.
+
+The first code slice is a versioned synthetic adapter and ledger that reuses
+the existing optimizer and replay interfaces. Freeze the split/availability
+and opportunity-cost contracts before using representative data. A time-varying
+score, wider gene set or new execution model needs its own declared experiment.

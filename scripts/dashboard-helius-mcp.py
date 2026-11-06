@@ -20,9 +20,10 @@ import sys
 
 ROOT = Path('/Users/redjester/Projects/Next/TheDashboard')
 VERSION = '2.3.0'
-NODE_SHA256 = '27db838bb204ef7c21df2931f5656e4c8fb32e6e947f363a402b49714d32b5b1'
-LOCK_SHA256 = '065fb9500e575103b2edc5c0dab4f63c0f2d620d1044d2a06c577488e000d811'
-MANIFEST_SHA256 = '4ba1ca4dc58a75f58997bab30d4f5d9c50e4419a5374df4b6cb1f187f6566659'
+RUNTIME_DIRECTORY = 'ssl/helius-mcp-runtime-20261105'
+NODE_SHA256 = 'b6fb419f0f43bb2fbca273700294dd2f3b685a64b60e8417c295f47646a70e4a'
+LOCK_SHA256 = '0367e42a3350ab36f7da806a2eaa525ccb62d540e4f97dbb8158ea86dc39342f'
+MANIFEST_SHA256 = '548ae8ebfa8358e2f3bd2468fb756ee5be08a0442b316d5987b4bcc95f8d9caa'
 ENABLED_TOOLS = (
     'heliusWallet', 'heliusAsset', 'heliusTransaction', 'heliusChain',
     'heliusCompression', 'expandResult',
@@ -126,7 +127,7 @@ def verify_runtime(root: Path = ROOT) -> dict:
     owned_directory(root / 'ssl')
     owned_directory(root / 'scripts')
     read_owned(root / 'scripts/dashboard-helius-no-telemetry.mjs', maximum=65536)
-    runtime = root / 'ssl/helius-mcp-runtime'
+    runtime = root / RUNTIME_DIRECTORY
     owned_directory(runtime, private=True)
     for name in ('bin', 'home', 'tmp', 'npm-cache'):
         owned_directory(runtime / name, private=True)
@@ -159,7 +160,7 @@ def verify_runtime(root: Path = ROOT) -> dict:
 
 def child_environment(key: str, root: Path = ROOT) -> dict[str, str]:
     """Build from literals, never inherit tokens, NODE_OPTIONS, proxies or dotenv."""
-    runtime = root / 'ssl/helius-mcp-runtime'
+    runtime = root / RUNTIME_DIRECTORY
     return {
         'PATH': str(runtime / 'bin') + ':/usr/bin:/bin',
         'HOME': str(runtime / 'home'), 'TMPDIR': str(runtime / 'tmp'),
@@ -172,7 +173,7 @@ def child_environment(key: str, root: Path = ROOT) -> dict[str, str]:
 def launch(root: Path = ROOT) -> None:
     verify_runtime(root)  # Refuse a replaced runtime before reading the private key.
     key = read_key(root)
-    runtime = root / 'ssl/helius-mcp-runtime'
+    runtime = root / RUNTIME_DIRECTORY
     node = str(runtime / 'bin/node')
     entry = str(runtime / 'node_modules/helius-mcp/dist/index.js')
     blocker = str(root / 'scripts/dashboard-helius-no-telemetry.mjs')
