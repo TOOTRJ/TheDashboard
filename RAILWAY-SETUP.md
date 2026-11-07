@@ -4,6 +4,12 @@ The user approved a **$20/month ceiling for the initial paper pilot** on 2026-10
 This is a spending constraint, not a selected paid subscription, resource estimate,
 production cadence or approval to change account-wide billing for other projects.
 
+## Current closed worker cutover — 2026-11-06
+
+The exact Railway production service now runs the reviewed configuration without a legacy `railway.json` override. One credential-free upload from the 98-file export reached `SUCCESS` at 20:17 MST. Deployment `04c592a8-61c6-4ebc-ad34-16c789a4e1c9` is the sole active deployment. Its image digest is `sha256:a9479eee694b65725bc7c32039efef7b46a4eb5e546708602f749faed834ec07`. The verified named ownership, full effective settings, empty stage and eight explicit closed values match the pre-upload state. The preceding closed deployment and its retained snapshot are eligible for rollback. [Exact deployment](https://railway.com/project/38facb49-4de9-4d66-85aa-2861e0306dcf/service/8e78ad4b-1d8f-43e7-898a-3882ac5053d7?environmentId=9bbe52c6-2305-467a-bf39-8d5e1a98e4e4&id=04c592a8-61c6-4ebc-ad34-16c789a4e1c9#deploy).
+
+All five public closed checks passed. A fresh signed-in Dashboard refresh showed both worker read endpoints returning the expected closed response, which the client recognizes only for `503` and the exact JSON detail. Start, Stop and Settle were disabled. The exact Console replica verified 96 runtime files and the application process running as UID/GID `10001:10001` in `us-west2`. The unprivileged transport check verified the pinned Dashboard PostgreSQL CA and hostname over IPv6, using TLS 1.3 with a 256-bit cipher. It ended before PostgreSQL startup or authentication. [Cutover and rollback evidence](RAILWAY-IAC-MIGRATION-2026-11-05.md#november-6-closed-deployment-acceptance).
+
 ## Current closed-worker recovery — 2026-11-06
 
 The user reports revoking the superseded Dashboard provider credentials. The three replacements still passed bounded read-only Jupiter, Birdeye and Helius checks. They remain in the private handoff for a later reviewed canary. [Provider rotation record](RAILWAY-INCIDENT-ASSESSMENT-2026-10-21.md#november-6-replacement-checkpoint).

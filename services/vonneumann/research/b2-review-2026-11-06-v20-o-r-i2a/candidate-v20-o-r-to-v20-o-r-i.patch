@@ -1,0 +1,253 @@
+diff --git a/services/vonneumann/B2-INSTALLATION-STOP-NATIVE-CANDIDATE-2026-10-18.md b/services/vonneumann/B2-INSTALLATION-STOP-NATIVE-CANDIDATE-2026-10-18.md
+--- a/services/vonneumann/B2-INSTALLATION-STOP-NATIVE-CANDIDATE-2026-10-18.md
++++ b/services/vonneumann/B2-INSTALLATION-STOP-NATIVE-CANDIDATE-2026-10-18.md
+@@ -792,3 +792,29 @@
+ All 41 combined test methods are preserved byte for byte. The two new
+ focused methods from the parent slices are selected for the first
+ composed native run. This composition has only static verification so far.
++
++## V20-O-R-I isolated PostgreSQL 17 creator membership
++
++This source-only candidate adds one laboratory profile to exact V20-O-R.
++The profile exists only with the fixed synthetic limited actor issuer in the
++owned fixture. The issuer creates the actors through its actual PostgreSQL
++17 session with `createrole_self_grant` empty. Each actor keeps its direct
++native ACLs and has one incoming creator edge and zero outgoing edges.
++The exact incoming row has the actor as roleid, the separate non-superuser
++issuer as member, and the fixture bootstrap superuser (OID 10) as grantor.
++Only ADMIN is true. Both issuer and grantor role identities enter the held
++catalog seal. The complete actor/owner membership inventory remains sealed.
++Without the synthetic issuer, the original no-membership rule applies.
++
++The fixture verifies the edges and owner separation independently before
++capturing catalog gold. The added case submits and commits one original
++Install as the real actor, reads it from the independent reader, then checks
++that the issuer cannot assume or administer either owner. An extra inert
++incoming grant and an extra SET-only outgoing grant each deny the actor and
++the independent read under the existing catalog digest. Removing the
++synthetic fault restores the exact reply and committed rows. The socket
++fixture supplies genuine role sessions within the disposable server, with
++no SCRAM, expiry, managed issuer, rotation, terminal or hosted readiness
++claim. All 43 V20-O-R methods, eight table declarations, fixed anchor broker
++and policy bytes are preserved. Separate native review and execution remain
++required for this source candidate.
+diff --git a/services/vonneumann/db-contract/research/jupiter_allocation_control_v3.sql b/services/vonneumann/db-contract/research/jupiter_allocation_control_v3.sql
+--- a/services/vonneumann/db-contract/research/jupiter_allocation_control_v3.sql
++++ b/services/vonneumann/db-contract/research/jupiter_allocation_control_v3.sql
+@@ -268,7 +268,9 @@
+   'types',(SELECT COALESCE(pg_catalog.jsonb_agg((pg_catalog.to_jsonb(t)||pg_catalog.jsonb_build_object('typinput',t.typinput::oid::text,'typoutput',t.typoutput::oid::text,'typreceive',t.typreceive::oid::text,'typsend',t.typsend::oid::text,'typanalyze',t.typanalyze::oid::text,'typsubscript',t.typsubscript::oid::text)) ORDER BY t.oid),'[]'::jsonb) FROM pg_catalog.pg_type t WHERE t.typnamespace IN (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname IN ('vn_jupiter_b2_fixture_anchor','vn_jupiter_b2_allocation_research_v3'))),
+   'functions',(SELECT COALESCE(pg_catalog.jsonb_agg(pg_catalog.to_jsonb(p) ORDER BY p.oid),'[]'::jsonb) FROM pg_catalog.pg_proc p WHERE p.pronamespace IN (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname IN ('vn_jupiter_b2_fixture_anchor','vn_jupiter_b2_allocation_research_v3'))),
+   'triggers',(SELECT COALESCE(pg_catalog.jsonb_agg(pg_catalog.to_jsonb(t) ORDER BY t.oid),'[]'::jsonb) FROM pg_catalog.pg_trigger t WHERE t.tgrelid IN (SELECT oid FROM pg_catalog.pg_class WHERE relnamespace IN (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname IN ('vn_jupiter_b2_fixture_anchor','vn_jupiter_b2_allocation_research_v3')) UNION SELECT reltoastrelid FROM pg_catalog.pg_class WHERE relnamespace IN (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname IN ('vn_jupiter_b2_fixture_anchor','vn_jupiter_b2_allocation_research_v3')) AND reltoastrelid<>0 UNION SELECT i.indexrelid FROM pg_catalog.pg_index i WHERE i.indrelid IN (SELECT reltoastrelid FROM pg_catalog.pg_class WHERE relnamespace IN (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname IN ('vn_jupiter_b2_fixture_anchor','vn_jupiter_b2_allocation_research_v3')) AND reltoastrelid<>0))),
+-  'roles',(SELECT COALESCE(pg_catalog.jsonb_agg(pg_catalog.jsonb_build_object('oid',r.oid::text,'name',r.rolname::text,'super',r.rolsuper,'inherit',r.rolinherit,'create_role',r.rolcreaterole,'create_db',r.rolcreatedb,'login',r.rolcanlogin,'connection_limit',r.rolconnlimit,'replication',r.rolreplication,'bypass',r.rolbypassrls,'valid_until',r.rolvaliduntil::text,'config',pg_catalog.to_jsonb(r.rolconfig)) ORDER BY r.oid),'[]'::jsonb) FROM pg_catalog.pg_roles r WHERE r.oid IN (SELECT oid FROM role_pins)),
++  'roles',(SELECT COALESCE(pg_catalog.jsonb_agg(pg_catalog.jsonb_build_object('oid',r.oid::text,'name',r.rolname::text,'super',r.rolsuper,'inherit',r.rolinherit,'create_role',r.rolcreaterole,'create_db',r.rolcreatedb,'login',r.rolcanlogin,'connection_limit',r.rolconnlimit,'replication',r.rolreplication,'bypass',r.rolbypassrls,'valid_until',r.rolvaliduntil::text,'config',pg_catalog.to_jsonb(r.rolconfig)) ORDER BY r.oid),'[]'::jsonb) FROM pg_catalog.pg_roles r WHERE r.oid IN (SELECT oid FROM role_pins)
++    OR r.rolname='vn_jupiter_b2_actor_issuer'
++    OR (r.oid=10 AND EXISTS(SELECT 1 FROM pg_catalog.pg_roles WHERE rolname='vn_jupiter_b2_actor_issuer'))),
+   'memberships',(SELECT COALESCE(pg_catalog.jsonb_agg(pg_catalog.to_jsonb(m) ORDER BY m.oid),'[]'::jsonb) FROM pg_catalog.pg_auth_members m WHERE m.member IN (SELECT oid FROM role_pins) OR m.roleid IN (SELECT oid FROM role_pins)),
+   'parameter_acl',(SELECT COALESCE(pg_catalog.jsonb_agg(pg_catalog.to_jsonb(a) ORDER BY a.oid),'[]'::jsonb) FROM pg_catalog.pg_parameter_acl a),
+   'extensions',(SELECT COALESCE(pg_catalog.jsonb_agg(pg_catalog.to_jsonb(e) ORDER BY e.oid),'[]'::jsonb) FROM pg_catalog.pg_extension e),
+@@ -289,7 +291,7 @@
+ SET client_encoding = 'UTF8'
+ SET standard_conforming_strings = 'on'
+ AS $b2$
+-DECLARE sw text; p vn_jupiter_b2_fixture_anchor.package_inputs%ROWTYPE; a vn_jupiter_b2_fixture_anchor.actor_bindings%ROWTYPE; binding vn_jupiter_b2_fixture_anchor.actor_bindings%ROWTYPE; recorder_id text; rr record; manifest jsonb; pkg jsonb; k text; v jsonb; catalog jsonb; retired vn_jupiter_b2_fixture_anchor.actor_bindings%ROWTYPE; role_index bigint; marker jsonb; writer_profile record; retired_writers jsonb:='[]';
++DECLARE sw text; p vn_jupiter_b2_fixture_anchor.package_inputs%ROWTYPE; a vn_jupiter_b2_fixture_anchor.actor_bindings%ROWTYPE; binding vn_jupiter_b2_fixture_anchor.actor_bindings%ROWTYPE; recorder_id text; rr record; manifest jsonb; pkg jsonb; k text; v jsonb; catalog jsonb; retired vn_jupiter_b2_fixture_anchor.actor_bindings%ROWTYPE; role_index bigint; marker jsonb; writer_profile record; retired_writers jsonb:='[]'; creator_oid oid; creator_grantor_oid oid;
+ BEGIN
+  sw:=vn_jupiter_b2_allocation_research_v3._scope(scope);
+  SELECT * INTO p FROM vn_jupiter_b2_fixture_anchor.package_inputs WHERE scope_wire=sw;
+@@ -317,11 +319,28 @@
+    AND z.capabilities=ARRAY['reserve','fence_manage','read_original']::text[]
+   ) THEN RAISE EXCEPTION 'b2_actor_scope_refused'; END IF;
+  END IF;
++ -- The fixture may use the one literal PG17 limited-issuer profile. Its
++ -- creator and bootstrap identities are independently checked and sealed in K.
++ SELECT oid INTO creator_oid FROM pg_catalog.pg_roles WHERE rolname='vn_jupiter_b2_actor_issuer';
++ IF creator_oid IS NOT NULL THEN
++  SELECT oid INTO creator_grantor_oid FROM pg_catalog.pg_roles WHERE oid=10 AND rolname='postgres' AND rolsuper;
++  IF creator_grantor_oid IS NULL OR creator_oid=creator_grantor_oid
++   OR pg_catalog.current_setting('server_version_num')::integer NOT BETWEEN 170000 AND 179999
++   OR NOT EXISTS(SELECT 1 FROM pg_catalog.pg_roles WHERE oid=creator_oid AND rolcanlogin AND rolcreaterole
++    AND NOT rolsuper AND NOT rolinherit AND NOT rolcreatedb AND NOT rolreplication AND NOT rolbypassrls)
++  THEN RAISE EXCEPTION 'b2_actor_scope_refused'; END IF;
++ END IF;
+  FOR binding IN SELECT z.* FROM vn_jupiter_b2_fixture_anchor.actor_bindings z
+    WHERE z.scope_wire=sw AND (z.binding_id=a.binding_id OR z.binding_id=recorder_id)
+  LOOP
+   SELECT * INTO rr FROM pg_catalog.pg_roles WHERE oid=binding.session_oid AND rolname=binding.session_name;
+-  IF NOT FOUND OR rr.rolsuper OR rr.rolinherit OR rr.rolcreaterole OR rr.rolcreatedb OR rr.rolreplication OR rr.rolbypassrls OR NOT rr.rolcanlogin OR EXISTS(SELECT 1 FROM pg_catalog.pg_auth_members WHERE member=binding.session_oid OR roleid=binding.session_oid) THEN RAISE EXCEPTION 'b2_actor_scope_refused'; END IF;
++  IF NOT FOUND OR rr.rolsuper OR rr.rolinherit OR rr.rolcreaterole OR rr.rolcreatedb OR rr.rolreplication OR rr.rolbypassrls OR NOT rr.rolcanlogin
++   OR EXISTS(SELECT 1 FROM pg_catalog.pg_auth_members WHERE member=binding.session_oid)
++   OR (SELECT count(*) FROM pg_catalog.pg_auth_members WHERE roleid=binding.session_oid)<>CASE WHEN creator_oid IS NULL THEN 0 ELSE 1 END
++   OR (creator_oid IS NOT NULL AND NOT EXISTS(SELECT 1 FROM pg_catalog.pg_auth_members
++    WHERE roleid=binding.session_oid AND member=creator_oid AND grantor=creator_grantor_oid
++     AND admin_option AND NOT inherit_option AND NOT set_option))
++  THEN RAISE EXCEPTION 'b2_actor_scope_refused'; END IF;
+   IF pg_catalog.octet_length(binding.binding_wire)>2048 THEN RAISE EXCEPTION 'b2_package_refused'; END IF;
+   IF NOT EXISTS(SELECT 1 FROM pg_catalog.jsonb_array_elements(manifest->'bindings') e WHERE vn_jupiter_b2_allocation_research_v3._keys(e,ARRAY['principal_binding_id','database_identity_sha256','session_user_oid','session_user_name','scope','capabilities','recorder_package_sha256','reader_package_sha256','issuer_binding_id','endpoint_bindings','installation_id']) AND e->'database_identity_sha256'=pg_catalog.to_jsonb(vn_jupiter_b2_allocation_research_v3._sha(current_database()||':'||(SELECT oid::text FROM pg_catalog.pg_database WHERE datname=current_database()))) AND e->'recorder_package_sha256'=pkg#>'{policies,recorder_package_sha256}' AND e->'reader_package_sha256'=pkg#>'{policies,reader_package_sha256}' AND e->'issuer_binding_id'=(p.genesis_wire::jsonb)#>'{initial_acquisition_spec,issuer_binding_id}' AND e->'endpoint_bindings'=(p.genesis_wire::jsonb)#>'{initial_acquisition_spec,endpoint_bindings}' AND e->>'installation_id'=p.installation_id AND vn_jupiter_b2_allocation_research_v3._c14n(e)=binding.binding_wire AND e->>'principal_binding_id'=binding.binding_id AND e->>'session_user_oid'=binding.session_oid::text AND e->>'session_user_name'=binding.session_name AND e->'scope'=scope AND e->'capabilities'=pg_catalog.to_jsonb(binding.capabilities)) THEN RAISE EXCEPTION 'b2_actor_scope_refused'; END IF;
+  END LOOP;
+diff --git a/services/vonneumann/tests/postgres/allocation_control_v3_fixture.py b/services/vonneumann/tests/postgres/allocation_control_v3_fixture.py
+--- a/services/vonneumann/tests/postgres/allocation_control_v3_fixture.py
++++ b/services/vonneumann/tests/postgres/allocation_control_v3_fixture.py
+@@ -27,7 +27,7 @@
+ SQL_PATH = ROOT / 'db-contract/research/jupiter_allocation_control_v3.sql'
+ LOADER_PATH = ROOT / 'db-contract/research/allocation_control_v3_source.py'
+ POLICY_PATH = ROOT / 'research/b2-finite-experiment-policy-2026-10-18-v3.json'
+-SOURCE_SHA256 = '57ba374cfb76894939a8d9097461cc9188697f0fc5c65b928b866c4a6c877466'
++SOURCE_SHA256 = '19ece632911f1e441d9133f57ff07548018a425a472d2fdbb81ac31926a3e313'
+ LOADER_SHA256 = 'bacf672aa8d714d40494a36254345eb58ed46d44551520f41688b61d503454d4'
+ POLICY_FILE_SHA256 = '0a1c8663f4f6cbf9b299cab11fcdd00a379dbe3ca3493b706ddafca9b75c0f1a'
+ POLICY_SHA256 = 'e5dca1d13839102fb1fdd261176393b73c770a95ab355eff74499169905bfba0'
+@@ -246,7 +246,10 @@
+         raise RuntimeError('b2_anchor_lock_acl_refused')
+ 
+ 
+-def verify_seal(db, source, actors):
++CREATOR = 'vn_jupiter_b2_actor_issuer'
++
++
++def verify_seal(db, source, actors, *, creator_edges=False):
+     # Exact stored/effective default-expanded ACL entries, not just the chosen
+     # actors' absence of rights. Unknown grantees/grantors/column grants refuse.
+     acl=json.loads(db.scalar(f"""SELECT jsonb_build_object(
+@@ -293,11 +296,28 @@
+             raise RuntimeError('b2_sealed_owner_attributes_refused')
+     if db.scalar(f"SELECT has_schema_privilege({literal(OWNER)},{literal(A)},'CREATE') OR has_schema_privilege({literal(ANCHOR_OWNER)},{literal(N)},'USAGE,CREATE');")!='f':
+         raise RuntimeError('b2_sealed_owner_cross_schema_refused')
+-    if db.scalar(f"SELECT count(*) FROM pg_auth_members WHERE member IN(SELECT oid FROM pg_roles WHERE rolname IN({','.join(map(literal,[ANCHOR_OWNER,OWNER,*actors]))})) OR roleid IN(SELECT oid FROM pg_roles WHERE rolname IN({','.join(map(literal,[ANCHOR_OWNER,OWNER,*actors]))}));")!='0':raise RuntimeError('b2_membership_refused')
++    sealed_names=','.join(map(literal,[ANCHOR_OWNER,OWNER,*actors]))
++    membership=json.loads(db.scalar(f"""SELECT COALESCE(jsonb_agg(jsonb_build_array(m.roleid::text,m.member::text,m.grantor::text,
++      m.admin_option,m.inherit_option,m.set_option) ORDER BY m.roleid,m.member,m.grantor),'[]')
++      FROM pg_auth_members m WHERE m.roleid IN(SELECT oid FROM pg_roles WHERE rolname IN({sealed_names}))
++      OR m.member IN(SELECT oid FROM pg_roles WHERE rolname IN({sealed_names}));"""))
++    expected_membership=[]
++    if creator_edges:
++        issuer=json.loads(db.scalar(f"""SELECT jsonb_build_array(oid::text,rolcanlogin,rolcreaterole,
++          rolsuper,rolinherit,rolcreatedb,rolreplication,rolbypassrls)
++          FROM pg_roles WHERE rolname={literal(CREATOR)};"""))
++        grantor=json.loads(db.scalar("SELECT jsonb_build_array(oid::text,rolsuper) FROM pg_roles WHERE rolname='postgres';"))
++        if issuer[1:]!=[True,True,False,False,False,False,False] or issuer[0]==grantor[0] or grantor!=['10',True]:
++            raise RuntimeError('b2_creator_identity_refused')
++        actor_oids=json.loads(db.scalar(f"SELECT jsonb_agg(oid::text ORDER BY oid) FROM pg_roles WHERE rolname IN({','.join(map(literal,actors))});"))
++        if len(actor_oids)!=len(actors) or len(set(actor_oids))!=len(actors):raise RuntimeError('b2_actor_oid_inventory_refused')
++        expected_membership=[[oid,issuer[0],grantor[0],True,False,False] for oid in actor_oids]
++    if membership!=expected_membership:raise RuntimeError('b2_membership_refused')
+ 
+ 
+ class AllocationFixture:
+-    def __init__(self,db):
++    def __init__(self,db,*,creator_edges=False):
++        if type(creator_edges) is not bool:raise RuntimeError('b2_fixture_creator_mode_refused')
+         if not isinstance(db,IsolatedPostgres) or db.identity.get('network')!='none':raise RuntimeError('b2_owned_fixture_required')
+         self.db=db
+         self.arrangements=0  # Trusted fixture provenance only; no actor capability.
+@@ -327,7 +347,14 @@
+         bootstrap='BEGIN;\n'+''.join(
+             f'CREATE ROLE {owner} NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS;\n'
+             for owner in (ANCHOR_OWNER,OWNER))
+-        bootstrap+=''.join(f'CREATE ROLE {actor} LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS;\n' for actor in self.actors)
++        actor_ddl=''.join(f'CREATE ROLE {actor} LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS;\n' for actor in self.actors)
++        if creator_edges:
++            db.sql(f'CREATE ROLE {CREATOR} LOGIN NOSUPERUSER NOCREATEDB CREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS;')
++            if db.scalar(f"SELECT session_user={literal(CREATOR)} AND current_user=session_user AND rolcreaterole AND NOT rolsuper FROM pg_roles WHERE rolname=session_user;",role=CREATOR)!='t':
++                raise RuntimeError('b2_actual_limited_creator_required')
++            db.sql("BEGIN; SET LOCAL createrole_self_grant='';\n"+actor_ddl+'COMMIT;\n',role=CREATOR)
++        else:
++            bootstrap+=actor_ddl
+         bootstrap+=f'CREATE SCHEMA {A}; CREATE SCHEMA {N}; REVOKE ALL ON SCHEMA {A},{N} FROM PUBLIC;\n'+raw.decode()
+         db.sql(bootstrap+'COMMIT;\n',timeout=30)
+         compare_constructors(db,self.source)
+@@ -345,7 +372,7 @@
+         seal+='REVOKE ALL ON TYPE '+','.join(ns+'.'+name for ns,name in module.TABLES)+' FROM PUBLIC;\n'
+         for actor in self.actors:seal+=f'GRANT USAGE ON SCHEMA {N} TO {actor}; GRANT EXECUTE ON FUNCTION {N}.submit(text),{N}.get_original(text) TO {actor};\n'
+         seal+='COMMIT;';db.sql(seal,timeout=30)
+-        verify_functions(db,self.source,self.actors);verify_seal(db,self.source,self.actors)
++        verify_functions(db,self.source,self.actors);verify_seal(db,self.source,self.actors,creator_edges=creator_edges)
+         # Real immutable scope/sessionOID/name/capability inputs are independently
+         # specified here, not granted by a caller-supplied binding boolean.
+         for scope in self.scopes:
+diff --git a/services/vonneumann/tests/postgres/test_allocation_control_v3.py b/services/vonneumann/tests/postgres/test_allocation_control_v3.py
+--- a/services/vonneumann/tests/postgres/test_allocation_control_v3.py
++++ b/services/vonneumann/tests/postgres/test_allocation_control_v3.py
+@@ -14,7 +14,7 @@
+ 
+ from tests.postgres.harness import IsolatedPostgres, OPT_IN
+ from tests.postgres.allocation_control_v3_fixture import (
+-    AllocationFixture, A, N, BEGIN, SETTINGS, canonical, literal, sha,
++    AllocationFixture, A, N, ANCHOR_OWNER, OWNER, CREATOR, BEGIN, SETTINGS, canonical, literal, sha,
+ )
+ 
+ 
+@@ -1906,4 +1906,74 @@
+ 
+ 
+ 
++@unittest.skipUnless(os.environ.get(OPT_IN)=='1','Requires isolated PostgreSQL opt-in')
++class AllocationManagedCreatorNativeTests(unittest.TestCase):
++    @classmethod
++    def setUpClass(cls):
++        cls.db=IsolatedPostgres().start()
++        try:cls.fixture=AllocationFixture(cls.db,creator_edges=True)
++        except BaseException:
++            cls.db.close();raise
++
++    @classmethod
++    def tearDownClass(cls):cls.db.close()
++
++    def test_actual_limited_creator_accepts_exact_edge_and_refuses_extra_memberships(self):
++        f=self.fixture
++        f.reset()
++        scope=f.scopes[0]
++        installer=scope['actors']['installer']
++        reader=scope['actors']['reader']
++        original=f.command(scope)
++        writer=f.writer(installer)
++        try:
++            writer.send(f.call('submit',original,installer))
++            provisional=json.loads(writer.line())
++            self.assertTrue(provisional['pending_commit'])
++            self.assertEqual(provisional['original_command_sha256'],sha(canonical(original)))
++            writer.finish()
++        finally:writer.close()
++        reply=f.get(original,reader)
++        self.assertEqual(reply['original_command_wire'],canonical(original))
++        self.assertEqual(f.head(scope)['native_sequence'],'1')
++        before=f.snapshot()
++
++        role_pins={row['name']:row for row in f.catalog['value']['roles']}
++        self.assertEqual(role_pins['postgres']['oid'],'10')
++        self.assertEqual(role_pins[CREATOR]['oid'],self.db.scalar(f"SELECT oid::text FROM pg_roles WHERE rolname={literal(CREATOR)};"))
++        self.assertEqual(self.db.scalar(f"""SELECT pg_has_role({literal(CREATOR)},{literal(installer)},'MEMBER')
++          AND NOT pg_has_role({literal(CREATOR)},{literal(installer)},'SET')
++          AND NOT pg_has_role({literal(CREATOR)},{literal(installer)},'USAGE');"""),'t')
++        for owner in (ANCHOR_OWNER,OWNER):
++            for statement in (f'SET ROLE {owner};',f'ALTER ROLE {owner} LOGIN;',f'GRANT {owner} TO {CREATOR} WITH SET TRUE;'):
++                with self.subTest(owner=owner,statement=statement):
++                    denied=self.db.sql(statement,role=CREATOR,check=False)
++                    self.assertNotEqual(denied.returncode,0)
++                    self.assertIn('42501',denied.stderr)
++        self.assertEqual(before,f.snapshot())
++
++        probe='vn_jupiter_b2_creator_extra'
++        self.db.sql(f'CREATE ROLE {probe} NOLOGIN NOINHERIT;')
++        try:
++            for granted, member, can_set in ((installer,probe,False),(probe,installer,True)):
++                with self.subTest(granted=granted,member=member):
++                    set_option='TRUE' if can_set else 'FALSE'
++                    self.db.sql(f'GRANT {granted} TO {member} WITH ADMIN FALSE, INHERIT FALSE, SET {set_option};')
++                    try:
++                        self.assertEqual(self.db.scalar(f"""SELECT count(*) FROM pg_auth_members
++                          WHERE roleid={literal(granted)}::regrole AND member={literal(member)}::regrole
++                          AND grantor='postgres'::regrole AND NOT admin_option AND NOT inherit_option
++                          AND set_option IS {set_option};"""),'1')
++                        query=f.query(original)
++                        for actor, marker in ((installer,'b2_actor_scope_refused'),(reader,'b2_package_refused')):
++                            denied=self.db.sql(SETTINGS+f.call('get_original',query,actor),role=actor,check=False)
++                            self.assertNotEqual(denied.returncode,0)
++                            self.assertIn(marker,denied.stderr)
++                        self.assertEqual(before,f.snapshot())
++                    finally:self.db.sql(f'REVOKE {granted} FROM {member};')
++                    self.assertEqual(reply,f.get(original,reader))
++        finally:self.db.sql(f'DROP ROLE {probe};')
++        self.assertEqual(before,f.snapshot())
++
++
+ if __name__=='__main__':unittest.main()
