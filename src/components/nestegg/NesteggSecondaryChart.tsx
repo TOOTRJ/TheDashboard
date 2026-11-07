@@ -43,7 +43,7 @@ export function NesteggSecondaryChart({ data }: Props) {
               Early retirement cash flow
             </h3>
             <p className="text-[11px] text-muted-foreground mt-1">
-              Income vs expenses in the first years after you retire (modeled path)
+              Modeled recurring income and spending in the first years after retirement
             </p>
           </div>
         </div>
