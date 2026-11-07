@@ -25,6 +25,15 @@ Verify the [I manifest](candidate-manifest-v20-o-r-i.json),
 [I2 manifest](candidate-manifest-v20-o-r-i2.json) and
 [I2a manifest](candidate-manifest-v20-o-r-i2a.json) at each stage.
 
-The case uses an isolated trust socket. Real SCRAM transport, credential time,
-issuer-controlled terminal recording, managed installation and the full
-regression suite on this source remain open.
+The 43 inherited cases also pass on this exact I2a manifest and snapshot. The
+41 ordinary cases took 126.790 seconds, and the separate run exercised both
+real fence expiries. Together with the focused creator case, these three runs
+cover all 44 source IDs exactly once. All inputs stayed byte-identical, and
+both regression runners removed their owned processes and containers normally.
+[Inherited regression receipts](regression-receipts.json).
+
+This baseline uses an isolated trust socket. The subsequent
+[direct SCRAM candidate](../b2-review-2026-11-06-v20-o-r-i2a-scram/README.md)
+changes the authorization body and has its own focused result. The
+[retirement and handoff design](retirement-and-handoff.md) specifies the next
+owner-separated implementation. Managed installation remains a separate gate.

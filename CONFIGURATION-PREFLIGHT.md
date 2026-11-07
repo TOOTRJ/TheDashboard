@@ -1,5 +1,41 @@
 # Dashboard configuration and access preflight
 
+## November 6 offline batch
+
+The frozen I2a candidate passes all 44 exact native cases across its creator
+test and the two inherited regression runs. The direct SCRAM follow-up passes
+one separate case. It verifies TLS and SCRAM channel binding, then observes an
+expired recorder's literal COMMIT refused while the proposed fence remains
+within its window. An independent reader recovers the prior Install written by
+the still-live installer and finds the Acquire unresolved. Both candidates
+keep all 942 source files byte-identical through their runs. The next native
+steps are the inherited regression rerun on the changed authorization body
+and the owner-separated retirement case. [I2a receipts](services/vonneumann/research/b2-review-2026-11-06-v20-o-r-i2a/README.md) ·
+[SCRAM receipt](services/vonneumann/research/b2-review-2026-11-06-v20-o-r-i2a-scram/README.md).
+
+The seven-file Nestegg candidate on PR115 main has patch SHA-256
+`fb8f1b7f87f12d3b707da89c3c3a9144dba541a11c3738e0e97190272e5e13ff`.
+All 471 frontend tests and TypeScript passed. Scoped lint reports one existing
+warning and zero errors. In the compiled Next.js 16.4.5 browser with the
+synthetic loopback backend, ages 64/65/65 show no retirement cash flow, odds
+or readiness claim, disable full analysis and retain the $100,000 accumulation
+balance. The twelve-month surplus, six-month shortfall and modeled twelve-month
+break-even cases remain visible. Returning to zero months after a full run
+hides the earlier result. Browser console inspection found zero warnings or
+errors, and the backend recorded zero browser plan mutations. The successful
+build serves cached fonts over loopback. Exact PID and port checks confirmed
+teardown after the runner's own inspection was denied. Compiled receipt SHA-256
+`e2df4587685a794d6b3caaa7ca912ef662c16d2ebd4b658dbd70aed32b6787da`.
+The candidate awaits its separate application release.
+
+The [capacity harness](services/vonneumann/research/paper-capacity/README.md)
+passes 14 deterministic cases and reproduces its forecast byte for byte.
+Maximum-sized fixture results expose a no-eviction buffer constraint. Actual
+body-size, quota, recovery and hosted cadence measurements remain open.
+This batch ran offline. The hosted configuration below still governs.
+
+## Hosted and release checkpoints
+
 **Railway closed worker cutover on November 6 at 20:17 MST.** The sole active deployment is `04c592a8-61c6-4ebc-ad34-16c789a4e1c9`. A single credential-free upload used the approved 98-file export without `railway.json`. Railway returned an exact deployment receipt. Readbacks matched full effective settings, configured values, ownership, empty stage and the retained rollback snapshot. The five public checks, both authenticated closed `503` reads and the exact-replica checks of 96 copied files, UID/GID and IPv6/TLS passed. The worker remains closed for the managed database and paper acceptance work. [Cutover evidence](RAILWAY-IAC-MIGRATION-2026-11-05.md#november-6-closed-deployment-acceptance).
 
 **Railway ownership on November 6 at 19:31 MST.** The named partial now owns only the existing `dashboard-paper-worker` service in the pinned production environment. The exact project, workspace and service were reverified, along with the existing Admin membership through the temporary session. The complete masked build and deploy configuration matched before and after, the etag advanced, the stage stayed empty, and the same closed deployment and rollback snapshot remained available. Five public checks passed before and after. An isolated Admin preview verified release of precisely that worker address. The raw CLI receipt was not retained in a usable form. The signed-in activity entry reports the same zero-settings-operation apply at the exact attempt time, and independent readbacks confirm the outcome. The later closed upload is recorded above. [Ownership evidence and receipt limit](RAILWAY-IAC-MIGRATION-2026-11-05.md).
