@@ -1,0 +1,40 @@
+--- a/services/vonneumann/tests/postgres/test_allocation_control_v3.py
++++ b/services/vonneumann/tests/postgres/test_allocation_control_v3.py
+@@ -1467,6 +1467,37 @@
+             for field in ('original_command_wire','original_result_wire','original_receipt_wire','dependencies'):
+                 self.assertEqual(saved[field],historical[field])
+         self.assertEqual(immutable,self.f.snapshot())
++    def test_revoking_nonreader_login_invalidates_unchanged_reader_catalog_pin(self):
++        # Counterexample only. Both ALTER ROLE statements select the same
++        # fixture-owned fake login on the owned network-none database.
++        actor = self.s['actors']['installer']
++        reader = self.s['actors']['reader']
++        self.assertEqual(actor, 'vn_jupiter_b2_0_installer')
++        self.assertEqual(reader, 'vn_jupiter_b2_0_reader')
++        self.assertEqual(self.db.identity['network'], 'none')
++        original = self.f.command(self.s)
++        self.submit(original)
++        committed = self.f.get(original, reader)
++        self.assert_committed(original, committed, 1)
++        stored = self.f.snapshot()
++        self.assertEqual(self.db.scalar(
++            'SELECT rolcanlogin FROM pg_catalog.pg_roles WHERE rolname=' + literal(actor) + ';'), 't')
++        getter_sql = SETTINGS + self.f.call('get_original', self.f.query(original), reader)
++        try:
++            self.db.sql('ALTER ROLE vn_jupiter_b2_0_installer NOLOGIN;')
++            self.assertEqual(self.db.scalar(
++                'SELECT rolcanlogin FROM pg_catalog.pg_roles WHERE rolname=' + literal(actor) + ';'), 'f')
++            self.assertEqual(self.db.scalar(
++                'SELECT rolcanlogin FROM pg_catalog.pg_roles WHERE rolname=' + literal(reader) + ';'), 't')
++            denied = self.db.sql(getter_sql, role=reader, check=False)
++            self.assertNotEqual(denied.returncode, 0)
++            self.assertIn('b2_package_refused', denied.stderr)
++            self.assertEqual(self.f.snapshot(), stored)
++        finally:
++            self.db.sql('ALTER ROLE vn_jupiter_b2_0_installer LOGIN;')
++        self.assertEqual(self.f.get(original, reader), committed)
++        self.assertEqual(self.f.snapshot(), stored)
++
+ 
+ 
+ if __name__=='__main__':unittest.main()

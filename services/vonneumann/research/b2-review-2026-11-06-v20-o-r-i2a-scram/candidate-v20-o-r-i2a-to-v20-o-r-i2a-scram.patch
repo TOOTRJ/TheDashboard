@@ -1,0 +1,330 @@
+diff --git a/services/vonneumann/B2-INSTALLATION-STOP-NATIVE-CANDIDATE-2026-10-18.md b/services/vonneumann/B2-INSTALLATION-STOP-NATIVE-CANDIDATE-2026-10-18.md
+--- a/services/vonneumann/B2-INSTALLATION-STOP-NATIVE-CANDIDATE-2026-10-18.md
++++ b/services/vonneumann/B2-INSTALLATION-STOP-NATIVE-CANDIDATE-2026-10-18.md
+@@ -837,3 +837,24 @@
+ the original bytes after rollback, with no retained grant or changed rows.
+ The issuer authentication logic and all 43 V20-O-R methods are unchanged.
+ This correction is source-only pending independent native verification.
++
++
++## Direct SCRAM and database credential clock fixture
++
++This private source candidate preserves the accepted creator-edge policy and
++existing socket-trust fixture. A separate trusted package-input format binds
++the experimental direct SCRAM profile. For that profile `_auth` checks the
++actual session authentication method and TCP peer, then requires a finite role
++`VALID UNTIL` ahead of the current database wall clock. The existing deferred
++COMMIT path invokes the same guard. Historical readback remains scoped to the
++actual live reader and retains historical writer associations.
++
++The isolated fixture uses the tracked test CA and SCRAM verifier generator.
++Actors connect only over the owned container loopback with `verify-full` and
++required channel binding. The new case stages a recorder Acquire before its
++real finite deadline, observes independent original absence, and sends
++literal COMMIT after the deadline while the requested 60-second fence would
++still be fresh. The intended refusal preserves all committed snapshots and
++exact independent Install readback. A separate fresh recorder login must
++fail. This slice has one shared login and operation deadline per actor. It
++adds no managed activation, write/recovery handoff or retirement authority.
+diff --git a/services/vonneumann/db-contract/research/jupiter_allocation_control_v3.sql b/services/vonneumann/db-contract/research/jupiter_allocation_control_v3.sql
+--- a/services/vonneumann/db-contract/research/jupiter_allocation_control_v3.sql
++++ b/services/vonneumann/db-contract/research/jupiter_allocation_control_v3.sql
+@@ -290,7 +290,7 @@
+ SET client_encoding = 'UTF8'
+ SET standard_conforming_strings = 'on'
+ AS $b2$
+-DECLARE sw text; p vn_jupiter_b2_fixture_anchor.package_inputs%ROWTYPE; a vn_jupiter_b2_fixture_anchor.actor_bindings%ROWTYPE; binding vn_jupiter_b2_fixture_anchor.actor_bindings%ROWTYPE; recorder_id text; rr record; manifest jsonb; pkg jsonb; k text; v jsonb; catalog jsonb; retired vn_jupiter_b2_fixture_anchor.actor_bindings%ROWTYPE; role_index bigint; marker jsonb; writer_profile record; retired_writers jsonb:='[]'; creator_oid oid; creator_grantor_oid oid;
++DECLARE sw text; p vn_jupiter_b2_fixture_anchor.package_inputs%ROWTYPE; a vn_jupiter_b2_fixture_anchor.actor_bindings%ROWTYPE; binding vn_jupiter_b2_fixture_anchor.actor_bindings%ROWTYPE; recorder_id text; rr record; manifest jsonb; pkg jsonb; k text; v jsonb; catalog jsonb; retired vn_jupiter_b2_fixture_anchor.actor_bindings%ROWTYPE; role_index bigint; marker jsonb; writer_profile record; retired_writers jsonb:='[]'; creator_oid oid; creator_grantor_oid oid; scram_profile boolean;
+ BEGIN
+  sw:=vn_jupiter_b2_allocation_research_v3._scope(scope);
+  SELECT * INTO p FROM vn_jupiter_b2_fixture_anchor.package_inputs WHERE scope_wire=sw;
+@@ -298,7 +298,10 @@
+  SELECT * INTO a FROM vn_jupiter_b2_fixture_anchor.actor_bindings WHERE scope_wire=sw AND session_name=session_user AND session_oid=(SELECT oid FROM pg_catalog.pg_roles WHERE rolname=session_user);
+  IF NOT FOUND OR ((CASE WHEN capability='resume_scope' THEN 'control' ELSE capability END)=ANY(a.capabilities)) IS DISTINCT FROM true THEN RAISE EXCEPTION 'b2_actor_scope_refused'; END IF;
+  pkg:=p.package_wire::jsonb;
+- IF NOT vn_jupiter_b2_allocation_research_v3._keys(pkg,ARRAY['format','native_policy_sha256','installation_id','policies','catalog_manifest_sha256','actor_manifest_sha256','native_package_sha256']) OR pkg->>'format' IS DISTINCT FROM 'ga-jupiter-b2-fixture-package-input-research-v3-v1' OR pg_catalog.jsonb_typeof(pkg->'installation_id') IS DISTINCT FROM 'string' OR pkg->>'installation_id' IS DISTINCT FROM p.installation_id OR (p.installation_id ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$') IS DISTINCT FROM true OR vn_jupiter_b2_allocation_research_v3._c14n(pkg) IS DISTINCT FROM p.package_wire OR pg_catalog.octet_length(p.package_wire)+pg_catalog.octet_length(p.actor_manifest_wire)+pg_catalog.octet_length(p.genesis_wire)>131072 OR pg_catalog.octet_length(p.genesis_wire)>8192 THEN RAISE EXCEPTION 'b2_package_refused'; END IF;
++ IF NOT vn_jupiter_b2_allocation_research_v3._keys(pkg,ARRAY['format','native_policy_sha256','installation_id','policies','catalog_manifest_sha256','actor_manifest_sha256','native_package_sha256']) OR (pkg->>'format' IS DISTINCT FROM 'ga-jupiter-b2-fixture-package-input-research-v3-v1' AND pkg->>'format' IS DISTINCT FROM 'ga-jupiter-b2-fixture-direct-scram-research-v3-v1') OR pg_catalog.jsonb_typeof(pkg->'installation_id') IS DISTINCT FROM 'string' OR pkg->>'installation_id' IS DISTINCT FROM p.installation_id OR (p.installation_id ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$') IS DISTINCT FROM true OR vn_jupiter_b2_allocation_research_v3._c14n(pkg) IS DISTINCT FROM p.package_wire OR pg_catalog.octet_length(p.package_wire)+pg_catalog.octet_length(p.actor_manifest_wire)+pg_catalog.octet_length(p.genesis_wire)>131072 OR pg_catalog.octet_length(p.genesis_wire)>8192 THEN RAISE EXCEPTION 'b2_package_refused'; END IF;
++ scram_profile:=pkg->>'format'='ga-jupiter-b2-fixture-direct-scram-research-v3-v1';
++ IF scram_profile AND (system_user IS DISTINCT FROM ('scram-sha-256:'||session_user::text) OR pg_catalog.inet_client_addr() IS NULL)
++ THEN RAISE EXCEPTION 'b2_direct_scram_required' USING ERRCODE='42501'; END IF;
+  FOREACH k IN ARRAY ARRAY['native_policy_sha256','catalog_manifest_sha256','actor_manifest_sha256','native_package_sha256'] LOOP
+   IF pg_catalog.jsonb_typeof(pkg->k) IS DISTINCT FROM 'string' OR (pkg->>k ~ '^[0-9a-f]{64}$') IS DISTINCT FROM true THEN RAISE EXCEPTION 'b2_package_refused'; END IF;
+  END LOOP;
+@@ -321,6 +324,7 @@
+  -- The fixture may use the one literal PG17 limited-issuer profile. Its
+  -- creator and bootstrap identities are independently checked and sealed in K.
+  SELECT oid INTO creator_oid FROM pg_catalog.pg_roles WHERE rolname='vn_jupiter_b2_actor_issuer';
++ IF scram_profile AND creator_oid IS NULL THEN RAISE EXCEPTION 'b2_actor_scope_refused'; END IF;
+  IF creator_oid IS NOT NULL THEN
+   SELECT oid INTO creator_grantor_oid FROM pg_catalog.pg_roles WHERE oid=10 AND rolname='postgres' AND rolsuper;
+   IF creator_grantor_oid IS NULL OR creator_oid=creator_grantor_oid
+@@ -340,6 +344,8 @@
+     WHERE roleid=binding.session_oid AND member=creator_oid AND grantor=creator_grantor_oid
+      AND admin_option AND NOT inherit_option AND NOT set_option))
+   THEN RAISE EXCEPTION 'b2_actor_scope_refused'; END IF;
++  IF scram_profile AND (rr.rolvaliduntil IS NULL OR NOT pg_catalog.isfinite(rr.rolvaliduntil) OR pg_catalog.clock_timestamp()>=rr.rolvaliduntil)
++  THEN RAISE EXCEPTION 'b2_credential_expired' USING ERRCODE='42501'; END IF;
+   IF pg_catalog.octet_length(binding.binding_wire)>2048 THEN RAISE EXCEPTION 'b2_package_refused'; END IF;
+   IF NOT EXISTS(SELECT 1 FROM pg_catalog.jsonb_array_elements(manifest->'bindings') e WHERE vn_jupiter_b2_allocation_research_v3._keys(e,ARRAY['principal_binding_id','database_identity_sha256','session_user_oid','session_user_name','scope','capabilities','recorder_package_sha256','reader_package_sha256','issuer_binding_id','endpoint_bindings','installation_id']) AND e->'database_identity_sha256'=pg_catalog.to_jsonb(vn_jupiter_b2_allocation_research_v3._sha(current_database()||':'||(SELECT oid::text FROM pg_catalog.pg_database WHERE datname=current_database()))) AND e->'recorder_package_sha256'=pkg#>'{policies,recorder_package_sha256}' AND e->'reader_package_sha256'=pkg#>'{policies,reader_package_sha256}' AND e->'issuer_binding_id'=(p.genesis_wire::jsonb)#>'{initial_acquisition_spec,issuer_binding_id}' AND e->'endpoint_bindings'=(p.genesis_wire::jsonb)#>'{initial_acquisition_spec,endpoint_bindings}' AND e->>'installation_id'=p.installation_id AND vn_jupiter_b2_allocation_research_v3._c14n(e)=binding.binding_wire AND e->>'principal_binding_id'=binding.binding_id AND e->>'session_user_oid'=binding.session_oid::text AND e->>'session_user_name'=binding.session_name AND e->'scope'=scope AND e->'capabilities'=pg_catalog.to_jsonb(binding.capabilities)) THEN RAISE EXCEPTION 'b2_actor_scope_refused'; END IF;
+  END LOOP;
+diff --git a/services/vonneumann/tests/postgres/allocation_control_v3_fixture.py b/services/vonneumann/tests/postgres/allocation_control_v3_fixture.py
+--- a/services/vonneumann/tests/postgres/allocation_control_v3_fixture.py
++++ b/services/vonneumann/tests/postgres/allocation_control_v3_fixture.py
+@@ -11,12 +11,15 @@
+ from pathlib import Path
+ import re
+ import runpy
++import secrets
+ import select
+ import subprocess
+ import time
+ from uuid import UUID
+ 
+-from tests.postgres.harness import IsolatedPostgres
++from tests.postgres.harness import IsolatedPostgres, SqlSession
++from tests.postgres.native_issuer_fixture import scram_verifier
++from tests.postgres.session_auth_fixture import HOST, NativePostgres
+ from tests.postgres.actor_catalog_v3_fixture import verify_owned_postgres_image
+ 
+ ROOT = Path(__file__).resolve().parents[2]
+@@ -27,7 +30,7 @@
+ SQL_PATH = ROOT / 'db-contract/research/jupiter_allocation_control_v3.sql'
+ LOADER_PATH = ROOT / 'db-contract/research/allocation_control_v3_source.py'
+ POLICY_PATH = ROOT / 'research/b2-finite-experiment-policy-2026-10-18-v3.json'
+-SOURCE_SHA256 = '1d6ef5853438f93624ee2c715b78bc946a3533d320bc31943aefe99a2b4258b7'
++SOURCE_SHA256 = 'f3b069e005afdc672fa8b15dfd75360e876cd0e5fc0d98180fa2ac1f940b0942'
+ LOADER_SHA256 = 'bacf672aa8d714d40494a36254345eb58ed46d44551520f41688b61d503454d4'
+ POLICY_FILE_SHA256 = '0a1c8663f4f6cbf9b299cab11fcdd00a379dbe3ca3493b706ddafca9b75c0f1a'
+ POLICY_SHA256 = 'e5dca1d13839102fb1fdd261176393b73c770a95ab355eff74499169905bfba0'
+@@ -247,6 +250,8 @@
+ 
+ 
+ CREATOR = 'vn_jupiter_b2_actor_issuer'
++SCRAM_FORMAT = 'ga-jupiter-b2-fixture-direct-scram-research-v3-v1'
++SHORT_RECORDER = 'vn_jupiter_b2_0_recorder'
+ 
+ 
+ def verify_seal(db, source, actors, *, creator_edges=False):
+@@ -318,11 +323,74 @@
+     if membership!=expected_membership:raise RuntimeError('b2_membership_refused')
+ 
+ 
++class AllocationScramPostgres(NativePostgres):
++    """Existing owned CA/server plus direct actor libpq, with no SET ROLE."""
++
++    def __init__(self):
++        super().__init__()
++        self.actor_deadlines = {}
++
++    def actor_ddl(self, actors):
++        if self.actor_deadlines or len(set(actors)) != 8 or SHORT_RECORDER not in actors:
++            raise RuntimeError('b2_scram_fixture_actor_inventory_refused')
++        # One authoritative timestamp with fixed, finite offsets. Use the same
++        # absolute values in role creation and in the independent catalog check.
++        deadlines = json.loads(self.scalar("""WITH now AS MATERIALIZED (SELECT clock_timestamp() AS stamp)
++            SELECT jsonb_agg(jsonb_build_array(deadline::text,floor(extract(epoch FROM deadline)*1000000)::bigint)
++              ORDER BY deadline) FROM now CROSS JOIN LATERAL
++              (VALUES (stamp+interval '35 seconds'),(stamp+interval '180 seconds')) AS d(deadline);"""))
++        ddl = []
++        for actor in actors:
++            deadline, deadline_us = deadlines[0 if actor == SHORT_RECORDER else 1]
++            password = secrets.token_hex(32)
++            verifier = scram_verifier(password)
++            self.write_private(actor+'.pgpass',f'*:5432:postgres:{actor}:{password}\n')
++            ddl.append(f'CREATE ROLE {actor} LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT '
++                f'NOREPLICATION NOBYPASSRLS CONNECTION LIMIT 2 PASSWORD {literal(verifier)} VALID UNTIL {literal(deadline)};')
++            self.actor_deadlines[actor] = deadline_us
++        return '\n'.join(ddl)+'\n'
++
++    def verify_actor_deadlines(self):
++        roles = ','.join(map(literal,self.actor_deadlines))
++        actual = json.loads(self.scalar(f"""SELECT jsonb_object_agg(rolname::text,
++          floor(extract(epoch FROM rolvaliduntil)*1000000)::bigint) FROM pg_roles
++          WHERE rolname IN({roles}) AND rolcanlogin AND rolconnlimit=2 AND isfinite(rolvaliduntil);"""))
++        if actual != self.actor_deadlines:
++            raise RuntimeError('b2_scram_fixture_deadline_refused')
++
++    def direct_command(self, role, *, statement_ms, host=HOST, root='root.crt'):
++        if (self._container_id is None or role not in self.actor_deadlines or not 0 < statement_ms <= 60000
++                or host not in (HOST,'wrong.example') or root not in ('root.crt','wrong-root.crt')):
++            raise ValueError('b2_direct_fixture_connection_refused')
++        conn = f'host={host} hostaddr=127.0.0.1 port=5432 dbname=postgres user={role} sslmode=verify-full '
++        conn += f'sslrootcert=/tmp/dashboard-pg/{root} channel_binding=require connect_timeout=2'
++        return self._docker+['exec','-i','--env',f'PGPASSFILE=/tmp/dashboard-pg/{role}.pgpass',
++            '--env',f'PGOPTIONS=-c statement_timeout={statement_ms}',self._container_id,'psql','-X','-w',
++            '-d',conn,'-v','ON_ERROR_STOP=1','-v','VERBOSITY=verbose','-A','-t','-q']
++
++    def begin_sql(self, source, *, role='postgres', timeout=10):
++        if role not in self.actor_deadlines:
++            return super().begin_sql(source,role=role,timeout=timeout)
++        return self.begin_direct(source,role=role,timeout=timeout)
++
++    def begin_direct(self, source, *, role, timeout=10, host=HOST, root='root.crt'):
++        if not 0 < timeout <= 60:
++            raise ValueError('b2_direct_fixture_timeout_refused')
++        server_ms=max(1,int((timeout-min(1,timeout/2))*1000))
++        command=self.direct_command(role,statement_ms=server_ms,host=host,root=root)
++        session=SqlSession(command,source,self._env,timeout)
++        self._sessions.append(session)
++        return session
++
++
+ class AllocationFixture:
+     def __init__(self,db,*,creator_edges=False):
+         if type(creator_edges) is not bool:raise RuntimeError('b2_fixture_creator_mode_refused')
+         if not isinstance(db,IsolatedPostgres) or db.identity.get('network')!='none':raise RuntimeError('b2_owned_fixture_required')
+         self.db=db
++        self.direct_scram=isinstance(db,AllocationScramPostgres)
++        if self.direct_scram and not creator_edges:
++            raise RuntimeError('b2_scram_fixture_creator_required')
+         self.arrangements=0  # Trusted fixture provenance only; no actor capability.
+         raw=held(SQL_PATH,SOURCE_SHA256,262144);loader=held(LOADER_PATH,LOADER_SHA256,32768)
+         self.source_api={'__file__':str(LOADER_PATH),'__name__':'b2_reviewed_source'}
+@@ -355,7 +423,16 @@
+             db.sql(f'CREATE ROLE {CREATOR} LOGIN NOSUPERUSER NOCREATEDB CREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS;')
+             if db.scalar(f"SELECT session_user={literal(CREATOR)} AND current_user=session_user AND rolcreaterole AND NOT rolsuper FROM pg_roles WHERE rolname=session_user;",role=CREATOR)!='t':
+                 raise RuntimeError('b2_actual_limited_creator_required')
+-            db.sql("BEGIN; SET LOCAL createrole_self_grant='';\n"+actor_ddl+'COMMIT;\n',role=CREATOR)
++            issue_prefix="BEGIN; SET LOCAL createrole_self_grant='';\n"
++            if self.direct_scram:
++                actor_ddl=db.actor_ddl(self.actors)
++                # No verifier-bearing SQL diagnostics leave the fixture.
++                issued=db.sql(issue_prefix+actor_ddl+'COMMIT;\n',role=CREATOR,check=False)
++                if issued.returncode:
++                    raise RuntimeError('b2_scram_fixture_issuer_refused')
++                db.verify_actor_deadlines()
++            else:
++                db.sql(issue_prefix+actor_ddl+'COMMIT;\n',role=CREATOR)
+         else:
+             bootstrap+=actor_ddl
+         bootstrap+=f'CREATE SCHEMA {A}; CREATE SCHEMA {N}; REVOKE ALL ON SCHEMA {A},{N} FROM PUBLIC;\n'+raw.decode()
+@@ -412,7 +489,7 @@
+         genesis=dict(format='ga-jupiter-b2-genesis-registry-research-v3-v1',scope=s['scope'],identity_specs=specs,
+           initial_acquisition_spec=dict(registration_id=s['registration'],acquisition_epoch=s['epoch'],predecessor_epoch=None,recorder_principal_binding_id=s['bindings']['recorder'],reader_principal_binding_id=s['bindings']['reader'],issuer_binding_id=s['issuer'],recorder_package_sha256=policies['recorder_package_sha256'],reader_package_sha256=policies['reader_package_sha256'],policies=policies,endpoint_bindings=s['manifest']['bindings'][0]['endpoint_bindings']),terminal_stop_action_id=s['stop_id'])
+         self.source_api['validate_genesis'](genesis,expected_scope=s['scope'],expected_binding_ids=list(s['bindings'].values()),expected_policies=policies,expected_installation_id=s['installation_id'])
+-        package=dict(format='ga-jupiter-b2-fixture-package-input-research-v3-v1',native_policy_sha256=POLICY_SHA256,installation_id=s['installation_id'],policies=policies,catalog_manifest_sha256=self.catalog['sha'],actor_manifest_sha256=sha(canonical(s['manifest'])),native_package_sha256=m)
++        package=dict(format=SCRAM_FORMAT if self.direct_scram else 'ga-jupiter-b2-fixture-package-input-research-v3-v1',native_policy_sha256=POLICY_SHA256,installation_id=s['installation_id'],policies=policies,catalog_manifest_sha256=self.catalog['sha'],actor_manifest_sha256=sha(canonical(s['manifest'])),native_package_sha256=m)
+         head=dict(scope=s['scope'],native_sequence='0',native_head_sha256=sha(canonical(dict(format='ga-jupiter-b2-empty-head-research-v3-v1',native_policy_sha256=POLICY_SHA256,scope=s['scope']))),active_acquisition_epoch=None,active_fence_id=None,fence_revision='0',source_mode='uninstalled',last_admission_sha256=None,last_ingest_sequence='0',last_availability_sha256=None,previous_seal_sha256=None)
+         accounting=dict(committed_positions='0',logical_UTF8_bytes='0',identity_rows='0',domain_rows='0',dependency_rows='0',retained_rows='6',row_writes='0',index_entries='0',Stop_reserve_consumed=False)
+         self.db.sql(f"BEGIN; UPDATE {A}.package_inputs SET package_wire={literal(canonical(package))},genesis_wire={literal(canonical(genesis))},expected_catalog_sha256={literal(self.catalog['sha'])} WHERE scope_wire={literal(canonical(s['scope']))}; INSERT INTO {N}.scope_state VALUES({literal(canonical(s['scope']))},{literal(canonical(head))},{literal(canonical(accounting))}); COMMIT;")
+@@ -571,7 +648,10 @@
+         allowed=role=='postgres' if trusted_anchor is True else (trusted_anchor is False and role in [f'vn_jupiter_b2_{i}_{p}' for i in range(2) for p in PROFILES])
+         if not allowed:raise ValueError('b2_writer_role_refused')
+         self.deadline=time.monotonic()+20;self.buffer=b'';self.db=db
+-        command=db._docker+['exec','-i','--env','PGOPTIONS=-c statement_timeout=10000',db._container_id,'psql','-X','-w','-h','/tmp','-U',role,'-d','postgres','-v','ON_ERROR_STOP=1','-v','VERBOSITY=verbose','-A','-t','-q']
++        if isinstance(db,AllocationScramPostgres) and not trusted_anchor:
++            command=db.direct_command(role,statement_ms=10000)
++        else:
++            command=db._docker+['exec','-i','--env','PGOPTIONS=-c statement_timeout=10000',db._container_id,'psql','-X','-w','-h','/tmp','-U',role,'-d','postgres','-v','ON_ERROR_STOP=1','-v','VERBOSITY=verbose','-A','-t','-q']
+         self._process=subprocess.Popen(command,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,env=db._env,bufsize=0)
+         db._sessions.append(self)
+         self.send(BEGIN+SETTINGS)
+diff --git a/services/vonneumann/tests/postgres/test_allocation_control_v3.py b/services/vonneumann/tests/postgres/test_allocation_control_v3.py
+--- a/services/vonneumann/tests/postgres/test_allocation_control_v3.py
++++ b/services/vonneumann/tests/postgres/test_allocation_control_v3.py
+@@ -14,7 +14,7 @@
+ 
+ from tests.postgres.harness import IsolatedPostgres, OPT_IN
+ from tests.postgres.allocation_control_v3_fixture import (
+-    AllocationFixture, A, N, ANCHOR_OWNER, OWNER, CREATOR, BEGIN, SETTINGS, canonical, literal, sha,
++    AllocationFixture, AllocationScramPostgres, A, N, ANCHOR_OWNER, OWNER, CREATOR, BEGIN, SETTINGS, canonical, literal, sha,
+ )
+ 
+ 
+@@ -1995,4 +1995,96 @@
+         self.assertEqual(before,f.snapshot())
+ 
+ 
++@unittest.skipUnless(os.environ.get(OPT_IN)=='1','Requires isolated PostgreSQL opt-in')
++class AllocationDirectScramNativeTests(unittest.TestCase):
++    @classmethod
++    def setUpClass(cls):
++        cls.db=AllocationScramPostgres().start()
++        try:cls.fixture=AllocationFixture(cls.db,creator_edges=True)
++        except BaseException:
++            cls.db.close();raise
++
++    @classmethod
++    def tearDownClass(cls):cls.db.close()
++
++    def db_clock_us(self):
++        return int(self.db.scalar('SELECT floor(extract(epoch FROM clock_timestamp())*1000000)::bigint;'))
++
++    def wait_for_db_clock(self,target_us):
++        remaining_us=target_us-self.db_clock_us()
++        self.assertLessEqual(remaining_us,35_000_000)
++        if remaining_us>0:
++            self.db.sql(f'SELECT pg_sleep({remaining_us}/1000000.0);',timeout=40)
++        observed_us=self.db_clock_us()
++        self.assertGreaterEqual(observed_us,target_us)
++        return observed_us
++
++    def test_direct_scram_actor_credential_expires_before_literal_commit(self):
++        f=self.fixture
++        s=f.scopes[0]
++        installer=s['actors']['installer']
++        reader=s['actors']['reader']
++        recorder=s['actors']['recorder']
++        expiry_us=self.db.actor_deadlines[recorder]
++        identity="SELECT session_user,system_user,current_user,inet_client_addr()='127.0.0.1'::inet,ssl FROM pg_stat_ssl WHERE pid=pg_backend_pid();"
++        for role in (installer,reader,recorder):
++            self.assertEqual(self.db.scalar(identity,role=role),f'{role}|scram-sha-256:{role}|{role}|t|t')
++        for options,expected in (({'host':'wrong.example'},'does not match host name'),
++                                 ({'root':'wrong-root.crt'},'certificate verify failed')):
++            refused=self.db.begin_direct('SELECT 1;',role=reader,**options).wait(check=False)
++            self.assertNotEqual(refused.returncode,0)
++            self.assertEqual(refused.stdout,'')
++            self.assertIn(expected,refused.stderr)
++
++        install=f.command(s)
++        writer=f.writer(installer)
++        try:
++            writer.send(f.call('submit',install,installer))
++            self.assertTrue(json.loads(writer.line())['pending_commit'])
++            writer.finish()
++        finally:writer.close()
++        committed=f.get(install,reader)
++        self.assertEqual(committed['original_command_wire'],canonical(install))
++        self.assertEqual(committed['observed_head']['native_sequence'],'1')
++        socket_source=SETTINGS+f.call('get_original',f.query(install),reader)
++        socket_result=IsolatedPostgres.begin_sql(self.db,socket_source,role=reader).wait(check=False)
++        self.assertNotEqual(socket_result.returncode,0)
++        self.assertRegex(socket_result.stderr,r'(?m)^ERROR:\s+42501: b2_direct_scram_required\s*$')
++
++        acquire=f.command(s,'fence_acquire',action_id=str(UUID(int=993021)))
++        acquire['body']=dict(fence_id=str(UUID(int=993022)),acquisition_epoch=s['epoch'],
++            holder_principal_binding_id=s['bindings']['recorder'],requested_duration_us='60000000')
++        before=f.snapshot()
++        staged_after_us=self.wait_for_db_clock(expiry_us-6_000_000)
++        self.assertLess(staged_after_us,expiry_us-2_000_000)
++        writer=f.writer(recorder)
++        try:
++            writer.send(f.call('submit',acquire,recorder))
++            pending=json.loads(writer.line())
++            self.assertTrue(pending['pending_commit'])
++            self.assertEqual(pending['original_command_sha256'],sha(canonical(acquire)))
++            self.assertLess(self.db_clock_us(),expiry_us)
++            invisible=f.get(acquire,reader)
++            self.assertEqual(invisible['resolution'],'observed_absent_unknown')
++            self.assertIsNone(invisible['original_operation_pin'])
++
++            expired_us=self.wait_for_db_clock(expiry_us+150_000)
++            writer.send(identity+'\n')
++            self.assertEqual(writer.line(),f'{recorder}|scram-sha-256:{recorder}|{recorder}|t|t')
++            status,error=writer.finish('COMMIT;',check=False)
++            self.assertNotEqual(status,0)
++            self.assertRegex(error,r'(?m)^ERROR:\s+42501: b2_credential_expired\s*$')
++            self.assertGreater(expired_us,expiry_us)
++            self.assertLess(self.db_clock_us(),staged_after_us+60_000_000)
++        finally:writer.close()
++
++        refused=self.db.sql('SELECT 1;',role=recorder,check=False)
++        self.assertNotEqual(refused.returncode,0)
++        self.assertEqual(refused.stdout,'')
++        self.assertIn('password authentication failed',refused.stderr)
++        self.assertEqual(f.get(acquire,reader),invisible)
++        self.assertEqual(f.get(install,reader),committed)
++        self.assertEqual(before,f.snapshot())
++
++
+ if __name__=='__main__':unittest.main()

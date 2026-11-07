@@ -1,0 +1,67 @@
+{
+  "V19_manifest_sha256": "34942c24e6c9b84fdae89b1e402f3cb848756ad80913cc400a1cafe4dcf7ddba",
+  "V19_native_accepted_methods": 38,
+  "V19_native_receipts_sha256": "68e5f5a9c728f27481c62e703e4e3d0e473483edc61b70c343f44166ad5b83bb",
+  "exact_repeat_composition": {
+    "base_commit": "7ff9b886a2d19de5388b86a5c3985a8705567edc",
+    "base_tree": "9d6c512e6ea6f9b036cf82f7cc67199cc57dc4ae",
+    "composed_regular_files": 936,
+    "tracked_regular_files": 930
+  },
+  "expected_tests": 1,
+  "format": "dashboard-private-b2-v19-r2-two-writers-and-reserved-stop-counterexample",
+  "forward_patch_sha256": "057f9ef7b2f0426f34a316282942cde42e1fc584019a20f2bc37956a4149f130",
+  "launch_intent": {
+    "exact_one_test": true,
+    "network_none": true,
+    "only_root_after_review": true,
+    "outer_timeout_seconds": 240
+  },
+  "native_execution": false,
+  "remote_or_credential_access": false,
+  "repository_mutation": false,
+  "retained_prior_test_methods_byte_identical": 38,
+  "source_files": [
+    {
+      "bytes": 45141,
+      "path": "services/vonneumann/B2-INSTALLATION-STOP-NATIVE-CANDIDATE-2026-10-18.md",
+      "sha256": "b7a9e5f2c59ada0a28db6fb28ff5cc6a3d8dcf86a3a4497ce61b536f995405b1",
+      "v19_sha256": "b7a9e5f2c59ada0a28db6fb28ff5cc6a3d8dcf86a3a4497ce61b536f995405b1"
+    },
+    {
+      "bytes": 12207,
+      "path": "services/vonneumann/db-contract/research/allocation_control_v3_source.py",
+      "sha256": "586ccfbd61fc770c5e59df12a442c682032d520cb07cc7b91f864bfacba97e1a",
+      "v19_sha256": "586ccfbd61fc770c5e59df12a442c682032d520cb07cc7b91f864bfacba97e1a"
+    },
+    {
+      "bytes": 126826,
+      "path": "services/vonneumann/db-contract/research/jupiter_allocation_control_v3.sql",
+      "sha256": "ba927b7840f03ce8b734d679a5cb8b341adfc259c0a6fa00c04bfe00a13ea2da",
+      "v19_sha256": "ba927b7840f03ce8b734d679a5cb8b341adfc259c0a6fa00c04bfe00a13ea2da"
+    },
+    {
+      "bytes": 32126,
+      "path": "services/vonneumann/research/b2-finite-experiment-policy-2026-10-18-v3.json",
+      "sha256": "0a1c8663f4f6cbf9b299cab11fcdd00a379dbe3ca3493b706ddafca9b75c0f1a",
+      "v19_sha256": "0a1c8663f4f6cbf9b299cab11fcdd00a379dbe3ca3493b706ddafca9b75c0f1a"
+    },
+    {
+      "bytes": 43615,
+      "path": "services/vonneumann/tests/postgres/allocation_control_v3_fixture.py",
+      "sha256": "b9eee71dfb8dc59e4094a9b664042b55a9e3f33be43db071695792d2a8ffb3e4",
+      "v19_sha256": "b9eee71dfb8dc59e4094a9b664042b55a9e3f33be43db071695792d2a8ffb3e4"
+    },
+    {
+      "bytes": 108348,
+      "path": "services/vonneumann/tests/postgres/test_allocation_control_v3.py",
+      "sha256": "288ae58db5f4d9fbafb4a72b195ff3138edd1e8abef0369ee6af9cbb5a043b10",
+      "v19_sha256": "d04a5345039da19ef36a18db0b0ca8f583d2401a0d68b92930369b1ee1bba33b"
+    }
+  ],
+  "static_only": true,
+  "test_ids": [
+    "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_v19_two_writer_retirement_closes_readback_and_reserved_stop"
+  ],
+  "total_source_methods": 39
+}
