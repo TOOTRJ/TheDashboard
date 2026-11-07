@@ -3,7 +3,7 @@
 The candidate adds one test to the exact accepted V19 source. The six-file
 reconstruction passed static hash verification. All 38 V19 methods and
 the other five files are byte identical. V19 passed 38 actual methods
-in three accepted runs. This one new case has yet to execute.
+in three accepted runs. The new case has its own [native receipt](native-receipt.json).
 
 Verify [the manifest](candidate-manifest.json) SHA-256
 `c6147287851ab67c6503838b34db25b86910e18908d59f58aa4498a185ba8f9c`

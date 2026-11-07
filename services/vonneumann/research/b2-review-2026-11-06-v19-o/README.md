@@ -8,8 +8,8 @@ and an added owner membership each caused refusal. Rolling back each synthetic
 fault restored the exact original read and preserved committed state.
 
 All 39 cases also passed on the exact PR115 main base, including 37 ordinary
-cases and two tests using actual credential expiry. Both runs verified the
-same 942 source files before and after, with normal owned container cleanup.
+cases and two tests that waited for a real database fence to expire. Both runs
+verified the same 942 source files before and after, with normal owned cleanup.
 The 39 count includes the focused case exercised again on that base.
 
 Apply the [forward patch](candidate-forward.patch) to the reconstructed
