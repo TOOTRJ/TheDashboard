@@ -1,0 +1,75 @@
+--- a/controller.py
++++ b/controller.py
+@@ -133,6 +133,53 @@
+         assert not set(argv)&{'--publish','-p','--publish-all','-P','--volume','-v','--mount'}
+         write('owned-container.json',{'name':name,'label':LABEL+'='+name.rsplit('-',1)[1]})
+     sys.addaudithook(observe)
++    def measure_storage(test):
++        assert test.id()==exact_id
++        db=test.db
++        identity=json.loads((ROOT/'fixture-identity.json').read_bytes())
++        marker=json.loads((ROOT/'owned-container.json').read_bytes())
++        assert db._container_id==identity['id'] and db.name==marker['name']
++        assert identity['image_id']==IMAGE and db.identity['network']=='none'
++        assert marker['label']==LABEL+'='+db.name.rsplit('-',1)[1]
++        sql_path=ROOT/'measure-storage.sql'
++        assert sql_path.is_file() and not sql_path.is_symlink()
++        source=sql_path.read_bytes()
++        assert len(source)==7827 and sha(source)=='e230cd714c13190bfe32c0e3927bbbc529b21f8732bd696f6aebb07a2fe2423b'
++        raw=db.scalar(source.decode('utf8'),role='postgres',timeout=5)
++        assert 0<len(raw.encode('utf8'))<=16384
++        report=json.loads(raw)
++        assert report['format']=='dashboard-v18-owned-fixture-storage-v1'
++        assert report['server_encoding']=='UTF8' and 170000<=report['server_version_num']<180000
++        assert report['measured_scope_count']==1
++        assert report['scope_head']=={'status':'stopped','native_sequence':'16','fence_revision':'14'}
++        expected_rows={'package_inputs': (1, 2), 'actor_bindings': (4, 8), 'scope_state': (1, 2), 'original_operations': (16, 16), 'journal_entries': (16, 16), 'identities': (30, 30), 'domain_facts': (16, 16), 'dependency_associations': (105, 105)}
++        assert len(report['tables'])==len(expected_rows)
++        fields=('heap_main_bytes','heap_fsm_bytes','heap_vm_bytes','heap_init_bytes',
++                'base_indexes_bytes','toast_all_forks_and_indexes_bytes',
++                'table_including_toast_bytes','relation_total_bytes',
++                'stopped_scope_stored_canonical_text_bytes','stopped_scope_rows','whole_visible_rows')
++        observed={}
++        for row in report['tables']:
++            assert row.keys()==set(fields)|{'relation_name'}
++            name=row['relation_name']
++            assert name in expected_rows and name not in observed
++            assert all(type(row[key]) is int and row[key]>=0 for key in fields)
++            assert (row['stopped_scope_rows'],row['whole_visible_rows'])==expected_rows[name]
++            assert sum(row[key] for key in fields[:4])+row['toast_all_forks_and_indexes_bytes']==row['table_including_toast_bytes']
++            assert row['table_including_toast_bytes']+row['base_indexes_bytes']==row['relation_total_bytes']
++            observed[name]=row
++        assert observed.keys()==expected_rows.keys()
++        accounting=report['contract_accounting']
++        assert accounting['logical_UTF8_bytes'].isascii() and accounting['logical_UTF8_bytes'].isdigit()
++        assert {k:v for k,v in accounting.items() if k!='logical_UTF8_bytes'}=={
++            'committed_positions':'16','retained_rows':'189','identity_rows':'30',
++            'domain_rows':'16','dependency_rows':'105','row_writes':'199',
++            'index_entries':'398','Stop_reserve_consumed':True}
++        report['totals']={key:sum(row[key] for row in observed.values()) for key in fields}
++        report.update(status='measured',test_id=exact_id,snapshot_sha256=SNAPSHOT_SHA,
++            controller_sha256=sha(Path(__file__).read_bytes()),measurement_sql_sha256=sha(source),
++            fixture_image_id=identity['image_id'],network='none',physical_limit_established=False)
++        return report
+     class ObservedResult(unittest.TextTestResult):
+         def startTest(self,test):
+             if self.testsRun==0:
+@@ -141,6 +188,18 @@
+                 assert db.identity['image_id']==IMAGE and db.identity['network']=='none'
+                 write('fixture-identity.json',{'id':db._container_id,**db.identity})
+             super().startTest(test)
++        def addSuccess(self,test):
++            super().addSuccess(test)
++            try:
++                observed=measure_storage(test)
++            except Exception as error:
++                # Native pass and storage observation are separate evidence.
++                # Do not let a measurement error bypass fixture teardown.
++                observed={'status':'unavailable','error_type':type(error).__name__}
++            try:
++                write('physical-storage-observation.json',observed)
++            except OSError:
++                print('physical_storage_observation_output_refused',flush=True)
+     start=time.monotonic()
+     result=unittest.TextTestRunner(verbosity=2,resultclass=ObservedResult,failfast=True).run(suite)
+     counts={'tests':result.testsRun,'failures':len(result.failures),'errors':len(result.errors),

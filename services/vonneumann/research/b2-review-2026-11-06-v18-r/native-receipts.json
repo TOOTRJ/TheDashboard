@@ -1,0 +1,41 @@
+{
+  "candidate_patch_sha256": "f399e9d04b93925652cb20e4579b29363559340854625c2e73d60dad7cf5e2cc",
+  "runs": {
+    "revocation_counterexample": {
+      "base": "7ff9b886a2d19de5388b86a5c3985a8705567edc",
+      "container_gone": true,
+      "controller_sha256": "61bd183e54d385dad3a54dbdd8a2aa3ca80ce4677a20e0948bda6d3812236307",
+      "elapsed": 8.299707875121385,
+      "end": "2026-11-06T22:18:23.720173+00:00",
+      "exit": 0,
+      "fallback_cleanup": false,
+      "fixture": {
+        "image": "public.ecr.aws/supabase/postgres:17.6.1.095",
+        "image_id": "sha256:965e2dfb5a23a0d6541b6106541e777b303656ebabd4e878746b189d550c0a66",
+        "network": "none",
+        "postgres_version": "17.6"
+      },
+      "group_gone": true,
+      "interrupted": false,
+      "manifest_sha256": "e1bf98fcc74ce420d0b283a206687fdc521b63c1969e7fdf5a98cba4b57ef1fd",
+      "ordered_test_ids_sha256": "e04f403b19651b08867207010f8c66a88128e37db9691e75422bc16d83f0821e",
+      "raw_log_sha256": "7f9f3253cc1ce642a1091c1eb5555141ce48cbdb35ec49e81b0219df20134ac7",
+      "run_receipt_sha256": "b0f4c13274383daf9a61fe8b4a831edf9226f3d5d278e3b4c98215b8b8bf8ce8",
+      "snapshot_sha256": "dd72a5d43598eb0a2c7199d89c2bf0e276268fdb4d2b78cbe2bebe2e47c416b3",
+      "source_count": 936,
+      "source_unchanged": true,
+      "start": "2026-11-06T22:18:15.420543+00:00",
+      "test_result": {
+        "elapsed": 8.095684417057782,
+        "errors": 0,
+        "expected_failures": 0,
+        "failures": 0,
+        "skips": 0,
+        "tests": 1,
+        "unexpected_successes": 0
+      },
+      "test_result_sha256": "799b4682dc1e7d4c5ca27a4b3c5ee98a577be77db5b0b99422da7d1f4540b936",
+      "timeout": false
+    }
+  }
+}
