@@ -19,3 +19,12 @@ Fourteen deterministic tests pass. Each retained axis can refuse independently, 
 - The existing source unit cases for fractional final clock bounds, exact replay, unresolved getter and immutable readback/availability all passed. The synthetic harness does not implement native source verification, retained database identity, market eligibility, SQL effects, failover, or actual provider quota. Hosted readiness still requires exact real evidence under the selected profile.
 
 Use `receipt.json` for the source-bound forecast. For follow-up, add actual count/byte/phase telemetry only through the separately reviewed owned native or hosted runner. Preserve per-stage request counts, original deadlines and no raw secrets. Compare per-event rows, keys, encoded size, direct dependencies and reader closure before selecting a per-event envelope. Before using any retained-memory release path, prove the original captured bytes and result can be retrieved under the old identity after interruption.
+
+The [November 9 observations](OBSERVATIONS.md) measure the existing transport
+with three synthetic response sizes and a real process interruption. The
+separate PostgreSQL observer recovers an original committed Install after
+session termination and measures logical rows, physical allocation and WAL
+before and after an interrupted Acquire. The
+[transport receipts](transport-observations.json) and
+[native receipt](native-observations.json) preserve the results and their
+source bounds. Durable provider-body readback and cache release remain open.

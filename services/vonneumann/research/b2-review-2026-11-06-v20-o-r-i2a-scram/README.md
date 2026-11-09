@@ -22,9 +22,15 @@ The [review and run recipe](DIRECT-SCRAM-AND-CREDENTIAL-CLOCK-REVIEW.md)
 documents the exact source and clock conditions. Its preparation statements
 predate the native receipt above.
 
-The 44 inherited methods are byte-identical. Their complete native result
-belongs to I2a and still needs to be repeated on this changed authorization
-body. The issuer used the owned trust socket. The fixture uses one deadline
-for login and runtime authority and checks expiry at the recognized COMMIT
-guard. Managed transport, independent write and recovery deadlines,
-owner-separated terminal recording and hosted handoff remain open.
+All 44 inherited methods also pass on this exact SCRAM snapshot. The 41
+ordinary cases took 161.148 seconds, the two real fence-expiry cases took
+131.839 seconds, and the limited-issuer case took 9.009 seconds. Together
+with the earlier direct SCRAM case, the runs cover all 45 test IDs once.
+The 942 source files and 145 dependency files stayed byte-identical and
+all three owned process groups and containers were removed normally.
+[Inherited regression receipts](regression-receipts.json).
+
+The issuer used the owned trust socket. The direct SCRAM fixture uses one
+deadline for login and runtime authority and checks expiry at the recognized
+COMMIT guard. Managed transport, independent write and recovery deadlines,
+owner-separated terminal recording and hosted handoff remain separate gates.

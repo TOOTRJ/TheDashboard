@@ -1,0 +1,28 @@
+diff --git a/services/vonneumann/db-contract/research/jupiter_allocation_control_v3.sql b/services/vonneumann/db-contract/research/jupiter_allocation_control_v3.sql
+--- a/services/vonneumann/db-contract/research/jupiter_allocation_control_v3.sql
++++ b/services/vonneumann/db-contract/research/jupiter_allocation_control_v3.sql
+@@ -327,6 +327,12 @@
+  sw:=vn_jupiter_b2_allocation_research_v3._scope(scope);
+  SELECT * INTO p FROM vn_jupiter_b2_fixture_anchor.package_inputs WHERE scope_wire=sw;
+  IF NOT FOUND THEN RAISE EXCEPTION 'b2_actor_scope_refused'; END IF;
++ -- The two existing profiles still receive their full target-aware check
++ -- below the getter's original lookup. Only the new profile has a separate
++ -- application deadline to enforce before that lookup.
++ IF getter_precheck AND p.package_wire::jsonb->>'format' IN(
++   'ga-jupiter-b2-fixture-package-input-research-v3-v1',
++   'ga-jupiter-b2-fixture-direct-scram-research-v3-v1') THEN RETURN NULL; END IF;
+  SELECT * INTO a FROM vn_jupiter_b2_fixture_anchor.actor_bindings WHERE scope_wire=sw AND session_name=session_user AND session_oid=(SELECT oid FROM pg_catalog.pg_roles WHERE rolname=session_user);
+  IF NOT FOUND OR ((CASE WHEN capability='resume_scope' THEN 'control' ELSE capability END)=ANY(a.capabilities)) IS DISTINCT FROM true THEN RAISE EXCEPTION 'b2_actor_scope_refused'; END IF;
+  pkg:=p.package_wire::jsonb;
+diff --git a/services/vonneumann/tests/postgres/allocation_control_v3_fixture.py b/services/vonneumann/tests/postgres/allocation_control_v3_fixture.py
+--- a/services/vonneumann/tests/postgres/allocation_control_v3_fixture.py
++++ b/services/vonneumann/tests/postgres/allocation_control_v3_fixture.py
+@@ -30,7 +30,7 @@
+ SQL_PATH = ROOT / 'db-contract/research/jupiter_allocation_control_v3.sql'
+ LOADER_PATH = ROOT / 'db-contract/research/allocation_control_v3_source.py'
+ POLICY_PATH = ROOT / 'research/b2-finite-experiment-policy-2026-10-18-v3.json'
+-SOURCE_SHA256 = 'ef1259980b270734d8bed18c4ebd6342693efb1e65c0723135b719689fcce580'
++SOURCE_SHA256 = '352541c97ca5f3c7e85d225cf99f5adaa173aa34e173f0a05d15b1900649a568'
+ LOADER_SHA256 = 'bcf46a93693aade9f2b56690ccf8fa37ed48b53013394e8868dd78fb0b5f7391'
+ POLICY_FILE_SHA256 = '0a1c8663f4f6cbf9b299cab11fcdd00a379dbe3ca3493b706ddafca9b75c0f1a'
+ POLICY_SHA256 = 'e5dca1d13839102fb1fdd261176393b73c770a95ab355eff74499169905bfba0'

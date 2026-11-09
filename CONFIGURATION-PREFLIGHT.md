@@ -1,5 +1,68 @@
 # Dashboard configuration and access preflight
 
+## November 9 offline and release checks
+
+The exact direct SCRAM candidate passes the 44 inherited PostgreSQL cases
+in addition to the earlier credential-expiry case. The source census covers
+all 45 test IDs. The separate owner-retirement companion passes both its
+closed catalog/ACL case and the actual limited-issuer case. It rolls back a
+partial login change and early constraint checks. Both logins retire on the
+authorized literal COMMIT, and the reader recovers both earlier originals
+and the original reserved Stop. This is one local scope and a fixture-owned
+marker readback. [SCRAM regression receipts](services/vonneumann/research/b2-review-2026-11-06-v20-o-r-i2a-scram/README.md) ·
+[Retirement proof](services/vonneumann/research/b2-review-2026-11-09-owner-terminal/README.md).
+
+The separate deadline candidate's focused PostgreSQL case refuses a literal
+COMMIT after write authority ends while recorder login still works. The
+independent reader recovers the existing Install after recorder login
+expires. A previously authorized absent lookup blocked across the reader's
+own cutoff refuses at its final check. A fresh reader connection still
+authenticates after that refusal. The retirement composition needs to check
+these application deadlines as well as role login. The first ordinary
+regression run hit its 240-second bound with 40 successes and no completed
+suite result. R2 avoids repeating the getter precheck for the existing
+profiles, and all 46 exact cases pass under the same limits.
+[Independent deadline proof](services/vonneumann/research/b2-review-2026-11-09-independent-deadline/README.md).
+
+The composed companion passed three cases with exact deadline R2 core
+bytes. It binds the profile to the finalized original Install and refuses
+two attempted downgrades. The deferred guard rolls back both role changes
+when either surviving application window is too short. The authorized
+branch still commits the exact original Stop. The handoff design now
+requires durable original Stop intent before dispatch.
+[Composition proof](services/vonneumann/research/b2-review-2026-11-09-retirement-deadline/README.md).
+
+The offline transport observations measured three response sizes. The tiny
+fixture completed 945 packets of three calls, and the middle and maximum
+profiles refused before I/O at attempts 362 and 13. The process-interruption
+test confirmed that a fresh transport loses the cached original. Separately,
+local PostgreSQL recovered a committed Install after writer termination.
+An interrupted pre-COMMIT Acquire kept the committed rows unchanged while
+physical allocation and the fixture's WAL position grew. The first observer
+attempt and corrected client cleanup are retained. Provider-body durability
+and real hosted capacity still require their own evidence.
+[Capacity and recovery observations](services/vonneumann/research/paper-capacity/OBSERVATIONS.md).
+
+The GitHub, Vercel and Supabase identity checks matched the exact Dashboard
+targets and their owners. The same seven reviewed Nestegg files are open in
+[PR117](https://github.com/TOOTRJ/TheDashboard/pull/117) at
+`9ecb5471a75fea099206192acd1e3c65e9ea7413`. The GitHub test merge and the
+reviewed commit share tree `ba8999d41746e137497450716bd101f10f6aa0e4`. The
+[preview](https://vercel.com/orderoftheredjester/the-dashboard/7m2HJUNour46NmAFchoLuccns3Lq)
+stopped at the intended database isolation guard. The existing production
+alias passed the four read-only checks before release. The PR still needs
+all eight [CI jobs](https://github.com/TOOTRJ/TheDashboard/actions/runs/42682024347)
+and its own production verification.
+
+The Railway project, workspace, production environment, service and
+deployment `04c592a8-61c6-4ebc-ad34-16c789a4e1c9` match the earlier closed
+cutover. Fresh public requests returned health 200, anonymous status 401,
+forbidden Origin 403 and legacy and docs routes 404, all with `no-store`.
+The signed-in production Probes page also confirmed both worker read
+endpoints reported closed and displayed Start, Stop and Settle as disabled.
+The current batch's native work used disposable PostgreSQL only.
+[Hosted gates](RAILWAY-SETUP.md#ordered-remaining-gates-for-the-new-paper-profile).
+
 ## November 6 offline batch
 
 The frozen I2a candidate passes all 44 exact native cases across its creator
