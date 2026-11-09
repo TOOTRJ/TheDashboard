@@ -332,11 +332,12 @@ export function NesteggWorkspace({ ownerId, workspaceScope }: {
     () => runProjection(scenarioInputs),
     [scenarioInputs]
   );
+  const hasRetirementMonths = result.firstYearRetirementMonths > 0;
 
   /* ── Light MC effect — runs automatically, debounced after first run ── */
 
   React.useEffect(() => {
-    if (!hydrated) return;
+    if (!hydrated || !hasRetirementMonths) return;
     const request = workspaceScope.capture();
     const inputRequest = inputClock.current.capture();
     const calculation = lightClock.current.next();
@@ -370,18 +371,18 @@ export function NesteggWorkspace({ ownerId, workspaceScope }: {
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [calculationSource, hydrated, workspaceScope]);
+  }, [calculationSource, hasRetirementMonths, hydrated, workspaceScope]);
 
   /* ── Full MC — triggered by user clicking "Run full analysis" ── */
 
-  const fullMcStale = fullEnvelope !== null && (
+  const fullMcStale = hasRetirementMonths && fullEnvelope !== null && (
     fullEnvelope.identity.inputGeneration !== calculationSource.inputGeneration ||
     fullEnvelope.identity.inputKey !== calculationSource.inputKey
   );
 
   const runFullAnalysis = React.useCallback(async () => {
     const request = workspaceScope.capture();
-    if (!hydrated || !request.isCurrent()) return;
+    if (!hydrated || !hasRetirementMonths || !request.isCurrent()) return;
     fullAnalysisCancelRef.current?.();
     let cancelled = false;
     let finished = false;
@@ -421,7 +422,7 @@ export function NesteggWorkspace({ ownerId, workspaceScope }: {
         finished = true;
       }
     }
-  }, [calculationSource, hydrated, workspaceScope]);
+  }, [calculationSource, hasRetirementMonths, hydrated, workspaceScope]);
 
   /* ── Insights (require full MC) ── */
 
@@ -946,9 +947,9 @@ export function NesteggWorkspace({ ownerId, workspaceScope }: {
             defaultOpen={false}
           >
             <NesteggHeroInsight
-              message={result.heroMessage}
-              tone={result.heroTone}
-              highlights={heroHighlights}
+              message={hasRetirementMonths ? result.heroMessage : "No retirement months are modeled in this plan."}
+              tone={hasRetirementMonths ? result.heroTone : "caution"}
+              highlights={hasRetirementMonths ? heroHighlights : []}
               hideEyebrow
             />
           </NesteggCollapsibleBlock>
@@ -957,18 +958,24 @@ export function NesteggWorkspace({ ownerId, workspaceScope }: {
             description="Quick simulation odds — updates live as you edit (~200 paths, approximate)."
             defaultOpen={false}
           >
-            {!lightMc ? <p role="status" className="text-xs text-muted-foreground pb-3">
-              {lightMcFailed ? "Quick simulation is unavailable. Edit an input to retry, or run full analysis." : "Updating quick simulation for these inputs…"}
-            </p> : null}
-            {lightMcFailed && !lightMc ? null : <NesteggProbabilityCards
-              tier="primary"
-              hideSectionLabel
-              mc={lightMc}
-              deterministic={result}
-              lifeExpectancy={horizonAge}
-              isRefreshing={lightMcRunning && lightMc !== null}
-              progress={0}
-            />}
+            {hasRetirementMonths ? (
+              <>
+                {!lightMc ? <p role="status" className="text-xs text-muted-foreground pb-3">
+                  {lightMcFailed ? "Quick simulation is unavailable. Edit an input to retry, or run full analysis." : "Updating quick simulation for these inputs…"}
+                </p> : null}
+                {lightMcFailed && !lightMc ? null : <NesteggProbabilityCards
+                  tier="primary"
+                  hideSectionLabel
+                  mc={lightMc}
+                  deterministic={result}
+                  lifeExpectancy={horizonAge}
+                  isRefreshing={lightMcRunning && lightMc !== null}
+                  progress={0}
+                />}
+              </>
+            ) : (
+              <p className="pb-3 text-xs text-muted-foreground">Retirement odds are unavailable for this plan.</p>
+            )}
           </NesteggCollapsibleBlock>
           <NesteggCollapsibleBlock
             title="Baseline snapshot"
@@ -999,8 +1006,9 @@ export function NesteggWorkspace({ ownerId, workspaceScope }: {
                 Full analysis
               </p>
               <p className="text-[11px] text-muted-foreground leading-snug">
-                Run {FULL_MC_PATHS.toLocaleString()}+ simulation paths for more detailed success estimates,
-                three-scenario comparison, and detailed insights.
+                {hasRetirementMonths
+                  ? <>Run {FULL_MC_PATHS.toLocaleString()}+ simulation paths for more detailed success estimates, three-scenario comparison, and detailed insights.</>
+                  : "Full retirement analysis requires at least one modeled retirement month."}
               </p>
               {fullMcStale ? (
                 <p className="text-[10px] text-amber-400/90">
@@ -1014,7 +1022,7 @@ export function NesteggWorkspace({ ownerId, workspaceScope }: {
             <Button
               type="button"
               onClick={runFullAnalysis}
-              disabled={fullMcRunning}
+              disabled={fullMcRunning || !hasRetirementMonths}
               className="shrink-0 border border-[#39ff14]/30 bg-[#39ff14]/10 text-[#39ff14] hover:bg-[#39ff14]/20 hover:text-[#39ff14] h-10 px-5"
             >
               <FlaskConical className="mr-2 h-4 w-4" aria-hidden />
@@ -1042,9 +1050,11 @@ export function NesteggWorkspace({ ownerId, workspaceScope }: {
         <NesteggCollapsibleBlock
           title="Compare market presets"
           description={
-            fullMc
-              ? "Same plan, three stress levels — see how success odds and balances shift."
-              : "Run a full analysis above to compare scenarios with Monte Carlo."
+            !hasRetirementMonths
+              ? "Market preset odds require at least one modeled retirement month."
+              : fullMc
+                ? "Same plan, three stress levels — see how success odds and balances shift."
+                : "Run a full analysis above to compare scenarios with Monte Carlo."
           }
           defaultOpen={false}
         >
@@ -1056,12 +1066,14 @@ export function NesteggWorkspace({ ownerId, workspaceScope }: {
             />
           ) : (
             <p className="text-xs text-muted-foreground text-center py-4">
-              {fullMcRunning ? "Completing full analysis…" : fullMcFailed ? "Full analysis unavailable. Retry above." : "Run a full analysis to populate this comparison."}
+              {!hasRetirementMonths
+                ? "Retirement odds are unavailable for this plan."
+                : fullMcRunning ? "Completing full analysis…" : fullMcFailed ? "Full analysis unavailable. Retry above." : "Run a full analysis to populate this comparison."}
             </p>
           )}
         </NesteggCollapsibleBlock>
 
-        {user && cloudScenarios.length > 0 ? (
+        {hasRetirementMonths && user && cloudScenarios.length > 0 ? (
           <NesteggCollapsibleBlock
             title="Compare to a saved plan"
             description="Side-by-side probability — does not change your workspace."
@@ -1082,7 +1094,9 @@ export function NesteggWorkspace({ ownerId, workspaceScope }: {
         ) : null}
 
         <NesteggExpandedMetricsSection>
-          {fullMc ? (
+          {!hasRetirementMonths ? (
+            <NesteggSummaryCards tier="secondary" result={result} lifeExpectancy={horizonAge} />
+          ) : fullMc ? (
             <>
               <NesteggProbabilityCards
                 tier="secondary"
