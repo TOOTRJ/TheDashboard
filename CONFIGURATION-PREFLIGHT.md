@@ -44,15 +44,22 @@ and real hosted capacity still require their own evidence.
 [Capacity and recovery observations](services/vonneumann/research/paper-capacity/OBSERVATIONS.md).
 
 The GitHub, Vercel and Supabase identity checks matched the exact Dashboard
-targets and their owners. The same seven reviewed Nestegg files are open in
-[PR117](https://github.com/TOOTRJ/TheDashboard/pull/117) at
-`9ecb5471a75fea099206192acd1e3c65e9ea7413`. The GitHub test merge and the
-reviewed commit share tree `ba8999d41746e137497450716bd101f10f6aa0e4`. The
+targets and their owners. All eight
+[CI jobs](https://github.com/TOOTRJ/TheDashboard/actions/runs/42682024347)
+passed for the seven-file [PR117](https://github.com/TOOTRJ/TheDashboard/pull/117)
+at `9ecb5471a75fea099206192acd1e3c65e9ea7413`. The tested merge
+`eb46f73a9962802d260bac516b44e010bffd8190`, reviewed head, and fetched main
+merge `fbe9d93e18f6abce0dee0ff6b7e29b9a1a8cd7a4` share tree
+`ba8999d41746e137497450716bd101f10f6aa0e4`. The
 [preview](https://vercel.com/orderoftheredjester/the-dashboard/7m2HJUNour46NmAFchoLuccns3Lq)
-stopped at the intended database isolation guard. The existing production
-alias passed the four read-only checks before release. The PR still needs
-all eight [CI jobs](https://github.com/TOOTRJ/TheDashboard/actions/runs/42682024347)
-and its own production verification.
+stopped at the intended database isolation guard.
+
+The [production deployment](https://vercel.com/orderoftheredjester/the-dashboard/7eXqiUiyiWHvGR2NExnGq71oGYN3)
+was Ready in 15 seconds with the exact merge source and the canonical
+`the-dashboard-chi.vercel.app` domain assigned. At 20:00:47 UTC on November 9,
+login returned 200, anonymous root redirected to login with 307, the
+anonymous test API returned 401 and the authenticated limit-zero API
+returned 200 with success and zero rows. These checks made zero writes.
 
 The Railway project, workspace, production environment, service and
 deployment `04c592a8-61c6-4ebc-ad34-16c789a4e1c9` match the earlier closed
@@ -60,7 +67,9 @@ cutover. Fresh public requests returned health 200, anonymous status 401,
 forbidden Origin 403 and legacy and docs routes 404, all with `no-store`.
 The signed-in production Probes page also confirmed both worker read
 endpoints reported closed and displayed Start, Stop and Settle as disabled.
-The current batch's native work used disposable PostgreSQL only.
+The exact Supabase metadata still shows PostgreSQL 17, 15 migrations, and
+neither local B2 fixture schema. The current batch's native work used
+disposable PostgreSQL only.
 [Hosted gates](RAILWAY-SETUP.md#ordered-remaining-gates-for-the-new-paper-profile).
 
 ## November 6 offline batch
