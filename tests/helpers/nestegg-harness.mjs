@@ -52,7 +52,7 @@ export function harness(options={}) {
   async updateNesteggScenarioInSupabase(id,inputs,scenario,extra,scope){const call={kind:'save',scope,inputs,id,scenario,name:extra.name};reads.push(call);if(options.saveController)return options.saveController(call);if(options.saveGate)await options.saveGate.promise;return {...row(scope.ownerId,inputs.currentSavings),id,name:extra.name};}};
  modules['@/lib/portfolio/portfolio-supabase']={async fetchPortfolioTotal(scope){reads.push({kind:'portfolio',scope});return portfolio.get(scope.ownerId);},
   async fetchPortfolioGoal(scope){reads.push({kind:'goal',scope});return {goal:scope.ownerId===A?987654:0,goalYear:2040};}};
- modules['@/lib/nestegg/projections']={runProjection:inputs=>({series:[],nestEggAtRetirement:inputs.currentSavings,heroMessage:'fixed',heroTone:'neutral'}),
+ modules['@/lib/nestegg/projections']={runProjection:inputs=>options.projectionResult?.(inputs)??({series:[],nestEggAtRetirement:inputs.currentSavings,firstYearRetirementMonths:12,heroMessage:'fixed',heroTone:'neutral'}),
   mergeComparisonSeries:()=>[],buildRetirementCashflowYears:()=>[],planHorizonAge:()=>90};
  modules['@/lib/nestegg/insights-engine']={buildNesteggInsights:()=>[]};modules['@/lib/nestegg/future-value']={buildGoalProjectionSeries:()=>({})};
  modules['@/lib/formatters']={formatCurrency:String};

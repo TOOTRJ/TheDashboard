@@ -57,6 +57,8 @@ export type ProjectionResult = {
   nestEggAtRetirement: number;
   depletionAge: number | null;
   lastsThroughLifeExpectancy: boolean;
+  /** Actual months sampled for the first-year cash-flow estimate. */
+  firstYearRetirementMonths: number;
   monthlyGapOrSurplus: number;
   readiness: ReadinessLevel;
   readinessScore: number;

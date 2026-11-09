@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { constants, transpile } from './helpers/nestegg-harness.mjs';
+import { A, constants, harness, row, transpile } from './helpers/nestegg-harness.mjs';
+import { componentHarness } from './helpers/nestegg-component-harness.mjs';
 
 const { runProjection, buildRetirementCashflowYears } = transpile('src/lib/nestegg/projections.ts', {
   './retirement-cashflow': transpile('src/lib/nestegg/retirement-cashflow.ts', {}),
@@ -91,4 +92,81 @@ test('recurring chart totals exclude one-time flows that do change modeled balan
   assert.equal(project(withOneTimeFlows).series.at(-1).balance - project(base).series.at(-1).balance, 10_000);
   assert.deepEqual(chart(withOneTimeFlows, 1), chart(base, 1));
   assert.equal(project(withOneTimeFlows).monthlyGapOrSurplus, project(base).monthlyGapOrSurplus);
+});
+
+
+const zeroMonths = { ...base, lifeExpectancy: 65 };
+
+test('the recorded first-year coverage follows actual modeled months, including a sub-month horizon', () => {
+  const result = project(zeroMonths);
+  assert.equal(result.firstYearRetirementMonths, 0);
+  assert.equal(result.series.at(-1).age, 65);
+  assert.equal(result.series.at(-1).balance, 100_000);
+  assert.equal(result.series.at(-1).phase, 'accumulation');
+  assert.equal(project({ ...base, lifeExpectancy: 65 + 1 / 24 }).firstYearRetirementMonths, 0);
+  assert.equal(project({ ...base, lifeExpectancy: 65.5 }).firstYearRetirementMonths, 6);
+  assert.equal(project(base).firstYearRetirementMonths, 12);
+});
+
+test('cash-flow displays distinguish an unmodeled retirement from modeled zero and partial years', () => {
+  const formatCurrency = value => `$${value}`;
+  const summary = componentHarness('src/components/nestegg/NesteggSummaryCards.tsx', 'NesteggSummaryCards', {
+    result: project(zeroMonths), lifeExpectancy: 65,
+  }, { '@/lib/formatters': { formatCurrency }, '@/lib/utils': { cn: (...classes) => classes.join(' ') } });
+  assert.match(summary.text(), /Retirement cash flow \(year one\) Not available/);
+  assert.match(summary.text(), /Plan readiness Not evaluated/);
+  assert.doesNotMatch(summary.text(), /\$500|\/ 100|No funding shortfall/);
+  summary.update({ result: project({ ...base, lifeExpectancy: 65.5 }), lifeExpectancy: 65.5 });
+  assert.match(summary.text(), /\$500 \/ mo shortfall/);
+  assert.match(summary.text(), /6 modeled retirement months/);
+  summary.update({ result: project({ ...base, monthlyRetirementSpending: 1_000 }) });
+  assert.match(summary.text(), /\$0 \/ mo surplus/);
+  summary.dispose();
+
+  const cashflow = componentHarness('src/components/nestegg/NesteggSecondaryChart.tsx', 'NesteggSecondaryChart', {
+    data: chart(zeroMonths, 15),
+  }, { '@/lib/formatters': { formatCurrency } });
+  assert.match(cashflow.text(), /No retirement months are modeled/);
+  assert.throws(() => cashflow.find(node => node.type === 'BarChart'));
+  const data = chart({ ...base, lifeExpectancy: 65.5 }, 15);
+  cashflow.update({ data });
+  assert.doesNotMatch(cashflow.text(), /No retirement months are modeled/);
+  assert.equal(cashflow.find(node => node.type === 'BarChart').data, data);
+  cashflow.dispose();
+});
+
+test('a saved plan without retirement coverage suppresses workspace odds until a modeled month exists', async () => {
+  const app = harness({
+    planRead: () => [{ ...row(A, 100_000), inputs: zeroMonths }],
+    projectionResult: project,
+  });
+  try {
+    await app.flush();
+    assert.equal(app.component('NesteggHeroInsight').message, 'No retirement months are modeled in this plan.');
+    assert.match(app.text(), /Full retirement analysis requires at least one modeled retirement month/);
+    assert.deepEqual(app.components('NesteggProbabilityCards'), []);
+    assert.equal(app.mcCalls.length, 0);
+    await app.clickFull();
+    assert.equal(app.mcCalls.length, 0);
+
+    app.component('NesteggQuickInputsPanel').onChange({ lifeExpectancy: 66 });
+    await app.flush();
+    assert.equal(app.mcCalls.length, 1);
+    assert.equal(app.component('NesteggProbabilityCards').deterministic.firstYearRetirementMonths, 12);
+    assert.equal(app.component('NesteggProbabilityCards').deterministic.monthlyGapOrSurplus, -500);
+    assert.match(app.component('NesteggHeroInsight').message, /on track/);
+
+    await app.clickFull();
+    await app.flush();
+    assert.equal(app.mcCalls.length, 3);
+    app.component('NesteggQuickInputsPanel').onChange({ lifeExpectancy: 65 + 1 / 24 });
+    await app.flush();
+    app.advance(800);
+    await app.flush();
+    assert.equal(app.mcCalls.length, 3);
+    assert.deepEqual(app.components('NesteggProbabilityCards'), []);
+    assert.doesNotMatch(app.text(), /re-run for updated results/i);
+  } finally {
+    app.dispose();
+  }
 });
