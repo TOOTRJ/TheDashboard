@@ -1,5 +1,10 @@
 # Durable provider acquisition before cache release
 
+The [isolated November 10 fixture](../b3-review-2026-11-10-durable-acquisition/README.md)
+proves committed original capture readback and unresolved pre-COMMIT loss.
+The next composition applies these requirements to the same journal, head,
+fence and authenticated roles as the [handoff and Stop candidate](../b2-review-2026-11-10-credential-handoff/README.md).
+
 Implement the next slice as an inert native laboratory for one SOL/USD market, one writer, one unresolved packet per scope and a separately authenticated getter. Reuse the held `PreparedPacket`, A1 reservation/capture wires and the proposed B2–B7 native kinds. Pin the owner/run/market and acquisition epochs, exact actor/fence and package, current source head and bounded identity, wire and terminal budgets. The existing transport and pure validators provide no native or hosted authority.
 
 ## Prepare, record and read back
@@ -18,4 +23,4 @@ Implement the next slice as an inert native laboratory for one SOL/USD market, o
 
 Assert no extra HTTP call or allocated original, no duplicate journal action, no synthesized body or receipt and no ordinary admission while the original is unknown. Getters and exact replay must preserve committed rows. Run the delayed-writer versus terminal closure race under the same lock and prove either one original commit or one permanent closure. A negative getter result or timeout alone permits neither guessed same-byte resubmission nor replacement identities.
 
-Source anchors for this proposed test slice are [native release lifecycle](../../R3-03-NATIVE-SOURCE-JOIN-DESIGN.md#durable-original-storage-and-release-lifecycle), [reconciliation state machine](../../R3-03A2-NATIVE-EXPERIMENT-PLAN.md), [native getter and closure schemas](../../R3-03A2-NATIVE-LIFECYCLE-SCHEMA-PROPOSAL.md), and [original capture validation](../../vonneumann/market/source_admission_v3.py). This note records implementation scope. No native capture, release or hosted acceptance is claimed.
+Source anchors for this test slice are [native release lifecycle](../../R3-03-NATIVE-SOURCE-JOIN-DESIGN.md#durable-original-storage-and-release-lifecycle), [reconciliation state machine](../../R3-03A2-NATIVE-EXPERIMENT-PLAN.md), [native getter and closure schemas](../../R3-03A2-NATIVE-LIFECYCLE-SCHEMA-PROPOSAL.md), and [original capture validation](../../vonneumann/market/source_admission_v3.py). The composed native lifecycle, cache release and hosted acceptance require their own evidence.

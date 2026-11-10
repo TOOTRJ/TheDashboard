@@ -1,0 +1,1831 @@
+--- a/services/vonneumann/db-contract/research/allocation_control_v3_source.py
++++ b/services/vonneumann/db-contract/research/allocation_control_v3_source.py
+@@ -29,12 +29,12 @@
+  '_cost': (('c','jsonb'),('r','jsonb'),('ids','jsonb'),('facts','jsonb')),
+  '_budget': (('scope_wire','text'),('kind','text'),('cost','jsonb')),
+  '_reply': (('scope','jsonb'),('target_id','text'),('expected_sha','text'),('getter_recovery','bool'),('terminal_stop_sha','text')),
+- 'get_original': (('wire','text'),), 'submit': (('wire','text'),), '_commit_guard': (),
++ 'get_original': (('wire','text'),), '_submit': (('wire','text'),('register_stop_intent','bool')), 'submit': (('wire','text'),), '_commit_guard': (),
+ }
+ IMMUTABLE = frozenset(('_c14n','_sha','_keys','_scope','_pin','_limits','_deps','_check_credential_window'))
+-VOLATILE = frozenset(('_clock','submit','_commit_guard'))
++VOLATILE = frozenset(('_clock','_submit','submit','_commit_guard'))
+ DEFINER = frozenset(('submit','get_original','_commit_guard'))
+-TEXT = frozenset(('_c14n','_sha','_scope','_reply','get_original','submit'))
++TEXT = frozenset(('_c14n','_sha','_scope','_reply','get_original','_submit','submit'))
+ 
+ 
+ class SourceRefusal(ValueError):
+--- a/services/vonneumann/db-contract/research/jupiter_allocation_control_v3.sql
++++ b/services/vonneumann/db-contract/research/jupiter_allocation_control_v3.sql
+@@ -321,7 +321,8 @@
+ DECLARE sw text; p vn_jupiter_b2_fixture_anchor.package_inputs%ROWTYPE; a vn_jupiter_b2_fixture_anchor.actor_bindings%ROWTYPE; binding vn_jupiter_b2_fixture_anchor.actor_bindings%ROWTYPE; recorder_id text; rr record; manifest jsonb; pkg jsonb; k text; v jsonb; catalog jsonb; retired vn_jupiter_b2_fixture_anchor.actor_bindings%ROWTYPE; role_index bigint; marker jsonb; writer_profile record; retired_writers jsonb:='[]'; creator_oid oid; creator_grantor_oid oid; scram_profile boolean;
+  deadline_profile boolean; getter_precheck boolean:=capability='get_original_precheck';
+  getter_context boolean:=capability IN('get_original','get_original_precheck'); independent_reader boolean;
+- actor_entry jsonb; windows jsonb; field text; issued_us bigint; not_before_us bigint; cutoff_us bigint; login_until_us bigint;
++ actor_entry jsonb; actor_entries jsonb; windows jsonb; field text;
++ handoff_profile boolean; handoff jsonb; effective_catalog text; issued_us bigint; not_before_us bigint; cutoff_us bigint; login_until_us bigint;
+ BEGIN
+  IF getter_context THEN capability:='read_original'; END IF;
+  sw:=vn_jupiter_b2_allocation_research_v3._scope(scope);
+@@ -336,8 +337,9 @@
+  SELECT * INTO a FROM vn_jupiter_b2_fixture_anchor.actor_bindings WHERE scope_wire=sw AND session_name=session_user AND session_oid=(SELECT oid FROM pg_catalog.pg_roles WHERE rolname=session_user);
+  IF NOT FOUND OR ((CASE WHEN capability='resume_scope' THEN 'control' ELSE capability END)=ANY(a.capabilities)) IS DISTINCT FROM true THEN RAISE EXCEPTION 'b2_actor_scope_refused'; END IF;
+  pkg:=p.package_wire::jsonb;
+- IF NOT vn_jupiter_b2_allocation_research_v3._keys(pkg,ARRAY['format','native_policy_sha256','installation_id','policies','catalog_manifest_sha256','actor_manifest_sha256','native_package_sha256']) OR (pkg->>'format' IS DISTINCT FROM 'ga-jupiter-b2-fixture-package-input-research-v3-v1' AND pkg->>'format' IS DISTINCT FROM 'ga-jupiter-b2-fixture-direct-scram-research-v3-v1' AND pkg->>'format' IS DISTINCT FROM 'ga-jupiter-b2-fixture-direct-scram-deadlines-research-v3-v1') OR pg_catalog.jsonb_typeof(pkg->'installation_id') IS DISTINCT FROM 'string' OR pkg->>'installation_id' IS DISTINCT FROM p.installation_id OR (p.installation_id ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$') IS DISTINCT FROM true OR vn_jupiter_b2_allocation_research_v3._c14n(pkg) IS DISTINCT FROM p.package_wire OR pg_catalog.octet_length(p.package_wire)+pg_catalog.octet_length(p.actor_manifest_wire)+pg_catalog.octet_length(p.genesis_wire)>131072 OR pg_catalog.octet_length(p.genesis_wire)>8192 THEN RAISE EXCEPTION 'b2_package_refused'; END IF;
+- deadline_profile:=pkg->>'format'='ga-jupiter-b2-fixture-direct-scram-deadlines-research-v3-v1';
++ IF NOT vn_jupiter_b2_allocation_research_v3._keys(pkg,ARRAY['format','native_policy_sha256','installation_id','policies','catalog_manifest_sha256','actor_manifest_sha256','native_package_sha256']) OR (pkg->>'format' IS DISTINCT FROM 'ga-jupiter-b2-fixture-package-input-research-v3-v1' AND pkg->>'format' IS DISTINCT FROM 'ga-jupiter-b2-fixture-direct-scram-research-v3-v1' AND pkg->>'format' IS DISTINCT FROM 'ga-jupiter-b2-fixture-direct-scram-deadlines-research-v3-v1' AND pkg->>'format' IS DISTINCT FROM 'ga-jupiter-b2-fixture-direct-scram-handoff-research-v3-v1') OR pg_catalog.jsonb_typeof(pkg->'installation_id') IS DISTINCT FROM 'string' OR pkg->>'installation_id' IS DISTINCT FROM p.installation_id OR (p.installation_id ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$') IS DISTINCT FROM true OR vn_jupiter_b2_allocation_research_v3._c14n(pkg) IS DISTINCT FROM p.package_wire OR pg_catalog.octet_length(p.package_wire)+pg_catalog.octet_length(p.actor_manifest_wire)+pg_catalog.octet_length(p.genesis_wire)>131072 OR pg_catalog.octet_length(p.genesis_wire)>8192 THEN RAISE EXCEPTION 'b2_package_refused'; END IF;
++ handoff_profile:=pkg->>'format'='ga-jupiter-b2-fixture-direct-scram-handoff-research-v3-v1';
++ deadline_profile:=handoff_profile OR pkg->>'format'='ga-jupiter-b2-fixture-direct-scram-deadlines-research-v3-v1';
+  scram_profile:=deadline_profile OR pkg->>'format'='ga-jupiter-b2-fixture-direct-scram-research-v3-v1';
+  IF scram_profile AND (system_user IS DISTINCT FROM ('scram-sha-256:'||session_user::text) OR pg_catalog.inet_client_addr() IS NULL)
+  THEN RAISE EXCEPTION 'b2_direct_scram_required' USING ERRCODE='42501'; END IF;
+@@ -358,6 +360,16 @@
+     AND e->'credential_generation' IS NOT DISTINCT FROM '"1"'::jsonb)
+    FROM pg_catalog.jsonb_array_elements(manifest->'bindings') e) IS DISTINCT FROM true
+  THEN RAISE EXCEPTION 'b2_package_refused'; END IF;
++ actor_entries:=manifest->'bindings';
++ effective_catalog:=p.expected_catalog_sha256;
++ IF handoff_profile THEN
++  IF p.retirement_wire IS NOT NULL THEN RAISE EXCEPTION 'b2_handoff_scope_refused'; END IF;
++  handoff:=vn_jupiter_b2_allocation_research_v3._read_handoff(sw);
++  IF handoff IS NOT NULL THEN
++   effective_catalog:=handoff->>'catalog_sha256';
++   actor_entries:=actor_entries||pg_catalog.jsonb_build_array(handoff->'successor_binding');
++  END IF;
++ END IF;
+  IF deadline_profile THEN windows:='[]'::jsonb; END IF;
+  -- Resume needs both the actual control principal and the installed recorder.
+  -- The caller has already taken package, caller and recorder row locks.
+@@ -394,7 +406,7 @@
+   IF scram_profile AND NOT deadline_profile AND (rr.rolvaliduntil IS NULL OR NOT pg_catalog.isfinite(rr.rolvaliduntil) OR pg_catalog.clock_timestamp()>=rr.rolvaliduntil)
+   THEN RAISE EXCEPTION 'b2_credential_expired' USING ERRCODE='42501'; END IF;
+   IF pg_catalog.octet_length(binding.binding_wire)>2048 THEN RAISE EXCEPTION 'b2_package_refused'; END IF;
+-  SELECT e INTO actor_entry FROM pg_catalog.jsonb_array_elements(manifest->'bindings') e WHERE vn_jupiter_b2_allocation_research_v3._keys(e,ARRAY['principal_binding_id','database_identity_sha256','session_user_oid','session_user_name','scope','capabilities','recorder_package_sha256','reader_package_sha256','issuer_binding_id','endpoint_bindings','installation_id']||
++  SELECT e INTO actor_entry FROM pg_catalog.jsonb_array_elements(actor_entries) e WHERE vn_jupiter_b2_allocation_research_v3._keys(e,ARRAY['principal_binding_id','database_identity_sha256','session_user_oid','session_user_name','scope','capabilities','recorder_package_sha256','reader_package_sha256','issuer_binding_id','endpoint_bindings','installation_id']||
+    CASE WHEN deadline_profile THEN ARRAY['issuance_id','credential_generation','issued_at_us','not_before_us','write_until_us','read_until_us','login_until_us']::text[] ELSE ARRAY[]::text[] END) AND e->'database_identity_sha256'=pg_catalog.to_jsonb(vn_jupiter_b2_allocation_research_v3._sha(current_database()||':'||(SELECT oid::text FROM pg_catalog.pg_database WHERE datname=current_database()))) AND e->'recorder_package_sha256'=pkg#>'{policies,recorder_package_sha256}' AND e->'reader_package_sha256'=pkg#>'{policies,reader_package_sha256}' AND e->'issuer_binding_id'=(p.genesis_wire::jsonb)#>'{initial_acquisition_spec,issuer_binding_id}' AND e->'endpoint_bindings'=(p.genesis_wire::jsonb)#>'{initial_acquisition_spec,endpoint_bindings}' AND e->>'installation_id'=p.installation_id AND vn_jupiter_b2_allocation_research_v3._c14n(e)=binding.binding_wire AND e->>'principal_binding_id'=binding.binding_id AND e->>'session_user_oid'=binding.session_oid::text AND e->>'session_user_name'=binding.session_name AND e->'scope'=scope AND e->'capabilities'=pg_catalog.to_jsonb(binding.capabilities);
+   IF NOT FOUND THEN RAISE EXCEPTION 'b2_actor_scope_refused'; END IF;
+   IF deadline_profile THEN
+@@ -434,7 +446,10 @@
+   RETURN NULL;
+  END IF;
+  catalog:=vn_jupiter_b2_allocation_research_v3._catalog();
+- IF p.retirement_wire IS NOT NULL THEN
++ IF handoff_profile THEN
++  IF vn_jupiter_b2_allocation_research_v3._sha(vn_jupiter_b2_allocation_research_v3._c14n(catalog)) IS DISTINCT FROM effective_catalog
++  THEN RAISE EXCEPTION 'b2_handoff_catalog_refused'; END IF;
++ ELSIF p.retirement_wire IS NOT NULL THEN
+   -- A recorded terminal boundary is checked even when raw K happens to match.
+   marker:=p.retirement_wire::jsonb;
+   IF pg_catalog.octet_length(p.retirement_wire)>4096
+@@ -534,7 +549,8 @@
+  END IF;
+  IF pg_catalog.current_setting('transaction_isolation')<>'read committed' OR pg_catalog.current_setting('TimeZone')<>'UTC' OR pg_catalog.current_setting('session_replication_role')<>'origin' OR pg_catalog.pg_is_in_recovery() OR pg_catalog.pg_my_temp_schema()<>0 THEN RAISE EXCEPTION 'b2_session_refused'; END IF;
+  IF deadline_profile THEN PERFORM vn_jupiter_b2_allocation_research_v3._check_credential_window(windows,(vn_jupiter_b2_allocation_research_v3._clock()->>'observed_at_us')::bigint); END IF;
+- RETURN pg_catalog.jsonb_build_object('credential_windows',windows,'binding_id',a.binding_id,'package',p.package_wire::jsonb,'genesis_wire',p.genesis_wire,'actor_manifest_wire',p.actor_manifest_wire,'terminal_retirement',p.retirement_wire IS NOT NULL);
++ RETURN pg_catalog.jsonb_build_object('handoff_profile',handoff_profile,'handoff',handoff,
++  'effective_catalog_sha256',effective_catalog,'credential_windows',windows,'binding_id',a.binding_id,'package',p.package_wire::jsonb,'genesis_wire',p.genesis_wire,'actor_manifest_wire',p.actor_manifest_wire,'terminal_retirement',p.retirement_wire IS NOT NULL);
+ END;
+ $b2$;
+ 
+@@ -644,16 +660,19 @@
+ SET client_encoding = 'UTF8'
+ SET standard_conforming_strings = 'on'
+ AS $b2$
+-DECLARE a jsonb; b jsonb; reserve bigint:=CASE WHEN kind='source_stop' THEN 0 ELSE 1 END; past_stage bigint:=0; v record;
++DECLARE a jsonb; b jsonb; reserve bigint:=CASE WHEN kind='source_stop' THEN 0 ELSE 1 END; past_stage bigint:=0; v record; admin bigint;
+ BEGIN
+  SELECT accounting_wire::jsonb INTO a FROM vn_jupiter_b2_allocation_research_v3.scope_state s WHERE s.scope_wire=_budget.scope_wire;
++ IF NOT FOUND THEN RAISE EXCEPTION 'b2_scope_refused'; END IF;
++ SELECT CASE WHEN p.package_wire::jsonb->>'format'='ga-jupiter-b2-fixture-direct-scram-handoff-research-v3-v1' THEN 1 ELSE 0 END INTO admin
++ FROM vn_jupiter_b2_fixture_anchor.package_inputs p WHERE p.scope_wire=_budget.scope_wire;
+  IF NOT FOUND THEN RAISE EXCEPTION 'b2_scope_refused'; END IF;
+  -- Derived counters are never hidden persisted fields in Accounting.
+  FOR v IN SELECT o.command_wire::jsonb c,o.result_wire::jsonb r FROM vn_jupiter_b2_allocation_research_v3.original_operations o WHERE o.scope_wire=_budget.scope_wire AND o.finalized LOOP
+   past_stage:=past_stage+(vn_jupiter_b2_allocation_research_v3._cost(v.c,v.r,'[]','[]')->>'stage_bytes')::bigint;
+  END LOOP;
+- IF (a->>'committed_positions')::bigint+1+reserve>16 OR (a->>'logical_UTF8_bytes')::bigint+(cost->>'bytes')::bigint+reserve*76533>4194304 OR (a->>'retained_rows')::bigint+(cost->>'new_rows')::bigint+reserve*9>271 OR (a->>'identity_rows')::bigint+(cost->>'identities')::bigint>96 OR (a->>'domain_rows')::bigint+(cost->>'domains')::bigint>25 OR (a->>'dependency_rows')::bigint+(cost->>'dependencies')::bigint+reserve*7>112 OR (a->>'row_writes')::bigint+(cost->>'row_writes')::bigint+reserve*10>512 OR (a->>'index_entries')::bigint+(cost->>'index_entries')::bigint+reserve*20>1024 THEN RAISE EXCEPTION 'b2_budget_refused'; END IF;
+- IF (a->>'row_writes')::bigint+(a->>'committed_positions')::bigint+(cost->>'row_writes')::bigint+1+reserve*11>1024 OR (a->>'index_entries')::bigint+3*(a->>'committed_positions')::bigint+(cost->>'index_entries')::bigint+3+reserve*23>2048 OR (a->>'logical_UTF8_bytes')::bigint+past_stage+(cost->>'bytes')::bigint+(cost->>'stage_bytes')::bigint+reserve*144142>8388608 THEN RAISE EXCEPTION 'b2_budget_refused'; END IF;
++ IF (a->>'committed_positions')::bigint+1+reserve>16 OR (a->>'logical_UTF8_bytes')::bigint+(cost->>'bytes')::bigint+reserve*76533+admin*65536>4194304 OR (a->>'retained_rows')::bigint+(cost->>'new_rows')::bigint+reserve*9+admin*3>271 OR (a->>'identity_rows')::bigint+(cost->>'identities')::bigint>96 OR (a->>'domain_rows')::bigint+(cost->>'domains')::bigint>25 OR (a->>'dependency_rows')::bigint+(cost->>'dependencies')::bigint+reserve*7>112 OR (a->>'row_writes')::bigint+(cost->>'row_writes')::bigint+reserve*10+admin*5>512 OR (a->>'index_entries')::bigint+(cost->>'index_entries')::bigint+reserve*20+admin*6>1024 THEN RAISE EXCEPTION 'b2_budget_refused'; END IF;
++ IF (a->>'row_writes')::bigint+(a->>'committed_positions')::bigint+(cost->>'row_writes')::bigint+1+reserve*11+admin*5>1024 OR (a->>'index_entries')::bigint+3*(a->>'committed_positions')::bigint+(cost->>'index_entries')::bigint+3+reserve*23+admin*10>2048 OR (a->>'logical_UTF8_bytes')::bigint+past_stage+(cost->>'bytes')::bigint+(cost->>'stage_bytes')::bigint+reserve*144142+admin*98304>8388608 THEN RAISE EXCEPTION 'b2_budget_refused'; END IF;
+  b:=pg_catalog.jsonb_build_object('committed_positions',((a->>'committed_positions')::bigint+1)::text,'logical_UTF8_bytes',((a->>'logical_UTF8_bytes')::bigint+(cost->>'bytes')::bigint)::text,'identity_rows',((a->>'identity_rows')::bigint+(cost->>'identities')::bigint)::text,'domain_rows',((a->>'domain_rows')::bigint+(cost->>'domains')::bigint)::text,'dependency_rows',((a->>'dependency_rows')::bigint+(cost->>'dependencies')::bigint)::text,'retained_rows',((a->>'retained_rows')::bigint+(cost->>'new_rows')::bigint)::text,'row_writes',((a->>'row_writes')::bigint+(cost->>'row_writes')::bigint)::text,'index_entries',((a->>'index_entries')::bigint+(cost->>'index_entries')::bigint)::text,'Stop_reserve_consumed',kind='source_stop');
+  RETURN b;
+ END;
+@@ -697,7 +716,8 @@
+   count_seen:=count_seen+1;
+   IF count_seen IS DISTINCT FROM o.native_sequence OR NOT o.finalized OR o.writer_xid8=pg_catalog.pg_current_xact_id_if_assigned() OR vn_jupiter_b2_allocation_research_v3._sha(o.command_wire) IS DISTINCT FROM o.command_sha256 OR vn_jupiter_b2_allocation_research_v3._sha(o.result_wire) IS DISTINCT FROM o.result_sha256 OR vn_jupiter_b2_allocation_research_v3._sha(o.receipt_wire) IS DISTINCT FROM o.receipt_sha256 THEN RAISE EXCEPTION 'b2_original_assembly_refused'; END IF;
+   c:=o.command_wire::jsonb; r:=o.result_wire::jsonb; t:=o.receipt_wire::jsonb;
+-  IF NOT vn_jupiter_b2_allocation_research_v3._keys(c,ARRAY['format','native_policy_sha256','scope','action_id','action_kind','expected_head','expected_fence_id','expected_fence_revision','body']) OR NOT vn_jupiter_b2_allocation_research_v3._keys(r,ARRAY['format','native_policy_sha256','scope','action_id','action_kind','native_sequence','original_command_sha256','dependencies','result_body','limits']) OR NOT vn_jupiter_b2_allocation_research_v3._keys(t,ARRAY['format','native_policy_sha256','scope','action_id','action_kind','original_command_sha256','result_sha256','native_sequence','previous_native_head_sha256','admission_observation','final_function_observation','commit_processing_observation','native_package_sha256','catalog_manifest_sha256','limits']) OR c->>'format' IS DISTINCT FROM 'ga-jupiter-b2-allocation-command-research-v3-v1' OR r->>'format' IS DISTINCT FROM 'ga-jupiter-b2-allocation-result-research-v3-v1' OR t->>'format' IS DISTINCT FROM 'ga-jupiter-b2-allocation-receipt-research-v3-v1' OR c->>'native_policy_sha256' IS DISTINCT FROM a#>>'{package,native_policy_sha256}' OR r->>'native_policy_sha256' IS DISTINCT FROM c->>'native_policy_sha256' OR t->>'native_policy_sha256' IS DISTINCT FROM c->>'native_policy_sha256' OR r->>'action_kind' IS DISTINCT FROM o.action_kind OR t->>'action_kind' IS DISTINCT FROM o.action_kind OR r->'limits' IS DISTINCT FROM vn_jupiter_b2_allocation_research_v3._limits() OR t->>'native_package_sha256' IS DISTINCT FROM a#>>'{package,native_package_sha256}' OR t->>'catalog_manifest_sha256' IS DISTINCT FROM a#>>'{package,catalog_manifest_sha256}' OR vn_jupiter_b2_allocation_research_v3._c14n(c) IS DISTINCT FROM o.command_wire OR vn_jupiter_b2_allocation_research_v3._c14n(r) IS DISTINCT FROM o.result_wire OR vn_jupiter_b2_allocation_research_v3._c14n(t) IS DISTINCT FROM o.receipt_wire OR r->'dependencies' IS DISTINCT FROM vn_jupiter_b2_allocation_research_v3._deps(r->'dependencies') THEN RAISE EXCEPTION 'b2_original_assembly_refused'; END IF;
++  IF NOT vn_jupiter_b2_allocation_research_v3._keys(c,ARRAY['format','native_policy_sha256','scope','action_id','action_kind','expected_head','expected_fence_id','expected_fence_revision','body']) OR NOT vn_jupiter_b2_allocation_research_v3._keys(r,ARRAY['format','native_policy_sha256','scope','action_id','action_kind','native_sequence','original_command_sha256','dependencies','result_body','limits']) OR NOT vn_jupiter_b2_allocation_research_v3._keys(t,ARRAY['format','native_policy_sha256','scope','action_id','action_kind','original_command_sha256','result_sha256','native_sequence','previous_native_head_sha256','admission_observation','final_function_observation','commit_processing_observation','native_package_sha256','catalog_manifest_sha256','limits']) OR c->>'format' IS DISTINCT FROM 'ga-jupiter-b2-allocation-command-research-v3-v1' OR r->>'format' IS DISTINCT FROM 'ga-jupiter-b2-allocation-result-research-v3-v1' OR t->>'format' IS DISTINCT FROM 'ga-jupiter-b2-allocation-receipt-research-v3-v1' OR c->>'native_policy_sha256' IS DISTINCT FROM a#>>'{package,native_policy_sha256}' OR r->>'native_policy_sha256' IS DISTINCT FROM c->>'native_policy_sha256' OR t->>'native_policy_sha256' IS DISTINCT FROM c->>'native_policy_sha256' OR r->>'action_kind' IS DISTINCT FROM o.action_kind OR t->>'action_kind' IS DISTINCT FROM o.action_kind OR r->'limits' IS DISTINCT FROM vn_jupiter_b2_allocation_research_v3._limits() OR t->>'native_package_sha256' IS DISTINCT FROM a#>>'{package,native_package_sha256}' OR t->>'catalog_manifest_sha256' IS DISTINCT FROM
++    (CASE WHEN o.native_sequence>3 THEN a->>'effective_catalog_sha256' ELSE a#>>'{package,catalog_manifest_sha256}' END) OR vn_jupiter_b2_allocation_research_v3._c14n(c) IS DISTINCT FROM o.command_wire OR vn_jupiter_b2_allocation_research_v3._c14n(r) IS DISTINCT FROM o.result_wire OR vn_jupiter_b2_allocation_research_v3._c14n(t) IS DISTINCT FROM o.receipt_wire OR r->'dependencies' IS DISTINCT FROM vn_jupiter_b2_allocation_research_v3._deps(r->'dependencies') THEN RAISE EXCEPTION 'b2_original_assembly_refused'; END IF;
+   IF c->'scope' IS DISTINCT FROM scope OR c->>'action_id' IS DISTINCT FROM o.action_id OR c->>'action_kind' IS DISTINCT FROM o.action_kind OR c->'expected_head' IS DISTINCT FROM pg_catalog.jsonb_build_object('native_sequence',(o.native_sequence-1)::text,'native_head_sha256',prev,'previous_seal_sha256',NULL) OR (CASE WHEN o.action_kind IN('source_resume','fence_renew') THEN
+   c->'expected_fence_id' IS DISTINCT FROM fence->'fence_id' OR c->'expected_fence_revision' IS DISTINCT FROM fence->'revision'
+  ELSE c->'expected_fence_id' IS DISTINCT FROM 'null'::jsonb OR c->'expected_fence_revision' IS DISTINCT FROM 'null'::jsonb END) OR r->>'original_command_sha256' IS DISTINCT FROM o.command_sha256 OR r->>'action_id' IS DISTINCT FROM o.action_id OR r->'scope' IS DISTINCT FROM scope OR r->>'native_sequence' IS DISTINCT FROM o.native_sequence::text OR t->>'original_command_sha256' IS DISTINCT FROM o.command_sha256 OR t->>'result_sha256' IS DISTINCT FROM o.result_sha256 OR t->>'action_id' IS DISTINCT FROM o.action_id OR t->'scope' IS DISTINCT FROM scope OR t->>'native_sequence' IS DISTINCT FROM o.native_sequence::text OR t->>'previous_native_head_sha256' IS DISTINCT FROM prev OR t->'limits' IS DISTINCT FROM vn_jupiter_b2_allocation_research_v3._limits() OR t->'final_function_observation' IS DISTINCT FROM o.final_function_observation OR t->'admission_observation' IS DISTINCT FROM 'null'::jsonb THEN RAISE EXCEPTION 'b2_original_assembly_refused'; END IF;
+@@ -761,14 +781,20 @@
+    next_fence:=r#>'{result_body,original_fence_record}';
+    IF o.native_sequence NOT BETWEEN 4 AND 15 OR resume_pin IS NULL
+     OR o.native_sequence IS DISTINCT FROM COALESCE(latest_renew_position+1,4)
+-    OR o.writer_binding_id IS DISTINCT FROM g#>>'{initial_acquisition_spec,recorder_principal_binding_id}'
+-    OR o.writer_binding_id IS DISTINCT FROM fence->>'holder_principal_binding_id'
+     OR c->'body' IS DISTINCT FROM pg_catalog.jsonb_build_object('fence_id',fence->>'fence_id','expected_revision',fence->>'revision','requested_duration_us','60000000')
+     OR pg_catalog.jsonb_typeof(next_fence->'issued_at_us') IS DISTINCT FROM 'string'
+     OR (next_fence->>'issued_at_us' ~ '^(0|[1-9][0-9]{0,18})$') IS DISTINCT FROM true
+    THEN RAISE EXCEPTION 'b2_original_assembly_refused'; END IF;
++   IF a->'handoff' IS DISTINCT FROM 'null'::jsonb THEN
++    IF NOT vn_jupiter_b2_allocation_research_v3._handoff_allows_renew(a->'handoff',o.native_sequence,o.command_sha256,o.writer_binding_id,fence,prev)
++    THEN RAISE EXCEPTION 'b2_original_assembly_refused'; END IF;
++   ELSIF o.writer_binding_id IS DISTINCT FROM g#>>'{initial_acquisition_spec,recorder_principal_binding_id}'
++     OR o.writer_binding_id IS DISTINCT FROM fence->>'holder_principal_binding_id'
++   THEN RAISE EXCEPTION 'b2_original_assembly_refused'; END IF;
+    next_issued:=(next_fence->>'issued_at_us')::bigint;
+-   IF next_issued<previous_hold_commit_us OR next_issued<issued OR next_issued>(t#>>'{final_function_observation,observed_at_us}')::bigint
++   IF next_issued<previous_hold_commit_us OR next_issued<issued
++    OR (a->'handoff' IS DISTINCT FROM 'null'::jsonb AND next_issued<(a#>>'{handoff,observed_us}')::bigint)
++    OR next_issued>(t#>>'{final_function_observation,observed_at_us}')::bigint
+     OR (t#>>'{commit_processing_observation,observed_at_us}')::bigint>=expires
+     OR next_fence IS DISTINCT FROM pg_catalog.jsonb_build_object('fence_id',fence->>'fence_id','scope',scope,
+      'holder_principal_binding_id',o.writer_binding_id,'acquisition_epoch',fence->>'acquisition_epoch',
+@@ -893,38 +919,53 @@
+ END;
+ $b2$;
+ 
+--- FUNCTION submit
+-CREATE FUNCTION vn_jupiter_b2_allocation_research_v3.submit(wire pg_catalog.text)
++-- FUNCTION _submit
++CREATE FUNCTION vn_jupiter_b2_allocation_research_v3._submit(wire pg_catalog.text, register_stop_intent pg_catalog.bool)
+ RETURNS pg_catalog.text
+-LANGUAGE plpgsql VOLATILE SECURITY DEFINER
+-CALLED ON NULL INPUT PARALLEL UNSAFE COST 100
+-SET search_path = 'pg_catalog', 'pg_temp'
+-SET TimeZone = 'UTC'
+-SET client_encoding = 'UTF8'
+-SET standard_conforming_strings = 'on'
+-AS $b2$
+-DECLARE c jsonb; sw text; a jsonb; p jsonb; g jsonb; h jsonb; oldop record; st record; spec jsonb; ass jsonb; idrow jsonb; epoch jsonb; terminal jsonb; v jsonb; d jsonb; deps jsonb; ids jsonb:='[]'; facts jsonb:='[]'; r jsonb; cw text; ch text; rw text; seq bigint; cost jsonb; chk jsonb; ordinal bigint:=0; role text; expected_body jsonb; prior record; prior_reply jsonb; prior_result jsonb; fence jsonb; issued bigint; expires bigint; final_obs jsonb; prior_control_sha text; previous_mode text; next_fence_record jsonb; previous_expiry bigint; previous_commit_us bigint; control_original record;
+-BEGIN
+- IF wire IS NULL OR pg_catalog.octet_length(wire)>16384 THEN RAISE EXCEPTION 'b2_invalid_command'; END IF;
++LANGUAGE plpgsql VOLATILE SECURITY INVOKER
++CALLED ON NULL INPUT PARALLEL UNSAFE COST 100
++SET search_path = 'pg_catalog', 'pg_temp'
++SET TimeZone = 'UTC'
++SET client_encoding = 'UTF8'
++SET standard_conforming_strings = 'on'
++AS $b2$
++DECLARE c jsonb; sw text; a jsonb; p jsonb; g jsonb; h jsonb; oldop record; st record; spec jsonb; ass jsonb; idrow jsonb; epoch jsonb; terminal jsonb; v jsonb; d jsonb; deps jsonb; ids jsonb:='[]'; facts jsonb:='[]'; r jsonb; cw text; ch text; rw text; seq bigint; cost jsonb; chk jsonb; ordinal bigint:=0; role text; expected_body jsonb; prior record; prior_reply jsonb; prior_result jsonb; fence jsonb; issued bigint; expires bigint; final_obs jsonb; prior_control_sha text; previous_mode text; next_fence_record jsonb; previous_expiry bigint; previous_commit_us bigint; control_original record; existing_intent text;
++BEGIN
++ IF register_stop_intent IS NULL OR wire IS NULL OR pg_catalog.octet_length(wire)>16384 THEN RAISE EXCEPTION 'b2_invalid_command'; END IF;
+  c:=wire::jsonb;
+  IF vn_jupiter_b2_allocation_research_v3._c14n(c) IS DISTINCT FROM wire OR NOT vn_jupiter_b2_allocation_research_v3._keys(c,ARRAY['format','native_policy_sha256','scope','action_id','action_kind','expected_head','expected_fence_id','expected_fence_revision','body']) OR c->>'format' IS DISTINCT FROM 'ga-jupiter-b2-allocation-command-research-v3-v1' OR c->>'native_policy_sha256' IS DISTINCT FROM 'e5dca1d13839102fb1fdd261176393b73c770a95ab355eff74499169905bfba0' OR pg_catalog.jsonb_typeof(c->'action_id') IS DISTINCT FROM 'string' OR (c->>'action_id' ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$') IS DISTINCT FROM true THEN RAISE EXCEPTION 'b2_invalid_command'; END IF;
+  sw:=vn_jupiter_b2_allocation_research_v3._scope(c->'scope');
+  IF c->>'action_kind' NOT IN('installation','fence_acquire','source_resume','fence_renew','source_stop') OR pg_catalog.jsonb_typeof(c->'action_kind') IS DISTINCT FROM 'string' THEN
+   PERFORM vn_jupiter_b2_allocation_research_v3._auth(c->'scope','read_original',NULL,NULL,NULL); RAISE EXCEPTION 'b2_kind_not_implemented';
+  END IF;
+- a:=vn_jupiter_b2_allocation_research_v3._auth(c->'scope','read_original',NULL,
+-  CASE WHEN c->>'action_kind'='source_stop' THEN vn_jupiter_b2_allocation_research_v3._sha(wire) END,NULL);
+- -- Exact read-authorized replay precedes fresh head/mode/counter checks.
+- SELECT * INTO oldop FROM vn_jupiter_b2_allocation_research_v3.original_operations WHERE action_id=c->>'action_id';
+- IF FOUND THEN
+-  IF oldop.scope_wire IS DISTINCT FROM sw OR oldop.action_kind IS DISTINCT FROM c->>'action_kind' OR oldop.command_wire IS DISTINCT FROM wire THEN RAISE EXCEPTION 'b2_original_conflict'; END IF;
+-  RETURN vn_jupiter_b2_allocation_research_v3._reply(c->'scope',c->>'action_id',vn_jupiter_b2_allocation_research_v3._sha(wire),false,NULL);
++ IF register_stop_intent THEN
++  IF c->>'action_kind' IS DISTINCT FROM 'source_stop'
++  THEN RAISE EXCEPTION 'b2_stop_intent_profile_refused' USING ERRCODE='42501'; END IF;
++ ELSE
++  a:=vn_jupiter_b2_allocation_research_v3._auth(c->'scope','read_original',NULL,
++   CASE WHEN c->>'action_kind'='source_stop' THEN vn_jupiter_b2_allocation_research_v3._sha(wire) END,NULL);
++  -- Exact read-authorized replay precedes fresh head/mode/counter checks.
++  SELECT * INTO oldop FROM vn_jupiter_b2_allocation_research_v3.original_operations WHERE action_id=c->>'action_id';
++  IF FOUND THEN
++   IF oldop.scope_wire IS DISTINCT FROM sw OR oldop.action_kind IS DISTINCT FROM c->>'action_kind' OR oldop.command_wire IS DISTINCT FROM wire THEN RAISE EXCEPTION 'b2_original_conflict'; END IF;
++   RETURN vn_jupiter_b2_allocation_research_v3._reply(c->'scope',c->>'action_id',vn_jupiter_b2_allocation_research_v3._sha(wire),false,NULL);
++  END IF;
+  END IF;
+  PERFORM vn_jupiter_b2_fixture_anchor._lock_inputs(sw,c->>'action_kind'='source_resume');
+  -- Reauthorize from a fresh statement snapshot while the required input rows are held.
+  a:=vn_jupiter_b2_allocation_research_v3._auth(c->'scope',CASE c->>'action_kind' WHEN 'installation' THEN 'install' WHEN 'fence_acquire' THEN 'fence_manage' WHEN 'fence_renew' THEN 'fence_manage' WHEN 'source_resume' THEN 'resume_scope' ELSE 'control' END,NULL,CASE WHEN c->>'action_kind'='source_stop' THEN vn_jupiter_b2_allocation_research_v3._sha(wire) END,NULL); p:=a->'package'; g:=(a->>'genesis_wire')::jsonb;
+  SELECT * INTO st FROM vn_jupiter_b2_allocation_research_v3.scope_state WHERE scope_wire=sw FOR UPDATE;
+  IF NOT FOUND OR pg_catalog.current_setting('synchronous_commit')<>'on' OR pg_catalog.current_setting('fsync')<>'on' THEN RAISE EXCEPTION 'b2_session_refused'; END IF;
++ IF register_stop_intent THEN
++  existing_intent:=vn_jupiter_b2_allocation_research_v3._existing_stop_intent(sw,c,wire,a);
++  IF existing_intent IS NOT NULL THEN RETURN existing_intent; END IF;
++  IF EXISTS(SELECT 1 FROM vn_jupiter_b2_allocation_research_v3.original_operations o WHERE o.action_id=c->>'action_id')
++  THEN RAISE EXCEPTION 'b2_stop_intent_conflict' USING ERRCODE='42501'; END IF;
++ ELSIF c->>'action_kind'='source_stop' AND pg_catalog.jsonb_typeof(a->'handoff')='object' THEN
++  PERFORM vn_jupiter_b2_allocation_research_v3._require_exact_stop_intent(sw,c,wire,a);
++ END IF;
++ IF (a->>'handoff_profile')::boolean AND c->>'action_kind'<>'source_stop'
++ THEN PERFORM vn_jupiter_b2_allocation_research_v3._require_no_stop_intent(sw); END IF;
+  IF EXISTS(SELECT 1 FROM vn_jupiter_b2_allocation_research_v3.original_operations WHERE writer_xid8=pg_catalog.pg_current_xact_id()) THEN RAISE EXCEPTION 'b2_one_new_operation'; END IF;
+  h:=st.head_wire::jsonb;
+  IF c->'expected_head' IS DISTINCT FROM pg_catalog.jsonb_build_object('native_sequence',h->>'native_sequence','native_head_sha256',h->>'native_head_sha256','previous_seal_sha256',NULL) OR (CASE WHEN c->>'action_kind' IN('source_resume','fence_renew') THEN
+@@ -1019,7 +1060,7 @@
+   IF seq NOT BETWEEN 4 AND 16 OR h->>'source_mode' IS DISTINCT FROM 'open'
+    OR pg_catalog.jsonb_typeof(h->'active_fence_id') IS DISTINCT FROM 'string' OR h->>'fence_revision' IS DISTINCT FROM (seq-3)::text
+    OR h->>'active_acquisition_epoch' IS DISTINCT FROM g#>>'{initial_acquisition_spec,acquisition_epoch}'
+-   OR a->>'binding_id' IS DISTINCT FROM g#>>'{initial_acquisition_spec,recorder_principal_binding_id}'
++   OR (a->'handoff'='null'::jsonb AND a->>'binding_id' IS DISTINCT FROM g#>>'{initial_acquisition_spec,recorder_principal_binding_id}')
+    OR c->'body' IS DISTINCT FROM pg_catalog.jsonb_build_object('fence_id',h->>'active_fence_id','expected_revision',h->>'fence_revision','requested_duration_us','60000000')
+   THEN RAISE EXCEPTION 'b2_fence_renew_refused'; END IF;
+   IF EXISTS(SELECT 1 FROM vn_jupiter_b2_allocation_research_v3.identities i WHERE i.original_id=c->>'action_id') THEN RAISE EXCEPTION 'b2_identity_conflict'; END IF;
+@@ -1044,12 +1085,18 @@
+   IF NOT FOUND OR fence->'fence_id' IS DISTINCT FROM h->'active_fence_id'
+    OR fence->'revision' IS DISTINCT FROM h->'fence_revision'
+    OR fence->'acquisition_epoch' IS DISTINCT FROM h->'active_acquisition_epoch'
+-   OR fence->>'holder_principal_binding_id' IS DISTINCT FROM a->>'binding_id'
++  THEN RAISE EXCEPTION 'b2_fence_renew_refused'; END IF;
++  IF a->'handoff' IS DISTINCT FROM 'null'::jsonb THEN
++   IF NOT vn_jupiter_b2_allocation_research_v3._handoff_allows_renew(a->'handoff',seq,ch,a->>'binding_id',fence,h->>'native_head_sha256')
++   THEN RAISE EXCEPTION 'b2_fence_renew_refused'; END IF;
++  ELSIF fence->>'holder_principal_binding_id' IS DISTINCT FROM a->>'binding_id'
+   THEN RAISE EXCEPTION 'b2_fence_renew_refused'; END IF;
+   previous_expiry:=(fence->>'expires_at_us')::bigint;
+   previous_commit_us:=((prior_reply->>'original_receipt_wire')::jsonb#>>'{commit_processing_observation,observed_at_us}')::bigint;
+   issued:=(vn_jupiter_b2_allocation_research_v3._clock()->>'observed_at_us')::bigint;
+-  IF issued<previous_commit_us OR issued>=previous_expiry THEN RAISE EXCEPTION 'b2_fence_clock_refused'; END IF;
++  IF issued<previous_commit_us OR issued>=previous_expiry
++   OR (a->'handoff' IS DISTINCT FROM 'null'::jsonb AND issued<(a#>>'{handoff,observed_us}')::bigint)
++  THEN RAISE EXCEPTION 'b2_fence_clock_refused'; END IF;
+   expires:=issued+60000000;
+   next_fence_record:=pg_catalog.jsonb_build_object('fence_id',fence->>'fence_id','scope',c->'scope',
+    'holder_principal_binding_id',a->>'binding_id','acquisition_epoch',h->>'active_acquisition_epoch',
+@@ -1118,6 +1165,9 @@
+  IF pg_catalog.octet_length(rw)>131072 OR EXISTS(SELECT 1 FROM pg_catalog.jsonb_array_elements(facts) x WHERE (x->>'wire_bytes')::bigint>CASE x->>'semantic_kind' WHEN 'native_genesis_input' THEN 8192 WHEN 'native_epoch_registration' THEN 2048 WHEN 'native_terminal_allocation' THEN 1024 WHEN 'native_fence_record' THEN 1024 ELSE 0 END) THEN RAISE EXCEPTION 'b2_wire_bound'; END IF;
+  cost:=vn_jupiter_b2_allocation_research_v3._cost(c,r,ids,facts);
+  chk:=vn_jupiter_b2_allocation_research_v3._budget(sw,c->>'action_kind',cost);
++ IF register_stop_intent THEN
++  RETURN vn_jupiter_b2_allocation_research_v3._stage_stop_intent(sw,c,wire,a);
++ END IF;
+  -- Full future finalization upper + every Stop component is checked BEFORE DML.
+  FOR v IN SELECT value FROM pg_catalog.jsonb_array_elements(ids) ORDER BY value->>'original_id' COLLATE "C" LOOP
+   INSERT INTO vn_jupiter_b2_allocation_research_v3.identities VALUES(v->>'original_id',sw,vn_jupiter_b2_allocation_research_v3._c14n(v));
+@@ -1142,6 +1192,21 @@
+ END;
+ $b2$;
+ 
++-- FUNCTION submit
++CREATE FUNCTION vn_jupiter_b2_allocation_research_v3.submit(wire pg_catalog.text)
++RETURNS pg_catalog.text
++LANGUAGE plpgsql VOLATILE SECURITY DEFINER
++CALLED ON NULL INPUT PARALLEL UNSAFE COST 100
++SET search_path = 'pg_catalog', 'pg_temp'
++SET TimeZone = 'UTC'
++SET client_encoding = 'UTF8'
++SET standard_conforming_strings = 'on'
++AS $b2$
++BEGIN
++ RETURN vn_jupiter_b2_allocation_research_v3._submit(wire,false);
++END;
++$b2$;
++
+ -- FUNCTION _commit_guard
+ CREATE FUNCTION vn_jupiter_b2_allocation_research_v3._commit_guard()
+ RETURNS pg_catalog.trigger
+@@ -1165,6 +1230,11 @@
+  IF original_installation->'body' IS DISTINCT FROM pg_catalog.jsonb_build_object('installation_id',p->>'installation_id','scope',c->'scope','policies',p->'policies','catalog_manifest_sha256',p->>'catalog_manifest_sha256','actor_manifest_sha256',p->>'actor_manifest_sha256','genesis_registry_sha256',vn_jupiter_b2_allocation_research_v3._sha(a->>'genesis_wire')) THEN RAISE EXCEPTION 'b2_package_refused'; END IF;
+  IF a->>'binding_id' IS DISTINCT FROM o.writer_binding_id OR pg_catalog.current_setting('synchronous_commit')<>'on' OR pg_catalog.current_setting('fsync')<>'on' THEN RAISE EXCEPTION 'b2_commit_origin_refused'; END IF;
+  SELECT * INTO st FROM vn_jupiter_b2_allocation_research_v3.scope_state WHERE scope_wire=o.scope_wire FOR UPDATE; h:=st.head_wire::jsonb;
++ IF o.action_kind='source_stop' AND pg_catalog.jsonb_typeof(a->'handoff')='object' THEN
++  PERFORM vn_jupiter_b2_allocation_research_v3._require_exact_stop_intent(o.scope_wire,c,o.command_wire,a);
++ END IF;
++ IF (a->>'handoff_profile')::boolean AND o.action_kind<>'source_stop'
++ THEN PERFORM vn_jupiter_b2_allocation_research_v3._require_no_stop_intent(o.scope_wire); END IF;
+  IF c->'expected_head' IS DISTINCT FROM pg_catalog.jsonb_build_object('native_sequence',h->>'native_sequence','native_head_sha256',h->>'native_head_sha256','previous_seal_sha256',NULL) THEN RAISE EXCEPTION 'b2_stale_head'; END IF;
+  SELECT COALESCE(pg_catalog.jsonb_agg(record_wire::jsonb),'[]') INTO ids FROM vn_jupiter_b2_allocation_research_v3.identities WHERE scope_wire=o.scope_wire AND record_wire::jsonb->>'original_allocation_sha256'=o.command_sha256;
+  SELECT COALESCE(pg_catalog.jsonb_agg(vn_jupiter_b2_allocation_research_v3._pin(semantic_kind,original_id,original_wire)),'[]') INTO facts FROM vn_jupiter_b2_allocation_research_v3.domain_facts WHERE scope_wire=o.scope_wire AND native_sequence=o.native_sequence;
+@@ -1208,7 +1278,7 @@
+    IF o.native_sequence NOT BETWEEN 4 AND 15
+     OR prior.action_kind IS DISTINCT FROM (CASE WHEN o.native_sequence=4 THEN 'source_resume' ELSE 'fence_renew' END)
+     OR h->>'source_mode' IS DISTINCT FROM 'open' OR h->>'fence_revision' IS DISTINCT FROM (o.native_sequence-3)::text
+-    OR a->>'binding_id' IS DISTINCT FROM g#>>'{initial_acquisition_spec,recorder_principal_binding_id}'
++    OR (a->'handoff'='null'::jsonb AND a->>'binding_id' IS DISTINCT FROM g#>>'{initial_acquisition_spec,recorder_principal_binding_id}')
+     OR c->'expected_fence_id' IS DISTINCT FROM h->'active_fence_id' OR c->'expected_fence_revision' IS DISTINCT FROM h->'fence_revision'
+     OR c->'body' IS DISTINCT FROM pg_catalog.jsonb_build_object('fence_id',h->>'active_fence_id','expected_revision',h->>'fence_revision','requested_duration_us','60000000')
+    THEN RAISE EXCEPTION 'b2_fence_commit_refused'; END IF;
+@@ -1258,7 +1328,9 @@
+    IF NOT FOUND OR fence->'fence_id' IS DISTINCT FROM h->'active_fence_id'
+     OR fence->'revision' IS DISTINCT FROM h->'fence_revision'
+     OR fence->'acquisition_epoch' IS DISTINCT FROM h->'active_acquisition_epoch'
+-    OR fence->>'holder_principal_binding_id' IS DISTINCT FROM g#>>'{initial_acquisition_spec,recorder_principal_binding_id}'
++    OR fence->>'holder_principal_binding_id' IS DISTINCT FROM
++      (CASE WHEN a->'handoff' IS DISTINCT FROM 'null'::jsonb AND o.native_sequence>4
++        THEN a#>>'{handoff,successor_binding,principal_binding_id}' ELSE g#>>'{initial_acquisition_spec,recorder_principal_binding_id}' END)
+    THEN RAISE EXCEPTION 'b2_control_commit_refused'; END IF;
+    IF o.action_kind='source_resume' THEN
+     issued:=(fence->>'issued_at_us')::bigint;
+@@ -1273,12 +1345,17 @@
+     previous_expiry:=(fence->>'expires_at_us')::bigint;
+     previous_commit_us:=((prior_reply->>'original_receipt_wire')::jsonb#>>'{commit_processing_observation,observed_at_us}')::bigint;
+     IF issued<previous_commit_us OR issued>=previous_expiry
++     OR (a->'handoff' IS DISTINCT FROM 'null'::jsonb AND issued<(a#>>'{handoff,observed_us}')::bigint)
+      OR next_fence_record IS DISTINCT FROM pg_catalog.jsonb_build_object('fence_id',fence->>'fence_id','scope',c->'scope',
+       'holder_principal_binding_id',a->>'binding_id','acquisition_epoch',h->>'active_acquisition_epoch',
+       'revision',(o.native_sequence-2)::text,'issued_at_us',issued::text,'expires_at_us',expires::text,'original_command_sha256',o.command_sha256,'native_sequence',o.native_sequence::text)
+      OR pg_catalog.octet_length(vn_jupiter_b2_allocation_research_v3._c14n(next_fence_record))>1024
+      OR facts IS DISTINCT FROM pg_catalog.jsonb_build_array(vn_jupiter_b2_allocation_research_v3._pin('native_fence_record',fence->>'fence_id',vn_jupiter_b2_allocation_research_v3._c14n(next_fence_record)))
+     THEN RAISE EXCEPTION 'b2_fence_commit_refused'; END IF;
++    IF a->'handoff' IS DISTINCT FROM 'null'::jsonb THEN
++     IF NOT vn_jupiter_b2_allocation_research_v3._handoff_allows_renew(a->'handoff',o.native_sequence,o.command_sha256,o.writer_binding_id,fence,h->>'native_head_sha256')
++     THEN RAISE EXCEPTION 'b2_fence_commit_refused'; END IF;
++    END IF;
+     expected_body:=pg_catalog.jsonb_build_object('original_fence_record',next_fence_record,
+      'previous_fence_sha256',vn_jupiter_b2_allocation_research_v3._sha(vn_jupiter_b2_allocation_research_v3._c14n(fence)));
+     expected_deps:=expected_deps||facts;
+@@ -1303,7 +1380,7 @@
+   AND (issued>(o.final_function_observation->>'observed_at_us')::bigint OR (obs->>'observed_at_us')::bigint>=expires
+    OR (o.action_kind='fence_renew' AND (obs->>'observed_at_us')::bigint>=previous_expiry))
+  THEN RAISE EXCEPTION 'b2_fence_clock_refused'; END IF;
+- rec:=pg_catalog.jsonb_build_object('format','ga-jupiter-b2-allocation-receipt-research-v3-v1','native_policy_sha256','e5dca1d13839102fb1fdd261176393b73c770a95ab355eff74499169905bfba0','scope',c->'scope','action_id',o.action_id,'action_kind',o.action_kind,'original_command_sha256',o.command_sha256,'result_sha256',o.result_sha256,'native_sequence',o.native_sequence::text,'previous_native_head_sha256',h->>'native_head_sha256','admission_observation',NULL,'final_function_observation',o.final_function_observation,'commit_processing_observation',obs,'native_package_sha256',p->>'native_package_sha256','catalog_manifest_sha256',p->>'catalog_manifest_sha256','limits',vn_jupiter_b2_allocation_research_v3._limits()); tw:=vn_jupiter_b2_allocation_research_v3._c14n(rec);
++ rec:=pg_catalog.jsonb_build_object('format','ga-jupiter-b2-allocation-receipt-research-v3-v1','native_policy_sha256','e5dca1d13839102fb1fdd261176393b73c770a95ab355eff74499169905bfba0','scope',c->'scope','action_id',o.action_id,'action_kind',o.action_kind,'original_command_sha256',o.command_sha256,'result_sha256',o.result_sha256,'native_sequence',o.native_sequence::text,'previous_native_head_sha256',h->>'native_head_sha256','admission_observation',NULL,'final_function_observation',o.final_function_observation,'commit_processing_observation',obs,'native_package_sha256',p->>'native_package_sha256','catalog_manifest_sha256',a->>'effective_catalog_sha256','limits',vn_jupiter_b2_allocation_research_v3._limits()); tw:=vn_jupiter_b2_allocation_research_v3._c14n(rec);
+  jw:=vn_jupiter_b2_allocation_research_v3._c14n(pg_catalog.jsonb_build_object('native_sequence',o.native_sequence::text,'action_id',o.action_id,'action_kind',o.action_kind,'original_command_sha256',o.command_sha256,'original_result_sha256',o.result_sha256,'original_receipt_sha256',vn_jupiter_b2_allocation_research_v3._sha(tw),'previous_native_head_sha256',h->>'native_head_sha256'));
+  nexthead:=pg_catalog.jsonb_build_object('scope',c->'scope','native_sequence',o.native_sequence::text,'native_head_sha256',vn_jupiter_b2_allocation_research_v3._sha(jw),'active_acquisition_epoch',g#>>'{initial_acquisition_spec,acquisition_epoch}','active_fence_id',next_fence,'fence_revision',CASE o.action_kind WHEN 'installation' THEN '0' WHEN 'source_resume' THEN h->>'fence_revision' ELSE ((h->>'fence_revision')::bigint+1)::text END,'source_mode',CASE o.action_kind WHEN 'source_stop' THEN 'stopped' WHEN 'source_resume' THEN 'open' WHEN 'fence_renew' THEN 'open' ELSE 'paused' END,'last_admission_sha256',NULL,'last_ingest_sequence','0','last_availability_sha256',NULL,'previous_seal_sha256',NULL);
+  IF pg_catalog.octet_length(tw)>4096 OR pg_catalog.octet_length(jw)>1024 OR pg_catalog.octet_length(vn_jupiter_b2_allocation_research_v3._c14n(nexthead))>2048 THEN RAISE EXCEPTION 'b2_wire_bound'; END IF;
+--- /dev/null
++++ b/services/vonneumann/db-contract/research/jupiter_credential_handoff_lab.sql
+@@ -0,0 +1,384 @@
++-- Private one-scope, one-recorder laboratory overlay.
++BEGIN;
++SET LOCAL ROLE vn_jupiter_b2_anchor_owner;
++CREATE TABLE vn_jupiter_b2_fixture_anchor.credential_handoff (
++ scope_wire pg_catalog.text PRIMARY KEY REFERENCES vn_jupiter_b2_fixture_anchor.package_inputs(scope_wire),
++ handoff_id pg_catalog.uuid UNIQUE NOT NULL,
++ permit_wire pg_catalog.text NOT NULL CHECK (pg_catalog.octet_length(permit_wire)<=8192),
++ stage_xid pg_catalog.xid8,
++ handoff_wire pg_catalog.text CHECK (pg_catalog.octet_length(handoff_wire)<=8192),
++ CHECK (handoff_wire IS NULL OR stage_xid IS NOT NULL)
++);
++REVOKE ALL ON TABLE vn_jupiter_b2_fixture_anchor.credential_handoff FROM PUBLIC;
++REVOKE ALL ON TYPE vn_jupiter_b2_fixture_anchor.credential_handoff FROM PUBLIC;
++GRANT SELECT ON TABLE vn_jupiter_b2_fixture_anchor.credential_handoff TO vn_jupiter_b2_sealed_owner;
++RESET ROLE;
++SET LOCAL ROLE vn_jupiter_b2_sealed_owner;
++
++-- FUNCTION _read_handoff
++CREATE FUNCTION vn_jupiter_b2_allocation_research_v3._read_handoff(requested_scope pg_catalog.text)
++RETURNS pg_catalog.jsonb
++LANGUAGE plpgsql STABLE SECURITY INVOKER
++SET search_path='pg_catalog','pg_temp' SET TimeZone='UTC' SET client_encoding='UTF8' SET standard_conforming_strings='on'
++AS $handoff$
++DECLARE h vn_jupiter_b2_fixture_anchor.credential_handoff%ROWTYPE; marker jsonb; permit jsonb;
++BEGIN
++ SELECT * INTO h FROM vn_jupiter_b2_fixture_anchor.credential_handoff WHERE scope_wire=requested_scope;
++ IF NOT FOUND OR (h.stage_xid IS NULL AND h.handoff_wire IS NULL) THEN RETURN NULL; END IF;
++ IF h.handoff_wire IS NULL OR h.stage_xid=pg_catalog.pg_current_xact_id_if_assigned()
++ THEN RAISE EXCEPTION 'b2_handoff_marker_refused'; END IF;
++ marker:=h.handoff_wire::jsonb; permit:=h.permit_wire::jsonb;
++ IF NOT vn_jupiter_b2_allocation_research_v3._keys(marker,ARRAY['handoff_id','permit_sha256','catalog_sha256','head_sha256','fence_sha256','renew_action_id','renew_command_sha256','successor_binding','old_binding_id','observed_us'])
++  OR vn_jupiter_b2_allocation_research_v3._c14n(marker) IS DISTINCT FROM h.handoff_wire
++  OR marker->>'handoff_id' IS DISTINCT FROM h.handoff_id::text
++  OR permit->>'handoff_id' IS DISTINCT FROM h.handoff_id::text
++  OR vn_jupiter_b2_allocation_research_v3._scope(permit->'scope') IS DISTINCT FROM requested_scope
++  OR marker->>'permit_sha256' IS DISTINCT FROM vn_jupiter_b2_allocation_research_v3._sha(h.permit_wire)
++  OR marker->>'head_sha256' IS DISTINCT FROM permit->>'head_sha256'
++  OR marker->>'fence_sha256' IS DISTINCT FROM permit->>'fence_sha256'
++  OR marker->>'old_binding_id' IS DISTINCT FROM permit->>'old_binding_id'
++  OR marker->>'renew_action_id' IS DISTINCT FROM ((permit->>'renew_wire')::jsonb)->>'action_id'
++  OR marker->>'renew_command_sha256' IS DISTINCT FROM vn_jupiter_b2_allocation_research_v3._sha(permit->>'renew_wire')
++  OR (marker->>'catalog_sha256' ~ '^[0-9a-f]{64}$') IS DISTINCT FROM true
++  OR (marker->>'observed_us' ~ '^[1-9][0-9]{0,17}$') IS DISTINCT FROM true
++  OR marker#>>'{successor_binding,principal_binding_id}' IS DISTINCT FROM permit->>'new_binding_id'
++  OR marker#>>'{successor_binding,issuance_id}' IS DISTINCT FROM permit->>'issuance_id'
++  OR marker#>>'{successor_binding,credential_generation}' IS DISTINCT FROM '2'
++  OR NOT EXISTS(SELECT 1 FROM vn_jupiter_b2_fixture_anchor.actor_bindings b
++   WHERE b.scope_wire=requested_scope AND b.binding_id=permit->>'new_binding_id'
++    AND b.session_name=marker#>>'{successor_binding,session_user_name}'
++    AND b.session_oid::text=marker#>>'{successor_binding,session_user_oid}'
++    AND pg_catalog.to_jsonb(b.capabilities)=marker#>'{successor_binding,capabilities}'
++    AND b.binding_wire=vn_jupiter_b2_allocation_research_v3._c14n(marker->'successor_binding'))
++ THEN RAISE EXCEPTION 'b2_handoff_marker_refused'; END IF;
++ RETURN marker;
++END;
++$handoff$;
++
++-- FUNCTION _handoff_allows_renew
++CREATE FUNCTION vn_jupiter_b2_allocation_research_v3._handoff_allows_renew(marker pg_catalog.jsonb, position pg_catalog.int8, command_sha pg_catalog.text, writer_binding pg_catalog.text, prior_fence pg_catalog.jsonb, prior_head_sha pg_catalog.text)
++RETURNS pg_catalog.bool
++LANGUAGE plpgsql IMMUTABLE SECURITY INVOKER
++SET search_path='pg_catalog','pg_temp' SET TimeZone='UTC' SET client_encoding='UTF8' SET standard_conforming_strings='on'
++AS $handoff$
++BEGIN
++ RETURN (writer_binding=marker#>>'{successor_binding,principal_binding_id}' AND
++  (CASE WHEN position=4 THEN command_sha=marker->>'renew_command_sha256'
++    AND prior_head_sha=marker->>'head_sha256'
++    AND prior_fence->>'holder_principal_binding_id'=marker->>'old_binding_id'
++    AND vn_jupiter_b2_allocation_research_v3._sha(vn_jupiter_b2_allocation_research_v3._c14n(prior_fence))=marker->>'fence_sha256'
++   ELSE position BETWEEN 5 AND 16 AND prior_fence->>'holder_principal_binding_id'=writer_binding END)) IS TRUE;
++END;
++$handoff$;
++
++-- FUNCTION _handoff_catalog_preimage
++CREATE FUNCTION vn_jupiter_b2_allocation_research_v3._handoff_catalog_preimage(actual pg_catalog.jsonb, old_role pg_catalog.oid, new_role pg_catalog.oid, issuer pg_catalog.oid)
++RETURNS pg_catalog.jsonb
++LANGUAGE plpgsql STABLE SECURITY INVOKER
++SET search_path='pg_catalog','pg_temp' SET TimeZone='UTC' SET client_encoding='UTF8' SET standard_conforming_strings='on'
++AS $handoff$
++DECLARE item jsonb; n int; cls record; idx text; object_path text[]; acl_atom text;
++        native_owner oid:='vn_jupiter_b2_sealed_owner'::pg_catalog.regrole;
++        ns_oid oid:='vn_jupiter_b2_allocation_research_v3'::pg_catalog.regnamespace;
++        submit_oid oid:='vn_jupiter_b2_allocation_research_v3.submit(pg_catalog.text)'::pg_catalog.regprocedure;
++        get_oid oid:='vn_jupiter_b2_allocation_research_v3.get_original(pg_catalog.text)'::pg_catalog.regprocedure;
++BEGIN
++ -- Only the exact prospective creator edge, three direct ACL atoms, and
++ -- three dependent role references are removed. All other K1 facts survive.
++ IF (SELECT count(*) FROM pg_catalog.pg_auth_members m WHERE m.roleid=new_role OR m.member=new_role)<>1
++  OR NOT EXISTS(SELECT 1 FROM pg_catalog.pg_auth_members m WHERE m.roleid=new_role AND m.member=issuer
++   AND m.grantor=10 AND m.admin_option AND NOT m.set_option AND NOT m.inherit_option)
++  OR (SELECT count(*) FROM pg_catalog.jsonb_array_elements(actual->'roles') e WHERE e->>'oid'=new_role::text)<>1
++ THEN RAISE EXCEPTION 'b2_handoff_catalog_delta_refused'; END IF;
++ SELECT ordinality-1 INTO n FROM pg_catalog.jsonb_array_elements(actual->'roles') WITH ORDINALITY e(value,ordinality)
++ WHERE value->>'oid'=old_role::text AND value->'login'='false'::jsonb;
++ IF NOT FOUND THEN RAISE EXCEPTION 'b2_handoff_catalog_delta_refused'; END IF;
++ actual:=pg_catalog.jsonb_set(actual,ARRAY['roles',n::text,'login'],'true'::jsonb,false);
++ FOR cls IN SELECT v.* FROM (VALUES
++   ('schemas','acl','oid',ns_oid,'pg_catalog.pg_namespace'::pg_catalog.regclass::oid,'USAGE','U'),
++   ('functions','proacl','oid',submit_oid,'pg_catalog.pg_proc'::pg_catalog.regclass::oid,'EXECUTE','X'),
++   ('functions','proacl','oid',get_oid,'pg_catalog.pg_proc'::pg_catalog.regclass::oid,'EXECUTE','X')
++  ) v(section,acl_field,oid_field,obj_oid,class_oid,privilege,letter)
++ LOOP
++  SELECT e.ordinality::text, e.value->cls.acl_field INTO idx,item
++   FROM pg_catalog.jsonb_array_elements(actual->cls.section) WITH ORDINALITY e(value,ordinality)
++   WHERE e.value->>cls.oid_field=cls.obj_oid::text;
++  IF NOT FOUND THEN RAISE EXCEPTION 'b2_handoff_catalog_delta_refused'; END IF;
++  acl_atom:='vn_jupiter_b2_0_recorder_next='||cls.letter||'/vn_jupiter_b2_sealed_owner';
++  IF (SELECT count(*) FROM pg_catalog.jsonb_array_elements_text(item) e WHERE e=acl_atom)<>1
++   OR (SELECT count(*) FROM pg_catalog.aclexplode(ARRAY[acl_atom::pg_catalog.aclitem]) a
++       WHERE a.grantee=new_role AND a.grantor=native_owner AND a.privilege_type=cls.privilege AND NOT a.is_grantable)<>1
++   OR (SELECT count(*) FROM pg_catalog.jsonb_array_elements(actual->'shared_dependencies') e
++       WHERE e->>'refobjid'=new_role::text AND e->>'refclassid'='pg_catalog.pg_authid'::pg_catalog.regclass::oid::text
++        AND e->>'objid'=cls.obj_oid::text AND e->>'classid'=cls.class_oid::text
++        AND e->>'objsubid'='0' AND e->>'deptype'='a')<>1
++  THEN RAISE EXCEPTION 'b2_handoff_catalog_delta_refused'; END IF;
++  object_path:=ARRAY[cls.section,(idx::bigint-1)::text,cls.acl_field];
++  actual:=pg_catalog.jsonb_set(actual,object_path,item-acl_atom,false);
++ END LOOP;
++ IF (SELECT count(*) FROM pg_catalog.jsonb_array_elements(actual->'shared_dependencies') e WHERE e->>'refobjid'=new_role::text)<>3
++ THEN RAISE EXCEPTION 'b2_handoff_catalog_delta_refused'; END IF;
++ actual:=pg_catalog.jsonb_set(actual,'{roles}',(SELECT pg_catalog.jsonb_agg(value ORDER BY ordinality)
++  FROM pg_catalog.jsonb_array_elements(actual->'roles') WITH ORDINALITY e(value,ordinality) WHERE value->>'oid'<>new_role::text),false);
++ actual:=pg_catalog.jsonb_set(actual,'{memberships}',(SELECT pg_catalog.jsonb_agg(value ORDER BY ordinality)
++  FROM pg_catalog.jsonb_array_elements(actual->'memberships') WITH ORDINALITY e(value,ordinality) WHERE value->>'roleid'<>new_role::text),false);
++ RETURN pg_catalog.jsonb_set(actual,'{shared_dependencies}',(SELECT pg_catalog.jsonb_agg(value ORDER BY ordinality)
++  FROM pg_catalog.jsonb_array_elements(actual->'shared_dependencies') WITH ORDINALITY e(value,ordinality) WHERE value->>'refobjid'<>new_role::text),false);
++END;
++$handoff$;
++
++-- FUNCTION _handoff_native
++CREATE FUNCTION vn_jupiter_b2_allocation_research_v3._handoff_native(requested_scope pg_catalog.text, requested_id pg_catalog.uuid, phase pg_catalog.text)
++RETURNS pg_catalog.text
++LANGUAGE plpgsql VOLATILE SECURITY DEFINER
++SET search_path='pg_catalog','pg_temp' SET TimeZone='UTC' SET client_encoding='UTF8' SET standard_conforming_strings='on'
++AS $handoff$
++DECLARE p vn_jupiter_b2_fixture_anchor.package_inputs%ROWTYPE; h vn_jupiter_b2_fixture_anchor.credential_handoff%ROWTYPE;
++ b vn_jupiter_b2_fixture_anchor.actor_bindings%ROWTYPE; permit jsonb; package jsonb; genesis jsonb; manifest jsonb;
++ head jsonb; acct jsonb; install jsonb; fence jsonb; renewal jsonb; old_entry jsonb; issued jsonb; marker jsonb; actual jsonb;
++ issuer record; successor record; field text; profile record; live_count integer; observed bigint; marker_clock bigint;
++ next_binding text; next_name text:='vn_jupiter_b2_0_recorder_next'; old_login boolean; last_commit_us bigint;
++BEGIN
++ IF session_user IS DISTINCT FROM 'vn_jupiter_b2_actor_issuer' OR system_user IS DISTINCT FROM ('scram-sha-256:'||session_user::text)
++  OR pg_catalog.inet_client_addr() IS NULL OR pg_catalog.current_setting('transaction_isolation')<>'read committed'
++  OR phase IS NULL OR phase NOT IN('stage','grant','finish','commit')
++ THEN RAISE EXCEPTION 'b2_handoff_issuer_refused' USING ERRCODE='42501'; END IF;
++ SELECT * INTO issuer FROM pg_catalog.pg_roles WHERE rolname=session_user AND rolcanlogin AND rolcreaterole AND NOT rolsuper
++  AND NOT rolinherit AND NOT rolcreatedb AND NOT rolreplication AND NOT rolbypassrls AND pg_catalog.isfinite(rolvaliduntil);
++ IF NOT FOUND THEN RAISE EXCEPTION 'b2_handoff_issuer_refused' USING ERRCODE='42501'; END IF;
++ SELECT * INTO p FROM vn_jupiter_b2_fixture_anchor.package_inputs WHERE scope_wire=requested_scope AND retirement_wire IS NULL AND retirement_permit_wire IS NULL;
++ IF NOT FOUND OR (SELECT count(*) FROM vn_jupiter_b2_fixture_anchor.package_inputs)<>1
++ THEN RAISE EXCEPTION 'b2_handoff_scope_refused'; END IF;
++ SELECT * INTO h FROM vn_jupiter_b2_fixture_anchor.credential_handoff WHERE scope_wire=requested_scope AND handoff_id=requested_id;
++ IF NOT FOUND OR (phase='stage' AND (h.stage_xid IS NOT NULL OR h.handoff_wire IS NOT NULL))
++  OR (phase<>'stage' AND h.stage_xid IS DISTINCT FROM pg_catalog.pg_current_xact_id())
++  OR ((phase='commit') IS DISTINCT FROM (h.handoff_wire IS NOT NULL))
++ THEN RAISE EXCEPTION 'b2_handoff_permit_refused'; END IF;
++ permit:=h.permit_wire::jsonb; package:=p.package_wire::jsonb; genesis:=p.genesis_wire::jsonb; manifest:=p.actor_manifest_wire::jsonb;
++ IF NOT vn_jupiter_b2_allocation_research_v3._keys(permit,ARRAY['handoff_id','scope','installation_id','package_sha256','catalog_sha256','head_sha256','old_binding_id','old_binding_sha256','fence_sha256','renew_wire','stop_id','issuer_oid','new_binding_id','issuance_id','issued_at_us','write_until_us','login_until_us','expires_us'])
++  OR vn_jupiter_b2_allocation_research_v3._c14n(permit) IS DISTINCT FROM h.permit_wire
++  OR permit->>'handoff_id' IS DISTINCT FROM requested_id::text
++  OR vn_jupiter_b2_allocation_research_v3._scope(permit->'scope') IS DISTINCT FROM requested_scope
++  OR permit->>'installation_id' IS DISTINCT FROM p.installation_id
++  OR permit->>'package_sha256' IS DISTINCT FROM package->>'native_package_sha256'
++  OR permit->>'catalog_sha256' IS DISTINCT FROM p.expected_catalog_sha256
++  OR package->>'catalog_manifest_sha256' IS DISTINCT FROM p.expected_catalog_sha256
++  OR package->>'actor_manifest_sha256' IS DISTINCT FROM vn_jupiter_b2_allocation_research_v3._sha(p.actor_manifest_wire)
++  OR package->>'format' IS DISTINCT FROM 'ga-jupiter-b2-fixture-direct-scram-handoff-research-v3-v1'
++  OR manifest->>'format' IS DISTINCT FROM 'ga-jupiter-b2-capability-manifest-deadlines-research-v3-v1'
++  OR permit->>'issuer_oid' IS DISTINCT FROM issuer.oid::text
++  OR permit->>'stop_id' IS DISTINCT FROM genesis->>'terminal_stop_action_id'
++  OR permit->>'old_binding_id' IS DISTINCT FROM genesis#>>'{initial_acquisition_spec,recorder_principal_binding_id}'
++ THEN RAISE EXCEPTION 'b2_handoff_permit_refused'; END IF;
++ FOREACH field IN ARRAY ARRAY['new_binding_id','issuance_id'] LOOP
++  IF (permit->>field ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$') IS DISTINCT FROM true
++  THEN RAISE EXCEPTION 'b2_handoff_permit_refused'; END IF;
++ END LOOP;
++ FOREACH field IN ARRAY ARRAY['issued_at_us','write_until_us','login_until_us','expires_us'] LOOP
++  IF (permit->>field ~ '^[1-9][0-9]{0,17}$') IS DISTINCT FROM true THEN RAISE EXCEPTION 'b2_handoff_permit_refused'; END IF;
++ END LOOP;
++ next_binding:=permit->>'new_binding_id';
++ IF next_binding IS NOT DISTINCT FROM permit->>'issuance_id'
++  OR EXISTS(SELECT 1 FROM vn_jupiter_b2_allocation_research_v3.identities i WHERE i.original_id IN(next_binding,permit->>'issuance_id'))
++  OR EXISTS(SELECT 1 FROM pg_catalog.jsonb_array_elements(manifest->'bindings') e WHERE e->>'issuance_id'=permit->>'issuance_id')
++ THEN RAISE EXCEPTION 'b2_handoff_permit_refused'; END IF;
++ SELECT * INTO b FROM vn_jupiter_b2_fixture_anchor.actor_bindings WHERE scope_wire=requested_scope AND binding_id=permit->>'old_binding_id';
++ IF NOT FOUND OR b.capabilities IS DISTINCT FROM ARRAY['reserve','fence_manage','read_original']::text[]
++  OR vn_jupiter_b2_allocation_research_v3._sha(b.binding_wire) IS DISTINCT FROM permit->>'old_binding_sha256'
++  OR NOT EXISTS(SELECT 1 FROM pg_catalog.jsonb_array_elements(manifest->'bindings') e
++   WHERE e->>'principal_binding_id'=b.binding_id AND e->>'session_user_oid'=b.session_oid::text
++    AND e->>'session_user_name'=b.session_name AND vn_jupiter_b2_allocation_research_v3._c14n(e)=b.binding_wire)
++ THEN RAISE EXCEPTION 'b2_handoff_permit_refused'; END IF;
++ old_entry:=b.binding_wire::jsonb;
++ SELECT s.head_wire::jsonb,s.accounting_wire::jsonb INTO head,acct
++  FROM vn_jupiter_b2_allocation_research_v3.scope_state s WHERE s.scope_wire=requested_scope FOR UPDATE NOWAIT;
++ IF NOT FOUND OR head->>'native_sequence' IS DISTINCT FROM '3' OR head->>'source_mode' IS DISTINCT FROM 'open'
++  OR head->>'fence_revision' IS DISTINCT FROM '1' OR head->>'native_head_sha256' IS DISTINCT FROM permit->>'head_sha256'
++  OR acct->'Stop_reserve_consumed' IS DISTINCT FROM 'false'::jsonb
++ THEN RAISE EXCEPTION 'b2_handoff_head_refused'; END IF;
++ SELECT (o.receipt_wire::jsonb#>>'{commit_processing_observation,observed_at_us}')::bigint INTO last_commit_us
++ FROM vn_jupiter_b2_allocation_research_v3.original_operations o JOIN vn_jupiter_b2_allocation_research_v3.journal_entries j
++   ON j.scope_wire=o.scope_wire AND j.native_sequence=o.native_sequence AND j.action_id=o.action_id
++ WHERE o.scope_wire=requested_scope AND o.native_sequence=3 AND o.action_kind='source_resume' AND o.finalized
++   AND o.receipt_sha256=vn_jupiter_b2_allocation_research_v3._sha(o.receipt_wire)
++   AND j.journal_sha256=head->>'native_head_sha256';
++ IF NOT FOUND OR last_commit_us IS NULL THEN RAISE EXCEPTION 'b2_handoff_head_refused'; END IF;
++ PERFORM vn_jupiter_b2_allocation_research_v3._require_no_stop_intent(requested_scope);
++ SELECT o.command_wire::jsonb->'body' INTO install FROM vn_jupiter_b2_allocation_research_v3.original_operations o
++  WHERE o.scope_wire=requested_scope AND o.native_sequence=1 AND o.action_kind='installation' AND o.finalized;
++ IF NOT FOUND OR install IS DISTINCT FROM pg_catalog.jsonb_build_object(
++  'installation_id',p.installation_id,'scope',permit->'scope','policies',package->'policies',
++  'catalog_manifest_sha256',package->'catalog_manifest_sha256','actor_manifest_sha256',package->'actor_manifest_sha256',
++  'genesis_registry_sha256',vn_jupiter_b2_allocation_research_v3._sha(p.genesis_wire))
++ THEN RAISE EXCEPTION 'b2_handoff_head_refused'; END IF;
++ SELECT o.result_wire::jsonb#>'{result_body,original_fence_record}' INTO fence FROM vn_jupiter_b2_allocation_research_v3.original_operations o
++  WHERE o.scope_wire=requested_scope AND o.native_sequence=2 AND o.action_kind='fence_acquire' AND o.finalized AND o.writer_binding_id=b.binding_id;
++ IF NOT FOUND OR fence->>'holder_principal_binding_id' IS DISTINCT FROM b.binding_id
++  OR fence->>'fence_id' IS DISTINCT FROM head->>'active_fence_id' OR fence->>'revision' IS DISTINCT FROM '1'
++  OR vn_jupiter_b2_allocation_research_v3._sha(vn_jupiter_b2_allocation_research_v3._c14n(fence)) IS DISTINCT FROM permit->>'fence_sha256'
++ THEN RAISE EXCEPTION 'b2_handoff_head_refused'; END IF;
++ renewal:=(permit->>'renew_wire')::jsonb;
++ IF vn_jupiter_b2_allocation_research_v3._c14n(renewal) IS DISTINCT FROM permit->>'renew_wire'
++  OR renewal IS DISTINCT FROM pg_catalog.jsonb_build_object('format','ga-jupiter-b2-allocation-command-research-v3-v1',
++   'native_policy_sha256',package->'native_policy_sha256','scope',permit->'scope','action_id',renewal->'action_id','action_kind','fence_renew',
++   'expected_head',pg_catalog.jsonb_build_object('native_sequence','3','native_head_sha256',head->'native_head_sha256','previous_seal_sha256',NULL),
++   'expected_fence_id',fence->'fence_id','expected_fence_revision','1',
++   'body',pg_catalog.jsonb_build_object('fence_id',fence->'fence_id','expected_revision','1','requested_duration_us','60000000'))
++  OR (renewal->>'action_id' ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$') IS DISTINCT FROM true
++  OR renewal->>'action_id' IN(next_binding,permit->>'issuance_id')
++  OR EXISTS(SELECT 1 FROM vn_jupiter_b2_allocation_research_v3.identities WHERE original_id=renewal->>'action_id')
++ THEN RAISE EXCEPTION 'b2_handoff_permit_refused'; END IF;
++ observed:=(vn_jupiter_b2_allocation_research_v3._clock()->>'observed_at_us')::bigint;
++ IF observed>=(permit->>'expires_us')::bigint
++  OR observed>=pg_catalog.floor(EXTRACT(epoch FROM issuer.rolvaliduntil)*1000000)::bigint OR observed<last_commit_us
++  OR observed+5000000>=(fence->>'expires_at_us')::bigint
++  OR observed<(permit->>'issued_at_us')::bigint OR observed+5000000>=(permit->>'write_until_us')::bigint
++  OR (permit->>'write_until_us')::bigint>=(permit->>'login_until_us')::bigint
++  OR (permit->>'login_until_us')::bigint-(permit->>'issued_at_us')::bigint>300000000
++  OR observed+5000000>=(old_entry->>'write_until_us')::bigint
++ THEN RAISE EXCEPTION 'b2_handoff_clock_refused'; END IF;
++ FOR profile IN SELECT x.* FROM (VALUES
++   (ARRAY['control','read_original']::text[],'write_until_us'),
++   (ARRAY['register_reader_epoch','read_original']::text[],'read_until_us')) x(capabilities,cutoff)
++ LOOP
++  SELECT count(*) INTO live_count FROM vn_jupiter_b2_fixture_anchor.actor_bindings s JOIN pg_catalog.pg_roles r
++   ON r.oid=s.session_oid AND r.rolname=s.session_name
++   WHERE s.scope_wire=requested_scope AND s.capabilities=profile.capabilities AND r.rolcanlogin AND pg_catalog.isfinite(r.rolvaliduntil)
++    AND EXISTS(SELECT 1 FROM pg_catalog.jsonb_array_elements(manifest->'bindings') e
++     WHERE vn_jupiter_b2_allocation_research_v3._c14n(e)=s.binding_wire
++      AND e->>'principal_binding_id'=s.binding_id AND e->>'session_user_oid'=s.session_oid::text AND e->>'session_user_name'=s.session_name
++      AND (e->>'not_before_us')::bigint<=observed AND (e->>profile.cutoff)::bigint>observed+5000000
++      AND (e->>'login_until_us')::bigint=pg_catalog.floor(EXTRACT(epoch FROM r.rolvaliduntil)*1000000)::bigint
++      AND (e->>'login_until_us')::bigint>observed+5000000);
++  IF live_count<>1 THEN RAISE EXCEPTION 'b2_handoff_clock_refused'; END IF;
++ END LOOP;
++
++ SELECT rolcanlogin INTO old_login FROM pg_catalog.pg_roles WHERE oid=b.session_oid AND rolname=b.session_name;
++ IF NOT FOUND OR old_login IS DISTINCT FROM (phase='stage') THEN RAISE EXCEPTION 'b2_handoff_role_refused'; END IF;
++ IF phase='stage' THEN
++  actual:=vn_jupiter_b2_allocation_research_v3._catalog();
++  IF vn_jupiter_b2_allocation_research_v3._sha(vn_jupiter_b2_allocation_research_v3._c14n(actual)) IS DISTINCT FROM p.expected_catalog_sha256
++   OR EXISTS(SELECT 1 FROM pg_catalog.pg_roles WHERE rolname=next_name)
++   OR EXISTS(SELECT 1 FROM vn_jupiter_b2_fixture_anchor.actor_bindings WHERE binding_id=next_binding)
++  THEN RAISE EXCEPTION 'b2_handoff_catalog_delta_refused'; END IF;
++  RETURN NULL;
++ END IF;
++ SELECT * INTO successor FROM pg_catalog.pg_roles WHERE rolname=next_name AND rolcanlogin AND rolconnlimit=2
++  AND NOT rolsuper AND NOT rolinherit AND NOT rolcreaterole AND NOT rolcreatedb AND NOT rolreplication AND NOT rolbypassrls
++  AND rolconfig IS NULL AND pg_catalog.isfinite(rolvaliduntil);
++ IF NOT FOUND OR pg_catalog.floor(EXTRACT(epoch FROM successor.rolvaliduntil)*1000000)::bigint IS DISTINCT FROM (permit->>'login_until_us')::bigint
++  OR (SELECT count(*) FROM pg_catalog.pg_auth_members m WHERE m.roleid=successor.oid OR m.member=successor.oid)<>1
++  OR NOT EXISTS(SELECT 1 FROM pg_catalog.pg_auth_members m WHERE m.roleid=successor.oid AND m.member=issuer.oid AND m.grantor=10 AND m.admin_option AND NOT m.set_option AND NOT m.inherit_option)
++ THEN RAISE EXCEPTION 'b2_handoff_role_refused'; END IF;
++ issued:=old_entry||pg_catalog.jsonb_build_object('principal_binding_id',next_binding,'session_user_oid',successor.oid::text,'session_user_name',next_name,
++  'issuance_id',permit->>'issuance_id','credential_generation','2','issued_at_us',permit->>'issued_at_us','not_before_us',permit->>'issued_at_us',
++  'write_until_us',permit->>'write_until_us','login_until_us',permit->>'login_until_us');
++ IF phase='grant' THEN
++  IF EXISTS(SELECT 1 FROM vn_jupiter_b2_fixture_anchor.actor_bindings WHERE binding_id=next_binding OR session_oid=successor.oid)
++  THEN RAISE EXCEPTION 'b2_handoff_role_refused'; END IF;
++  GRANT USAGE ON SCHEMA vn_jupiter_b2_allocation_research_v3 TO vn_jupiter_b2_0_recorder_next;
++  GRANT EXECUTE ON FUNCTION vn_jupiter_b2_allocation_research_v3.submit(pg_catalog.text),vn_jupiter_b2_allocation_research_v3.get_original(pg_catalog.text) TO vn_jupiter_b2_0_recorder_next;
++  RETURN vn_jupiter_b2_allocation_research_v3._c14n(issued);
++ END IF;
++ IF NOT EXISTS(SELECT 1 FROM vn_jupiter_b2_fixture_anchor.actor_bindings s WHERE s.scope_wire=requested_scope
++   AND s.binding_id=next_binding AND s.session_oid=successor.oid AND s.session_name=next_name
++   AND s.capabilities=b.capabilities AND s.binding_wire=vn_jupiter_b2_allocation_research_v3._c14n(issued))
++ THEN RAISE EXCEPTION 'b2_handoff_role_refused'; END IF;
++ actual:=vn_jupiter_b2_allocation_research_v3._catalog();
++ IF vn_jupiter_b2_allocation_research_v3._sha(vn_jupiter_b2_allocation_research_v3._c14n(
++  vn_jupiter_b2_allocation_research_v3._handoff_catalog_preimage(actual,b.session_oid,successor.oid,issuer.oid))) IS DISTINCT FROM p.expected_catalog_sha256
++ THEN RAISE EXCEPTION 'b2_handoff_catalog_delta_refused'; END IF;
++ marker_clock:=CASE WHEN phase='commit' THEN (h.handoff_wire::jsonb->>'observed_us')::bigint ELSE observed END;
++ IF marker_clock IS NULL OR marker_clock<(permit->>'issued_at_us')::bigint OR marker_clock<last_commit_us OR marker_clock>observed
++ THEN RAISE EXCEPTION 'b2_handoff_clock_refused'; END IF;
++ RETURN vn_jupiter_b2_allocation_research_v3._c14n(pg_catalog.jsonb_build_object('handoff_id',requested_id::text,'permit_sha256',vn_jupiter_b2_allocation_research_v3._sha(h.permit_wire),
++  'catalog_sha256',vn_jupiter_b2_allocation_research_v3._sha(vn_jupiter_b2_allocation_research_v3._c14n(actual)),
++  'head_sha256',permit->'head_sha256','fence_sha256',permit->'fence_sha256','renew_action_id',renewal->'action_id',
++  'renew_command_sha256',vn_jupiter_b2_allocation_research_v3._sha(permit->>'renew_wire'),'old_binding_id',b.binding_id,
++  'successor_binding',issued,'observed_us',marker_clock::text));
++END;
++$handoff$;
++REVOKE ALL ON FUNCTION vn_jupiter_b2_allocation_research_v3._read_handoff(pg_catalog.text),
++ vn_jupiter_b2_allocation_research_v3._handoff_allows_renew(pg_catalog.jsonb,pg_catalog.int8,pg_catalog.text,pg_catalog.text,pg_catalog.jsonb,pg_catalog.text),
++ vn_jupiter_b2_allocation_research_v3._handoff_catalog_preimage(pg_catalog.jsonb,pg_catalog.oid,pg_catalog.oid,pg_catalog.oid),
++ vn_jupiter_b2_allocation_research_v3._handoff_native(pg_catalog.text,pg_catalog.uuid,pg_catalog.text) FROM PUBLIC;
++GRANT EXECUTE ON FUNCTION vn_jupiter_b2_allocation_research_v3._handoff_native(pg_catalog.text,pg_catalog.uuid,pg_catalog.text) TO vn_jupiter_b2_anchor_owner;
++RESET ROLE;
++SET LOCAL ROLE vn_jupiter_b2_anchor_owner;
++
++-- FUNCTION _stage_credential_handoff
++CREATE FUNCTION vn_jupiter_b2_fixture_anchor._stage_credential_handoff(requested_scope pg_catalog.text, requested_id pg_catalog.uuid)
++RETURNS pg_catalog.void
++LANGUAGE plpgsql VOLATILE SECURITY DEFINER
++SET search_path='pg_catalog','pg_temp' SET TimeZone='UTC' SET client_encoding='UTF8' SET standard_conforming_strings='on'
++AS $handoff$
++DECLARE old_binding text;
++BEGIN
++ IF session_user IS DISTINCT FROM 'vn_jupiter_b2_actor_issuer' OR system_user IS DISTINCT FROM ('scram-sha-256:'||session_user::text)
++  OR pg_catalog.inet_client_addr() IS NULL OR requested_scope IS NULL OR pg_catalog.octet_length(requested_scope)>512
++ THEN RAISE EXCEPTION 'b2_handoff_issuer_refused' USING ERRCODE='42501'; END IF;
++ PERFORM 1 FROM vn_jupiter_b2_fixture_anchor.package_inputs WHERE scope_wire=requested_scope FOR UPDATE NOWAIT;
++ IF NOT FOUND THEN RAISE EXCEPTION 'b2_handoff_scope_refused'; END IF;
++ SELECT permit_wire::jsonb->>'old_binding_id' INTO old_binding FROM vn_jupiter_b2_fixture_anchor.credential_handoff
++  WHERE scope_wire=requested_scope AND handoff_id=requested_id AND stage_xid IS NULL AND handoff_wire IS NULL;
++ IF NOT FOUND THEN RAISE EXCEPTION 'b2_handoff_permit_refused'; END IF;
++ PERFORM 1 FROM vn_jupiter_b2_fixture_anchor.actor_bindings WHERE scope_wire=requested_scope AND binding_id=old_binding FOR UPDATE NOWAIT;
++ IF NOT FOUND THEN RAISE EXCEPTION 'b2_handoff_permit_refused'; END IF;
++ PERFORM 1 FROM vn_jupiter_b2_fixture_anchor.credential_handoff WHERE scope_wire=requested_scope AND handoff_id=requested_id FOR UPDATE NOWAIT;
++ IF NOT FOUND THEN RAISE EXCEPTION 'b2_handoff_permit_refused'; END IF;
++ PERFORM vn_jupiter_b2_allocation_research_v3._handoff_native(requested_scope,requested_id,'stage');
++ UPDATE vn_jupiter_b2_fixture_anchor.credential_handoff SET stage_xid=pg_catalog.pg_current_xact_id()
++ WHERE scope_wire=requested_scope AND handoff_id=requested_id;
++END;
++$handoff$;
++
++-- FUNCTION _finish_credential_handoff
++CREATE FUNCTION vn_jupiter_b2_fixture_anchor._finish_credential_handoff(requested_scope pg_catalog.text, requested_id pg_catalog.uuid)
++RETURNS pg_catalog.text
++LANGUAGE plpgsql VOLATILE SECURITY DEFINER
++SET search_path='pg_catalog','pg_temp' SET TimeZone='UTC' SET client_encoding='UTF8' SET standard_conforming_strings='on'
++AS $handoff$
++DECLARE binding jsonb; binding_wire text; marker text;
++BEGIN
++ binding_wire:=vn_jupiter_b2_allocation_research_v3._handoff_native(requested_scope,requested_id,'grant');
++ binding:=binding_wire::jsonb;
++ INSERT INTO vn_jupiter_b2_fixture_anchor.actor_bindings(binding_id,scope_wire,session_oid,session_name,capabilities,binding_wire)
++ VALUES(binding->>'principal_binding_id',requested_scope,(binding->>'session_user_oid')::oid,binding->>'session_user_name',
++ ARRAY['reserve','fence_manage','read_original']::text[],binding_wire);
++ marker:=vn_jupiter_b2_allocation_research_v3._handoff_native(requested_scope,requested_id,'finish');
++ UPDATE vn_jupiter_b2_fixture_anchor.credential_handoff SET handoff_wire=marker
++  WHERE scope_wire=requested_scope AND handoff_id=requested_id AND stage_xid=pg_catalog.pg_current_xact_id();
++ IF NOT FOUND THEN RAISE EXCEPTION 'b2_handoff_marker_refused'; END IF;
++ RETURN marker;
++END;
++$handoff$;
++
++-- FUNCTION _commit_credential_handoff
++CREATE FUNCTION vn_jupiter_b2_fixture_anchor._commit_credential_handoff()
++RETURNS pg_catalog.trigger
++LANGUAGE plpgsql VOLATILE SECURITY DEFINER
++SET search_path='pg_catalog','pg_temp' SET TimeZone='UTC' SET client_encoding='UTF8' SET standard_conforming_strings='on'
++AS $handoff$
++DECLARE h vn_jupiter_b2_fixture_anchor.credential_handoff%ROWTYPE;
++BEGIN
++ IF pg_catalog.btrim(pg_catalog.current_query(),E' \t\r\n\f'||pg_catalog.chr(11)) NOT IN('COMMIT','COMMIT;')
++ THEN RAISE EXCEPTION 'b2_handoff_commit_form_refused'; END IF;
++ SELECT * INTO h FROM vn_jupiter_b2_fixture_anchor.credential_handoff WHERE scope_wire=NEW.scope_wire AND handoff_id=NEW.handoff_id;
++ IF NOT FOUND OR h.permit_wire IS DISTINCT FROM NEW.permit_wire OR h.stage_xid IS DISTINCT FROM NEW.stage_xid OR h.handoff_wire IS NULL
++  OR h.handoff_wire IS DISTINCT FROM vn_jupiter_b2_allocation_research_v3._handoff_native(h.scope_wire,h.handoff_id,'commit')
++ THEN RAISE EXCEPTION 'b2_handoff_marker_refused'; END IF;
++ RETURN NEW;
++END;
++$handoff$;
++CREATE CONSTRAINT TRIGGER committed_credential_handoff_guard
++ AFTER UPDATE ON vn_jupiter_b2_fixture_anchor.credential_handoff
++ DEFERRABLE INITIALLY DEFERRED FOR EACH ROW
++ WHEN (OLD.stage_xid IS NULL AND NEW.stage_xid IS NOT NULL)
++ EXECUTE FUNCTION vn_jupiter_b2_fixture_anchor._commit_credential_handoff();
++REVOKE ALL ON FUNCTION vn_jupiter_b2_fixture_anchor._stage_credential_handoff(pg_catalog.text,pg_catalog.uuid),
++ vn_jupiter_b2_fixture_anchor._finish_credential_handoff(pg_catalog.text,pg_catalog.uuid),
++ vn_jupiter_b2_fixture_anchor._commit_credential_handoff() FROM PUBLIC;
++GRANT EXECUTE ON FUNCTION vn_jupiter_b2_fixture_anchor._stage_credential_handoff(pg_catalog.text,pg_catalog.uuid),
++ vn_jupiter_b2_fixture_anchor._finish_credential_handoff(pg_catalog.text,pg_catalog.uuid) TO vn_jupiter_b2_actor_issuer;
++RESET ROLE;
++COMMIT;
+--- /dev/null
++++ b/services/vonneumann/db-contract/research/jupiter_stop_intent_lab.sql
+@@ -0,0 +1,289 @@
++-- One scoped pre-dispatch Stop intent for the verified handoff laboratory.
++BEGIN;
++SET LOCAL ROLE vn_jupiter_b2_sealed_owner;
++
++CREATE TABLE vn_jupiter_b2_allocation_research_v3.stop_intents (
++  scope_wire pg_catalog.text PRIMARY KEY
++    REFERENCES vn_jupiter_b2_allocation_research_v3.scope_state(scope_wire)
++    CHECK (pg_catalog.octet_length(scope_wire)<=512),
++  action_id pg_catalog.text NOT NULL UNIQUE CHECK (action_id ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'),
++  intent_wire pg_catalog.text NOT NULL CHECK (pg_catalog.octet_length(intent_wire)<=4096),
++  registering_xid pg_catalog.xid8 NOT NULL
++);
++
++-- FUNCTION _stop_intent_reply
++CREATE FUNCTION vn_jupiter_b2_allocation_research_v3._stop_intent_reply(stored_wire pg_catalog.text, requested_scope pg_catalog.text, requested_id pg_catalog.text, auth pg_catalog.jsonb)
++RETURNS pg_catalog.jsonb
++LANGUAGE plpgsql STABLE SECURITY INVOKER
++CALLED ON NULL INPUT PARALLEL UNSAFE COST 100
++SET search_path = 'pg_catalog', 'pg_temp'
++SET TimeZone = 'UTC'
++SET client_encoding = 'UTF8'
++SET standard_conforming_strings = 'on'
++AS $intent$
++DECLARE intent jsonb; command jsonb;
++BEGIN
++ IF pg_catalog.jsonb_typeof(auth->'handoff') IS DISTINCT FROM 'object'
++  OR stored_wire IS NULL OR pg_catalog.octet_length(stored_wire)>4096
++ THEN RAISE EXCEPTION 'b2_stop_intent_profile_refused' USING ERRCODE='42501'; END IF;
++ intent:=stored_wire::jsonb;
++ command:=(intent->>'original_command_wire')::jsonb;
++ IF NOT vn_jupiter_b2_allocation_research_v3._keys(intent,ARRAY[
++    'format','installation_id','native_package_sha256','effective_catalog_sha256','handoff_sha256',
++    'control_binding_id','original_command_wire','original_command_sha256'])
++  OR intent->>'format' IS DISTINCT FROM 'ga-jupiter-b2-stop-intent-research-v3-v1'
++  OR vn_jupiter_b2_allocation_research_v3._c14n(intent) IS DISTINCT FROM stored_wire
++  OR intent->>'installation_id' IS DISTINCT FROM auth#>>'{package,installation_id}'
++  OR intent->>'native_package_sha256' IS DISTINCT FROM auth#>>'{package,native_package_sha256}'
++  OR intent->>'effective_catalog_sha256' IS DISTINCT FROM auth->>'effective_catalog_sha256'
++  OR intent->>'handoff_sha256' IS DISTINCT FROM vn_jupiter_b2_allocation_research_v3._sha(
++    vn_jupiter_b2_allocation_research_v3._c14n(auth->'handoff'))
++  OR (intent->>'original_command_sha256' ~ '^[0-9a-f]{64}$') IS DISTINCT FROM true
++  OR intent->>'original_command_sha256' IS DISTINCT FROM vn_jupiter_b2_allocation_research_v3._sha(intent->>'original_command_wire')
++  OR vn_jupiter_b2_allocation_research_v3._c14n(command) IS DISTINCT FROM intent->>'original_command_wire'
++  OR command->>'action_kind' IS DISTINCT FROM 'source_stop'
++  OR command->>'action_id' IS DISTINCT FROM requested_id
++  OR command->>'action_id' IS DISTINCT FROM (auth->>'genesis_wire')::jsonb->>'terminal_stop_action_id'
++  OR vn_jupiter_b2_allocation_research_v3._scope(command->'scope') IS DISTINCT FROM requested_scope
++  OR NOT EXISTS(SELECT 1 FROM vn_jupiter_b2_fixture_anchor.actor_bindings b
++    CROSS JOIN LATERAL pg_catalog.jsonb_array_elements(
++      (auth->>'actor_manifest_wire')::jsonb->'bindings') e
++    WHERE b.scope_wire=requested_scope AND b.binding_id=intent->>'control_binding_id'
++     AND b.capabilities=ARRAY['control','read_original']::text[]
++     AND e->>'principal_binding_id'=b.binding_id AND e->>'session_user_oid'=b.session_oid::text
++     AND e->>'session_user_name'=b.session_name AND e->'scope'=command->'scope'
++     AND e->'capabilities'=pg_catalog.to_jsonb(b.capabilities)
++     AND vn_jupiter_b2_allocation_research_v3._c14n(e)=b.binding_wire)
++ THEN RAISE EXCEPTION 'b2_stop_intent_pin_refused' USING ERRCODE='42501'; END IF;
++ RETURN intent;
++END;
++$intent$;
++
++-- FUNCTION _existing_stop_intent
++CREATE FUNCTION vn_jupiter_b2_allocation_research_v3._existing_stop_intent(requested_scope pg_catalog.text, command pg_catalog.jsonb, wire pg_catalog.text, auth pg_catalog.jsonb)
++RETURNS pg_catalog.text
++LANGUAGE plpgsql VOLATILE SECURITY INVOKER
++CALLED ON NULL INPUT PARALLEL UNSAFE COST 100
++SET search_path = 'pg_catalog', 'pg_temp'
++SET TimeZone = 'UTC'
++SET client_encoding = 'UTF8'
++SET standard_conforming_strings = 'on'
++AS $intent$
++DECLARE row_value vn_jupiter_b2_allocation_research_v3.stop_intents%ROWTYPE; intent jsonb;
++BEGIN
++ IF pg_catalog.current_setting('transaction_isolation')<>'read committed'
++  OR pg_catalog.jsonb_typeof(auth->'handoff') IS DISTINCT FROM 'object'
++ THEN RAISE EXCEPTION 'b2_stop_intent_profile_refused' USING ERRCODE='42501'; END IF;
++ -- This statement must run after the caller acquires its package/binding
++ -- and scope locks. VOLATILE gives it the fresh READ COMMITTED snapshot.
++ SELECT * INTO row_value FROM vn_jupiter_b2_allocation_research_v3.stop_intents s WHERE s.scope_wire=requested_scope;
++ IF NOT FOUND THEN RETURN NULL; END IF;
++ intent:=vn_jupiter_b2_allocation_research_v3._stop_intent_reply(row_value.intent_wire,requested_scope,row_value.action_id,auth);
++ IF row_value.action_id IS DISTINCT FROM command->>'action_id'
++  OR intent->>'original_command_wire' IS DISTINCT FROM wire
++  OR intent->>'control_binding_id' IS DISTINCT FROM auth->>'binding_id'
++ THEN RAISE EXCEPTION 'b2_stop_intent_conflict' USING ERRCODE='42501'; END IF;
++ IF row_value.registering_xid=pg_catalog.pg_current_xact_id_if_assigned()
++ THEN RAISE EXCEPTION 'b2_stop_intent_uncommitted' USING ERRCODE='42501'; END IF;
++ PERFORM vn_jupiter_b2_allocation_research_v3._check_credential_window(auth->'credential_windows',
++  (vn_jupiter_b2_allocation_research_v3._clock()->>'observed_at_us')::bigint);
++ RETURN row_value.intent_wire;
++END;
++$intent$;
++
++-- FUNCTION _stage_stop_intent
++CREATE FUNCTION vn_jupiter_b2_allocation_research_v3._stage_stop_intent(requested_scope pg_catalog.text, command pg_catalog.jsonb, wire pg_catalog.text, auth pg_catalog.jsonb)
++RETURNS pg_catalog.text
++LANGUAGE plpgsql VOLATILE SECURITY INVOKER
++CALLED ON NULL INPUT PARALLEL UNSAFE COST 100
++SET search_path = 'pg_catalog', 'pg_temp'
++SET TimeZone = 'UTC'
++SET client_encoding = 'UTF8'
++SET standard_conforming_strings = 'on'
++AS $intent$
++DECLARE staged_wire text; command_sha text; observed_us bigint;
++BEGIN
++ -- The shared submit planner has already locked the scope and validated
++ -- the full original Stop, prior closure and untouched native budget.
++ IF pg_catalog.jsonb_typeof(auth->'handoff') IS DISTINCT FROM 'object'
++  OR pg_catalog.jsonb_typeof(auth->'credential_windows') IS DISTINCT FROM 'array'
++  OR command#>>'{body,expected_mode}' IS DISTINCT FROM 'open'
++  OR (auth->>'effective_catalog_sha256' ~ '^[0-9a-f]{64}$') IS DISTINCT FROM true
++ THEN RAISE EXCEPTION 'b2_stop_intent_profile_refused' USING ERRCODE='42501'; END IF;
++ command_sha:=vn_jupiter_b2_allocation_research_v3._sha(wire);
++ staged_wire:=vn_jupiter_b2_allocation_research_v3._c14n(pg_catalog.jsonb_build_object(
++  'format','ga-jupiter-b2-stop-intent-research-v3-v1','installation_id',auth#>>'{package,installation_id}',
++  'native_package_sha256',auth#>>'{package,native_package_sha256}','effective_catalog_sha256',auth->>'effective_catalog_sha256',
++  'handoff_sha256',vn_jupiter_b2_allocation_research_v3._sha(vn_jupiter_b2_allocation_research_v3._c14n(auth->'handoff')),
++  'control_binding_id',auth->>'binding_id','original_command_wire',wire,'original_command_sha256',command_sha));
++ PERFORM vn_jupiter_b2_allocation_research_v3._stop_intent_reply(staged_wire,requested_scope,command->>'action_id',auth);
++ observed_us:=(vn_jupiter_b2_allocation_research_v3._clock()->>'observed_at_us')::bigint;
++ PERFORM vn_jupiter_b2_allocation_research_v3._check_credential_window(auth->'credential_windows',observed_us);
++ INSERT INTO vn_jupiter_b2_allocation_research_v3.stop_intents(scope_wire,action_id,intent_wire,registering_xid)
++  VALUES(requested_scope,command->>'action_id',staged_wire,pg_catalog.pg_current_xact_id());
++ RETURN vn_jupiter_b2_allocation_research_v3._c14n(pg_catalog.jsonb_build_object(
++  'format','ga-jupiter-b2-stop-intent-provisional-research-v3-v1','scope',command->'scope',
++  'action_id',command->>'action_id','original_command_sha256',command_sha,'pending_commit',true));
++END;
++$intent$;
++
++-- FUNCTION _require_no_stop_intent
++CREATE FUNCTION vn_jupiter_b2_allocation_research_v3._require_no_stop_intent(requested_scope pg_catalog.text)
++RETURNS pg_catalog.void
++LANGUAGE plpgsql VOLATILE SECURITY INVOKER
++CALLED ON NULL INPUT PARALLEL UNSAFE COST 100
++SET search_path = 'pg_catalog', 'pg_temp'
++SET TimeZone = 'UTC'
++SET client_encoding = 'UTF8'
++SET standard_conforming_strings = 'on'
++AS $intent$
++BEGIN
++ IF pg_catalog.current_setting('transaction_isolation')<>'read committed'
++ THEN RAISE EXCEPTION 'b2_stop_intent_profile_refused' USING ERRCODE='42501'; END IF;
++ PERFORM 1 FROM vn_jupiter_b2_allocation_research_v3.stop_intents s WHERE s.scope_wire=requested_scope;
++ IF FOUND THEN RAISE EXCEPTION 'b2_stop_intent_pending' USING ERRCODE='42501'; END IF;
++END;
++$intent$;
++
++-- FUNCTION _require_exact_stop_intent
++CREATE FUNCTION vn_jupiter_b2_allocation_research_v3._require_exact_stop_intent(requested_scope pg_catalog.text, command pg_catalog.jsonb, wire pg_catalog.text, auth pg_catalog.jsonb)
++RETURNS pg_catalog.void
++LANGUAGE plpgsql VOLATILE SECURITY INVOKER
++CALLED ON NULL INPUT PARALLEL UNSAFE COST 100
++SET search_path = 'pg_catalog', 'pg_temp'
++SET TimeZone = 'UTC'
++SET client_encoding = 'UTF8'
++SET standard_conforming_strings = 'on'
++AS $intent$
++BEGIN
++ IF vn_jupiter_b2_allocation_research_v3._existing_stop_intent(requested_scope,command,wire,auth) IS NULL
++ THEN RAISE EXCEPTION 'b2_stop_intent_required' USING ERRCODE='42501'; END IF;
++END;
++$intent$;
++
++-- FUNCTION record_stop_intent
++CREATE FUNCTION vn_jupiter_b2_allocation_research_v3.record_stop_intent(wire pg_catalog.text)
++RETURNS pg_catalog.text
++LANGUAGE plpgsql VOLATILE SECURITY DEFINER
++CALLED ON NULL INPUT PARALLEL UNSAFE COST 100
++SET search_path = 'pg_catalog', 'pg_temp'
++SET TimeZone = 'UTC'
++SET client_encoding = 'UTF8'
++SET standard_conforming_strings = 'on'
++AS $intent$
++BEGIN
++ RETURN vn_jupiter_b2_allocation_research_v3._submit(wire,true);
++END;
++$intent$;
++
++-- FUNCTION get_stop_intent
++CREATE FUNCTION vn_jupiter_b2_allocation_research_v3.get_stop_intent(wire pg_catalog.text)
++RETURNS pg_catalog.text
++LANGUAGE plpgsql STABLE SECURITY DEFINER
++CALLED ON NULL INPUT PARALLEL UNSAFE COST 100
++SET search_path = 'pg_catalog', 'pg_temp'
++SET TimeZone = 'UTC'
++SET client_encoding = 'UTF8'
++SET standard_conforming_strings = 'on'
++AS $intent$
++DECLARE query jsonb; sw text; auth jsonb; row_value vn_jupiter_b2_allocation_research_v3.stop_intents%ROWTYPE;
++        intent jsonb; response text;
++BEGIN
++ IF wire IS NULL OR pg_catalog.octet_length(wire)>2048 THEN RAISE EXCEPTION 'b2_stop_intent_query_refused'; END IF;
++ query:=wire::jsonb;
++ IF NOT vn_jupiter_b2_allocation_research_v3._keys(query,ARRAY[
++   'format','native_policy_sha256','scope','target_kind','target_id','expected_original_command_sha256','correlation'])
++  OR query->>'format' IS DISTINCT FROM 'ga-jupiter-b2-original-query-research-v3-v1'
++  OR query->>'native_policy_sha256' IS DISTINCT FROM 'e5dca1d13839102fb1fdd261176393b73c770a95ab355eff74499169905bfba0'
++  OR query->>'target_kind' IS DISTINCT FROM 'source_stop'
++  OR pg_catalog.jsonb_typeof(query->'target_id') IS DISTINCT FROM 'string'
++  OR (query->>'target_id' ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$') IS DISTINCT FROM true
++  OR pg_catalog.jsonb_typeof(query->'expected_original_command_sha256') IS DISTINCT FROM 'string'
++  OR (query->>'expected_original_command_sha256' ~ '^[0-9a-f]{64}$') IS DISTINCT FROM true
++  OR query->'correlation' IS DISTINCT FROM pg_catalog.jsonb_build_object('kind','original_action_id','id',query->>'target_id')
++  OR vn_jupiter_b2_allocation_research_v3._c14n(query) IS DISTINCT FROM wire
++ THEN RAISE EXCEPTION 'b2_stop_intent_query_refused'; END IF;
++ sw:=vn_jupiter_b2_allocation_research_v3._scope(query->'scope');
++ auth:=vn_jupiter_b2_allocation_research_v3._auth(query->'scope','get_original',NULL,NULL,NULL);
++ IF pg_catalog.jsonb_typeof(auth->'handoff') IS DISTINCT FROM 'object'
++  OR pg_catalog.jsonb_typeof(auth->'credential_windows') IS DISTINCT FROM 'array'
++  OR auth->>'binding_id' IS DISTINCT FROM (auth->>'genesis_wire')::jsonb#>>'{initial_acquisition_spec,reader_principal_binding_id}'
++  OR query->>'target_id' IS DISTINCT FROM (auth->>'genesis_wire')::jsonb->>'terminal_stop_action_id'
++ THEN RAISE EXCEPTION 'b2_stop_intent_reader_refused' USING ERRCODE='42501'; END IF;
++ SELECT * INTO row_value FROM vn_jupiter_b2_allocation_research_v3.stop_intents s WHERE s.scope_wire=sw;
++ IF FOUND THEN
++  IF row_value.registering_xid=pg_catalog.pg_current_xact_id_if_assigned()
++  THEN RAISE EXCEPTION 'b2_stop_intent_uncommitted' USING ERRCODE='42501'; END IF;
++  intent:=vn_jupiter_b2_allocation_research_v3._stop_intent_reply(row_value.intent_wire,sw,row_value.action_id,auth);
++  IF row_value.action_id IS DISTINCT FROM query->>'target_id'
++   OR intent->>'original_command_sha256' IS DISTINCT FROM query->>'expected_original_command_sha256'
++  THEN RAISE EXCEPTION 'b2_stop_intent_conflict' USING ERRCODE='42501'; END IF;
++ END IF;
++ response:=vn_jupiter_b2_allocation_research_v3._c14n(pg_catalog.jsonb_build_object(
++  'format','ga-jupiter-b2-stop-intent-observation-research-v3-v1','scope',query->'scope','action_id',query->>'target_id',
++  'resolution',CASE WHEN intent IS NULL THEN 'observed_absent_unknown' ELSE 'observed_committed_exact' END,
++  'intent_wire',row_value.intent_wire));
++ IF pg_catalog.octet_length(response)>12288 THEN RAISE EXCEPTION 'b2_stop_intent_query_bound'; END IF;
++ PERFORM vn_jupiter_b2_allocation_research_v3._check_credential_window(auth->'credential_windows',
++  (vn_jupiter_b2_allocation_research_v3._clock()->>'observed_at_us')::bigint);
++ RETURN response;
++EXCEPTION WHEN invalid_text_representation OR numeric_value_out_of_range THEN
++ RAISE EXCEPTION 'b2_stop_intent_query_refused';
++END;
++$intent$;
++
++-- FUNCTION _stop_intent_commit_guard
++CREATE FUNCTION vn_jupiter_b2_allocation_research_v3._stop_intent_commit_guard()
++RETURNS pg_catalog.trigger
++LANGUAGE plpgsql VOLATILE SECURITY DEFINER
++CALLED ON NULL INPUT PARALLEL UNSAFE COST 100
++SET search_path = 'pg_catalog', 'pg_temp'
++SET TimeZone = 'UTC'
++SET client_encoding = 'UTF8'
++SET standard_conforming_strings = 'on'
++AS $intent$
++DECLARE intent jsonb; command jsonb; auth jsonb; head jsonb; accounting jsonb;
++BEGIN
++ IF pg_catalog.btrim(pg_catalog.current_query(),E' \t\r\n\f'||pg_catalog.chr(11)) NOT IN('COMMIT','COMMIT;')
++ THEN RAISE EXCEPTION 'b2_stop_intent_commit_form_refused'; END IF;
++ IF NEW.registering_xid IS DISTINCT FROM pg_catalog.pg_current_xact_id()
++  OR pg_catalog.current_setting('synchronous_commit')<>'on' OR pg_catalog.current_setting('fsync')<>'on'
++ THEN RAISE EXCEPTION 'b2_stop_intent_origin_refused'; END IF;
++ command:=(NEW.intent_wire::jsonb->>'original_command_wire')::jsonb;
++ auth:=vn_jupiter_b2_allocation_research_v3._auth(command->'scope','control',NULL,NULL,NULL);
++ intent:=vn_jupiter_b2_allocation_research_v3._stop_intent_reply(NEW.intent_wire,NEW.scope_wire,NEW.action_id,auth);
++ SELECT s.head_wire::jsonb,s.accounting_wire::jsonb INTO head,accounting
++ FROM vn_jupiter_b2_allocation_research_v3.scope_state s WHERE s.scope_wire=NEW.scope_wire FOR UPDATE;
++ IF NOT FOUND OR intent->>'control_binding_id' IS DISTINCT FROM auth->>'binding_id'
++  OR head->>'source_mode' IS DISTINCT FROM 'open'
++  OR accounting->'Stop_reserve_consumed' IS DISTINCT FROM 'false'::jsonb
++  OR command->'expected_head' IS DISTINCT FROM pg_catalog.jsonb_build_object(
++    'native_sequence',head->'native_sequence','native_head_sha256',head->'native_head_sha256','previous_seal_sha256',head->'previous_seal_sha256')
++  OR EXISTS(SELECT 1 FROM vn_jupiter_b2_allocation_research_v3.original_operations o
++    WHERE o.action_id=NEW.action_id OR o.writer_xid8=NEW.registering_xid)
++ THEN RAISE EXCEPTION 'b2_stop_intent_origin_refused'; END IF;
++ PERFORM vn_jupiter_b2_allocation_research_v3._check_credential_window(auth->'credential_windows',
++  (vn_jupiter_b2_allocation_research_v3._clock()->>'observed_at_us')::bigint);
++ RETURN NEW;
++END;
++$intent$;
++
++CREATE CONSTRAINT TRIGGER committed_stop_intent_guard AFTER INSERT ON vn_jupiter_b2_allocation_research_v3.stop_intents
++DEFERRABLE INITIALLY DEFERRED FOR EACH ROW
++EXECUTE FUNCTION vn_jupiter_b2_allocation_research_v3._stop_intent_commit_guard();
++
++REVOKE ALL ON TABLE vn_jupiter_b2_allocation_research_v3.stop_intents FROM PUBLIC;
++REVOKE ALL ON TYPE vn_jupiter_b2_allocation_research_v3.stop_intents FROM PUBLIC;
++REVOKE ALL ON FUNCTION
++ vn_jupiter_b2_allocation_research_v3._stop_intent_reply(pg_catalog.text,pg_catalog.text,pg_catalog.text,pg_catalog.jsonb),
++ vn_jupiter_b2_allocation_research_v3._existing_stop_intent(pg_catalog.text,pg_catalog.jsonb,pg_catalog.text,pg_catalog.jsonb),
++ vn_jupiter_b2_allocation_research_v3._stage_stop_intent(pg_catalog.text,pg_catalog.jsonb,pg_catalog.text,pg_catalog.jsonb),
++ vn_jupiter_b2_allocation_research_v3._require_no_stop_intent(pg_catalog.text),
++ vn_jupiter_b2_allocation_research_v3._require_exact_stop_intent(pg_catalog.text,pg_catalog.jsonb,pg_catalog.text,pg_catalog.jsonb),
++ vn_jupiter_b2_allocation_research_v3.record_stop_intent(pg_catalog.text),
++ vn_jupiter_b2_allocation_research_v3.get_stop_intent(pg_catalog.text),
++ vn_jupiter_b2_allocation_research_v3._stop_intent_commit_guard()
++FROM PUBLIC;
++GRANT EXECUTE ON FUNCTION vn_jupiter_b2_allocation_research_v3.record_stop_intent(pg_catalog.text) TO vn_jupiter_b2_0_control;
++GRANT EXECUTE ON FUNCTION vn_jupiter_b2_allocation_research_v3.get_stop_intent(pg_catalog.text) TO vn_jupiter_b2_0_reader;
++COMMIT;
+--- a/services/vonneumann/tests/postgres/allocation_control_v3_fixture.py
++++ b/services/vonneumann/tests/postgres/allocation_control_v3_fixture.py
+@@ -31,9 +31,13 @@
+ LOADER_PATH = ROOT / 'db-contract/research/allocation_control_v3_source.py'
+ POLICY_PATH = ROOT / 'research/b2-finite-experiment-policy-2026-10-18-v3.json'
+ TERMINAL_ADDON_PATH = ROOT / 'db-contract/research/jupiter_terminal_retirement_owner_lab.sql'
++HANDOFF_ADDON_PATH = ROOT / 'db-contract/research/jupiter_credential_handoff_lab.sql'
++HANDOFF_ADDON_SHA256 = '4db168d8822ba26505c3368305dfb401704c13a68877394d4c0c452940e7f695'
++STOP_INTENT_ADDON_PATH = ROOT / 'db-contract/research/jupiter_stop_intent_lab.sql'
++STOP_INTENT_ADDON_SHA256 = '90e73e9e9a13fbc5fdd07f86507e34fae010b3bc8d3d226bc5349da9d1661018'
+ TERMINAL_ADDON_SHA256 = 'a4064e365aa0ef71f8f551703b0c14596b20d42bde318cd969dce9e8d9f4c0e7'
+-SOURCE_SHA256 = '352541c97ca5f3c7e85d225cf99f5adaa173aa34e173f0a05d15b1900649a568'
+-LOADER_SHA256 = 'bcf46a93693aade9f2b56690ccf8fa37ed48b53013394e8868dd78fb0b5f7391'
++SOURCE_SHA256 = '5e30b12a42021487d1b0a684aeedf64bccb658e32de42b442b574cf58c492fbf'
++LOADER_SHA256 = '048d0468b78a61c83f3d02a33d0879c6576b687ffefb21b5671a398bbb65dcf7'
+ POLICY_FILE_SHA256 = '0a1c8663f4f6cbf9b299cab11fcdd00a379dbe3ca3493b706ddafca9b75c0f1a'
+ POLICY_SHA256 = 'e5dca1d13839102fb1fdd261176393b73c770a95ab355eff74499169905bfba0'
+ PROFILES = {'installer':['install','register_epoch','read_original'],
+@@ -210,10 +214,10 @@
+ 
+ def verify_functions(db, source, actors, *, getter_only=()):
+     rows=json.loads(db.scalar(f"""SELECT jsonb_agg(jsonb_build_object('namespace',p.pronamespace::regnamespace::text,'name',p.proname,'owner',r.rolname,'body',p.prosrc,'args',p.proargtypes::oid[]::text,'names',to_jsonb(p.proargnames),'return',p.prorettype::regtype::text,'lang',l.lanname,'kind',p.prokind,'definer',p.prosecdef,'strict',p.proisstrict,'volatile',p.provolatile,'parallel',p.proparallel,'leak',p.proleakproof,'set',p.proretset,'cost',p.procost::text,'rows',p.prorows::text,'support',p.prosupport::oid::text,'variadic',p.provariadic::text,'defaults',p.pronargdefaults,'alltypes',to_jsonb(p.proallargtypes),'modes',to_jsonb(p.proargmodes),'transforms',to_jsonb(p.protrftypes),'binary',p.probin,'sqlbody',p.prosqlbody::text,'settings',to_jsonb(p.proconfig)) ORDER BY p.proname) FROM pg_proc p JOIN pg_roles r ON r.oid=p.proowner JOIN pg_language l ON l.oid=p.prolang WHERE p.pronamespace IN(SELECT oid FROM pg_namespace WHERE nspname IN({literal(A)},{literal(N)}));""",timeout=30))
+-    if type(rows) is not list or len(rows)!=18:raise RuntimeError('b2_source_functions_refused')
++    if type(rows) is not list or len(rows)!=len(source.functions())+1:raise RuntimeError('b2_source_functions_refused')
+     anchor_rows=[row for row in rows if row['namespace']==A]
+     rows=[row for row in rows if row['namespace']==N]
+-    if len(rows)!=17 or len(anchor_rows)!=1:raise RuntimeError('b2_source_functions_refused')
++    if len(rows)!=len(source.functions()) or len(anchor_rows)!=1:raise RuntimeError('b2_source_functions_refused')
+     specs={x['name']:x for x in source.functions()}
+     for row in rows:
+         expected=specs.pop(row['name'],None)
+@@ -224,7 +228,7 @@
+         # Actual argument identities are also resolved from independently held
+         # pg_catalog names; comparing only deparsed spelling is insufficient.
+         expected_oidargs=db.scalar("SELECT ARRAY["+','.join(literal('pg_catalog.'+t)+'::regtype::oid' for t in argtypes)+"]::oid[]::text;" if argtypes else "SELECT ARRAY[]::oid[]::text;")
+-        result='void' if row['name']=='_check_credential_window' else 'trigger' if row['name']=='_commit_guard' else ('boolean' if row['name']=='_keys' else ('text' if row['name'] in ('_c14n','_sha','_scope','_reply','get_original','submit') else 'jsonb'))
++        result='void' if row['name']=='_check_credential_window' else 'trigger' if row['name']=='_commit_guard' else ('boolean' if row['name']=='_keys' else ('text' if row['name'] in ('_c14n','_sha','_scope','_reply','get_original','submit','_submit') else 'jsonb'))
+         actual={k:row[k] for k in ('owner','body','names','return','lang','kind','definer','strict','volatile','parallel','leak','set','cost','rows','support','variadic','defaults','alltypes','modes','transforms','binary','sqlbody')}
+         wanted=dict(owner=OWNER,body=expected['body'],names=expected['argument_names'],lang='plpgsql',kind='f',definer=expected['definer'],strict=False,volatile=expected['volatility'],parallel='u',leak=False,set=False,cost='100',rows='0',support='0',variadic='0',defaults=0,alltypes=None,modes=None,transforms=None,binary=None,sqlbody=None)
+         wanted['return']=result
+@@ -256,11 +260,13 @@
+ CREATOR = 'vn_jupiter_b2_actor_issuer'
+ SCRAM_FORMAT = 'ga-jupiter-b2-fixture-direct-scram-research-v3-v1'
+ SHORT_RECORDER = 'vn_jupiter_b2_0_recorder'
++SUCCESSOR_RECORDER = 'vn_jupiter_b2_0_recorder_next'
++HANDOFF_PACKAGE_FORMAT = 'ga-jupiter-b2-fixture-direct-scram-handoff-research-v3-v1'
+ DEADLINE_PACKAGE_FORMAT = 'ga-jupiter-b2-fixture-direct-scram-deadlines-research-v3-v1'
+ DEADLINE_MANIFEST_FORMAT = 'ga-jupiter-b2-capability-manifest-deadlines-research-v3-v1'
+ 
+ 
+-def verify_seal(db, source, actors, *, creator_edges=False):
++def verify_seal(db, source, actors, *, creator_edges=False, actor_count=8):
+     # Exact stored/effective default-expanded ACL entries, not just the chosen
+     # actors' absence of rights. Unknown grantees/grantors/column grants refuse.
+     acl=json.loads(db.scalar(f"""SELECT jsonb_build_object(
+@@ -323,7 +329,7 @@
+         if issuer[1:]!=[True,True,False,False,False,False,False] or issuer[0]==grantor[0] or grantor!=['10',True]:
+             raise RuntimeError('b2_creator_identity_refused')
+         actor_oids=json.loads(db.scalar(f"SELECT jsonb_agg(oid::text ORDER BY oid) FROM pg_roles WHERE rolname IN({','.join(map(literal,actors))});"))
+-        if len(actors)!=8 or len(actor_oids)!=8 or len(set(actor_oids))!=8:
++        if len(actors)!=actor_count or len(actor_oids)!=actor_count or len(set(actor_oids))!=actor_count:
+             raise RuntimeError('b2_actor_oid_inventory_refused')
+         expected_membership=[[oid,issuer[0],grantor[0],True,False,False] for oid in actor_oids]
+     if membership!=expected_membership:raise RuntimeError('b2_membership_refused')
+@@ -335,6 +341,7 @@
+     recorder_seconds = 35
+     issuer_scram = False
+     independent_deadlines = False
++    scope_count = 2
+ 
+     def __init__(self):
+         super().__init__()
+@@ -350,7 +357,7 @@
+         return f'CONNECTION LIMIT 2 PASSWORD {literal(verifier)} VALID UNTIL {literal(deadline)}'
+ 
+     def actor_ddl(self, actors):
+-        if self.actor_deadlines or len(set(actors)) != 8 or SHORT_RECORDER not in actors:
++        if self.actor_deadlines or len(set(actors)) != 4*self.scope_count or SHORT_RECORDER not in actors:
+             raise RuntimeError('b2_scram_fixture_actor_inventory_refused')
+         # One authoritative timestamp with fixed, finite offsets. Use the same
+         # absolute values in role creation and in the independent catalog check.
+@@ -451,7 +458,11 @@
+     short_profile = 'reader'
+ 
+ 
+-def install_and_verify_terminal_addon(db):
++class AllocationHandoffPostgres(AllocationDeadlineRetirementPostgres):
++    scope_count = 1
++
++
++def install_and_verify_terminal_addon(db, expected_functions):
+     """Install only in the owned terminal fixture, before independent K capture."""
+     source=held(TERMINAL_ADDON_PATH,TERMINAL_ADDON_SHA256,32768).decode('utf8')
+     signatures={
+@@ -460,8 +471,16 @@
+         '_terminal_retirement_commit_guard':(A,ANCHOR_OWNER,None,[],'trigger',None),
+     }
+     db.sql(source,timeout=30)
+-    for name,(namespace,owner,args,argtypes,returns,grantee) in signatures.items():
+-        body=re.search(r'^-- FUNCTION '+name+r'\nCREATE FUNCTION [^\n]+\n.*?^AS \$terminal\$(.*?)^\$terminal\$;',source,re.M|re.S)
++    functions={name:(namespace,owner,args,argtypes,returns,grantee,'v',True)
++               for name,(namespace,owner,args,argtypes,returns,grantee) in signatures.items()}
++    verify_companion_functions(db,source,'terminal',functions)
++    verify_terminal_addon_catalog(db,expected_functions)
++
++
++def verify_companion_functions(db,source,delimiter,signatures):
++    tag=re.escape('$'+delimiter+'$')
++    for name,(namespace,owner,args,argtypes,returns,grantee,volatility,definer) in signatures.items():
++        body=re.search(r'^-- FUNCTION '+name+r'\nCREATE FUNCTION [^\n]+\n.*?^AS '+tag+r'(.*?)^'+tag+r';',source,re.M|re.S)
+         if body is None:
+             raise RuntimeError('b2_terminal_held_function_refused')
+         signature=f'{namespace}.{name}('+','.join(argtypes)+')'
+@@ -475,13 +494,14 @@
+           LEFT JOIN pg_roles grantee ON grantee.oid=a.grantee))
+           FROM pg_proc p JOIN pg_language l ON l.oid=p.prolang WHERE p.oid={literal(signature)}::regprocedure;"""))
+         allowed=sorted([owner]+([grantee] if grantee else []))
+-        expected=[owner,body.group(1),args,argtypes,returns,'plpgsql','f',True,False,'v','u',False,False,
++        expected=[owner,body.group(1),args,argtypes,returns,'plpgsql','f',definer,False,volatility,'u',False,False,
+           '100','0','0','0',0,None,None,None,None,None,
+           ['search_path=pg_catalog, pg_temp','TimeZone=UTC','client_encoding=UTF8','standard_conforming_strings=on'],
+           [[role,owner,'EXECUTE',False] for role in allowed]]
+         if actual!=expected:
+             raise RuntimeError('b2_terminal_function_catalog_refused:'+name)
+-    if db.scalar(f"SELECT count(*) FROM pg_proc WHERE pronamespace IN({literal(A)}::regnamespace,{literal(N)}::regnamespace);")!='21':
++def verify_terminal_addon_catalog(db,expected_functions):
++    if db.scalar(f"SELECT count(*) FROM pg_proc WHERE pronamespace IN({literal(A)}::regnamespace,{literal(N)}::regnamespace);")!=str(expected_functions):
+         raise RuntimeError('b2_terminal_function_inventory_refused')
+     schema_grants=json.loads(db.scalar(f"""SELECT jsonb_agg(jsonb_build_array(n.nspname,pg_get_userbyid(a.grantee),
+        pg_get_userbyid(a.grantor),a.privilege_type,a.is_grantable) ORDER BY n.nspname)
+@@ -514,6 +534,73 @@
+         raise RuntimeError('b2_terminal_issuer_effective_acl_refused')
+ 
+ 
++def install_and_verify_handoff_addons(db, terminal_functions, control, reader):
++    handoff=held(HANDOFF_ADDON_PATH,HANDOFF_ADDON_SHA256,65536).decode('utf8')
++    stop=held(STOP_INTENT_ADDON_PATH,STOP_INTENT_ADDON_SHA256,65536).decode('utf8')
++    handoff_signatures={
++        '_read_handoff':(N,OWNER,['requested_scope'],['text'],'jsonb',None,'s',False),
++        '_handoff_allows_renew':(N,OWNER,['marker','position','command_sha','writer_binding','prior_fence','prior_head_sha'],
++            ['jsonb','bigint','text','text','jsonb','text'],'boolean',None,'i',False),
++        '_handoff_catalog_preimage':(N,OWNER,['actual','old_role','new_role','issuer'],['jsonb','oid','oid','oid'],'jsonb',None,'s',False),
++        '_handoff_native':(N,OWNER,['requested_scope','requested_id','phase'],['text','uuid','text'],'text',ANCHOR_OWNER,'v',True),
++        '_stage_credential_handoff':(A,ANCHOR_OWNER,['requested_scope','requested_id'],['text','uuid'],'void',CREATOR,'v',True),
++        '_finish_credential_handoff':(A,ANCHOR_OWNER,['requested_scope','requested_id'],['text','uuid'],'text',CREATOR,'v',True),
++        '_commit_credential_handoff':(A,ANCHOR_OWNER,None,[],'trigger',None,'v',True),
++    }
++    stop_signatures={
++        '_stop_intent_reply':(N,OWNER,['stored_wire','requested_scope','requested_id','auth'],['text','text','text','jsonb'],'jsonb',None,'s',False),
++        '_existing_stop_intent':(N,OWNER,['requested_scope','command','wire','auth'],['text','jsonb','text','jsonb'],'text',None,'v',False),
++        '_stage_stop_intent':(N,OWNER,['requested_scope','command','wire','auth'],['text','jsonb','text','jsonb'],'text',None,'v',False),
++        '_require_no_stop_intent':(N,OWNER,['requested_scope'],['text'],'void',None,'v',False),
++        '_require_exact_stop_intent':(N,OWNER,['requested_scope','command','wire','auth'],['text','jsonb','text','jsonb'],'void',None,'v',False),
++        'record_stop_intent':(N,OWNER,['wire'],['text'],'text',control,'v',True),
++        'get_stop_intent':(N,OWNER,['wire'],['text'],'text',reader,'s',True),
++        '_stop_intent_commit_guard':(N,OWNER,None,[],'trigger',None,'v',True),
++    }
++    db.sql(handoff,timeout=30)
++    db.sql(stop,timeout=30)
++    verify_companion_functions(db,handoff,'handoff',handoff_signatures)
++    verify_companion_functions(db,stop,'intent',stop_signatures)
++    if db.scalar(f"SELECT count(*) FROM pg_proc WHERE pronamespace IN({literal(A)}::regnamespace,{literal(N)}::regnamespace);")!=str(terminal_functions+len(handoff_signatures)+len(stop_signatures)):
++        raise RuntimeError('b2_handoff_function_inventory_refused')
++    verify_handoff_table(db,A+'.credential_handoff',ANCHOR_OWNER,OWNER,
++        [['scope_wire','text',True],['handoff_id','uuid',True],['permit_wire','text',True],
++         ['stage_xid','xid8',False],['handoff_wire','text',False]],
++        ['CHECK (handoff_wire IS NULL OR stage_xid IS NOT NULL)','CHECK (octet_length(handoff_wire) <= 8192)',
++         'CHECK (octet_length(permit_wire) <= 8192)',f'FOREIGN KEY (scope_wire) REFERENCES {A}.package_inputs(scope_wire)',
++         'PRIMARY KEY (scope_wire)','UNIQUE (handoff_id)'],
++        ['committed_credential_handoff_guard',A+'._commit_credential_handoff()',17,'O',True,True])
++    verify_handoff_table(db,N+'.stop_intents',OWNER,None,
++        [['scope_wire','text',True],['action_id','text',True],['intent_wire','text',True],['registering_xid','xid8',True]],
++        ["CHECK (action_id ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'::text)",'CHECK (octet_length(intent_wire) <= 4096)',
++         'CHECK (octet_length(scope_wire) <= 512)',f'FOREIGN KEY (scope_wire) REFERENCES {N}.scope_state(scope_wire)',
++         'PRIMARY KEY (scope_wire)','UNIQUE (action_id)'],
++        ['committed_stop_intent_guard',N+'._stop_intent_commit_guard()',5,'O',True,True])
++
++
++def verify_handoff_table(db,relation,owner,grantee,columns,constraints,trigger):
++    oid=literal(relation)+'::regclass'
++    actual=json.loads(db.scalar(f"""SELECT jsonb_build_object(
++     'owner',(SELECT jsonb_build_array(pg_get_userbyid(c.relowner),c.relkind::text,c.relpersistence::text,c.relrowsecurity,c.relforcerowsecurity,c.reloptions) FROM pg_class c WHERE c.oid={oid}),
++     'columns',(SELECT jsonb_agg(jsonb_build_array(a.attname,a.atttypid::regtype::text,a.attnotnull) ORDER BY a.attnum) FROM pg_attribute a
++       WHERE a.attrelid={oid} AND a.attnum>0 AND NOT a.attisdropped AND a.attacl IS NULL AND NOT a.atthasdef AND a.attgenerated=''),
++     'constraints',(SELECT jsonb_agg(pg_get_constraintdef(c.oid,true) ORDER BY pg_get_constraintdef(c.oid,true) COLLATE "C") FROM pg_constraint c WHERE c.conrelid={oid} AND c.convalidated AND c.contype<>'t'),
++     'triggers',(SELECT jsonb_agg(jsonb_build_array(t.tgname,t.tgfoid::regprocedure::text,t.tgtype,t.tgenabled,t.tgdeferrable,t.tginitdeferred))
++       FROM pg_trigger t WHERE t.tgrelid={oid} AND NOT t.tgisinternal),
++     'acl',(SELECT jsonb_agg(jsonb_build_array(coalesce(grantee.rolname,'PUBLIC'),pg_get_userbyid(a.grantor),a.privilege_type,a.is_grantable)
++       ORDER BY grantee.rolname COLLATE "C",a.privilege_type COLLATE "C") FROM pg_class c CROSS JOIN LATERAL
++       aclexplode(coalesce(c.relacl,acldefault('r',c.relowner))) a LEFT JOIN pg_roles grantee ON grantee.oid=a.grantee WHERE c.oid={oid}));"""))
++    privileges=('SELECT','INSERT','UPDATE','DELETE','TRUNCATE','REFERENCES','TRIGGER','MAINTAIN')
++    acl=[[owner,owner,privilege,False] for privilege in privileges]
++    if grantee is not None:
++        acl.append([grantee,owner,'SELECT',False])
++    expected=dict(owner=[owner,'r','p',False,False,None],columns=columns,
++        constraints=sorted(constraints),triggers=[trigger],acl=sorted(acl))
++    if actual!=expected:
++        details={k:dict(actual=actual[k],expected=expected[k]) for k in expected if actual[k]!=expected[k]}
++        raise RuntimeError('b2_handoff_table_catalog_refused:'+relation+':'+canonical(details)[:4096])
++
++
+ class AllocationFixture:
+     def __init__(self,db,*,creator_edges=False):
+         if type(creator_edges) is not bool:raise RuntimeError('b2_fixture_creator_mode_refused')
+@@ -522,6 +609,8 @@
+         self.direct_scram=isinstance(db,AllocationScramPostgres)
+         self.independent_deadlines=self.direct_scram and db.independent_deadlines
+         self.owner_retirement=isinstance(db,AllocationRetirementPostgres)
++        self.handoff=isinstance(db,AllocationHandoffPostgres)
++        self.scope_count=db.scope_count if self.direct_scram else 2
+         if self.direct_scram and not creator_edges:
+             raise RuntimeError('b2_scram_fixture_creator_required')
+         self.arrangements=0  # Trusted fixture provenance only; no actor capability.
+@@ -539,7 +628,7 @@
+         image=json.loads(db._command(['image','inspect',db.identity['image_id']]).stdout)[0]
+         verify_owned_postgres_image(image,db.identity)
+         self.scopes=[];self.actors=[]
+-        for serial in range(2):
++        for serial in range(self.scope_count):
+             base=10000+serial*100
+             u=lambda i:str(UUID(int=base+i))
+             scope=dict(owner_id=u(1),run_id=u(2),market_epoch=u(3))
+@@ -592,9 +681,13 @@
+             seal+=f'GRANT USAGE ON SCHEMA {N} TO {actor}; GRANT EXECUTE ON FUNCTION {entries} TO {actor};\n'
+         seal+='COMMIT;';db.sql(seal,timeout=30)
+         verify_functions(db,self.source,self.actors,getter_only=getter_only)
+-        verify_seal(db,self.source,self.actors,creator_edges=creator_edges)
++        verify_seal(db,self.source,self.actors,creator_edges=creator_edges,actor_count=4*self.scope_count)
+         if self.owner_retirement:
+-            install_and_verify_terminal_addon(db)
++            terminal_functions=len(self.source.functions())+1+3
++            install_and_verify_terminal_addon(db,terminal_functions)
++        if self.handoff:
++            install_and_verify_handoff_addons(db,terminal_functions,
++                self.scopes[0]['actors']['control'],self.scopes[0]['actors']['reader'])
+         # Real immutable scope/sessionOID/name/capability inputs are independently
+         # specified here, not granted by a caller-supplied binding boolean.
+         for scope in self.scopes:
+@@ -635,7 +728,12 @@
+         genesis=dict(format='ga-jupiter-b2-genesis-registry-research-v3-v1',scope=s['scope'],identity_specs=specs,
+           initial_acquisition_spec=dict(registration_id=s['registration'],acquisition_epoch=s['epoch'],predecessor_epoch=None,recorder_principal_binding_id=s['bindings']['recorder'],reader_principal_binding_id=s['bindings']['reader'],issuer_binding_id=s['issuer'],recorder_package_sha256=policies['recorder_package_sha256'],reader_package_sha256=policies['reader_package_sha256'],policies=policies,endpoint_bindings=s['manifest']['bindings'][0]['endpoint_bindings']),terminal_stop_action_id=s['stop_id'])
+         self.source_api['validate_genesis'](genesis,expected_scope=s['scope'],expected_binding_ids=list(s['bindings'].values()),expected_policies=policies,expected_installation_id=s['installation_id'])
+-        package_format=DEADLINE_PACKAGE_FORMAT if self.independent_deadlines else (SCRAM_FORMAT if self.direct_scram else 'ga-jupiter-b2-fixture-package-input-research-v3-v1')
++        if self.handoff:
++            package_format=HANDOFF_PACKAGE_FORMAT
++        elif self.independent_deadlines:
++            package_format=DEADLINE_PACKAGE_FORMAT
++        else:
++            package_format=SCRAM_FORMAT if self.direct_scram else 'ga-jupiter-b2-fixture-package-input-research-v3-v1'
+         package=dict(format=package_format,native_policy_sha256=POLICY_SHA256,installation_id=s['installation_id'],policies=policies,catalog_manifest_sha256=self.catalog['sha'],actor_manifest_sha256=sha(canonical(s['manifest'])),native_package_sha256=m)
+         head=dict(scope=s['scope'],native_sequence='0',native_head_sha256=sha(canonical(dict(format='ga-jupiter-b2-empty-head-research-v3-v1',native_policy_sha256=POLICY_SHA256,scope=s['scope']))),active_acquisition_epoch=None,active_fence_id=None,fence_revision='0',source_mode='uninstalled',last_admission_sha256=None,last_ingest_sequence='0',last_availability_sha256=None,previous_seal_sha256=None)
+         accounting=dict(committed_positions='0',logical_UTF8_bytes='0',identity_rows='0',domain_rows='0',dependency_rows='0',retained_rows='6',row_writes='0',index_entries='0',Stop_reserve_consumed=False)
+@@ -794,6 +892,8 @@
+     def __init__(self,db,role,*,trusted_anchor=False):
+         direct_issuer=role==CREATOR and isinstance(db,AllocationRetirementPostgres)
+         actors={f'vn_jupiter_b2_{i}_{p}' for i in range(2) for p in PROFILES}
++        if isinstance(db,AllocationHandoffPostgres):
++            actors.add(SUCCESSOR_RECORDER)
+         allowed=role=='postgres' if trusted_anchor is True else (trusted_anchor is False and (role in actors or direct_issuer))
+         if not allowed:raise ValueError('b2_writer_role_refused')
+         self.deadline=time.monotonic()+20;self.buffer=b'';self.db=db
+--- a/services/vonneumann/tests/postgres/test_allocation_control_v3.py
++++ b/services/vonneumann/tests/postgres/test_allocation_control_v3.py
+@@ -16,6 +16,7 @@
+ from tests.postgres.allocation_control_v3_fixture import (
+     AllocationControlWindowRetirementPostgres, AllocationDeadlineRetirementPostgres,
+     AllocationDeadlineScramPostgres, AllocationFixture, AllocationReaderWindowRetirementPostgres,
++    AllocationHandoffPostgres, SUCCESSOR_RECORDER,
+     AllocationScramPostgres, A, N, ANCHOR_OWNER, OWNER, CREATOR, BEGIN, SETTINGS, canonical, literal, sha,
+ )
+ 
+@@ -2243,7 +2244,7 @@
+     def prepare_terminal(self):
+         f=self.fixture
+         s=f.scopes[0]
+-        self.assertEqual(len(f.catalog['value']['functions']),21)
++        self.assertEqual(len(f.catalog['value']['functions']),len(f.source.functions())+1+3)
+         self.assertEqual(self.db.scalar("SELECT session_user,system_user,ssl FROM pg_stat_ssl WHERE pid=pg_backend_pid();",role=CREATOR),
+             f'{CREATOR}|scram-sha-256:{CREATOR}|t')
+         installer=s['actors']['installer']
+@@ -2402,4 +2403,231 @@
+         self.assertEqual(f.get(stop,reader),reply)
+ 
+ 
++def submit_handoff_original(f, command, role):
++    writer=f.writer(role)
++    try:
++        writer.send(f.call('submit',command,role))
++        provisional=json.loads(writer.line())
++        if provisional.get('pending_commit') is not True or provisional.get('original_command_sha256')!=sha(canonical(command)):
++            raise AssertionError('b2_handoff_provisional_refused')
++        writer.finish()
++    finally:writer.close()
++
++
++def prepare_handoff(f):
++    """Prepare one independent local permit; no role is created at this point."""
++    if not f.handoff or len(f.scopes)!=1:
++        raise AssertionError('b2_handoff_fixture_scope_refused')
++    db=f.db
++    scope=f.scopes[0]
++    installer,recorder,control,reader=(scope['actors'][p] for p in ('installer','recorder','control','reader'))
++    install=f.command(scope)
++    submit_handoff_original(f,install,installer)
++    acquire=f.command(scope,'fence_acquire',action_id=str(UUID(int=993061)))
++    acquire['body']=dict(fence_id=str(UUID(int=993062)),acquisition_epoch=scope['epoch'],
++        holder_principal_binding_id=scope['bindings']['recorder'],requested_duration_us='60000000')
++    submit_handoff_original(f,acquire,recorder)
++    head=f.head(scope)
++    resume=f.command(scope,'source_resume',action_id=str(UUID(int=993063)))
++    resume['expected_fence_id']=head['active_fence_id']
++    resume['expected_fence_revision']=head['fence_revision']
++    submit_handoff_original(f,resume,control)
++    head=f.head(scope)
++    renew=f.command(scope,'fence_renew',action_id=str(UUID(int=993064)))
++    renew['expected_fence_id']=head['active_fence_id']
++    renew['expected_fence_revision']=head['fence_revision']
++    renew['body']=dict(fence_id=head['active_fence_id'],expected_revision='1',requested_duration_us='60000000')
++    stop=f.command(scope,'source_stop')
++    stop['body']=dict(expected_control_sha256=sha(canonical(resume)),expected_mode='open')
++    acquire_reply=f.get(acquire,reader)
++    old_fence=json.loads(acquire_reply['original_result_wire'])['result_body']['original_fence_record']
++    clock=json.loads(db.scalar("""WITH stamp AS MATERIALIZED (SELECT clock_timestamp() AS now)
++        SELECT jsonb_build_array(floor(extract(epoch FROM now)*1000000)::bigint::text,
++            floor(extract(epoch FROM now+interval '120 seconds')*1000000)::bigint::text,
++            floor(extract(epoch FROM now+interval '150 seconds')*1000000)::bigint::text,
++            (now+interval '150 seconds')::text) FROM stamp;"""))
++    issuer_oid=db.scalar('SELECT oid::text FROM pg_roles WHERE rolname=session_user;',role=CREATOR)
++    recorder_entry=next(e for e in scope['manifest']['bindings'] if e['principal_binding_id']==scope['bindings']['recorder'])
++    permit=dict(handoff_id=str(UUID(int=993065)),scope=scope['scope'],installation_id=scope['installation_id'],
++        package_sha256=scope['package']['native_package_sha256'],catalog_sha256=scope['package']['catalog_manifest_sha256'],
++        head_sha256=head['native_head_sha256'],old_binding_id=scope['bindings']['recorder'],old_binding_sha256=sha(canonical(recorder_entry)),
++        fence_sha256=sha(canonical(old_fence)),renew_wire=canonical(renew),stop_id=scope['stop_id'],issuer_oid=issuer_oid,
++        new_binding_id=str(UUID(int=993066)),issuance_id=str(UUID(int=993067)),
++        issued_at_us=clock[0],write_until_us=clock[1],login_until_us=clock[2],expires_us=str(int(clock[0])+45_000_000))
++    sw=literal(canonical(scope['scope']))
++    handoff=literal(permit['handoff_id'])+'::uuid'
++    db.sql(f'BEGIN; SET LOCAL ROLE {ANCHOR_OWNER}; INSERT INTO {A}.credential_handoff'
++        f'(scope_wire,handoff_id,permit_wire) VALUES({sw},{handoff},{literal(canonical(permit))}); COMMIT;')
++    credentials=db.synthetic_password_clause(SUCCESSOR_RECORDER,clock[3])
++    db.actor_deadlines[SUCCESSOR_RECORDER]=int(clock[2])
++    stage=f'SELECT {A}._stage_credential_handoff({sw},{handoff});\n'
++    finish=f'SELECT {A}._finish_credential_handoff({sw},{handoff});\n'
++    ddl=(f"SET LOCAL createrole_self_grant='';\n"
++         f'CREATE ROLE {SUCCESSOR_RECORDER} NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT '
++         f'NOREPLICATION NOBYPASSRLS {credentials};\n'
++         f'ALTER ROLE {recorder} NOLOGIN;\nALTER ROLE {SUCCESSOR_RECORDER} LOGIN;\n')
++    return dict(scope=scope,install=install,acquire=acquire,resume=resume,stop=stop,renew=renew,permit=permit,
++        stage_sql=stage,role_ddl=ddl,finish_sql=finish,successor=SUCCESSOR_RECORDER,login_text=clock[3],
++        old_fence=old_fence)
++
++
++def issue_handoff(f,plan):
++    issuer=f.writer(CREATOR)
++    try:
++        issuer.send(plan['stage_sql'])
++        if issuer.line()!='':
++            raise RuntimeError('b2_handoff_stage_output_refused')
++        issuer.send(plan['role_ddl']+plan['finish_sql'])
++        try:
++            staged=issuer.line()
++        except RuntimeError:
++            # Issuance input includes a synthetic verifier. Do not include
++            # arbitrary SQL errors from the verifier-bearing statement.
++            raise RuntimeError('b2_handoff_role_or_finish_refused') from None
++        issuer.finish()
++    finally:issuer.close()
++    # Discard any client-side commit outcome as authority. Read the exact
++    # committed marker independently before allowing successor connection.
++    sw=literal(canonical(plan['scope']['scope']))
++    stored=f.db.scalar(f"SELECT handoff_wire FROM {A}.credential_handoff WHERE scope_wire={sw} "
++        f"AND handoff_id={literal(plan['permit']['handoff_id'])}::uuid;")
++    marker=json.loads(stored)
++    if staged!=stored or canonical(marker)!=stored or marker['permit_sha256']!=sha(canonical(plan['permit'])):
++        raise RuntimeError('b2_handoff_independent_marker_refused')
++    return marker
++
++
++@unittest.skipUnless(os.environ.get(OPT_IN)=='1','Requires isolated PostgreSQL opt-in')
++class AllocationCredentialHandoffNativeTests(unittest.TestCase):
++    @classmethod
++    def setUpClass(cls):
++        cls.db=AllocationHandoffPostgres().start()
++        try:cls.fixture=AllocationFixture(cls.db,creator_edges=True)
++        except BaseException:
++            cls.db.close();raise
++
++    @classmethod
++    def tearDownClass(cls):cls.db.close()
++
++    def assert_exact_k2(self,plan,marker):
++        f=self.fixture
++        current=json.loads(self.db.scalar(SETTINGS+f'SELECT {N}._catalog();',timeout=30))
++        expected=copy.deepcopy(f.catalog['value'])
++        new_oid=marker['successor_binding']['session_user_oid']
++        recorder=plan['scope']['actors']['recorder']
++        old_role=next(role for role in expected['roles'] if role['name']==recorder)
++        old_oid=old_role['oid']
++        old_role['login']=False
++        expected['roles'].append(dict(old_role,name=SUCCESSOR_RECORDER,oid=new_oid,login=True,valid_until=plan['login_text']))
++        expected['roles'].sort(key=lambda role:int(role['oid']))
++        old_edge=next(edge for edge in expected['memberships'] if str(edge['roleid'])==old_oid)
++        new_edges=[edge for edge in current['memberships'] if str(edge['roleid'])==new_oid]
++        self.assertEqual(len(new_edges),1)
++        assigned_edge=new_edges[0]
++        expected['memberships'].append(dict(old_edge,oid=assigned_edge['oid'],roleid=type(old_edge['roleid'])(new_oid)))
++        expected['memberships'].sort(key=lambda edge:int(edge['oid']))
++        allocated=json.loads(self.db.scalar("""SELECT jsonb_build_array(
++            'pg_catalog.pg_namespace'::regclass::oid,'pg_catalog.pg_proc'::regclass::oid,
++            'pg_catalog.pg_authid'::regclass::oid);"""))
++        schema=next(row for row in expected['schemas'] if row['name']==N)
++        schema['acl'].append(f'{SUCCESSOR_RECORDER}=U/{OWNER}')
++        targets=[(allocated[0],schema['oid'])]
++        for name in ('submit','get_original'):
++            function=next(row for row in expected['functions'] if row['proname']==name)
++            function['proacl'].append(f'{SUCCESSOR_RECORDER}=X/{OWNER}')
++            targets.append((allocated[1],function['oid']))
++        template=next(row for row in expected['shared_dependencies'] if row['deptype']=='a')
++        for cls,obj in targets:
++            expected['shared_dependencies'].append(dict(template,
++                classid=type(template['classid'])(cls),objid=type(template['objid'])(obj),objsubid=0,
++                refclassid=type(template['refclassid'])(allocated[2]),refobjid=type(template['refobjid'])(new_oid),deptype='a'))
++        expected['shared_dependencies'].sort(key=lambda d:tuple(int(d[k]) for k in ('dbid','classid','objid','objsubid','refclassid','refobjid'))+(d['deptype'],))
++        self.assertEqual(current,expected)
++        self.assertEqual(marker['catalog_sha256'],sha(canonical(expected)))
++
++    def test_one_scope_preserves_originals_and_transfers_renewal_to_new_recorder(self):
++        f=self.fixture
++        plan=prepare_handoff(f)
++        scope=plan['scope']
++        old=scope['actors']['recorder']
++        reader=scope['actors']['reader']
++        history=[f.get(plan[k],reader) for k in ('install','acquire','resume')]
++        before=f.snapshot()
++        before_native=[row for row in before if row[0]==N]
++        self.assertEqual(self.db.scalar("SELECT session_user,system_user,ssl FROM pg_stat_ssl WHERE pid=pg_backend_pid();",
++            role=CREATOR),f'{CREATOR}|scram-sha-256:{CREATOR}|t')
++        self.assertNotEqual(self.db.sql('SELECT 1;',role=SUCCESSOR_RECORDER,check=False).returncode,0)
++
++        competing=copy.deepcopy(plan['renew'])
++        competing['action_id']=str(UUID(int=993069))
++        blocker=f.writer(old)
++        try:
++            blocker.send(f.call('submit',competing,old))
++            self.assertTrue(json.loads(blocker.line())['pending_commit'])
++            blocked=self.db.sql(BEGIN+SETTINGS+plan['stage_sql']+'COMMIT;\n',role=CREATOR,check=False)
++            self.assertNotEqual(blocked.returncode,0)
++            self.assertRegex(blocked.stderr,r'(?m)^ERROR:\s+55P03:')
++            blocker.finish('ROLLBACK;')
++        finally:blocker.close()
++        incomplete=self.db.sql(BEGIN+SETTINGS+plan['stage_sql']+'COMMIT;\n',role=CREATOR,check=False)
++        self.assertNotEqual(incomplete.returncode,0)
++        self.assertRegex(incomplete.stderr,r'(?m)^ERROR:\s+P0001: b2_handoff_marker_refused\s*$')
++        self.assertEqual(before,f.snapshot())
++        issuer=f.writer(CREATOR)
++        try:
++            issuer.send(plan['stage_sql'])
++            self.assertEqual(issuer.line(),'')
++            issuer.send(plan['role_ddl']+plan['finish_sql'])
++            try:
++                self.assertEqual(json.loads(issuer.line())['handoff_id'],plan['permit']['handoff_id'])
++            except RuntimeError:
++                raise RuntimeError('b2_handoff_role_or_finish_refused') from None
++            issuer.send('SET CONSTRAINTS ALL IMMEDIATE;\n')
++            issuer._process.stdin.close()
++            error=issuer.failure_stderr()
++            self.assertNotEqual(issuer._process.returncode,0)
++            self.assertRegex(error,r'(?m)^ERROR:\s+P0001: b2_handoff_commit_form_refused\s*$')
++        finally:issuer.close()
++        self.assertEqual(before,f.snapshot())
++        self.assertEqual(self.db.scalar(f"SELECT count(*) FROM pg_roles WHERE rolname={literal(SUCCESSOR_RECORDER)};"),'0')
++        self.assertEqual([f.get(plan[k],reader) for k in ('install','acquire','resume')],history)
++
++        held=f.writer(old)
++        try:
++            held.send('SELECT session_user;\n')
++            self.assertEqual(held.line(),old)
++            marker=issue_handoff(f,plan)
++            held.send(f.call('submit',competing,old))
++            held._process.stdin.close()
++            error=held.failure_stderr()
++            self.assertNotEqual(held._process.returncode,0)
++            self.assertEqual(held._process.stdout.read(),b'')
++            self.assertRegex(error,r'(?m)^ERROR:\s+P0001: b2_actor_scope_refused\s*$')
++        finally:held.close()
++        self.assertNotEqual(self.db.sql('SELECT 1;',role=old,check=False).returncode,0)
++        self.assertEqual([row for row in f.snapshot() if row[0]==N],before_native)
++        self.assertEqual([f.get(plan[k],reader) for k in ('install','acquire','resume')],history)
++        self.assert_exact_k2(plan,marker)
++        retried=self.db.sql(BEGIN+SETTINGS+plan['stage_sql']+'COMMIT;\n',role=CREATOR,check=False)
++        self.assertNotEqual(retried.returncode,0)
++        self.assertIn('b2_handoff_permit_refused',retried.stderr)
++
++        changed=self.db.sql(BEGIN+SETTINGS+f.call('submit',competing,SUCCESSOR_RECORDER)+'COMMIT;\n',
++            role=SUCCESSOR_RECORDER,check=False)
++        self.assertNotEqual(changed.returncode,0)
++        self.assertIn('b2_fence_renew_refused',changed.stderr)
++        submit_handoff_original(f,plan['renew'],SUCCESSOR_RECORDER)
++        renewed=f.get(plan['renew'],reader)
++        self.assertEqual(renewed['original_command_wire'],canonical(plan['renew']))
++        fence=json.loads(renewed['original_result_wire'])['result_body']['original_fence_record']
++        self.assertEqual(fence['fence_id'],plan['old_fence']['fence_id'])
++        self.assertEqual(fence['revision'],'2')
++        self.assertEqual(fence['holder_principal_binding_id'],plan['permit']['new_binding_id'])
++        self.assertEqual(json.loads(renewed['original_receipt_wire'])['catalog_manifest_sha256'],marker['catalog_sha256'])
++        for key,original in zip(('install','acquire','resume'),history):
++            recovered=f.get(plan[key],reader)
++            self.assertEqual({k:v for k,v in recovered.items() if k!='observed_head'},
++                {k:v for k,v in original.items() if k!='observed_head'})
++
++
+ if __name__=='__main__':unittest.main()
+--- /dev/null
++++ b/services/vonneumann/tests/postgres/test_allocation_stop_intent_v3.py
+@@ -0,0 +1,296 @@
++"""One owned native fixture per actual successor-versus-Stop race."""
++import copy
++import json
++import os
++import unittest
++from contextlib import ExitStack, closing
++from uuid import UUID
++
++from tests.postgres.allocation_control_v3_fixture import (
++    AllocationFixture, AllocationHandoffPostgres, A, ANCHOR_OWNER, BEGIN, N, SETTINGS, canonical, literal, sha,
++)
++from tests.postgres.harness import OPT_IN
++from tests.postgres.test_allocation_control_v3 import issue_handoff, prepare_handoff
++
++
++@unittest.skipUnless(os.environ.get(OPT_IN) == '1', 'Requires isolated PostgreSQL opt-in')
++class AllocationStopIntentNativeTests(unittest.TestCase):
++    def setUp(self):
++        self.db = AllocationHandoffPostgres().start()
++        self.addCleanup(self.db.close)
++        self.fixture = AllocationFixture(self.db, creator_edges=True)
++
++    def ready(self):
++        plan = prepare_handoff(self.fixture)
++        issue_handoff(self.fixture, plan)
++        scope = plan['scope']
++        reader = scope['actors']['reader']
++        control = scope['actors']['control']
++        successor = plan['successor']
++        for actor in (reader, control, successor):
++            self.assertEqual(
++                self.db.scalar(
++                    'SELECT session_user,system_user,ssl FROM pg_stat_ssl WHERE pid=pg_backend_pid();',
++                    role=actor,
++                ),
++                f'{actor}|scram-sha-256:{actor}|t',
++            )
++        self.assertEqual(self.fixture.head(scope)['native_sequence'], '3')
++        self.assertEqual(self.fixture.head(scope)['source_mode'], 'open')
++        return plan, scope, reader, control, successor
++
++    def intent_query(self, entry, value):
++        self.assertIn(entry, ('record_stop_intent', 'get_stop_intent'))
++        return f'SELECT {N}.{entry}({literal(canonical(value))});\n'
++
++    def record_query(self, stop):
++        return self.intent_query('record_stop_intent', stop)
++
++    def get_query(self, stop):
++        return self.intent_query('get_stop_intent', self.fixture.query(stop))
++
++    def inspect_intent(self, stop, reader):
++        result = self.db.sql(SETTINGS + self.get_query(stop), role=reader)
++        value = json.loads(result.stdout)
++        self.assertEqual(canonical(value) + '\n', result.stdout)
++        self.assertEqual(value['format'], 'ga-jupiter-b2-stop-intent-observation-research-v3-v1')
++        self.assertEqual(value['action_id'], stop['action_id'])
++        self.assertEqual(value['scope'], stop['scope'])
++        return value
++
++    def assert_absent(self, stop, reader):
++        observed = self.inspect_intent(stop, reader)
++        self.assertEqual(observed['resolution'], 'observed_absent_unknown')
++        self.assertIsNone(observed['intent_wire'])
++        self.assertEqual(self.intent_rows(stop['scope']), [])
++
++    def intent_rows(self, scope):
++        return json.loads(self.db.scalar(f"""SELECT coalesce(jsonb_agg(jsonb_build_object(
++          'scope_wire',scope_wire,'action_id',action_id,'intent_wire',intent_wire,
++          'registering_xid',registering_xid::text,'xmin',xmin::text,'ctid',ctid::text)),'[]')
++          FROM {N}.stop_intents WHERE scope_wire={literal(canonical(scope))};"""))
++
++    def assert_committed_intent(self, stop, scope, reader):
++        observed = self.inspect_intent(stop, reader)
++        self.assertEqual(observed['resolution'], 'observed_committed_exact')
++        intent_wire = observed['intent_wire']
++        intent = json.loads(intent_wire)
++        self.assertEqual(canonical(intent), intent_wire)
++        self.assertEqual(intent['format'], 'ga-jupiter-b2-stop-intent-research-v3-v1')
++        self.assertEqual(intent['installation_id'], scope['installation_id'])
++        self.assertEqual(intent['native_package_sha256'], scope['package']['native_package_sha256'])
++        self.assertEqual(intent['control_binding_id'], scope['bindings']['control'])
++        self.assertEqual(intent['original_command_wire'], canonical(stop))
++        self.assertEqual(intent['original_command_sha256'], sha(canonical(stop)))
++        marker_wire = self.db.scalar(
++            f'SELECT handoff_wire FROM {A}.credential_handoff WHERE scope_wire={literal(canonical(stop["scope"]))};'
++        )
++        self.assertEqual(intent['effective_catalog_sha256'], json.loads(marker_wire)['catalog_sha256'])
++        self.assertNotEqual(intent['effective_catalog_sha256'], scope['package']['catalog_manifest_sha256'])
++        self.assertEqual(intent['handoff_sha256'], sha(marker_wire))
++        [row] = self.intent_rows(stop['scope'])
++        self.assertEqual(row['intent_wire'], intent_wire)
++        self.assertEqual(row['action_id'], stop['action_id'])
++        self.assertRegex(row['registering_xid'], r'^[1-9][0-9]{0,19}$')
++        # Compare actual retained values and both logical declared keys against
++        # the separate admin reserve. No physical/WAL limit is inferred.
++        metadata = dict(scope=stop['scope'], action_id=row['action_id'],
++                        registering_xid=row['registering_xid'],
++                        intent_wire_bytes=str(len(intent_wire.encode())))
++        charged = len(intent_wire.encode()) + len(canonical(metadata).encode())
++        charged += sum(len(canonical(key).encode()) for key in ([stop['scope']], [row['action_id']]))
++        self.assertLessEqual(charged, 32768)
++        return intent_wire
++
++    def observe_provisional_intent(self, writer, stop):
++        writer.send(self.record_query(stop))
++        value = json.loads(writer.line())
++        self.assertEqual(value, dict(
++            format='ga-jupiter-b2-stop-intent-provisional-research-v3-v1',
++            scope=stop['scope'], action_id=stop['action_id'],
++            original_command_sha256=sha(canonical(stop)), pending_commit=True,
++        ))
++
++    def observe_provisional_operation(self, writer, command, actor):
++        writer.send(self.fixture.call('submit', command, actor))
++        value = json.loads(writer.line())
++        self.assertTrue(value['pending_commit'])
++        self.assertEqual(value['original_command_sha256'], sha(canonical(command)))
++
++    def wait_for_operation(self, waiter, winner, query):
++        waiter.send("SET LOCAL lock_timeout='4000ms';\n")
++        waiter_pid = waiter.backend_pid()
++        winner_pid = winner.backend_pid()
++        waiter.send(query)
++        self.fixture.wait_for_blocker(waiter_pid, winner_pid)
++        # A psql session can await input after its backend exits. Close this
++        # exact child's stdin before checking its expected SQL failure.
++        waiter._process.stdin.close()
++
++    def assert_waiter_refused(self, writer, sqlstate, reason):
++        error = writer.failure_stderr()
++        self.assertNotEqual(writer._process.returncode, 0)
++        self.assertEqual(writer._process.stdout.read(), b'')
++        self.assertRegex(error, rf'(?m)^ERROR:\s+{sqlstate}: {reason}\s*$')
++
++    def refuse(self, actor, sql, sqlstate, reason=None):
++        result = self.db.sql(BEGIN + SETTINGS + sql + 'COMMIT;\n', role=actor, check=False)
++        self.assertNotEqual(result.returncode, 0)
++        self.assertEqual(result.stdout, '')
++        if reason is None:
++            self.assertRegex(result.stderr, rf'(?m)^ERROR:\s+{sqlstate}:')
++        else:
++            self.assertRegex(result.stderr, rf'(?m)^ERROR:\s+{sqlstate}: {reason}\s*$')
++
++    def originals(self, commands, reader):
++        def immutable(reply):
++            return {key: reply[key] for key in (
++                'original_command_wire', 'original_result_wire', 'original_receipt_wire', 'dependencies',
++            )}
++        return [immutable(self.fixture.get(command, reader)) for command in commands]
++
++    def assert_stop(self, stop, scope, reader, control, position, before):
++        expected_intent = self.assert_committed_intent(stop, scope, reader)
++        intent_before = self.intent_rows(scope['scope'])
++        self.assertEqual(before, self.accounting(scope))
++        self.assertFalse(before['Stop_reserve_consumed'])
++        with closing(self.fixture.writer(control)) as writer:
++            self.observe_provisional_operation(writer, stop, control)
++            writer.finish()
++        reply = self.fixture.get(stop, reader)
++        self.assertEqual(reply['original_command_wire'], canonical(stop))
++        receipt = json.loads(reply['original_receipt_wire'])
++        self.assertEqual(receipt['original_command_sha256'], sha(canonical(stop)))
++        self.assertEqual(receipt['native_sequence'], str(position))
++        self.assertEqual(reply['observed_head']['native_sequence'], str(position))
++        self.assertEqual(self.fixture.head(scope)['source_mode'], 'stopped')
++        self.assertTrue(self.accounting(scope)['Stop_reserve_consumed'])
++        self.assertEqual(self.intent_rows(scope['scope']), intent_before)
++        self.assertEqual(self.assert_committed_intent(stop, scope, reader), expected_intent)
++        return reply
++
++    def lifecycle_snapshot(self):
++        return [entry for entry in self.fixture.snapshot() if entry[1] != "stop_intents"]
++
++    def accounting(self, scope):
++        return json.loads(self.db.scalar(
++            f"SELECT accounting_wire FROM {N}.scope_state WHERE scope_wire={literal(canonical(scope['scope']))};"
++        ))
++
++    def test_committed_stop_intent_prevents_actual_successor_renew(self):
++        plan, scope, reader, control, successor = self.ready()
++        f = self.fixture
++        stop, renew = plan['stop'], plan['renew']
++        originals = self.originals((plan['install'], plan['acquire'], plan['resume']), reader)
++        before = self.lifecycle_snapshot()
++        accounting = self.accounting(scope)
++
++        self.assert_absent(stop, reader)
++        self.refuse(control, f.call('submit', stop, control), '42501', 'b2_stop_intent_required')
++        self.refuse(reader, self.record_query(stop), '42501')
++        self.refuse(control, self.get_query(stop), '42501')
++        self.refuse(successor, f'SELECT count(*) FROM {N}.stop_intents;\n', '42501')
++        self.assertEqual(self.lifecycle_snapshot(), before)
++
++        # Both early constraint forcing and combining record+dispatch in the
++        # registering transaction must roll back the only staged intent row.
++        for statement, sqlstate, reason in (
++            ('SET CONSTRAINTS ALL IMMEDIATE;', 'P0001', 'b2_stop_intent_commit_form_refused'),
++            (f.call('submit', stop, control), '42501', 'b2_stop_intent_uncommitted'),
++        ):
++            with closing(f.writer(control)) as trial:
++                self.observe_provisional_intent(trial, stop)
++                trial.send(statement + '\n')
++                trial._process.stdin.close()
++                self.assert_waiter_refused(trial, sqlstate, reason)
++            self.assert_absent(stop, reader)
++            self.assertEqual(self.lifecycle_snapshot(), before)
++
++        with ExitStack() as stack:
++            intent_writer = stack.enter_context(closing(f.writer(control)))
++            renew_writer = stack.enter_context(closing(f.writer(successor)))
++            self.observe_provisional_intent(intent_writer, stop)
++            self.assert_absent(stop, reader)
++            self.wait_for_operation(renew_writer, intent_writer, f.call('submit', renew, successor))
++            # The provisional reply cannot authorize dispatch. The separately
++            # authenticated reader resolves the exact record after literal COMMIT.
++            intent_writer.finish()
++            self.assert_waiter_refused(renew_writer, '42501', 'b2_stop_intent_pending')
++
++        self.assertEqual(self.lifecycle_snapshot(), before)
++        self.assertEqual(f.head(scope)['native_sequence'], '3')
++        self.assertEqual(self.originals((plan['install'], plan['acquire'], plan['resume']), reader), originals)
++        exact_intent = self.assert_committed_intent(stop, scope, reader)
++        changed = copy.deepcopy(stop)
++        changed['body']['expected_control_sha256'] = 'f' * 64
++        self.refuse(control, self.record_query(changed), '42501', 'b2_stop_intent_conflict')
++        self.refuse(control, f.call('submit', changed, control), '42501', 'b2_stop_intent_conflict')
++        self.refuse(reader, self.get_query(changed), '42501', 'b2_stop_intent_conflict')
++        # Alter only a trusted control binding wire. Reader authority and K2
++        # survive, but this positive reconciliation must require exact binding.
++        held_control = next(
++            value for value in scope['manifest']['bindings']
++            if value['principal_binding_id'] == scope['bindings']['control']
++        )
++        drifted_control = dict(held_control, issuance_id=str(UUID(int=994199)))
++        def arrange_binding(value):
++            self.db.sql(
++                f"BEGIN; SET LOCAL ROLE {ANCHOR_OWNER}; UPDATE {A}.actor_bindings "
++                f"SET binding_wire={literal(canonical(value))} "
++                f"WHERE scope_wire={literal(canonical(stop['scope']))} "
++                f"AND binding_id={literal(scope['bindings']['control'])}; COMMIT;"
++            )
++        arrange_binding(drifted_control)
++        drifted_snapshot = self.lifecycle_snapshot()
++        drifted_intent_rows = self.intent_rows(stop['scope'])
++        self.refuse(reader, self.get_query(stop), '42501', 'b2_stop_intent_pin_refused')
++        self.assertEqual(self.lifecycle_snapshot(), drifted_snapshot)
++        self.assertEqual(self.intent_rows(stop['scope']), drifted_intent_rows)
++        arrange_binding(held_control)
++        self.assertEqual(self.assert_committed_intent(stop, scope, reader), exact_intent)
++
++        self.assert_stop(stop, scope, reader, control, 4, accounting)
++        recorded = self.db.sql(BEGIN + SETTINGS + self.record_query(stop) + 'COMMIT;\n', role=control)
++        self.assertEqual(recorded.stdout, exact_intent + '\n')
++        self.assertEqual(self.originals((plan['install'], plan['acquire'], plan['resume']), reader), originals)
++
++    def test_actual_successor_renew_prevents_stale_intent_before_dispatch(self):
++        plan, scope, reader, control, successor = self.ready()
++        f = self.fixture
++        stop, renew = plan['stop'], plan['renew']
++        originals = self.originals((plan['install'], plan['acquire'], plan['resume']), reader)
++        self.assert_absent(stop, reader)
++        with ExitStack() as stack:
++            renew_writer = stack.enter_context(closing(f.writer(successor)))
++            intent_writer = stack.enter_context(closing(f.writer(control)))
++            self.observe_provisional_operation(renew_writer, renew, successor)
++            self.assertEqual(f.get(renew, reader)['resolution'], 'observed_absent_unknown')
++            self.wait_for_operation(intent_writer, renew_writer, self.record_query(stop))
++            renew_writer.finish()
++            self.assert_waiter_refused(intent_writer, 'P0001', 'b2_stale_head')
++
++        self.assert_absent(stop, reader)
++        self.assertEqual(f.get(stop, reader)['resolution'], 'observed_absent_unknown')
++        self.assertEqual(f.head(scope)['native_sequence'], '4')
++        renew_reply = f.get(renew, reader)
++        self.assertEqual(renew_reply['original_command_wire'], canonical(renew))
++        self.assertEqual(json.loads(renew_reply['original_receipt_wire'])['original_command_sha256'],
++                         sha(canonical(renew)))
++        self.assertEqual(self.originals((plan['install'], plan['acquire'], plan['resume']), reader), originals)
++
++        # The stale bytes were never dispatched. The first Stop dispatch keeps
++        # the one allocated ID and uses the newly observed committed position.
++        new_stop = f.command(scope, 'source_stop')
++        new_stop['body'] = copy.deepcopy(stop['body'])
++        self.assertEqual(new_stop['action_id'], stop['action_id'])
++        self.assertEqual(new_stop['expected_head']['native_sequence'], '4')
++        self.assertNotEqual(canonical(new_stop), canonical(stop))
++        before = self.accounting(scope)
++        with closing(f.writer(control)) as writer:
++            # Deliberately discard the SQL response and the client's exit
++            # status. Only the independent reader resolves what committed.
++            writer.send(self.record_query(new_stop))
++            writer.finish(check=False)
++        self.assert_stop(new_stop, scope, reader, control, 5, before)
++        self.assertEqual(self.originals((plan['install'], plan['acquire'], plan['resume']), reader), originals)
++        self.assertEqual(f.get(renew, reader)['original_receipt_wire'], renew_reply['original_receipt_wire'])

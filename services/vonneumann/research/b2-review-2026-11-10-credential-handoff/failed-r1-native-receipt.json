@@ -1,0 +1,33 @@
+{
+  "diagnostic": "42601: syntax error at or near \"position\" in the argument declaration for _handoff_allows_renew",
+  "original_receipt_sha256": "6c5a909f74b02a4d9203de08518ef25e303028ac41fcf28192a43bd68b45d13c",
+  "phase": "fixture installation",
+  "receipt": {
+    "base": "f317ffc4519d5a70002279458992e54465a9821f",
+    "container_gone": true,
+    "controller_sha256": "e0538ae7826a992447fc8cf137e9292caf5f93e03542b2bc71cc76d2a17dd9eb",
+    "dependency_inventory_sha256": "2326bfa83a1c1264ca9c6dee8bbbd282e24052016a64a322286deeff492b1ee1",
+    "elapsed": 9.131249833852053,
+    "end": "2026-11-10T07:43:15.504175+00:00",
+    "exit": 1,
+    "fallback_cleanup": false,
+    "group_gone": true,
+    "interrupted": false,
+    "manifest_sha256": "587e20f929cd7b92794f0caaac2d97b9b44324569fd69462872a11267244de44",
+    "raw_log_sha256": "74bfbb31822e93c493e78f2c0a0d26ecbe0a30601477fa93b217d1bb1ee28231",
+    "snapshot_sha256": "afc38c3dc8dcce23ca5995da82e91cac4abd58b5d3c485a9c7c5b774e3254721",
+    "source_count": 946,
+    "source_unchanged": true,
+    "start": "2026-11-10T07:43:06.372471+00:00",
+    "timeout": false
+  },
+  "test_result": {
+    "elapsed": 8.5601802081801,
+    "errors": 1,
+    "expected_failures": 0,
+    "failures": 0,
+    "skips": 0,
+    "tests": 0,
+    "unexpected_successes": 0
+  }
+}

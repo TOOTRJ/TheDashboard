@@ -1,5 +1,39 @@
 # Dashboard configuration and access preflight
 
+## November 10 offline handoff, capture and target checks
+
+Three focused PostgreSQL 17.6 cases passed on the corrected handoff
+candidate. The limited issuer retired one recorder and enabled its exact
+successor, which renewed the existing fence. The reader recovered the prior
+originals. In separate runs, the committed Stop intent blocked Renew, and
+the committed Renew made the waiting intent stale before dispatch. The first
+valid Stop at the new head retained the reserved ID. The first fixture
+installation failed on a reserved SQL argument name. The corrected run
+retained the same tests and authorization policy. All 49 inherited cases
+passed on those exact bytes, for 52 native cases with zero skips.
+[Handoff, Stop races and correction](services/vonneumann/research/b2-review-2026-11-10-credential-handoff/README.md).
+
+Both focused PostgreSQL 17.6 capture cases passed on the pinned fixture.
+After Capture COMMIT and termination of the owned writer backend, a fresh
+reader recovered the original three synthetic response bodies and exact
+receipt. The collection callback ran once. Termination before COMMIT left
+the original unresolved and the database refused a competing reservation.
+All 55 offline provider and source-admission cases also passed. The new
+fixture uses separate trust-socket roles and gates cache release until
+versioned terminal closure and independent reconciliation.
+[Capture receipt and scope](services/vonneumann/research/b3-review-2026-11-10-durable-acquisition/README.md).
+
+Read-only checks matched the exact Dashboard Supabase project, Railway
+project, workspace, environment and service, and GitHub repository. Supabase
+reported PostgreSQL 17, 15 migrations and zero native allocation namespaces.
+Railway reported the previously accepted deployment
+`04c592a8-61c6-4ebc-ad34-16c789a4e1c9` in `SUCCESS` with one replica and
+the retained 0.25 vCPU and 500 MB limits. The Railway check covered identity,
+deployment metadata and settings. The signed-in runtime mode evidence is
+recorded below in the November 9 check. The local Vercel link still resolves
+to the pinned `orderoftheredjester/the-dashboard` team and project IDs. This
+batch uses the verified November 9 production record for Vercel.
+
 ## November 9 offline and release checks
 
 The exact direct SCRAM candidate passes the 44 inherited PostgreSQL cases
