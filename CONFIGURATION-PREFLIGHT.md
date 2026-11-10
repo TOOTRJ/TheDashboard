@@ -1,5 +1,29 @@
 # Dashboard configuration and access preflight
 
+## November 10 joined capture and Stop checks
+
+The corrected joined candidate passed three focused PostgreSQL 17.6 cases
+with scoped TLS/SCRAM actors. Reserve and Capture use the same native
+journal, lock, head and fence as recorder handoff and Stop. A fresh reader
+recovered the original Capture, three synthetic bodies and receipt after
+recorder loss. An interrupted provisional Capture stayed unresolved and
+unblocked the waiting Stop intent. Losing a Reservation acknowledgment
+preserved all eleven IDs without granting collection. The Stop adapter
+dispatched the original only after exact committed intent readback. An
+initial syntax failure and later RPC wire-type correction are recorded in
+the [joined evidence](services/vonneumann/research/b2-b3-review-2026-11-10-joined-capture/README.md).
+All 57 native cases passed with zero skips on the final snapshot,
+including 54 inherited cases. All 82 offline worker-gate, provider,
+source-admission and seal tests passed, including the existing synthetic
+915-minute inventory case.
+
+The exact [previous draft head](https://github.com/TOOTRJ/TheDashboard/actions/runs/42778436468)
+passed GitHub CI. Read-only checks again matched The Dashboard Supabase
+project, which reported PostgreSQL 17, 15 migrations and zero candidate
+namespaces. The exact Railway project and service still resolve to the
+previously verified closed deployment `04c592a8-61c6-4ebc-ad34-16c789a4e1c9`.
+The local Vercel link matches the pinned Dashboard team and project IDs.
+
 ## November 10 offline handoff, capture and target checks
 
 Three focused PostgreSQL 17.6 cases passed on the corrected handoff

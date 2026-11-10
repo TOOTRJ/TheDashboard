@@ -1,11 +1,12 @@
 # Durable provider acquisition before cache release
 
-The [isolated November 10 fixture](../b3-review-2026-11-10-durable-acquisition/README.md)
-proves committed original capture readback and unresolved pre-COMMIT loss.
-The next composition applies these requirements to the same journal, head,
-fence and authenticated roles as the [handoff and Stop candidate](../b2-review-2026-11-10-credential-handoff/README.md).
+The [joined November 10 fixture](../b2-b3-review-2026-11-10-joined-capture/README.md)
+retains Reservation and Capture in the same journal, head, fence and roles
+as handoff and Stop. It recovers the exact committed original after recorder
+loss and preserves uncertainty after pre-COMMIT interruption. Extend that
+one-packet, live-fence profile to the remaining lifecycle requirements below.
 
-Implement the next slice as an inert native laboratory for one SOL/USD market, one writer, one unresolved packet per scope and a separately authenticated getter. Reuse the held `PreparedPacket`, A1 reservation/capture wires and the proposed B2–B7 native kinds. Pin the owner/run/market and acquisition epochs, exact actor/fence and package, current source head and bounded identity, wire and terminal budgets. The existing transport and pure validators provide no native or hosted authority.
+Keep the next slice in the native laboratory for one SOL/USD market, one writer, one unresolved packet per scope and a separately authenticated getter. Reuse the held `PreparedPacket`, A1 reservation/capture wires and B2–B7 lifecycle design. Pin the owner/run/market and acquisition epochs, exact actor/fence and package, applicable head and bounded identity, wire and terminal budgets. Preserve actual incomplete evidence. Verify the live collection fence and pending Stop at the I/O boundary, then specify what happens when a read is already in flight. The transport and pure validators confer no native or hosted authority.
 
 ## Prepare, record and read back
 
