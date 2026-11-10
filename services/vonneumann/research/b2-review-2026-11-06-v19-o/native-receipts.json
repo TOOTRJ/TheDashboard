@@ -1,0 +1,113 @@
+{
+  "candidate_patch_sha256": "b915a8cb6034e5a63143c83024c93f99219b61635c72c9c23af5ee7fa6a86c1d",
+  "runs": {
+    "current_main_clock": {
+      "base": "f317ffc4519d5a70002279458992e54465a9821f",
+      "container_gone": true,
+      "controller_sha256": "3b012ff8088c150380eda3e64af389ef4dc06431465ad3c541df259ce87acd0e",
+      "elapsed": 132.43459916720167,
+      "end": "2026-11-07T01:41:51.621302+00:00",
+      "exit": 0,
+      "fallback_cleanup": false,
+      "fixture": {
+        "image": "public.ecr.aws/supabase/postgres:17.6.1.095",
+        "image_id": "sha256:965e2dfb5a23a0d6541b6106541e777b303656ebabd4e878746b189d550c0a66",
+        "network": "none",
+        "postgres_version": "17.6"
+      },
+      "group_gone": true,
+      "interrupted": false,
+      "manifest_sha256": "b1da0baaa9262097f69720ae21650703924abcc0844b9216368ac66d494a59dc",
+      "ordered_test_ids_sha256": "738fdb2282e3c95f738cc5bbd2de3f69c42fba63214dc426d61580b8100dff0f",
+      "raw_log_sha256": "db0cb9fcacf0c8e9b5c9f414fa9d1682bfacaa801ad2f3423949b75d86732d39",
+      "run_receipt_sha256": "eb0294d6d5e278f5ab4d58797fdd59492772e21602c95f39b1b4dca1305c6619",
+      "snapshot_sha256": "30fedb8e556b5884f4c83e006eeb89b327efd3cb95b6d3d53f3c482d2dc9d5cb",
+      "source_count": 942,
+      "source_unchanged": true,
+      "start": "2026-11-07T01:39:39.186315+00:00",
+      "test_result": {
+        "elapsed": 132.1686134156771,
+        "errors": 0,
+        "expected_failures": 0,
+        "failures": 0,
+        "skips": 0,
+        "tests": 2,
+        "unexpected_successes": 0
+      },
+      "test_result_sha256": "33a542f8af9a0d958281ad946579f74170c4315d47f43f8714893895f5432796",
+      "timeout": false
+    },
+    "current_main_ordinary": {
+      "base": "f317ffc4519d5a70002279458992e54465a9821f",
+      "container_gone": true,
+      "controller_sha256": "b52eeb3f7b4a721aa5cb94403e71fafd5c7e3e3bec9e6a4aa22cc22f4120af91",
+      "elapsed": 114.6056747911498,
+      "end": "2026-11-07T01:39:39.013210+00:00",
+      "exit": 0,
+      "fallback_cleanup": false,
+      "fixture": {
+        "image": "public.ecr.aws/supabase/postgres:17.6.1.095",
+        "image_id": "sha256:965e2dfb5a23a0d6541b6106541e777b303656ebabd4e878746b189d550c0a66",
+        "network": "none",
+        "postgres_version": "17.6"
+      },
+      "group_gone": true,
+      "interrupted": false,
+      "manifest_sha256": "b1da0baaa9262097f69720ae21650703924abcc0844b9216368ac66d494a59dc",
+      "ordered_test_ids_sha256": "7909fa7c6a7bf0610edd7c5e8303a710526b62849b3867f4a5d38a9ce0538c15",
+      "raw_log_sha256": "0f062860da42cc264c7f52721e59df4d2ab16021a76c01ffceb0239a894322fe",
+      "run_receipt_sha256": "7791b12779f901fbd4a56ea036f8dab94ecbaf7a5005893635920ece283d6d8c",
+      "snapshot_sha256": "30fedb8e556b5884f4c83e006eeb89b327efd3cb95b6d3d53f3c482d2dc9d5cb",
+      "source_count": 942,
+      "source_unchanged": true,
+      "start": "2026-11-07T01:37:44.407168+00:00",
+      "test_result": {
+        "elapsed": 114.4074889998883,
+        "errors": 0,
+        "expected_failures": 0,
+        "failures": 0,
+        "skips": 0,
+        "tests": 37,
+        "unexpected_successes": 0
+      },
+      "test_result_sha256": "171bac2e9088ff2bedf593dc589488b63a99850634e385f549204b2f9a08b71e",
+      "timeout": false
+    },
+    "focused_anchor_owner": {
+      "base": "7ff9b886a2d19de5388b86a5c3985a8705567edc",
+      "container_gone": true,
+      "controller_sha256": "af8b0dbb4e884898e9818ad99e9c4565e5ffd9ed548097fc0e9d24ab8a3e8b81",
+      "elapsed": 9.934503541328013,
+      "end": "2026-11-07T01:34:58.176319+00:00",
+      "exit": 0,
+      "fallback_cleanup": false,
+      "fixture": {
+        "image": "public.ecr.aws/supabase/postgres:17.6.1.095",
+        "image_id": "sha256:965e2dfb5a23a0d6541b6106541e777b303656ebabd4e878746b189d550c0a66",
+        "network": "none",
+        "postgres_version": "17.6"
+      },
+      "group_gone": true,
+      "interrupted": false,
+      "manifest_sha256": "b1da0baaa9262097f69720ae21650703924abcc0844b9216368ac66d494a59dc",
+      "ordered_test_ids_sha256": "fbb8d73ed8f519e0e131bef33722ec8add2021c82626896ccdaf869c7708ab85",
+      "raw_log_sha256": "a4f5dca1904d79592b88f7aa7523c26ad7daaf66f82b788e71cbf14bc1a9fe30",
+      "run_receipt_sha256": "dd228057886e163c8b318087e8b4a8b2230647941245eec707c5a999c3456925",
+      "snapshot_sha256": "74e35d9190caf706a807b5f5290394195aca357d36d077dd6342301f9f31dd86",
+      "source_count": 936,
+      "source_unchanged": true,
+      "start": "2026-11-07T01:34:48.241666+00:00",
+      "test_result": {
+        "elapsed": 9.706909208092839,
+        "errors": 0,
+        "expected_failures": 0,
+        "failures": 0,
+        "skips": 0,
+        "tests": 1,
+        "unexpected_successes": 0
+      },
+      "test_result_sha256": "9f37fe229bdf73870c77ca3afb856a967c32ffbfa94c7f73bc0c1b731c7fc307",
+      "timeout": false
+    }
+  }
+}

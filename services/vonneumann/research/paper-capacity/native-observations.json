@@ -1,0 +1,432 @@
+{
+  "accepted_i2a_source_snapshot_sha256": "7cd5b0bdb2820abd1e8283c222f3063699f3dea28a00d46f32457d598986b185",
+  "accepted_observation": {
+    "after_committed_install": {
+      "contract": {
+        "Stop_reserve_consumed": false,
+        "committed_positions": "1",
+        "dependency_rows": "3",
+        "domain_rows": "3",
+        "identity_rows": "15",
+        "index_entries": "48",
+        "logical_UTF8_bytes": "59653",
+        "retained_rows": "29",
+        "row_writes": "24"
+      },
+      "relations": {
+        "actor_bindings": {
+          "canonical_logical_row_bytes": 5594,
+          "declared_index_keys": 8,
+          "rows": 4
+        },
+        "dependency_associations": {
+          "canonical_logical_row_bytes": 2309,
+          "declared_index_keys": 6,
+          "rows": 3
+        },
+        "domain_facts": {
+          "canonical_logical_row_bytes": 10315,
+          "declared_index_keys": 6,
+          "rows": 3
+        },
+        "identities": {
+          "canonical_logical_row_bytes": 13087,
+          "declared_index_keys": 30,
+          "rows": 15
+        },
+        "journal_entries": {
+          "canonical_logical_row_bytes": 1019,
+          "declared_index_keys": 2,
+          "rows": 1
+        },
+        "original_operations": {
+          "canonical_logical_row_bytes": 14374,
+          "declared_index_keys": 3,
+          "rows": 1
+        },
+        "package_inputs": {
+          "canonical_logical_row_bytes": 11709,
+          "declared_index_keys": 1,
+          "rows": 1
+        },
+        "scope_state": {
+          "canonical_logical_row_bytes": 1172,
+          "declared_index_keys": 1,
+          "rows": 1
+        }
+      },
+      "whole_fixture_storage": {
+        "relations": {
+          "actor_bindings": {
+            "heap_main": 16384,
+            "indexes": 32768,
+            "table_including_toast": 49152,
+            "total": 81920
+          },
+          "dependency_associations": {
+            "heap_main": 8192,
+            "indexes": 32768,
+            "table_including_toast": 16384,
+            "total": 49152
+          },
+          "domain_facts": {
+            "heap_main": 8192,
+            "indexes": 32768,
+            "table_including_toast": 16384,
+            "total": 49152
+          },
+          "identities": {
+            "heap_main": 16384,
+            "indexes": 32768,
+            "table_including_toast": 49152,
+            "total": 81920
+          },
+          "journal_entries": {
+            "heap_main": 8192,
+            "indexes": 32768,
+            "table_including_toast": 16384,
+            "total": 49152
+          },
+          "original_operations": {
+            "heap_main": 8192,
+            "indexes": 49152,
+            "table_including_toast": 32768,
+            "total": 81920
+          },
+          "package_inputs": {
+            "heap_main": 8192,
+            "indexes": 16384,
+            "table_including_toast": 32768,
+            "total": 49152
+          },
+          "scope_state": {
+            "heap_main": 8192,
+            "indexes": 16384,
+            "table_including_toast": 16384,
+            "total": 32768
+          }
+        },
+        "wal_insert_offset": 23035312
+      }
+    },
+    "after_interrupted_provisional_acquire": {
+      "contract": {
+        "Stop_reserve_consumed": false,
+        "committed_positions": "1",
+        "dependency_rows": "3",
+        "domain_rows": "3",
+        "identity_rows": "15",
+        "index_entries": "48",
+        "logical_UTF8_bytes": "59653",
+        "retained_rows": "29",
+        "row_writes": "24"
+      },
+      "relations": {
+        "actor_bindings": {
+          "canonical_logical_row_bytes": 5594,
+          "declared_index_keys": 8,
+          "rows": 4
+        },
+        "dependency_associations": {
+          "canonical_logical_row_bytes": 2309,
+          "declared_index_keys": 6,
+          "rows": 3
+        },
+        "domain_facts": {
+          "canonical_logical_row_bytes": 10315,
+          "declared_index_keys": 6,
+          "rows": 3
+        },
+        "identities": {
+          "canonical_logical_row_bytes": 13087,
+          "declared_index_keys": 30,
+          "rows": 15
+        },
+        "journal_entries": {
+          "canonical_logical_row_bytes": 1019,
+          "declared_index_keys": 2,
+          "rows": 1
+        },
+        "original_operations": {
+          "canonical_logical_row_bytes": 14374,
+          "declared_index_keys": 3,
+          "rows": 1
+        },
+        "package_inputs": {
+          "canonical_logical_row_bytes": 11709,
+          "declared_index_keys": 1,
+          "rows": 1
+        },
+        "scope_state": {
+          "canonical_logical_row_bytes": 1172,
+          "declared_index_keys": 1,
+          "rows": 1
+        }
+      },
+      "whole_fixture_storage": {
+        "relations": {
+          "actor_bindings": {
+            "heap_main": 16384,
+            "indexes": 32768,
+            "table_including_toast": 49152,
+            "total": 81920
+          },
+          "dependency_associations": {
+            "heap_main": 8192,
+            "indexes": 32768,
+            "table_including_toast": 16384,
+            "total": 49152
+          },
+          "domain_facts": {
+            "heap_main": 8192,
+            "indexes": 32768,
+            "table_including_toast": 16384,
+            "total": 49152
+          },
+          "identities": {
+            "heap_main": 16384,
+            "indexes": 32768,
+            "table_including_toast": 49152,
+            "total": 81920
+          },
+          "journal_entries": {
+            "heap_main": 8192,
+            "indexes": 32768,
+            "table_including_toast": 16384,
+            "total": 49152
+          },
+          "original_operations": {
+            "heap_main": 8192,
+            "indexes": 49152,
+            "table_including_toast": 65536,
+            "total": 114688
+          },
+          "package_inputs": {
+            "heap_main": 8192,
+            "indexes": 16384,
+            "table_including_toast": 32768,
+            "total": 49152
+          },
+          "scope_state": {
+            "heap_main": 8192,
+            "indexes": 16384,
+            "table_including_toast": 16384,
+            "total": 32768
+          }
+        },
+        "wal_insert_offset": 23049608
+      }
+    },
+    "before_install": {
+      "contract": {
+        "Stop_reserve_consumed": false,
+        "committed_positions": "0",
+        "dependency_rows": "0",
+        "domain_rows": "0",
+        "identity_rows": "0",
+        "index_entries": "0",
+        "logical_UTF8_bytes": "0",
+        "retained_rows": "6",
+        "row_writes": "0"
+      },
+      "relations": {
+        "actor_bindings": {
+          "canonical_logical_row_bytes": 5594,
+          "declared_index_keys": 8,
+          "rows": 4
+        },
+        "dependency_associations": {
+          "canonical_logical_row_bytes": 0,
+          "declared_index_keys": 0,
+          "rows": 0
+        },
+        "domain_facts": {
+          "canonical_logical_row_bytes": 0,
+          "declared_index_keys": 0,
+          "rows": 0
+        },
+        "identities": {
+          "canonical_logical_row_bytes": 0,
+          "declared_index_keys": 0,
+          "rows": 0
+        },
+        "journal_entries": {
+          "canonical_logical_row_bytes": 0,
+          "declared_index_keys": 0,
+          "rows": 0
+        },
+        "original_operations": {
+          "canonical_logical_row_bytes": 0,
+          "declared_index_keys": 0,
+          "rows": 0
+        },
+        "package_inputs": {
+          "canonical_logical_row_bytes": 11709,
+          "declared_index_keys": 1,
+          "rows": 1
+        },
+        "scope_state": {
+          "canonical_logical_row_bytes": 1135,
+          "declared_index_keys": 1,
+          "rows": 1
+        }
+      },
+      "whole_fixture_storage": {
+        "relations": {
+          "actor_bindings": {
+            "heap_main": 16384,
+            "indexes": 32768,
+            "table_including_toast": 49152,
+            "total": 81920
+          },
+          "dependency_associations": {
+            "heap_main": 0,
+            "indexes": 16384,
+            "table_including_toast": 8192,
+            "total": 24576
+          },
+          "domain_facts": {
+            "heap_main": 0,
+            "indexes": 16384,
+            "table_including_toast": 8192,
+            "total": 24576
+          },
+          "identities": {
+            "heap_main": 0,
+            "indexes": 16384,
+            "table_including_toast": 8192,
+            "total": 24576
+          },
+          "journal_entries": {
+            "heap_main": 0,
+            "indexes": 16384,
+            "table_including_toast": 8192,
+            "total": 24576
+          },
+          "original_operations": {
+            "heap_main": 0,
+            "indexes": 24576,
+            "table_including_toast": 8192,
+            "total": 32768
+          },
+          "package_inputs": {
+            "heap_main": 8192,
+            "indexes": 16384,
+            "table_including_toast": 32768,
+            "total": 49152
+          },
+          "scope_state": {
+            "heap_main": 8192,
+            "indexes": 16384,
+            "table_including_toast": 16384,
+            "total": 32768
+          }
+        },
+        "wal_insert_offset": 23000168
+      }
+    },
+    "hosted_or_process_restart_proven": false,
+    "kind": "disposable-postgres-same-id-recovery-with-exact-backend-termination",
+    "known_commit_same_id_recovered": true,
+    "original_receipt_sha256": "114865463d00796363d8721a90af9f1b6b68280070086de619e0796752fa7edd",
+    "precommit_original_resolution": "observed_absent_unknown",
+    "precommit_preserved_committed_rows": true,
+    "same_id_replay_mutated_rows": false,
+    "timings_ns": {
+      "acquire_stage_and_provisional_ack": 163078875,
+      "independent_reader_recovery_after_termination": 95275125,
+      "independent_unknown_read_after_termination": 93851500,
+      "installation_stage_and_provisional_ack": 104322750,
+      "literal_commit_to_independent_finalized_observation": 115293334,
+      "postcommit_backend_termination": 220743958,
+      "precommit_backend_termination": 230733833,
+      "same_id_replay_after_termination": 129858833
+    },
+    "uses_fixture_trust_socket": true
+  },
+  "accepted_raw_observation_sha256": "4f89b43c36c73c4296ff48962c3955d18a9f8153d6143141768236fbaf0f732e",
+  "base_commit": "f317ffc4519d5a70002279458992e54465a9821f",
+  "corrected_passed": {
+    "accepted": true,
+    "controller_sha256": "ac8840d5b7baa858c295748a511fe6a551821eaaf168c9b675dd18e2223f17e3",
+    "correction": "after independently verified backend absence, close only the already tracked StepSession client and confirm that its process is reaped",
+    "elapsed_seconds": 9.555404709186405,
+    "end_utc": "2026-11-09T19:24:01.250241+00:00",
+    "exit": 0,
+    "fixture": {
+      "image_id": "sha256:965e2dfb5a23a0d6541b6106541e777b303656ebabd4e878746b189d550c0a66",
+      "network": "none",
+      "postgres_version": "17.6"
+    },
+    "manifest_sha256": "751f7bb564df95f6e4c1fc5e18502476cae19a66f9ceddbb89fe6bba36d90c52",
+    "owned_cleanup": {
+      "container_gone": true,
+      "fallback_needed": false,
+      "process_group_gone": true,
+      "timed_out": false
+    },
+    "raw_log_sha256": "e756eb981e0d5936004b034098fd6c17bb6791b56203a586956c88d003fddb7f",
+    "snapshot_sha256": "6e17881ef9ad159989346e0bb5e2843d9e8ebc61cfe3656680d5c25e2232c0b8",
+    "source_count": 943,
+    "source_overlay_path": "services/vonneumann/tests/postgres/test_b2_recovery_observation.py",
+    "source_overlay_sha256": "f7d313c33519b6b892804f2bd4fb8b714a071d0cff43f97bc84cceba687566c8",
+    "source_run_receipt_sha256": "1f60cf5aa272e73d7827a152e85d109fcde59dd1009a09bc63f8cb64793c1496",
+    "source_test_result_sha256": "ce174c1eac3280b024fe8d3870ef46f29f3bcadb3c9d02d2725268ece57ce9c9",
+    "source_unchanged": true,
+    "start_utc": "2026-11-09T19:23:51.694671+00:00",
+    "test_result": {
+      "elapsed": 9.377872167155147,
+      "errors": 0,
+      "expected_failures": 0,
+      "failures": 0,
+      "skips": 0,
+      "tests": 1,
+      "unexpected_successes": 0
+    }
+  },
+  "first_failed": {
+    "accepted": false,
+    "controller_sha256": "a39ba3496f1b1f5fe3bab3f86ed62040bb8208ba0823bc4b32adc32d0736fc03",
+    "elapsed_seconds": 12.376775249838829,
+    "end_utc": "2026-11-09T19:21:50.905735+00:00",
+    "exit": 1,
+    "fault": "exact backend had disappeared; owned psql client remained blocked reading stdin and its five-second wait expired before the reader recovery phase",
+    "fixture": {
+      "image_id": "sha256:965e2dfb5a23a0d6541b6106541e777b303656ebabd4e878746b189d550c0a66",
+      "network": "none",
+      "postgres_version": "17.6"
+    },
+    "manifest_sha256": "b8d7298a8dbbad5633baa7a5fda63b0d8d7ff45b307c4d803052c5ad5e0865dd",
+    "owned_cleanup": {
+      "container_gone": true,
+      "fallback_needed": false,
+      "process_group_gone": true,
+      "timed_out": false
+    },
+    "raw_log_sha256": "b1427b077369da072ffbbd1c901899d6632f4b7bac3cddd2160f7d7c53e61174",
+    "snapshot_sha256": "cef756fafe393e9f8378f596275ec0c22397498bb9c0ca1fff95f9bd5eae106a",
+    "source_count": 943,
+    "source_overlay_path": "services/vonneumann/tests/postgres/test_b2_recovery_observation.py",
+    "source_overlay_sha256": "526bf55aa9abe8c09ce8860ac4e890e9bb7527ec59e70429261ccb95e97dd6b6",
+    "source_run_receipt_sha256": "1a203c4d4c027f68abbf26dc899f9e284097e8d74111da3cd1f0bcb56019f75f",
+    "source_test_result_sha256": "ba54668e6dadb472304ff10c341fa07d78a49543922c35224942912f09cef53a",
+    "source_unchanged": true,
+    "start_utc": "2026-11-09T19:21:38.528815+00:00",
+    "test_result": {
+      "elapsed": 12.188058792147785,
+      "errors": 1,
+      "expected_failures": 0,
+      "failures": 0,
+      "skips": 0,
+      "tests": 1,
+      "unexpected_successes": 0
+    }
+  },
+  "format": "dashboard-b2-native-journal-recovery-observations-v1",
+  "physical_extent": "eight whole synthetic relations across both scopes, global WAL insert offset",
+  "scope": "local network-none PostgreSQL trust-socket fixture, exact client/backend interruption only",
+  "test_ids": [
+    "tests.postgres.test_b2_recovery_observation.B2RecoveryObservationTests.test_original_commit_survives_owned_backend_termination_and_precommit_kill_rolls_back"
+  ],
+  "writes_to_hosted_or_production": false
+}

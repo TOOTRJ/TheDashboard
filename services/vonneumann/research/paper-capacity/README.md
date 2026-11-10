@@ -1,0 +1,30 @@
+# Offline one-market paper capacity and fault harness
+
+The executable checks the proposed one-SOL-market, one-worker profile. Its default forecast is the source-only floor for one successful original trio per minute. It reads four existing Python source files as data, uses a restricted AST literal reader, and records their SHA-256 values. It imports no Dashboard code, reads no credentials, makes no network calls, and has no authority to admit a run. The scope excludes every economic write, failed attempt, retention release and change of source cadence.
+
+From this directory, run:
+
+```sh
+/usr/bin/python3 -I -B test_capacity.py
+/usr/bin/python3 -I -B capacity.py
+```
+
+Fourteen deterministic tests pass. Each retained axis can refuse independently, an ordinary allocation leaves the full declared reserve, and Stop's separate writer and reader can retain time after ordinary writer and fence expiry. The deadline calculation is a forecast over caller-supplied upper bounds. It assumes an independently authorized original Stop and gives no authority to issue one. A strict positive margin is required. The tests include whole-acquisition and receipt deadline equality, future and stale source, expired quota evidence, clock ordering, the distinct native-acceptance and readback minute boundaries, a lost response and a replacement ID. The single-axis synthetic clock inputs stand in for conservative authenticated UTC bounds. The native policy must still derive and compare its own per-record wall and monotonic bounds and confirm the complete package and lease.
+
+## Results and limits
+
+- The minimum source workload for 915 qualifying minutes is 3,660 journal positions, 10,065 prepared UUIDs, 2,745 provider record IDs, 18,300 naive dependency views, 915 Price calls and 1,830 RPC calls. The body envelope is 239,861,760 bytes. None of these numbers is an installed database limit or a prediction of physical storage, actual network calls or typical body size.
+- Under the illustrated 32-other-event reserve, a single unpaged 4,096-entry planning inventory has margins of −54, +99 and +221 positions at hypothetical renewal intervals of 120, 180 and 300 seconds for 915 minutes. The same margins for 945 minutes are −189, −31 and +95. This is a lower workload bound for a single inventory over the complete interval. A paged or incremental seal requires its own coverage proof. The positive margins supply no safety or latency finding. The source fence and economic lease are separate.
+- Three maximum-sized bodies sum to 262,144 raw bytes and 349,532 base64 bytes. At least 611,676 bytes are retained per such result before metadata. Twelve of those results already exceed the existing 7,340,032-byte pre-I/O headroom threshold by 80 bytes. Attempt 13 must refuse at the latest for that no-eviction scenario. The actual existing maximum padded fixture ran under its network denial and charged 618,694 bytes, including exact capsule and summary overhead, leaving 429,882 bytes of its 1 MiB per-packet reserve. This fixture proves neither RSS nor typical response distribution. At constant charge, all 915 pre-I/O checks fit only if the prior 914 results each charge at most 8,030 bytes under this transport configuration. Release needs durable same-ID getters and recovery before any eviction.
+- The existing source unit cases for fractional final clock bounds, exact replay, unresolved getter and immutable readback/availability all passed. The synthetic harness does not implement native source verification, retained database identity, market eligibility, SQL effects, failover, or actual provider quota. Hosted readiness still requires exact real evidence under the selected profile.
+
+Use `receipt.json` for the source-bound forecast. For follow-up, add actual count/byte/phase telemetry only through the separately reviewed owned native or hosted runner. Preserve per-stage request counts, original deadlines and no raw secrets. Compare per-event rows, keys, encoded size, direct dependencies and reader closure before selecting a per-event envelope. Before using any retained-memory release path, prove the original captured bytes and result can be retrieved under the old identity after interruption.
+
+The [November 9 observations](OBSERVATIONS.md) measure the existing transport
+with three synthetic response sizes and a real process interruption. The
+separate PostgreSQL observer recovers an original committed Install after
+session termination and measures logical rows, physical allocation and WAL
+before and after an interrupted Acquire. The
+[transport receipts](transport-observations.json) and
+[native receipt](native-observations.json) preserve the results and their
+source bounds. Durable provider-body readback and cache release remain open.

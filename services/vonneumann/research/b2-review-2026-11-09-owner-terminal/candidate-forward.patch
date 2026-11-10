@@ -1,0 +1,548 @@
+diff --git a/services/vonneumann/tests/postgres/allocation_control_v3_fixture.py b/services/vonneumann/tests/postgres/allocation_control_v3_fixture.py
+--- a/services/vonneumann/tests/postgres/allocation_control_v3_fixture.py
++++ b/services/vonneumann/tests/postgres/allocation_control_v3_fixture.py
+@@ -252,6 +252,8 @@
+ CREATOR = 'vn_jupiter_b2_actor_issuer'
+ SCRAM_FORMAT = 'ga-jupiter-b2-fixture-direct-scram-research-v3-v1'
+ SHORT_RECORDER = 'vn_jupiter_b2_0_recorder'
++TERMINAL_ADDON_PATH = ROOT / 'db-contract/research/jupiter_terminal_retirement_owner_lab.sql'
++TERMINAL_ADDON_SHA256 = '977456a010be9702364cff541aef614fd41bb67cf92a77efb28936992c9f6a84'
+ 
+ 
+ def verify_seal(db, source, actors, *, creator_edges=False):
+@@ -326,27 +328,37 @@
+ class AllocationScramPostgres(NativePostgres):
+     """Existing owned CA/server plus direct actor libpq, with no SET ROLE."""
+ 
++    recorder_seconds = 35
++    issuer_scram = False
++
+     def __init__(self):
+         super().__init__()
+         self.actor_deadlines = {}
++
++    def uses_direct_scram(self, role):
++        return role in self.actor_deadlines or (self.issuer_scram and role == CREATOR)
++
++    def synthetic_password_clause(self, role, deadline):
++        password = secrets.token_hex(32)
++        verifier = scram_verifier(password)
++        self.write_private(role+'.pgpass',f'*:5432:postgres:{role}:{password}\n')
++        return f'CONNECTION LIMIT 2 PASSWORD {literal(verifier)} VALID UNTIL {literal(deadline)}'
+ 
+     def actor_ddl(self, actors):
+         if self.actor_deadlines or len(set(actors)) != 8 or SHORT_RECORDER not in actors:
+             raise RuntimeError('b2_scram_fixture_actor_inventory_refused')
+         # One authoritative timestamp with fixed, finite offsets. Use the same
+         # absolute values in role creation and in the independent catalog check.
+-        deadlines = json.loads(self.scalar("""WITH now AS MATERIALIZED (SELECT clock_timestamp() AS stamp)
++        deadlines = json.loads(self.scalar(f"""WITH now AS MATERIALIZED (SELECT clock_timestamp() AS stamp)
+             SELECT jsonb_agg(jsonb_build_array(deadline::text,floor(extract(epoch FROM deadline)*1000000)::bigint)
+               ORDER BY deadline) FROM now CROSS JOIN LATERAL
+-              (VALUES (stamp+interval '35 seconds'),(stamp+interval '180 seconds')) AS d(deadline);"""))
++              (VALUES (stamp+interval '{self.recorder_seconds} seconds'),(stamp+interval '180 seconds')) AS d(deadline);"""))
+         ddl = []
+         for actor in actors:
+             deadline, deadline_us = deadlines[0 if actor == SHORT_RECORDER else 1]
+-            password = secrets.token_hex(32)
+-            verifier = scram_verifier(password)
+-            self.write_private(actor+'.pgpass',f'*:5432:postgres:{actor}:{password}\n')
++            credentials = self.synthetic_password_clause(actor,deadline)
+             ddl.append(f'CREATE ROLE {actor} LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT '
+-                f'NOREPLICATION NOBYPASSRLS CONNECTION LIMIT 2 PASSWORD {literal(verifier)} VALID UNTIL {literal(deadline)};')
++                f'NOREPLICATION NOBYPASSRLS {credentials};')
+             self.actor_deadlines[actor] = deadline_us
+         return '\n'.join(ddl)+'\n'
+ 
+@@ -359,7 +371,7 @@
+             raise RuntimeError('b2_scram_fixture_deadline_refused')
+ 
+     def direct_command(self, role, *, statement_ms, host=HOST, root='root.crt'):
+-        if (self._container_id is None or role not in self.actor_deadlines or not 0 < statement_ms <= 60000
++        if (self._container_id is None or not self.uses_direct_scram(role) or not 0 < statement_ms <= 60000
+                 or host not in (HOST,'wrong.example') or root not in ('root.crt','wrong-root.crt')):
+             raise ValueError('b2_direct_fixture_connection_refused')
+         conn = f'host={host} hostaddr=127.0.0.1 port=5432 dbname=postgres user={role} sslmode=verify-full '
+@@ -369,7 +381,7 @@
+             '-d',conn,'-v','ON_ERROR_STOP=1','-v','VERBOSITY=verbose','-A','-t','-q']
+ 
+     def begin_sql(self, source, *, role='postgres', timeout=10):
+-        if role not in self.actor_deadlines:
++        if not self.uses_direct_scram(role):
+             return super().begin_sql(source,role=role,timeout=timeout)
+         return self.begin_direct(source,role=role,timeout=timeout)
+ 
+@@ -383,12 +395,89 @@
+         return session
+ 
+ 
++class AllocationRetirementPostgres(AllocationScramPostgres):
++    recorder_seconds = 180
++    issuer_scram = True
++
++    def create_scram_issuer(self):
++        deadline=self.scalar("SELECT (clock_timestamp()+interval '180 seconds')::text;")
++        credentials=self.synthetic_password_clause(CREATOR,deadline)
++        sql=f'CREATE ROLE {CREATOR} LOGIN NOSUPERUSER NOCREATEDB CREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS {credentials};'
++        result=self.sql(sql,check=False)
++        if result.returncode:
++            raise RuntimeError('b2_terminal_fixture_issuer_refused')
++
++
++def install_and_verify_terminal_addon(db):
++    """Install only in the owned terminal fixture, before independent K capture."""
++    source=held(TERMINAL_ADDON_PATH,TERMINAL_ADDON_SHA256,32768).decode('utf8')
++    signatures={
++        '_terminal_retirement_context':(N,OWNER,['requested_scope','permit_wire','after_disable'],['text','text','boolean'],'text',ANCHOR_OWNER),
++        '_stage_terminal_retirement':(A,ANCHOR_OWNER,['requested_scope','requested_permit'],['text','text'],'text',CREATOR),
++        '_terminal_retirement_commit_guard':(A,ANCHOR_OWNER,None,[],'trigger',None),
++    }
++    db.sql(source,timeout=30)
++    for name,(namespace,owner,args,argtypes,returns,grantee) in signatures.items():
++        body=re.search(r'^-- FUNCTION '+name+r'\nCREATE FUNCTION [^\n]+\n.*?^AS \$terminal\$(.*?)^\$terminal\$;',source,re.M|re.S)
++        if body is None:
++            raise RuntimeError('b2_terminal_held_function_refused')
++        signature=f'{namespace}.{name}('+','.join(argtypes)+')'
++        actual=json.loads(db.scalar(f"""SELECT jsonb_build_array(pg_get_userbyid(p.proowner),p.prosrc,p.proargnames,
++          (SELECT coalesce(jsonb_agg(t::regtype::text ORDER BY i),'[]') FROM unnest(p.proargtypes::oid[]) WITH ORDINALITY v(t,i)),
++          p.prorettype::regtype::text,l.lanname,p.prokind,p.prosecdef,p.proisstrict,p.provolatile,p.proparallel,
++          p.proleakproof,p.proretset,p.procost::text,p.prorows::text,p.prosupport::oid::text,p.provariadic::text,
++          p.pronargdefaults,p.proallargtypes,p.proargmodes,p.protrftypes,p.probin,p.prosqlbody::text,p.proconfig,
++          (SELECT jsonb_agg(jsonb_build_array(coalesce(grantee.rolname,'PUBLIC'),pg_get_userbyid(a.grantor),a.privilege_type,a.is_grantable)
++          ORDER BY coalesce(grantee.rolname,'PUBLIC') COLLATE "C") FROM aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) a
++          LEFT JOIN pg_roles grantee ON grantee.oid=a.grantee))
++          FROM pg_proc p JOIN pg_language l ON l.oid=p.prolang WHERE p.oid={literal(signature)}::regprocedure;"""))
++        allowed=sorted([owner]+([grantee] if grantee else []))
++        expected=[owner,body.group(1),args,argtypes,returns,'plpgsql','f',True,False,'v','u',False,False,
++          '100','0','0','0',0,None,None,None,None,None,
++          ['search_path=pg_catalog, pg_temp','TimeZone=UTC','client_encoding=UTF8','standard_conforming_strings=on'],
++          [[role,owner,'EXECUTE',False] for role in allowed]]
++        if actual!=expected:
++            raise RuntimeError('b2_terminal_function_catalog_refused:'+name)
++    if db.scalar(f"SELECT count(*) FROM pg_proc WHERE pronamespace IN({literal(A)}::regnamespace,{literal(N)}::regnamespace);")!='20':
++        raise RuntimeError('b2_terminal_function_inventory_refused')
++    schema_grants=json.loads(db.scalar(f"""SELECT jsonb_agg(jsonb_build_array(n.nspname,pg_get_userbyid(a.grantee),
++       pg_get_userbyid(a.grantor),a.privilege_type,a.is_grantable) ORDER BY n.nspname)
++      FROM pg_namespace n CROSS JOIN LATERAL aclexplode(n.nspacl) a
++      WHERE (n.nspname={literal(A)} AND a.grantee={literal(CREATOR)}::regrole)
++         OR (n.nspname={literal(N)} AND a.grantee={literal(ANCHOR_OWNER)}::regrole);"""))
++    if schema_grants!=sorted([[A,CREATOR,ANCHOR_OWNER,'USAGE',False],[N,ANCHOR_OWNER,OWNER,'USAGE',False]]):
++        raise RuntimeError('b2_terminal_schema_acl_refused')
++    attr=json.loads(db.scalar(f"""SELECT jsonb_build_array(a.attnum,a.atttypid::regtype::text,a.attnotnull,a.atthasdef,a.attacl)
++      FROM pg_attribute a WHERE a.attrelid={literal(A+'.package_inputs')}::regclass AND a.attname='retirement_permit_wire';"""))
++    if attr!=[8,'text',False,False,None]:
++        raise RuntimeError('b2_terminal_permit_column_refused')
++    if db.scalar(f"""SELECT count(*) FROM pg_constraint c WHERE c.conrelid={literal(A+'.package_inputs')}::regclass
++       AND c.contype='c' AND c.conkey=ARRAY[8]::smallint[] AND c.convalidated
++       AND pg_get_expr(c.conbin,c.conrelid)='(octet_length(retirement_permit_wire) <= 8192)';""")!='1':
++        raise RuntimeError('b2_terminal_permit_constraint_refused')
++    trigger=json.loads(db.scalar(f"""SELECT jsonb_build_array(t.tgfoid::regprocedure::text,t.tgtype,t.tgenabled,
++      t.tgdeferrable,t.tginitdeferred,t.tgnargs,pg_get_triggerdef(t.oid)) FROM pg_trigger t
++      WHERE NOT t.tgisinternal AND t.tgrelid={literal(A+'.package_inputs')}::regclass
++       AND t.tgname='committed_terminal_retirement_guard';"""))
++    if trigger[:-1]!=[A+'._terminal_retirement_commit_guard()',17,'O',True,True,0] or not all(
++       part in trigger[-1].lower() for part in ('new.retirement_permit_wire is not null','old.retirement_wire is distinct from new.retirement_wire',
++        'old.retirement_permit_wire is distinct from new.retirement_permit_wire')):
++        raise RuntimeError('b2_terminal_trigger_refused')
++    rights=db.scalar(f"""SELECT EXISTS(SELECT 1 FROM pg_class c WHERE c.relnamespace IN({literal(A)}::regnamespace,{literal(N)}::regnamespace)
++       AND c.relkind='r' AND (has_table_privilege({literal(CREATOR)},c.oid,'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER,MAINTAIN')
++       OR has_any_column_privilege({literal(CREATOR)},c.oid,'SELECT,INSERT,UPDATE,REFERENCES')))
++       OR pg_has_role({literal(CREATOR)},{literal(ANCHOR_OWNER)},'SET') OR pg_has_role({literal(CREATOR)},{literal(OWNER)},'SET');""")
++    if rights!='f':
++        raise RuntimeError('b2_terminal_issuer_effective_acl_refused')
++
++
+ class AllocationFixture:
+     def __init__(self,db,*,creator_edges=False):
+         if type(creator_edges) is not bool:raise RuntimeError('b2_fixture_creator_mode_refused')
+         if not isinstance(db,IsolatedPostgres) or db.identity.get('network')!='none':raise RuntimeError('b2_owned_fixture_required')
+         self.db=db
+         self.direct_scram=isinstance(db,AllocationScramPostgres)
++        self.owner_retirement=isinstance(db,AllocationRetirementPostgres)
+         if self.direct_scram and not creator_edges:
+             raise RuntimeError('b2_scram_fixture_creator_required')
+         self.arrangements=0  # Trusted fixture provenance only; no actor capability.
+@@ -420,7 +509,10 @@
+             for owner in (ANCHOR_OWNER,OWNER))
+         actor_ddl=''.join(f'CREATE ROLE {actor} LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS;\n' for actor in self.actors)
+         if creator_edges:
+-            db.sql(f'CREATE ROLE {CREATOR} LOGIN NOSUPERUSER NOCREATEDB CREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS;')
++            if self.owner_retirement:
++                db.create_scram_issuer()
++            else:
++                db.sql(f'CREATE ROLE {CREATOR} LOGIN NOSUPERUSER NOCREATEDB CREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS;')
+             if db.scalar(f"SELECT session_user={literal(CREATOR)} AND current_user=session_user AND rolcreaterole AND NOT rolsuper FROM pg_roles WHERE rolname=session_user;",role=CREATOR)!='t':
+                 raise RuntimeError('b2_actual_limited_creator_required')
+             issue_prefix="BEGIN; SET LOCAL createrole_self_grant='';\n"
+@@ -453,6 +545,8 @@
+         for actor in self.actors:seal+=f'GRANT USAGE ON SCHEMA {N} TO {actor}; GRANT EXECUTE ON FUNCTION {N}.submit(text),{N}.get_original(text) TO {actor};\n'
+         seal+='COMMIT;';db.sql(seal,timeout=30)
+         verify_functions(db,self.source,self.actors);verify_seal(db,self.source,self.actors,creator_edges=creator_edges)
++        if self.owner_retirement:
++            install_and_verify_terminal_addon(db)
+         # Real immutable scope/sessionOID/name/capability inputs are independently
+         # specified here, not granted by a caller-supplied binding boolean.
+         for scope in self.scopes:
+diff --git a/services/vonneumann/tests/postgres/test_allocation_control_v3.py b/services/vonneumann/tests/postgres/test_allocation_control_v3.py
+--- a/services/vonneumann/tests/postgres/test_allocation_control_v3.py
++++ b/services/vonneumann/tests/postgres/test_allocation_control_v3.py
+@@ -14,7 +14,8 @@
+ 
+ from tests.postgres.harness import IsolatedPostgres, OPT_IN
+ from tests.postgres.allocation_control_v3_fixture import (
+-    AllocationFixture, AllocationScramPostgres, A, N, ANCHOR_OWNER, OWNER, CREATOR, BEGIN, SETTINGS, canonical, literal, sha,
++    AllocationFixture, AllocationScramPostgres, AllocationRetirementPostgres,
++    A, N, ANCHOR_OWNER, OWNER, CREATOR, BEGIN, SETTINGS, canonical, literal, sha,
+ )
+ 
+ 
+@@ -2087,4 +2088,136 @@
+         self.assertEqual(before,f.snapshot())
+ 
+ 
++@unittest.skipUnless(os.environ.get(OPT_IN)=='1','Requires isolated PostgreSQL opt-in')
++class AllocationOwnerRetirementNativeTests(unittest.TestCase):
++    @classmethod
++    def setUpClass(cls):
++        cls.db=AllocationRetirementPostgres().start()
++        try:cls.fixture=AllocationFixture(cls.db,creator_edges=True)
++        except BaseException:
++            cls.db.close();raise
++
++    @classmethod
++    def tearDownClass(cls):cls.db.close()
++
++    def submit(self, command, role):
++        writer=self.fixture.writer(role)
++        try:
++            writer.send(self.fixture.call('submit',command,role))
++            provisional=json.loads(writer.line())
++            self.assertTrue(provisional['pending_commit'])
++            self.assertEqual(provisional['original_command_sha256'],sha(canonical(command)))
++            writer.finish()
++        finally:writer.close()
++
++    def expect_refusal(self, source, role, message):
++        result=self.db.sql(source,role=role,check=False)
++        self.assertNotEqual(result.returncode,0)
++        self.assertIn(message,result.stderr)
++        return result
++
++    def test_closed_terminal_fixture_keeps_exact_catalog_and_restricted_acl(self):
++        # The fixture independently verifies the overlay before capturing K.
++        # Keep setup/readiness distinct from the role and lock witnesses below.
++        f=self.fixture
++        self.assertEqual(len(f.catalog['value']['functions']),20)
++        self.assertEqual(self.db.scalar(f"SELECT count(*) FROM {A}.package_inputs WHERE retirement_permit_wire IS NULL AND retirement_wire IS NULL;"),'2')
++        self.assertEqual([f.head(scope)['source_mode'] for scope in f.scopes],['uninstalled','uninstalled'])
++        self.assertEqual(self.db.scalar(f"SELECT has_schema_privilege({literal(CREATOR)},{literal(A)},'USAGE') AND NOT has_schema_privilege({literal(CREATOR)},{literal(A)},'CREATE') AND NOT has_schema_privilege({literal(CREATOR)},{literal(N)},'USAGE');"),'t')
++
++    def test_limited_issuer_retires_exact_writers_only_at_literal_commit(self):
++        f=self.fixture
++        s=f.scopes[0]
++        sw=literal(canonical(s['scope']))
++        installer,recorder,control,reader=(s['actors'][name] for name in ('installer','recorder','control','reader'))
++        issuer=json.loads(self.db.scalar("SELECT jsonb_build_array(session_user,system_user,current_user,inet_client_addr() IS NOT NULL,ssl) FROM pg_stat_ssl WHERE pid=pg_backend_pid();",role=CREATOR))
++        self.assertEqual(issuer,[CREATOR,'scram-sha-256:'+CREATOR,CREATOR,True,True])
++        install=f.command(s)
++        self.submit(install,installer)
++        acquire=f.command(s,'fence_acquire',action_id=str(UUID(int=993031)))
++        acquire['body']=dict(fence_id=str(UUID(int=993032)),acquisition_epoch=s['epoch'],
++            holder_principal_binding_id=s['bindings']['recorder'],requested_duration_us='60000000')
++        self.submit(acquire,recorder)
++        head=f.head(s)
++        resume=f.command(s,'source_resume',action_id=str(UUID(int=993033)))
++        resume['expected_fence_id']=head['active_fence_id']
++        resume['expected_fence_revision']=head['fence_revision']
++        self.submit(resume,control)
++        stop=f.command(s,'source_stop')
++        stop['body']=dict(expected_control_sha256=sha(canonical(resume)),expected_mode='open')
++        history=[f.get(command,reader) for command in (install,acquire)]
++        expected_marker,_=f.owner_retirement_sql(s,stop)
++        permit_id=str(UUID(int=993034))
++        permit_expiry=self.db.scalar("SELECT floor(extract(epoch FROM clock_timestamp()+interval '60 seconds')*1000000)::bigint;")
++        issuer_oid=self.db.scalar('SELECT oid::text FROM pg_roles WHERE rolname=session_user;',role=CREATOR)
++        permit=dict(format='ga-jupiter-b2-terminal-permit-fixture-v1',permit_id=permit_id,scope=s['scope'],
++          native_package_sha256=s['package']['native_package_sha256'],catalog_manifest_sha256=s['package']['catalog_manifest_sha256'],
++          stop_command_wire=canonical(stop),writer_binding_ids=[s['bindings'][name] for name in ('installer','recorder')],
++          expires_at_us=permit_expiry,issuer_oid=issuer_oid)
++        self.db.sql(f"BEGIN; SET LOCAL ROLE {ANCHOR_OWNER}; UPDATE {A}.package_inputs SET retirement_permit_wire={literal(canonical(permit))} WHERE scope_wire={sw}; COMMIT;")
++        before=f.snapshot()
++        stage=f'SELECT {A}._stage_terminal_retirement({sw},{literal(permit_id)});\n'
++        retire_installer=f'ALTER ROLE {installer} NOLOGIN;\n'
++        retire_recorder=f'ALTER ROLE {recorder} NOLOGIN;\n'
++        first_only=f"SELECT NOT a.rolcanlogin AND b.rolcanlogin FROM pg_roles a,pg_roles b WHERE a.rolname={literal(installer)} AND b.rolname={literal(recorder)};\n"
++        both_disabled=f"SELECT count(*)=2 AND bool_and(NOT rolcanlogin) FROM pg_roles WHERE rolname IN({literal(installer)},{literal(recorder)});\n"
++        both_enabled=f"SELECT count(*)=2 AND bool_and(rolcanlogin) FROM pg_roles WHERE rolname IN({literal(installer)},{literal(recorder)});"
++        prefix=BEGIN+SETTINGS+stage
++
++        for owner in (ANCHOR_OWNER,OWNER):
++            self.expect_refusal(f'SET ROLE {owner};',CREATOR,'42501')
++        self.expect_refusal(f'UPDATE {A}.package_inputs SET retirement_wire=NULL WHERE scope_wire={sw};',CREATOR,'42501')
++        self.expect_refusal(f'SELECT {N}._terminal_retirement_context({sw},{literal(canonical(permit))},false);',CREATOR,'42501')
++        self.expect_refusal(stage,control,'42501')
++        self.expect_refusal(retire_recorder,control,'42501')
++        self.expect_refusal(f'BEGIN; SET LOCAL ROLE {ANCHOR_OWNER}; SELECT scope_wire FROM {N}.scope_state; ROLLBACK;','postgres','42501')
++        self.expect_refusal(f'BEGIN; SET LOCAL ROLE {OWNER}; UPDATE {A}.package_inputs SET retirement_wire=NULL WHERE scope_wire={sw}; ROLLBACK;','postgres','42501')
++        other_scope=literal(canonical(f.scopes[1]['scope']))
++        self.expect_refusal(f'SELECT {A}._stage_terminal_retirement({other_scope},{literal(permit_id)});',CREATOR,'b2_terminal_permit_refused')
++
++        blocker=f.writer(control)
++        try:
++            blocker.send(f.call('submit',stop,control))
++            self.assertTrue(json.loads(blocker.line())['pending_commit'])
++            self.expect_refusal(prefix+'COMMIT;\n',CREATOR,'55P03')
++            blocker.finish('ROLLBACK;')
++        finally:blocker.close()
++        self.assertEqual(before,f.snapshot())
++
++        for statements,error,witnesses in (
++          ('SET CONSTRAINTS ALL IMMEDIATE;\n','b2_terminal_commit_form_refused',[]),
++          (retire_installer+first_only+'COMMIT;\n','b2_terminal_writer_refused',['t']),
++          (retire_installer+retire_recorder+both_disabled+'SET CONSTRAINTS ALL IMMEDIATE;\n','b2_terminal_commit_form_refused',['t']),
++        ):
++            result=self.expect_refusal(prefix+statements,CREATOR,error)
++            self.assertEqual(result.stdout.splitlines(),[canonical(expected_marker),*witnesses])
++            self.assertEqual(before,f.snapshot())
++            self.assertEqual(self.db.scalar(both_enabled),'t')
++            self.assertEqual([f.get(command,reader) for command in (install,acquire)],history)
++
++        applied=self.db.sql(prefix+retire_installer+retire_recorder+both_disabled+'COMMIT;\n',role=CREATOR)
++        self.assertEqual(applied.stdout.splitlines(),[canonical(expected_marker),'t'])
++        marker=self.db.scalar(f'SELECT retirement_wire FROM {A}.package_inputs WHERE scope_wire={sw};')
++        self.assertEqual(marker,canonical(expected_marker))
++        self.assertEqual(self.db.scalar(both_disabled),'t')
++        self.assertEqual([row for row in f.snapshot() if row[0]==N],[row for row in before if row[0]==N])
++        self.assertEqual([f.get(command,reader) for command in (install,acquire)],history)
++        self.expect_refusal(prefix+'COMMIT;\n',CREATOR,'b2_terminal_permit_refused')
++        for role in (installer,recorder):
++            refused=self.db.sql('SELECT 1;',role=role,check=False)
++            self.assertNotEqual(refused.returncode,0)
++            self.assertEqual(refused.stdout,'')
++        altered=copy.deepcopy(stop)
++        altered['body']['expected_control_sha256']='f'*64
++        self.expect_refusal(BEGIN+SETTINGS+f.call('submit',altered,control)+'COMMIT;',control,'b2_retirement_refused')
++        self.submit(stop,control)
++        reply=f.get(stop,reader)
++        self.assertEqual(reply['original_command_wire'],canonical(stop))
++        receipt=json.loads(reply['original_receipt_wire'])
++        self.assertEqual(receipt['original_command_sha256'],sha(canonical(stop)))
++        self.assertEqual(reply['observed_head']['native_sequence'],'4')
++        self.assertEqual(f.head(s)['source_mode'],'stopped')
++        self.assertEqual(f.get(stop,reader),reply)
++
++
+ if __name__=='__main__':unittest.main()
+diff --git a/services/vonneumann/db-contract/research/jupiter_terminal_retirement_owner_lab.sql b/services/vonneumann/db-contract/research/jupiter_terminal_retirement_owner_lab.sql
+new file mode 100644
+--- /dev/null
++++ b/services/vonneumann/db-contract/research/jupiter_terminal_retirement_owner_lab.sql
+@@ -0,0 +1,208 @@
++-- Private owner-separated terminal slice for the fixed SCRAM laboratory.
++BEGIN;
++SET LOCAL ROLE vn_jupiter_b2_anchor_owner;
++ALTER TABLE vn_jupiter_b2_fixture_anchor.package_inputs ADD COLUMN retirement_permit_wire pg_catalog.text CHECK (pg_catalog.octet_length(retirement_permit_wire)<=8192);
++RESET ROLE;
++SET LOCAL ROLE vn_jupiter_b2_sealed_owner;
++
++-- FUNCTION _terminal_retirement_context
++CREATE FUNCTION vn_jupiter_b2_allocation_research_v3._terminal_retirement_context(requested_scope pg_catalog.text, permit_wire pg_catalog.text, after_disable pg_catalog.bool)
++RETURNS pg_catalog.text
++LANGUAGE plpgsql VOLATILE SECURITY DEFINER
++CALLED ON NULL INPUT PARALLEL UNSAFE COST 100
++SET search_path = 'pg_catalog', 'pg_temp'
++SET TimeZone = 'UTC'
++SET client_encoding = 'UTF8'
++SET standard_conforming_strings = 'on'
++AS $terminal$
++DECLARE permit jsonb; command jsonb; package jsonb; genesis jsonb; held_catalog jsonb;
++        inputs vn_jupiter_b2_fixture_anchor.package_inputs%ROWTYPE;
++        head jsonb; accounting jsonb; expected_profile record; binding record; role_index bigint;
++        writer_ids jsonb:='[]'; writers jsonb:='[]'; observed timestamptz; issuer_deadline timestamptz;
++BEGIN
++ IF session_user IS DISTINCT FROM 'vn_jupiter_b2_actor_issuer'
++  OR system_user IS DISTINCT FROM ('scram-sha-256:'||session_user::text)
++  OR pg_catalog.inet_client_addr() IS NULL OR after_disable IS NULL
++ THEN RAISE EXCEPTION 'b2_terminal_issuer_refused' USING ERRCODE='42501'; END IF;
++ IF permit_wire IS NULL OR pg_catalog.octet_length(permit_wire)>8192 THEN RAISE EXCEPTION 'b2_terminal_permit_refused'; END IF;
++ permit:=permit_wire::jsonb;
++ IF NOT vn_jupiter_b2_allocation_research_v3._keys(permit,ARRAY['format','permit_id','scope','native_package_sha256','catalog_manifest_sha256','stop_command_wire','writer_binding_ids','expires_at_us','issuer_oid'])
++  OR permit->>'format' IS DISTINCT FROM 'ga-jupiter-b2-terminal-permit-fixture-v1'
++  OR (permit->>'permit_id' ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$') IS DISTINCT FROM true
++  OR (permit->>'expires_at_us' ~ '^[0-9]{16}$') IS DISTINCT FROM true
++  OR vn_jupiter_b2_allocation_research_v3._c14n(permit) IS DISTINCT FROM permit_wire
++  OR vn_jupiter_b2_allocation_research_v3._scope(permit->'scope') IS DISTINCT FROM requested_scope
++  OR pg_catalog.jsonb_typeof(permit->'stop_command_wire') IS DISTINCT FROM 'string'
++ THEN RAISE EXCEPTION 'b2_terminal_permit_refused'; END IF;
++ SELECT r.rolvaliduntil INTO issuer_deadline FROM pg_catalog.pg_roles r
++  WHERE r.rolname=session_user AND r.oid::text=permit->>'issuer_oid' AND r.rolcanlogin AND r.rolcreaterole
++  AND NOT r.rolsuper AND NOT r.rolinherit AND NOT r.rolcreatedb AND NOT r.rolreplication AND NOT r.rolbypassrls
++  AND pg_catalog.isfinite(r.rolvaliduntil);
++ IF NOT FOUND THEN RAISE EXCEPTION 'b2_terminal_issuer_refused' USING ERRCODE='42501'; END IF;
++
++ -- The anchor caller already holds the package and the two writer bindings.
++ SELECT * INTO inputs FROM vn_jupiter_b2_fixture_anchor.package_inputs WHERE scope_wire=requested_scope;
++ IF NOT FOUND OR inputs.retirement_permit_wire IS DISTINCT FROM permit_wire
++  OR (inputs.retirement_wire IS NOT NULL) IS DISTINCT FROM after_disable
++ THEN RAISE EXCEPTION 'b2_terminal_permit_refused'; END IF;
++ package:=inputs.package_wire::jsonb;
++ genesis:=inputs.genesis_wire::jsonb;
++ IF package->>'format' IS DISTINCT FROM 'ga-jupiter-b2-fixture-direct-scram-research-v3-v1'
++  OR package->'native_package_sha256' IS DISTINCT FROM permit->'native_package_sha256'
++  OR package->'catalog_manifest_sha256' IS DISTINCT FROM permit->'catalog_manifest_sha256'
++  OR package->>'catalog_manifest_sha256' IS DISTINCT FROM inputs.expected_catalog_sha256
++  OR package->>'actor_manifest_sha256' IS DISTINCT FROM vn_jupiter_b2_allocation_research_v3._sha(inputs.actor_manifest_wire)
++ THEN RAISE EXCEPTION 'b2_terminal_permit_refused'; END IF;
++
++ command:=(permit->>'stop_command_wire')::jsonb;
++ IF NOT vn_jupiter_b2_allocation_research_v3._keys(command,ARRAY['format','native_policy_sha256','scope','action_id','action_kind','expected_head','expected_fence_id','expected_fence_revision','body'])
++  OR vn_jupiter_b2_allocation_research_v3._c14n(command) IS DISTINCT FROM permit->>'stop_command_wire'
++  OR command->>'format' IS DISTINCT FROM 'ga-jupiter-b2-allocation-command-research-v3-v1'
++  OR command->'native_policy_sha256' IS DISTINCT FROM package->'native_policy_sha256'
++  OR command->'scope' IS DISTINCT FROM permit->'scope' OR command->>'action_kind' IS DISTINCT FROM 'source_stop'
++  OR command->>'action_id' IS DISTINCT FROM genesis->>'terminal_stop_action_id'
++  OR command->'expected_fence_id' IS DISTINCT FROM 'null'::jsonb OR command->'expected_fence_revision' IS DISTINCT FROM 'null'::jsonb
++  OR NOT vn_jupiter_b2_allocation_research_v3._keys(command->'body',ARRAY['expected_control_sha256','expected_mode'])
++  OR command#>>'{body,expected_mode}' IS DISTINCT FROM 'open'
++ THEN RAISE EXCEPTION 'b2_terminal_original_refused'; END IF;
++ SELECT st.head_wire::jsonb,st.accounting_wire::jsonb INTO head,accounting
++  FROM vn_jupiter_b2_allocation_research_v3.scope_state st WHERE st.scope_wire=requested_scope FOR UPDATE NOWAIT;
++ IF NOT FOUND OR head->>'source_mode' IS DISTINCT FROM 'open' OR head->>'native_sequence' IS DISTINCT FROM '3'
++  OR head->>'fence_revision' IS DISTINCT FROM '1' OR pg_catalog.jsonb_typeof(head->'active_fence_id') IS DISTINCT FROM 'string'
++  OR head->>'active_acquisition_epoch' IS DISTINCT FROM genesis#>>'{initial_acquisition_spec,acquisition_epoch}'
++  OR accounting->'Stop_reserve_consumed' IS DISTINCT FROM 'false'::jsonb
++  OR pg_catalog.jsonb_build_object('native_sequence',head->'native_sequence','native_head_sha256',head->'native_head_sha256',
++   'previous_seal_sha256',head->'previous_seal_sha256') IS DISTINCT FROM command->'expected_head'
++  OR NOT EXISTS(SELECT 1 FROM vn_jupiter_b2_allocation_research_v3.original_operations o WHERE o.scope_wire=requested_scope
++   AND o.native_sequence=3 AND o.action_kind='source_resume' AND o.finalized AND o.command_sha256=command#>>'{body,expected_control_sha256}')
++ THEN RAISE EXCEPTION 'b2_terminal_head_refused'; END IF;
++
++ held_catalog:=vn_jupiter_b2_allocation_research_v3._catalog();
++ FOR expected_profile IN SELECT v.* FROM (VALUES
++   ('installation',1::bigint,ARRAY['install','register_epoch','read_original']::text[]),
++   ('fence_acquire',2::bigint,ARRAY['reserve','fence_manage','read_original']::text[])
++  ) AS v(kind,position,capabilities) ORDER BY v.position
++ LOOP
++  SELECT w.* INTO binding FROM vn_jupiter_b2_allocation_research_v3.original_operations o
++   JOIN vn_jupiter_b2_fixture_anchor.actor_bindings w ON w.scope_wire=o.scope_wire AND w.binding_id=o.writer_binding_id
++   WHERE o.scope_wire=requested_scope AND o.native_sequence=expected_profile.position AND o.action_kind=expected_profile.kind AND o.finalized;
++  IF NOT FOUND OR binding.capabilities IS DISTINCT FROM expected_profile.capabilities
++   OR (expected_profile.position=2 AND binding.binding_id IS DISTINCT FROM genesis#>>'{initial_acquisition_spec,recorder_principal_binding_id}')
++   OR NOT EXISTS(SELECT 1 FROM pg_catalog.jsonb_array_elements(inputs.actor_manifest_wire::jsonb->'bindings') entry
++      WHERE entry->>'principal_binding_id'=binding.binding_id AND entry->>'session_user_oid'=binding.session_oid::text
++      AND entry->>'session_user_name'=binding.session_name AND entry->'scope'=permit->'scope'
++      AND vn_jupiter_b2_allocation_research_v3._c14n(entry)=binding.binding_wire)
++  THEN RAISE EXCEPTION 'b2_terminal_writer_refused'; END IF;
++  SELECT x.ordinality INTO role_index FROM pg_catalog.jsonb_array_elements(held_catalog->'roles') WITH ORDINALITY x(value,ordinality)
++   WHERE x.value->>'oid'=binding.session_oid::text AND x.value->>'name'=binding.session_name
++    AND x.value->'login'=pg_catalog.to_jsonb(NOT after_disable);
++  IF NOT FOUND THEN RAISE EXCEPTION 'b2_terminal_writer_refused'; END IF;
++  IF after_disable THEN
++   held_catalog:=pg_catalog.jsonb_set(held_catalog,ARRAY['roles',(role_index-1)::text,'login'],'true'::jsonb,false);
++  END IF;
++  writer_ids:=writer_ids||pg_catalog.jsonb_build_array(binding.binding_id);
++  writers:=writers||pg_catalog.jsonb_build_array(pg_catalog.jsonb_build_object(
++   'binding_id',binding.binding_id,'role_name',binding.session_name,'role_oid',binding.session_oid::text,
++   'binding_sha256',vn_jupiter_b2_allocation_research_v3._sha(binding.binding_wire)));
++ END LOOP;
++ IF writer_ids IS DISTINCT FROM permit->'writer_binding_ids'
++  OR vn_jupiter_b2_allocation_research_v3._sha(vn_jupiter_b2_allocation_research_v3._c14n(held_catalog)) IS DISTINCT FROM inputs.expected_catalog_sha256
++ THEN RAISE EXCEPTION 'b2_terminal_catalog_refused'; END IF;
++
++ -- Clock observed after the package, binding and scope locks and exact K.
++ observed:=pg_catalog.clock_timestamp();
++ IF issuer_deadline<=observed OR pg_catalog.floor(EXTRACT(epoch FROM observed)*1000000)::bigint >= (permit->>'expires_at_us')::bigint
++  OR (SELECT pg_catalog.jsonb_build_array(
++      count(*) FILTER(WHERE b.capabilities=ARRAY['control','read_original']::text[]),
++      count(*) FILTER(WHERE b.capabilities=ARRAY['register_reader_epoch','read_original']::text[]
++       AND b.binding_id=genesis#>>'{initial_acquisition_spec,reader_principal_binding_id}'))
++      FROM vn_jupiter_b2_fixture_anchor.actor_bindings b JOIN pg_catalog.pg_roles r ON r.oid=b.session_oid AND r.rolname=b.session_name
++      WHERE b.scope_wire=requested_scope AND r.rolcanlogin AND pg_catalog.isfinite(r.rolvaliduntil)
++      AND r.rolvaliduntil>observed+interval '5 seconds'
++      AND EXISTS(SELECT 1 FROM pg_catalog.jsonb_array_elements(inputs.actor_manifest_wire::jsonb->'bindings') e
++       WHERE e->>'principal_binding_id'=b.binding_id AND e->>'session_user_oid'=b.session_oid::text
++        AND e->>'session_user_name'=b.session_name AND e->'scope'=permit->'scope'
++        AND e->'capabilities'=pg_catalog.to_jsonb(b.capabilities)
++        AND vn_jupiter_b2_allocation_research_v3._c14n(e)=b.binding_wire)) IS DISTINCT FROM '[1,1]'::jsonb
++ THEN RAISE EXCEPTION 'b2_terminal_window_refused'; END IF;
++ RETURN vn_jupiter_b2_allocation_research_v3._c14n(pg_catalog.jsonb_build_object(
++  'format','ga-jupiter-b2-terminal-retirement-fixture-v1','scope',permit->'scope',
++  'native_package_sha256',permit->'native_package_sha256','catalog_manifest_sha256',permit->'catalog_manifest_sha256',
++  'stop_action_id',command->'action_id','stop_command_sha256',vn_jupiter_b2_allocation_research_v3._sha(permit->>'stop_command_wire'),
++  'writers',writers));
++END;
++$terminal$;
++REVOKE ALL ON FUNCTION vn_jupiter_b2_allocation_research_v3._terminal_retirement_context(pg_catalog.text,pg_catalog.text,pg_catalog.bool) FROM PUBLIC;
++GRANT USAGE ON SCHEMA vn_jupiter_b2_allocation_research_v3 TO vn_jupiter_b2_anchor_owner;
++GRANT EXECUTE ON FUNCTION vn_jupiter_b2_allocation_research_v3._terminal_retirement_context(pg_catalog.text,pg_catalog.text,pg_catalog.bool) TO vn_jupiter_b2_anchor_owner;
++RESET ROLE;
++SET LOCAL ROLE vn_jupiter_b2_anchor_owner;
++
++-- FUNCTION _stage_terminal_retirement
++CREATE FUNCTION vn_jupiter_b2_fixture_anchor._stage_terminal_retirement(requested_scope pg_catalog.text, requested_permit pg_catalog.text)
++RETURNS pg_catalog.text
++LANGUAGE plpgsql VOLATILE SECURITY DEFINER
++CALLED ON NULL INPUT PARALLEL UNSAFE COST 100
++SET search_path = 'pg_catalog', 'pg_temp'
++SET TimeZone = 'UTC'
++SET client_encoding = 'UTF8'
++SET standard_conforming_strings = 'on'
++AS $terminal$
++DECLARE p vn_jupiter_b2_fixture_anchor.package_inputs%ROWTYPE; permit jsonb; locked integer; marker text;
++BEGIN
++ IF session_user IS DISTINCT FROM 'vn_jupiter_b2_actor_issuer'
++  OR system_user IS DISTINCT FROM ('scram-sha-256:'||session_user::text)
++  OR pg_catalog.inet_client_addr() IS NULL
++ THEN RAISE EXCEPTION 'b2_terminal_issuer_refused' USING ERRCODE='42501'; END IF;
++ IF requested_scope IS NULL OR pg_catalog.octet_length(requested_scope)>512 OR requested_permit IS NULL
++  OR (requested_permit ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$') IS DISTINCT FROM true
++ THEN RAISE EXCEPTION 'b2_terminal_permit_refused'; END IF;
++ SELECT * INTO p FROM vn_jupiter_b2_fixture_anchor.package_inputs WHERE scope_wire=requested_scope FOR UPDATE NOWAIT;
++ IF NOT FOUND OR p.retirement_wire IS NOT NULL OR p.retirement_permit_wire IS NULL THEN RAISE EXCEPTION 'b2_terminal_permit_refused'; END IF;
++ permit:=p.retirement_permit_wire::jsonb;
++ IF permit->>'permit_id' IS DISTINCT FROM requested_permit OR pg_catalog.jsonb_typeof(permit->'writer_binding_ids') IS DISTINCT FROM 'array'
++ THEN RAISE EXCEPTION 'b2_terminal_permit_refused'; END IF;
++ IF pg_catalog.jsonb_array_length(permit->'writer_binding_ids')<>2 THEN RAISE EXCEPTION 'b2_terminal_permit_refused'; END IF;
++ PERFORM 1 FROM vn_jupiter_b2_fixture_anchor.actor_bindings b WHERE b.scope_wire=requested_scope
++  AND b.binding_id IN(SELECT v FROM pg_catalog.jsonb_array_elements_text(permit->'writer_binding_ids') v)
++  ORDER BY b.binding_id COLLATE "C" FOR UPDATE NOWAIT;
++ GET DIAGNOSTICS locked=ROW_COUNT;
++ IF locked<>2 THEN RAISE EXCEPTION 'b2_terminal_writer_refused'; END IF;
++ marker:=vn_jupiter_b2_allocation_research_v3._terminal_retirement_context(requested_scope,p.retirement_permit_wire,false);
++ UPDATE vn_jupiter_b2_fixture_anchor.package_inputs SET retirement_wire=marker WHERE scope_wire=requested_scope;
++ RETURN marker;
++END;
++$terminal$;
++
++-- FUNCTION _terminal_retirement_commit_guard
++CREATE FUNCTION vn_jupiter_b2_fixture_anchor._terminal_retirement_commit_guard()
++RETURNS pg_catalog.trigger
++LANGUAGE plpgsql VOLATILE SECURITY DEFINER
++CALLED ON NULL INPUT PARALLEL UNSAFE COST 100
++SET search_path = 'pg_catalog', 'pg_temp'
++SET TimeZone = 'UTC'
++SET client_encoding = 'UTF8'
++SET standard_conforming_strings = 'on'
++AS $terminal$
++BEGIN
++ IF pg_catalog.btrim(pg_catalog.current_query(),E' \t\r\n\f'||pg_catalog.chr(11)) NOT IN('COMMIT','COMMIT;')
++ THEN RAISE EXCEPTION 'b2_terminal_commit_form_refused'; END IF;
++ IF OLD.retirement_wire IS NOT NULL OR NEW.retirement_wire IS NULL
++  OR OLD.retirement_permit_wire IS DISTINCT FROM NEW.retirement_permit_wire
++  OR NEW.retirement_wire IS DISTINCT FROM vn_jupiter_b2_allocation_research_v3._terminal_retirement_context(NEW.scope_wire,NEW.retirement_permit_wire,true)
++ THEN RAISE EXCEPTION 'b2_terminal_marker_refused'; END IF;
++ RETURN NEW;
++END;
++$terminal$;
++REVOKE ALL ON FUNCTION vn_jupiter_b2_fixture_anchor._stage_terminal_retirement(pg_catalog.text,pg_catalog.text) FROM PUBLIC;
++REVOKE ALL ON FUNCTION vn_jupiter_b2_fixture_anchor._terminal_retirement_commit_guard() FROM PUBLIC;
++GRANT USAGE ON SCHEMA vn_jupiter_b2_fixture_anchor TO vn_jupiter_b2_actor_issuer;
++GRANT EXECUTE ON FUNCTION vn_jupiter_b2_fixture_anchor._stage_terminal_retirement(pg_catalog.text,pg_catalog.text) TO vn_jupiter_b2_actor_issuer;
++CREATE CONSTRAINT TRIGGER committed_terminal_retirement_guard AFTER UPDATE ON vn_jupiter_b2_fixture_anchor.package_inputs
++DEFERRABLE INITIALLY DEFERRED FOR EACH ROW
++WHEN ((OLD.retirement_permit_wire IS NOT NULL OR NEW.retirement_permit_wire IS NOT NULL)
++ AND (OLD.retirement_wire IS DISTINCT FROM NEW.retirement_wire
++  OR (OLD.retirement_permit_wire IS NOT NULL AND OLD.retirement_permit_wire IS DISTINCT FROM NEW.retirement_permit_wire)))
++EXECUTE FUNCTION vn_jupiter_b2_fixture_anchor._terminal_retirement_commit_guard();
++RESET ROLE;
++COMMIT;

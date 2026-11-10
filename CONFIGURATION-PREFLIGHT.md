@@ -1,12 +1,206 @@
 # Dashboard configuration and access preflight
 
+## November 10 late retention and request authorization checks
+
+Five focused native PostgreSQL 17.6 cases passed on the versioned candidate.
+They retain all four safe incomplete dispositions, permit the exact
+Reservation-bound Capture after committed Stop or real fence expiry, and
+preserve the source state. A committed Stop intent during a synthetic
+Price request permits retention of that response and blocks the next
+request. After real fence expiry the recorder's request check refuses.
+The independent restart adapter recovers the exact Stop receipt after
+Capture advances the journal. Unknown readback supplies an unknown
+result. The final snapshot passed 62 native cases and 115 offline cases
+with zero skips. [Packet retention evidence](services/vonneumann/research/b2-b3-review-2026-11-10-packet-retention/README.md).
+
+The exact previous draft head `0de7d4a` passed its
+[GitHub CI run](https://github.com/TOOTRJ/TheDashboard/actions/runs/42903978076).
+The exact Dashboard Supabase project reported 15 migrations and zero
+candidate namespaces. Railway still resolves to the verified closed
+deployment `04c592a8-61c6-4ebc-ad34-16c789a4e1c9`. The local Vercel link
+matches the pinned Dashboard team and project IDs.
+
+## November 10 joined capture and Stop checks
+
+The corrected joined candidate passed three focused PostgreSQL 17.6 cases
+with scoped TLS/SCRAM actors. Reserve and Capture use the same native
+journal, lock, head and fence as recorder handoff and Stop. A fresh reader
+recovered the original Capture, three synthetic bodies and receipt after
+recorder loss. An interrupted provisional Capture stayed unresolved and
+unblocked the waiting Stop intent. Losing a Reservation acknowledgment
+preserved all eleven IDs without granting collection. The Stop adapter
+dispatched the original only after exact committed intent readback. An
+initial syntax failure and later RPC wire-type correction are recorded in
+the [joined evidence](services/vonneumann/research/b2-b3-review-2026-11-10-joined-capture/README.md).
+All 57 native cases passed with zero skips on the final snapshot,
+including 54 inherited cases. All 82 offline worker-gate, provider,
+source-admission and seal tests passed, including the existing synthetic
+915-minute inventory case.
+
+The exact [previous draft head](https://github.com/TOOTRJ/TheDashboard/actions/runs/42778436468)
+passed GitHub CI. Read-only checks again matched The Dashboard Supabase
+project, which reported PostgreSQL 17, 15 migrations and zero candidate
+namespaces. The exact Railway project and service still resolve to the
+previously verified closed deployment `04c592a8-61c6-4ebc-ad34-16c789a4e1c9`.
+The local Vercel link matches the pinned Dashboard team and project IDs.
+
+## November 10 offline handoff, capture and target checks
+
+Three focused PostgreSQL 17.6 cases passed on the corrected handoff
+candidate. The limited issuer retired one recorder and enabled its exact
+successor, which renewed the existing fence. The reader recovered the prior
+originals. In separate runs, the committed Stop intent blocked Renew, and
+the committed Renew made the waiting intent stale before dispatch. The first
+valid Stop at the new head retained the reserved ID. The first fixture
+installation failed on a reserved SQL argument name. The corrected run
+retained the same tests and authorization policy. All 49 inherited cases
+passed on those exact bytes, for 52 native cases with zero skips.
+[Handoff, Stop races and correction](services/vonneumann/research/b2-review-2026-11-10-credential-handoff/README.md).
+
+Both focused PostgreSQL 17.6 capture cases passed on the pinned fixture.
+After Capture COMMIT and termination of the owned writer backend, a fresh
+reader recovered the original three synthetic response bodies and exact
+receipt. The collection callback ran once. Termination before COMMIT left
+the original unresolved and the database refused a competing reservation.
+All 55 offline provider and source-admission cases also passed. The new
+fixture uses separate trust-socket roles and gates cache release until
+versioned terminal closure and independent reconciliation.
+[Capture receipt and scope](services/vonneumann/research/b3-review-2026-11-10-durable-acquisition/README.md).
+
+Read-only checks matched the exact Dashboard Supabase project, Railway
+project, workspace, environment and service, and GitHub repository. Supabase
+reported PostgreSQL 17, 15 migrations and zero native allocation namespaces.
+Railway reported the previously accepted deployment
+`04c592a8-61c6-4ebc-ad34-16c789a4e1c9` in `SUCCESS` with one replica and
+the retained 0.25 vCPU and 500 MB limits. The Railway check covered identity,
+deployment metadata and settings. The signed-in runtime mode evidence is
+recorded below in the November 9 check. The local Vercel link still resolves
+to the pinned `orderoftheredjester/the-dashboard` team and project IDs. This
+batch uses the verified November 9 production record for Vercel.
+
+## November 9 offline and release checks
+
+The exact direct SCRAM candidate passes the 44 inherited PostgreSQL cases
+in addition to the earlier credential-expiry case. The source census covers
+all 45 test IDs. The separate owner-retirement companion passes both its
+closed catalog/ACL case and the actual limited-issuer case. It rolls back a
+partial login change and early constraint checks. Both logins retire on the
+authorized literal COMMIT, and the reader recovers both earlier originals
+and the original reserved Stop. This is one local scope and a fixture-owned
+marker readback. [SCRAM regression receipts](services/vonneumann/research/b2-review-2026-11-06-v20-o-r-i2a-scram/README.md) ·
+[Retirement proof](services/vonneumann/research/b2-review-2026-11-09-owner-terminal/README.md).
+
+The separate deadline candidate's focused PostgreSQL case refuses a literal
+COMMIT after write authority ends while recorder login still works. The
+independent reader recovers the existing Install after recorder login
+expires. A previously authorized absent lookup blocked across the reader's
+own cutoff refuses at its final check. A fresh reader connection still
+authenticates after that refusal. The retirement composition needs to check
+these application deadlines as well as role login. The first ordinary
+regression run hit its 240-second bound with 40 successes and no completed
+suite result. R2 avoids repeating the getter precheck for the existing
+profiles, and all 46 exact cases pass under the same limits.
+[Independent deadline proof](services/vonneumann/research/b2-review-2026-11-09-independent-deadline/README.md).
+
+The composed companion passed three cases with exact deadline R2 core
+bytes. It binds the profile to the finalized original Install and refuses
+two attempted downgrades. The deferred guard rolls back both role changes
+when either surviving application window is too short. The authorized
+branch still commits the exact original Stop. The handoff design now
+requires durable original Stop intent before dispatch.
+[Composition proof](services/vonneumann/research/b2-review-2026-11-09-retirement-deadline/README.md).
+
+The offline transport observations measured three response sizes. The tiny
+fixture completed 945 packets of three calls, and the middle and maximum
+profiles refused before I/O at attempts 362 and 13. The process-interruption
+test confirmed that a fresh transport loses the cached original. Separately,
+local PostgreSQL recovered a committed Install after writer termination.
+An interrupted pre-COMMIT Acquire kept the committed rows unchanged while
+physical allocation and the fixture's WAL position grew. The first observer
+attempt and corrected client cleanup are retained. Provider-body durability
+and real hosted capacity still require their own evidence.
+[Capacity and recovery observations](services/vonneumann/research/paper-capacity/OBSERVATIONS.md).
+
+The GitHub, Vercel and Supabase identity checks matched the exact Dashboard
+targets and their owners. All eight
+[CI jobs](https://github.com/TOOTRJ/TheDashboard/actions/runs/42682024347)
+passed for the seven-file [PR117](https://github.com/TOOTRJ/TheDashboard/pull/117)
+at `9ecb5471a75fea099206192acd1e3c65e9ea7413`. The tested merge
+`eb46f73a9962802d260bac516b44e010bffd8190`, reviewed head, and fetched main
+merge `fbe9d93e18f6abce0dee0ff6b7e29b9a1a8cd7a4` share tree
+`ba8999d41746e137497450716bd101f10f6aa0e4`. The
+[preview](https://vercel.com/orderoftheredjester/the-dashboard/7m2HJUNour46NmAFchoLuccns3Lq)
+stopped at the intended database isolation guard.
+
+The [production deployment](https://vercel.com/orderoftheredjester/the-dashboard/7eXqiUiyiWHvGR2NExnGq71oGYN3)
+was Ready in 15 seconds with the exact merge source and the canonical
+`the-dashboard-chi.vercel.app` domain assigned. At 20:00:47 UTC on November 9,
+login returned 200, anonymous root redirected to login with 307, the
+anonymous test API returned 401 and the authenticated limit-zero API
+returned 200 with success and zero rows. These checks made zero writes.
+
+The Railway project, workspace, production environment, service and
+deployment `04c592a8-61c6-4ebc-ad34-16c789a4e1c9` match the earlier closed
+cutover. Fresh public requests returned health 200, anonymous status 401,
+forbidden Origin 403 and legacy and docs routes 404, all with `no-store`.
+The signed-in production Probes page also confirmed both worker read
+endpoints reported closed and displayed Start, Stop and Settle as disabled.
+The exact Supabase metadata still shows PostgreSQL 17, 15 migrations, and
+neither local B2 fixture schema. The current batch's native work used
+disposable PostgreSQL only.
+[Hosted gates](RAILWAY-SETUP.md#ordered-remaining-gates-for-the-new-paper-profile).
+
+## November 6 offline batch
+
+The frozen I2a candidate passes all 44 exact native cases across its creator
+test and the two inherited regression runs. The direct SCRAM follow-up passes
+one separate case. It verifies TLS and SCRAM channel binding, then observes an
+expired recorder's literal COMMIT refused while the proposed fence remains
+within its window. An independent reader recovers the prior Install written by
+the still-live installer and finds the Acquire unresolved. Both candidates
+keep all 942 source files byte-identical through their runs. The next native
+steps are the inherited regression rerun on the changed authorization body
+and the owner-separated retirement case. [I2a receipts](services/vonneumann/research/b2-review-2026-11-06-v20-o-r-i2a/README.md) ·
+[SCRAM receipt](services/vonneumann/research/b2-review-2026-11-06-v20-o-r-i2a-scram/README.md).
+
+The seven-file Nestegg candidate on PR115 main has patch SHA-256
+`fb8f1b7f87f12d3b707da89c3c3a9144dba541a11c3738e0e97190272e5e13ff`.
+All 471 frontend tests and TypeScript passed. Scoped lint reports one existing
+warning and zero errors. In the compiled Next.js 16.4.5 browser with the
+synthetic loopback backend, ages 64/65/65 show no retirement cash flow, odds
+or readiness claim, disable full analysis and retain the $100,000 accumulation
+balance. The twelve-month surplus, six-month shortfall and modeled twelve-month
+break-even cases remain visible. Returning to zero months after a full run
+hides the earlier result. Browser console inspection found zero warnings or
+errors, and the backend recorded zero browser plan mutations. The successful
+build serves cached fonts over loopback. Exact PID and port checks confirmed
+teardown after the runner's own inspection was denied. Compiled receipt SHA-256
+`e2df4587685a794d6b3caaa7ca912ef662c16d2ebd4b658dbd70aed32b6787da`.
+The candidate awaits its separate application release.
+
+The [capacity harness](services/vonneumann/research/paper-capacity/README.md)
+passes 14 deterministic cases and reproduces its forecast byte for byte.
+Maximum-sized fixture results expose a no-eviction buffer constraint. Actual
+body-size, quota, recovery and hosted cadence measurements remain open.
+This batch ran offline. The hosted configuration below still governs.
+
+## Hosted and release checkpoints
+
+**Railway closed worker cutover on November 6 at 20:17 MST.** The sole active deployment is `04c592a8-61c6-4ebc-ad34-16c789a4e1c9`. A single credential-free upload used the approved 98-file export without `railway.json`. Railway returned an exact deployment receipt. Readbacks matched full effective settings, configured values, ownership, empty stage and the retained rollback snapshot. The five public checks, both authenticated closed `503` reads and the exact-replica checks of 96 copied files, UID/GID and IPv6/TLS passed. The worker remains closed for the managed database and paper acceptance work. [Cutover evidence](RAILWAY-IAC-MIGRATION-2026-11-05.md#november-6-closed-deployment-acceptance).
+
+**Railway ownership on November 6 at 19:31 MST.** The named partial now owns only the existing `dashboard-paper-worker` service in the pinned production environment. The exact project, workspace and service were reverified, along with the existing Admin membership through the temporary session. The complete masked build and deploy configuration matched before and after, the etag advanced, the stage stayed empty, and the same closed deployment and rollback snapshot remained available. Five public checks passed before and after. An isolated Admin preview verified release of precisely that worker address. The raw CLI receipt was not retained in a usable form. The signed-in activity entry reports the same zero-settings-operation apply at the exact attempt time, and independent readbacks confirm the outcome. The later closed upload is recorded above. [Ownership evidence and receipt limit](RAILWAY-IAC-MIGRATION-2026-11-05.md).
+
+**PR115 release on November 6 Denver time.** All eight [GitHub CI jobs](https://github.com/TOOTRJ/TheDashboard/actions/runs/42297214499) passed for `1aff6115b777cc0f5519ae5ca45b74efbf255127`. The verified test merge `899cb32692abcf16e8379ed1b20d13ab842556b3` and fetched main merge `f317ffc4519d5a70002279458992e54465a9821f` share tree `3eb3469b0d4eb4e4d7993d202fc54909bff9da89` and the same parents. The scoped GitHub and Supabase identities and the exact Vercel project and team were confirmed before merge. The [preview](https://vercel.com/orderoftheredjester/the-dashboard/A6FR6ZgHZDyvVbK4nEYpPBhwnHdt) stopped at the database isolation guard.
+
+The [production deployment](https://vercel.com/orderoftheredjester/the-dashboard/FEYP9QLE53a28bsVoosNdrncEQoF) is Ready and current on `the-dashboard-chi.vercel.app` from that main merge. On November 7 at 01:23:15.732019 UTC, login returned 200, the anonymous home page redirected to login with 307, anonymous API access returned 401, and the authenticated limit-zero GET returned 200 with zero rows. This release contains the Nestegg recurring cash flow repair and V15 review evidence. The new hosted paper package remains a separate release.
+
 **PR114 release — November 6 Denver:** All eight [GitHub CI jobs](https://github.com/TOOTRJ/TheDashboard/actions/runs/42195431615) passed for head `5b3e39d68fff167f9d37de1a13c7a4ee207ccb0a`. The test merge `42873c52dac5fac9ba8a38e59a6067ed5a34081b` and fetched main merge `d326bb7e5a825a09977deff7eec482344ddbaaba` have identical tree `c9e549fc14b0477e3e0d4b1e9ca70658d789e53b` and the same parents. Before merging, the scoped GitHub helper verified the canonical repository and account, the signed-in Vercel settings verified the project and team, and the linked Supabase CLI identified only the authorized target for this work. The [exact Vercel preview](https://vercel.com/orderoftheredjester/the-dashboard/2PHxKAzUgENvVstqtS4G4FKDySKw) refused at the database isolation guard.
 
 The [production deployment](https://vercel.com/orderoftheredjester/the-dashboard/3NAE8qws598xGXJ4YDsxKhgEhcFz) is Ready and current from that exact main merge on `the-dashboard-chi.vercel.app`. At 21:23:55.666938 UTC, login returned 200, anonymous root returned 307 to login, anonymous API returned 401, and the authenticated limit-zero API returned 200 with success and zero rows. There were no application writes, database migrations or worker configuration changes in this release. PR114 ships the Nestegg zero-return repair and records the closed worker TLS check. The subsequent finite provider canary and the native V15 laboratory receipt are separate evidence; neither admits the worker to paper operation.
 
 **November 6 audit follow-up:** The finite hosted canary passed using the three replacement provider credentials in a single closed process; they were not added to worker variables. See the [canary record](RAILWAY-SETUP.md#hosted-provider-canary--november-6-2026). The [V15 review archive](services/vonneumann/research/b2-review-2026-11-06-v15/README.md) records 34 isolated native PostgreSQL passes and the six-direct-pin original Stop from open mode. Neither result is sustained paper evidence.
 
-The next Nestegg correction aligns the first-year recurring cash flow and chart with the same retirement and survivor months as the deterministic balance projection. A delayed spouse benefit can change the display from a $500 monthly surplus to a $500 monthly shortfall without changing projected balances. The chart stops at the modeled horizon and labels a partial year. It excludes one-time flows, portfolio withdrawals, taxes and RMDs. Six focused cases and all 468 frontend tests pass against the lock, as do TypeScript, scoped ESLint and a clean isolated production build with fake configuration. This follow-up has its own CI and release gates.
+PR115 aligns the first-year recurring cash flow and chart with the same retirement and survivor months as the deterministic balance projection. A delayed spouse benefit can change the display from a $500 monthly surplus to a $500 monthly shortfall without changing projected balances. The chart stops at the modeled horizon and labels a partial year. It excludes one-time flows, portfolio withdrawals, taxes and RMDs. Six focused cases and all 468 frontend tests passed against the lock, along with TypeScript, scoped ESLint and a clean isolated production build with fake configuration. The exact CI and production checks are recorded above.
 
 **PR113 release — November 6 Denver:** [All eight GitHub jobs](https://github.com/TOOTRJ/TheDashboard/actions/runs/42158904478) passed on head `08462284d30ee607322d5f98ab7cbe0aee0205be`. The verified test merge `5a7e3d24360eaca877bd956ea49d3b39deea3a45` and actual merge `7ff9b886a2d19de5388b86a5c3985a8705567edc` match tree `9d6c512e6ea6f9b036cf82f7cc67199cc57dc4ae`. Before merging, the scoped GitHub helper and signed-in Vercel settings matched the pinned repository, project and team. Supabase identity matched `The Dashboard` / `fxpxsciltakyypunglzr` / `cqfnnaunmupdyobkyqfo`. The [exact preview](https://vercel.com/orderoftheredjester/the-dashboard/3kZhT3LdgKqHgPPCQFyuHfFNR1Y2) refused at the intended database-isolation guard.
 

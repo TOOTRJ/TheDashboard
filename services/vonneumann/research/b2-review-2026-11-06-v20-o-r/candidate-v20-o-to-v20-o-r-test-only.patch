@@ -1,0 +1,110 @@
+diff --git a/services/vonneumann/tests/postgres/test_allocation_control_v3.py b/services/vonneumann/tests/postgres/test_allocation_control_v3.py
+--- a/services/vonneumann/tests/postgres/test_allocation_control_v3.py
++++ b/services/vonneumann/tests/postgres/test_allocation_control_v3.py
+@@ -1804,5 +1804,106 @@
+                 self.assertEqual(stored,self.f.snapshot())
+         self.assertEqual('0',self.db.scalar("SELECT count(*) FROM pg_catalog.pg_roles WHERE rolname='vn_jupiter_b2_owner_seal_probe';"))
+ 
++    def test_terminal_retirement_second_role_lock_rolls_back_first_login_removal(self):
++        install,_=self.install_and_acquire_for_resume()
++        resume=self.resume_command()
++        self.submit(resume)
++        stop=self.open_stop_command(resume)
++        reader=self.s['actors']['reader']
++        self.assertEqual(self.s['actors']['recorder'],'vn_jupiter_b2_0_recorder')
++        saved=self.f.get(install,reader)
++        expected=self.f.snapshot()
++        _,owner_sql=self.f.owner_retirement_sql(self.s,stop)
++        # StepSession supplies the exact normal BEGIN and SETTINGS. Send
++        # the unmodified issuance DO, then let the real DCL error abort it.
++        prefix=BEGIN+SETTINGS
++        suffix='COMMIT;\n'
++        self.assertTrue(owner_sql.startswith(prefix))
++        self.assertTrue(owner_sql.endswith(suffix))
++        issuance=owner_sql[len(prefix):-len(suffix)]
++        role_sql="""SELECT jsonb_agg(jsonb_build_array(oid::text,rolname::text,rolcanlogin,rolconnlimit)
++            ORDER BY rolname) FROM pg_catalog.pg_roles
++            WHERE rolname IN ('vn_jupiter_b2_0_installer','vn_jupiter_b2_0_recorder');"""
++        intact=json.loads(self.db.scalar(role_sql))
++        self.assertEqual(2,len(intact))
++        self.assertTrue(all(row[2] and row[3]==-1 for row in intact))
++        blocker=self.f.anchor_session()
++        issuer=self.f.anchor_session()
++        try:
++            blocker_pid=blocker.backend_pid()
++            issuer_pid=issuer.backend_pid()
++            # The actual role update holds the recorder catalog tuple. It
++            # stays uncommitted, so the independent issuer's held-K check
++            # still sees the original catalog.
++            blocker.send("ALTER ROLE vn_jupiter_b2_0_recorder CONNECTION LIMIT 7;\nSELECT 'held';\n")
++            self.assertEqual('held',blocker.line())
++            self.assertEqual(intact,json.loads(self.db.scalar(role_sql)))
++            issuer.send(issuance)
++            self.f.wait_for_blocker(issuer_pid,blocker_pid)
++            with self.assertRaisesRegex(RuntimeError,'55P03') as refused:
++                issuer.line()
++            # The exact second DCL in the immutable issuance body was
++            # reached. The first DCL ran earlier in that same transaction.
++            self.assertIn('SQL statement "ALTER ROLE vn_jupiter_b2_0_recorder NOLOGIN"',str(refused.exception))
++            self.assertEqual(intact,json.loads(self.db.scalar(role_sql)))
++            self.assertEqual(expected,self.f.snapshot())
++            blocker.finish('ROLLBACK;')
++        finally:
++            issuer.close()
++            blocker.close()
++        self.assertEqual(intact,json.loads(self.db.scalar(role_sql)))
++        self.assertEqual(expected,self.f.snapshot())
++        self.assertEqual(saved,self.f.get(install,reader))
++
++    def test_terminal_retirement_stale_request_refuses_after_waiting_writer_commits(self):
++        _,acquire=self.install_and_acquire_for_resume()
++        resume=self.resume_command()
++        self.submit(resume)
++        stop=self.open_stop_command(resume)
++        _,owner_sql=self.f.owner_retirement_sql(self.s,stop)
++        recorder=self.s['actors']['recorder']
++        reader=self.s['actors']['reader']
++        scope_wire=literal(canonical(self.s['scope']))
++        acquired=json.loads(self.f.get(acquire,reader)['original_result_wire'])
++        fence=acquired['result_body']['original_fence_record']
++        renew=self.f.command(self.s,'fence_renew',action_id=str(UUID(int=999601)))
++        renew['expected_fence_id']=fence['fence_id']
++        renew['expected_fence_revision']=fence['revision']
++        renew['body']=dict(fence_id=fence['fence_id'],expected_revision=fence['revision'],
++            requested_duration_us='60000000')
++        initial=self.f.snapshot()
++        writer=self.f.writer(recorder)
++        try:
++            writer.send(self.f.call('submit',renew,recorder))
++            pending=json.loads(writer.line())
++            self.assertTrue(pending['pending_commit'])
++            self.assertEqual(sha(canonical(renew)),pending['original_command_sha256'])
++            self.assertEqual('observed_absent_unknown',self.f.get(renew,reader)['resolution'])
++            blocked=self.db.sql(owner_sql,check=False)
++            self.assertNotEqual(0,blocked.returncode)
++            self.assertIn('55P03',blocked.stderr)
++            self.assertEqual(initial,self.f.snapshot())
++            writer.finish()
++        finally:
++            writer.close()
++        renewed=self.f.get(renew,reader)
++        self.assert_committed(renew,renewed,4)
++        self.assertEqual('4',self.f.head(self.s)['native_sequence'])
++        committed=self.f.snapshot()
++        # Reuse the exact synthetic request after the definitive NOWAIT
++        # refusal. Its position-three original Stop cannot be rebased.
++        stale=self.db.sql(owner_sql,check=False)
++        self.assertNotEqual(0,stale.returncode)
++        self.assertRegex(stale.stderr,r'(?m)^ERROR:\s+P0001: b2_owned_retirement_head_refused\s*$')
++        self.assertEqual('t',self.db.scalar(f'SELECT retirement_wire IS NULL FROM {A}.package_inputs WHERE scope_wire={scope_wire};'))
++        self.assertEqual('t',self.db.scalar("""SELECT count(*)=2 AND bool_and(rolcanlogin)
++            FROM pg_catalog.pg_roles WHERE rolname IN ('vn_jupiter_b2_0_installer','vn_jupiter_b2_0_recorder');"""))
++        self.assertEqual(committed,self.f.snapshot())
++        self.assertEqual(renewed,self.f.get(renew,reader))
++        self.assertEqual('observed_absent_unknown',self.f.get(stop,reader)['resolution'])
++        self.refusal(stop,'b2_stale_head',profile='control')
++        self.assertEqual(committed,self.f.snapshot())
++
++
+ 
+ if __name__=='__main__':unittest.main()
