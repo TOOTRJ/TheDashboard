@@ -1,5 +1,25 @@
 # Dashboard configuration and access preflight
 
+## November 10 late retention and request authorization checks
+
+Five focused native PostgreSQL 17.6 cases passed on the versioned candidate.
+They retain all four safe incomplete dispositions, permit the exact
+Reservation-bound Capture after committed Stop or real fence expiry, and
+preserve the source state. A committed Stop intent during a synthetic
+Price request permits retention of that response and blocks the next
+request. After real fence expiry the recorder's request check refuses.
+The independent restart adapter recovers the exact Stop receipt after
+Capture advances the journal. Unknown readback supplies an unknown
+result. The final snapshot passed 62 native cases and 115 offline cases
+with zero skips. [Packet retention evidence](services/vonneumann/research/b2-b3-review-2026-11-10-packet-retention/README.md).
+
+The exact previous draft head `0de7d4a` passed its
+[GitHub CI run](https://github.com/TOOTRJ/TheDashboard/actions/runs/42903978076).
+The exact Dashboard Supabase project reported 15 migrations and zero
+candidate namespaces. Railway still resolves to the verified closed
+deployment `04c592a8-61c6-4ebc-ad34-16c789a4e1c9`. The local Vercel link
+matches the pinned Dashboard team and project IDs.
+
 ## November 10 joined capture and Stop checks
 
 The corrected joined candidate passed three focused PostgreSQL 17.6 cases

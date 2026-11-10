@@ -1,0 +1,1683 @@
+diff --git a/services/vonneumann/db-contract/research/jupiter_allocation_control_v3.sql b/services/vonneumann/db-contract/research/jupiter_allocation_control_v3.sql
+index 90d4930..67dbe28 100644
+--- a/services/vonneumann/db-contract/research/jupiter_allocation_control_v3.sql
++++ b/services/vonneumann/db-contract/research/jupiter_allocation_control_v3.sql
+@@ -664,6 +664,7 @@ DECLARE a jsonb; b jsonb; reserve bigint:=CASE WHEN kind='source_stop' THEN 0 EL
+ BEGIN
+  SELECT accounting_wire::jsonb INTO a FROM vn_jupiter_b2_allocation_research_v3.scope_state s WHERE s.scope_wire=_budget.scope_wire;
+  IF NOT FOUND THEN RAISE EXCEPTION 'b2_scope_refused'; END IF;
++ IF a->'Stop_reserve_consumed'='true'::jsonb THEN reserve:=0; END IF;
+  SELECT CASE WHEN p.package_wire::jsonb->>'format'='ga-jupiter-b2-fixture-direct-scram-handoff-research-v3-v1' THEN 1 ELSE 0 END INTO admin
+  FROM vn_jupiter_b2_fixture_anchor.package_inputs p WHERE p.scope_wire=_budget.scope_wire;
+  IF NOT FOUND THEN RAISE EXCEPTION 'b2_scope_refused'; END IF;
+@@ -673,7 +674,7 @@ BEGIN
+  END LOOP;
+  IF (a->>'committed_positions')::bigint+1+reserve>16 OR (a->>'logical_UTF8_bytes')::bigint+(cost->>'bytes')::bigint+reserve*76533+admin*65536>4194304 OR (a->>'retained_rows')::bigint+(cost->>'new_rows')::bigint+reserve*9+admin*3>271 OR (a->>'identity_rows')::bigint+(cost->>'identities')::bigint>96 OR (a->>'domain_rows')::bigint+(cost->>'domains')::bigint>25 OR (a->>'dependency_rows')::bigint+(cost->>'dependencies')::bigint+reserve*7>112 OR (a->>'row_writes')::bigint+(cost->>'row_writes')::bigint+reserve*10+admin*5>512 OR (a->>'index_entries')::bigint+(cost->>'index_entries')::bigint+reserve*20+admin*6>1024 THEN RAISE EXCEPTION 'b2_budget_refused'; END IF;
+  IF (a->>'row_writes')::bigint+(a->>'committed_positions')::bigint+(cost->>'row_writes')::bigint+1+reserve*11+admin*5>1024 OR (a->>'index_entries')::bigint+3*(a->>'committed_positions')::bigint+(cost->>'index_entries')::bigint+3+reserve*23+admin*10>2048 OR (a->>'logical_UTF8_bytes')::bigint+past_stage+(cost->>'bytes')::bigint+(cost->>'stage_bytes')::bigint+reserve*144142+admin*98304>8388608 THEN RAISE EXCEPTION 'b2_budget_refused'; END IF;
+- b:=pg_catalog.jsonb_build_object('committed_positions',((a->>'committed_positions')::bigint+1)::text,'logical_UTF8_bytes',((a->>'logical_UTF8_bytes')::bigint+(cost->>'bytes')::bigint)::text,'identity_rows',((a->>'identity_rows')::bigint+(cost->>'identities')::bigint)::text,'domain_rows',((a->>'domain_rows')::bigint+(cost->>'domains')::bigint)::text,'dependency_rows',((a->>'dependency_rows')::bigint+(cost->>'dependencies')::bigint)::text,'retained_rows',((a->>'retained_rows')::bigint+(cost->>'new_rows')::bigint)::text,'row_writes',((a->>'row_writes')::bigint+(cost->>'row_writes')::bigint)::text,'index_entries',((a->>'index_entries')::bigint+(cost->>'index_entries')::bigint)::text,'Stop_reserve_consumed',kind='source_stop');
++ b:=pg_catalog.jsonb_build_object('committed_positions',((a->>'committed_positions')::bigint+1)::text,'logical_UTF8_bytes',((a->>'logical_UTF8_bytes')::bigint+(cost->>'bytes')::bigint)::text,'identity_rows',((a->>'identity_rows')::bigint+(cost->>'identities')::bigint)::text,'domain_rows',((a->>'domain_rows')::bigint+(cost->>'domains')::bigint)::text,'dependency_rows',((a->>'dependency_rows')::bigint+(cost->>'dependencies')::bigint)::text,'retained_rows',((a->>'retained_rows')::bigint+(cost->>'new_rows')::bigint)::text,'row_writes',((a->>'row_writes')::bigint+(cost->>'row_writes')::bigint)::text,'index_entries',((a->>'index_entries')::bigint+(cost->>'index_entries')::bigint)::text,'Stop_reserve_consumed',kind='source_stop' OR a->'Stop_reserve_consumed'='true'::jsonb);
+  RETURN b;
+ END;
+ $b2$;
+@@ -688,7 +689,7 @@ SET TimeZone = 'UTC'
+ SET client_encoding = 'UTF8'
+ SET standard_conforming_strings = 'on'
+ AS $b2$
+-DECLARE sw text:=vn_jupiter_b2_allocation_research_v3._scope(scope); a jsonb; target vn_jupiter_b2_allocation_research_v3.original_operations%ROWTYPE; o record; j record; c jsonb; r jsonb; t jsonb; prev text; pins jsonb:='[]'; answer jsonb; body text; count_seen bigint:=0; d jsonb; g jsonb; spec jsonb; expected_record jsonb; expected_facts jsonb; base_facts jsonb; installation_pin jsonb; acquire_pin jsonb; fence_pin jsonb; fence jsonb; epoch jsonb; terminal jsonb; utc jsonb; field text; role text; issued bigint; expires bigint; acquisitions bigint; resumes bigint; renewals bigint; resume_pin jsonb; renew_pin jsonb; next_fence_pin jsonb; next_fence jsonb; next_issued bigint; previous_hold_commit_us bigint; latest_renew_position bigint; renewed_facts jsonb:='[]'; prior_control_sha text; stop_mode text; stop_revision text; packet_plan jsonb; packet_identities bigint; packet_count bigint; packet_tip bigint; predecessor_wire text; predecessor_commit_us bigint;
++DECLARE sw text:=vn_jupiter_b2_allocation_research_v3._scope(scope); a jsonb; target vn_jupiter_b2_allocation_research_v3.original_operations%ROWTYPE; o record; j record; c jsonb; r jsonb; t jsonb; prev text; pins jsonb:='[]'; answer jsonb; body text; count_seen bigint:=0; d jsonb; g jsonb; spec jsonb; expected_record jsonb; expected_facts jsonb; base_facts jsonb; installation_pin jsonb; acquire_pin jsonb; fence_pin jsonb; fence jsonb; epoch jsonb; terminal jsonb; utc jsonb; field text; role text; issued bigint; expires bigint; acquisitions bigint; resumes bigint; renewals bigint; resume_pin jsonb; renew_pin jsonb; next_fence_pin jsonb; next_fence jsonb; next_issued bigint; previous_hold_commit_us bigint; latest_renew_position bigint; renewed_facts jsonb:='[]'; prior_control_sha text; stop_mode text; stop_revision text; packet_plan jsonb; packet_identities bigint; packet_count bigint; packet_tip bigint; predecessor_wire text; predecessor_commit_us bigint; late_capture boolean; reserve_wire text; reserve_head text; stop_seen boolean:=false;
+ BEGIN
+  SELECT * INTO target FROM vn_jupiter_b2_allocation_research_v3.original_operations WHERE action_id=target_id AND scope_wire=sw;
+  a:=vn_jupiter_b2_allocation_research_v3._auth(scope,CASE WHEN getter_recovery IS TRUE THEN 'get_original' ELSE 'read_original' END,
+@@ -719,9 +720,11 @@ BEGIN
+   count_seen:=count_seen+1;
+   IF count_seen IS DISTINCT FROM o.native_sequence OR NOT o.finalized OR o.writer_xid8=pg_catalog.pg_current_xact_id_if_assigned() OR vn_jupiter_b2_allocation_research_v3._sha(o.command_wire) IS DISTINCT FROM o.command_sha256 OR vn_jupiter_b2_allocation_research_v3._sha(o.result_wire) IS DISTINCT FROM o.result_sha256 OR vn_jupiter_b2_allocation_research_v3._sha(o.receipt_wire) IS DISTINCT FROM o.receipt_sha256 THEN RAISE EXCEPTION 'b2_original_assembly_refused'; END IF;
+   c:=o.command_wire::jsonb; r:=o.result_wire::jsonb; t:=o.receipt_wire::jsonb;
+-  IF NOT vn_jupiter_b2_allocation_research_v3._keys(c,ARRAY['format','native_policy_sha256','scope','action_id','action_kind','expected_head','expected_fence_id','expected_fence_revision','body']) OR NOT vn_jupiter_b2_allocation_research_v3._keys(r,ARRAY['format','native_policy_sha256','scope','action_id','action_kind','native_sequence','original_command_sha256','dependencies','result_body','limits']) OR NOT vn_jupiter_b2_allocation_research_v3._keys(t,ARRAY['format','native_policy_sha256','scope','action_id','action_kind','original_command_sha256','result_sha256','native_sequence','previous_native_head_sha256','admission_observation','final_function_observation','commit_processing_observation','native_package_sha256','catalog_manifest_sha256','limits']) OR c->>'format' IS DISTINCT FROM 'ga-jupiter-b2-allocation-command-research-v3-v1' OR r->>'format' IS DISTINCT FROM 'ga-jupiter-b2-allocation-result-research-v3-v1' OR t->>'format' IS DISTINCT FROM 'ga-jupiter-b2-allocation-receipt-research-v3-v1' OR c->>'native_policy_sha256' IS DISTINCT FROM (CASE WHEN o.action_kind IN('packet_reservation','capture_retention') THEN '28b7df36ca970796b7729d29ca0fd0dde861edfdc09579afef160218a05ade51' ELSE a#>>'{package,native_policy_sha256}' END) OR r->>'native_policy_sha256' IS DISTINCT FROM c->>'native_policy_sha256' OR t->>'native_policy_sha256' IS DISTINCT FROM c->>'native_policy_sha256' OR r->>'action_kind' IS DISTINCT FROM o.action_kind OR t->>'action_kind' IS DISTINCT FROM o.action_kind OR r->'limits' IS DISTINCT FROM vn_jupiter_b2_allocation_research_v3._limits() OR t->>'native_package_sha256' IS DISTINCT FROM a#>>'{package,native_package_sha256}' OR t->>'catalog_manifest_sha256' IS DISTINCT FROM
++  late_capture:=(o.action_kind='capture_retention' AND pg_catalog.to_regprocedure('vn_jupiter_b2_allocation_research_v3._collection_authorization(text)') IS NOT NULL) IS TRUE;
++  IF NOT vn_jupiter_b2_allocation_research_v3._keys(c,ARRAY['format','native_policy_sha256','scope','action_id','action_kind','expected_head','expected_fence_id','expected_fence_revision','body']) OR NOT vn_jupiter_b2_allocation_research_v3._keys(r,ARRAY['format','native_policy_sha256','scope','action_id','action_kind','native_sequence','original_command_sha256','dependencies','result_body','limits']) OR NOT vn_jupiter_b2_allocation_research_v3._keys(t,ARRAY['format','native_policy_sha256','scope','action_id','action_kind','original_command_sha256','result_sha256','native_sequence','previous_native_head_sha256','admission_observation','final_function_observation','commit_processing_observation','native_package_sha256','catalog_manifest_sha256','limits']) OR c->>'format' IS DISTINCT FROM 'ga-jupiter-b2-allocation-command-research-v3-v1' OR r->>'format' IS DISTINCT FROM 'ga-jupiter-b2-allocation-result-research-v3-v1' OR t->>'format' IS DISTINCT FROM 'ga-jupiter-b2-allocation-receipt-research-v3-v1' OR c->>'native_policy_sha256' IS DISTINCT FROM (CASE WHEN late_capture THEN 'c468fa4a7fa8e9122a53abb19ed10d3c1d80f8024dfeefbb8596fef8f1c1f8be' WHEN o.action_kind IN('packet_reservation','capture_retention') THEN '28b7df36ca970796b7729d29ca0fd0dde861edfdc09579afef160218a05ade51' ELSE a#>>'{package,native_policy_sha256}' END) OR r->>'native_policy_sha256' IS DISTINCT FROM c->>'native_policy_sha256' OR t->>'native_policy_sha256' IS DISTINCT FROM c->>'native_policy_sha256' OR r->>'action_kind' IS DISTINCT FROM o.action_kind OR t->>'action_kind' IS DISTINCT FROM o.action_kind OR r->'limits' IS DISTINCT FROM vn_jupiter_b2_allocation_research_v3._limits() OR t->>'native_package_sha256' IS DISTINCT FROM a#>>'{package,native_package_sha256}' OR t->>'catalog_manifest_sha256' IS DISTINCT FROM
+     (CASE WHEN o.native_sequence>3 THEN a->>'effective_catalog_sha256' ELSE a#>>'{package,catalog_manifest_sha256}' END) OR vn_jupiter_b2_allocation_research_v3._c14n(c) IS DISTINCT FROM o.command_wire OR vn_jupiter_b2_allocation_research_v3._c14n(r) IS DISTINCT FROM o.result_wire OR vn_jupiter_b2_allocation_research_v3._c14n(t) IS DISTINCT FROM o.receipt_wire OR r->'dependencies' IS DISTINCT FROM vn_jupiter_b2_allocation_research_v3._deps(r->'dependencies') THEN RAISE EXCEPTION 'b2_original_assembly_refused'; END IF;
+-  IF c->'scope' IS DISTINCT FROM scope OR c->>'action_id' IS DISTINCT FROM o.action_id OR c->>'action_kind' IS DISTINCT FROM o.action_kind OR c->'expected_head' IS DISTINCT FROM pg_catalog.jsonb_build_object('native_sequence',(o.native_sequence-1)::text,'native_head_sha256',prev,'previous_seal_sha256',NULL) OR (CASE WHEN o.action_kind IN('source_resume','fence_renew','packet_reservation','capture_retention') THEN
++  IF c->'scope' IS DISTINCT FROM scope OR c->>'action_id' IS DISTINCT FROM o.action_id OR c->>'action_kind' IS DISTINCT FROM o.action_kind OR c->'expected_head' IS DISTINCT FROM (CASE WHEN late_capture THEN pg_catalog.jsonb_build_object('native_sequence','5','native_head_sha256',reserve_head,'previous_seal_sha256',NULL)
++   ELSE pg_catalog.jsonb_build_object('native_sequence',(o.native_sequence-1)::text,'native_head_sha256',prev,'previous_seal_sha256',NULL) END) OR (CASE WHEN NOT late_capture AND o.action_kind IN('source_resume','fence_renew','packet_reservation','capture_retention') THEN
+   c->'expected_fence_id' IS DISTINCT FROM fence->'fence_id' OR c->'expected_fence_revision' IS DISTINCT FROM fence->'revision'
+  ELSE c->'expected_fence_id' IS DISTINCT FROM 'null'::jsonb OR c->'expected_fence_revision' IS DISTINCT FROM 'null'::jsonb END) OR r->>'original_command_sha256' IS DISTINCT FROM o.command_sha256 OR r->>'action_id' IS DISTINCT FROM o.action_id OR r->'scope' IS DISTINCT FROM scope OR r->>'native_sequence' IS DISTINCT FROM o.native_sequence::text OR t->>'original_command_sha256' IS DISTINCT FROM o.command_sha256 OR t->>'result_sha256' IS DISTINCT FROM o.result_sha256 OR t->>'action_id' IS DISTINCT FROM o.action_id OR t->'scope' IS DISTINCT FROM scope OR t->>'native_sequence' IS DISTINCT FROM o.native_sequence::text OR t->>'previous_native_head_sha256' IS DISTINCT FROM prev OR t->'limits' IS DISTINCT FROM vn_jupiter_b2_allocation_research_v3._limits() OR t->'final_function_observation' IS DISTINCT FROM o.final_function_observation OR t->'admission_observation' IS DISTINCT FROM 'null'::jsonb THEN RAISE EXCEPTION 'b2_original_assembly_refused'; END IF;
+   FOR utc IN SELECT value FROM pg_catalog.jsonb_array_elements(pg_catalog.jsonb_build_array(t->'final_function_observation',t->'commit_processing_observation')) LOOP
+@@ -826,11 +829,14 @@ BEGIN
+    previous_hold_commit_us:=(t#>>'{commit_processing_observation,observed_at_us}')::bigint;
+   ELSIF o.action_kind IN('packet_reservation','capture_retention') THEN
+    IF latest_renew_position IS DISTINCT FROM 4 OR packet_tip IS NOT NULL AND packet_tip<>5
++    OR (late_capture AND (packet_tip IS DISTINCT FROM 5 OR reserve_head IS NULL
++     OR o.native_sequence IS DISTINCT FROM (CASE WHEN stop_seen THEN 7 ELSE 6 END)))
+     OR (t#>>'{final_function_observation,observed_at_us}')::bigint<predecessor_commit_us
+     OR (t#>>'{final_function_observation,observed_at_us}')::bigint<issued
+-    OR (t#>>'{commit_processing_observation,observed_at_us}')::bigint>=expires
++    OR (NOT late_capture AND (t#>>'{commit_processing_observation,observed_at_us}')::bigint>=expires)
+    THEN RAISE EXCEPTION 'b3_original_assembly_refused'; END IF;
+-   packet_plan:=vn_jupiter_b2_allocation_research_v3._packet_plan(c,a,o.native_sequence,o.writer_binding_id,fence,predecessor_wire);
++   packet_plan:=vn_jupiter_b2_allocation_research_v3._packet_plan(c,a,o.native_sequence,o.writer_binding_id,fence,
++    CASE WHEN late_capture THEN reserve_wire ELSE predecessor_wire END);
+    IF r->'dependencies' IS DISTINCT FROM packet_plan->'dependencies'
+     OR r->'result_body' IS DISTINCT FROM packet_plan->'body'
+     OR EXISTS(SELECT 1 FROM pg_catalog.jsonb_array_elements(packet_plan->'ids') expected(record_value)
+@@ -855,6 +861,7 @@ BEGIN
+     expected_facts:=expected_facts||pg_catalog.jsonb_build_array(COALESCE(resume_pin,acquire_pin),fence_pin);
+    END IF;
+    IF r->'dependencies' IS DISTINCT FROM vn_jupiter_b2_allocation_research_v3._deps(expected_facts) THEN RAISE EXCEPTION 'b2_original_assembly_refused'; END IF;
++   stop_seen:=true;
+   ELSE RAISE EXCEPTION 'b2_kind_not_implemented';
+   END IF;
+   SELECT * INTO j FROM vn_jupiter_b2_allocation_research_v3.journal_entries WHERE scope_wire=sw AND native_sequence=o.native_sequence;
+@@ -871,6 +878,7 @@ BEGIN
+   IF o.action_id IS DISTINCT FROM target_id THEN pins:=pins||pg_catalog.jsonb_build_array(vn_jupiter_b2_allocation_research_v3._pin('native_command',o.action_id,o.command_wire),vn_jupiter_b2_allocation_research_v3._pin('native_result',o.action_id,o.result_wire),vn_jupiter_b2_allocation_research_v3._pin('native_receipt',o.action_id,o.receipt_wire)); END IF;
+   prev:=j.journal_sha256; predecessor_wire:=o.command_wire;
+   predecessor_commit_us:=(t#>>'{commit_processing_observation,observed_at_us}')::bigint;
++  IF o.action_kind='packet_reservation' THEN reserve_wire:=o.command_wire; reserve_head:=j.journal_sha256; END IF;
+  END LOOP;
+  IF count_seen IS DISTINCT FROM target.native_sequence THEN RAISE EXCEPTION 'b2_original_assembly_refused'; END IF;
+  FOR o IN SELECT * FROM vn_jupiter_b2_allocation_research_v3.domain_facts WHERE scope_wire=sw AND native_sequence<=target.native_sequence LOOP
+@@ -914,7 +922,11 @@ DECLARE q jsonb; sw text; o record; obs jsonb; a jsonb; body text;
+ BEGIN
+  IF wire IS NULL OR pg_catalog.octet_length(wire)>2048 THEN RAISE EXCEPTION 'b2_invalid_query'; END IF;
+  q:=wire::jsonb;
+- IF vn_jupiter_b2_allocation_research_v3._c14n(q)<>wire OR NOT vn_jupiter_b2_allocation_research_v3._keys(q,ARRAY['format','native_policy_sha256','scope','target_kind','target_id','expected_original_command_sha256','correlation']) OR q->>'format' IS DISTINCT FROM 'ga-jupiter-b2-original-query-research-v3-v1' OR q->>'native_policy_sha256' IS DISTINCT FROM (CASE WHEN q->>'target_kind' IN('packet_reservation','capture_retention') THEN '28b7df36ca970796b7729d29ca0fd0dde861edfdc09579afef160218a05ade51' ELSE 'e5dca1d13839102fb1fdd261176393b73c770a95ab355eff74499169905bfba0' END) OR (pg_catalog.jsonb_typeof(q->'target_kind') IS DISTINCT FROM 'string' OR q->>'target_kind' NOT IN('installation','fence_acquire','source_resume','fence_renew','source_stop','packet_reservation','capture_retention')) OR pg_catalog.jsonb_typeof(q->'target_id')<>'string' OR (q->>'target_id' ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$') IS DISTINCT FROM true OR (CASE WHEN q->>'target_kind'='capture_retention' AND q->'expected_original_command_sha256'='null'::jsonb
++ IF q->>'format'='ga-jupiter-b3-collection-authorization-query-v2' THEN
++  IF NOT (pg_catalog.to_regprocedure('vn_jupiter_b2_allocation_research_v3._collection_authorization(text)') IS NOT NULL) THEN RAISE EXCEPTION 'b2_invalid_query'; END IF;
++  RETURN vn_jupiter_b2_allocation_research_v3._collection_authorization(wire);
++ END IF;
++ IF vn_jupiter_b2_allocation_research_v3._c14n(q)<>wire OR NOT vn_jupiter_b2_allocation_research_v3._keys(q,ARRAY['format','native_policy_sha256','scope','target_kind','target_id','expected_original_command_sha256','correlation']) OR q->>'format' IS DISTINCT FROM 'ga-jupiter-b2-original-query-research-v3-v1' OR q->>'native_policy_sha256' IS DISTINCT FROM (CASE WHEN q->>'target_kind'='capture_retention' AND pg_catalog.to_regprocedure('vn_jupiter_b2_allocation_research_v3._collection_authorization(text)') IS NOT NULL THEN 'c468fa4a7fa8e9122a53abb19ed10d3c1d80f8024dfeefbb8596fef8f1c1f8be' WHEN q->>'target_kind' IN('packet_reservation','capture_retention') THEN '28b7df36ca970796b7729d29ca0fd0dde861edfdc09579afef160218a05ade51' ELSE 'e5dca1d13839102fb1fdd261176393b73c770a95ab355eff74499169905bfba0' END) OR (pg_catalog.jsonb_typeof(q->'target_kind') IS DISTINCT FROM 'string' OR q->>'target_kind' NOT IN('installation','fence_acquire','source_resume','fence_renew','source_stop','packet_reservation','capture_retention')) OR pg_catalog.jsonb_typeof(q->'target_id')<>'string' OR (q->>'target_id' ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$') IS DISTINCT FROM true OR (CASE WHEN q->>'target_kind'='capture_retention' AND q->'expected_original_command_sha256'='null'::jsonb
+      THEN false ELSE pg_catalog.jsonb_typeof(q->'expected_original_command_sha256') IS DISTINCT FROM 'string'
+      OR (q->>'expected_original_command_sha256' ~ '^[0-9a-f]{64}$') IS DISTINCT FROM true END) OR q->'correlation' IS DISTINCT FROM pg_catalog.jsonb_build_object('kind','original_action_id','id',q->>'target_id') THEN RAISE EXCEPTION 'b2_invalid_query'; END IF;
+  sw:=vn_jupiter_b2_allocation_research_v3._scope(q->'scope');
+@@ -930,7 +942,7 @@ BEGIN
+  END IF;
+  SELECT * INTO o FROM vn_jupiter_b2_allocation_research_v3.original_operations WHERE action_id=q->>'target_id' AND scope_wire=sw;
+  IF FOUND THEN
+-  IF o.action_kind<>q->>'target_kind' THEN
++  IF o.action_kind<>q->>'target_kind' OR (o.command_wire::jsonb)->>'native_policy_sha256' IS DISTINCT FROM q->>'native_policy_sha256' THEN
+    PERFORM vn_jupiter_b2_allocation_research_v3._auth(q->'scope','get_original',NULL,NULL,NULL);
+    RAISE EXCEPTION 'b2_original_refused';
+   END IF;
+@@ -956,13 +968,14 @@ SET TimeZone = 'UTC'
+ SET client_encoding = 'UTF8'
+ SET standard_conforming_strings = 'on'
+ AS $b2$
+-DECLARE c jsonb; sw text; a jsonb; p jsonb; g jsonb; h jsonb; oldop record; st record; spec jsonb; ass jsonb; idrow jsonb; epoch jsonb; terminal jsonb; v jsonb; d jsonb; deps jsonb; ids jsonb:='[]'; facts jsonb:='[]'; r jsonb; cw text; ch text; rw text; seq bigint; cost jsonb; chk jsonb; ordinal bigint:=0; role text; expected_body jsonb; prior record; prior_reply jsonb; prior_result jsonb; fence jsonb; issued bigint; expires bigint; final_obs jsonb; prior_control_sha text; previous_mode text; next_fence_record jsonb; previous_expiry bigint; previous_commit_us bigint; control_original record; existing_intent text; packet_plan jsonb; packet_renew record; packet_stop boolean;
++DECLARE c jsonb; sw text; a jsonb; p jsonb; g jsonb; h jsonb; oldop record; st record; spec jsonb; ass jsonb; idrow jsonb; epoch jsonb; terminal jsonb; v jsonb; d jsonb; deps jsonb; ids jsonb:='[]'; facts jsonb:='[]'; r jsonb; cw text; ch text; rw text; seq bigint; cost jsonb; chk jsonb; ordinal bigint:=0; role text; expected_body jsonb; prior record; prior_reply jsonb; prior_result jsonb; fence jsonb; issued bigint; expires bigint; final_obs jsonb; prior_control_sha text; previous_mode text; next_fence_record jsonb; previous_expiry bigint; previous_commit_us bigint; control_original record; existing_intent text; packet_plan jsonb; packet_renew record; packet_stop boolean; late_capture boolean; reserve_wire text; reserve_head text;
+ BEGIN
+  IF register_stop_intent IS NULL OR wire IS NULL OR pg_catalog.octet_length(wire)>1048576 THEN RAISE EXCEPTION 'b2_invalid_command'; END IF;
+  c:=wire::jsonb;
++ late_capture:=(c->>'action_kind'='capture_retention' AND pg_catalog.to_regprocedure('vn_jupiter_b2_allocation_research_v3._collection_authorization(text)') IS NOT NULL) IS TRUE;
+  IF c->>'action_kind' IS DISTINCT FROM 'capture_retention' AND pg_catalog.octet_length(wire)>16384
+  THEN RAISE EXCEPTION 'b2_invalid_command'; END IF;
+- IF vn_jupiter_b2_allocation_research_v3._c14n(c) IS DISTINCT FROM wire OR NOT vn_jupiter_b2_allocation_research_v3._keys(c,ARRAY['format','native_policy_sha256','scope','action_id','action_kind','expected_head','expected_fence_id','expected_fence_revision','body']) OR c->>'format' IS DISTINCT FROM 'ga-jupiter-b2-allocation-command-research-v3-v1' OR c->>'native_policy_sha256' IS DISTINCT FROM (CASE WHEN c->>'action_kind' IN('packet_reservation','capture_retention') THEN '28b7df36ca970796b7729d29ca0fd0dde861edfdc09579afef160218a05ade51' ELSE 'e5dca1d13839102fb1fdd261176393b73c770a95ab355eff74499169905bfba0' END) OR pg_catalog.jsonb_typeof(c->'action_id') IS DISTINCT FROM 'string' OR (c->>'action_id' ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$') IS DISTINCT FROM true THEN RAISE EXCEPTION 'b2_invalid_command'; END IF;
++ IF vn_jupiter_b2_allocation_research_v3._c14n(c) IS DISTINCT FROM wire OR NOT vn_jupiter_b2_allocation_research_v3._keys(c,ARRAY['format','native_policy_sha256','scope','action_id','action_kind','expected_head','expected_fence_id','expected_fence_revision','body']) OR c->>'format' IS DISTINCT FROM 'ga-jupiter-b2-allocation-command-research-v3-v1' OR c->>'native_policy_sha256' IS DISTINCT FROM (CASE WHEN c->>'action_kind'='capture_retention' AND pg_catalog.to_regprocedure('vn_jupiter_b2_allocation_research_v3._collection_authorization(text)') IS NOT NULL THEN 'c468fa4a7fa8e9122a53abb19ed10d3c1d80f8024dfeefbb8596fef8f1c1f8be' WHEN c->>'action_kind' IN('packet_reservation','capture_retention') THEN '28b7df36ca970796b7729d29ca0fd0dde861edfdc09579afef160218a05ade51' ELSE 'e5dca1d13839102fb1fdd261176393b73c770a95ab355eff74499169905bfba0' END) OR pg_catalog.jsonb_typeof(c->'action_id') IS DISTINCT FROM 'string' OR (c->>'action_id' ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$') IS DISTINCT FROM true THEN RAISE EXCEPTION 'b2_invalid_command'; END IF;
+  sw:=vn_jupiter_b2_allocation_research_v3._scope(c->'scope');
+  IF c->>'action_kind' NOT IN('installation','fence_acquire','source_resume','fence_renew','source_stop','packet_reservation','capture_retention') OR pg_catalog.jsonb_typeof(c->'action_kind') IS DISTINCT FROM 'string' THEN
+   PERFORM vn_jupiter_b2_allocation_research_v3._auth(c->'scope','read_original',NULL,NULL,NULL); RAISE EXCEPTION 'b2_kind_not_implemented';
+@@ -997,11 +1010,12 @@ BEGIN
+  ELSIF c->>'action_kind'='source_stop' AND pg_catalog.jsonb_typeof(a->'handoff')='object' THEN
+   PERFORM vn_jupiter_b2_allocation_research_v3._require_exact_stop_intent(sw,c,wire,a);
+  END IF;
++ h:=st.head_wire::jsonb;
+  IF (a->>'handoff_profile')::boolean AND c->>'action_kind'<>'source_stop'
++  AND NOT (late_capture AND h->>'source_mode'='stopped')
+  THEN PERFORM vn_jupiter_b2_allocation_research_v3._require_no_stop_intent(sw); END IF;
+  IF EXISTS(SELECT 1 FROM vn_jupiter_b2_allocation_research_v3.original_operations WHERE writer_xid8=pg_catalog.pg_current_xact_id()) THEN RAISE EXCEPTION 'b2_one_new_operation'; END IF;
+- h:=st.head_wire::jsonb;
+- IF c->'expected_head' IS DISTINCT FROM pg_catalog.jsonb_build_object('native_sequence',h->>'native_sequence','native_head_sha256',h->>'native_head_sha256','previous_seal_sha256',NULL) OR (CASE WHEN c->>'action_kind' IN('source_resume','fence_renew','packet_reservation','capture_retention') THEN
++ IF (NOT late_capture AND c->'expected_head' IS DISTINCT FROM pg_catalog.jsonb_build_object('native_sequence',h->>'native_sequence','native_head_sha256',h->>'native_head_sha256','previous_seal_sha256',NULL)) OR (CASE WHEN NOT late_capture AND c->>'action_kind' IN('source_resume','fence_renew','packet_reservation','capture_retention') THEN
+   c->'expected_fence_id' IS DISTINCT FROM h->'active_fence_id' OR c->'expected_fence_revision' IS DISTINCT FROM h->'fence_revision'
+  ELSE c->'expected_fence_id' IS DISTINCT FROM 'null'::jsonb OR c->'expected_fence_revision' IS DISTINCT FROM 'null'::jsonb END) THEN RAISE EXCEPTION 'b2_stale_head'; END IF;
+  seq:=(h->>'native_sequence')::bigint+1; ch:=vn_jupiter_b2_allocation_research_v3._sha(wire);
+@@ -1143,12 +1157,15 @@ BEGIN
+  ELSIF c->>'action_kind' IN('packet_reservation','capture_retention') THEN
+   IF pg_catalog.jsonb_typeof(a->'handoff') IS DISTINCT FROM 'object'
+    OR a#>>'{package,policies,a1_schema_sha256}' IS DISTINCT FROM '2c48b61440f7d61f9567fa295da1c9c98a4483c2c834ec7074412d261f085640'
+-   OR h->>'source_mode' IS DISTINCT FROM 'open' OR h->>'fence_revision' IS DISTINCT FROM '2'
+-   OR seq IS DISTINCT FROM (CASE WHEN c->>'action_kind'='packet_reservation' THEN 5 ELSE 6 END)
++   OR (NOT late_capture AND (h->>'source_mode' IS DISTINCT FROM 'open' OR h->>'fence_revision' IS DISTINCT FROM '2'
++    OR seq IS DISTINCT FROM (CASE WHEN c->>'action_kind'='packet_reservation' THEN 5 ELSE 6 END)))
++   OR (late_capture AND (((seq=6 AND h->>'source_mode'='open' AND h->>'fence_revision'='2')
++    OR (seq=7 AND h->>'source_mode'='stopped' AND h->>'fence_revision'='3' AND h->'active_fence_id'='null'::jsonb)) IS DISTINCT FROM true
++    OR h->>'active_acquisition_epoch' IS DISTINCT FROM g#>>'{initial_acquisition_spec,acquisition_epoch}'))
+   THEN RAISE EXCEPTION 'b3_packet_head_refused'; END IF;
+   SELECT * INTO prior FROM vn_jupiter_b2_allocation_research_v3.original_operations z
+    WHERE z.scope_wire=sw AND z.native_sequence=seq-1 AND z.finalized
+-   AND z.action_kind=CASE WHEN seq=5 THEN 'fence_renew' ELSE 'packet_reservation' END;
++   AND z.action_kind=CASE seq WHEN 5 THEN 'fence_renew' WHEN 6 THEN 'packet_reservation' WHEN 7 THEN 'source_stop' END;
+   IF NOT FOUND THEN RAISE EXCEPTION 'b3_packet_head_refused'; END IF;
+   prior_reply:=vn_jupiter_b2_allocation_research_v3._reply(c->'scope',prior.action_id,prior.command_sha256,false,NULL)::jsonb;
+   PERFORM 1 FROM vn_jupiter_b2_allocation_research_v3.journal_entries j WHERE j.scope_wire=sw AND j.native_sequence=seq-1 AND j.journal_sha256=h->>'native_head_sha256';
+@@ -1156,14 +1173,26 @@ BEGIN
+   SELECT z.result_wire::jsonb#>'{result_body,original_fence_record}' INTO fence
+   FROM vn_jupiter_b2_allocation_research_v3.original_operations z WHERE z.scope_wire=sw AND z.native_sequence=4 AND z.action_kind='fence_renew' AND z.finalized;
+   IF NOT FOUND THEN RAISE EXCEPTION 'b3_packet_head_refused'; END IF;
+-  packet_plan:=vn_jupiter_b2_allocation_research_v3._packet_plan(c,a,seq,a->>'binding_id',fence,prior.command_wire);
++  IF late_capture THEN
++   IF seq=6 AND h->'active_fence_id' IS DISTINCT FROM fence->'fence_id'
++   THEN RAISE EXCEPTION 'b3_packet_head_refused'; END IF;
++   SELECT z.command_wire,j.journal_sha256 INTO reserve_wire,reserve_head
++    FROM vn_jupiter_b2_allocation_research_v3.original_operations z
++    JOIN vn_jupiter_b2_allocation_research_v3.journal_entries j USING(scope_wire,native_sequence,action_id)
++    WHERE z.scope_wire=sw AND z.native_sequence=5 AND z.action_kind='packet_reservation' AND z.finalized;
++   IF NOT FOUND OR c->'expected_head' IS DISTINCT FROM pg_catalog.jsonb_build_object(
++    'native_sequence','5','native_head_sha256',reserve_head,'previous_seal_sha256',NULL)
++   THEN RAISE EXCEPTION 'b3_capture_ancestor_refused'; END IF;
++  END IF;
++  packet_plan:=vn_jupiter_b2_allocation_research_v3._packet_plan(c,a,seq,a->>'binding_id',fence,
++   CASE WHEN late_capture THEN reserve_wire ELSE prior.command_wire END);
+   ids:=packet_plan->'ids'; deps:=packet_plan->'dependencies'; expected_body:=packet_plan->'body';
+   IF EXISTS(SELECT 1 FROM pg_catalog.jsonb_array_elements(ids) v
+     JOIN vn_jupiter_b2_allocation_research_v3.identities i ON i.original_id=v.value->>'original_id')
+   THEN RAISE EXCEPTION 'b2_identity_conflict'; END IF;
+   issued:=((prior_reply->>'original_receipt_wire')::jsonb#>>'{commit_processing_observation,observed_at_us}')::bigint;
+   expires:=(fence->>'expires_at_us')::bigint;
+-  IF (vn_jupiter_b2_allocation_research_v3._clock()->>'observed_at_us')::bigint NOT BETWEEN issued AND expires-1
++  IF NOT late_capture AND (vn_jupiter_b2_allocation_research_v3._clock()->>'observed_at_us')::bigint NOT BETWEEN issued AND expires-1
+   THEN RAISE EXCEPTION 'b2_fence_clock_refused'; END IF;
+  ELSE
+   packet_stop:=pg_catalog.jsonb_typeof(a->'handoff')='object' AND seq IN(6,7)
+@@ -1255,7 +1284,7 @@ BEGIN
+  IF a->'credential_windows' IS DISTINCT FROM 'null'::jsonb
+  THEN PERFORM vn_jupiter_b2_allocation_research_v3._check_credential_window(a->'credential_windows',(final_obs->>'observed_at_us')::bigint); END IF;
+  IF c->>'action_kind' IN('fence_acquire','source_resume','fence_renew','packet_reservation','capture_retention')
+-  AND ((final_obs->>'observed_at_us')::bigint<issued OR (final_obs->>'observed_at_us')::bigint>=expires
++  AND ((final_obs->>'observed_at_us')::bigint<issued OR (NOT late_capture AND (final_obs->>'observed_at_us')::bigint>=expires)
+    OR (c->>'action_kind'='fence_renew' AND (final_obs->>'observed_at_us')::bigint>=previous_expiry))
+  THEN RAISE EXCEPTION 'b2_fence_clock_refused'; END IF;
+  INSERT INTO vn_jupiter_b2_allocation_research_v3.original_operations(action_id,scope_wire,action_kind,native_sequence,command_wire,command_sha256,result_wire,result_sha256,writer_xid8,writer_binding_id,final_function_observation) VALUES(c->>'action_id',sw,c->>'action_kind',seq,wire,ch,rw,vn_jupiter_b2_allocation_research_v3._sha(rw),pg_catalog.pg_current_xact_id(),a->>'binding_id',final_obs);
+@@ -1289,12 +1318,13 @@ SET TimeZone = 'UTC'
+ SET client_encoding = 'UTF8'
+ SET standard_conforming_strings = 'on'
+ AS $b2$
+-DECLARE o vn_jupiter_b2_allocation_research_v3.original_operations%ROWTYPE; c jsonb; r jsonb; a jsonb; p jsonb; g jsonb; st record; h jsonb; obs jsonb; rec jsonb; tw text; jw text; nexthead jsonb; ids jsonb; facts jsonb; cost jsonb; accounting jsonb; original_installation jsonb; fence jsonb; issued bigint; expires bigint; role text; expected_record jsonb; next_fence text; prior record; prior_reply jsonb; prior_result jsonb; expected_deps jsonb; expected_body jsonb; prior_control_sha text; previous_mode text; next_fence_record jsonb; previous_expiry bigint; previous_commit_us bigint; control_original record; packet_plan jsonb; packet_renew record; packet_stop boolean;
++DECLARE o vn_jupiter_b2_allocation_research_v3.original_operations%ROWTYPE; c jsonb; r jsonb; a jsonb; p jsonb; g jsonb; st record; h jsonb; obs jsonb; rec jsonb; tw text; jw text; nexthead jsonb; ids jsonb; facts jsonb; cost jsonb; accounting jsonb; original_installation jsonb; fence jsonb; issued bigint; expires bigint; role text; expected_record jsonb; next_fence text; prior record; prior_reply jsonb; prior_result jsonb; expected_deps jsonb; expected_body jsonb; prior_control_sha text; previous_mode text; next_fence_record jsonb; previous_expiry bigint; previous_commit_us bigint; control_original record; packet_plan jsonb; packet_renew record; packet_stop boolean; late_capture boolean; reserve_wire text; reserve_head text;
+ BEGIN
+  IF pg_catalog.btrim(pg_catalog.current_query(),E' \t\r\n\f'||pg_catalog.chr(11)) NOT IN('COMMIT','COMMIT;') THEN RAISE EXCEPTION 'b2_commit_form_refused'; END IF;
+  SELECT * INTO o FROM vn_jupiter_b2_allocation_research_v3.original_operations WHERE action_id=NEW.action_id FOR UPDATE;
+  IF NOT FOUND OR o.finalized OR o.writer_xid8<>pg_catalog.pg_current_xact_id() THEN RAISE EXCEPTION 'b2_commit_origin_refused'; END IF;
+  c:=o.command_wire::jsonb; r:=o.result_wire::jsonb;
++ late_capture:=(o.action_kind='capture_retention' AND pg_catalog.to_regprocedure('vn_jupiter_b2_allocation_research_v3._collection_authorization(text)') IS NOT NULL) IS TRUE;
+  a:=vn_jupiter_b2_allocation_research_v3._auth(c->'scope',CASE o.action_kind WHEN 'installation' THEN 'install' WHEN 'fence_acquire' THEN 'fence_manage' WHEN 'fence_renew' THEN 'fence_manage' WHEN 'source_resume' THEN 'resume_scope' WHEN 'packet_reservation' THEN 'reserve' WHEN 'capture_retention' THEN 'reserve' ELSE 'control' END,NULL,CASE WHEN o.action_kind='source_stop' THEN o.command_sha256 END,NULL); p:=a->'package'; g:=(a->>'genesis_wire')::jsonb;
+  IF o.action_kind='installation' THEN original_installation:=c;
+  ELSE SELECT command_wire::jsonb INTO original_installation FROM vn_jupiter_b2_allocation_research_v3.original_operations WHERE scope_wire=o.scope_wire AND action_kind='installation' AND finalized;
+@@ -1306,8 +1336,9 @@ BEGIN
+   PERFORM vn_jupiter_b2_allocation_research_v3._require_exact_stop_intent(o.scope_wire,c,o.command_wire,a);
+  END IF;
+  IF (a->>'handoff_profile')::boolean AND o.action_kind<>'source_stop'
++  AND NOT (late_capture AND h->>'source_mode'='stopped')
+  THEN PERFORM vn_jupiter_b2_allocation_research_v3._require_no_stop_intent(o.scope_wire); END IF;
+- IF c->'expected_head' IS DISTINCT FROM pg_catalog.jsonb_build_object('native_sequence',h->>'native_sequence','native_head_sha256',h->>'native_head_sha256','previous_seal_sha256',NULL) THEN RAISE EXCEPTION 'b2_stale_head'; END IF;
++ IF NOT late_capture AND c->'expected_head' IS DISTINCT FROM pg_catalog.jsonb_build_object('native_sequence',h->>'native_sequence','native_head_sha256',h->>'native_head_sha256','previous_seal_sha256',NULL) THEN RAISE EXCEPTION 'b2_stale_head'; END IF;
+  SELECT COALESCE(pg_catalog.jsonb_agg(record_wire::jsonb),'[]') INTO ids FROM vn_jupiter_b2_allocation_research_v3.identities WHERE scope_wire=o.scope_wire AND record_wire::jsonb->>'original_allocation_sha256'=o.command_sha256;
+  SELECT COALESCE(pg_catalog.jsonb_agg(vn_jupiter_b2_allocation_research_v3._pin(semantic_kind,original_id,original_wire)),'[]') INTO facts FROM vn_jupiter_b2_allocation_research_v3.domain_facts WHERE scope_wire=o.scope_wire AND native_sequence=o.native_sequence;
+  cost:=vn_jupiter_b2_allocation_research_v3._cost(c,r,ids,facts); accounting:=vn_jupiter_b2_allocation_research_v3._budget(o.scope_wire,o.action_kind,cost);
+@@ -1323,11 +1354,12 @@ BEGIN
+   END LOOP;
+   next_fence:=fence->>'fence_id';
+  ELSIF o.action_kind IN('packet_reservation','capture_retention') THEN
+-  IF c->>'native_policy_sha256' IS DISTINCT FROM '28b7df36ca970796b7729d29ca0fd0dde861edfdc09579afef160218a05ade51'
+-   OR h->>'source_mode' IS DISTINCT FROM 'open' OR h->>'fence_revision' IS DISTINCT FROM '2'
++  IF c->>'native_policy_sha256' IS DISTINCT FROM (CASE WHEN late_capture THEN 'c468fa4a7fa8e9122a53abb19ed10d3c1d80f8024dfeefbb8596fef8f1c1f8be' ELSE '28b7df36ca970796b7729d29ca0fd0dde861edfdc09579afef160218a05ade51' END)
++   OR (NOT late_capture AND (h->>'source_mode' IS DISTINCT FROM 'open' OR h->>'fence_revision' IS DISTINCT FROM '2'
++    OR c->'expected_fence_id' IS DISTINCT FROM h->'active_fence_id' OR c->'expected_fence_revision' IS DISTINCT FROM h->'fence_revision'))
++   OR (late_capture AND ((o.native_sequence=6 AND h->>'source_mode'='open' AND h->>'fence_revision'='2')
++    OR (o.native_sequence=7 AND h->>'source_mode'='stopped' AND h->>'fence_revision'='3' AND h->'active_fence_id'='null'::jsonb)) IS DISTINCT FROM true)
+    OR h->>'active_acquisition_epoch' IS DISTINCT FROM g#>>'{initial_acquisition_spec,acquisition_epoch}'
+-   OR c->'expected_fence_id' IS DISTINCT FROM h->'active_fence_id'
+-   OR c->'expected_fence_revision' IS DISTINCT FROM h->'fence_revision'
+    OR o.native_sequence IS DISTINCT FROM (h->>'native_sequence')::bigint+1
+    OR pg_catalog.octet_length(o.command_wire)>(CASE WHEN o.action_kind='capture_retention' THEN 1048576 ELSE 16384 END)
+    OR pg_catalog.octet_length(o.result_wire)>131072
+@@ -1335,7 +1367,8 @@ BEGIN
+    OR vn_jupiter_b2_allocation_research_v3._c14n(r) IS DISTINCT FROM o.result_wire OR vn_jupiter_b2_allocation_research_v3._sha(o.result_wire) IS DISTINCT FROM o.result_sha256
+   THEN RAISE EXCEPTION 'b3_packet_commit_refused'; END IF;
+   SELECT * INTO prior FROM vn_jupiter_b2_allocation_research_v3.original_operations z
+-   WHERE z.scope_wire=o.scope_wire AND z.native_sequence=o.native_sequence-1 AND z.finalized;
++   WHERE z.scope_wire=o.scope_wire AND z.native_sequence=o.native_sequence-1 AND z.finalized
++   AND z.action_kind=CASE o.native_sequence WHEN 5 THEN 'fence_renew' WHEN 6 THEN 'packet_reservation' WHEN 7 THEN 'source_stop' END;
+   IF NOT FOUND THEN RAISE EXCEPTION 'b3_packet_commit_refused'; END IF;
+   prior_reply:=vn_jupiter_b2_allocation_research_v3._reply(c->'scope',prior.action_id,prior.command_sha256,false,NULL)::jsonb;
+   IF NOT EXISTS(SELECT 1 FROM vn_jupiter_b2_allocation_research_v3.journal_entries j WHERE j.scope_wire=o.scope_wire AND j.native_sequence=prior.native_sequence AND j.journal_sha256=h->>'native_head_sha256')
+@@ -1343,7 +1376,19 @@ BEGIN
+   SELECT z.result_wire::jsonb#>'{result_body,original_fence_record}' INTO fence
+    FROM vn_jupiter_b2_allocation_research_v3.original_operations z WHERE z.scope_wire=o.scope_wire AND z.native_sequence=4 AND z.action_kind='fence_renew' AND z.finalized;
+   IF NOT FOUND THEN RAISE EXCEPTION 'b3_packet_commit_refused'; END IF;
+-  packet_plan:=vn_jupiter_b2_allocation_research_v3._packet_plan(c,a,o.native_sequence,o.writer_binding_id,fence,prior.command_wire);
++  IF late_capture THEN
++   IF o.native_sequence=6 AND h->'active_fence_id' IS DISTINCT FROM fence->'fence_id'
++   THEN RAISE EXCEPTION 'b3_packet_head_refused'; END IF;
++   SELECT z.command_wire,j.journal_sha256 INTO reserve_wire,reserve_head
++    FROM vn_jupiter_b2_allocation_research_v3.original_operations z
++    JOIN vn_jupiter_b2_allocation_research_v3.journal_entries j USING(scope_wire,native_sequence,action_id)
++    WHERE z.scope_wire=o.scope_wire AND z.native_sequence=5 AND z.action_kind='packet_reservation' AND z.finalized;
++   IF NOT FOUND OR c->'expected_head' IS DISTINCT FROM pg_catalog.jsonb_build_object(
++    'native_sequence','5','native_head_sha256',reserve_head,'previous_seal_sha256',NULL)
++   THEN RAISE EXCEPTION 'b3_capture_ancestor_refused'; END IF;
++  END IF;
++  packet_plan:=vn_jupiter_b2_allocation_research_v3._packet_plan(c,a,o.native_sequence,o.writer_binding_id,fence,
++   CASE WHEN late_capture THEN reserve_wire ELSE prior.command_wire END);
+   IF (SELECT pg_catalog.jsonb_agg(value ORDER BY value->>'original_id' COLLATE "C") FROM pg_catalog.jsonb_array_elements(ids))
+    IS DISTINCT FROM (SELECT pg_catalog.jsonb_agg(value ORDER BY value->>'original_id' COLLATE "C") FROM pg_catalog.jsonb_array_elements(packet_plan->'ids'))
+    OR facts IS DISTINCT FROM '[]'::jsonb
+@@ -1501,12 +1546,12 @@ BEGIN
+  THEN PERFORM vn_jupiter_b2_allocation_research_v3._check_credential_window(a->'credential_windows',(obs->>'observed_at_us')::bigint); END IF;
+  IF (obs->>'observed_at_us')::bigint<(o.final_function_observation->>'observed_at_us')::bigint THEN RAISE EXCEPTION 'b2_clock_regression'; END IF;
+  IF o.action_kind IN('fence_acquire','source_resume','fence_renew','packet_reservation','capture_retention')
+-  AND (issued>(o.final_function_observation->>'observed_at_us')::bigint OR (obs->>'observed_at_us')::bigint>=expires
++  AND (issued>(o.final_function_observation->>'observed_at_us')::bigint OR (NOT late_capture AND (obs->>'observed_at_us')::bigint>=expires)
+    OR (o.action_kind='fence_renew' AND (obs->>'observed_at_us')::bigint>=previous_expiry))
+  THEN RAISE EXCEPTION 'b2_fence_clock_refused'; END IF;
+  rec:=pg_catalog.jsonb_build_object('format','ga-jupiter-b2-allocation-receipt-research-v3-v1','native_policy_sha256',c->>'native_policy_sha256','scope',c->'scope','action_id',o.action_id,'action_kind',o.action_kind,'original_command_sha256',o.command_sha256,'result_sha256',o.result_sha256,'native_sequence',o.native_sequence::text,'previous_native_head_sha256',h->>'native_head_sha256','admission_observation',NULL,'final_function_observation',o.final_function_observation,'commit_processing_observation',obs,'native_package_sha256',p->>'native_package_sha256','catalog_manifest_sha256',a->>'effective_catalog_sha256','limits',vn_jupiter_b2_allocation_research_v3._limits()); tw:=vn_jupiter_b2_allocation_research_v3._c14n(rec);
+  jw:=vn_jupiter_b2_allocation_research_v3._c14n(pg_catalog.jsonb_build_object('native_sequence',o.native_sequence::text,'action_id',o.action_id,'action_kind',o.action_kind,'original_command_sha256',o.command_sha256,'original_result_sha256',o.result_sha256,'original_receipt_sha256',vn_jupiter_b2_allocation_research_v3._sha(tw),'previous_native_head_sha256',h->>'native_head_sha256'));
+- nexthead:=pg_catalog.jsonb_build_object('scope',c->'scope','native_sequence',o.native_sequence::text,'native_head_sha256',vn_jupiter_b2_allocation_research_v3._sha(jw),'active_acquisition_epoch',g#>>'{initial_acquisition_spec,acquisition_epoch}','active_fence_id',next_fence,'fence_revision',CASE o.action_kind WHEN 'installation' THEN '0' WHEN 'source_resume' THEN h->>'fence_revision' WHEN 'packet_reservation' THEN h->>'fence_revision' WHEN 'capture_retention' THEN h->>'fence_revision' ELSE ((h->>'fence_revision')::bigint+1)::text END,'source_mode',CASE o.action_kind WHEN 'source_stop' THEN 'stopped' WHEN 'source_resume' THEN 'open' WHEN 'fence_renew' THEN 'open' WHEN 'packet_reservation' THEN 'open' WHEN 'capture_retention' THEN 'open' ELSE 'paused' END,'last_admission_sha256',NULL,'last_ingest_sequence','0','last_availability_sha256',NULL,'previous_seal_sha256',NULL);
++ nexthead:=pg_catalog.jsonb_build_object('scope',c->'scope','native_sequence',o.native_sequence::text,'native_head_sha256',vn_jupiter_b2_allocation_research_v3._sha(jw),'active_acquisition_epoch',g#>>'{initial_acquisition_spec,acquisition_epoch}','active_fence_id',next_fence,'fence_revision',CASE o.action_kind WHEN 'installation' THEN '0' WHEN 'source_resume' THEN h->>'fence_revision' WHEN 'packet_reservation' THEN h->>'fence_revision' WHEN 'capture_retention' THEN h->>'fence_revision' ELSE ((h->>'fence_revision')::bigint+1)::text END,'source_mode',CASE o.action_kind WHEN 'source_stop' THEN 'stopped' WHEN 'source_resume' THEN 'open' WHEN 'fence_renew' THEN 'open' WHEN 'packet_reservation' THEN 'open' WHEN 'capture_retention' THEN h->>'source_mode' ELSE 'paused' END,'last_admission_sha256',NULL,'last_ingest_sequence','0','last_availability_sha256',NULL,'previous_seal_sha256',NULL);
+  IF pg_catalog.octet_length(tw)>4096 OR pg_catalog.octet_length(jw)>1024 OR pg_catalog.octet_length(vn_jupiter_b2_allocation_research_v3._c14n(nexthead))>2048 THEN RAISE EXCEPTION 'b2_wire_bound'; END IF;
+  UPDATE vn_jupiter_b2_allocation_research_v3.original_operations SET receipt_wire=tw,receipt_sha256=vn_jupiter_b2_allocation_research_v3._sha(tw),finalized=true WHERE action_id=o.action_id;
+  INSERT INTO vn_jupiter_b2_allocation_research_v3.journal_entries VALUES(o.scope_wire,o.native_sequence,o.action_id,jw,vn_jupiter_b2_allocation_research_v3._sha(jw));
+diff --git a/services/vonneumann/db-contract/research/jupiter_capture_retention_lab_v2.sql b/services/vonneumann/db-contract/research/jupiter_capture_retention_lab_v2.sql
+new file mode 100644
+index 0000000..bcb580c
+--- /dev/null
++++ b/services/vonneumann/db-contract/research/jupiter_capture_retention_lab_v2.sql
+@@ -0,0 +1,396 @@
++-- Held add-on for one owned, network-disabled native acquisition fixture.
++BEGIN;
++SET LOCAL ROLE vn_jupiter_b2_sealed_owner;
++SET LOCAL search_path=pg_catalog,pg_temp;
++
++-- FUNCTION _packet_capture
++CREATE FUNCTION vn_jupiter_b2_allocation_research_v3._packet_capture(wire pg_catalog.text, reservation_wire pg_catalog.text, capture_id pg_catalog.text)
++RETURNS pg_catalog.jsonb
++LANGUAGE plpgsql IMMUTABLE SECURITY INVOKER
++SET search_path='pg_catalog','pg_temp' SET TimeZone='UTC' SET client_encoding='UTF8' SET standard_conforming_strings='on'
++AS $packet$
++DECLARE c jsonb; r jsonb:=reservation_wire::jsonb; capsule jsonb; request jsonb; body jsonb;
++ item text; record_key text; family text; max_bytes int; raw bytea; index_no int:=0; clock_key text;
++ diagnostic jsonb; diagnostic_index int; capsule_count int; clock_value text; body_state text;
++ price_raw bytea; price_text text; price_record json; slot_token text; expected_request text;
++ mint constant text:='So11111111111111111111111111111111111111112';
++ record_keys constant text[]:=ARRAY['price_record_id','genesis_record_id','block_time_record_id'];
++ failure_codes constant text[]:=ARRAY['acquisition_deadline','invalid_response_metadata','cleanup_incomplete',
++  'invalid_response_encoding','invalid_response_length','response_overflow','credential_echo_withheld',
++  'invalid_json_for_credential_scan','request_unavailable','invalid_or_unavailable_record','price_http_failure',
++  'wrong_network','invalid_or_unavailable_packet','unsupported_logging_runtime','invalid_tls_runtime',
++  'unsupported_transport_runtime'];
++BEGIN
++ IF wire IS NULL OR pg_catalog.octet_length(wire)>524288 THEN RAISE EXCEPTION 'b3_capture_shape'; END IF;
++ c:=wire::jsonb;
++ IF NOT vn_jupiter_b2_allocation_research_v3._keys(c,ARRAY['authority','capsule_wires','capture_id','collection_completed',
++    'diagnostics','eligibility','failure_code','format','observation_id','policy_sha256','reservation_sha256','scope'])
++  OR vn_jupiter_b2_allocation_research_v3._c14n(c) IS DISTINCT FROM wire
++  OR c->'scope' IS DISTINCT FROM r->'scope' OR c->'authority' IS DISTINCT FROM r->'authority'
++  OR c->>'format' IS DISTINCT FROM 'ga-jupiter-source-capture-retention-research-v3'
++  OR c->'policy_sha256' IS DISTINCT FROM r->'policy_sha256'
++  OR c->>'reservation_sha256' IS DISTINCT FROM vn_jupiter_b2_allocation_research_v3._sha(reservation_wire)
++  OR c->>'capture_id' IS DISTINCT FROM capture_id OR c->'capture_id' IS DISTINCT FROM r->'capture_id'
++  OR c->'observation_id' IS DISTINCT FROM r->'observation_id'
++  OR pg_catalog.jsonb_typeof(c->'collection_completed') IS DISTINCT FROM 'boolean'
++  OR c->'eligibility' IS DISTINCT FROM 'false'::jsonb
++  OR pg_catalog.jsonb_typeof(c->'capsule_wires') IS DISTINCT FROM 'array'
++  OR pg_catalog.jsonb_typeof(c->'diagnostics') IS DISTINCT FROM 'array'
++ THEN RAISE EXCEPTION 'b3_capture_shape'; END IF;
++ capsule_count:=pg_catalog.jsonb_array_length(c->'capsule_wires');
++ IF capsule_count>3 OR pg_catalog.jsonb_array_length(c->'diagnostics')>1
++  OR EXISTS(SELECT 1 FROM pg_catalog.jsonb_array_elements(c->'capsule_wires') e(value)
++   WHERE pg_catalog.jsonb_typeof(e.value) IS DISTINCT FROM 'string')
++  OR (CASE WHEN c->'collection_completed'='true'::jsonb THEN
++      capsule_count<>3 OR c->'failure_code' IS DISTINCT FROM 'null'::jsonb OR c->'diagnostics'<>'[]'::jsonb
++     ELSE ((c->>'failure_code')=ANY(failure_codes)) IS DISTINCT FROM true END)
++ THEN RAISE EXCEPTION 'b3_capture_shape'; END IF;
++ FOR item IN SELECT value FROM pg_catalog.jsonb_array_elements_text(c->'capsule_wires') LOOP
++  index_no:=index_no+1; capsule:=item::jsonb;
++  record_key:=record_keys[index_no];
++  family:=CASE WHEN index_no=1 THEN 'jupiter-price-v3' ELSE 'solana-rpc' END;
++  max_bytes:=CASE WHEN index_no=1 THEN 131072 ELSE 65536 END;
++  IF NOT vn_jupiter_b2_allocation_research_v3._keys(capsule,ARRAY['acquisition_epoch','canonical_public_request_wire',
++     'endpoint_binding_id','format','http_status','issuer_binding_id','market_epoch','method','owner_id',
++     'parser_policy_sha256','provider_family','raw_response_ref','received_monotonic_us','received_wall_us','record_id',
++     'request_sha256','request_started_monotonic_us','request_started_wall_us','response_base64','response_bytes',
++     'response_sha256','run_id','safe_response_metadata'])
++   OR vn_jupiter_b2_allocation_research_v3._c14n(capsule) IS DISTINCT FROM item
++   OR capsule->>'format' IS DISTINCT FROM 'ga-provider-acquisition-capsule-research-v3'
++   OR capsule->'record_id' IS DISTINCT FROM r->record_key OR capsule->'raw_response_ref' IS DISTINCT FROM r->record_key
++   OR capsule->>'provider_family' IS DISTINCT FROM family
++   OR pg_catalog.jsonb_typeof(capsule->'http_status') IS DISTINCT FROM 'string'
++   OR (capsule->>'http_status' ~ '^[1-5][0-9]{2}$') IS DISTINCT FROM true
++   OR (c->'collection_completed'='true'::jsonb AND capsule->>'http_status'<>'200')
++   OR capsule->'endpoint_binding_id' IS DISTINCT FROM
++      (r#>(CASE WHEN index_no=1 THEN '{issuer,endpoint_bindings,0,endpoint_binding_id}'::text[]
++       ELSE '{issuer,endpoint_bindings,1,endpoint_binding_id}'::text[] END))
++   OR capsule->'owner_id' IS DISTINCT FROM r#>'{scope,owner_id}'
++   OR capsule->'run_id' IS DISTINCT FROM r#>'{scope,run_id}'
++   OR capsule->'market_epoch' IS DISTINCT FROM r#>'{scope,market_epoch}'
++   OR capsule->'acquisition_epoch' IS DISTINCT FROM r#>'{issuer,acquisition_epoch}'
++   OR capsule->'issuer_binding_id' IS DISTINCT FROM r#>'{issuer,issuer_binding_id}'
++   OR capsule->'parser_policy_sha256' IS DISTINCT FROM r#>'{issuer,parser_policy_sha256}'
++   OR pg_catalog.jsonb_typeof(capsule->'canonical_public_request_wire') IS DISTINCT FROM 'string'
++   OR pg_catalog.octet_length(capsule->>'canonical_public_request_wire')>4096
++   OR vn_jupiter_b2_allocation_research_v3._sha(capsule->>'canonical_public_request_wire') IS DISTINCT FROM capsule->>'request_sha256'
++   OR pg_catalog.jsonb_typeof(capsule->'safe_response_metadata') IS DISTINCT FROM 'object'
++   OR (capsule->'safe_response_metadata')-ARRAY['content_type','x_ratelimit_current','x_ratelimit_remaining','x_ratelimit_reset'] IS DISTINCT FROM '{}'::jsonb
++   OR EXISTS(SELECT 1 FROM pg_catalog.jsonb_each(capsule->'safe_response_metadata') e
++      WHERE pg_catalog.jsonb_typeof(e.value) IS DISTINCT FROM 'string' OR CASE e.key
++       WHEN 'content_type' THEN e.value IS DISTINCT FROM '"application/json"'::jsonb
++       WHEN 'x_ratelimit_current' THEN CASE WHEN (e.value#>>'{}') ~ '^(0|[1-9][0-9]{0,18})$'
++        THEN (e.value#>>'{}')::numeric>9223372036854775807 ELSE true END
++       WHEN 'x_ratelimit_remaining' THEN CASE WHEN (e.value#>>'{}') ~ '^(0|-?[1-9][0-9]{0,18})$'
++        THEN (e.value#>>'{}')::numeric NOT BETWEEN -9223372036854775808 AND 9223372036854775807 ELSE true END
++       WHEN 'x_ratelimit_reset' THEN CASE WHEN (e.value#>>'{}') ~ '^(0|[1-9][0-9]{0,10})$'
++        THEN (e.value#>>'{}')::numeric>10000000000 ELSE true END
++       ELSE true END)
++   OR pg_catalog.jsonb_typeof(capsule->'response_base64') IS DISTINCT FROM 'string'
++   OR pg_catalog.length(capsule->>'response_base64')>4*((max_bytes+2)/3)
++  THEN RAISE EXCEPTION 'b3_capsule_conflict'; END IF;
++  request:=(capsule->>'canonical_public_request_wire')::jsonb;
++  IF NOT vn_jupiter_b2_allocation_research_v3._keys(request,ARRAY['format','method','endpoint','chain','parameters','body_wire'])
++   OR vn_jupiter_b2_allocation_research_v3._c14n(request) IS DISTINCT FROM capsule->>'canonical_public_request_wire'
++   OR request->>'format' IS DISTINCT FROM 'ga-provider-public-request-research-v3'
++   OR request->>'chain' IS DISTINCT FROM 'solana' OR request->'method' IS DISTINCT FROM capsule->'method'
++  THEN RAISE EXCEPTION 'b3_capsule_conflict'; END IF;
++  IF index_no=1 THEN
++   IF request->>'method' IS DISTINCT FROM 'GET' OR request->>'endpoint' IS DISTINCT FROM 'https://api.jup.ag/price/v3'
++    OR request->'body_wire' IS DISTINCT FROM 'null'::jsonb
++    OR request->'parameters' IS DISTINCT FROM '{"ids":"So11111111111111111111111111111111111111112"}'::jsonb
++   THEN RAISE EXCEPTION 'b3_capsule_conflict'; END IF;
++  ELSE
++   IF request->>'method' IS DISTINCT FROM 'POST' OR request->>'endpoint' IS DISTINCT FROM 'operator-bound-solana-rpc'
++    OR request->'parameters' IS DISTINCT FROM '{}'::jsonb OR pg_catalog.jsonb_typeof(request->'body_wire') IS DISTINCT FROM 'string'
++   THEN RAISE EXCEPTION 'b3_capsule_conflict'; END IF;
++   body:=(request->>'body_wire')::jsonb;
++   IF NOT vn_jupiter_b2_allocation_research_v3._keys(body,ARRAY['id','jsonrpc','method','params'])
++    OR vn_jupiter_b2_allocation_research_v3._c14n(body) IS DISTINCT FROM request->>'body_wire'
++    OR body->'jsonrpc' IS DISTINCT FROM '"2.0"'::jsonb
++    OR pg_catalog.jsonb_typeof(body->'id') IS DISTINCT FROM 'number'
++    OR body->>'id' IS DISTINCT FROM (r->>(CASE WHEN index_no=2 THEN 'genesis_rpc_id' ELSE 'block_time_rpc_id' END))
++    OR body->>'method' IS DISTINCT FROM (CASE WHEN index_no=2 THEN 'getGenesisHash' ELSE 'getBlockTime' END)
++    OR (CASE WHEN index_no=2 THEN body->'params' IS DISTINCT FROM '[]'::jsonb
++       ELSE pg_catalog.jsonb_typeof(body->'params') IS DISTINCT FROM 'array'
++         OR pg_catalog.jsonb_array_length(body->'params')<>1
++         OR pg_catalog.jsonb_typeof(body#>'{params,0}') IS DISTINCT FROM 'number'
++         OR (body#>>'{params,0}' ~ '^(0|[1-9][0-9]{0,19})$') IS DISTINCT FROM true
++         OR (body#>>'{params,0}')::numeric>18446744073709551615 END)
++   THEN RAISE EXCEPTION 'b3_capsule_conflict'; END IF;
++  END IF;
++  FOREACH clock_key IN ARRAY ARRAY['received_wall_us','received_monotonic_us','request_started_wall_us','request_started_monotonic_us'] LOOP
++   clock_value:=capsule->>clock_key;
++   IF pg_catalog.jsonb_typeof(capsule->clock_key) IS DISTINCT FROM 'string'
++    OR (clock_value ~ '^(0|[1-9][0-9]{0,18})$') IS DISTINCT FROM true
++    OR (pg_catalog.length(clock_value)=19 AND clock_value COLLATE "C">'9223372036854775807')
++   THEN RAISE EXCEPTION 'b3_capsule_conflict'; END IF;
++  END LOOP;
++  IF (capsule->>'request_started_wall_us')::bigint>(capsule->>'received_wall_us')::bigint
++   OR (capsule->>'request_started_monotonic_us')::bigint>(capsule->>'received_monotonic_us')::bigint
++  THEN RAISE EXCEPTION 'b3_capsule_conflict'; END IF;
++  raw:=pg_catalog.decode(capsule->>'response_base64','base64');
++  IF pg_catalog.octet_length(raw)>max_bytes
++   OR (pg_catalog.octet_length(raw)=0 AND capsule->>'http_status'='200')
++   OR capsule->'response_bytes' IS DISTINCT FROM pg_catalog.to_jsonb(pg_catalog.octet_length(raw)::text)
++   OR pg_catalog.encode(pg_catalog.sha256(raw),'hex') IS DISTINCT FROM capsule->>'response_sha256'
++   OR pg_catalog.replace(pg_catalog.encode(raw,'base64'),pg_catalog.chr(10),'') IS DISTINCT FROM capsule->>'response_base64'
++  THEN RAISE EXCEPTION 'b3_raw_conflict'; END IF;
++  IF index_no=1 THEN price_raw:=raw; END IF;
++ END LOOP;
++
++ IF c->'diagnostics'<>'[]'::jsonb THEN
++  diagnostic:=c#>'{diagnostics,0}';
++  SELECT i INTO diagnostic_index FROM pg_catalog.generate_subscripts(record_keys,1) i
++   WHERE diagnostic->'record_id'=r->record_keys[i];
++  body_state:=diagnostic->>'body_state';
++  IF NOT vn_jupiter_b2_allocation_research_v3._keys(diagnostic,ARRAY['record_id','provider_family',
++      'endpoint_binding_id','request_sha256','request_started_wall_us','request_started_monotonic_us',
++      'received_wall_us','received_monotonic_us','http_status','body_state','incomplete','failure_code'])
++   OR diagnostic_index IS NULL OR diagnostic_index>capsule_count+1
++   OR diagnostic->>'provider_family' IS DISTINCT FROM (CASE WHEN diagnostic_index=1 THEN 'jupiter-price-v3' ELSE 'solana-rpc' END)
++   OR diagnostic->'endpoint_binding_id' IS DISTINCT FROM
++      (r#>(CASE WHEN diagnostic_index=1 THEN '{issuer,endpoint_bindings,0,endpoint_binding_id}'::text[]
++       ELSE '{issuer,endpoint_bindings,1,endpoint_binding_id}'::text[] END))
++   OR (body_state IN('not_received','partial_discarded','withheld','captured_original')) IS DISTINCT FROM true
++   OR (body_state='captured_original') IS DISTINCT FROM (diagnostic_index<=capsule_count)
++   OR diagnostic->'incomplete' IS DISTINCT FROM 'true'::jsonb
++   OR ((diagnostic->>'failure_code')=ANY(failure_codes)) IS DISTINCT FROM true
++   OR (diagnostic->'http_status'<>'null'::jsonb AND (pg_catalog.jsonb_typeof(diagnostic->'http_status')<>'string'
++       OR (diagnostic->>'http_status' ~ '^[1-5][0-9]{2}$') IS DISTINCT FROM true))
++   OR (diagnostic->'received_wall_us'='null'::jsonb) IS DISTINCT FROM (diagnostic->'received_monotonic_us'='null'::jsonb)
++   OR (body_state='not_received' AND diagnostic->'received_wall_us'<>'null'::jsonb)
++   OR (body_state='withheld' AND diagnostic->'received_wall_us'='null'::jsonb)
++  THEN RAISE EXCEPTION 'b3_diagnostic_conflict'; END IF;
++
++  FOREACH clock_key IN ARRAY ARRAY['received_wall_us','received_monotonic_us','request_started_wall_us','request_started_monotonic_us'] LOOP
++   clock_value:=diagnostic->>clock_key;
++   IF clock_value IS NULL AND clock_key IN('received_wall_us','received_monotonic_us') THEN CONTINUE; END IF;
++   IF pg_catalog.jsonb_typeof(diagnostic->clock_key) IS DISTINCT FROM 'string'
++    OR (clock_value ~ '^(0|[1-9][0-9]{0,18})$') IS DISTINCT FROM true
++    OR (pg_catalog.length(clock_value)=19 AND clock_value COLLATE "C">'9223372036854775807')
++   THEN RAISE EXCEPTION 'b3_diagnostic_conflict'; END IF;
++  END LOOP;
++
++  IF body_state='captured_original' THEN
++   capsule:=(c->'capsule_wires'->>(diagnostic_index-1))::jsonb;
++   FOREACH clock_key IN ARRAY ARRAY['request_sha256','received_wall_us','received_monotonic_us',
++       'request_started_wall_us','request_started_monotonic_us','http_status'] LOOP
++    IF diagnostic->clock_key IS DISTINCT FROM capsule->clock_key THEN RAISE EXCEPTION 'b3_diagnostic_conflict'; END IF;
++   END LOOP;
++  ELSE
++   IF diagnostic_index=1 THEN
++    request:=pg_catalog.jsonb_build_object('format','ga-provider-public-request-research-v3','method','GET',
++     'endpoint','https://api.jup.ag/price/v3','chain','solana','parameters',pg_catalog.jsonb_build_object('ids',mint),
++     'body_wire',NULL);
++   ELSE
++    body:=pg_catalog.jsonb_build_object('id',(r->>(CASE WHEN diagnostic_index=2 THEN 'genesis_rpc_id' ELSE 'block_time_rpc_id' END))::int,
++     'jsonrpc','2.0','method',(CASE WHEN diagnostic_index=2 THEN 'getGenesisHash' ELSE 'getBlockTime' END),
++     'params','[]'::jsonb);
++    IF diagnostic_index=3 THEN
++     -- The request used the block ID from the already retained Jupiter body.
++     -- Use json for the field so numeric exponent and decimal spellings stay visible.
++     BEGIN
++      price_text:=pg_catalog.convert_from(price_raw,'UTF8');
++      IF (price_text IS JSON OBJECT WITH UNIQUE KEYS) IS DISTINCT FROM true THEN RAISE EXCEPTION 'b3_diagnostic_conflict'; END IF;
++      price_record:=price_text::json->mint;
++      slot_token:=price_record->>'blockId';
++     EXCEPTION WHEN character_not_in_repertoire OR untranslatable_character THEN
++      RAISE EXCEPTION 'b3_diagnostic_conflict';
++     END;
++     IF pg_catalog.json_typeof(price_record->'blockId') IS DISTINCT FROM 'number'
++      OR (slot_token ~ '^(0|[1-9][0-9]{0,19})$') IS DISTINCT FROM true
++      OR (pg_catalog.length(slot_token)=20 AND slot_token COLLATE "C">'18446744073709551615')
++     THEN RAISE EXCEPTION 'b3_diagnostic_conflict'; END IF;
++     body:=pg_catalog.jsonb_set(body,'{params}',pg_catalog.jsonb_build_array(slot_token::numeric));
++    END IF;
++    request:=pg_catalog.jsonb_build_object('format','ga-provider-public-request-research-v3','method','POST',
++     'endpoint','operator-bound-solana-rpc','chain','solana','parameters','{}'::jsonb,
++     'body_wire',vn_jupiter_b2_allocation_research_v3._c14n(body));
++   END IF;
++   expected_request:=vn_jupiter_b2_allocation_research_v3._c14n(request);
++   IF pg_catalog.jsonb_typeof(diagnostic->'request_sha256') IS DISTINCT FROM 'string'
++    OR diagnostic->>'request_sha256' IS DISTINCT FROM vn_jupiter_b2_allocation_research_v3._sha(expected_request)
++   THEN RAISE EXCEPTION 'b3_diagnostic_conflict'; END IF;
++  END IF;
++ END IF;
++ RETURN pg_catalog.jsonb_build_object('original_a1_reservation_sha256',c->>'reservation_sha256',
++   'original_a1_capture_sha256',vn_jupiter_b2_allocation_research_v3._sha(wire),
++   'collection_completed',c->'collection_completed','eligibility',false,'terminal',false);
++END;
++$packet$;
++
++-- FUNCTION _packet_plan
++CREATE FUNCTION vn_jupiter_b2_allocation_research_v3._packet_plan(command pg_catalog.jsonb, auth pg_catalog.jsonb,
++ position_no pg_catalog.int8, writer_binding pg_catalog.text, fence pg_catalog.jsonb, prior_wire pg_catalog.text)
++RETURNS pg_catalog.jsonb
++LANGUAGE plpgsql STABLE SECURITY INVOKER
++SET search_path='pg_catalog','pg_temp' SET TimeZone='UTC' SET client_encoding='UTF8' SET standard_conforming_strings='on'
++AS $packet$
++DECLARE g jsonb:=(auth->>'genesis_wire')::jsonb; p jsonb:=auth#>'{package,policies}'; prior jsonb:=prior_wire::jsonb;
++ b jsonb:=command->'body'; scope jsonb:=command->'scope'; r jsonb; prepared jsonb; issuer jsonb; policy jsonb;
++ ids jsonb:='{}'; identity_rows jsonb:='[]'; value_text text; role_key text; deps jsonb; outcome jsonb;
++ ch text:=vn_jupiter_b2_allocation_research_v3._sha(vn_jupiter_b2_allocation_research_v3._c14n(command));
++ reservation_roles text[]:=ARRAY['reservation_id','capture_id','admission_id','observation_id','price_record_id','genesis_record_id','block_time_record_id'];
++ native_roles text[]:=ARRAY['read_observation_id','availability_id','closure_id','reconcile_id'];
++BEGIN
++ IF pg_catalog.jsonb_typeof(auth->'handoff') IS DISTINCT FROM 'object'
++  OR auth#>>'{handoff,successor_binding,principal_binding_id}' IS DISTINCT FROM writer_binding
++  OR fence->>'holder_principal_binding_id' IS DISTINCT FROM writer_binding OR fence->'scope' IS DISTINCT FROM scope
++  OR fence->'acquisition_epoch' IS DISTINCT FROM g#>'{initial_acquisition_spec,acquisition_epoch}'
++  OR fence->'revision' IS DISTINCT FROM '"2"'::jsonb OR fence->'native_sequence' IS DISTINCT FROM '"4"'::jsonb
++  OR (CASE WHEN command->>'action_kind'='capture_retention' THEN
++   command->'expected_fence_id' IS DISTINCT FROM 'null'::jsonb OR command->'expected_fence_revision' IS DISTINCT FROM 'null'::jsonb
++   ELSE command->'expected_fence_id' IS DISTINCT FROM fence->'fence_id' OR command->'expected_fence_revision' IS DISTINCT FROM fence->'revision' END)
++  OR p->>'a1_schema_sha256' IS DISTINCT FROM '2c48b61440f7d61f9567fa295da1c9c98a4483c2c834ec7074412d261f085640'
++  OR p->>'acquisition_sha256' IS DISTINCT FROM '912fd28c718311f9b6f72cf0327a7c6b5f4ec7cc4033744d3306064ed869ac89'
++  OR p->>'source_sha256' IS DISTINCT FROM '3be1de572d954859002546e5d525ddb0fbda71a5ca844368381a98395571aad1'
++  OR p->>'transport_sha256' IS DISTINCT FROM 'a62184b94f88dbc248a6f3569e171a60e8a0a530addf8ed8aa943b10433f055e'
++  OR prior->'scope' IS DISTINCT FROM scope
++ THEN RAISE EXCEPTION 'b3_packet_authority_refused' USING ERRCODE='42501'; END IF;
++ IF command->>'action_kind'='packet_reservation' THEN
++  IF position_no<>5 OR prior->>'action_kind' IS DISTINCT FROM 'fence_renew'
++   OR NOT vn_jupiter_b2_allocation_research_v3._keys(b,ARRAY['reservation_wire','prepared_packet_wire','read_observation_id','availability_id','closure_id','reconcile_id'])
++   OR pg_catalog.jsonb_typeof(b->'reservation_wire') IS DISTINCT FROM 'string'
++   OR pg_catalog.jsonb_typeof(b->'prepared_packet_wire') IS DISTINCT FROM 'string'
++   OR pg_catalog.octet_length(b->>'reservation_wire')>8192 OR pg_catalog.octet_length(b->>'prepared_packet_wire')>8192
++  THEN RAISE EXCEPTION 'b3_reservation_refused'; END IF;
++  issuer:=scope||pg_catalog.jsonb_build_object('acquisition_epoch',g#>'{initial_acquisition_spec,acquisition_epoch}',
++    'issuer_binding_id',g#>'{initial_acquisition_spec,issuer_binding_id}',
++    'endpoint_bindings',g#>'{initial_acquisition_spec,endpoint_bindings}','parser_policy_sha256',p->'acquisition_sha256');
++  policy:=p-ARRAY['a1_schema_sha256','raw_parser_sha256','reader_package_sha256'];
++  r:=(b->>'reservation_wire')::jsonb;
++  IF NOT vn_jupiter_b2_allocation_research_v3._keys(r,ARRAY['admission_id','authority','block_time_record_id','block_time_rpc_id',
++     'capture_id','format','genesis_record_id','genesis_rpc_id','issuer','issuer_principal_binding_id','observation_id','policies',
++     'policy_sha256','price_record_id','reservation_id','scope'])
++   OR vn_jupiter_b2_allocation_research_v3._c14n(r) IS DISTINCT FROM b->>'reservation_wire'
++   OR r->'scope' IS DISTINCT FROM scope OR r->'issuer' IS DISTINCT FROM issuer OR r->'policies' IS DISTINCT FROM policy
++   OR r->'policy_sha256' IS DISTINCT FROM p->'a1_schema_sha256'
++   OR r->>'format' IS DISTINCT FROM 'ga-jupiter-source-reservation-research-v3'
++   OR r->'issuer_principal_binding_id' IS DISTINCT FROM pg_catalog.to_jsonb(writer_binding)
++   OR r->'reservation_id' IS DISTINCT FROM command->'action_id'
++   OR r->'genesis_rpc_id' IS DISTINCT FROM '"1"'::jsonb OR r->'block_time_rpc_id' IS DISTINCT FROM '"2"'::jsonb
++   OR r->'authority' IS DISTINCT FROM '{"authenticated_principal":false,"calibrated_clock":false,"committed_readback":false,"hosted_authority":false,"lease_authority":false,"live_trading_authority":false,"native_admission":false,"provider_attested":false,"running_authority":false}'::jsonb
++  THEN RAISE EXCEPTION 'b3_reservation_refused'; END IF;
++  prepared:=pg_catalog.jsonb_build_object('format','ga-provider-prepared-original-readonly-packet-research-v3',
++    'transport_policy_sha256',p->'transport_sha256','binding',issuer-'endpoint_bindings',
++    'endpoints',(SELECT pg_catalog.jsonb_agg(pg_catalog.jsonb_build_array(e.value->'provider_family',e.value->'endpoint_binding_id') ORDER BY e.ord)
++      FROM pg_catalog.jsonb_array_elements(issuer->'endpoint_bindings') WITH ORDINALITY e(value,ord)),
++    'price_record_id',r->'price_record_id','genesis_record_id',r->'genesis_record_id','block_time_record_id',r->'block_time_record_id',
++    'observation_id',r->'observation_id','genesis_rpc_id',r->'genesis_rpc_id','block_time_rpc_id',r->'block_time_rpc_id');
++  IF vn_jupiter_b2_allocation_research_v3._c14n(prepared) IS DISTINCT FROM b->>'prepared_packet_wire'
++  THEN RAISE EXCEPTION 'b3_prepared_conflict'; END IF;
++  FOREACH role_key IN ARRAY (reservation_roles||native_roles) LOOP
++   value_text:=CASE WHEN role_key=ANY(reservation_roles) THEN r->>role_key ELSE b->>role_key END;
++   IF (CASE WHEN role_key=ANY(reservation_roles) THEN pg_catalog.jsonb_typeof(r->role_key)
++       ELSE pg_catalog.jsonb_typeof(b->role_key) END) IS DISTINCT FROM 'string'
++    OR (value_text ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$') IS DISTINCT FROM true
++    OR value_text IN(writer_binding,auth#>>'{handoff,successor_binding,issuance_id}',auth#>>'{handoff,handoff_id}')
++    OR EXISTS(SELECT 1 FROM pg_catalog.jsonb_each_text(ids) e WHERE e.value=value_text)
++   THEN RAISE EXCEPTION 'b3_identity_conflict'; END IF;
++   ids:=ids||pg_catalog.jsonb_build_object(role_key,value_text);
++   identity_rows:=identity_rows||pg_catalog.jsonb_build_array(pg_catalog.jsonb_build_object('original_id',value_text,
++    'identity_role',role_key,'association',scope||pg_catalog.jsonb_build_object('packet_reservation_id',command->>'action_id'),
++    'original_allocation_sha256',ch,'first_native_sequence',position_no::text));
++  END LOOP;
++  outcome:=pg_catalog.jsonb_build_object('packet_ids',ids,
++    'original_a1_reservation_sha256',vn_jupiter_b2_allocation_research_v3._sha(b->>'reservation_wire'),
++    'prepared_packet_sha256',vn_jupiter_b2_allocation_research_v3._sha(b->>'prepared_packet_wire'),
++    'capture_status','unresolved');
++ ELSE
++  IF command->>'action_kind' IS DISTINCT FROM 'capture_retention' OR position_no NOT IN(6,7)
++   OR command->>'native_policy_sha256' IS DISTINCT FROM 'c468fa4a7fa8e9122a53abb19ed10d3c1d80f8024dfeefbb8596fef8f1c1f8be'
++   OR prior->>'action_kind' IS DISTINCT FROM 'packet_reservation'
++   OR NOT vn_jupiter_b2_allocation_research_v3._keys(b,ARRAY['reservation_action_id','capture_wire'])
++   OR b->'reservation_action_id' IS DISTINCT FROM prior->'action_id'
++   OR pg_catalog.jsonb_typeof(b->'capture_wire') IS DISTINCT FROM 'string'
++   OR prior->'expected_fence_id' IS DISTINCT FROM fence->'fence_id'
++   OR prior->'expected_fence_revision' IS DISTINCT FROM fence->'revision'
++  THEN RAISE EXCEPTION 'b3_capture_refused'; END IF;
++  outcome:=vn_jupiter_b2_allocation_research_v3._packet_capture(b->>'capture_wire',prior#>>'{body,reservation_wire}',command->>'action_id')
++    ||pg_catalog.jsonb_build_object('reservation_action_id',prior->>'action_id');
++ END IF;
++ deps:=vn_jupiter_b2_allocation_research_v3._deps(pg_catalog.jsonb_build_array(
++  vn_jupiter_b2_allocation_research_v3._pin('native_command',prior->>'action_id',prior_wire),
++  vn_jupiter_b2_allocation_research_v3._pin('native_fence_record',fence->>'fence_id',vn_jupiter_b2_allocation_research_v3._c14n(fence))));
++ RETURN pg_catalog.jsonb_build_object('ids',identity_rows,'dependencies',deps,'body',outcome);
++END;
++$packet$;
++
++-- FUNCTION _collection_authorization
++CREATE FUNCTION vn_jupiter_b2_allocation_research_v3._collection_authorization(wire pg_catalog.text)
++RETURNS pg_catalog.text
++LANGUAGE plpgsql STABLE SECURITY INVOKER
++SET search_path='pg_catalog','pg_temp' SET TimeZone='UTC' SET client_encoding='UTF8' SET standard_conforming_strings='on'
++AS $packet$
++DECLARE q jsonb; sw text; a jsonb; h jsonb; reservation_row record; reply jsonb; receipt jsonb;
++ r jsonb; fence jsonb; observed bigint; cutoff bigint; expected_record text;
++BEGIN
++ IF wire IS NULL OR pg_catalog.octet_length(wire)>2048 THEN RAISE EXCEPTION 'b3_collection_query_refused'; END IF;
++ q:=wire::jsonb;
++ IF vn_jupiter_b2_allocation_research_v3._c14n(q) IS DISTINCT FROM wire
++  OR NOT vn_jupiter_b2_allocation_research_v3._keys(q,ARRAY['format','scope','reservation_id','reservation_command_sha256','head_sha256','record_id','provider_family','request_sha256'])
++  OR q->'format' IS DISTINCT FROM '"ga-jupiter-b3-collection-authorization-query-v2"'::jsonb
++  OR pg_catalog.jsonb_typeof(q->'reservation_id') IS DISTINCT FROM 'string'
++  OR (q->>'reservation_id' ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$') IS DISTINCT FROM true
++  OR pg_catalog.jsonb_typeof(q->'record_id') IS DISTINCT FROM 'string'
++  OR (q->>'record_id' ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$') IS DISTINCT FROM true
++  OR q->'provider_family' NOT IN ('"jupiter-price-v3"'::jsonb,'"solana-rpc"'::jsonb)
++  OR EXISTS (SELECT 1 FROM pg_catalog.unnest(ARRAY['reservation_command_sha256','head_sha256','request_sha256']) f(key)
++   WHERE pg_catalog.jsonb_typeof(q->f.key) IS DISTINCT FROM 'string' OR (q->>f.key ~ '^[0-9a-f]{64}$') IS DISTINCT FROM true)
++ THEN RAISE EXCEPTION 'b3_collection_query_refused'; END IF;
++ sw:=vn_jupiter_b2_allocation_research_v3._scope(q->'scope');
++ a:=vn_jupiter_b2_allocation_research_v3._auth(q->'scope','reserve',NULL,NULL,NULL);
++ IF pg_catalog.jsonb_typeof(a->'handoff') IS DISTINCT FROM 'object'
++  OR a#>>'{handoff,successor_binding,principal_binding_id}' IS DISTINCT FROM a->>'binding_id'
++  OR a#>>'{package,policies,a1_schema_sha256}' IS DISTINCT FROM '2c48b61440f7d61f9567fa295da1c9c98a4483c2c834ec7074412d261f085640'
++ THEN RAISE EXCEPTION 'b3_collection_actor_refused' USING ERRCODE='42501'; END IF;
++ SELECT head_wire::jsonb INTO h FROM vn_jupiter_b2_allocation_research_v3.scope_state WHERE scope_wire=sw;
++ IF NOT FOUND OR h->>'source_mode' IS DISTINCT FROM 'open' OR h->>'native_sequence' IS DISTINCT FROM '5'
++  OR h->>'native_head_sha256' IS DISTINCT FROM q->>'head_sha256' OR h->>'fence_revision' IS DISTINCT FROM '2'
++ THEN RAISE EXCEPTION 'b3_collection_head_refused'; END IF;
++ -- Keep the intent lookup in the same MVCC snapshot as the journal head.
++ IF EXISTS (SELECT 1 FROM vn_jupiter_b2_allocation_research_v3.stop_intents WHERE scope_wire=sw)
++ THEN RAISE EXCEPTION 'b2_stop_intent_pending' USING ERRCODE='42501'; END IF;
++ SELECT * INTO reservation_row FROM vn_jupiter_b2_allocation_research_v3.original_operations o
++ WHERE o.scope_wire=sw AND o.action_kind='packet_reservation' AND o.native_sequence=5 AND o.finalized
++ AND o.action_id=q->>'reservation_id' AND o.command_sha256=q->>'reservation_command_sha256' AND o.writer_binding_id=a->>'binding_id';
++ IF NOT FOUND THEN RAISE EXCEPTION 'b3_collection_reservation_refused'; END IF;
++ reply:=vn_jupiter_b2_allocation_research_v3._reply(q->'scope',reservation_row.action_id,reservation_row.command_sha256,false,NULL)::jsonb;
++ IF reply#>>'{observed_head,native_head_sha256}' IS DISTINCT FROM h->>'native_head_sha256'
++ THEN RAISE EXCEPTION 'b3_collection_head_refused'; END IF;
++ receipt:=(reply->>'original_receipt_wire')::jsonb;
++ r:=(reservation_row.command_wire::jsonb#>>'{body,reservation_wire}')::jsonb;
++ IF q->>'provider_family'='jupiter-price-v3' THEN
++  expected_record:=r->>'price_record_id';
++ ELSE
++  IF q->>'record_id'=r->>'genesis_record_id' THEN expected_record:=r->>'genesis_record_id';
++  ELSE expected_record:=r->>'block_time_record_id'; END IF;
++ END IF;
++ IF q->>'record_id' IS DISTINCT FROM expected_record THEN RAISE EXCEPTION 'b3_collection_record_refused'; END IF;
++ SELECT (d->>'original_wire')::jsonb INTO fence FROM pg_catalog.jsonb_array_elements((reply->>'original_result_wire')::jsonb->'dependencies') d
++ WHERE d->>'semantic_kind'='native_fence_record' AND d->>'original_id'=h->>'active_fence_id';
++ IF NOT FOUND OR fence->>'holder_principal_binding_id' IS DISTINCT FROM a->>'binding_id'
++  OR fence->>'revision' IS DISTINCT FROM h->>'fence_revision' OR fence->>'acquisition_epoch' IS DISTINCT FROM h->>'active_acquisition_epoch'
++ THEN RAISE EXCEPTION 'b3_collection_fence_refused'; END IF;
++ SELECT pg_catalog.min(least((w->>'cutoff_us')::bigint,(w->>'login_until_us')::bigint)) INTO cutoff
++ FROM pg_catalog.jsonb_array_elements(a->'credential_windows') w;
++ IF cutoff IS NULL THEN RAISE EXCEPTION 'b3_collection_actor_refused' USING ERRCODE='42501'; END IF;
++ cutoff:=least(cutoff,(fence->>'expires_at_us')::bigint);
++ observed:=(vn_jupiter_b2_allocation_research_v3._clock()->>'observed_at_us')::bigint;
++ PERFORM vn_jupiter_b2_allocation_research_v3._check_credential_window(a->'credential_windows',observed);
++ IF observed<(receipt#>>'{commit_processing_observation,observed_at_us}')::bigint OR observed>=cutoff
++ THEN RAISE EXCEPTION 'b3_collection_fence_refused'; END IF;
++ RETURN vn_jupiter_b2_allocation_research_v3._c14n(pg_catalog.jsonb_build_object(
++  'format','ga-jupiter-b3-collection-authorization-observation-v2','query_sha256',vn_jupiter_b2_allocation_research_v3._sha(wire),
++  'fence_id',fence->>'fence_id','fence_revision',fence->>'revision','observed_at_us',observed::text,'valid_until_us',cutoff::text));
++EXCEPTION WHEN invalid_text_representation OR numeric_value_out_of_range THEN RAISE EXCEPTION 'b3_collection_query_refused';
++END;
++$packet$;
++
++REVOKE ALL ON FUNCTION vn_jupiter_b2_allocation_research_v3._packet_capture(pg_catalog.text,pg_catalog.text,pg_catalog.text),
++ vn_jupiter_b2_allocation_research_v3._packet_plan(pg_catalog.jsonb,pg_catalog.jsonb,pg_catalog.int8,pg_catalog.text,pg_catalog.jsonb,pg_catalog.text),
++ vn_jupiter_b2_allocation_research_v3._collection_authorization(pg_catalog.text)
++ FROM PUBLIC;
++RESET ROLE;
++COMMIT;
+diff --git a/services/vonneumann/research/b3-joined-capture-retention-lab-policy-v2.json b/services/vonneumann/research/b3-joined-capture-retention-lab-policy-v2.json
+new file mode 100644
+index 0000000..53f18ec
+--- /dev/null
++++ b/services/vonneumann/research/b3-joined-capture-retention-lab-policy-v2.json
+@@ -0,0 +1,76 @@
++{
++  "cache_release": false,
++  "capture": {
++    "allowed_capture_shapes": [
++      "complete ordered three-body capture",
++      "safe incomplete ordered prefix and one exact diagnostic"
++    ],
++    "allowed_current_tip": [
++      "committed Reservation5 with open source",
++      "committed Stop6 with stopped source"
++    ],
++    "body_keys": [
++      "reservation_action_id",
++      "capture_wire"
++    ],
++    "clock_rule": "fresh current writer authentication and retention clocks at or after actual predecessor COMMIT",
++    "dependency_pins": [
++      "original native Reservation5 command",
++      "original native Renew4 fence record"
++    ],
++    "eligibility": false,
++    "expected_fence_id": null,
++    "expected_fence_revision": null,
++    "expected_head": {
++      "native_head_sha256": "exact scoped Reservation5 journal digest",
++      "native_sequence": "5",
++      "previous_seal_sha256": null
++    },
++    "kind": "capture_retention",
++    "pending_stop_intent": "refuse before Stop commits",
++    "required_authentication": "exact active successor credential for the originally allocated packet",
++    "result_keys": [
++      "reservation_action_id",
++      "original_a1_reservation_sha256",
++      "original_a1_capture_sha256",
++      "collection_completed",
++      "eligibility",
++      "terminal"
++    ],
++    "terminal": false
++  },
++  "collection_authorization": {
++    "query_format": "ga-jupiter-b3-collection-authorization-query-v2",
++    "query_keys": [
++      "format",
++      "scope",
++      "reservation_id",
++      "reservation_command_sha256",
++      "head_sha256",
++      "record_id",
++      "provider_family",
++      "request_sha256"
++    ],
++    "reply_format": "ga-jupiter-b3-collection-authorization-observation-v2",
++    "reply_keys": [
++      "format",
++      "query_sha256",
++      "fence_id",
++      "fence_revision",
++      "observed_at_us",
++      "valid_until_us"
++    ],
++    "scope": "statement observation of the live current fence and no pending Stop for original Reservation5"
++  },
++  "controls_policy_sha256": "e5dca1d13839102fb1fdd261176393b73c770a95ab355eff74499169905bfba0",
++  "format": "ga-jupiter-b3-joined-capture-retention-lab-policy-v2",
++  "getter": {
++    "capture_digest": "the profile digest for Capture queries",
++    "opaque": "original scoped Capture ID with independent reader"
++  },
++  "hosted_authority": false,
++  "live_trading_authority": false,
++  "receipt_previous_head": "actual contiguous journal predecessor",
++  "reservation_policy_sha256": "28b7df36ca970796b7729d29ca0fd0dde861edfdc09579afef160218a05ade51",
++  "source_admission": false
++}
+diff --git a/services/vonneumann/tests/postgres/allocation_control_v3_fixture.py b/services/vonneumann/tests/postgres/allocation_control_v3_fixture.py
+index 15a2cc5..a13cd6e 100644
+--- a/services/vonneumann/tests/postgres/allocation_control_v3_fixture.py
++++ b/services/vonneumann/tests/postgres/allocation_control_v3_fixture.py
+@@ -41,7 +41,11 @@ JOINED_ADDON_SHA256 = 'b8558973900b645bc1b863d1c73f838156c9d72974c5ebc5cb54fbfb7
+ PACKET_POLICY_PATH = ROOT / 'research/b3-joined-acquisition-lab-policy-v1.json'
+ PACKET_POLICY_SHA256 = '28b7df36ca970796b7729d29ca0fd0dde861edfdc09579afef160218a05ade51'
+ PACKET_KINDS = ('packet_reservation', 'capture_retention')
+-SOURCE_SHA256 = '70b12a7bd94f5c646ca2512816b0412c722f479dc8a78d4fac096b9b5fba5a81'
++LATE_CAPTURE_POLICY_PATH = ROOT / 'research/b3-joined-capture-retention-lab-policy-v2.json'
++LATE_CAPTURE_POLICY_SHA256 = 'c468fa4a7fa8e9122a53abb19ed10d3c1d80f8024dfeefbb8596fef8f1c1f8be'
++LATE_CAPTURE_ADDON_PATH = ROOT / 'db-contract/research/jupiter_capture_retention_lab_v2.sql'
++LATE_CAPTURE_ADDON_SHA256 = '869d779d1c42268a9e7e95f0f54755b7900ef0fa614aff7961f73754746651be'
++SOURCE_SHA256 = 'dcc42004816883eed14d690ab744b0121e5edc417e56bdf0b9cb23809d5a68e5'
+ LOADER_SHA256 = '048d0468b78a61c83f3d02a33d0879c6576b687ffefb21b5671a398bbb65dcf7'
+ POLICY_FILE_SHA256 = '0a1c8663f4f6cbf9b299cab11fcdd00a379dbe3ca3493b706ddafca9b75c0f1a'
+ POLICY_SHA256 = 'e5dca1d13839102fb1fdd261176393b73c770a95ab355eff74499169905bfba0'
+@@ -587,14 +591,20 @@ def install_and_verify_handoff_addons(db, terminal_functions, control, reader):
+         ['committed_stop_intent_guard',N+'._stop_intent_commit_guard()',5,'O',True,True])
+ 
+ 
+-def install_and_verify_joined_addon(db, parent_functions):
++def install_and_verify_joined_addon(db, parent_functions, *, late_capture=False):
+     held(PACKET_POLICY_PATH, PACKET_POLICY_SHA256, 8192)
+-    source=held(JOINED_ADDON_PATH, JOINED_ADDON_SHA256, 32768).decode('utf8')
++    if late_capture:
++        held(LATE_CAPTURE_POLICY_PATH, LATE_CAPTURE_POLICY_SHA256, 8192)
++        source=held(LATE_CAPTURE_ADDON_PATH, LATE_CAPTURE_ADDON_SHA256, 65536).decode('utf8')
++    else:
++        source=held(JOINED_ADDON_PATH, JOINED_ADDON_SHA256, 32768).decode('utf8')
+     signatures={
+         '_packet_capture':(N,OWNER,['wire','reservation_wire','capture_id'],['text','text','text'],'jsonb',None,'i',False),
+         '_packet_plan':(N,OWNER,['command','auth','position_no','writer_binding','fence','prior_wire'],
+             ['jsonb','jsonb','bigint','text','jsonb','text'],'jsonb',None,'s',False),
+     }
++    if late_capture:
++        signatures['_collection_authorization']=(N,OWNER,['wire'],['text'],'text',None,'s',False)
+     db.sql(source, timeout=30)
+     verify_companion_functions(db, source, 'packet', signatures)
+     if db.scalar(f"SELECT count(*) FROM pg_proc WHERE pronamespace IN({literal(A)}::regnamespace,{literal(N)}::regnamespace);")!=str(parent_functions+len(signatures)):
+@@ -625,7 +635,7 @@ def verify_handoff_table(db,relation,owner,grantee,columns,constraints,trigger):
+ 
+ 
+ class AllocationFixture:
+-    def __init__(self,db,*,creator_edges=False):
++    def __init__(self,db,*,creator_edges=False,joined=False,late_capture=False):
+         if type(creator_edges) is not bool:raise RuntimeError('b2_fixture_creator_mode_refused')
+         if not isinstance(db,IsolatedPostgres) or db.identity.get('network')!='none':raise RuntimeError('b2_owned_fixture_required')
+         self.db=db
+@@ -634,6 +644,9 @@ class AllocationFixture:
+         self.owner_retirement=isinstance(db,AllocationRetirementPostgres)
+         self.handoff=isinstance(db,AllocationHandoffPostgres)
+         self.joined=isinstance(db,AllocationJoinedPostgres)
++        if type(joined) is not bool or type(late_capture) is not bool or ((joined or late_capture) and not self.joined):
++            raise RuntimeError('b3_fixture_profile_refused')
++        self.late_capture=late_capture
+         self.scope_count=db.scope_count if self.direct_scram else 2
+         if self.direct_scram and not creator_edges:
+             raise RuntimeError('b2_scram_fixture_creator_required')
+@@ -713,7 +726,7 @@ class AllocationFixture:
+             install_and_verify_handoff_addons(db,terminal_functions,
+                 self.scopes[0]['actors']['control'],self.scopes[0]['actors']['reader'])
+         if self.joined:
+-            install_and_verify_joined_addon(db, terminal_functions+15)
++            install_and_verify_joined_addon(db, terminal_functions+15, late_capture=self.late_capture)
+         # Real immutable scope/sessionOID/name/capability inputs are independently
+         # specified here, not granted by a caller-supplied binding boolean.
+         for scope in self.scopes:
+@@ -877,10 +890,11 @@ COMMIT;
+     def command(self,s,kind='installation',*,action_id=None):
+         head=self.head(s);p=s['package']
+         body=(dict(installation_id=s['installation_id'],scope=s['scope'],policies=p['policies'],catalog_manifest_sha256=p['catalog_manifest_sha256'],actor_manifest_sha256=p['actor_manifest_sha256'],genesis_registry_sha256=sha(canonical(s['genesis']))) if kind=='installation' else dict(expected_control_sha256=None,expected_mode='paused'))
+-        return dict(format='ga-jupiter-b2-allocation-command-research-v3-v1',native_policy_sha256=PACKET_POLICY_SHA256 if kind in PACKET_KINDS else POLICY_SHA256,scope=s['scope'],action_id=action_id or (s['action_id'] if kind=='installation' else s['stop_id']),action_kind=kind,expected_head={k:head[k] for k in ('native_sequence','native_head_sha256','previous_seal_sha256')},expected_fence_id=None,expected_fence_revision=None,body=body)
++        digest=LATE_CAPTURE_POLICY_SHA256 if self.late_capture and kind=='capture_retention' else (PACKET_POLICY_SHA256 if kind in PACKET_KINDS else POLICY_SHA256)
++        return dict(format='ga-jupiter-b2-allocation-command-research-v3-v1',native_policy_sha256=digest,scope=s['scope'],action_id=action_id or (s['action_id'] if kind=='installation' else s['stop_id']),action_kind=kind,expected_head={k:head[k] for k in ('native_sequence','native_head_sha256','previous_seal_sha256')},expected_fence_id=None,expected_fence_revision=None,body=body)
+ 
+     def query(self,c):
+-        return dict(format='ga-jupiter-b2-original-query-research-v3-v1',native_policy_sha256=PACKET_POLICY_SHA256 if c['action_kind'] in PACKET_KINDS else POLICY_SHA256,scope=c['scope'],target_kind=c['action_kind'],target_id=c['action_id'],expected_original_command_sha256=sha(canonical(c)),correlation=dict(kind='original_action_id',id=c['action_id']))
++        return dict(format='ga-jupiter-b2-original-query-research-v3-v1',native_policy_sha256=c['native_policy_sha256'],scope=c['scope'],target_kind=c['action_kind'],target_id=c['action_id'],expected_original_command_sha256=sha(canonical(c)),correlation=dict(kind='original_action_id',id=c['action_id']))
+ 
+     def call(self,fn,value,role):
+         if fn not in ('submit','get_original'):raise ValueError('b2_fixture_entry_refused')
+diff --git a/services/vonneumann/tests/postgres/test_allocation_capture_join_v3.py b/services/vonneumann/tests/postgres/test_allocation_capture_join_v3.py
+index 9aa0d67..b80e0a8 100644
+--- a/services/vonneumann/tests/postgres/test_allocation_capture_join_v3.py
++++ b/services/vonneumann/tests/postgres/test_allocation_capture_join_v3.py
+@@ -102,12 +102,14 @@ def synthetic_capture(reservation, prepared):
+     return source.validate_capture(reservation, capture)
+ 
+ 
+-@unittest.skipUnless(os.environ.get(OPT_IN) == '1', 'Requires isolated PostgreSQL opt-in')
+-class AllocationCaptureJoinNativeTests(unittest.TestCase):
++class AllocationCaptureJoinNativeCase(unittest.TestCase):
++    def _create_fixture(self):
++        return AllocationFixture(self.db, creator_edges=True)
++
+     def setUp(self):
+         self.db = AllocationJoinedPostgres().start()
+         self.addCleanup(self.db.close)
+-        self.fixture = AllocationFixture(self.db, creator_edges=True)
++        self.fixture = self._create_fixture()
+         self.plan = prepare_handoff(self.fixture)
+         self.marker = issue_handoff(self.fixture, self.plan)
+         self.scope = self.plan['scope']
+@@ -211,7 +213,7 @@ class AllocationCaptureJoinNativeTests(unittest.TestCase):
+             self.collection().collect(self.submit_bytes, self.get_original_bytes, self.collect_provider)
+         self.assertEqual(self.provider_calls, [self.prepared] * count)
+ 
+-    def assert_original(self, reply, command, sequence):
++    def assert_original(self, reply, command, sequence, *, previous_head_sha256=None):
+         self.assertEqual(reply['format'], 'ga-jupiter-b2-original-reply-research-v3-v1')
+         self.assertEqual(reply['scope'], self.scope['scope'])
+         self.assertEqual(reply['target_id'], command['action_id'])
+@@ -226,7 +228,8 @@ class AllocationCaptureJoinNativeTests(unittest.TestCase):
+             self.assertEqual(item['native_sequence'], str(sequence))
+             self.assertEqual(item['original_command_sha256'], sha(canonical(command)))
+         self.assertEqual(receipt['result_sha256'], sha(reply['original_result_wire']))
+-        self.assertEqual(receipt['previous_native_head_sha256'], command['expected_head']['native_head_sha256'])
++        previous_head = previous_head_sha256 or command['expected_head']['native_head_sha256']
++        self.assertEqual(receipt['previous_native_head_sha256'], previous_head)
+         self.assertEqual(receipt['native_package_sha256'], self.scope['package']['native_package_sha256'])
+         self.assertEqual(receipt['catalog_manifest_sha256'], self.marker['catalog_sha256'])
+         return result['result_body']
+@@ -305,17 +308,20 @@ class AllocationCaptureJoinNativeTests(unittest.TestCase):
+         stop['body'] = dict(expected_control_sha256=sha(canonical(self.plan['resume'])), expected_mode='open')
+         return stop
+ 
+-    def stop_with_dispatch_gate(self, stop, position, *, already_registered=False):
+-        if not already_registered:
+-            self.db.sql(BEGIN + SETTINGS + self.sql_call('record_stop_intent', as_wire(stop)) + 'COMMIT;\n',
+-                        role=self.control)
+-        gate = StopDispatch(as_wire(stop), StopIntentPins(
++    def stop_pins(self):
++        return StopIntentPins(
+             scope_wire=as_wire(self.scope['scope']), reserved_stop_id=self.scope['stop_id'],
+             installation_id=self.scope['installation_id'],
+             native_package_sha256=self.scope['package']['native_package_sha256'],
+             effective_catalog_sha256=self.marker['catalog_sha256'], handoff_sha256=sha(canonical(self.marker)),
+             control_binding_id=self.scope['bindings']['control'],
+-        ))
++        )
++
++    def stop_with_dispatch_gate(self, stop, position, *, already_registered=False):
++        if not already_registered:
++            self.db.sql(BEGIN + SETTINGS + self.sql_call('record_stop_intent', as_wire(stop)) + 'COMMIT;\n',
++                        role=self.control)
++        gate = StopDispatch(as_wire(stop), self.stop_pins())
+         events = []
+ 
+         def read_intent(query_wire):
+@@ -352,6 +358,10 @@ class AllocationCaptureJoinNativeTests(unittest.TestCase):
+         self.assert_journal([self.reserve])
+         return reserved, capture
+ 
++
++
++@unittest.skipUnless(os.environ.get(OPT_IN) == '1', 'Requires isolated PostgreSQL opt-in')
++class AllocationCaptureJoinNativeTests(AllocationCaptureJoinNativeCase):
+     def test_committed_capture_after_recorder_loss_keeps_exact_originals_through_stop(self):
+         reserved, capture = self.reserve_and_collect()
+         command = self.capture_command(capture)
+diff --git a/services/vonneumann/tests/postgres/test_allocation_capture_retention_v3.py b/services/vonneumann/tests/postgres/test_allocation_capture_retention_v3.py
+new file mode 100644
+index 0000000..2d81b90
+--- /dev/null
++++ b/services/vonneumann/tests/postgres/test_allocation_capture_retention_v3.py
+@@ -0,0 +1,228 @@
++"""Owned native tests for incomplete Capture and archival retention after Stop or expiry."""
++from __future__ import annotations
++
++import copy
++import os
++import unittest
++from uuid import UUID
++
++from tests.postgres.allocation_control_v3_fixture import (
++    AllocationFixture, BEGIN, LATE_CAPTURE_POLICY_SHA256, N, SETTINGS, canonical, literal, sha,
++)
++from tests.postgres.harness import OPT_IN
++from tests.postgres.test_allocation_capture_join_v3 import (
++    AllocationCaptureJoinNativeCase, RAW_BODIES, WIRE_FIELDS, as_wire, decode_wire, synthetic_capture,
++)
++from tests.postgres.test_allocation_control_v3 import submit_handoff_original
++from vonneumann.market import provider_acquisition_v3 as acquisition, source_admission_v3 as source
++from vonneumann.research.native_stop_reconciliation import StopReconciliation
++
++
++_DISPOSITION = {
++    'not_received': (0, 0, 'request_unavailable'),
++    'partial_discarded': (1, 1, 'response_overflow'),
++    'withheld': (2, 2, 'credential_echo_withheld'),
++    'captured_original': (2, 3, 'cleanup_incomplete'),
++}
++_DIAGNOSTIC_PIN_FIELDS = (
++    'record_id', 'provider_family', 'endpoint_binding_id', 'request_sha256',
++    'request_started_wall_us', 'request_started_monotonic_us', 'received_wall_us',
++    'received_monotonic_us', 'http_status',
++)
++
++
++def incomplete_capture(reservation, prepared, disposition):
++    index, prefix_count, failure_code = _DISPOSITION[disposition]
++    original = synthetic_capture(reservation, prepared).to_dict()
++    original_capsules = original['capsule_wires']
++    request_pin = decode_wire(original_capsules[index].encode())
++    diagnostic = {field: request_pin[field] for field in _DIAGNOSTIC_PIN_FIELDS}
++    diagnostic.update(body_state=disposition, incomplete=True, failure_code=failure_code)
++    if disposition in ('not_received', 'partial_discarded'):
++        diagnostic.update(received_wall_us=None, received_monotonic_us=None)
++    if disposition == 'not_received':
++        diagnostic['http_status'] = None
++    original.update(capsule_wires=original_capsules[:prefix_count], diagnostics=[diagnostic],
++                    collection_completed=False, failure_code=failure_code)
++    return source.validate_capture(reservation, source.envelope('Capture', original))
++
++
++class AllocationCaptureRetentionNativeCase(AllocationCaptureJoinNativeCase):
++    def _create_fixture(self):
++        return AllocationFixture(self.db, creator_edges=True, joined=True, late_capture=True)
++
++    def collect_provider(self, prepared):
++        self.provider_calls.append(prepared)
++        self.assertIs(prepared, self.prepared)
++        return incomplete_capture(self.reservation, prepared, self.disposition)
++
++    def capture_command(self, capture):
++        command = self.fixture.command(self.scope, 'capture_retention', action_id=self.packet_ids['capture_id'])
++        self.assertEqual(command['native_policy_sha256'], LATE_CAPTURE_POLICY_SHA256)
++        self.assertIsNone(command['expected_fence_id'])
++        self.assertIsNone(command['expected_fence_revision'])
++        command['body'] = dict(reservation_action_id=self.packet_ids['reservation_id'], capture_wire=capture.wire.decode())
++        return command
++
++    def query_without_capture(self, capture_id):
++        query = super().query_without_capture(capture_id)
++        query['native_policy_sha256'] = LATE_CAPTURE_POLICY_SHA256
++        return query
++
++    def assert_retained(self, command, capture, sequence, *, previous_head_sha256=None):
++        reply = self.read_capture(self.packet_ids['capture_id'])
++        self.assertEqual(reply, self.read_original(command))
++        self.assertEqual(self.assert_original(reply, command, sequence, previous_head_sha256=previous_head_sha256), dict(
++            reservation_action_id=self.reserve['action_id'], original_a1_reservation_sha256=self.reservation.sha256,
++            original_a1_capture_sha256=capture.sha256, collection_completed=False, eligibility=False, terminal=False,
++        ))
++        returned_command = decode_wire(reply['original_command_wire'].encode())
++        retained = source.wire(returned_command['body']['capture_wire'], 'Capture')
++        self.assertEqual(retained.wire, capture.wire)
++        source.validate_capture(self.reservation, retained)
++        capsule_wires = retained.to_dict()['capsule_wires']
++        self.assertEqual(tuple(acquisition.decode_capsule(raw.encode(), self.prepared.binding).raw_body
++                               for raw in capsule_wires), RAW_BODIES[:_DISPOSITION[self.disposition][1]])
++        self.assertEqual(retained.to_dict()['diagnostics'][0]['body_state'], self.disposition)
++        before_replay = self.fixture.snapshot()
++        replay = decode_wire(self.submit_bytes(as_wire(command)))
++        self.assertEqual([replay[key] for key in WIRE_FIELDS], [reply[key] for key in WIRE_FIELDS])
++        self.assertEqual(self.fixture.snapshot(), before_replay)
++        self.assert_no_recollection(1)
++        self.assert_reserved_ids()
++        return reply
++
++    def assert_original_wires(self, before, after):
++        self.assertEqual([before[key] for key in WIRE_FIELDS], [after[key] for key in WIRE_FIELDS])
++
++    def assert_same_source_state(self, before, after):
++        changed = {key for key in before if before[key] != after[key]}
++        self.assertEqual(changed, {'native_sequence', 'native_head_sha256'})
++
++    def wait_for_fence_expiry(self):
++        renew = self.read_original(self.plan['renew'])
++        fence = decode_wire(renew['original_result_wire'].encode())['result_body']['original_fence_record']
++        expires_us = int(fence['expires_at_us'])
++        clock = 'SELECT floor(extract(epoch FROM clock_timestamp())*1000000)::bigint;'
++        before = int(self.db.scalar(clock))
++        self.assertLess(before, expires_us)
++        self.assertLessEqual(expires_us - before, 60_000_000)
++        # Bound each server statement while waiting on the actual database clock.
++        for _ in range(3):
++            observed = int(self.db.scalar(clock))
++            if observed >= expires_us:
++                break
++            target = min(expires_us + 100_000, observed + 30_000_000)
++            self.db.scalar(f'SELECT pg_sleep_until(to_timestamp({target}::numeric/1000000));', timeout=34)
++        self.assertGreaterEqual(int(self.db.scalar(clock)), expires_us)
++        return expires_us
++
++    def assert_diagnostic_refused(self, command, **altered_fields):
++        bad = copy.deepcopy(command)
++        capture = decode_wire(bad['body']['capture_wire'].encode())
++        capture['diagnostics'][0].update(altered_fields)
++        bad['body']['capture_wire'] = canonical(capture)
++        before = self.fixture.snapshot()
++        self.assert_refused(bad, self.recorder, 'b3_diagnostic_conflict')
++        self.assertEqual(self.fixture.snapshot(), before)
++        self.assert_capture_unknown(5)
++
++
++@unittest.skipUnless(os.environ.get(OPT_IN) == '1', 'Requires isolated PostgreSQL opt-in')
++class AllocationCaptureRetentionNativeTests(AllocationCaptureRetentionNativeCase):
++    def test_committed_stop_preserves_exact_late_withheld_capture(self):
++        self.disposition = 'withheld'
++        reserved, capture = self.reserve_and_collect()
++        command = self.capture_command(capture)
++        command_wire = as_wire(command)
++        stop = self.stop_command()
++        self.db.sql(BEGIN + SETTINGS + self.sql_call('record_stop_intent', as_wire(stop)) + 'COMMIT;\n',
++                    role=self.control)
++        self.assert_refused(command, self.recorder, 'b2_stop_intent_pending')
++        self.assert_capture_unknown(5)
++        self.stop_with_dispatch_gate(stop, 6, already_registered=True)
++        self.assert_capture_unknown(6)
++        stopped = self.assert_head(6, 'stopped')
++        stop_reply = self.read_original(stop)
++        self.assertIsNone(stopped['active_fence_id'])
++
++        incorrect_ancestor = copy.deepcopy(command)
++        incorrect_ancestor['expected_head']['native_head_sha256'] = 'f' * 64
++        self.assert_refused(incorrect_ancestor, self.recorder, 'b3_capture_ancestor_refused')
++        rebased = self.capture_command(capture)
++        self.assertEqual(rebased['expected_head']['native_sequence'], '6')
++        self.assert_refused(rebased, self.recorder, 'b3_capture_ancestor_refused')
++        foreign = copy.deepcopy(command)
++        foreign['scope']['run_id'] = str(UUID(int=994401))
++        self.assert_refused(foreign, self.recorder, 'b2_actor_scope_refused')
++        wrong_id = dict(command, action_id=str(UUID(int=994402)))
++        self.assert_refused(wrong_id, self.recorder, 'b3_capture_shape')
++        wrong_reservation = copy.deepcopy(command)
++        wrong_reservation['body']['reservation_action_id'] = str(UUID(int=994404))
++        self.assert_refused(wrong_reservation, self.recorder, 'b3_capture_refused')
++        self.assert_capture_unknown(6)
++        self.assert_journal([self.reserve, stop])
++
++        self.assertEqual(as_wire(command), command_wire)
++        submit_handoff_original(self.fixture, command, self.recorder)
++        self.assert_retained(command, capture, 7, previous_head_sha256=stopped['native_head_sha256'])
++        self.assert_same_source_state(stopped, self.assert_head(7, 'stopped'))
++        self.assert_original_wires(stop_reply, self.read_original(stop))
++        reconciliation = StopReconciliation(as_wire(stop), self.stop_pins()).read(self.get_original_bytes)
++        self.assertEqual(reconciliation.resolution, 'observed_committed_exact')
++        self.assertEqual(reconciliation.receipt_sha256, sha(stop_reply['original_receipt_wire']))
++        self.assertEqual(reconciliation.stop_head_sha256, stopped['native_head_sha256'])
++        self.assert_original_wires(reserved, self.read_original(self.reserve))
++        scope_wire = literal(canonical(self.scope['scope']))
++        self.assertEqual(self.db.scalar(f"SELECT accounting_wire::jsonb->>'Stop_reserve_consumed' FROM {N}.scope_state "
++                                        f"WHERE scope_wire={scope_wire};"), 'true')
++        self.assert_journal([self.reserve, stop, command])
++
++    def test_elapsed_fence_retains_exact_original_with_captured_diagnostic(self):
++        self.disposition = 'captured_original'
++        reserved, capture = self.reserve_and_collect()
++        command = self.capture_command(capture)
++        before = self.assert_head(5, 'open')
++        self.assert_diagnostic_refused(command, request_started_monotonic_us='0')
++        authorization_query = dict(
++            format='ga-jupiter-b3-collection-authorization-query-v2', scope=self.scope['scope'],
++            reservation_id=self.reserve['action_id'], reservation_command_sha256=sha(as_wire(self.reserve)),
++            head_sha256=before['native_head_sha256'], record_id=self.prepared.price_record_id,
++            provider_family='jupiter-price-v3', request_sha256=sha(acquisition.public_request('jupiter-price-v3')),
++        )
++        authorize = SETTINGS + self.sql_call('get_original', as_wire(authorization_query))
++        authorization = decode_wire(self.db.scalar(authorize, role=self.recorder).encode())
++        self.assertEqual(authorization['query_sha256'], sha(as_wire(authorization_query)))
++        expires_us = self.wait_for_fence_expiry()
++        self.assertLess(int(authorization['observed_at_us']), expires_us)
++        self.assert_sql_refused(authorize, self.recorder, 'b3_collection_fence_refused')
++        self.assertEqual(self.fixture.head(self.scope), before)
++        submit_handoff_original(self.fixture, command, self.recorder)
++        retained = self.assert_retained(command, capture, 6)
++        receipt = decode_wire(retained['original_receipt_wire'].encode())
++        self.assertGreaterEqual(int(receipt['commit_processing_observation']['observed_at_us']), expires_us)
++        self.assert_same_source_state(before, self.assert_head(6, 'open'))
++        self.assert_original_wires(reserved, self.read_original(self.reserve))
++        self.assert_journal([self.reserve, command])
++
++    def test_not_received_diagnostic_retains_no_capsule(self):
++        self.disposition = 'not_received'
++        _, capture = self.reserve_and_collect()
++        command = self.capture_command(capture)
++        self.assert_diagnostic_refused(command, received_wall_us='1800000000100000', received_monotonic_us='9900000')
++        submit_handoff_original(self.fixture, command, self.recorder)
++        self.assert_retained(command, capture, 6)
++        self.assert_head(6, 'open')
++        self.assert_journal([self.reserve, command])
++
++    def test_partial_discarded_diagnostic_preserves_prefix_and_refuses_claimed_payload(self):
++        self.disposition = 'partial_discarded'
++        _, capture = self.reserve_and_collect()
++        command = self.capture_command(capture)
++        self.assert_diagnostic_refused(command, response_base64='ZmFicmljYXRlZA==')
++        self.assert_diagnostic_refused(command, endpoint_binding_id=str(UUID(int=994403)))
++        self.assert_diagnostic_refused(command, request_sha256='f' * 64)
++        submit_handoff_original(self.fixture, command, self.recorder)
++        self.assert_retained(command, capture, 6)
++        self.assert_head(6, 'open')
++        self.assert_journal([self.reserve, command])
+diff --git a/services/vonneumann/tests/postgres/test_allocation_collection_authorization_v3.py b/services/vonneumann/tests/postgres/test_allocation_collection_authorization_v3.py
+new file mode 100644
+index 0000000..850ffa2
+--- /dev/null
++++ b/services/vonneumann/tests/postgres/test_allocation_collection_authorization_v3.py
+@@ -0,0 +1,91 @@
++"""Use authentic scoped PostgreSQL observations at a fake HTTP transport boundary."""
++from __future__ import annotations
++
++import asyncio
++import os
++import unittest
++from unittest.mock import patch
++
++from tests.postgres.allocation_control_v3_fixture import BEGIN, SETTINGS
++from tests.postgres.harness import OPT_IN
++from tests.postgres.test_allocation_capture_join_v3 import as_wire, decode_wire, synthetic_capture
++from tests.postgres.test_allocation_capture_retention_v3 import AllocationCaptureRetentionNativeCase
++from tests.test_provider_recorded_transport_v3 import FakeTransport, KEY, RPC_URL, reply
++from vonneumann.market import provider_acquisition_v3 as acquisition, provider_recorded_transport_v3 as transport
++from vonneumann.market import source_admission_v3 as source
++from vonneumann.research.native_collection_authorization import NativeRequestAuthorization, QUERY_FORMAT
++
++
++@unittest.skipUnless(os.environ.get(OPT_IN) == '1', 'Requires isolated PostgreSQL opt-in')
++class AllocationCollectionAuthorizationNativeTests(AllocationCaptureRetentionNativeCase):
++    def test_stop_during_first_provider_request_blocks_the_next_request(self):
++        original_reserve = as_wire(self.reserve)
++        self.submit_bytes(original_reserve)
++        self.read_original(self.reserve)
++        head = self.assert_head(5, 'open')
++        self.assert_reserved_ids()
++        stop = self.stop_command()
++        provider_calls = []
++        witnesses = []
++
++        async def query_recorder(query):
++            result = self.db.sql(SETTINGS + self.sql_call('get_original', query), role=self.recorder)
++            witnesses.append(decode_wire(query))
++            self.assertEqual(result.stdout.count('\n'), 1)
++            return result.stdout.rstrip('\n').encode()
++
++        def first_response(request):
++            provider_calls.append(request.method)
++            self.assertEqual(provider_calls, ['GET'])
++            self.db.sql(BEGIN + SETTINGS + self.sql_call('record_stop_intent', as_wire(stop)) + 'COMMIT;\n',
++                        role=self.control)
++            self.assert_head(5, 'open')
++            return reply(request)
++
++        first_query = dict(format=QUERY_FORMAT, scope=self.reserve['scope'], reservation_id=self.reserve['action_id'],
++            reservation_command_sha256=source.sha(original_reserve), head_sha256=head['native_head_sha256'],
++            record_id=self.prepared.price_record_id, provider_family='jupiter-price-v3',
++            request_sha256=source.sha(acquisition.public_request('jupiter-price-v3')))
++        self.assert_sql_refused(SETTINGS + self.sql_call('get_original', as_wire(first_query)),
++                                self.reader, 'b2_actor_scope_refused')
++        self.assert_sql_refused(SETTINGS + self.sql_call('get_original', as_wire(dict(first_query, head_sha256='0' * 64))),
++                                self.recorder, 'b3_collection_head_refused')
++
++        gate = NativeRequestAuthorization(self.prepared, reservation_wire=original_reserve,
++            reservation_head_sha256=head['native_head_sha256'], query_recorder=query_recorder)
++        fake = FakeTransport(first_response)
++
++        async def collect():
++            with patch.object(transport, '_transport', return_value=fake), patch.object(
++                transport.importlib.metadata, 'version', side_effect={'httpcore': '1.0.9', 'certifi': transport.CERTIFI_VERSION}.__getitem__,
++            ):
++                item = transport.ProviderRecordedTransport(KEY, RPC_URL, read_only_opt_in=True, authorize_request=gate)
++            try:
++                return await item.collect(self.prepared)
++            finally:
++                await item.close()
++
++        result = asyncio.run(collect())
++        self.assertEqual(witnesses, [first_query])
++        self.assertEqual(provider_calls, ['GET'])
++        self.assertEqual(len(result.capsules), 1)
++        self.assertFalse(result.completed)
++        self.assertEqual(result.failure_code, 'request_unavailable')
++        self.assertEqual(result.diagnostics, ())
++        genesis = acquisition.public_request('solana-rpc', rpc_method='getGenesisHash', rpc_id=self.prepared.genesis_rpc_id)
++        pending_query = dict(first_query, record_id=self.prepared.genesis_record_id, provider_family='solana-rpc',
++                             request_sha256=source.sha(genesis))
++        self.assert_sql_refused(SETTINGS + self.sql_call('get_original', as_wire(pending_query)),
++                                self.recorder, 'b2_stop_intent_pending')
++
++        capture_value = synthetic_capture(self.reservation, self.prepared).to_dict()
++        capture_value.update(capsule_wires=[result.capsules[0].wire.decode()], diagnostics=[],
++                             collection_completed=False, failure_code=result.failure_code)
++        capture = source.validate_capture(self.reservation, source.envelope('Capture', capture_value))
++        capture_command = self.capture_command(capture)
++        self.stop_with_dispatch_gate(stop, 6, already_registered=True)
++        self.submit_bytes(as_wire(capture_command))
++        recovered = self.read_capture(self.packet_ids['capture_id'])
++        self.assertEqual(decode_wire(recovered['original_command_wire'].encode())['body']['capture_wire'], capture.wire.decode())
++        self.assert_head(7, 'stopped')
++        self.assertEqual(provider_calls, ['GET'])
+diff --git a/services/vonneumann/tests/test_native_stop_reconciliation.py b/services/vonneumann/tests/test_native_stop_reconciliation.py
+new file mode 100644
+index 0000000..ba9ffb7
+--- /dev/null
++++ b/services/vonneumann/tests/test_native_stop_reconciliation.py
+@@ -0,0 +1,134 @@
++"""Exercise exact original Stop readback without a control transport."""
++from copy import deepcopy
++from dataclasses import replace
++from hashlib import sha256
++import unittest
++
++from tests.test_native_stop_dispatch import canonical, identity
++from vonneumann.market.provider_acquisition_v3 import AcquisitionError
++from vonneumann.research.native_stop_dispatch import NATIVE_POLICY_SHA256, StopIntentPins
++from vonneumann.research.native_stop_reconciliation import StopReconciliation
++
++
++def digest(raw):
++    return sha256(raw).hexdigest()
++
++
++def native_format(record):
++    return f'ga-jupiter-b2-{record}-research-v3-v1'
++
++
++def pin(kind, original_id, value):
++    raw = canonical(value)
++    return dict(semantic_kind=kind, original_id=original_id, original_wire=raw.decode(),
++                wire_sha256=digest(raw), wire_bytes=str(len(raw)))
++
++
++class NativeStopReconciliationTests(unittest.TestCase):
++    def setUp(self):
++        scope = dict(owner_id=identity(1), run_id=identity(2), market_epoch=identity(3))
++        stop_id = identity(4)
++        self.pins = StopIntentPins(canonical(scope), stop_id, identity(5),
++                                   'a' * 64, 'b' * 64, 'c' * 64, identity(6))
++        self.common = dict(native_policy_sha256=NATIVE_POLICY_SHA256, scope=scope)
++        control = pin('native_command', identity(7), dict(**self.common,
++            action_kind='source_resume', action_id=identity(7)))
++        fence = pin('native_fence_record', identity(8), dict(scope=scope, fence_id=identity(8), revision='2'))
++        self.previous_head = 'e' * 64
++        self.command = dict(format=native_format('allocation-command'), **self.common,
++            action_id=stop_id, action_kind='source_stop',
++            expected_head=dict(native_sequence='5', native_head_sha256=self.previous_head, previous_seal_sha256=None),
++            expected_fence_id=None, expected_fence_revision=None,
++            body=dict(expected_control_sha256=control['wire_sha256'], expected_mode='open'))
++        self.command_wire = canonical(self.command)
++        self.action = dict(action_id=stop_id, action_kind='source_stop',
++                           original_command_sha256=digest(self.command_wire))
++        self.limits = dict.fromkeys(('provider_attested', 'calibrated_clock', 'hosted_authority',
++                                    'running_authority', 'live_trading_authority', 'model_native_join'), False)
++        self.target = dict(target_kind='source_stop', target_id=stop_id)
++        self.query = canonical(dict(format=native_format('original-query'), **self.common, **self.target,
++            expected_original_command_sha256=self.action['original_command_sha256'],
++            correlation=dict(kind='original_action_id', id=stop_id)))
++        self.result = dict(format=native_format('allocation-result'), **self.common, **self.action,
++            native_sequence='6', dependencies=[control, fence], limits=self.limits,
++            result_body=dict(previous_mode='open', resulting_mode='stopped',
++                             previous_control_sha256=control['wire_sha256'], resulting_fence_revision='3'))
++        result_wire = canonical(self.result)
++        self.receipt = dict(format=native_format('allocation-receipt'), **self.common, **self.action,
++            native_sequence='6', result_sha256=digest(result_wire), previous_native_head_sha256=self.previous_head,
++            admission_observation=None, native_package_sha256='a' * 64, catalog_manifest_sha256='b' * 64,
++            final_function_observation=dict.fromkeys(('observed_at_us', 'wall_lower_us', 'wall_upper_us'), '22'),
++            commit_processing_observation=dict.fromkeys(('observed_at_us', 'wall_lower_us', 'wall_upper_us'), '23'),
++            limits=self.limits)
++        receipt_wire = canonical(self.receipt)
++        self.receipt_sha = digest(receipt_wire)
++        self.stop_head = digest(canonical(dict(native_sequence='6', **self.action,
++            original_result_sha256=digest(result_wire), original_receipt_sha256=self.receipt_sha,
++            previous_native_head_sha256=self.previous_head)))
++        self.reply = dict(format=native_format('original-reply'), **self.common, **self.target,
++            original_command_wire=self.command_wire.decode(), original_result_wire=result_wire.decode(),
++            original_receipt_wire=receipt_wire.decode(), dependencies=[control, fence], limits=self.limits,
++            observed_head=dict(native_sequence='6', native_head_sha256=self.stop_head, previous_seal_sha256=None))
++        self.adapter = StopReconciliation(self.command_wire, self.pins)
++        self.reads = []
++
++    def read(self, response):
++        def getter(raw):
++            self.reads.append(raw)
++            return response
++        return self.adapter.read(getter)
++
++    def test_reconciles_exact_current_stop_and_retains_hashes_after_later_capture(self):
++        current = self.read(canonical(self.reply))
++        self.assertEqual(current.resolution, 'observed_committed_exact')
++        self.assertEqual(current.receipt_sha256, self.receipt_sha)
++        self.assertEqual(current.stop_head_sha256, self.stop_head)
++        later = deepcopy(self.reply)
++        later['observed_head'].update(native_sequence='7', native_head_sha256='f' * 64)
++        self.assertEqual(self.read(canonical(later)), current)
++        self.assertEqual(self.reads, [self.query, self.query])
++
++    def test_missing_provisional_malformed_and_transport_failure_are_unknown(self):
++        absent = canonical(dict(format=native_format('query-observation'), **self.common, **self.target,
++            correlation=dict(kind='original_action_id', id=self.pins.reserved_stop_id),
++            resolution='observed_absent_unknown', observed_head=self.command['expected_head'],
++            original_operation_pin=None, limits=self.limits))
++        def disconnected(query):
++            self.assertEqual(query, self.query)
++            raise ConnectionError('private transport diagnostic')
++        for response in (absent, canonical({'pending_commit': True}), b'{broken', canonical(self.reply) + b'\n'):
++            with self.subTest(response=response[:32]):
++                outcome = self.read(response)
++                self.assertEqual(outcome.resolution, 'unknown')
++                self.assertIsNone(outcome.receipt_sha256)
++                self.assertIsNone(outcome.stop_head_sha256)
++        self.assertEqual(self.adapter.read(disconnected).resolution, 'unknown')
++
++    def test_refuses_mismatched_original_result_receipt_and_dependencies(self):
++        variants = [dict(self.reply, target_id=identity(12)), dict(self.reply, target_kind='source_resume'),
++                    dict(self.reply, scope=dict(self.common['scope'], run_id=identity(12))),
++                    dict(self.reply, native_policy_sha256='f' * 64),
++                    dict(self.reply, original_command_wire=canonical(dict(self.command, action_id=identity(12))).decode())]
++        for field, value in (('action_id', identity(12)), ('native_policy_sha256', 'f' * 64),
++                             ('original_command_sha256', 'f' * 64), ('native_sequence', '7')):
++            variants.append(dict(self.reply, original_result_wire=canonical(dict(self.result, **{field: value})).decode()))
++        for field, value in (('result_sha256', 'f' * 64), ('native_package_sha256', 'f' * 64),
++                             ('catalog_manifest_sha256', 'f' * 64), ('previous_native_head_sha256', 'f' * 64),
++                             ('commit_processing_observation', self.receipt['final_function_observation'])):
++            variants.append(dict(self.reply, original_receipt_wire=canonical(dict(self.receipt, **{field: value})).decode()))
++        for field, value in (('native_head_sha256', 'f' * 64), ('native_sequence', '5')):
++            variants.append(dict(self.reply, observed_head=dict(self.reply['observed_head'], **{field: value})))
++        damaged_pin = deepcopy(self.reply)
++        damaged_pin['dependencies'][0]['wire_sha256'] = 'f' * 64
++        variants.append(damaged_pin)
++        variants.append(dict(self.reply, dependencies=self.reply['dependencies'][1:]))
++        for index, response in enumerate(variants):
++            with self.subTest(index=index):
++                self.assertEqual(self.read(canonical(response)).resolution, 'unknown')
++
++    def test_invalid_reserved_id_never_constructs_a_reader(self):
++        with self.assertRaises(AcquisitionError):
++            StopReconciliation(self.command_wire, replace(self.pins, reserved_stop_id=identity(10)))
++        with self.assertRaises(AcquisitionError):
++            StopReconciliation(self.command_wire + b'\n', self.pins)
++        self.assertEqual(self.reads, [])
+diff --git a/services/vonneumann/vonneumann/market/provider_recorded_transport_v3.py b/services/vonneumann/vonneumann/market/provider_recorded_transport_v3.py
+index 41184d6..97c9543 100644
+--- a/services/vonneumann/vonneumann/market/provider_recorded_transport_v3.py
++++ b/services/vonneumann/vonneumann/market/provider_recorded_transport_v3.py
+@@ -198,8 +198,10 @@ def _private_configuration(key,rpc_url):
+ 
+ class ProviderRecordedTransport:
+     """One owned loop/packet and retained original result after waiter loss."""
+-    def __init__(self,key,rpc_url,*,read_only_opt_in=False,bounds=None):
++    def __init__(self,key,rpc_url,*,read_only_opt_in=False,bounds=None,authorize_request=None):
+         if read_only_opt_in is not True:raise RecordedTransportError('read_only_collection_closed')
++        if authorize_request is not None and not callable(authorize_request):
++            raise RecordedTransportError('request_unavailable')
+         if bounds is not None and type(bounds) is not TransportBounds:raise RecordedTransportError('invalid_bounds')
+         self._bounds=TransportBounds() if bounds is None else bounds;self._bounds.__post_init__()
+         self._sensitive=_private_configuration(key,rpc_url)
+@@ -210,6 +212,7 @@ class ProviderRecordedTransport:
+         self._context,self.ca_bundle_sha256=_tls_context()
+         self._transport=_transport(self._context)
+         self._key,self._rpc_url=key,rpc_url
++        self._authorize_request=authorize_request
+         self._loop=None;self._active=None;self._original_wire=None;self._waiter=False
+         self._closed=False;self._cleanup_tasks=set();self._cleanup_failed=False;self._close_task=None
+         self._results={};self._used_ids=set();self._retained_bytes=0
+@@ -313,6 +316,9 @@ class ProviderRecordedTransport:
+             write=self._bounds.write_us/1_000_000,pool=self._bounds.pool_us/1_000_000)
+         outgoing=httpx.Request(public['method'],url,headers=headers,params=params,content=content,
+                                extensions={'timeout':timeouts.as_dict()})
++        if self._authorize_request is not None:
++            await self._authorize_request(prepared, family, identity, request)
++            self._deadline(deadline_start)
+         response=None;original=None
+         started_wall,started_mono=self._sample()
+         original_diagnostic={'record_id':identity,'provider_family':family,
+diff --git a/services/vonneumann/vonneumann/research/native_collection_authorization.py b/services/vonneumann/vonneumann/research/native_collection_authorization.py
+new file mode 100644
+index 0000000..a71cd98
+--- /dev/null
++++ b/services/vonneumann/vonneumann/research/native_collection_authorization.py
+@@ -0,0 +1,80 @@
++"""Verify a fresh scoped database observation for each prepared provider request."""
++from __future__ import annotations
++
++from time import monotonic_ns
++
++from ..market import provider_acquisition_v3 as codec
++from ..market import source_admission_v3 as source
++from ..market.provider_recorded_transport_v3 import PreparedPacket, RecordedTransportError
++
++QUERY_FORMAT = 'ga-jupiter-b3-collection-authorization-query-v2'
++OBSERVATION_FORMAT = 'ga-jupiter-b3-collection-authorization-observation-v2'
++
++
++class NativeRequestAuthorization:
++    """Use the authenticated recorder transport to check each request once.
++
++    The scope head and Reservation command come from independent committed
++    readback. The database callback executes a fresh statement each time.
++    A refused check consumes the local attempt. An approved request may still
++    be in flight when Stop commits, so its response follows Capture retention.
++    """
++
++    def __init__(self, prepared: PreparedPacket, *, reservation_wire: bytes,
++                 reservation_head_sha256: str, query_recorder):
++        try:
++            codec.require(type(prepared) is PreparedPacket and callable(query_recorder))
++            command = codec.read_json(reservation_wire, 16384, exact=True)
++            codec.require(command['action_kind'] == 'packet_reservation'
++                          and command['body']['prepared_packet_wire'] == prepared.wire.decode())
++            scope = source.scope(command['scope'])
++            self._query_fields = dict(format=QUERY_FORMAT, scope=scope,
++                reservation_id=codec.uuid(command['action_id']), reservation_command_sha256=source.sha(reservation_wire),
++                head_sha256=codec.digest(reservation_head_sha256))
++            self._fence_id = codec.uuid(command['expected_fence_id'])
++            self._fence_revision = command['expected_fence_revision']
++            codec.counter(self._fence_revision, maximum=16, minimum=1)
++        except (ValueError, TypeError, KeyError, AttributeError):
++            raise RecordedTransportError('request_unavailable') from None
++        self._prepared = prepared
++        self._query_recorder = query_recorder
++        self._next = 0
++        self._running = False
++        self._closed = False
++
++    async def __call__(self, prepared, family, identity, request):
++        if self._running or self._closed or self._next == 3:
++            raise RecordedTransportError('request_unavailable')
++        self._running = True
++        verified = False
++        try:
++            codec.require(prepared is self._prepared)
++            expected = (
++                ('jupiter-price-v3', prepared.price_record_id, None, None),
++                ('solana-rpc', prepared.genesis_record_id, 'getGenesisHash', prepared.genesis_rpc_id),
++                ('solana-rpc', prepared.block_time_record_id, 'getBlockTime', prepared.block_time_rpc_id),
++            )[self._next]
++            codec.require((family, identity) == expected[:2])
++            public = codec.request_fields(request, family)
++            if family == 'solana-rpc':
++                rpc = codec.read_json(public['body_wire'].encode(), codec.MAX_REQUEST_BYTES, numeric=True)
++                codec.require((rpc['method'], rpc['id']) == expected[2:])
++            query = codec.canonical(dict(self._query_fields, record_id=identity,
++                provider_family=family, request_sha256=source.sha(request)))
++            before = monotonic_ns()
++            raw = await self._query_recorder(query)
++            observed = codec.read_json(raw, 2048, exact=True)
++            codec.fields(observed, {'format', 'query_sha256', 'fence_id', 'fence_revision', 'observed_at_us', 'valid_until_us'})
++            codec.require(observed['format'] == OBSERVATION_FORMAT and observed['query_sha256'] == source.sha(query)
++                          and observed['fence_id'] == self._fence_id and observed['fence_revision'] == self._fence_revision)
++            remaining_us = codec.counter(observed['valid_until_us']) - codec.counter(observed['observed_at_us'])
++            elapsed = monotonic_ns() - before
++            # Entire round trip bounds elapsed time since the server sampled its clock.
++            codec.require(0 <= elapsed < remaining_us * 1000)
++            self._next += 1
++            verified = True
++        except Exception:
++            raise RecordedTransportError('request_unavailable') from None
++        finally:
++            self._closed = not verified
++            self._running = False
+diff --git a/services/vonneumann/vonneumann/research/native_stop_reconciliation.py b/services/vonneumann/vonneumann/research/native_stop_reconciliation.py
+new file mode 100644
+index 0000000..5abccb5
+--- /dev/null
++++ b/services/vonneumann/vonneumann/research/native_stop_reconciliation.py
+@@ -0,0 +1,164 @@
++"""Read-only reconciliation of an original Stop after a worker restart."""
++from __future__ import annotations
++
++from dataclasses import dataclass
++from hashlib import sha256
++from typing import Callable, Literal
++
++from ..market import provider_acquisition_v3 as wire
++from .native_stop_dispatch import NATIVE_POLICY_SHA256, StopIntentPins
++
++_LIMITS = dict.fromkeys((
++    'provider_attested', 'calibrated_clock', 'hosted_authority',
++    'running_authority', 'live_trading_authority', 'model_native_join',
++), False)
++_HEAD_KEYS = {'native_sequence', 'native_head_sha256', 'previous_seal_sha256'}
++
++
++@dataclass(frozen=True, slots=True)
++class StopReconciliationResult:
++    resolution: Literal['observed_committed_exact', 'unknown']
++    receipt_sha256: str | None = None
++    stop_head_sha256: str | None = None
++
++
++def _format(record: str) -> str:
++    return f'ga-jupiter-b2-{record}-research-v3-v1'
++
++
++def _sha(raw: bytes) -> str:
++    return sha256(raw).hexdigest()
++
++
++def _clock(value: dict) -> int:
++    wire.fields(value, {'observed_at_us', 'wall_lower_us', 'wall_upper_us'})
++    observed = wire.counter(value['observed_at_us'])
++    wire.require(value['wall_lower_us'] == value['wall_upper_us'] == value['observed_at_us'])
++    return observed
++
++
++def _pins(dependencies: list, limit: int) -> dict:
++    wire.require(type(dependencies) is list and 0 < len(dependencies) <= limit)
++    pins = {}
++    for pin in dependencies:
++        wire.fields(pin, {'semantic_kind', 'original_id', 'original_wire', 'wire_sha256', 'wire_bytes'})
++        key = (pin['semantic_kind'], wire.uuid(pin['original_id']), wire.digest(pin['wire_sha256']))
++        raw = pin['original_wire'].encode('utf-8')
++        wire.require(type(key[0]) is str and key not in pins
++                     and pin['wire_bytes'] == str(len(raw)) and _sha(raw) == key[2])
++        pins[key] = raw
++    wire.require(list(pins) == sorted(pins))
++    return pins
++
++
++class StopReconciliation:
++    """The callback reads the held native getter through an independent reader.
++
++    An unknown result supplies no dispatch permission. This adapter has no
++    write callback. The database getter validates the exact stored Stop chain,
++    including when a later archival Capture is the current head.
++    """
++
++    def __init__(self, command_wire: bytes, pins: StopIntentPins):
++        wire.require(type(pins) is StopIntentPins)
++        scope = wire.fields(wire.read_json(pins.scope_wire, 512, exact=True),
++                            {'owner_id', 'run_id', 'market_epoch'})
++        for identity in scope.values():
++            wire.uuid(identity)
++        stop_id = wire.uuid(pins.reserved_stop_id)
++        command = wire.fields(wire.read_json(command_wire, 4096, exact=True), {
++            'format', 'native_policy_sha256', 'scope', 'action_id', 'action_kind',
++            'expected_head', 'expected_fence_id', 'expected_fence_revision', 'body',
++        })
++        wire.require(command['format'] == _format('allocation-command')
++                     and command['native_policy_sha256'] == NATIVE_POLICY_SHA256
++                     and command['scope'] == scope and command['action_id'] == stop_id
++                     and command['action_kind'] == 'source_stop'
++                     and command['expected_fence_id'] is None
++                     and command['expected_fence_revision'] is None)
++        head = wire.fields(command['expected_head'], _HEAD_KEYS)
++        self._sequence = wire.counter(head['native_sequence'], minimum=3, maximum=15) + 1
++        self._previous_head = wire.digest(head['native_head_sha256'])
++        wire.require(head['previous_seal_sha256'] is None)
++        body = wire.fields(command['body'], {'expected_control_sha256', 'expected_mode'})
++        wire.require(body['expected_mode'] == 'open')
++        self._control_sha256 = wire.digest(body['expected_control_sha256'])
++        self._package_sha256 = wire.digest(pins.native_package_sha256)
++        self._catalog_sha256 = wire.digest(pins.effective_catalog_sha256)
++        self._command = command_wire.decode('utf-8')
++        self._common = dict(native_policy_sha256=NATIVE_POLICY_SHA256, scope=scope, limits=_LIMITS)
++        self._target = dict(target_id=stop_id, target_kind='source_stop')
++        self._action = dict(action_id=stop_id, action_kind='source_stop', original_command_sha256=_sha(command_wire))
++        self._query = wire.canonical(dict(format=_format('original-query'),
++            native_policy_sha256=NATIVE_POLICY_SHA256, scope=scope, **self._target,
++            expected_original_command_sha256=self._action['original_command_sha256'],
++            correlation={'kind': 'original_action_id', 'id': stop_id}))
++
++    def read(self, independent_get_original: Callable[[bytes], bytes]) -> StopReconciliationResult:
++        try:
++            raw = independent_get_original(self._query)
++        except Exception:
++            return StopReconciliationResult('unknown')
++        try:
++            reply = wire.read_json(raw, 8 * 1024 * 1024, exact=True)
++            if type(reply) is not dict or reply.get('format') != _format('original-reply'):
++                return StopReconciliationResult('unknown')
++            return self._verify_committed(reply)
++        except (wire.AcquisitionError, AttributeError, KeyError, TypeError, UnicodeError, ValueError):
++            return StopReconciliationResult('unknown')
++
++    def _verify_committed(self, reply: dict) -> StopReconciliationResult:
++        expected = dict(format=_format('original-reply'), **self._common, **self._target,
++                        original_command_wire=self._command)
++        wire.fields(reply, {*expected, 'original_result_wire', 'original_receipt_wire',
++                            'dependencies', 'observed_head'})
++        wire.require(all(reply[key] == value for key, value in expected.items()))
++        complete = _pins(reply['dependencies'], 70)
++
++        result_wire = reply['original_result_wire'].encode('utf-8')
++        result = wire.read_json(result_wire, 131072, exact=True)
++        expected_result = dict(format=_format('allocation-result'), **self._common, **self._action,
++                               native_sequence=str(self._sequence))
++        wire.fields(result, {*expected_result, 'dependencies', 'result_body'})
++        wire.require(all(result[key] == value for key, value in expected_result.items()))
++        direct = _pins(result['dependencies'], 7)
++        wire.require(direct.items() <= complete.items())
++        fence_pins = [(key, raw) for key, raw in direct.items() if key[0] == 'native_fence_record']
++        wire.require(len(fence_pins) == 1)
++        fence_key, fence_wire = fence_pins[0]
++        fence = wire.read_json(fence_wire, 16384, exact=True)
++        wire.require(fence['scope'] == self._common['scope'] and fence['fence_id'] == fence_key[1])
++        revision = wire.counter(fence['revision'], minimum=1, maximum=14)
++        control_pins = [(key, raw) for key, raw in direct.items()
++                        if key[0] == 'native_command' and key[2] == self._control_sha256]
++        wire.require(len(control_pins) == 1)
++        control_key, control_wire = control_pins[0]
++        control = wire.read_json(control_wire, 16384, exact=True)
++        wire.require(control['scope'] == self._common['scope'] and control['action_id'] == control_key[1]
++                     and control['native_policy_sha256'] == NATIVE_POLICY_SHA256
++                     and control['action_kind'] == 'source_resume')
++        wire.require(result['result_body'] == dict(previous_mode='open', resulting_mode='stopped',
++            previous_control_sha256=self._control_sha256, resulting_fence_revision=str(revision + 1)))
++        result_sha = _sha(result_wire)
++
++        receipt_wire = reply['original_receipt_wire'].encode('utf-8')
++        receipt = wire.read_json(receipt_wire, 4096, exact=True)
++        expected_receipt = dict(format=_format('allocation-receipt'), **self._common, **self._action,
++            native_sequence=str(self._sequence), result_sha256=result_sha,
++            previous_native_head_sha256=self._previous_head, admission_observation=None,
++            native_package_sha256=self._package_sha256, catalog_manifest_sha256=self._catalog_sha256)
++        wire.fields(receipt, {*expected_receipt, 'final_function_observation', 'commit_processing_observation'})
++        wire.require(all(receipt[key] == value for key, value in expected_receipt.items()))
++        wire.require(_clock(receipt['final_function_observation']) <= _clock(receipt['commit_processing_observation']))
++
++        receipt_sha = _sha(receipt_wire)
++        journal = dict(native_sequence=str(self._sequence), **self._action,
++            original_result_sha256=result_sha, original_receipt_sha256=receipt_sha,
++            previous_native_head_sha256=self._previous_head)
++        stop_head = _sha(wire.canonical(journal))
++        observed = wire.fields(reply['observed_head'], _HEAD_KEYS)
++        observed_sequence = wire.counter(observed['native_sequence'], minimum=self._sequence, maximum=16)
++        observed_hash = wire.digest(observed['native_head_sha256'])
++        wire.require(observed['previous_seal_sha256'] is None
++                     and (observed_hash == stop_head) == (observed_sequence == self._sequence))
++        return StopReconciliationResult('observed_committed_exact', receipt_sha, stop_head)

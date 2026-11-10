@@ -1,12 +1,13 @@
 # Durable provider acquisition before cache release
 
-The [joined November 10 fixture](../b2-b3-review-2026-11-10-joined-capture/README.md)
-retains Reservation and Capture in the same journal, head, fence and roles
-as handoff and Stop. It recovers the exact committed original after recorder
-loss and preserves uncertainty after pre-COMMIT interruption. Extend that
-one-packet, live-fence profile to the remaining lifecycle requirements below.
+The [packet retention fixture](../b2-b3-review-2026-11-10-packet-retention/README.md)
+extends the joined Reservation, Capture and Stop journal. It preserves all
+four incomplete dispositions, retains the exact original after committed
+Stop or fence expiry, checks the fence and committed Stop intent for each
+request, and reconciles the original Stop after restart. Proceed to native
+source admission, independently observed Availability and terminal closure.
 
-Keep the next slice in the native laboratory for one SOL/USD market, one writer, one unresolved packet per scope and a separately authenticated getter. Reuse the held `PreparedPacket`, A1 reservation/capture wires and B2–B7 lifecycle design. Pin the owner/run/market and acquisition epochs, exact actor/fence and package, applicable head and bounded identity, wire and terminal budgets. Preserve actual incomplete evidence. Verify the live collection fence and pending Stop at the I/O boundary, then specify what happens when a read is already in flight. The transport and pure validators confer no native or hosted authority.
+Keep the next slice in the native laboratory for one SOL/USD market, one writer, one unresolved packet per scope and a separately authenticated getter. Reuse the held `PreparedPacket`, A1 reservation/capture wires and B2–B7 lifecycle design. Pin the owner/run/market and acquisition epochs, exact actor/fence and package, applicable head and bounded identity, wire and terminal budgets. Preserve admission and availability head fields and the reserved Stop as the journal gains new kinds. Prove that Stop preserves an earlier committed Admission, that closure refuses after Admission, and that terminal closure blocks a delayed writer after obtaining the same lock.
 
 ## Prepare, record and read back
 
