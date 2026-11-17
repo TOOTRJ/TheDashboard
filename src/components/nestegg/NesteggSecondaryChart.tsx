@@ -49,7 +49,9 @@ export function NesteggSecondaryChart({ data }: Props) {
         </div>
       </CardHeader>
       <CardContent className="h-[280px] sm:h-[320px] min-h-[240px]">
-        <ResponsiveContainer width="100%" height="100%">
+        {data.length === 0 ? (
+          <p className="pt-4 text-sm text-muted-foreground">No retirement months are modeled in this plan.</p>
+        ) : <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
             <CartesianGrid
               strokeDasharray="3 3"
@@ -117,7 +119,7 @@ export function NesteggSecondaryChart({ data }: Props) {
               style={{ filter: `drop-shadow(0 0 6px ${NEON.pink})` }}
             />
           </BarChart>
-        </ResponsiveContainer>
+        </ResponsiveContainer>}
       </CardContent>
     </Card>
   );

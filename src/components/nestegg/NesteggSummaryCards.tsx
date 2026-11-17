@@ -43,28 +43,39 @@ export function NesteggSummaryCards({ result, lifeExpectancy, tier = "all" }: Pr
     nestEggAtRetirement,
     depletionAge,
     lastsThroughLifeExpectancy,
+    firstYearRetirementMonths,
     monthlyGapOrSurplus,
     readiness,
     readinessScore,
   } = result;
 
-  const longevityLabel = lastsThroughLifeExpectancy
-    ? `Through age ${lifeExpectancy}`
-    : depletionAge !== null
-      ? `May deplete by ~${Math.ceil(depletionAge)}`
-      : "—";
+  const hasRetirementMonths = firstYearRetirementMonths > 0;
+  const noRetirementDetail = "This plan has no modeled retirement months.";
+  const longevityLabel = !hasRetirementMonths
+    ? "Not evaluated"
+    : lastsThroughLifeExpectancy
+      ? `Through age ${lifeExpectancy}`
+      : depletionAge !== null
+        ? `May deplete by ~${Math.ceil(depletionAge)}`
+        : "—";
 
-  const longevityDetail = lastsThroughLifeExpectancy
-    ? "No funding shortfall in this simulation."
-    : "Funding falls short during the modeled period.";
+  const longevityDetail = !hasRetirementMonths
+    ? noRetirementDetail
+    : lastsThroughLifeExpectancy
+      ? "No funding shortfall in this simulation."
+      : "Funding falls short during the modeled period.";
 
-  const gapLabel =
-    monthlyGapOrSurplus >= 0
+  const gapLabel = !hasRetirementMonths
+    ? "Not available"
+    : monthlyGapOrSurplus >= 0
       ? `${formatCurrency(monthlyGapOrSurplus)} / mo surplus`
       : `${formatCurrency(Math.abs(monthlyGapOrSurplus))} / mo shortfall`;
 
-  const gapDetail =
-    "First year of retirement: income minus spending, before portfolio withdrawals.";
+  const gapDetail = !hasRetirementMonths
+    ? noRetirementDetail
+    : firstYearRetirementMonths < 12
+      ? `Income minus spending over ${firstYearRetirementMonths} modeled retirement ${firstYearRetirementMonths === 1 ? "month" : "months"}, before portfolio withdrawals.`
+      : "First year of retirement: income minus spending, before portfolio withdrawals.";
 
   const rc = readinessCopy[readiness];
 
@@ -95,15 +106,17 @@ export function NesteggSummaryCards({ result, lifeExpectancy, tier = "all" }: Pr
       value: gapLabel,
       detail: gapDetail,
       icon: Scale,
-      accent: monthlyGapOrSurplus >= 0 ? "text-[#39ff14]" : "text-[#ff3366]",
+      accent: !hasRetirementMonths
+        ? "text-muted-foreground"
+        : monthlyGapOrSurplus >= 0 ? "text-[#39ff14]" : "text-[#ff3366]",
     },
     {
       title: "Plan readiness",
-      value: readiness,
-      sub: `${readinessScore} / 100`,
-      detail: rc.hint,
+      value: hasRetirementMonths ? readiness : "Not evaluated",
+      sub: hasRetirementMonths ? `${readinessScore} / 100` : undefined,
+      detail: hasRetirementMonths ? rc.hint : noRetirementDetail,
       icon: Target,
-      accent: rc.color,
+      accent: hasRetirementMonths ? rc.color : "text-muted-foreground",
     },
   ];
 

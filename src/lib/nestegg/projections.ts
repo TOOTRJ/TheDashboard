@@ -206,6 +206,7 @@ export function runProjection(
     nestEggAtRetirement,
     depletionAge,
     lastsThroughLifeExpectancy,
+    firstYearRetirementMonths: firstYearMonths,
     monthlyGapOrSurplus,
     readiness,
     readinessScore,
