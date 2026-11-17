@@ -1,0 +1,759 @@
+{
+  "Stop_reserve_vector": {
+    "auxiliary_staging_rows": 0,
+    "declared_index_key_touches": 23,
+    "encoded_row_DML_UTF8_upper": 144142,
+    "existing_scope_state_rows_updated": 1,
+    "fence_revision_headroom": 1,
+    "logical_UTF8_bytes": 76533,
+    "logical_index_entries": 20,
+    "logical_row_writes": 10,
+    "native_position_increments": 1,
+    "new_dependency_associations": 7,
+    "new_domain_facts": 0,
+    "new_identity_rows": 0,
+    "new_journal_entries": 1,
+    "new_original_operations": 1,
+    "new_retained_rows": 9,
+    "row_DML_touches": 11
+  },
+  "actors": {
+    "F_recorder": "actual recorder own active origin and current hold",
+    "F_scope": "current installed recorder hold separately resolved while actual control authenticates; control has no fence_manage",
+    "per_scope": 4,
+    "profiles": {
+      "control": [
+        "control",
+        "read_original"
+      ],
+      "installer": [
+        "install",
+        "register_epoch",
+        "read_original"
+      ],
+      "reader": [
+        "register_reader_epoch",
+        "read_original"
+      ],
+      "recorder": [
+        "reserve",
+        "fence_manage",
+        "read_original"
+      ]
+    },
+    "rights": "new independently installed B2 bindings only; real session_user OID+name; current scope/package/catalog checks; SET ROLE/name/caller values confer no rights; B1 untouched"
+  },
+  "authority": {
+    "MVP_Stop_liveness": false,
+    "calibrated_clock": false,
+    "complete_B2": false,
+    "crash_durability_attested": false,
+    "hosted_runtime": false,
+    "installed": false,
+    "live_trading": false,
+    "native_acceptance": false,
+    "provider_calls": false
+  },
+  "canonicalization": {
+    "counter": "unsigned canonical ASCII decimal string; native counters <= signed64; xid8 private metadata <= unsigned64",
+    "digest": "lowercase sha256 hex64",
+    "json": "UTF8 compact sorted codepoint keys; ensure_ascii false; duplicate/unknown keys, NUL/lone surrogates and nonfinite values refuse",
+    "policy_digest": "sha256 of canonical descriptor bytes; no embedded own digest; implementation/source digest external",
+    "uuid": "canonical lowercase36; globally distinct except exact frozen semantic views and legitimate owner/run associations"
+  },
+  "closed_fields": {
+    "allocation_manifest": [
+      "format",
+      "scope",
+      "action_id",
+      "original_command_sha256",
+      "native_sequence",
+      "identities"
+    ],
+    "body_by_kind": {
+      "epoch_registration": [
+        "registration_id",
+        "predecessor_epoch",
+        "acquisition_epoch",
+        "recorder_principal_binding_id",
+        "reader_principal_binding_id",
+        "issuer_binding_id",
+        "policies",
+        "endpoint_bindings"
+      ],
+      "epoch_rollover": [
+        "registration_sha256",
+        "predecessor_epoch",
+        "successor_epoch",
+        "expected_last_admission_sha256",
+        "expected_last_availability_sha256"
+      ],
+      "fence_acquire": [
+        "fence_id",
+        "acquisition_epoch",
+        "holder_principal_binding_id",
+        "requested_duration_us"
+      ],
+      "fence_release": [
+        "fence_id",
+        "expected_revision"
+      ],
+      "fence_renew": [
+        "fence_id",
+        "expected_revision",
+        "requested_duration_us"
+      ],
+      "installation": [
+        "installation_id",
+        "scope",
+        "policies",
+        "catalog_manifest_sha256",
+        "actor_manifest_sha256",
+        "genesis_registry_sha256"
+      ],
+      "packet_reservation": [
+        "packet_ids",
+        "genesis_rpc_id",
+        "block_time_rpc_id",
+        "original_a1_reservation_wire",
+        "policies",
+        "issuer_binding_id",
+        "acquisition_epoch"
+      ],
+      "reader_epoch_registration": [
+        "registration_id",
+        "reader_process_epoch",
+        "predecessor_reader_epoch",
+        "reader_principal_binding_id",
+        "reader_package_sha256"
+      ],
+      "source_pause": [
+        "expected_control_sha256",
+        "expected_mode"
+      ],
+      "source_resume": [
+        "expected_control_sha256",
+        "expected_mode"
+      ],
+      "source_stop": [
+        "expected_control_sha256",
+        "expected_mode"
+      ]
+    },
+    "command": [
+      "format",
+      "native_policy_sha256",
+      "scope",
+      "action_id",
+      "action_kind",
+      "expected_head",
+      "expected_fence_id",
+      "expected_fence_revision",
+      "body"
+    ],
+    "head_pin": [
+      "native_sequence",
+      "native_head_sha256",
+      "previous_seal_sha256"
+    ],
+    "journal": [
+      "native_sequence",
+      "action_id",
+      "action_kind",
+      "original_command_sha256",
+      "original_result_sha256",
+      "original_receipt_sha256",
+      "previous_native_head_sha256"
+    ],
+    "observation": [
+      "format",
+      "native_policy_sha256",
+      "scope",
+      "target_kind",
+      "target_id",
+      "correlation",
+      "resolution",
+      "observed_head",
+      "original_operation_pin",
+      "limits"
+    ],
+    "original_pin": [
+      "semantic_kind",
+      "original_id",
+      "original_wire",
+      "wire_sha256",
+      "wire_bytes"
+    ],
+    "provisional": [
+      "format",
+      "native_policy_sha256",
+      "scope",
+      "action_id",
+      "action_kind",
+      "original_command_sha256",
+      "pending_commit",
+      "limits"
+    ],
+    "query": [
+      "format",
+      "native_policy_sha256",
+      "scope",
+      "target_kind",
+      "target_id",
+      "expected_original_command_sha256",
+      "correlation"
+    ],
+    "receipt": [
+      "format",
+      "native_policy_sha256",
+      "scope",
+      "action_id",
+      "action_kind",
+      "original_command_sha256",
+      "result_sha256",
+      "native_sequence",
+      "previous_native_head_sha256",
+      "admission_observation",
+      "final_function_observation",
+      "commit_processing_observation",
+      "native_package_sha256",
+      "catalog_manifest_sha256",
+      "limits"
+    ],
+    "reply": [
+      "format",
+      "native_policy_sha256",
+      "scope",
+      "target_kind",
+      "target_id",
+      "original_command_wire",
+      "original_result_wire",
+      "original_receipt_wire",
+      "dependencies",
+      "observed_head",
+      "limits"
+    ],
+    "result": [
+      "format",
+      "native_policy_sha256",
+      "scope",
+      "action_id",
+      "action_kind",
+      "native_sequence",
+      "original_command_sha256",
+      "dependencies",
+      "result_body",
+      "limits"
+    ],
+    "result_body_by_kind": {
+      "epoch_registration": [
+        "registration_sha256",
+        "acquisition_epoch",
+        "ordinal"
+      ],
+      "epoch_rollover": [
+        "predecessor_epoch",
+        "successor_epoch",
+        "registration_sha256",
+        "resulting_source_mode"
+      ],
+      "fence_acquire": [
+        "original_fence_record"
+      ],
+      "fence_release": [
+        "fence_id",
+        "previous_fence_sha256",
+        "resulting_fence_revision"
+      ],
+      "fence_renew": [
+        "original_fence_record",
+        "previous_fence_sha256"
+      ],
+      "installation": [
+        "installation_id",
+        "catalog_manifest_sha256",
+        "actor_manifest_sha256",
+        "genesis_registry_sha256"
+      ],
+      "packet_reservation": [
+        "packet_ids",
+        "original_a1_reservation_sha256",
+        "allocation_manifest_sha256",
+        "policies"
+      ],
+      "reader_epoch_registration": [
+        "registration_sha256",
+        "reader_process_epoch",
+        "predecessor_reader_epoch",
+        "ordinal"
+      ],
+      "source_pause": [
+        "previous_mode",
+        "resulting_mode",
+        "previous_control_sha256",
+        "resulting_fence_revision"
+      ],
+      "source_resume": [
+        "previous_mode",
+        "resulting_mode",
+        "previous_control_sha256",
+        "resulting_fence_revision"
+      ],
+      "source_stop": [
+        "previous_mode",
+        "resulting_mode",
+        "previous_control_sha256",
+        "resulting_fence_revision"
+      ]
+    },
+    "scope": [
+      "owner_id",
+      "run_id",
+      "market_epoch"
+    ],
+    "scope_head": [
+      "scope",
+      "native_sequence",
+      "native_head_sha256",
+      "active_acquisition_epoch",
+      "active_fence_id",
+      "fence_revision",
+      "source_mode",
+      "last_admission_sha256",
+      "last_ingest_sequence",
+      "last_availability_sha256",
+      "previous_seal_sha256"
+    ],
+    "utc_observation": [
+      "observed_at_us",
+      "wall_lower_us",
+      "wall_upper_us"
+    ]
+  },
+  "closure": {
+    "exact_set": "Present only the event-specific nonnull direct facts; deduplicate equal pins after mandatory association equality; omitted/extra/foreign/changed association refuses",
+    "getter_dependencies": "Flat exact transitive OriginalPin set including resolved ancestor C/Result/Receipt and domain facts; excludes target own trio already in reply; no unrelated later originals. Match set and canonical ordering; no digest-only resolution. Historical observed_head is separate authenticated snapshot metadata, not a claimed continuation capability.",
+    "maximum": "3*(16-1)+1 genesis+1 terminal+3 acquisition+3 reader+16 fence+1 A1 reservation=70 pins; no larger transport is introduced.",
+    "resolver": "Starting target direct pins, resolve original facts and every allocating/prior-head/prior-control Command to its complete committed C/Result/Receipt. Traverse predecessors to genesis with visited composite pins; all edges must match exact original associations. No Result contains prior Result/Receipt, so no recursively embedded result chain.",
+    "sort": "bytewise ASCII (semantic_kind, original_id, wire_sha256); duplicate identical composite keys refuse; same fence ID different immutable versions allowed only by exact original association"
+  },
+  "direct_dependencies": {
+    "epoch_registration": [
+      "genesis_input",
+      "installation_command",
+      "active_epoch_registration",
+      "terminal_allocation",
+      "previous_head_command",
+      "predecessor_registered_epoch",
+      "new_epoch_registration"
+    ],
+    "epoch_rollover": [
+      "genesis_input",
+      "installation_command",
+      "active_epoch_registration",
+      "terminal_allocation",
+      "previous_head_command",
+      "successor_registered_epoch",
+      "old_active_fence_if_any"
+    ],
+    "fence_acquire": [
+      "genesis_input",
+      "installation_command",
+      "active_epoch_registration",
+      "terminal_allocation",
+      "previous_head_command",
+      "new_fence_record"
+    ],
+    "fence_release": [
+      "genesis_input",
+      "installation_command",
+      "active_epoch_registration",
+      "terminal_allocation",
+      "previous_head_command",
+      "previous_fence_record"
+    ],
+    "fence_renew": [
+      "genesis_input",
+      "installation_command",
+      "active_epoch_registration",
+      "terminal_allocation",
+      "previous_head_command",
+      "previous_fence_record",
+      "new_fence_record"
+    ],
+    "installation": [
+      "genesis_input",
+      "new_initial_epoch_registration",
+      "terminal_allocation"
+    ],
+    "packet_reservation": [
+      "genesis_input",
+      "installation_command",
+      "active_epoch_registration",
+      "terminal_allocation",
+      "previous_head_command",
+      "current_fence_record",
+      "original_a1_reservation"
+    ],
+    "reader_epoch_registration": [
+      "genesis_input",
+      "installation_command",
+      "active_epoch_registration",
+      "terminal_allocation",
+      "previous_head_command",
+      "previous_reader_registration_if_any",
+      "new_reader_registration"
+    ],
+    "source_pause": [
+      "genesis_input",
+      "installation_command",
+      "active_epoch_registration",
+      "terminal_allocation",
+      "previous_head_command",
+      "previous_control_command_if_any",
+      "old_active_fence_if_any"
+    ],
+    "source_resume": [
+      "genesis_input",
+      "installation_command",
+      "active_epoch_registration",
+      "terminal_allocation",
+      "previous_head_command",
+      "previous_control_command_if_any",
+      "old_active_fence_if_any"
+    ],
+    "source_stop": [
+      "genesis_input",
+      "installation_command",
+      "active_epoch_registration",
+      "terminal_allocation",
+      "previous_head_command",
+      "previous_control_command_if_any",
+      "old_active_fence_if_any"
+    ]
+  },
+  "disabled_kinds": [
+    "capture_retention",
+    "source_admission",
+    "availability_retention",
+    "terminal_closure",
+    "inventory_seal"
+  ],
+  "enabled_kinds": [
+    "installation",
+    "epoch_registration",
+    "epoch_rollover",
+    "reader_epoch_registration",
+    "fence_acquire",
+    "fence_renew",
+    "fence_release",
+    "source_pause",
+    "source_resume",
+    "source_stop",
+    "packet_reservation"
+  ],
+  "finite_caps_per_scope": {
+    "acquisition_epoch_rows_including_genesis": 3,
+    "committed_events": 16,
+    "declared_index_key_touches_charged": 2048,
+    "dependency_association_rows": 112,
+    "direct_dependencies_per_result": 7,
+    "encoded_row_DML_UTF8_upper_charged": 8388608,
+    "fence_record_versions": 16,
+    "getter_original_pin_closure": 70,
+    "getter_reply_UTF8_bytes": 8388608,
+    "logical_UTF8_bytes_charged": 4194304,
+    "logical_index_entries_charged": 1024,
+    "logical_retained_rows": 271,
+    "logical_row_writes_charged": 512,
+    "ordinary_events_before_reserved_Stop": 15,
+    "reader_epoch_rows": 3,
+    "retained_identity_rows": 96,
+    "row_DML_touches_charged": 1024,
+    "unresolved_reservations": 1
+  },
+  "finite_fence_and_executor": {
+    "arbitrary_SQL": "unsupported; server current_query/session checks are defense in depth, not unforgeable client authentication or prevention of every user-settable-GUC change",
+    "durability": "accepted trusted executor keeps transaction-level synchronous_commit=on through actual COMMIT; fsync/on primary engine/storage assumptions independently checked in native fixture. Getter MVCC visibility alone never attests WAL flush, crash durability or final-visible freshness.",
+    "duration_policy": "exactly60s per new acquire/renew; no default and no renewal cadence selected",
+    "expiry": "actual guard clock < expires_at_us, equality expires; renew must pass old hold expiry at final-function and COMMIT guards; release/Stop do not require live hold",
+    "guard_session_checks": [
+      "transaction_isolation=read committed",
+      "synchronous_commit=on",
+      "session_replication_role=origin",
+      "TimeZone=UTC",
+      "primary not recovery",
+      "fsync=on independently observed",
+      "closed owned catalog/ACL/role/parameter checks",
+      "no allocated temp state or cursor/deferred user-code objects in supported executor session"
+    ],
+    "idle_transaction_timeout_ms": 10000,
+    "lock_timeout_ms": 1000,
+    "no_timeout_commit_inference": "client/statement/transaction timeout does not prove rollback; only same-original readback, never fresh request or clock rebase",
+    "owned_wall_timeout_ms": 20000,
+    "recognized_COMMIT_text": "ASCII whitespace trim then exact COMMIT or COMMIT; only (no case-folding/comments/END/chain/batching)",
+    "requested_hold_duration_us": "60000000",
+    "source_age_policy": "none; no source/provider actions enabled",
+    "statement_timeout_ms": 10000,
+    "transaction_protocol": [
+      "BEGIN ISOLATION LEVEL READ COMMITTED",
+      "fixed transaction-local lock_timeout=1000ms,statement_timeout=10000ms,transaction_timeout=15000ms,idle_in_transaction_session_timeout=10000ms,synchronous_commit=on",
+      "one exact original submit SELECT",
+      "exact standalone COMMIT message"
+    ],
+    "transaction_timeout_ms": 15000,
+    "trusted_executor_required": true
+  },
+  "first_vertical_slice": {
+    "all_other_kinds": "fail closed until individually implemented/reviewed; descriptor does not imply all eleven have native acceptance",
+    "enabled_implementation_initially": [
+      "installation",
+      "source_stop",
+      "read-only original getter/replay"
+    ],
+    "later_acceptance": "After remaining nine kinds: distinct7-pin Stop shape, all capacity boundary cases, one pending reservation, expired release, fence races and full snapshot no-write refusals.",
+    "ordered_native_tests": [
+      "independent constructor/catalog/cap manifest + original installation provisional",
+      "writer transaction getter refusal; independent reader absent before COMMIT",
+      "discard COMMIT ACK then original committed getter exact complete wires and recomputed Journal/Head",
+      "reserved Stop still absent before attempted Stop",
+      "one original Stop from paused without fence; committed original getter; exact replay zero-write; changed same-ID refuse",
+      "provisional then ROLLBACK all tables unchanged",
+      "second new action same transaction and SET CONSTRAINTS IMMEDIATE unsupported forms refuse",
+      "First slice proves actual installation/Stop used associations and reserve accounting only; distinct7-pin/maxreserve fixture is later, after fence/control kinds exist. No premature full11-kind or maximum-shaped native proof.",
+      "then implement remaining nine kinds with pending reservation, expired release, fence races, true no-write snapshots"
+    ]
+  },
+  "fixture_envelope": {
+    "actor_sessions_simultaneous_max": 8,
+    "executor_session_wall_seconds": 120,
+    "installed_scopes_max": 2,
+    "meaning": "Caps and Stop reserve apply independently per installed scope; two separately accepted scopes permit foreign-ID/principal tests. The shared private identity index still refuses UUID/role/scope aliases. This is finite lab capacity, not cross-project authority."
+  },
+  "format": "ga-jupiter-b2-allocation-finite-experiment-policy-research-v3-v3",
+  "formats": {
+    "allocation_manifest": "ga-jupiter-b2-derived-identity-allocation-research-v3-v1",
+    "command": "ga-jupiter-b2-allocation-command-research-v3-v1",
+    "empty_head": "ga-jupiter-b2-empty-head-research-v3-v1",
+    "genesis": "ga-jupiter-b2-genesis-registry-research-v3-v1",
+    "observation": "ga-jupiter-b2-query-observation-research-v3-v1",
+    "provisional": "ga-jupiter-b2-provisional-research-v3-v1",
+    "query": "ga-jupiter-b2-original-query-research-v3-v1",
+    "receipt": "ga-jupiter-b2-allocation-receipt-research-v3-v1",
+    "reply": "ga-jupiter-b2-original-reply-research-v3-v1",
+    "result": "ga-jupiter-b2-allocation-result-research-v3-v1",
+    "terminal": "ga-jupiter-b2-terminal-allocation-research-v3-v1"
+  },
+  "identity_and_genesis": {
+    "Stop": "exact one preallocated terminal Stop ID; identity row never reallocated/rewritten; consumption derives from its original operation; stale-head/unknown outcome never rebased/retried",
+    "configuration_identity_specs": 14,
+    "genesis_spec_roles": {
+      "acquisition_epoch": 1,
+      "control_action_id_reserved_Stop": 1,
+      "endpoint_binding_id": 2,
+      "installation_id": 1,
+      "issuer_binding_id": 1,
+      "market_epoch": 1,
+      "owner_id": 1,
+      "principal_binding_id": 4,
+      "registration_id": 1,
+      "run_id": 1
+    },
+    "genesis_views": "Only installation_id=>native_genesis_input and reserved_Stop_ID=>native_terminal_allocation with all V3 G/C/scope/package/position associations; no command or Stop-result authority from either view.",
+    "installation_action_ids_additional": 1,
+    "new_role": "native_operation_id",
+    "registration": "all accepted origins remain used forever within finite experiment; no cross-package continuation; registration action distinct from registration/origin UUIDs; prepare never mutates"
+  },
+  "limits": {
+    "calibrated_clock": false,
+    "hosted_authority": false,
+    "live_trading_authority": false,
+    "model_native_join": false,
+    "provider_attested": false,
+    "running_authority": false
+  },
+  "logical_storage": {
+    "Stop_reserve": "Calculator-derived upper envelope for exact Stop wire shape,7 dependency association rows,all final operation/journal/scope metadata and indexed logical keys. Ordinary mutation must preserve every component under same scope lock before any write; Stop consumes it exactly once. No reserve grant implies liveness.",
+    "charge": "Monotone conservative encoded logical upper: all TEXT wires plus canonical metadata and declared index keys; repeated copies charged. Replace observation integer counters with19-digit upper-envelope and accounting counts with selected caps. Separately charge staged operation INSERT before its deferred UPDATE. This credit unit bounds encoded accepted row images; it is not exact resident allocation, physical tuple/page/WAL or actual index entry count.",
+    "domain_fact_kinds": [
+      "native_genesis_input",
+      "native_terminal_allocation",
+      "native_epoch_registration",
+      "native_reader_epoch_registration",
+      "native_fence_record",
+      "a1_reservation"
+    ],
+    "index_keys": {
+      "actor_bindings": 2,
+      "dependency_associations": 2,
+      "domain_facts": 2,
+      "identities": 2,
+      "journal_entries": 2,
+      "original_operations": 3,
+      "package_inputs": 1,
+      "scope_state": 1
+    },
+    "operation_metadata_fields": [
+      "scope",
+      "action_id",
+      "action_kind",
+      "native_sequence",
+      "command_sha256",
+      "result_sha256",
+      "receipt_sha256",
+      "command_bytes",
+      "result_bytes",
+      "receipt_bytes",
+      "writer_xid8",
+      "writer_principal_binding_id",
+      "finalized",
+      "final_function_observation"
+    ],
+    "row_caps_per_scope": {
+      "actor_bindings": 4,
+      "dependency_associations": 112,
+      "domain_facts": 25,
+      "identities": 96,
+      "journal_entries": 16,
+      "original_operations": 16,
+      "package_inputs": 1,
+      "scope_state": 1
+    },
+    "staging": "One pending operation INSERT, then one deferred UPDATE of same original key; dependency/domain/identity inserts staged once; Journal INSERT and scope UPDATE deferred. No auxiliary staging/guard rows or DELETE. Final-key logical counts and row-DML touch counters are distinct.",
+    "tables": [
+      "package_inputs",
+      "actor_bindings",
+      "scope_state",
+      "original_operations",
+      "journal_entries",
+      "identities",
+      "domain_facts",
+      "dependency_associations"
+    ]
+  },
+  "null_and_preimage_rules": {
+    "allocation_manifest": "deterministically rebuild exact sorted eleven IdentityRecords from original Command PacketIds, actual position and C hash; hash canonical allocation_manifest object; no new UUID or semantic-pin kind; original_a1_reservation has its existing pin. Check all eleven actual identity rows equal derivation.",
+    "empty_head": "native_sequence=0, previous_seal=null; native_head_sha256=SHA256(canonical({format:empty_head_format,native_policy_sha256:policy_digest,scope:held_scope}))",
+    "last_source_fields": "last_admission_sha256,last_availability_sha256,previous_seal_sha256 are null and last_ingest_sequence is 0 throughout B2",
+    "observation": "only original_committed or observed_absent_unknown; original_operation_pin is exact native_command pin iff committed; absent pin null; no terminal_closed",
+    "order": [
+      "independently held canonical G and static package/actor inputs",
+      "C hashes G only, exact original C hash calculated",
+      "locked transactional native position; completed Identity/Epoch/Terminal/Fence facts refer only to C hash/position",
+      "Result hashes direct full OriginalPins and derived body, never Receipt/Journal/Head",
+      "final-function observation captured after work",
+      "recognized COMMIT guard separately samples actual clock and constructs Receipt",
+      "Journal hashes exact C/Result/Receipt, previous head digest",
+      "new native_head_sha256=SHA256(canonical Journal); ScopeHead stores this without being a hash preimage of itself"
+    ],
+    "prior_control": "latest committed source_pause/source_resume/source_stop Command SHA, null only before first source control; rollover does not rewrite that link",
+    "provisional": "pending_commit is literal true; no Result/Receipt/Journal/Head/clock or final-receipt digest fields; exact replay returns committed reply instead, no writes",
+    "query": "nonpacket correlation={kind:original_action_id,id:target_id}; packet reservation correlation={kind:packet_reconcile_id,id:original reserved reconcile_id}; no query ID allocation",
+    "receipt": "admission_observation is always null in B2; final_function_observation and commit_processing_observation are nonnull separately sampled UTC records; all six Limits false",
+    "utc_sample": "one clock_timestamp integer-us value copied to lower/observed/upper per observation; this records an uncalibrated database-clock sample, not a calibrated UTC uncertainty guarantee"
+  },
+  "purpose": "Finite allocator/control laboratory; not paper-MVP Stop liveness, not a lifetime production quota.",
+  "revision3_lineage": {
+    "reason": "Distinguish final retained distinct-key charge from actual staged/deferred row DML and declared index-key touches; charge final-function observation duplicated in operation metadata. No auxiliary staging rows, no physical tuple/page/WAL assertion.",
+    "v2_policy_sha256": "7e8ed2d7a88d97b182f27a4062710dbefce0ee2dbcb5730c3a3246d910a44bd7"
+  },
+  "revision_lineage": {
+    "original_calculator_sha256": "ae831e5721ce3b8f9b37177058834402e1fc8a62d46e4c6c8850d0e77fbecf7d",
+    "original_policy_file_sha256": "6865b2d325add1f954bbf7859c724e3d087c62b12e829ea619422d485bfc271d",
+    "original_result_sha256": "8413598b6d64f55a7abacf1fae899e689b6d4e36a03a9c1175ffcb6ae7fd09b8",
+    "originals_preserved": true,
+    "reason": "Original32-event candidate selected16MiB and peer/root incorrectly called provider PacketResult8MiB cache an existing native getter transport. That compatibility inference is withdrawn. New16-event candidate independently selects NEW8MiB complete native fixture response ceiling; no old cache/seal/adapter policy changes."
+  },
+  "source_gold": {
+    "capability_manifest": "four exact profile capability sets plus real actor name/OID+scope+installation/package associations, trusted independently held fixture input; no capability from B1 profile or caller",
+    "capability_manifest_binding_fields": [
+      "principal_binding_id",
+      "database_identity_sha256",
+      "session_user_oid",
+      "session_user_name",
+      "scope",
+      "capabilities",
+      "recorder_package_sha256",
+      "reader_package_sha256",
+      "issuer_binding_id",
+      "endpoint_bindings",
+      "installation_id"
+    ],
+    "capability_manifest_fields": [
+      "format",
+      "native_policy_sha256",
+      "scope",
+      "installation_id",
+      "bindings"
+    ],
+    "constructor_gold": "independent B2 constructor on owned approved PG17 fixture; all function bodies/signatures/searchpaths/owners/ACL/table/constraint/index/trigger/types/role/parameter privileges pinned by reviewed source and independently captured complete expected catalog, never accept current recomputed K as gold",
+    "native_package_manifest": [
+      "format",
+      "policy_sha256",
+      "SQL_sha256",
+      "source_validator_sha256",
+      "constructor_catalog_sha256",
+      "capability_manifest_sha256"
+    ],
+    "not_implemented_yet": [
+      "exact reviewed SQL and independent source validator hashes",
+      "actual owned constructor/catalog gold and real fixture capability manifest values",
+      "native snapshot/rollback/recognized-COMMIT/getter race proofs",
+      "measured physical storage/WAL and resource tails"
+    ],
+    "policy": "this independently reviewed descriptor; implementation source hash outside own preimage",
+    "preimage_order": "P semantic descriptor independent; SQL+validator bind P; independent constructor K binds source; actor A held independent; external M binds P/SQL/validator/K/A; original G/C refer to M via Policies only after M frozen. No P\u2192future M/K self-cycle.",
+    "runtime_installation_gate": "CLOSED until exact SQL/source/expected catalog/capability bytes are reviewed and externally pinned; null/missing/unreviewed artifact refuses, no placeholder/adopt-current path"
+  },
+  "status": "private_candidate_pending_peer_and_root_source_freeze_not_installed",
+  "transport_budget": {
+    "HTTP_or_hosted_adapter": "not implemented or claimed; any future adapter must independently account actual encoding/envelope without borrowing this fixture proof",
+    "existing_provider_cache_and_A1_seal": "separate8MiB budgets in frozen source; no relation or changes",
+    "native_representation": "psql --tuples-only --no-align text scalar containing one compact canonical UTF8 JSON object plus exactly one LF byte; getter returns text, not jsonb pretty text and not JSON-string/HTTP envelope",
+    "new_B2_native_fixture_response_bytes_limit": 8388608,
+    "new_ceiling_not_old_getter_compatibility": true,
+    "scalar_framing_bytes": 1
+  },
+  "upstream": {
+    "b1_sql_sha256": "84b3167c6626911fd231f2eeb337e1df4ab645a89c723017ecb169cdabf93cad",
+    "b2_v3_sha256": "20252f84dc5f2346b214539dda4db3d7110fa8ff4344c18760565b6c8baf66c1",
+    "clock_note_sha256": "06cef8cd41b37385505ea32656967f4000fff7cb2f5d4273efccad9a0eb3d7bd",
+    "constraint_followup_sha256": "2368ef10f4ef9605d6078db82a5aa30c0751b336c3abef4ec92c78315769973c",
+    "lifecycle_sha256": "629bb304beddfdf84a73a5df2afe0ab56798f349ce4ae73c1efc63722443d554"
+  },
+  "wire_caps_UTF8": {
+    "a1_reservation": 4096,
+    "accounting": 2048,
+    "actor_binding": 2048,
+    "command": 16384,
+    "journal": 1024,
+    "native_epoch_registration": 2048,
+    "native_fence_record": 1024,
+    "native_genesis_input": 8192,
+    "native_reader_epoch_registration": 2048,
+    "native_terminal_allocation": 1024,
+    "observation": 4096,
+    "package_inputs": 131072,
+    "provisional": 2048,
+    "query": 2048,
+    "receipt": 4096,
+    "result": 131072,
+    "scope_head": 2048
+  },
+  "writer_getter": {
+    "deferred": "DEFERRABLE INITIALLY DEFERRED constraint guard finalizes only when ASCII-whitespace-trimmed current_query is exactly COMMIT or COMMIT; and closed catalog/session/protocol checks pass; SET CONSTRAINTS IMMEDIATE/autocommit/multistatement/comments/END/COMMIT AND CHAIN unsupported and refuse",
+    "executor_readback": "approved independently verified fresh read transaction after write connection COMMIT/unknown ACK; same-writer self-read never counts. Recent pg_xact_status supplemental only, not retained original authority or terminal absence.",
+    "getter": "current scoped read authorization first; exact same kind/UUID/Command bytes/hash/package and allocation; reject current top-level writer xid8; READ COMMITTED primary, no recovery/replica; one SQL statement/snapshot resolves all complete immutable originals+observed head, no mixed helper snapshots",
+    "lock_order": [
+      "held package input row SHARE",
+      "actual actor binding row SHARE",
+      "scope state UPDATE",
+      "existing original operation row UPDATE if present",
+      "dependency and UUID identities in canonical sorted order; absent inserts occur under scope lock and global UNIQUE constraints, conflicts abort entire transaction"
+    ],
+    "pending_atomicity": "Result may be staged privately; no Journal/Head/Receipt final assembly externally committed until deferred finalization. ROLLBACK removes all staged operation/facts/accounting; no nontransactional sequences.",
+    "replay": "current scoped read auth and exact original comparison before fresh head/mode/fence/expiry checks; committed result returned with no DML; foreign existing vs absent same safe observation",
+    "single_snapshot_implementation": "One parent SELECT snapshot including authorization/package/association/complete original checks and observed_head; no VOLATILE nested catalog/assembly queries acquiring later snapshots; incomplete assembly always fixed refusal, not partial success.",
+    "writer_origin": "private top-level xid8 plus actual binding; unique writer_xid8 across new operation rows enforces one new action per transaction; replay/getters allocate nothing; xid8 is never immutable operation/epoch/cross-restore identity"
+  }
+}

@@ -141,6 +141,8 @@ def git_read(arguments):
 def export_worker(commit, destination, read=git_read):
     """Only immutable allowlisted source; normalize modes for non-root Docker COPY.
 
+    The persisted-production profile excludes legacy railway.json: current
+    service configuration is owned by the reviewed Railway production settings.
     This does not upload, prove review approval, or include operator credentials.
     The caller must verify the remote target and chosen source before deployment.
     """
@@ -156,7 +158,7 @@ def export_worker(commit, destination, read=git_read):
     paths = read(['ls-tree', '-r', '--name-only', commit, '--', 'services/vonneumann']).decode('utf-8').splitlines()
     prefix = 'services/vonneumann/'
     required = {'Dockerfile', '.dockerignore', 'requirements.txt', 'start-worker.sh',
-                'railway.json', 'tools/native_tls_preflight.py', 'tools/native_session_canary.py',
+                'tools/native_tls_preflight.py', 'tools/native_session_canary.py',
                 'tools/provider_read_canary.py', 'tools/paper_controller_canary.py'}
     selected = []
     for path in paths:
@@ -190,7 +192,7 @@ def export_worker(commit, destination, read=git_read):
         manifest.append({'path': relative, 'sha256': hashlib.sha256(data).hexdigest(),
                          'bytes': len(data), 'mode': oct(mode)})
     encoded = json.dumps(manifest, sort_keys=True, separators=(',', ':')).encode()
-    return {'source_sha': commit, 'directory': str(destination), 'files': len(manifest),
+    return {'export_profile': 'persisted-production-v1', 'source_sha': commit, 'directory': str(destination), 'files': len(manifest),
         'bytes': sum(item['bytes'] for item in manifest),
         'manifest_sha256': hashlib.sha256(encoded).hexdigest(),
         'credentials_included': False, 'remote_operations': False}

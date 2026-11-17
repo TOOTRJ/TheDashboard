@@ -132,4 +132,9 @@ def create_app(service=None, *, verify=require_user):
     return app
 
 
-app = create_app(configured_service())
+if os.environ.get('VN_SERVICE_MODE') == 'paper-v6':
+    from .prospective_configuration import configured_v6_service
+    from .paper_v6_api import create_app as create_v6_app
+    app = create_v6_app(configured_v6_service())
+else:
+    app = create_app(configured_service())

@@ -1,0 +1,98 @@
+{
+  "cache_release": false,
+  "capture_retention": {
+    "body_keys": [
+      "reservation_action_id",
+      "capture_wire"
+    ],
+    "capsules": [
+      "jupiter-price-v3",
+      "solana-getGenesisHash",
+      "solana-getBlockTime"
+    ],
+    "collection_completed": true,
+    "eligibility": false,
+    "native_sequence": "6",
+    "predecessor": "packet_reservation",
+    "required_fence_revision": "2",
+    "result_keys": [
+      "reservation_action_id",
+      "original_a1_reservation_sha256",
+      "original_a1_capture_sha256",
+      "collection_completed",
+      "eligibility",
+      "terminal"
+    ],
+    "terminal": false
+  },
+  "controls_policy_sha256": "e5dca1d13839102fb1fdd261176393b73c770a95ab355eff74499169905bfba0",
+  "dependencies": [
+    "exact immediately prior native command",
+    "current native fence record"
+  ],
+  "envelopes": {
+    "absence": "ga-jupiter-b2-query-observation-research-v3-v1",
+    "command": "ga-jupiter-b2-allocation-command-research-v3-v1",
+    "provisional": "ga-jupiter-b2-provisional-research-v3-v1",
+    "query": "ga-jupiter-b2-original-query-research-v3-v1",
+    "receipt": "ga-jupiter-b2-allocation-receipt-research-v3-v1",
+    "reply": "ga-jupiter-b2-original-reply-research-v3-v1",
+    "result": "ga-jupiter-b2-allocation-result-research-v3-v1"
+  },
+  "format": "ga-jupiter-b3-joined-acquisition-lab-policy-v1",
+  "get_original": {
+    "absence": "observed_absent_unknown",
+    "correlation": "original_action_id",
+    "nullable_expected_command_sha256": "independent scoped reader for capture_retention only"
+  },
+  "hosted_authority": false,
+  "journal": "same locked scope, literal COMMIT, exact identity registry and contiguous receipts as B2",
+  "limits": {
+    "a1_capture_bytes": "524288",
+    "a1_reservation_bytes": "8192",
+    "identities": "11",
+    "native_capture_command_bytes": "1048576",
+    "native_result_bytes": "131072",
+    "packet_count": "1",
+    "prepared_packet_bytes": "8192",
+    "price_body_bytes": "131072",
+    "rpc_body_bytes": "65536"
+  },
+  "live_trading_authority": false,
+  "packet_reservation": {
+    "body_keys": [
+      "reservation_wire",
+      "prepared_packet_wire",
+      "read_observation_id",
+      "availability_id",
+      "closure_id",
+      "reconcile_id"
+    ],
+    "capture_status": "unresolved",
+    "identity_roles": [
+      "reservation_id",
+      "capture_id",
+      "admission_id",
+      "observation_id",
+      "price_record_id",
+      "genesis_record_id",
+      "block_time_record_id",
+      "read_observation_id",
+      "availability_id",
+      "closure_id",
+      "reconcile_id"
+    ],
+    "native_sequence": "5",
+    "predecessor": "fence_renew",
+    "required_fence_revision": "2",
+    "result_keys": [
+      "packet_ids",
+      "original_a1_reservation_sha256",
+      "prepared_packet_sha256",
+      "capture_status"
+    ]
+  },
+  "pending_stop": "new packet mutations refuse; exact readback allowed",
+  "scope": "one synthetic SOL/USD run and one packet on a committed K2 handoff",
+  "source_admission": false
+}

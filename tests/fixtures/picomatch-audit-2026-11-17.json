@@ -1,0 +1,237 @@
+{
+  "captured_on": "2026-11-17",
+  "report": {
+    "auditReportVersion": 2,
+    "vulnerabilities": {
+      "@next/eslint-plugin-next": {
+        "name": "@next/eslint-plugin-next",
+        "severity": "high",
+        "nodes": [
+          "node_modules/@next/eslint-plugin-next"
+        ],
+        "via": [
+          "fast-glob"
+        ]
+      },
+      "@typescript-eslint/eslint-plugin": {
+        "name": "@typescript-eslint/eslint-plugin",
+        "severity": "high",
+        "nodes": [
+          "node_modules/@typescript-eslint/eslint-plugin"
+        ],
+        "via": [
+          "@typescript-eslint/parser",
+          "@typescript-eslint/type-utils",
+          "@typescript-eslint/utils"
+        ]
+      },
+      "@typescript-eslint/parser": {
+        "name": "@typescript-eslint/parser",
+        "severity": "high",
+        "nodes": [
+          "node_modules/@typescript-eslint/parser"
+        ],
+        "via": [
+          "@typescript-eslint/typescript-estree"
+        ]
+      },
+      "@typescript-eslint/type-utils": {
+        "name": "@typescript-eslint/type-utils",
+        "severity": "high",
+        "nodes": [
+          "node_modules/@typescript-eslint/type-utils"
+        ],
+        "via": [
+          "@typescript-eslint/typescript-estree",
+          "@typescript-eslint/utils"
+        ]
+      },
+      "@typescript-eslint/typescript-estree": {
+        "name": "@typescript-eslint/typescript-estree",
+        "severity": "high",
+        "nodes": [
+          "node_modules/@typescript-eslint/typescript-estree"
+        ],
+        "via": [
+          "tinyglobby"
+        ]
+      },
+      "@typescript-eslint/utils": {
+        "name": "@typescript-eslint/utils",
+        "severity": "high",
+        "nodes": [
+          "node_modules/@typescript-eslint/utils"
+        ],
+        "via": [
+          "@typescript-eslint/typescript-estree"
+        ]
+      },
+      "eslint-config-next": {
+        "name": "eslint-config-next",
+        "severity": "high",
+        "nodes": [
+          "node_modules/eslint-config-next"
+        ],
+        "via": [
+          "@next/eslint-plugin-next",
+          "typescript-eslint"
+        ]
+      },
+      "eslint-import-resolver-typescript": {
+        "name": "eslint-import-resolver-typescript",
+        "severity": "high",
+        "nodes": [
+          "node_modules/eslint-import-resolver-typescript"
+        ],
+        "via": [
+          "tinyglobby"
+        ]
+      },
+      "fast-glob": {
+        "name": "fast-glob",
+        "severity": "high",
+        "nodes": [
+          "node_modules/fast-glob"
+        ],
+        "via": [
+          "micromatch"
+        ]
+      },
+      "fdir": {
+        "name": "fdir",
+        "severity": "high",
+        "nodes": [
+          "node_modules/tinyglobby/node_modules/fdir"
+        ],
+        "via": [
+          "picomatch"
+        ]
+      },
+      "micromatch": {
+        "name": "micromatch",
+        "severity": "high",
+        "nodes": [
+          "node_modules/micromatch"
+        ],
+        "via": [
+          "picomatch"
+        ]
+      },
+      "picomatch": {
+        "name": "picomatch",
+        "severity": "high",
+        "nodes": [
+          "node_modules/picomatch",
+          "node_modules/tinyglobby/node_modules/picomatch"
+        ],
+        "via": [
+          {
+            "name": "picomatch",
+            "dependency": "picomatch",
+            "url": "https://github.com/advisories/GHSA-fc5q-39xc-vjpf",
+            "severity": "high",
+            "range": "<=4.0.7"
+          }
+        ]
+      },
+      "tinyglobby": {
+        "name": "tinyglobby",
+        "severity": "high",
+        "nodes": [
+          "node_modules/tinyglobby"
+        ],
+        "via": [
+          "fdir",
+          "picomatch"
+        ]
+      },
+      "typescript-eslint": {
+        "name": "typescript-eslint",
+        "severity": "high",
+        "nodes": [
+          "node_modules/typescript-eslint"
+        ],
+        "via": [
+          "@typescript-eslint/eslint-plugin",
+          "@typescript-eslint/parser",
+          "@typescript-eslint/typescript-estree",
+          "@typescript-eslint/utils"
+        ]
+      }
+    },
+    "metadata": {
+      "vulnerabilities": {
+        "info": 0,
+        "low": 0,
+        "moderate": 0,
+        "high": 14,
+        "critical": 0,
+        "total": 14
+      }
+    }
+  },
+  "lock": {
+    "packages": {
+      "node_modules/@next/eslint-plugin-next": {
+        "version": "16.4.5",
+        "dev": true
+      },
+      "node_modules/@typescript-eslint/eslint-plugin": {
+        "version": "8.71.2",
+        "dev": true
+      },
+      "node_modules/@typescript-eslint/parser": {
+        "version": "8.71.2",
+        "dev": true
+      },
+      "node_modules/@typescript-eslint/type-utils": {
+        "version": "8.71.2",
+        "dev": true
+      },
+      "node_modules/@typescript-eslint/typescript-estree": {
+        "version": "8.71.2",
+        "dev": true
+      },
+      "node_modules/@typescript-eslint/utils": {
+        "version": "8.71.2",
+        "dev": true
+      },
+      "node_modules/eslint-config-next": {
+        "version": "16.4.5",
+        "dev": true
+      },
+      "node_modules/eslint-import-resolver-typescript": {
+        "version": "3.10.1",
+        "dev": true
+      },
+      "node_modules/fast-glob": {
+        "version": "3.3.1",
+        "dev": true
+      },
+      "node_modules/micromatch": {
+        "version": "4.0.8",
+        "dev": true
+      },
+      "node_modules/picomatch": {
+        "version": "2.3.2",
+        "dev": true
+      },
+      "node_modules/tinyglobby": {
+        "version": "0.2.15",
+        "dev": true
+      },
+      "node_modules/tinyglobby/node_modules/fdir": {
+        "version": "6.5.0",
+        "dev": true
+      },
+      "node_modules/tinyglobby/node_modules/picomatch": {
+        "version": "4.0.7",
+        "dev": true
+      },
+      "node_modules/typescript-eslint": {
+        "version": "8.71.2",
+        "dev": true
+      }
+    }
+  }
+}

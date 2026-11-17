@@ -1,4 +1,139 @@
 {
   "version": 1,
-  "exceptions": []
+  "exceptions": [
+    {
+      "advisory": "GHSA-fc5q-39xc-vjpf",
+      "url": "https://github.com/advisories/GHSA-fc5q-39xc-vjpf",
+      "package": "picomatch",
+      "affected_range": "<=4.0.7",
+      "severity": "high",
+      "scope": "development-only",
+      "reviewed_on": "2026-11-17",
+      "expires_on": "2026-11-24",
+      "reason": "No patched picomatch release is published; official latest is 4.0.7. Accept only these exact development lint paths and dependency edges for seven days. Lint uses fixed trusted repository patterns in bounded CI; no application endpoint supplies glob patterns. This does not make untrusted repository lint execution safe. Production audit must remain clean. Remove on a compatible upstream fix or re-review before expiry; upstream PR 194 does not fix the reported single-branch repeated-extglob case.",
+      "findings": {
+        "@next/eslint-plugin-next": {
+          "nodes": {
+            "node_modules/@next/eslint-plugin-next": "16.4.5"
+          },
+          "via": [
+            "fast-glob"
+          ]
+        },
+        "@typescript-eslint/eslint-plugin": {
+          "nodes": {
+            "node_modules/@typescript-eslint/eslint-plugin": "8.71.2"
+          },
+          "via": [
+            "@typescript-eslint/parser",
+            "@typescript-eslint/type-utils",
+            "@typescript-eslint/utils"
+          ]
+        },
+        "@typescript-eslint/parser": {
+          "nodes": {
+            "node_modules/@typescript-eslint/parser": "8.71.2"
+          },
+          "via": [
+            "@typescript-eslint/typescript-estree"
+          ]
+        },
+        "@typescript-eslint/type-utils": {
+          "nodes": {
+            "node_modules/@typescript-eslint/type-utils": "8.71.2"
+          },
+          "via": [
+            "@typescript-eslint/typescript-estree",
+            "@typescript-eslint/utils"
+          ]
+        },
+        "@typescript-eslint/typescript-estree": {
+          "nodes": {
+            "node_modules/@typescript-eslint/typescript-estree": "8.71.2"
+          },
+          "via": [
+            "tinyglobby"
+          ]
+        },
+        "@typescript-eslint/utils": {
+          "nodes": {
+            "node_modules/@typescript-eslint/utils": "8.71.2"
+          },
+          "via": [
+            "@typescript-eslint/typescript-estree"
+          ]
+        },
+        "eslint-config-next": {
+          "nodes": {
+            "node_modules/eslint-config-next": "16.4.5"
+          },
+          "via": [
+            "@next/eslint-plugin-next",
+            "typescript-eslint"
+          ]
+        },
+        "eslint-import-resolver-typescript": {
+          "nodes": {
+            "node_modules/eslint-import-resolver-typescript": "3.10.1"
+          },
+          "via": [
+            "tinyglobby"
+          ]
+        },
+        "fast-glob": {
+          "nodes": {
+            "node_modules/fast-glob": "3.3.1"
+          },
+          "via": [
+            "micromatch"
+          ]
+        },
+        "fdir": {
+          "nodes": {
+            "node_modules/tinyglobby/node_modules/fdir": "6.5.0"
+          },
+          "via": [
+            "picomatch"
+          ]
+        },
+        "micromatch": {
+          "nodes": {
+            "node_modules/micromatch": "4.0.8"
+          },
+          "via": [
+            "picomatch"
+          ]
+        },
+        "picomatch": {
+          "nodes": {
+            "node_modules/picomatch": "2.3.2",
+            "node_modules/tinyglobby/node_modules/picomatch": "4.0.7"
+          },
+          "via": [
+            "https://github.com/advisories/GHSA-fc5q-39xc-vjpf"
+          ]
+        },
+        "tinyglobby": {
+          "nodes": {
+            "node_modules/tinyglobby": "0.2.15"
+          },
+          "via": [
+            "fdir",
+            "picomatch"
+          ]
+        },
+        "typescript-eslint": {
+          "nodes": {
+            "node_modules/typescript-eslint": "8.71.2"
+          },
+          "via": [
+            "@typescript-eslint/eslint-plugin",
+            "@typescript-eslint/parser",
+            "@typescript-eslint/typescript-estree",
+            "@typescript-eslint/utils"
+          ]
+        }
+      }
+    }
+  ]
 }

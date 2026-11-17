@@ -1,0 +1,76 @@
+{
+  "cache_release": false,
+  "capture": {
+    "allowed_capture_shapes": [
+      "complete ordered three-body capture",
+      "safe incomplete ordered prefix and one exact diagnostic"
+    ],
+    "allowed_current_tip": [
+      "committed Reservation5 with open source",
+      "committed Stop6 with stopped source"
+    ],
+    "body_keys": [
+      "reservation_action_id",
+      "capture_wire"
+    ],
+    "clock_rule": "fresh current writer authentication and retention clocks at or after actual predecessor COMMIT",
+    "dependency_pins": [
+      "original native Reservation5 command",
+      "original native Renew4 fence record"
+    ],
+    "eligibility": false,
+    "expected_fence_id": null,
+    "expected_fence_revision": null,
+    "expected_head": {
+      "native_head_sha256": "exact scoped Reservation5 journal digest",
+      "native_sequence": "5",
+      "previous_seal_sha256": null
+    },
+    "kind": "capture_retention",
+    "pending_stop_intent": "refuse before Stop commits",
+    "required_authentication": "exact active successor credential for the originally allocated packet",
+    "result_keys": [
+      "reservation_action_id",
+      "original_a1_reservation_sha256",
+      "original_a1_capture_sha256",
+      "collection_completed",
+      "eligibility",
+      "terminal"
+    ],
+    "terminal": false
+  },
+  "collection_authorization": {
+    "query_format": "ga-jupiter-b3-collection-authorization-query-v2",
+    "query_keys": [
+      "format",
+      "scope",
+      "reservation_id",
+      "reservation_command_sha256",
+      "head_sha256",
+      "record_id",
+      "provider_family",
+      "request_sha256"
+    ],
+    "reply_format": "ga-jupiter-b3-collection-authorization-observation-v2",
+    "reply_keys": [
+      "format",
+      "query_sha256",
+      "fence_id",
+      "fence_revision",
+      "observed_at_us",
+      "valid_until_us"
+    ],
+    "scope": "statement observation of the live current fence and no pending Stop for original Reservation5"
+  },
+  "controls_policy_sha256": "e5dca1d13839102fb1fdd261176393b73c770a95ab355eff74499169905bfba0",
+  "format": "ga-jupiter-b3-joined-capture-retention-lab-policy-v2",
+  "getter": {
+    "capture_digest": "the profile digest for Capture queries",
+    "opaque": "original scoped Capture ID with independent reader"
+  },
+  "hosted_authority": false,
+  "live_trading_authority": false,
+  "receipt_previous_head": "actual contiguous journal predecessor",
+  "reservation_policy_sha256": "28b7df36ca970796b7729d29ca0fd0dde861edfdc09579afef160218a05ade51",
+  "source_admission": false
+}
