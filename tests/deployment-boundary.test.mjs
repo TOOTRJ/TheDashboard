@@ -41,6 +41,14 @@ function refuses(environment) {
   assert.throws(() => policy.default("phase-production-build"), /Dashboard/);
 }
 
+test("Vercel Git deployments are enabled only for the production branch", () => {
+  const configuration = JSON.parse(fs.readFileSync(new URL("../vercel.json", import.meta.url), "utf8"));
+  // Vercel uses minimatch and any matching true rule wins. Globstar covers
+  // slash-containing codex/ branches as well as ordinary branch names.
+  // https://vercel.com/docs/project-configuration/git-configuration
+  assert.deepEqual(configuration.git.deploymentEnabled, { main: true, "**": false });
+});
+
 test("the exact Dashboard production configuration is admitted", () => {
   accepts(production, "production");
   const noOptionalTarget = { ...production };

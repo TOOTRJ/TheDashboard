@@ -1,5 +1,26 @@
 # Evolutionary trading bot MVP readiness
 
+## Active paper launch — November 17, 2026
+
+Follow [the active TODO checklist](TODO.md#active-production-paper-plan--november-17-2026).
+The user has selected one production Supabase database and one Vercel project;
+cloud preview/staging provisioning is no longer a launch dependency. Keep PR
+review and offline checks, then deploy `main` straight to production. The exact
+Railway worker is currently closed. A new runtime has to join durable observations,
+the two-EMA model, atomic state/history, original-command reconciliation, restart
+and authenticated owner controls before hosted activation.
+
+Paper acceptance requires bounded hosted faults and measured resource/quota/cost
+checks, followed by 915 qualifying warm-up minutes **and** a full 60-minute first
+evaluation (at least 975 qualifying minutes, plus alignment and gaps), the first
+replacement and continuation into the next generation. Do not interpret the older
+915-minute references below as complete evolution acceptance. Live execution has
+its own later custody, risk, transaction, reconciliation and explicit funding gates.
+
+The remaining sections retain dated evidence; the November 17 TODO controls the
+current order and the user's single-production deployment choice.
+
+
 ## Authoritative current status — 2026-10-21
 
 The app/API baseline, worker foundations/B1, Paper Dashboard controls and eight-job CI repair are released through PR110. PR107's standalone failure remains historical. [PR111](https://github.com/TOOTRJ/TheDashboard/pull/111) is merged as `1fcbf0c84f4fcb5f8b06095e498df1a3965adea6` at `2026-10-22T02:48:43Z`. All eight jobs in run39708763776 pass; head `764d00a`, tested checkout `ebe02c7` and actual merge share tree `aa7576cebc2608122324a8a8bba0d14d1f0c498c`. Fresh scoped fetch confirms the merge; exact Dashboard production `dpl_Gs8rhCg6i9PNgwS1pRXipUtdZ9hG` is READY in 17 seconds from that source/current canonical alias, with all four read-only smokes passing at 02:55:31.586Z and zero writes. This releases PR111's documentation/V11b review archive only; it does not accept the newer prepared app/guard/fee/V12 batch, which is not yet accepted by exact-head CI/release. [Exact release receipt](RELEASE-PR111-ACCEPTANCE-2026-10-21.md).

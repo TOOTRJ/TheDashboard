@@ -12,38 +12,33 @@ Its financial-model, privacy, result-identity and export audit items remain open
 in [TODO.md](TODO.md); existing outputs are not independently accepted financial
 projections.
 
-## Current implementation status — 2026-10-12
+## Current implementation status — 2026-11-17
 
-Vercel hosts the dashboard, Supabase holds the selected v5 exact paper ledger and
-owner history, and Railway hosts the Python service in **closed mode**. The
-original supervised zero-cost hour passed at revision 514 with 504 prices, one
-replacement, eight funded children, two closed trades and 32 acknowledged events.
-The owner history repair/readback passed; temporary credentials were revoked and
-ordinary closed startup restored. This is finite mechanical acceptance, not
-continuous operation or evidence of trading profitability.
+Vercel hosts the authenticated dashboard, Supabase stores application data and the
+paper ledger, and Railway hosts the Python worker. The production frontend is
+PR117 (`fbe9d93e`); the verified Railway deployment
+`04c592a8-61c6-4ebc-ad34-16c789a4e1c9` remains closed while the continuous paper
+runtime is connected and tested. The earlier supervised v5 hour demonstrated one
+mechanical replacement; it did not prove continuous recovery or profitable trading.
 
-PR96 and [PR97](https://github.com/TOOTRJ/TheDashboard/pull/97) are merged. The
-reviewed baseline is `67cff30`; PR97 production
-`dpl_ASo5z4Zc6APWsUPseQVrvw52Aici` was READY with canonical-alias/four-probe
-verification. Railway remains closed at deployment
-`cf05895d-adc5-427f-873e-82ad6606e5a1`. This review freshly reverified exact baseline deployment metadata and all four
-read-only probes, plus unchanged Railway target/service settings. Prior native
-TLS/image/active-workload acceptance was not repeated.
+The active work joins the two-EMA prospective model to durable observations,
+restartable state, owner controls and dashboard history. Initial warm-up requires
+915 complete qualifying minutes, followed by a full 60-minute evaluation before
+the first replacement. Source adoption, native fault checks and the hosted
+operating checks remain required before declaring that pilot accepted.
 
-The portable two-EMA integer model and compact transport are built offline. A
-new review reproduced a boolean/integer configuration-type acceptance defect;
-repair that boundary before completing independent version 2 SQL semantics. The
-new model is not fully validated, admitted by the hosted native writer or enabled
-in Railway. Native compact effects, exact restoration, dependency-safe retention,
-new-version dashboard compatibility and hosted fault/load acceptance remain open.
-Live funding, signing, swaps and execution remain unavailable and unauthorized.
+This personal application uses one production Supabase database and one Vercel
+project. Pull requests retain offline verification; only `main` automatically
+deploys to Vercel production. Branch previews and separate staging databases are
+not required. Railway releases target only the pinned Dashboard worker. Private
+worker credentials stay in that service; browser variables never carry them.
 
-See [MVP-READINESS.md](MVP-READINESS.md) for the current gate order,
-[TODO.md](TODO.md) for dependencies and parallel work, and
-[CONFIGURATION-PREFLIGHT.md](CONFIGURATION-PREFLIGHT.md) for release evidence.
-[RAILWAY-SETUP.md](RAILWAY-SETUP.md) records exact worker target and credential
-boundaries. Security/CI, app/API honesty and privacy, and data/fill/objective
-research can proceed alongside the ordered SQL/native/restoration work.
+See [TODO.md](TODO.md) for the active ordered checklist,
+[MVP-READINESS.md](MVP-READINESS.md) for acceptance details,
+[CONFIGURATION-PREFLIGHT.md](CONFIGURATION-PREFLIGHT.md) for target/release evidence,
+and [RAILWAY-SETUP.md](RAILWAY-SETUP.md) for worker configuration. Further data/cost
+research and the broader dashboard audit can run alongside implementation. Live
+funding, signing, swaps and activation require separate authorization.
 
 ## Getting Started
 
@@ -62,9 +57,9 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 Routes are under `src/app`. Private environment files and `ssl/` are ignored.
 Use explicit project-specific configuration from the preflight report; a local
-`.env` does not configure Railway or Vercel. Current Vercel preview/development
-settings share production Supabase values, so previews are not isolated write-test
-environments. Do not copy worker/admin secrets into browser variables.
+`.env` does not configure Railway or Vercel. Local development uses the same authorized production database; use offline
+fixtures for destructive or synthetic integration tests. Automatic branch previews
+are disabled by the production-only deployment policy. Do not copy worker/admin secrets into browser variables.
 
 The Python worker targets Python 3.12 and hash-locked dependencies in
 `services/vonneumann/requirements.txt` and `requirements-dev.txt`. Use a dedicated

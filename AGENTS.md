@@ -6,7 +6,7 @@ The user runs another coding agent on a different project under the same macOS u
 
 GitHub repository: `TOOTRJ/TheDashboard`, immutable repository ID `1141090963`, canonical origin `https://github.com/TOOTRJ/TheDashboard.git`. Use `codex/` branches and pull requests for reviewed changes. The former `biggrizzly11/TheDashboard` address redirects to this same repository; use the canonical address for future operations. Do not push directly to `main` or merge a pull request without authorization.
 
-The `codex/dashboard-security-reliability` branch has automatic Vercel Git deployments disabled in `vercel.json` so review can proceed before preview isolation and release readiness are resolved. Keep that branch guard until deployment is deliberately reviewed; a draft PR alone does not prevent deployment. Other branches retain their existing behavior.
+The user authorized a production-only release workflow on November 17, 2026. `vercel.json` enables automatic Vercel Git deployments only for `main` and disables them for every other branch, including `codex/` branches. Keep pull requests and local/offline checks before authorized merges to `main`; each merge deploys directly to the verified production project. Do not provision preview or additional cloud environments unless the user requests them.
 
 | Provider | Project | Immutable ID | Owner |
 |---|---|---|---|
@@ -60,7 +60,7 @@ For Supabase CLI, use this repository's explicit `--workdir` and the verified pr
 - Do not globally upgrade CLIs, Node, Python, or packages while coordinating this task. Prefer project-local dependencies and an isolated worker environment.
 - Check ports before starting services. Track and stop only this task's processes. Do not use broad process termination, Docker pruning, or `supabase stop --all`.
 - Keep application credentials and environment files private and out of source control, logs, and reports. Do not revoke or rotate a credential without determining whether other projects depend on it.
-- Current Vercel preview/development configuration uses the same Supabase values as production. A preview deployment is not an isolated database test environment. Use mocked/offline tests for initial repairs; review database targets before any integration test that writes.
+- The authorized cloud setup uses one production Vercel environment and the existing `The Dashboard` Supabase project. Preview builds are disabled. Use mocked/offline tests for initial repairs and verify the exact production targets before any integration test that writes. Additional cloud database or deployment environments are not prerequisites for this personal-use release workflow.
 - Follow `TODO.md` dependencies and keep `CONFIGURATION-PREFLIGHT.md` current. Target verification does not mean the bot is ready to deploy or trade.
 - Review migrations as forward changes against the exact allowed Supabase project. Prepare deployment/migration validation and rollback steps before the corresponding action. Follow the user's actual authorization; do not infer permission for unrelated cloud changes.
 - Live wallet funding, transaction signing, swaps, and live trading are outside the current work's authorization.

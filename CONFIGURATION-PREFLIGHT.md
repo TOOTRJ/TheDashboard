@@ -1,5 +1,27 @@
 # Dashboard configuration and access preflight
 
+## November 17 production-only deployment decision
+
+The user authorizes a single production environment for this personal app. The
+current `vercel.json` enables Git deployments for `main` and denies all other
+branches with the `**` minimatch pattern. Vercel documents that a matching `true`
+rule wins, so `main` remains enabled. No separate Supabase/Vercel project is needed.
+Existing offline fixtures and exact-target checks remain part of verification.
+
+Fresh read-only identity checks resolve GitHub `TOOTRJ/TheDashboard` repository
+1141090963, Vercel `the-dashboard` / `prj_wFUe9k9USVreOQcmQKNWRAVsx5fH` under
+`team_8iNNxiNjrOseD4gdSCHkQEzF`, linked to that repository and production branch
+`main`, and Supabase `The Dashboard` / `fxpxsciltakyypunglzr` in organization
+`cqfnnaunmupdyobkyqfo`. Supabase still has 15 migrations. Railway resolves the pinned
+project, workspace, production environment and `dashboard-paper-worker`; its
+latest deployment is `04c592a8-61c6-4ebc-ad34-16c789a4e1c9`, SUCCESS, with restart
+policy NEVER. These identity/settings reads do not establish continuous paper
+acceptance. The new durable runtime is being implemented under PAPER-01–06.
+
+The production-only build guard/configuration checks pass 46/46 using Node
+24.22.2. Exact production deployment verification follows the reviewed merge.
+
+
 ## November 10 late retention and request authorization checks
 
 Five focused native PostgreSQL 17.6 cases passed on the versioned candidate.
