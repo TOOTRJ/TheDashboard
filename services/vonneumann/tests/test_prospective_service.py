@@ -273,6 +273,85 @@ class ProspectiveServiceTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual((await service.status(OWNER))['last_request_id'], str(UUID(int=812)))
         await service.close()
 
+    async def test_bar_boundary_crossing_waits_for_exact_history_but_still_protects_and_gap_stays_stoppable(self):
+        from types import SimpleNamespace
+        from vonneumann.server.prospective_source_feed import ProspectiveSourceFeed
+        marks = tuple(mark(index, price='100') for index in range(946))
+        history = source.derive_sampled_history(seal(marks[:915]))
+        series = source.derive_close_series(history, expected_history_sha256=history.sha256)
+        advanced = source.derive_sampled_history(seal(marks[900:930], start=END-900,
+            end=END+900, seal_id=str(UUID(int=820))), previous=history,
+            expected_previous_sha256=history.sha256)
+        advanced_series = source.derive_close_series(advanced, expected_history_sha256=advanced.sha256)
+        observations = (marks[930], marks[931], marks[945])
+        artifacts = {('history', history.sha256): history, ('series', series.sha256): series,
+            ('history', advanced.sha256): advanced, ('series', advanced_series.sha256): advanced_series,
+            **{('mark', item.sha256): item for item in observations}}
+        reader = lambda kind, digest: artifacts[(kind, digest)]
+        runtime = ProspectiveRuntime(OWNER, RUN, self.journal, reader)
+        await runtime.submit(runtime.prepare_bootstrap(self.config, history, series,
+            inputs=new_inputs((END+5)*1_000_000, 54_905_000_000)), command_id=str(UUID(int=821)))
+
+        # The feed checks immediately before the completion margin; collecting
+        # the genuine next mark crosses it. Every required minute is present.
+        precheck = SimpleNamespace(_history=history)
+        self.assertEqual(await ProspectiveSourceFeed._history_update(precheck,
+            (END+900)*1_000_000+source.COMPLETION_MARGIN_US-1), (None, None))
+        # A later, real missing minute cannot be recreated by an ordinary retry.
+        gap = SimpleNamespace(_history=advanced, _marks=list(marks[915:940])+list(marks[941:945]),
+            _history_gap=False)
+        self.assertEqual(await ProspectiveSourceFeed._history_update(gap,
+            (END+1800)*1_000_000+source.COMPLETION_MARGIN_US), (None, None))
+        self.assertTrue(gap._history_gap)
+
+        class ReadyArtifacts:
+            async def restore(self): pass
+        ready = ReadyArtifacts(); ready.reader = reader
+        waiting, release = asyncio.Event(), asyncio.Event()
+        calls, acknowledged, phases = [], [], []
+        self.feed.ack_history = acknowledged.append
+        self.feed.status = lambda: {'observed_minutes': 4, 'required_minutes': 915,
+            'history_gap': len(calls) >= 3}
+        async def next_observation():
+            index = len(calls); calls.append(index)
+            if index == 0:
+                return SourceBatch(observations[0])
+            if index == 1:
+                return SourceBatch(observations[1], advanced, advanced_series)
+            if index == 2:
+                return SourceBatch(observations[2])
+            waiting.set(); await release.wait()
+            return SourceBatch(marks[945])
+        self.feed.next_observation = next_observation
+        async def paced(_):
+            phases.append(service._phase)
+        def clock(binding):
+            index = max(0, min(len(calls)-1, len(observations)-1))
+            return inputs_for_mark(observations[index], serial=200+index, generation=1).clock
+        service = ProspectivePaperService(self.journal, self.feed, self.config,
+            artifacts=ready, clock=clock, sleep=paced)
+        try:
+            await service.start(OWNER, str(UUID(int=822)))
+            await asyncio.wait_for(waiting.wait(), 20)
+            self.assertEqual(phases, ['waiting_data', 'running', 'waiting_data'])
+            self.assertEqual([row.to_dict()['witness']['kind'] for row in self.journal.rows],
+                ['bootstrap', 'protective', 'protective', 'decision', 'protective'])
+            self.assertEqual(acknowledged, [advanced.sha256])
+            status = await service.status(OWNER)
+            self.assertEqual(status['phase'], 'waiting_data')
+            self.assertTrue(status['warmup']['history_gap'])
+            self.assertFalse(status['requires_reconciliation'])
+            self.assertEqual(service.runtime.state.to_dict()['source']['history_sha256'], advanced.sha256)
+            self.assertEqual(service.runtime.state.to_dict()['engine']['generation'], 0)
+            self.assertTrue(all(not row['selection_eligible'] for record in service.runtime.history
+                for row in record['assessments']))
+            await service.stop(OWNER, str(UUID(int=823)))
+            release.set(); await service._task
+            self.assertEqual((await service.status(OWNER))['phase'], 'stopped')
+        finally:
+            release.set()
+            await service.close()
+
 
 if __name__ == '__main__':
     unittest.main()

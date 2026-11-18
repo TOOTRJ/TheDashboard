@@ -31,9 +31,10 @@ function harness(options={}) {
     if(!Object.is(entry.value,result)){entry.value=result;dirty=true;}}];}};
  let activeOwner=owner,failures=options.failures??0,workerFails=false;
  const state={version:6,owner_id:owner,run_id:run,phase:options.phase??'idle',sequence:0,revision:0,generation:0,epoch:0,
-  busy:false,requires_reconciliation:false,last_request_id:null,projection:null};
+  busy:false,requires_reconciliation:options.requiresReconciliation??false,last_request_id:null,projection:null,
+  warmup:options.warmup??null};
  const api={async status(signal){calls.push({kind:'status',signal});if(workerFails)throw Error('private-server-error');return {...state,owner_id:activeOwner};},
-  async history(after,limit,signal){calls.push({kind:'history',after,limit,signal});
+  async history(after,limit,signal){calls.push({kind:'history',after,limit,signal});if(options.historyFails)throw Error('private-history-error');
    return {version:6,owner_id:activeOwner,run_id:run,through_sequence:state.sequence,next_sequence:state.sequence,
     has_more:false,records:Array.from({length:state.sequence-after},(_,i)=>({sequence:after+i+1,kind:'decision',data:{assessments:[]}}))};},
   async command(action,request,signal){calls.push({kind:action,request,signal});
@@ -108,4 +109,25 @@ test('waiting for valid data remains an explicit stoppable state',async()=>{
  const h=harness({phase:'waiting_data'});await h.flush();
  assert.match(h.text(),/Waiting for the next valid provider observation/);assert.equal(h.disabled('Stop and retain holdings'),false);
  h.dispose();
+});
+test('failed and pending verified runs remain stoppable even when history or reconciliation is unavailable',async()=>{
+ for(const phase of ['failed','pending','risk_halted']){
+  const h=harness({phase,requiresReconciliation:true,historyFails:true});await h.flush();
+  assert.equal(h.disabled('Stop and retain holdings'),false);h.click('Stop and retain holdings');await h.flush();
+  assert.equal(h.calls.filter(call=>call.kind==='stop').length,1);assert.doesNotMatch(h.text(),/private-history-error/);h.dispose();
+ }
+});
+test('an independent Stop can supersede uncertain Start while retaining its original identity',async()=>{
+ const h=harness({failures:1});await h.flush();h.click('Start paper trading');await h.flush();
+ const original=h.calls.find(call=>call.kind==='start').request;
+ assert.equal(h.disabled('Stop and retain holdings'),false);h.click('Stop and retain holdings');await h.flush();
+ const controls=h.calls.filter(call=>['start','stop'].includes(call.kind));
+ assert.equal(controls.length,2);assert.deepEqual(controls.map(call=>call.kind),['start','stop']);
+ assert.notEqual(controls[0].request,controls[1].request);assert.ok(h.text().includes(original));
+ assert.match(h.text(),/Earlier uncertain Start retained/);h.dispose();
+});
+test('a genuine retained history gap explicitly requires a new pilot instead of implying retry repairs it',async()=>{
+ const h=harness({phase:'waiting_data',warmup:{observed_minutes:4,required_minutes:915,history_gap:true}});await h.flush();
+ assert.match(h.text(),/This run cannot reconstruct it/);assert.match(h.text(),/Stop this run and configure a new paper pilot/);
+ assert.equal(h.disabled('Stop and retain holdings'),false);h.dispose();
 });

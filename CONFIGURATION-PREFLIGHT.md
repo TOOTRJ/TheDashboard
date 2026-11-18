@@ -1,5 +1,24 @@
 # Dashboard configuration and access preflight
 
+## November 17 native paper installation
+
+The exact verified Dashboard Supabase project now has migration
+`20261117010000_vonneumann_paper_v6`, original source SHA256
+`d49f9646f15584a36df82c8704383bd8cc8f279d5f8064d631d7a013b56ddc44`.
+Same-transaction migration-history readback, exact RPC body, all seven RLS tables,
+private namespace, client permissions and absence of public/API exposure passed.
+The new login is restricted to one owner/run, has no memberships/admin/table
+permissions, and expires November24 at23:51:56UTC. Its password and original
+rollback identity remain only in ignored mode0600 files. Railway is still closed.
+
+All14 expanded native journal and3 native operator rollback tests pass. The final
+combined50 runtime/source/controller/API checks pass; the later boundary/Stop
+correction passes17 service/API and490 frontend checks. The actual-factory local
+canary could not resolve the direct database endpoint, made zero provider calls
+and committed no economic commands. It is not hosted acceptance; repeat the
+bounded source check from the verified Railway region before accepting the pilot.
+The original user-edited `20260409210000` migration is preserved uncommitted.
+
 ## November 17 production-only deployment decision
 
 The user authorizes a single production environment for this personal app. The

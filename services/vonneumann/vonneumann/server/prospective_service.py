@@ -270,8 +270,27 @@ class ProspectivePaperService:
                 history, series = batch.history, batch.series
                 if history is not None and history.sha256 == self.runtime.state.to_dict()['source']['history_sha256']:
                     history = series = None
+                inputs = self._inputs()
+                # Collection may cross a completed-bar boundary after the feed
+                # checked publication readiness. Protection still consumes this
+                # genuine mark; decision waits for its exact completed history.
+                # Never move a sealed decision clock or fabricate a missing bar.
+                cutoff = (inputs.clock.wall_lower_us-source.COMPLETION_MARGIN_US) // (
+                    source.BAR_SECONDS*1_000_000) * source.BAR_SECONDS
+                history_end = (int(history.to_dict()['range']['end']) if history is not None else
+                    self.runtime.state.to_dict()['source']['history_end'])
+                if history_end != cutoff:
+                    await self._commit(self.runtime.prepare_protective(batch.mark, inputs=inputs))
+                    if self._stop_requested or self._closing:
+                        break
+                    if self.runtime.state.to_dict()['status'] == 'risk_halted':
+                        self._phase = 'risk_halted'
+                        return
+                    self._phase, self._last_failure = 'waiting_data', 'completed_history_unavailable'
+                    await self._sleep(self._interval)
+                    continue
                 protective, decision = self.runtime.prepare_observation(batch.mark,
-                    inputs=self._inputs(), history=history, series=series)
+                    inputs=inputs, history=history, series=series)
                 await self._commit(protective)
                 if self._stop_requested or self._closing:
                     break

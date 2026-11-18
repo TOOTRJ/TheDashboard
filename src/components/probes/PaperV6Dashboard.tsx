@@ -25,6 +25,7 @@ export function PaperV6DashboardSession({ owner, token, apiOverride }: Props) {
   const operation = React.useRef<{ controller: AbortController; credentials: Credentials } | null>(null);
   const intent = React.useRef<Intent | null>(null);
   const [retainedIntent, setIntent] = React.useState<Intent | null>(null);
+  const [earlierStart, setEarlierStart] = React.useState<Intent | null>(null);
   const [observation, setObservation] = React.useState<Observation | null>(null);
   const [pageAfter, setPageAfter] = React.useState<number | null>(null);
   const [refresh, setRefresh] = React.useState(0);
@@ -102,8 +103,10 @@ export function PaperV6DashboardSession({ owner, token, apiOverride }: Props) {
 
   async function command(action: 'start' | 'stop') {
     if (!api || !status || active.current !== credentials || operation.current || !verified || !sameTarget) return;
-    if (intent.current && intent.current.action !== action) return;
-    const original = intent.current ?? { run: status.run, action, request: crypto.randomUUID() };
+    if (intent.current && intent.current.action !== action && !(intent.current.action === 'start' && action === 'stop')) return;
+    const interruptedStart = action === 'stop' && intent.current?.action === 'start' ? intent.current : null;
+    if (interruptedStart) setEarlierStart(interruptedStart);
+    const original = (interruptedStart ? null : intent.current) ?? { run: status.run, action, request: crypto.randomUUID() };
     intent.current = original; setIntent(original);
     const flight = { controller: new AbortController(), credentials };
     operation.current = flight; commandEpoch.current += 1; setInFlight(credentials); setProblem(null);
@@ -134,18 +137,19 @@ export function PaperV6DashboardSession({ owner, token, apiOverride }: Props) {
       {status && <p>Generation {status.generation} · source epoch {status.epoch} · committed transition {status.sequence}.</p>}
       <div className="flex flex-wrap gap-3">
         <button className="rounded border px-3 py-2 disabled:opacity-50" disabled={!verified || busy || retainedIntent !== null || status?.phase !== 'idle'} onClick={() => void command('start')}>Start paper trading</button>
-        <button className="rounded border px-3 py-2 disabled:opacity-50" disabled={!verified || busy || retainedIntent !== null || !['recovering', 'warming_up', 'waiting_data', 'running', 'risk_halted'].includes(status?.phase ?? '') || status?.requiresReconciliation} onClick={() => void command('stop')}>Stop and retain holdings</button>
+        <button className="rounded border px-3 py-2 disabled:opacity-50" disabled={!verified || busy || !sameTarget || retainedIntent?.action === 'stop' || (!['recovering', 'warming_up', 'waiting_data', 'running', 'risk_halted', 'failed', 'pending'].includes(status?.phase ?? '') && retainedIntent?.action !== 'start')} onClick={() => void command('stop')}>Stop and retain holdings</button>
         {retainedIntent && <button className="rounded border px-3 py-2 disabled:opacity-50" disabled={!verified || busy || !sameTarget} onClick={() => void command(retainedIntent.action)}>Retry original {retainedIntent.action}</button>}
         <button className="rounded border px-3 py-2" onClick={() => setRefresh(n => n + 1)}>Refresh status and history</button>
       </div>
       {retainedIntent && <p role="status">Original {retainedIntent.action} request retained. Refreshing does not create another request.</p>}
+      {earlierStart && <p role="status" className="break-all">Earlier uncertain Start retained as {earlierStart.request}. The independent Stop addresses the same run and does not issue another Start.</p>}
       {!sameTarget && <p role="alert">The worker run changed while a control was unresolved. Inspect the original run before sending another control.</p>}
-      {status?.requiresReconciliation && <p role="alert">The original durable operation requires reconciliation. Evolution and new controls remain blocked until its outcome is verified.</p>}
+      {status?.requiresReconciliation && <p role="alert">The original durable operation requires reconciliation before evolution or Start can continue. An independent Stop remains available for this verified run.</p>}
       {status?.phase === 'recovering' && <p>Replaying saved transitions before evolution resumes. Verified replay progress: {status.recoverySequence} transitions. Stop remains available during recovery.</p>}
       {status?.phase === 'warming_up' && <p>Collecting an uninterrupted history of reference prices before seeding candidates. A restart uses verified retained source data.</p>}
       {status?.phase === 'waiting_data' && <p>Waiting for the next valid provider observation. Failed or stale observations do not advance evolution.</p>}
       {status?.warmup && <p>Accepted warmup observations: {status.warmup.observed} of {status.warmup.required} required one-minute observations.</p>}
-      {status?.warmup?.historyGap && <p role="status">A gap was detected in the retained source history. Evolution waits for eligible observations and complete common evaluation windows.</p>}
+      {status?.warmup?.historyGap && <p role="status">A minute is missing from the retained source history. This run cannot reconstruct it; evolution remains blocked. Stop this run and configure a new paper pilot.</p>}
       {status?.phase === 'risk_halted' && <p role="alert">The paper risk boundary halted this run. Inspect the committed balances and assessments; Stop retains the recorded holdings.</p>}
       {status?.phase === 'stopped' && <p>Paper trading is stopped. Cash, open holdings and evaluation history remain retained. Another pilot requires a separately configured run.</p>}
       {problem && <p role="alert" className="text-red-400">{problem}</p>}
