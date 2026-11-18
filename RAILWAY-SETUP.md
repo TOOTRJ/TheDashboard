@@ -4,7 +4,61 @@ The user approved a **$20/month ceiling for the initial paper pilot** on 2026-10
 This is a spending constraint, not a selected paid subscription, resource estimate,
 production cadence or approval to change account-wide billing for other projects.
 
-## Active paper-v6 release — November17, 2026 MST
+## Production paper pilot checkpoint — November 17, 2026 MST
+
+PR119 is merged as `39789c7821421b51050330b039b3578c12574f89`; tree
+`5eb5875503c1c25274c1b552417cdfe6603f59a0` matches tested head
+`da4f038a0c102e65be40b2da010cdca34dcf0b69`. All eight checks in
+[run 44233575575](https://github.com/TOOTRJ/TheDashboard/actions/runs/44233575575)
+passed. PR118's changes are included and that PR is also merged. Exact Vercel
+production `dpl_AMugaSQeHkowAUz7Vnn4gZZFP7dF` is READY from the merge and serves
+[the production Probes page](https://the-dashboard-chi.vercel.app/probes). Branch
+preview deployments remain disabled; no new environments were created.
+
+Railway deployment `3848ab59-c044-487c-a115-c41dd94b46a5` is SUCCESS/running from
+the reviewed 140-file export, manifest
+`e7fc25a31c77647a4ede75d705ca3e34edf65ba239c492f564cbe968952d2baf`.
+The actual 138 copied runtime files match manifest
+`b962906934110bb50149bfb9a704c46f21366844551f2eca16d2f2f537f26833`;
+the application runs as UID 10001 with CPython 3.12.14. The empty libpq service
+option is removed. Pinned TLS/SCRAM/channel-binding settings remain intact.
+Health 200/version, anonymous 401, foreign-Origin 403 and docs 404 all use no-store.
+
+The approved signed-in app account owns a fresh finite pilot; the unused old
+login is closed and no account history was transferred. Both actual HTTP 202
+Start/Stop request IDs match their retained native originals. One complete
+Jupiter/RPC trio was retained and reconstructed through the public parser; its
+original receipt ages were 1.205/0.764/0.461 seconds. A second partial attempt
+was also retained, with no mark or economic transition. Native retained bytes
+were 18,376, two sources, one mark and two controls. The worker reached stopped.
+
+A deliberate same-image restart was acknowledged. Fresh authenticated status
+restored that original Stop and source mark with head 0, no reconciliation and
+zero new sampling attempts; native counts and bytes were unchanged. A NEW
+owner HTTP 202 Start then began continuous warmup on November 17 evening MST.
+Early monitoring confirms increasing genuine source/mark records and qualifying
+minute observations, with no economic entries before seeding. The initial
+resource sample was 97,060 KiB peak application RSS; its bounded two-second cgroup
+CPU sample was 0.095 vCPU and included the diagnostic console. Keep the existing
+single 0.25 vCPU/500 MB replica. These are early samples, not sustained capacity or
+monthly-bill acceptance. No billing/account-wide changes were made.
+
+PAPER-06 remains OPEN: 915 qualifying warmup minutes plus the complete 60-minute
+first evaluation require at least 975 qualifying minutes (16h15m), plus alignment
+and gaps, before replacement. Continue into another generation and verify
+holdings, assessments and lineage. A running warmup is not evolution or profit
+acceptance. The scoped login expires November 24 at 20:22:22 MST; it has no automatic
+renewal. Closed deployment 04c592a8 remains a verified rollback candidate.
+
+**Current operational limitation:** the reproduced PAPER-08 stale-sample latch
+can leave a retained observation unusable after its freshness window expires;
+Start retry and Stop→Start do not clear it. Do not relax freshness or rewrite
+original clocks. Keep the current NEVER restart policy while the narrow recovery
+repair, genuine-gap succession and seeded-model recovery are reviewed. Follow
+[the active TODO order](TODO.md#active-production-paper-plan--november-17-2026)
+and retain the closed rollback path.
+
+## Earlier paper-v6 release preparation — November17, 2026 MST
 
 The user selected one production Supabase database and Vercel project. The active
 [TODO](TODO.md#active-production-paper-plan--november-17-2026) supersedes older
