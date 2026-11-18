@@ -8,12 +8,14 @@ import json
 import os
 from pathlib import Path
 import stat
+import tempfile
 from types import SimpleNamespace
 import unittest
 from unittest.mock import AsyncMock, patch
 
 from tests.security_support import OfflineTestMixin, USER_A, A1, A2, deny_network
 with deny_network():
+    import psycopg
     from tests.test_command_sql import certificate
     from vonneumann.core.prospective_runtime import FORMAT, JournalEntry, JournalRejected
     from vonneumann.db.prospective_journal import ProspectiveSQLJournal, JournalUnavailable, HOST, MAX_REPLY
@@ -113,10 +115,11 @@ class ProspectiveJournalTransportTests(OfflineTestMixin, unittest.IsolatedAsynci
             "password": self.journal._password, "sslmode": "verify-full", "sslcert": os.devnull,
             "sslkey": os.devnull, "sslcertmode": "disable", "ssl_min_protocol_version": "TLSv1.2",
             "sslnegotiation": "postgres", "sslsni": "1", "require_auth": "scram-sha-256",
-            "channel_binding": "require", "gssencmode": "disable", "service": "",
+            "channel_binding": "require", "gssencmode": "disable",
             "connect_timeout": 5, "application_name": "dashboard-paper-v6"}
         for key, value in expected.items():
             self.assertEqual(observed[key], value, key)
+        self.assertNotIn("service", observed)
         self.assertFalse(Path(observed["sslrootcert"]).exists())
         self.assertIn("statement_timeout=5000", observed["options"])
         self.assertIn("lock_timeout=3000", observed["options"])
@@ -132,9 +135,10 @@ class ProspectiveJournalTransportTests(OfflineTestMixin, unittest.IsolatedAsynci
         self.assertTrue(self.connection.closed)
 
     async def test_inherited_pg_configuration_and_closed_transport_refuse_before_connect(self):
-        with patch.dict(os.environ, {"PGPASSWORD": "synthetic-private-do-not-read"}):
-            with self.assertRaisesRegex(JournalUnavailable, "^paper_operation_failed_or_uncertain$"):
-                await self.journal.head()
+        for variable in ("PGPASSWORD", "PGSERVICE", "PGSERVICEFILE"):
+            with self.subTest(variable=variable), patch.dict(os.environ, {variable: "synthetic-private-do-not-read"}):
+                with self.assertRaisesRegex(JournalUnavailable, "^paper_operation_failed_or_uncertain$"):
+                    await self.journal.head()
         self.connect.assert_not_awaited()
         await self.journal.close()
         with self.assertRaises(JournalUnavailable):
@@ -272,3 +276,31 @@ class ProspectiveJournalTransportTests(OfflineTestMixin, unittest.IsolatedAsynci
             "wire": encoded(entry(owner=A1).wire), "stop_request_id": A1}
         with self.assertRaisesRegex(JournalUnavailable, "^paper_original_scope_mismatch$"):
             await self.journal.get(A2)
+
+
+class LibpqServiceSelectionTests(unittest.TestCase):
+    """Real libpq, restricted to an absent socket in a new private directory.
+
+    No existing database, TCP address, credential source or external endpoint is
+    reachable through these explicit parameters. PGSERVICEFILE is deliberately
+    synthetic here to distinguish profile lookup from the Unix-socket attempt;
+    the actual journal rejects every ambient PG variable before connecting.
+    """
+    def test_omitted_service_skips_nonexistent_profile_and_reaches_only_absent_socket(self):
+        with tempfile.TemporaryDirectory(prefix="dashboard-libpq-") as folder:
+            directory = Path(folder).resolve()
+            environment = {"HOME": str(directory), "PGSERVICEFILE": str(directory/"absent.conf"),
+                "LANG": "C", "LC_ALL": "C"}
+            options = {"host": str(directory), "port": 5432, "dbname": "postgres",
+                "user": "synthetic_no_database", "password": "synthetic_unused_password",
+                "connect_timeout": 1, "passfile": str(directory/"absent.pass")}
+            with patch.dict(os.environ, environment, clear=True):
+                with self.assertRaises(psycopg.OperationalError) as omitted:
+                    psycopg.Connection.connect(**options)
+                self.assertIn(str(directory/".s.PGSQL.5432"), str(omitted.exception))
+                self.assertNotIn("definition of service", str(omitted.exception))
+                for service in ("", "dashboard_missing_original_profile"):
+                    with self.subTest(service=service), self.assertRaises(psycopg.OperationalError) as selected:
+                        psycopg.Connection.connect(**options, service=service)
+                    self.assertIn("service", str(selected.exception).lower())
+                    self.assertNotIn(str(directory/".s.PGSQL.5432"), str(selected.exception))

@@ -4,7 +4,37 @@ The user approved a **$20/month ceiling for the initial paper pilot** on 2026-10
 This is a spending constraint, not a selected paid subscription, resource estimate,
 production cadence or approval to change account-wide billing for other projects.
 
-## Current closed worker cutover — 2026-11-06
+## Active paper-v6 release — November17, 2026 MST
+
+The user selected one production Supabase database and Vercel project. The active
+[TODO](TODO.md#active-production-paper-plan--november-17-2026) supersedes older
+preview/staging and closed-only launch notes below. No live signing or swaps are
+part of this paper release.
+
+The explicit signed-in app owner has a new run and seven-day database login under
+a distinct ignored private bundle. The unused previous login is closed with its
+original owner/run/OID guards. New preparation uses `prepare-credentials --bundle
+SLUG --owner-id UUID --owner-email EMAIL`; issuance, verification and rollback
+select that retained bundle with `--bundle SLUG`. Installation originals stay fixed.
+Git author identity is not app ownership. Keep emails, passwords and originals out
+of source control and deployment exports.
+
+Exact deployment `9b95c77a-060c-4e81-b5cc-d93c6963ff2c` is running the tested140-file
+paper-v6 export. Public liveness/auth/origin checks pass and owner status reaches the
+correct run. Recovery found an empty-service libpq lookup error before collection.
+The isolated hosted removal of only that option succeeds with the original pinned
+verify-full TLS, required SCRAM/channel binding and native head0. The source repair
+and its real-libpq missing-profile regression require composed CI/release; do not
+claim active paper collection from a liveness check.
+
+Closed deployment `04c592a8-61c6-4ebc-ad34-16c789a4e1c9` is now removed/stopped but
+its exact retained snapshot remains eligible for rollback. Preserve the ownership
+map, sole replica,0.25CPU/500MB limits and NEVER restart policy until actual recovery
+acceptance. Do not reapply the old eight-variable IaC declaration: it can remove
+new runtime variables. Update its declared preserved variables before another
+IaC apply. Account billing and other projects remain outside scope.
+
+## Historical closed worker cutover — 2026-11-06
 
 The exact Railway production service now runs the reviewed configuration without a legacy `railway.json` override. One credential-free upload from the 98-file export reached `SUCCESS` at 20:17 MST. Deployment `04c592a8-61c6-4ebc-ad34-16c789a4e1c9` is the sole active deployment. Its image digest is `sha256:a9479eee694b65725bc7c32039efef7b46a4eb5e546708602f749faed834ec07`. The verified named ownership, full effective settings, empty stage and eight explicit closed values match the pre-upload state. The preceding closed deployment and its retained snapshot are eligible for rollback. [Exact deployment](https://railway.com/project/38facb49-4de9-4d66-85aa-2861e0306dcf/service/8e78ad4b-1d8f-43e7-898a-3882ac5053d7?environmentId=9bbe52c6-2305-467a-bf39-8d5e1a98e4e4&id=04c592a8-61c6-4ebc-ad34-16c789a4e1c9#deploy).
 

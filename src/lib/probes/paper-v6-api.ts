@@ -3,7 +3,7 @@ import { displayDrawdownPct, taggedFloat64 } from './durable-read-model';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const PHASES = new Set(['idle', 'recovering', 'warming_up', 'waiting_data', 'running', 'stopping', 'stopped', 'risk_halted', 'pending', 'failed']);
-const AMOUNT = /^(0|[1-9]\d{0,12})(\.\d{1,18})?$/;
+const AMOUNT = /^(0|[1-9]\d{0,12})(\.\d{1,36})?$/;
 function unavailable(): never { throw new Error('The prospective paper service is unavailable or returned incompatible data.'); }
 function object(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return unavailable();

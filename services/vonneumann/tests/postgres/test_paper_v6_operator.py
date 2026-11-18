@@ -19,16 +19,35 @@ class PaperV6OperatorSQLTests(unittest.TestCase):
             raise unittest.SkipTest('Explicit isolated PostgreSQL opt-in required')
         cls.db = harness.IsolatedPostgres(); cls.addClassCleanup(cls.db.close); cls.db.start()
         cls.db.sql((ROOT/'supabase/migrations/20261117010000_vonneumann_paper_v6.sql').read_text())
+        cls.db.sql((ROOT/'supabase/migrations/20261118010000_vonneumann_paper_v6_search_path.sql').read_text())
         cls.db.sql(f"INSERT INTO auth.users VALUES('{operator.OWNER}');")
 
-    def make_original(self, *, expired=False):
+    def make_original(self, *, expired=False, owner=None):
+        owner = operator.OWNER if owner is None else owner
+        self.db.sql(f"INSERT INTO auth.users VALUES('{owner}') ON CONFLICT DO NOTHING;")
         login, run = 'vn_paper_'+uuid4().hex, str(uuid4())
         expiry = '2000-01-01T00:00:00+00:00' if expired else '2099-01-01T00:00:00+00:00'
         self.db.sql(f"CREATE ROLE {login} LOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS CONNECTION LIMIT 2 PASSWORD 'synthetic-operator-fixture' VALID UNTIL '{expiry}'; "
             f"GRANT USAGE ON SCHEMA vn_paper_v6 TO {login}; GRANT EXECUTE ON FUNCTION vn_paper_v6.rpc(text,jsonb) TO {login}; "
-            f"INSERT INTO vn_paper_v6.bindings VALUES('{login}','{operator.OWNER}','{run}','{expiry}');")
+            f"INSERT INTO vn_paper_v6.bindings VALUES('{login}','{owner}','{run}','{expiry}');")
         oid = int(self.db.scalar(f"SELECT oid FROM pg_roles WHERE rolname='{login}';"))
-        return {'db_login': login, 'run_id': run, 'valid_until': expiry, 'role_oid': oid}
+        return {'owner_id': owner, 'db_login': login, 'run_id': run, 'valid_until': expiry, 'role_oid': oid}
+
+    def test_explicit_app_owner_closure_preserves_legacy_owner_login(self):
+        legacy = self.make_original()
+        selected = self.make_original(owner='10000000-0000-4000-8000-000000000099')
+        self.db.sql(operator.credential_close_sql(selected))
+        self.assertEqual(self.db.scalar(f"SELECT NOT rolcanlogin AND rolpassword IS NULL FROM pg_authid WHERE oid={selected['role_oid']};"), 't')
+        self.assertEqual(self.db.scalar(f"SELECT rolcanlogin AND rolpassword IS NOT NULL FROM pg_authid WHERE oid={legacy['role_oid']};"), 't')
+        self.assertEqual(self.db.scalar(f"SELECT owner_id='{legacy['owner_id']}'::uuid AND run_id='{legacy['run_id']}'::uuid AND expires_at='{legacy['valid_until']}'::timestamptz FROM vn_paper_v6.bindings WHERE login='{legacy['db_login']}';"), 't')
+
+    def test_wrong_record_owner_cannot_close_another_owner_login(self):
+        original = self.make_original(owner='10000000-0000-4000-8000-000000000098')
+        changed = {**original, 'owner_id': operator.OWNER}
+        result = self.db.sql(operator.credential_close_sql(changed), check=False)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(self.db.scalar(f"SELECT rolcanlogin AND rolpassword IS NOT NULL FROM pg_authid WHERE oid={original['role_oid']};"), 't')
+        self.assertEqual(self.db.scalar(f"SELECT owner_id='{original['owner_id']}'::uuid AND expires_at='{original['valid_until']}'::timestamptz FROM vn_paper_v6.bindings WHERE login='{original['db_login']}';"), 't')
 
     def test_expired_owned_role_is_closed_with_password_removed(self):
         record = self.make_original(expired=True)

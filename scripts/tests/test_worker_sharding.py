@@ -35,8 +35,44 @@ class WorkerShardingTests(unittest.TestCase):
             counts = Counter(case.id() for case in discovered)
             self.assertEqual({identity: counts[identity] for identity in required},
                              {identity: 1 for identity in required})
-        self.assertEqual(worker.module_shard('tests.postgres.test_allocation_control_v3', 'postgres'), 1)
+        self.assertEqual(worker.module_shard('tests.postgres.test_allocation_control_v3', 'postgres'), 3)
         self.assertEqual(worker.CHILD_DEADLINES['postgres'], 2400)
+
+    def test_sql_rebalance_preserves_actual_discovery_and_changes_only_two_whole_modules(self):
+        moved = {'tests.postgres.test_allocation_control_v3': 3,
+                 'tests.postgres.test_numeric_wire': 4}
+        original = tuple(worker.flatten_tests(worker.discover_suite('postgres')))
+        previous_hints = {**worker.POSTGRES_HEAVY_MODULE_SHARDS,
+                          **{module: 1 for module in moved}}
+        with patch.object(worker, 'POSTGRES_HEAVY_MODULE_SHARDS', previous_hints):
+            before_tests, before_shards, before_coverage = worker.partition_suite(
+                unittest.TestSuite(original), 'postgres')
+        after_tests, after_shards, after_coverage = worker.partition_suite(
+            unittest.TestSuite(original), 'postgres')
+        self.assertEqual(before_tests, after_tests)
+        self.assertEqual(after_tests, original)
+        self.assertEqual(worker.POSTGRES_SHARDS, (1, 2, 3, 4))
+        self.assertEqual(worker.CHILD_DEADLINES['postgres'], 2400)
+        self.assertEqual(before_coverage['baseline_repeated_ids'], after_coverage['baseline_repeated_ids'])
+        original_ids = Counter(test.id() for test in original)
+        for shards in (before_shards, after_shards):
+            self.assertEqual(Counter(index for indices in shards.values() for index in indices),
+                             Counter(range(len(original))))
+            self.assertEqual(Counter(original[index].id() for indices in shards.values() for index in indices),
+                             original_ids)
+        before_by_index = {index: shard for shard, indices in before_shards.items() for index in indices}
+        after_by_index = {index: shard for shard, indices in after_shards.items() for index in indices}
+        self.assertEqual({test.__class__.__module__ for test in original
+                          if test.__class__.__module__ in moved}, set(moved))
+        for index, test in enumerate(original):
+            module = test.__class__.__module__
+            with self.subTest(index=index, identity=test.id()):
+                self.assertEqual(after_by_index[index], moved.get(module, before_by_index[index]))
+                if module in moved:
+                    self.assertEqual(before_by_index[index], 1)
+        for shard, indices in after_shards.items():
+            self.assertEqual(indices, tuple(index for index in range(len(original))
+                                           if after_by_index[index] == shard))
 
     def source_fixture(self):
         return patch.object(worker, 'test_source', side_effect=lambda test:

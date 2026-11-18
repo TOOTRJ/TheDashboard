@@ -42,13 +42,15 @@ HEAVY_MODULE_SHARDS = {
 # balancing hints do not omit cases or relax acceptance; hosted timings remain
 # required before claiming that all four bounded jobs complete.
 POSTGRES_HEAVY_MODULE_SHARDS = {
-    # The adopted native allocation suite includes real fence/login deadline
-    # waits. Keep its complete defining module off the already longest source
-    # transition shard; do not remove any cases or extend the child deadline.
-    "tests.postgres.test_allocation_control_v3": 1,
+    # Run 44216342905 exhausted shard 1's 2400s while the other SQL shards
+    # completed in 23m40s to 27m45s. Move these two complete defining modules
+    # together with every original alias/fixture segment; deadlines stay fixed.
+    # Coarse hosted intervals include the next class setup, so a fresh composed
+    # run must verify the balance rather than treating estimates as acceptance.
+    "tests.postgres.test_allocation_control_v3": 3,
     "tests.postgres.test_assessment_transition": 1,
     "tests.postgres.test_locked_checkpoint": 1,
-    "tests.postgres.test_numeric_wire": 1,
+    "tests.postgres.test_numeric_wire": 4,
     "tests.postgres.test_checkpoint_reference": 1,
     "tests.postgres.test_command_adapter": 1,
     "tests.postgres.test_decimal_lineage_contract": 1,

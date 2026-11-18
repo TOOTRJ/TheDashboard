@@ -30,17 +30,18 @@ function harness(options={}) {
    return [entry.value,next=>{if(hooks[cell]!==entry)return;const result=typeof next==='function'?next(entry.value):next;
     if(!Object.is(entry.value,result)){entry.value=result;dirty=true;}}];}};
  let activeOwner=owner,failures=options.failures??0,workerFails=false;
- const state={version:6,owner_id:owner,run_id:run,phase:options.phase??'idle',sequence:0,revision:0,generation:0,epoch:0,
-  busy:false,requires_reconciliation:options.requiresReconciliation??false,last_request_id:null,projection:null,
+ const state={version:6,owner_id:owner,run_id:run,phase:options.phase??'idle',sequence:options.sequence??0,revision:0,generation:0,epoch:0,
+  busy:options.busy??false,requires_reconciliation:options.requiresReconciliation??false,last_request_id:null,projection:options.projection??null,
   warmup:options.warmup??null};
  const api={async status(signal){calls.push({kind:'status',signal});if(workerFails)throw Error('private-server-error');return {...state,owner_id:activeOwner};},
   async history(after,limit,signal){calls.push({kind:'history',after,limit,signal});if(options.historyFails)throw Error('private-history-error');
    return {version:6,owner_id:activeOwner,run_id:run,through_sequence:state.sequence,next_sequence:state.sequence,
     has_more:false,records:Array.from({length:state.sequence-after},(_,i)=>({sequence:after+i+1,kind:'decision',data:{assessments:[]}}))};},
-  async command(action,request,signal){calls.push({kind:action,request,signal});
+  async command(action,request,signal){calls.push({kind:action,request,signal,owner:activeOwner,run:state.run_id});
    if(options.gate)await options.gate.promise;
    if(failures-->0)throw Error('private-transport-error');
-   state.phase=action==='start'?'running':'stopped';state.last_request_id=request;state.sequence++;state.revision++;
+   state.phase=action==='start'?(options.warmupLifecycle?'warming_up':'running'):'stopped';state.last_request_id=request;
+   if(!options.warmupLifecycle){state.sequence++;state.revision++;}
    return {...state,owner_id:activeOwner};}};
  const {PaperV6DashboardSession:Session,PaperV6Dashboard:Outer}=load('src/components/probes/PaperV6Dashboard.tsx',{
   react,'react/jsx-runtime':{jsx:(type,props,key)=>({type,props,key}),jsxs:(type,props,key)=>({type,props,key})},
@@ -77,6 +78,39 @@ test('actual v6 dashboard starts, observes later generations, then stops the own
  h.state.generation=2;h.state.epoch=3;h.tick();await h.flush();assert.match(h.text(),/Generation 2 · source epoch 3/);
  h.click('Stop and retain holdings');await h.flush();assert.match(h.text(),/Worker: stopped/);
  assert.deepEqual(h.calls.filter(call=>['start','stop'].includes(call.kind)).map(call=>call.kind),['start','stop']);h.dispose();
+});
+test('a verified warmup Stop allows a fresh Start of the same owner run without reusing control IDs',async()=>{
+ const h=harness({warmupLifecycle:true});await h.flush();
+ h.click('Start paper trading');await h.flush();assert.match(h.text(),/Worker: warming up/);
+ h.click('Stop and retain holdings');await h.flush();assert.match(h.text(),/Worker: stopped/);
+ assert.equal(h.state.sequence,0);assert.equal(h.state.projection,null);
+ assert.equal(h.disabled('Start paper trading'),false);
+ assert.match(h.text(),/stopped before candidates were seeded/);assert.match(h.text(),/continue collecting for this run/);
+ assert.doesNotMatch(h.text(),/Another pilot requires a separately configured run/);
+ h.click('Start paper trading');await h.flush();assert.match(h.text(),/Worker: warming up/);
+ const controls=h.calls.filter(call=>['start','stop'].includes(call.kind));
+ assert.deepEqual(controls.map(call=>call.kind),['start','stop','start']);
+ assert.equal(new Set(controls.map(call=>call.request)).size,3);
+ assert.ok(controls.every(call=>call.owner===owner&&call.run===run));h.dispose();
+});
+test('a stopped economic model or nonzero committed sequence still requires a separately configured run',async()=>{
+ const projection=JSON.parse(fs.readFileSync('tests/probes/fixtures/paper-v6-held-status.json','utf8')).projection;
+ for(const options of [{phase:'stopped',projection},{phase:'stopped',sequence:1}]){
+  const h=harness(options);await h.flush();assert.equal(h.disabled('Start paper trading'),true);
+  assert.match(h.text(),/Another pilot requires a separately configured run/);
+  assert.equal(h.calls.filter(call=>call.kind==='start').length,0);h.dispose();
+ }
+});
+test('stopped warmup cannot restart while reconciliation, pending work or a retained Stop is unresolved',async()=>{
+ for(const options of [{phase:'stopped',requiresReconciliation:true},{phase:'stopped',busy:true},{phase:'pending'}]){
+  const h=harness(options);await h.flush();assert.equal(h.disabled('Start paper trading'),true);
+  assert.equal(h.calls.filter(call=>call.kind==='start').length,0);h.dispose();
+ }
+ const h=harness({phase:'warming_up',warmupLifecycle:true,failures:1});await h.flush();
+ h.click('Stop and retain holdings');await h.flush();
+ h.state.phase='stopped';h.tick();await h.flush();
+ assert.equal(h.disabled('Start paper trading'),true);assert.match(h.text(),/Original stop request retained/);
+ assert.equal(h.disabled('Retry original stop'),false);h.dispose();
 });
 test('uncertain v6 control retry preserves its original request identity',async()=>{
  const h=harness({failures:1});await h.flush();h.click('Start paper trading');await h.flush();
