@@ -3,25 +3,54 @@
 ## Active paper launch — November 17, 2026
 
 Follow [the active TODO checklist](TODO.md#active-production-paper-plan--november-17-2026).
-The user has selected one production Supabase database and one Vercel project;
-cloud preview/staging provisioning is no longer a launch dependency. Keep PR
-review and offline checks, then deploy `main` straight to production. The exact
-Railway worker is currently closed. A new runtime has to join durable observations,
-the two-EMA model, atomic state/history, original-command reconciliation, restart
-and authenticated owner controls before hosted activation.
+The user selected one production Supabase database and one Vercel project. Use
+pull requests and offline checks, then deploy `main` directly to production;
+preview/staging provisioning is not a launch dependency.
 
-Paper acceptance requires bounded hosted faults and measured resource/quota/cost
-checks, followed by 915 qualifying warm-up minutes **and** a full 60-minute first
-evaluation (at least 975 qualifying minutes, plus alignment and gaps), the first
-replacement and continuation into the next generation. Do not interpret the older
-915-minute references below as complete evolution acceptance. Live execution has
-its own later custody, risk, transaction, reconciliation and explicit funding gates.
+PR116 is merged as `f4dc39fc4ae1586386f7b79d7f22d989321cbef0`, with the same tree
+as `d6fc3b24`, which passed all eight jobs in
+[run44207545134](https://github.com/TOOTRJ/TheDashboard/actions/runs/44207545134).
+Exact Dashboard production `dpl_nvM5mA7PjgNTA8phDwNNAqYcHZSp` is READY from that
+merge. The maintained runtime joins original observations, the two-EMA model,
+atomic state/history, original-command reconciliation, restart and owner controls.
+Railway deployment `2be1bce1-32f1-4a5b-889e-f93300dc08ee` is SUCCESS/running
+from the tested export. Health/version, anonymous401, foreign-Origin403 and no-store
+checks pass. Collection is idle pending the user account-owner clarification;
+authenticated native/provider/Stop and sustained acceptance remain open.
 
-The remaining sections retain dated evidence; the November 17 TODO controls the
-current order and the user's single-production deployment choice.
+The narrow frontend precision follow-up matches the kernel's 36-place fractional
+money strings. Four untouched real-service synthetic ASGI statuses and 61 history
+pages pass the actual frontend parsers; all 491 frontend tests, TypeScript and
+targeted lint pass. Its CI/merge and exact production receipt remain pending.
+Production public selection is `paper-v6`, using
+`https://dashboard-paper-worker-production.up.railway.app` and the existing
+[owner dashboard](https://the-dashboard-chi.vercel.app/probes).
+
+The exact Dashboard database has verified immutable base migration16 and separate
+forward migration17 search-path hardening. All 19 native journal/security/operator
+cases pass with zero skips, plus 10 operator mocks. Database and frontend release
+acceptance do not close hosted image/configuration, TLS/auth, provider/native
+latency, Stop/restart, resource/quota/storage or operating-cost checks.
+
+Paper acceptance still requires bounded hosted faults and measured resource/quota/
+cost checks, followed by 915 qualifying warm-up minutes and a full 60-minute first
+evaluation: at least 975 qualifying minutes, plus alignment and gaps. Verify the
+first replacement and continuation into the next generation. Synthetic source
+minutes and a warmup-only hosted trace do not satisfy this sustained gate.
+
+PAPER-08 remains open before unattended operation: missing-minute recovery or
+fresh-run succession, verified compact checkpoints, bounded replay, physical
+storage/control accounting and renewal before the finite pilot credential expires.
+A supervised first generation does not establish long-term continuity. Live
+trading still requires promotion, custody, independent risk, transaction and
+wallet reconciliation, an unsigned shadow trial and separate funding/signing
+activation authorization.
+
+The remaining sections retain dated evidence. This active TODO/readiness record
+controls the current order and the user's single-production deployment choice.
 
 
-## Authoritative current status — 2026-10-21
+## Historical status — 2026-10-21
 
 The app/API baseline, worker foundations/B1, Paper Dashboard controls and eight-job CI repair are released through PR110. PR107's standalone failure remains historical. [PR111](https://github.com/TOOTRJ/TheDashboard/pull/111) is merged as `1fcbf0c84f4fcb5f8b06095e498df1a3965adea6` at `2026-10-22T02:48:43Z`. All eight jobs in run39708763776 pass; head `764d00a`, tested checkout `ebe02c7` and actual merge share tree `aa7576cebc2608122324a8a8bba0d14d1f0c498c`. Fresh scoped fetch confirms the merge; exact Dashboard production `dpl_Gs8rhCg6i9PNgwS1pRXipUtdZ9hG` is READY in 17 seconds from that source/current canonical alias, with all four read-only smokes passing at 02:55:31.586Z and zero writes. This releases PR111's documentation/V11b review archive only; it does not accept the newer prepared app/guard/fee/V12 batch, which is not yet accepted by exact-head CI/release. [Exact release receipt](RELEASE-PR111-ACCEPTANCE-2026-10-21.md).
 

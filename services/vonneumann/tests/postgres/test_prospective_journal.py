@@ -12,6 +12,9 @@ LOGIN='vn_paper_'+'a'*32
 COMMAND='10000000-0000-4000-8000-000000000003'
 START='10000000-0000-4000-8000-000000000004'
 STOP='10000000-0000-4000-8000-000000000005'
+MIGRATIONS=Path(__file__).resolve().parents[4]/'supabase/migrations'
+BASE_SQL=MIGRATIONS/'20261117010000_vonneumann_paper_v6.sql'
+SEARCH_PATH_SQL=MIGRATIONS/'20261118010000_vonneumann_paper_v6_search_path.sql'
 
 
 def encoded(raw): return base64.b64encode(raw).decode()
@@ -25,7 +28,8 @@ class ProspectiveJournalSQLTests(unittest.TestCase):
         if os.environ.get(harness.OPT_IN)!='1':
             raise unittest.SkipTest('Explicit isolated PostgreSQL opt-in required')
         cls.db=harness.IsolatedPostgres();cls.addClassCleanup(cls.db.close);cls.db.start()
-        cls.db.sql((Path(__file__).resolve().parents[4]/'supabase/migrations/20261117010000_vonneumann_paper_v6.sql').read_text())
+        cls.db.sql(BASE_SQL.read_text())
+        cls.db.sql(SEARCH_PATH_SQL.read_text())
         cls.db.sql(f"INSERT INTO auth.users VALUES('{OWNER}'); CREATE ROLE {LOGIN} LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS VALID UNTIL '2099-01-01'; GRANT vn_paper_v6_client TO {LOGIN}; INSERT INTO vn_paper_v6.bindings VALUES('{LOGIN}','{OWNER}','{RUN}','2099-01-01');")
 
     def setUp(self):
@@ -197,3 +201,60 @@ class ProspectiveJournalSQLTests(unittest.TestCase):
             self.assertIn('paper_entry_refused', outcome.stderr)
         self.assertEqual(self.rpc('head')['sequence'], 0)
         self.assertEqual(self.db.scalar('SELECT count(*) FROM vn_paper_v6.rejections;'), '0')
+
+
+class ProspectiveJournalSearchPathSQLTests(unittest.TestCase):
+    def setUp(self):
+        import os
+        if os.environ.get(harness.OPT_IN) != '1':
+            self.skipTest('Explicit isolated PostgreSQL opt-in required')
+        self.db = harness.IsolatedPostgres()
+        self.addCleanup(self.db.close)
+        self.db.start()
+        self.db.sql(BASE_SQL.read_text())
+
+    def test_temporary_type_cannot_override_the_trusted_uuid_type(self):
+        # An intentionally rejecting local type provides a harmless resolution
+        # sentinel. The fixed RPC must keep using pg_catalog.uuid.
+        self.db.sql(f"INSERT INTO auth.users VALUES('{OWNER}'); "
+            f"CREATE ROLE {LOGIN} LOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS VALID UNTIL '2099-01-01'; "
+            f"GRANT USAGE ON SCHEMA vn_paper_v6 TO {LOGIN}; "
+            f"GRANT EXECUTE ON FUNCTION vn_paper_v6.rpc(text,jsonb) TO {LOGIN}; "
+            f"INSERT INTO vn_paper_v6.bindings VALUES('{LOGIN}','{OWNER}','{RUN}','2099-01-01');")
+        request = json.dumps({'owner_id': OWNER, 'run_id': RUN, 'command_id': COMMAND})
+        shadow = ("CREATE TEMP TABLE initialize_paper_temp(x pg_catalog.int4); "
+            "CREATE DOMAIN pg_temp.uuid AS pg_catalog.uuid CHECK(false); "
+            f"SELECT vn_paper_v6.rpc('get',$wire${request}$wire$::pg_catalog.jsonb);")
+        before = self.db.sql(shadow, role=LOGIN, check=False)
+        self.assertNotEqual(before.returncode, 0)
+        self.assertIn("violates check constraint", before.stderr)
+        self.db.sql(SEARCH_PATH_SQL.read_text())
+        self.assertEqual(self.db.scalar("SELECT proconfig::text FROM pg_catalog.pg_proc WHERE oid='vn_paper_v6.rpc(text,jsonb)'::regprocedure;"),
+            '{"search_path=pg_catalog, pg_temp"}')
+        after = self.db.sql(shadow, role=LOGIN, check=False)
+        self.assertEqual(after.returncode, 0)
+        self.assertEqual(self.db.scalar(f"SELECT vn_paper_v6.rpc('head',$wire${request}$wire$::jsonb)->>'sequence';", role=LOGIN), '0')
+        foreign = json.dumps({'owner_id': RUN, 'run_id': RUN})
+        self.assertNotEqual(self.db.sql(f"SELECT vn_paper_v6.rpc('head',$wire${foreign}$wire$::jsonb);",
+            role=LOGIN, check=False).returncode, 0)
+        self.db.sql(SEARCH_PATH_SQL.read_text())
+
+    def test_forward_refuses_unreviewed_configuration_body_and_owner(self):
+        self.db.sql('ALTER FUNCTION vn_paper_v6.rpc(text,jsonb) SET search_path=pg_catalog,public,pg_temp;')
+        refused = self.db.sql(SEARCH_PATH_SQL.read_text(), check=False)
+        self.assertNotEqual(refused.returncode, 0)
+        self.assertIn('paper_search_path_original_mismatch', refused.stderr)
+        self.db.sql('ALTER FUNCTION vn_paper_v6.rpc(text,jsonb) SET search_path=pg_catalog;')
+        function = 'CREATE OR REPLACE FUNCTION' + BASE_SQL.read_text().split('CREATE FUNCTION', 1)[1].split('$f$;', 1)[0] + '$f$;'
+        changed = function.replace('END $f$;', 'END\n-- unreviewed fixture body\n$f$;')
+        self.assertNotEqual(function, changed)
+        self.db.sql(changed)
+        refused = self.db.sql(SEARCH_PATH_SQL.read_text(), check=False)
+        self.assertNotEqual(refused.returncode, 0)
+        self.assertIn('paper_search_path_original_mismatch', refused.stderr)
+        self.db.sql(function)
+        self.db.sql('CREATE ROLE paper_unreviewed_owner NOLOGIN; '
+            'ALTER FUNCTION vn_paper_v6.rpc(text,jsonb) OWNER TO paper_unreviewed_owner;')
+        refused = self.db.sql(SEARCH_PATH_SQL.read_text(), check=False)
+        self.assertNotEqual(refused.returncode, 0)
+        self.assertIn('paper_search_path_original_mismatch', refused.stderr)

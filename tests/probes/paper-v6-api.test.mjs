@@ -80,3 +80,17 @@ test('v6 parent cancellation reaches the owned request signal',async()=>{
  const controller=new AbortController();controller.abort();
  await assert.rejects(m.paperV6API('x','https://worker.invalid').status(controller.signal));assert.equal(observed.aborted,true);
 });
+test('exact real service held-position status preserves kernel money through36decimal places',()=>{
+ const fixture=JSON.parse(fs.readFileSync('tests/probes/fixtures/paper-v6-held-status.json','utf8'));
+ const m=module(),parsed=m.parsePaperV6Status(fixture,fixture.owner_id,fixture.run_id);
+ assert.equal(parsed.projection.openPositions,8);assert.equal(parsed.projection.members.length,8);
+ const original=fixture.projection.members[0];
+ assert.ok(original.cash.split('.')[1].length>18);
+ assert.equal(parsed.projection.members[0].cash,original.cash);
+ assert.equal(parsed.projection.members[0].equity,original.equity);
+ assert.doesNotThrow(()=>read.displayUSD(parsed.projection.members[0].cash));
+ const exact=structuredClone(fixture);exact.projection.members[0].cash='0.'+'1'.repeat(36);
+ assert.equal(m.parsePaperV6Status(exact,fixture.owner_id).projection.members[0].cash,exact.projection.members[0].cash);
+ exact.projection.members[0].cash='0.'+'1'.repeat(37);
+ assert.throws(()=>m.parsePaperV6Status(exact,fixture.owner_id));
+});

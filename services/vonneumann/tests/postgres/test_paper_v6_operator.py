@@ -19,6 +19,7 @@ class PaperV6OperatorSQLTests(unittest.TestCase):
             raise unittest.SkipTest('Explicit isolated PostgreSQL opt-in required')
         cls.db = harness.IsolatedPostgres(); cls.addClassCleanup(cls.db.close); cls.db.start()
         cls.db.sql((ROOT/'supabase/migrations/20261117010000_vonneumann_paper_v6.sql').read_text())
+        cls.db.sql((ROOT/'supabase/migrations/20261118010000_vonneumann_paper_v6_search_path.sql').read_text())
         cls.db.sql(f"INSERT INTO auth.users VALUES('{operator.OWNER}');")
 
     def make_original(self, *, expired=False):

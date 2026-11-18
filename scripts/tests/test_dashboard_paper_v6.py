@@ -20,6 +20,8 @@ class PaperOperatorTests(unittest.TestCase):
         self.addCleanup(self.directory.cleanup)
         self.folder = Path(self.directory.name)
         for name, value in (('ROOT', ROOT), ('MIGRATION', ROOT/'supabase/migrations/20261117010000_vonneumann_paper_v6.sql'),
+                            ('HARDENING', ROOT/'supabase/migrations/20261118010000_vonneumann_paper_v6_search_path.sql'),
+                            ('HARDENING_STATE', self.folder/'search-path-hardening-original.json'),
                             ('DIRECTORY', self.folder), ('SCHEMA_STATE', self.folder/'schema-original.json'),
                             ('CREDENTIAL_STATE', self.folder/'credentials-original.json')):
             replacement = patch.object(operator, name, value); replacement.start()
@@ -42,8 +44,65 @@ class PaperOperatorTests(unittest.TestCase):
         self.assertEqual(sql.count('\nCOMMIT;'), 1)
         self.assertIn(base64.b64encode(source.encode()).decode(), sql)
         self.assertIn("VALUES('20261117010000','vonneumann_paper_v6'", sql)
+        forward, forward_digest = operator._hardening_source()
+        self.assertIn(base64.b64encode(forward.encode()).decode(), sql)
+        self.assertIn("VALUES('20261118010000','vonneumann_paper_v6_search_path'", sql)
+        self.assertIn('SET search_path = pg_catalog, pg_temp;', sql)
+        self.assertEqual(digest, operator.BASE_SHA256)
         body = {'query': sql, 'parameters': [], 'read_only': False}
         self.assertLessEqual(len(json.dumps(body).encode()), operator.MAX_BODY)
+
+    def test_hardening_unknown_reply_reconciles_once_and_preserves_original_base_and_credentials(self):
+        operator.prepare()
+        operator._write(operator.CREDENTIAL_STATE, {'synthetic': 'original credential record untouched'})
+        before_base = operator.SCHEMA_STATE.read_bytes()
+        before_credentials = operator.CREDENTIAL_STATE.read_bytes()
+        prepared = operator.prepare_hardening()
+        class Client:
+            writes = 0
+            def verify(self): pass
+            def query(self, sql, parameters, *, read_only):
+                self.writes += 1
+                raise TimeoutError()
+        client = Client()
+        receipt = {'version': prepared['version'], 'sha256': prepared['sha256']}
+        with patch.object(operator, 'preflight_hardening'), patch.object(operator, 'verify_hardening', return_value=receipt) as readback:
+            self.assertEqual(operator.apply_hardening(client), receipt)
+            readback.assert_called_once()
+        self.assertEqual(client.writes, 1)
+        self.assertEqual(operator._read(operator.HARDENING_STATE)['state'], 'installed_verified')
+        self.assertEqual(operator.SCHEMA_STATE.read_bytes(), before_base)
+        self.assertEqual(operator.CREDENTIAL_STATE.read_bytes(), before_credentials)
+        with self.assertRaises(operator.Refused): operator.apply_hardening(client)
+        self.assertEqual(client.writes, 1)
+
+    def test_missing_hardening_receipt_leaves_original_uncertain_and_never_retries(self):
+        operator.prepare_hardening()
+        class Client:
+            writes = 0
+            def verify(self): pass
+            def query(self, *args, **kwargs):
+                self.writes += 1
+                raise TimeoutError()
+        client = Client()
+        with patch.object(operator, 'preflight_hardening'), patch.object(operator, 'verify_hardening', side_effect=operator.Refused('not observed')):
+            with self.assertRaises(operator.Refused): operator.apply_hardening(client)
+        self.assertEqual(operator._read(operator.HARDENING_STATE)['state'], 'submitted_or_uncertain')
+        with self.assertRaises(operator.Refused): operator.apply_hardening(client)
+        self.assertEqual(client.writes, 1)
+
+    def test_secure_schema_requires_exact_forward_history_receipt(self):
+        base = {'name': operator.NAME, 'one_source': True, 'sha256': operator.BASE_SHA256}
+        checks = {'tables': operator.TABLES, 'owned_rls': True, 'client_restricted': True,
+            'rpc_exact': True, 'client_rpc': True, 'no_client_tables': True,
+            'no_api_access': True, 'no_public_schema': True, 'no_public_rpc': True}
+        client = type('Client', (), {'verify': lambda self: None,
+            'postgrest': lambda self: {'db_schema': 'public,graphql_public'}})()
+        with patch.object(operator, '_one', side_effect=[base, checks, {'name': 'wrong'}]) as query:
+            with self.assertRaises(operator.Refused):
+                operator.verify_schema(client, {'sha256': operator.BASE_SHA256})
+            self.assertIn("p.proconfig=ARRAY['search_path=pg_catalog, pg_temp']", query.call_args_list[1].args[1])
+            self.assertNotIn("OR p.proconfig=ARRAY['search_path=pg_catalog']", query.call_args_list[1].args[1])
 
     def test_uncertain_schema_reply_uses_original_readback_without_write_retry(self):
         operator.prepare()

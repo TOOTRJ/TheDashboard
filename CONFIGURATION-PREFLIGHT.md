@@ -1,5 +1,37 @@
 # Dashboard configuration and access preflight
 
+## Current PR116 release and precision follow-up
+
+[PR116](https://github.com/TOOTRJ/TheDashboard/pull/116) is merged as
+`f4dc39fc4ae1586386f7b79d7f22d989321cbef0`. Its tree
+`f728f0b8b5ad0ef9b024efdd7cd2ff422426de36` matches tested head `d6fc3b24`,
+which passed all eight jobs in
+[run44207545134](https://github.com/TOOTRJ/TheDashboard/actions/runs/44207545134).
+Exact Dashboard production `dpl_nvM5mA7PjgNTA8phDwNNAqYcHZSp` is READY from
+that main merge at [the verified deployment](https://the-dashboard-o6mrnahy4-orderoftheredjester.vercel.app).
+This is frontend/source release acceptance, not hosted worker operating acceptance.
+
+The later narrow frontend follow-up accepts monetary strings through 36 fractional
+digits, matching the kernel and formatter. The actual frontend parsers accept
+four untouched real-service synthetic ASGI statuses and 61 history pages covering
+bootstrap, eight held positions, a completed generation with 16 parent links,
+drawdown/fitness assessments and Stop. Its 13,027-byte held status is retained
+unmodified as a regression. All 491 frontend tests, TypeScript and targeted lint
+pass locally. This follow-up's CI/merge and production receipt are still pending;
+it changes no worker source, workflow or package versions.
+
+The verified production public settings are `NEXT_PUBLIC_VN_SERVICE_MODE=paper-v6`
+and `NEXT_PUBLIC_VN_API_URL=https://dashboard-paper-worker-production.up.railway.app`.
+The owner dashboard is [the production Probes page](https://the-dashboard-chi.vercel.app/probes).
+The reviewed worker activation selection is `VN_SERVICE_MODE=paper-v6`. Railway deployment `2be1bce1-32f1-4a5b-889e-f93300dc08ee` is SUCCESS/running
+from the exact tested 140-file export, manifest `2b3c8168c00748633b9f56f341558158c8c945642e3de8c941365604f7b78ce3`.
+Health200 reports paper-service-v6; anonymous status401, foreign Origin403 and docs404
+all carry no-store. The worker is idle. The signed-in browser account differs from
+the scoped pilot owner, correctly yielding404; owner selection is awaiting user
+clarification. PAPER-04/05 still require native TLS, authenticated controls, measured
+provider admission and bounded Stop/restart verification before PAPER-06. PAPER-08's long-term gap/restart, checkpoint/replay,
+physical storage and credential-renewal gates remain open.
+
 ## November 17 native paper installation
 
 The exact verified Dashboard Supabase project now has migration
@@ -9,11 +41,22 @@ Same-transaction migration-history readback, exact RPC body, all seven RLS table
 private namespace, client permissions and absence of public/API exposure passed.
 The new login is restricted to one owner/run, has no memberships/admin/table
 permissions, and expires November24 at23:51:56UTC. Its password and original
-rollback identity remain only in ignored mode0600 files. Railway is still closed.
+rollback identity remain only in ignored mode0600 files. That database check did
+not activate Railway; the subsequent idle worker deployment is tracked above.
 
-All14 expanded native journal and3 native operator rollback tests pass. The final
-combined50 runtime/source/controller/API checks pass; the later boundary/Stop
-correction passes17 service/API and490 frontend checks. The actual-factory local
+That original migration is immutable base16. The separate forward migration17,
+`20261118010000_vonneumann_paper_v6_search_path`, is applied and verified in
+`The Dashboard` / `fxpxsciltakyypunglzr`, organization
+`cqfnnaunmupdyobkyqfo`. Its source SHA256 is
+`315831db8833ce398e268cc289ff02b9d37183ff9ced95c972a47a18960c8c8d`.
+It explicitly sets the private RPC search path to `pg_catalog, pg_temp`, preserving
+the original body, privileges and base16 source. All 19 actual native
+journal/security/operator cases pass in 10.230s, zero skips, plus 10 operator mocks.
+This establishes the database change, not worker activation.
+
+The combined50 runtime/source/controller/API checks pass; the later history-boundary
+and local/external Stop corrections pass 19 service/API cases. The precision
+follow-up above passes 491 frontend cases. The actual-factory local
 canary could not resolve the direct database endpoint, made zero provider calls
 and committed no economic commands. It is not hosted acceptance; repeat the
 bounded source check from the verified Railway region before accepting the pilot.
@@ -31,11 +74,14 @@ Fresh read-only identity checks resolve GitHub `TOOTRJ/TheDashboard` repository
 1141090963, Vercel `the-dashboard` / `prj_wFUe9k9USVreOQcmQKNWRAVsx5fH` under
 `team_8iNNxiNjrOseD4gdSCHkQEzF`, linked to that repository and production branch
 `main`, and Supabase `The Dashboard` / `fxpxsciltakyypunglzr` in organization
-`cqfnnaunmupdyobkyqfo`. Supabase still has 15 migrations. Railway resolves the pinned
+`cqfnnaunmupdyobkyqfo`. That earlier pre-installation read had 15 migrations;
+the verified base16 and forward17 installation/readbacks above supersede it.
+Railway resolves the pinned
 project, workspace, production environment and `dashboard-paper-worker`; its
 latest deployment is `04c592a8-61c6-4ebc-ad34-16c789a4e1c9`, SUCCESS, with restart
 policy NEVER. These identity/settings reads do not establish continuous paper
-acceptance. The new durable runtime is being implemented under PAPER-01–06.
+acceptance. The maintained runtime has the CI/source release evidence above;
+its exact hosted release and operating acceptance remain PAPER-04–06.
 
 The production-only build guard/configuration checks pass 46/46 using Node
 24.22.2. Exact production deployment verification follows the reviewed merge.
