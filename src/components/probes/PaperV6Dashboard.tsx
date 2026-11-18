@@ -100,6 +100,9 @@ export function PaperV6DashboardSession({ owner, token, apiOverride }: Props) {
   const busy = inFlight === credentials;
   const verified = status !== null && verifiedFor === credentials && !closed;
   const sameTarget = retainedIntent === null || retainedIntent.run === status?.run;
+  const stoppedBeforeSeeding = status?.phase === 'stopped' && projection === null && status.sequence === 0;
+  const canStart = verified && !busy && retainedIntent === null && !status?.busy
+    && !status?.requiresReconciliation && (status?.phase === 'idle' || stoppedBeforeSeeding);
 
   async function command(action: 'start' | 'stop') {
     if (!api || !status || active.current !== credentials || operation.current || !verified || !sameTarget) return;
@@ -136,7 +139,7 @@ export function PaperV6DashboardSession({ owner, token, apiOverride }: Props) {
       <p className="break-all text-sm">Run: {status?.run ?? 'awaiting verified owner-bound status'}.</p>
       {status && <p>Generation {status.generation} · source epoch {status.epoch} · committed transition {status.sequence}.</p>}
       <div className="flex flex-wrap gap-3">
-        <button className="rounded border px-3 py-2 disabled:opacity-50" disabled={!verified || busy || retainedIntent !== null || status?.phase !== 'idle'} onClick={() => void command('start')}>Start paper trading</button>
+        <button className="rounded border px-3 py-2 disabled:opacity-50" disabled={!canStart} onClick={() => void command('start')}>Start paper trading</button>
         <button className="rounded border px-3 py-2 disabled:opacity-50" disabled={!verified || busy || !sameTarget || retainedIntent?.action === 'stop' || (!['recovering', 'warming_up', 'waiting_data', 'running', 'risk_halted', 'failed', 'pending'].includes(status?.phase ?? '') && retainedIntent?.action !== 'start')} onClick={() => void command('stop')}>Stop and retain holdings</button>
         {retainedIntent && <button className="rounded border px-3 py-2 disabled:opacity-50" disabled={!verified || busy || !sameTarget} onClick={() => void command(retainedIntent.action)}>Retry original {retainedIntent.action}</button>}
         <button className="rounded border px-3 py-2" onClick={() => setRefresh(n => n + 1)}>Refresh status and history</button>
@@ -151,7 +154,9 @@ export function PaperV6DashboardSession({ owner, token, apiOverride }: Props) {
       {status?.warmup && <p>Accepted warmup observations: {status.warmup.observed} of {status.warmup.required} required one-minute observations.</p>}
       {status?.warmup?.historyGap && <p role="status">A minute is missing from the retained source history. This run cannot reconstruct it; evolution remains blocked. Stop this run and configure a new paper pilot.</p>}
       {status?.phase === 'risk_halted' && <p role="alert">The paper risk boundary halted this run. Inspect the committed balances and assessments; Stop retains the recorded holdings.</p>}
-      {status?.phase === 'stopped' && <p>Paper trading is stopped. Cash, open holdings and evaluation history remain retained. Another pilot requires a separately configured run.</p>}
+      {status?.phase === 'stopped' && (stoppedBeforeSeeding
+        ? <p>Paper trading stopped before candidates were seeded. Retained reference observations remain available.{canStart ? ' Start paper trading again to continue collecting for this run.' : ' Start remains unavailable until the worker state and original controls are verified.'}</p>
+        : <p>Paper trading is stopped. Cash, open holdings and evaluation history remain retained. Another pilot requires a separately configured run.</p>)}
       {problem && <p role="alert" className="text-red-400">{problem}</p>}
       {readProblem && <p role="alert" className="text-red-400">{readProblem}</p>}
       {!api && <p role="alert">The paper worker endpoint is unavailable in this deployment.</p>}

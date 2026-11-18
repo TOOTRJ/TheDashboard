@@ -40,6 +40,8 @@ PAPER-04/05 require authenticated controls, measured provider admission and boun
 Stop/restart verification before PAPER-06. PAPER-08's long-term gap/restart, checkpoint/replay,
 physical storage and credential-renewal gates remain open.
 
+**Final warmup control check:** the dashboard now permits a new original Start after a verified pre-seeding Stop (null model projection, sequence0), while a stopped economic model remains terminal. Reconciliation, busy work and unresolved controls still block Start. All494 frontend tests pass, plus TypeScript and targeted lint. The hosted isolated native repair measured three journal reads at136043/203090/199670 microseconds; these are bounded connection/read timings, not full provider-ingestion or sustained pilot acceptance.
+
 ## November 17 native paper installation
 
 The exact verified Dashboard Supabase project now has migration
