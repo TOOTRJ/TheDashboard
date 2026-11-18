@@ -1,0 +1,47 @@
+{
+  "all_source_test_ids": [
+    "tests.postgres.test_durable_acquisition_v3.DurableAcquisitionNativeTests.test_original_capture_commit_and_backend_loss_reconcile_without_recollection",
+    "tests.postgres.test_durable_acquisition_v3.DurableAcquisitionNativeTests.test_provisional_capture_process_loss_remains_unknown_and_blocks_collection"
+  ],
+  "exact_repeat_composition": {
+    "base_commit": "f317ffc4519d5a70002279458992e54465a9821f",
+    "base_tree": "3eb3469b0d4eb4e4d7993d202fc54909bff9da89",
+    "composed_regular_files": 939,
+    "tracked_regular_files": 936
+  },
+  "existing_helper_hashes": {
+    "services/vonneumann/tests/postgres/harness.py": "d53dbcf420fddaccad3d3e1cc2f6e374ce29f00887bef4d59c28b9f780ee47fe",
+    "services/vonneumann/tests/test_source_admission_v3.py": "b23d0d963a44e0356b3b20c85db005b41854729787b3d24a12ce6d04b72279dd",
+    "services/vonneumann/vonneumann/market/provider_acquisition_v3.py": "27a13e85beb44d8b7236eca04e6cdfcba064854d02271873c95dfa5454ce3a06",
+    "services/vonneumann/vonneumann/market/provider_recorded_transport_v3.py": "9549a4d461138e980259ed6d68b2644c3b3010642892425dabd44a0104a0d46f",
+    "services/vonneumann/vonneumann/market/source_admission_v3.py": "b821b469f50b6fe3554851d348822059a33facb5a77e6133290e1c3283fb9bc6",
+    "services/vonneumann/vonneumann/market/source_admission_v3_policy.py": "305793e9dd9069be3fb215918df121696a2a22fbf240a5de89a9b2254c630403"
+  },
+  "expected_tests": 2,
+  "format": "dashboard-native-durable-acquisition-fixture-v3-candidate-v1",
+  "native_execution": false,
+  "repository_mutation": false,
+  "scope": "separate capture-only fixture, not installed B2 package; no terminal or runtime authority",
+  "source_files": [
+    {
+      "bytes": 15383,
+      "path": "services/vonneumann/db-contract/research/jupiter_durable_acquisition_fixture_v3.sql",
+      "sha256": "f8e5d5f009c6c68d9a7674217d535923bb25566aebbe776fbcfaf890ff1adda0"
+    },
+    {
+      "bytes": 15361,
+      "path": "services/vonneumann/tests/postgres/test_durable_acquisition_v3.py",
+      "sha256": "489d047730bbac08c023166763a62d62c761d307bfaf4b318ac46d380259456d"
+    },
+    {
+      "bytes": 20605,
+      "path": "services/vonneumann/tests/postgres/durable_acquisition_fixture_v3.json",
+      "sha256": "58d13f9dc8e9c2175013d4b22154dd98f6aaa7d2b5131da3ad506e7d4e44d34e"
+    }
+  ],
+  "test_ids": [
+    "tests.postgres.test_durable_acquisition_v3.DurableAcquisitionNativeTests.test_original_capture_commit_and_backend_loss_reconcile_without_recollection",
+    "tests.postgres.test_durable_acquisition_v3.DurableAcquisitionNativeTests.test_provisional_capture_process_loss_remains_unknown_and_blocks_collection"
+  ],
+  "total_source_methods": 2
+}

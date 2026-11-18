@@ -1,0 +1,130 @@
+{
+  "first_sql_install": {
+    "diagnostic": "Unparenthesized CASE expression in literal COMMIT PL/pgSQL guard (SQLSTATE 42601).",
+    "original_receipt_sha256": "f95ab83a646c48ffc8f3e0beb560244bf29a242aacd57eae22186caa1b68b5a6",
+    "run": {
+      "base": "fbe9d93e18f6abce0dee0ff6b7e29b9a1a8cd7a4",
+      "container_gone": true,
+      "controller_sha256": "710500c1434cd73b905ef6d540bef84fef8a1095db526faeb6cbc4e2648cf328",
+      "dependency_inventory_sha256": "2f8bdaeceaee8ecd9ea167a8d86419c2f7fa3ab36a4eb4c47093c22931aeda73",
+      "elapsed": 1.852235333994031,
+      "end": "2026-11-10T21:09:01.414384+00:00",
+      "exit": 1,
+      "fallback_cleanup": false,
+      "group_gone": true,
+      "interrupted": false,
+      "manifest_sha256": "1f6b0dfe3a032dfe59e65b7c205e71220d4d209412471092b84b5847ef4e0b3a",
+      "raw_log_sha256": "aba0cd4cf51b665b5a91c78c215f66ad15401c63091931b8b07042063d48dcd7",
+      "snapshot_sha256": "8d7e51defc32e50c555321ab1540ddf0d4cab04c7745cd2729174d8e0d2440aa",
+      "source_count": 956,
+      "source_unchanged": true,
+      "start": "2026-11-10T21:08:59.562015+00:00",
+      "timeout": false
+    },
+    "test": {
+      "elapsed": 1.2195852501317859,
+      "errors": 1,
+      "expected_failures": 0,
+      "failures": 0,
+      "skips": 0,
+      "tests": 1,
+      "unexpected_successes": 0
+    }
+  },
+  "pre_hardening_committed": {
+    "diagnostic": "Passed before adding exact RPC JSON type and lexical checks.",
+    "original_receipt_sha256": "df530772e6460ddd02102bf7697cdb1038e4ae05a832858596de80c89077eada",
+    "run": {
+      "base": "fbe9d93e18f6abce0dee0ff6b7e29b9a1a8cd7a4",
+      "container_gone": true,
+      "controller_sha256": "c2571bf5c6aeeb377c5d911314758980c7d2f4c6ad3a47fef51041c8b09bb211",
+      "dependency_inventory_sha256": "2f8bdaeceaee8ecd9ea167a8d86419c2f7fa3ab36a4eb4c47093c22931aeda73",
+      "elapsed": 16.877592250239104,
+      "end": "2026-11-10T21:10:42.765477+00:00",
+      "exit": 0,
+      "fallback_cleanup": false,
+      "group_gone": true,
+      "interrupted": false,
+      "manifest_sha256": "ddac2c2721816775270327ae3e01fcb0d9b2edafd6047b016afbf46136671922",
+      "raw_log_sha256": "069c442b80373d9ba766bbe73e171248f35f8c4433bfaacf6c13fece645a2423",
+      "snapshot_sha256": "9fca2005841414e8c2ef01129c7b2e59fd8cbaba41fa33287f643fc3245ac599",
+      "source_count": 956,
+      "source_unchanged": true,
+      "start": "2026-11-10T21:10:25.887439+00:00",
+      "timeout": false
+    },
+    "test": {
+      "elapsed": 16.00675458321348,
+      "errors": 0,
+      "expected_failures": 0,
+      "failures": 0,
+      "skips": 0,
+      "tests": 1,
+      "unexpected_successes": 0
+    }
+  },
+  "pre_hardening_lost_ack": {
+    "diagnostic": "Passed before adding exact RPC JSON type and lexical checks.",
+    "original_receipt_sha256": "a859e080f6870f424d6e1f8076c2101b2a17aee3c2e44c4fd1e0cdaf6e8491b2",
+    "run": {
+      "base": "fbe9d93e18f6abce0dee0ff6b7e29b9a1a8cd7a4",
+      "container_gone": true,
+      "controller_sha256": "3ff2d70e574b7915f6b2b77f809c57d4f3c80ad760aa80caaac901ca5f193e6e",
+      "dependency_inventory_sha256": "2f8bdaeceaee8ecd9ea167a8d86419c2f7fa3ab36a4eb4c47093c22931aeda73",
+      "elapsed": 12.682997624855489,
+      "end": "2026-11-10T21:11:23.261298+00:00",
+      "exit": 0,
+      "fallback_cleanup": false,
+      "group_gone": true,
+      "interrupted": false,
+      "manifest_sha256": "ddac2c2721816775270327ae3e01fcb0d9b2edafd6047b016afbf46136671922",
+      "raw_log_sha256": "88fb10e29c7f236c41fcb6c4a53ebe046b764bcc79e46084f6f4c991c00b941f",
+      "snapshot_sha256": "9fca2005841414e8c2ef01129c7b2e59fd8cbaba41fa33287f643fc3245ac599",
+      "source_count": 956,
+      "source_unchanged": true,
+      "start": "2026-11-10T21:11:10.578140+00:00",
+      "timeout": false
+    },
+    "test": {
+      "elapsed": 12.131343124900013,
+      "errors": 0,
+      "expected_failures": 0,
+      "failures": 0,
+      "skips": 0,
+      "tests": 1,
+      "unexpected_successes": 0
+    }
+  },
+  "pre_hardening_provisional": {
+    "diagnostic": "Passed before adding exact RPC JSON type and lexical checks.",
+    "original_receipt_sha256": "e5ec659e2f3ec2d3bd93ed1dcc22fd8e3c8b8634c2936eb4615eb3b5ec3f3786",
+    "run": {
+      "base": "fbe9d93e18f6abce0dee0ff6b7e29b9a1a8cd7a4",
+      "container_gone": true,
+      "controller_sha256": "25f9304e5ca64ee47c0b0a90f474c8d56f13b8523dde1ef60b91732718074c66",
+      "dependency_inventory_sha256": "2f8bdaeceaee8ecd9ea167a8d86419c2f7fa3ab36a4eb4c47093c22931aeda73",
+      "elapsed": 14.302292624954134,
+      "end": "2026-11-10T21:11:10.415991+00:00",
+      "exit": 0,
+      "fallback_cleanup": false,
+      "group_gone": true,
+      "interrupted": false,
+      "manifest_sha256": "ddac2c2721816775270327ae3e01fcb0d9b2edafd6047b016afbf46136671922",
+      "raw_log_sha256": "cf1191cc90a811b16ed322038df792eee8c940ee5a6a90883960c083891acd1f",
+      "snapshot_sha256": "9fca2005841414e8c2ef01129c7b2e59fd8cbaba41fa33287f643fc3245ac599",
+      "source_count": 956,
+      "source_unchanged": true,
+      "start": "2026-11-10T21:10:56.113534+00:00",
+      "timeout": false
+    },
+    "test": {
+      "elapsed": 13.76809608284384,
+      "errors": 0,
+      "expected_failures": 0,
+      "failures": 0,
+      "skips": 0,
+      "tests": 1,
+      "unexpected_successes": 0
+    }
+  }
+}

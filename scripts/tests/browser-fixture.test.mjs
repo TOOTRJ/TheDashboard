@@ -441,7 +441,7 @@ test('compiled fixture wrapper propagates the actual original build guard refusa
     } }).outputText, { exports, URL, process: { env: environment }, require(name) {
       assert.equal(name, 'next/constants'); return { PHASE_PRODUCTION_BUILD: 'phase-production-build' };
     } });
-    await assert.rejects(compiledFixtureConfig(exports.default)('phase-production-build', { defaultConfig: {} }), /Dashboard preview and unreviewed builds are blocked/);
+    await assert.rejects(compiledFixtureConfig(exports.default)('phase-production-build', { defaultConfig: {} }), /Dashboard hosted builds require the verified production project and database/);
   }
 });
 

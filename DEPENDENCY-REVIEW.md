@@ -1,6 +1,18 @@
-# Dependency security review — current advisory review 2026-10-16
+# Dependency security review — current advisory review 2026-11-17
 
-## Current framework release acceptance — October16 Denver / October17 UTC
+The fresh production npm audit is clean. The full audit now reports 14 high
+development graph findings from the newly reviewed picomatch advisory
+[GHSA-fc5q-39xc-vjpf](https://github.com/advisories/GHSA-fc5q-39xc-vjpf), which has
+no published patched release. The exact graph/path/version exception expires
+2026-11-24 at 00:00 UTC. It preserves the existing Next 16/TypeScript lint checks
+and requires production to remain clean. [Current scope, upstream evidence,
+exposure and removal priority](security/PICOMATCH-REVIEW-2026-11-17.md).
+
+The older braces findings below are historical. That advisory was withdrawn and
+its exception remains removed. Next.js and eslint-config-next currently remain
+exact-pinned to 16.4.5; this November 17 review changes no package versions.
+
+## Historical framework release acceptance — October16 Denver / October17 UTC
 
 SEC-05B is complete: exact Next.js and eslint-config-next16.4.2 are released in PR104 merge `9403e14bce9439060b468f8eb5fd2763149603f9`, whose tree matches accepted head225466a. All seven jobs in [run38984914265](https://github.com/TOOTRJ/TheDashboard/actions/runs/38984914265) pass; exact Dashboard production is READY with four successful read-only checks. Existing React/DOM/Is19.2.8 and the reviewed lock remain unchanged. [Release receipt and boundaries](RELEASE-ACCEPTANCE-2026-10-16.md).
 

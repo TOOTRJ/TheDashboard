@@ -1,0 +1,24 @@
+diff --git a/services/vonneumann/db-contract/research/jupiter_allocation_control_v3.sql b/services/vonneumann/db-contract/research/jupiter_allocation_control_v3.sql
+--- a/services/vonneumann/db-contract/research/jupiter_allocation_control_v3.sql
++++ b/services/vonneumann/db-contract/research/jupiter_allocation_control_v3.sql
+@@ -335,7 +335,7 @@
+   SELECT * INTO rr FROM pg_catalog.pg_roles WHERE oid=binding.session_oid AND rolname=binding.session_name;
+   IF NOT FOUND OR rr.rolsuper OR rr.rolinherit OR rr.rolcreaterole OR rr.rolcreatedb OR rr.rolreplication OR rr.rolbypassrls OR NOT rr.rolcanlogin
+    OR EXISTS(SELECT 1 FROM pg_catalog.pg_auth_members WHERE member=binding.session_oid)
+-   OR (SELECT count(*) FROM pg_catalog.pg_auth_members WHERE roleid=binding.session_oid)<>CASE WHEN creator_oid IS NULL THEN 0 ELSE 1 END
++   OR (SELECT count(*) FROM pg_catalog.pg_auth_members WHERE roleid=binding.session_oid)<>(CASE WHEN creator_oid IS NULL THEN 0 ELSE 1 END)
+    OR (creator_oid IS NOT NULL AND NOT EXISTS(SELECT 1 FROM pg_catalog.pg_auth_members
+     WHERE roleid=binding.session_oid AND member=creator_oid AND grantor=creator_grantor_oid
+      AND admin_option AND NOT inherit_option AND NOT set_option))
+diff --git a/services/vonneumann/tests/postgres/allocation_control_v3_fixture.py b/services/vonneumann/tests/postgres/allocation_control_v3_fixture.py
+--- a/services/vonneumann/tests/postgres/allocation_control_v3_fixture.py
++++ b/services/vonneumann/tests/postgres/allocation_control_v3_fixture.py
+@@ -27,7 +27,7 @@
+ SQL_PATH = ROOT / 'db-contract/research/jupiter_allocation_control_v3.sql'
+ LOADER_PATH = ROOT / 'db-contract/research/allocation_control_v3_source.py'
+ POLICY_PATH = ROOT / 'research/b2-finite-experiment-policy-2026-10-18-v3.json'
+-SOURCE_SHA256 = '95177da14eddc8c36e030cc685c0e1705e0884fa18c1083febda685f93f7bb3f'
++SOURCE_SHA256 = '1d6ef5853438f93624ee2c715b78bc946a3533d320bc31943aefe99a2b4258b7'
+ LOADER_SHA256 = 'bacf672aa8d714d40494a36254345eb58ed46d44551520f41688b61d503454d4'
+ POLICY_FILE_SHA256 = '0a1c8663f4f6cbf9b299cab11fcdd00a379dbe3ca3493b706ddafca9b75c0f1a'
+ POLICY_SHA256 = 'e5dca1d13839102fb1fdd261176393b73c770a95ab355eff74499169905bfba0'

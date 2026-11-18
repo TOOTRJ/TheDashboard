@@ -1,0 +1,142 @@
+{
+  "Stop_direct_closure": [
+    7,
+    17
+  ],
+  "V15_all_six_postimages_exact": true,
+  "V15_archive_native_receipt_sha256": "d6dfb5494879b1576abd0c96e6285870a49a5c5b2e1a126804fdc10b9e79bf1e",
+  "V15_manifest_sha256": "62602b2151aeaaddbcd1c5740ae44a1ca68dd9c577ea4333e570d13e73c81cea",
+  "V15_native_case_count": 34,
+  "V15_native_elapsed_seconds": 204.87070900015533,
+  "exact_repeat_composition": {
+    "base_commit": "7ff9b886a2d19de5388b86a5c3985a8705567edc",
+    "base_tree": "9d6c512e6ea6f9b036cf82f7cc67199cc57dc4ae",
+    "composed_regular_files": 936,
+    "tracked_regular_files": 930
+  },
+  "expected_closed_witness": {
+    "logical_keys": 134,
+    "logical_row_writes": 67,
+    "retained_rows": 68,
+    "staged_key_touches": 149,
+    "staged_row_touches": 72
+  },
+  "expected_tests": 35,
+  "format": "dashboard-private-b2-renew-seven-direct-stop-candidate-v16",
+  "forward_patch_sha256": "37db1fc6077cafc331927db0792b35ed99ed6adbd342db2a5f5b2d6f0fae8b0c",
+  "independent_review_required": true,
+  "launch_intent": {
+    "all_ordered_IDs_bound": true,
+    "capacity_note": "V15 used 204.871s. Treat a timing/outer failure as evidence; separate exact-ID runs are a distinct reviewed experiment and evidence claim.",
+    "first_method": "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_actual_Stop_retained_rows_and_row_DML_include_deferred_update",
+    "only_root_after_review": true,
+    "outer_timeout_seconds": 240
+  },
+  "limits": [
+    "one Renew only",
+    "no paused, repeat or expired Renew native proof",
+    "position-exhaustion witness open",
+    "no hosted, physical or full B2 authority"
+  ],
+  "modified_prior_methods": [
+    "test_every_other_kind_refuses_without_any_table_write"
+  ],
+  "native_execution": false,
+  "new_test_methods": [
+    "test_renew_versions_same_identity_and_stop_uses_seven_direct_pins"
+  ],
+  "remote_or_credential_access": false,
+  "renew_direct_closure": [
+    7,
+    14
+  ],
+  "scope": "owned closed PostgreSQL laboratory, one Renew at position 4",
+  "selected_Stop_dominating_encoded_bound": {
+    "logical_bytes": 75678,
+    "reserved_logical_bytes": 76533,
+    "reserved_staged_bytes": 144142,
+    "staged_bytes": 142415
+  },
+  "source_files": [
+    {
+      "bytes": 41135,
+      "changed": true,
+      "path": "services/vonneumann/B2-INSTALLATION-STOP-NATIVE-CANDIDATE-2026-10-18.md",
+      "sha256": "a181c9b745fb9f03b2d7ee361b89b08b9c7ddf5d2063f72cbfdbf5ef62423d5f",
+      "v15_sha256": "aec33224ca45206207a3a278485bf0c700f0cc5b056a6b1eb80fee7dddfe204a"
+    },
+    {
+      "bytes": 12143,
+      "changed": false,
+      "path": "services/vonneumann/db-contract/research/allocation_control_v3_source.py",
+      "sha256": "2c4050765059834a58b0b7f8840316f2117d631c40b19695bbd035aa99c5ddd5",
+      "v15_sha256": "2c4050765059834a58b0b7f8840316f2117d631c40b19695bbd035aa99c5ddd5"
+    },
+    {
+      "bytes": 120981,
+      "changed": true,
+      "path": "services/vonneumann/db-contract/research/jupiter_allocation_control_v3.sql",
+      "sha256": "793d2fbaf9e6f4938776641c620501b9c4719b1e8a099168d8a4dabb46c6d23d",
+      "v15_sha256": "df06e60047f8509c5fb9b1f405c5b5df01d414c1109610e6482b4de26ad8c24a"
+    },
+    {
+      "bytes": 32126,
+      "changed": false,
+      "path": "services/vonneumann/research/b2-finite-experiment-policy-2026-10-18-v3.json",
+      "sha256": "0a1c8663f4f6cbf9b299cab11fcdd00a379dbe3ca3493b706ddafca9b75c0f1a",
+      "v15_sha256": "0a1c8663f4f6cbf9b299cab11fcdd00a379dbe3ca3493b706ddafca9b75c0f1a"
+    },
+    {
+      "bytes": 43615,
+      "changed": true,
+      "path": "services/vonneumann/tests/postgres/allocation_control_v3_fixture.py",
+      "sha256": "be8931731f33b1f655bfa552d911bbb952e692e1c68f0963d905b8226405fa23",
+      "v15_sha256": "7350d935d15243f53ab8ecb6d30fc2f3c917910d868ae31c2d26991f374cc78a"
+    },
+    {
+      "bytes": 80370,
+      "changed": true,
+      "path": "services/vonneumann/tests/postgres/test_allocation_control_v3.py",
+      "sha256": "8f1e98b5c94aca3182cfc8265af366b715315277d9f5c62d63128874d7245eb7",
+      "v15_sha256": "62c1eb4fcdb1912c06f27c06d7d089fa3545cc09ce3894e35b5d6bfe2b52717e"
+    }
+  ],
+  "test_ids": [
+    "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_actual_Stop_retained_rows_and_row_DML_include_deferred_update",
+    "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_autocommit_and_sync_off_are_unsupported_and_leave_no_original",
+    "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_bound_accounting_component_envelope_covers_both_boolean_widths",
+    "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_broker_anchor_updates_block_until_transaction_end",
+    "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_broker_direct_actor_execute_is_denied",
+    "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_broker_locking_preserves_anchor_rows_and_releases_on_rollback",
+    "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_broker_native_owner_cannot_update_anchor_rows",
+    "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_broker_postlock_reauthorization_refuses_changed_trusted_input",
+    "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_concurrent_same_original_waiter_reconciles_without_new_action",
+    "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_consistent_wrong_database_binding_refuses_without_state_DML",
+    "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_early_constraints_and_second_new_operation_roll_back",
+    "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_every_other_kind_refuses_without_any_table_write",
+    "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_fence_acquire_identity_stale_and_active_hold_refuse",
+    "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_fence_acquire_original_clock_active_head_and_observed_charge",
+    "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_fence_acquire_provisional_rollback_and_early_guard_leave_no_facts",
+    "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_fence_acquire_requires_installed_recorder_and_closed_exact_duration",
+    "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_first_path_observed_bytes_and_complete_counter_vectors",
+    "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_foreign_originals_and_wrong_scope_never_borrow_authority",
+    "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_getter_exact_pin_closures_and_nested_scalar_encoding",
+    "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_getter_parent_statement_snapshot_stays_before_concurrent_commit",
+    "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_installation_then_reserved_Stop_and_exact_original_replays",
+    "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_malformed_package_digest_refuses_before_known_finalization_cost",
+    "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_null_and_mismatched_genesis_identity_refuse_before_staging",
+    "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_null_capability_anchor_is_refused_by_closed_constructor",
+    "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_original_aliases_cannot_overwrite_allocated_scope_or_Stop_ids",
+    "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_original_provisional_independent_absence_then_committed_getter",
+    "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_original_reserved_stop_after_acquire_retains_fence_and_exact_closure",
+    "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_provisional_rollback_removes_all_staged_rows",
+    "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_renew_versions_same_identity_and_stop_uses_seven_direct_pins",
+    "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_resume_locks_recorder_binding_and_rolls_back_but_open_stop_does_not_wait",
+    "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_resume_open_stop_exact_originals_and_observed_accounting",
+    "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_resume_real_expiry_refuses_commit_and_fresh_resume_but_preserves_stop",
+    "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_resume_rechecks_recorder_binding_after_lock_wait",
+    "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_resume_refuses_wrong_actor_hold_body_identity_and_mode",
+    "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_same_writer_getter_is_not_commit_evidence"
+  ],
+  "workspace_mutation": false
+}

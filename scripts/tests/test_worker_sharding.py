@@ -3,6 +3,7 @@ from collections import Counter
 import hashlib
 import importlib.util
 import io
+import json
 import os
 from pathlib import Path
 import sys
@@ -24,6 +25,19 @@ def cases(module, names=('test_one', 'test_two')):
 
 
 class WorkerShardingTests(unittest.TestCase):
+    def test_adopted_packet_retention_cases_are_in_normal_discovery_once(self):
+        manifest = json.loads((worker.WORKER / 'research' /
+            'b2-b3-review-2026-11-10-packet-retention/candidate-manifest.json').read_text())
+        native, pure = manifest['all_source_test_ids'], manifest['pure_test_ids']
+        self.assertEqual((len(native), len(pure)), (62, 15))
+        for mode, required in (('offline', native + pure), ('postgres', native)):
+            discovered = tuple(worker.flatten_tests(worker.discover_suite(mode)))
+            counts = Counter(case.id() for case in discovered)
+            self.assertEqual({identity: counts[identity] for identity in required},
+                             {identity: 1 for identity in required})
+        self.assertEqual(worker.module_shard('tests.postgres.test_allocation_control_v3', 'postgres'), 1)
+        self.assertEqual(worker.CHILD_DEADLINES['postgres'], 2400)
+
     def source_fixture(self):
         return patch.object(worker, 'test_source', side_effect=lambda test:
                             ('reviewed/' + test.__class__.__module__ + '.py', '0' * 64))

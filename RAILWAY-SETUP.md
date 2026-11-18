@@ -4,6 +4,12 @@ The user approved a **$20/month ceiling for the initial paper pilot** on 2026-10
 This is a spending constraint, not a selected paid subscription, resource estimate,
 production cadence or approval to change account-wide billing for other projects.
 
+## Current closed worker cutover — 2026-11-06
+
+The exact Railway production service now runs the reviewed configuration without a legacy `railway.json` override. One credential-free upload from the 98-file export reached `SUCCESS` at 20:17 MST. Deployment `04c592a8-61c6-4ebc-ad34-16c789a4e1c9` is the sole active deployment. Its image digest is `sha256:a9479eee694b65725bc7c32039efef7b46a4eb5e546708602f749faed834ec07`. The verified named ownership, full effective settings, empty stage and eight explicit closed values match the pre-upload state. The preceding closed deployment and its retained snapshot are eligible for rollback. [Exact deployment](https://railway.com/project/38facb49-4de9-4d66-85aa-2861e0306dcf/service/8e78ad4b-1d8f-43e7-898a-3882ac5053d7?environmentId=9bbe52c6-2305-467a-bf39-8d5e1a98e4e4&id=04c592a8-61c6-4ebc-ad34-16c789a4e1c9#deploy).
+
+All five public closed checks passed. A fresh signed-in Dashboard refresh showed both worker read endpoints returning the expected closed response, which the client recognizes only for `503` and the exact JSON detail. Start, Stop and Settle were disabled. The exact Console replica verified 96 runtime files and the application process running as UID/GID `10001:10001` in `us-west2`. The unprivileged transport check verified the pinned Dashboard PostgreSQL CA and hostname over IPv6, using TLS 1.3 with a 256-bit cipher. It ended before PostgreSQL startup or authentication. [Cutover and rollback evidence](RAILWAY-IAC-MIGRATION-2026-11-05.md#november-6-closed-deployment-acceptance).
+
 ## Current closed-worker recovery — 2026-11-06
 
 The user reports revoking the superseded Dashboard provider credentials. The three replacements still passed bounded read-only Jupiter, Birdeye and Helius checks. They remain in the private handoff for a later reviewed canary. [Provider rotation record](RAILWAY-INCIDENT-ASSESSMENT-2026-10-21.md#november-6-replacement-checkpoint).
@@ -22,6 +28,14 @@ The user approved one read-only canary using the three replacement credentials. 
 - **Price and chain:** 12 Jupiter adapter reads and 13 Helius RPC adapter calls. End-to-end price validation ranged from 0.114 to 0.226 seconds with a 0.121-second median. Source age at receipt ranged from 3.046 to 3.925 seconds. The canary observed four Jupiter requests remaining after the first request and three after each later sample. The one-next-request plus two-reserve rule held at this cadence. Adapter counts describe this assessment. They do not measure wire retries, sustained capacity, latency tails or a shared account budget.
 - **Process:** peak RSS 80,678,912 bytes, CPU time 0.32 seconds and maximum observed loop lag 0.377 seconds. Zero economic writes and wallet operations. This measures one short-lived provider assessment.
 - **After exit:** the same deployment was running. All five public checks passed at 21:11:31 UTC with `no-store`. The authenticated Dashboard received the closed response from both worker read endpoints and disabled Start, Stop and Settle. The worker still showed eight configured variables and no provider or native credentials. Paper admission and the 915 qualifying minutes of observed paper operation remain separate from the historical warmup read.
+
+### November 6 hosted paper preflight
+
+The exact Railway worker again passed the five public checks. Both signed-in Dashboard read paths reported closed mode and disabled Start, Stop and Settle. The verified Dashboard Supabase instance runs PostgreSQL 17 with 15 applied migrations. The known legacy v5 database release is open at epoch 1, while its active native login role count is zero. The experimental allocation schema and fixture schema are absent. The full legacy catalog seal comparison was unavailable through the scoped read-only query. Runtime mode and the persisted release state are separate gates. Preserve the legacy release and retained history while preparing a distinct closed production package for the new native path.
+
+The exact Supabase project retains 40 native roles, all with `NOLOGIN`. Each has one incoming grant to its `postgres` creator, with `ADMIN` enabled and both `SET` and `INHERIT` disabled. No other incoming grant shape was observed on those roles. The local candidate’s empty-membership policy would refuse that exact managed shape. The installer needs its own narrowly checked creator-grant policy and a new compatibility test. [PostgreSQL 17 role attributes](https://www.postgresql.org/docs/17/role-attributes.html).
+
+The closed cutover image rehearsed locally on Linux amd64 with all five HTTP checks and 11 TLS cases passing. The scoped exporter and credential helper suites passed 15 cases. The local rollback check reproduced the previously reviewed closed migration bytes. Before a hosted paper window, require the installed production owner and reader design, real finite credential and owner checks, tested recovery of held positions, and a bounded credential handoff for a trace longer than the old two-hour write credential lifetime. See the [current backlog](TODO.md) and [Railway cutover worksheet](RAILWAY-IAC-MIGRATION-2026-11-05.md).
 
 ## Historical worker status — 2026-10-21
 

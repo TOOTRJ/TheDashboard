@@ -108,3 +108,46 @@ test("duplicate paths and oversized graphs cannot amplify evaluator work", () =>
     (v) => { v.policy.exceptions[0].expires_on = "2026-02-30"; },
   ]) { const value = fixture(); mutate(value); assert.throws(() => evaluate(value)); }
 });
+
+const current = new Date("2026-11-17T22:00:00Z");
+function picomatchFixture() {
+  const value = JSON.parse(readFileSync(new URL("./fixtures/picomatch-audit-2026-11-17.json", import.meta.url), "utf8"));
+  return { ...value, policy: structuredClone(activePolicy) };
+}
+test("the November17 exception admits exactly fourteen dev findings and fifteen pinned lock paths", () => {
+  const value = picomatchFixture();
+  const result = assessAudit(value.report, value.lock, value.policy, { mode: "full", now: current });
+  assert.equal(result.findings, 14);
+  assert.deepEqual(result.acceptedExceptions, ["GHSA-fc5q-39xc-vjpf"]);
+  assert.equal(Object.keys(value.policy.exceptions[0].findings).length, 14);
+  assert.equal(Object.values(value.policy.exceptions[0].findings).flatMap(pin => Object.keys(pin.nodes)).length, 15);
+  assert.equal(value.policy.exceptions[0].expires_on, "2026-11-24");
+  assert.throws(() => assessAudit(value.report, value.lock, value.policy, { mode: "production", now: current }), /Production/);
+});
+
+test("the current exception rejects changed nested paths, versions, runtime exposure and dependency edges", () => {
+  for (const mutate of [
+    value => { value.lock.packages["node_modules/tinyglobby/node_modules/picomatch"].version = "4.0.8"; },
+    value => { value.lock.packages["node_modules/picomatch"].dev = false; },
+    value => { value.report.vulnerabilities.picomatch.nodes.pop(); },
+    value => { value.report.vulnerabilities.fdir.nodes = ["node_modules/fdir"]; },
+    value => { value.report.vulnerabilities.picomatch.nodes.push("node_modules/picomatch"); },
+    value => { value.report.vulnerabilities["eslint-config-next"].via = ["picomatch"]; },
+    value => { value.report.vulnerabilities.picomatch.via[0].range = "<=5.0.0"; },
+    value => { value.report.vulnerabilities.picomatch.via[0].url = "https://github.com/advisories/GHSA-unreviewed"; },
+    value => { value.report.vulnerabilities.picomatch.via.push({ ...value.report.vulnerabilities.picomatch.via[0], url: "https://github.com/advisories/GHSA-unreviewed" }); },
+    value => { value.report.vulnerabilities.picomatch.severity = "critical"; value.report.metadata.vulnerabilities.high--; value.report.metadata.vulnerabilities.critical++; },
+  ]) {
+    const value = picomatchFixture(); mutate(value);
+    assert.throws(() => assessAudit(value.report, value.lock, value.policy, { mode: "full", now: current }));
+  }
+});
+
+test("the current exception expires without permitting missing or altered advisory graph evidence", () => {
+  const value = picomatchFixture();
+  assert.throws(() => assessAudit(value.report, value.lock, value.policy,
+    { mode: "full", now: new Date("2026-11-24T00:00:00Z") }), /Expired/);
+  delete value.report.vulnerabilities.fdir;
+  value.report.metadata.vulnerabilities.high--; value.report.metadata.vulnerabilities.total--;
+  assert.throws(() => assessAudit(value.report, value.lock, value.policy, { mode: "full", now: current }));
+});

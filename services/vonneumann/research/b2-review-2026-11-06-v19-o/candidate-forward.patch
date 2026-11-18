@@ -1,0 +1,275 @@
+diff --git a/services/vonneumann/B2-INSTALLATION-STOP-NATIVE-CANDIDATE-2026-10-18.md b/services/vonneumann/B2-INSTALLATION-STOP-NATIVE-CANDIDATE-2026-10-18.md
+--- a/services/vonneumann/B2-INSTALLATION-STOP-NATIVE-CANDIDATE-2026-10-18.md
++++ b/services/vonneumann/B2-INSTALLATION-STOP-NATIVE-CANDIDATE-2026-10-18.md
+@@ -697,3 +697,24 @@
+ independent review and native execution. The narrow case does not establish
+ a wider role lifecycle, a second revocation exception, production
+ retirement policy or a durable archive across a package change.
++
++
++## Forward V19-O dedicated lab anchor owner
++
++This candidate keeps the broker, transition, COMMIT, replay and V19
++reader-recovery bodies unchanged. The owned fixture moves the anchor schema,
++two tables and fixed lock broker to a dedicated NOLOGIN owner. It grants
++the distinct sealed native owner only anchor USAGE, table SELECT and exact
++broker EXECUTE. The anchor owner receives no native object rights, and runtime
++actors cannot assume either owner. Exact grantors, ownership, privileges and
++both owner roles are checked before capturing instance-specific catalog gold.
++
++The catalog includes the anchor owner's attributes and inbound/outbound
++membership edges. V19's exact one-writer recovery exception remains unchanged
++and cannot normalize owner drift. The new case proves actual actor assumption
++and fresh owner-login denial, successful broker-mediated installation, and
++rollback-only owner attribute/membership drift refusal with unchanged evidence.
++
++This remains a private superuser-bootstrap laboratory. Managed creator edges,
++getter-only grants, finite credentials, general retirement and hosted adoption
++are out of scope. This source candidate has not been executed.
+diff --git a/services/vonneumann/db-contract/research/allocation_control_v3_source.py b/services/vonneumann/db-contract/research/allocation_control_v3_source.py
+--- a/services/vonneumann/db-contract/research/allocation_control_v3_source.py
++++ b/services/vonneumann/db-contract/research/allocation_control_v3_source.py
+@@ -12,6 +12,7 @@
+ NAMESPACE = 'vn_jupiter_b2_allocation_research_v3'
+ ANCHOR = 'vn_jupiter_b2_fixture_anchor'
+ OWNER = 'vn_jupiter_b2_sealed_owner'
++ANCHOR_OWNER = 'vn_jupiter_b2_anchor_owner'
+ POLICY_SHA256 = 'e5dca1d13839102fb1fdd261176393b73c770a95ab355eff74499169905bfba0'
+ HEX = re.compile(r'[0-9a-f]{64}\Z')
+ UUID = re.compile(r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\Z')
+@@ -123,7 +124,7 @@
+       signature=ANCHOR+'._lock_inputs(pg_catalog.text,pg_catalog.bool)',argument_names=['requested_scope','lock_resume_recorder'],
+       argument_types=['text','bool'],header=anchor_header,body='\n'+body+'\n',
+       body_sha256=hashlib.sha256(('\n'+body+'\n').encode()).hexdigest(),
+-      owner='postgres',definer=True,volatility='v',public_entry=False)
++      owner=ANCHOR_OWNER,definer=True,volatility='v',public_entry=False)
+     rest=rest[end+len('\n$b2$;\n\n'):]
+     for name,args in FUNCTIONS.items():
+         mark=f'-- FUNCTION {name}\n'; header=function_header(name)
+@@ -142,7 +143,6 @@
+     final=(f'-- TRIGGER committed_original_guard\nCREATE CONSTRAINT TRIGGER committed_original_guard AFTER INSERT ON {NAMESPACE}.original_operations\n'
+       f'DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION {NAMESPACE}._commit_guard();\n\n'
+       f'-- REVOKES\nREVOKE ALL ON FUNCTION {ANCHOR}._lock_inputs(pg_catalog.text,pg_catalog.bool) FROM PUBLIC;\n'
+-      f'GRANT EXECUTE ON FUNCTION {ANCHOR}._lock_inputs(pg_catalog.text,pg_catalog.bool) TO {OWNER};\n'
+       f'REVOKE ALL ON ALL TABLES IN SCHEMA {NAMESPACE} FROM PUBLIC;\nREVOKE ALL ON ALL FUNCTIONS IN SCHEMA {NAMESPACE} FROM PUBLIC;\n')
+     if rest!=final:refuse()
+     return ReviewedSource(expected_sql_sha256,expected_policy_sha256,canonical(tables).decode(),canonical(funcs).decode(),
+diff --git a/services/vonneumann/db-contract/research/jupiter_allocation_control_v3.sql b/services/vonneumann/db-contract/research/jupiter_allocation_control_v3.sql
+--- a/services/vonneumann/db-contract/research/jupiter_allocation_control_v3.sql
++++ b/services/vonneumann/db-contract/research/jupiter_allocation_control_v3.sql
+@@ -245,6 +245,11 @@
+  -- Every definition/owner/ACL/type/index/constraint/trigger in both namespaces
+  -- is retained; unknown roots/children change this complete scoped inventory.
+  WITH namespaces AS(SELECT oid FROM pg_catalog.pg_namespace WHERE nspname IN('vn_jupiter_b2_fixture_anchor','vn_jupiter_b2_allocation_research_v3')),
++ role_pins AS(
++  SELECT session_oid AS oid FROM vn_jupiter_b2_fixture_anchor.actor_bindings
++  UNION
++  SELECT oid FROM pg_catalog.pg_roles WHERE rolname IN('vn_jupiter_b2_sealed_owner','vn_jupiter_b2_anchor_owner')
++ ),
+  rels AS(SELECT oid FROM pg_catalog.pg_class WHERE relnamespace IN(SELECT oid FROM namespaces) UNION SELECT reltoastrelid FROM pg_catalog.pg_class WHERE relnamespace IN(SELECT oid FROM namespaces) AND reltoastrelid<>0 UNION SELECT indexrelid FROM pg_catalog.pg_index WHERE indrelid IN(SELECT reltoastrelid FROM pg_catalog.pg_class WHERE relnamespace IN(SELECT oid FROM namespaces) AND reltoastrelid<>0)),
+  objects AS(SELECT 'pg_catalog.pg_namespace'::regclass::oid classid,oid objid FROM namespaces UNION SELECT 'pg_catalog.pg_class'::regclass::oid,oid FROM rels UNION SELECT 'pg_catalog.pg_type'::regclass::oid,oid FROM pg_catalog.pg_type WHERE typnamespace IN(SELECT oid FROM namespaces) UNION SELECT 'pg_catalog.pg_proc'::regclass::oid,oid FROM pg_catalog.pg_proc WHERE pronamespace IN(SELECT oid FROM namespaces) UNION SELECT 'pg_catalog.pg_constraint'::regclass::oid,oid FROM pg_catalog.pg_constraint WHERE connamespace IN(SELECT oid FROM namespaces) UNION SELECT 'pg_catalog.pg_attrdef'::regclass::oid,oid FROM pg_catalog.pg_attrdef WHERE adrelid IN(SELECT oid FROM rels) UNION SELECT 'pg_catalog.pg_trigger'::regclass::oid,oid FROM pg_catalog.pg_trigger WHERE tgrelid IN(SELECT oid FROM rels))
+  SELECT pg_catalog.jsonb_build_object(
+@@ -262,8 +267,8 @@
+   'types',(SELECT COALESCE(pg_catalog.jsonb_agg((pg_catalog.to_jsonb(t)||pg_catalog.jsonb_build_object('typinput',t.typinput::oid::text,'typoutput',t.typoutput::oid::text,'typreceive',t.typreceive::oid::text,'typsend',t.typsend::oid::text,'typanalyze',t.typanalyze::oid::text,'typsubscript',t.typsubscript::oid::text)) ORDER BY t.oid),'[]'::jsonb) FROM pg_catalog.pg_type t WHERE t.typnamespace IN (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname IN ('vn_jupiter_b2_fixture_anchor','vn_jupiter_b2_allocation_research_v3'))),
+   'functions',(SELECT COALESCE(pg_catalog.jsonb_agg(pg_catalog.to_jsonb(p) ORDER BY p.oid),'[]'::jsonb) FROM pg_catalog.pg_proc p WHERE p.pronamespace IN (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname IN ('vn_jupiter_b2_fixture_anchor','vn_jupiter_b2_allocation_research_v3'))),
+   'triggers',(SELECT COALESCE(pg_catalog.jsonb_agg(pg_catalog.to_jsonb(t) ORDER BY t.oid),'[]'::jsonb) FROM pg_catalog.pg_trigger t WHERE t.tgrelid IN (SELECT oid FROM pg_catalog.pg_class WHERE relnamespace IN (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname IN ('vn_jupiter_b2_fixture_anchor','vn_jupiter_b2_allocation_research_v3')) UNION SELECT reltoastrelid FROM pg_catalog.pg_class WHERE relnamespace IN (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname IN ('vn_jupiter_b2_fixture_anchor','vn_jupiter_b2_allocation_research_v3')) AND reltoastrelid<>0 UNION SELECT i.indexrelid FROM pg_catalog.pg_index i WHERE i.indrelid IN (SELECT reltoastrelid FROM pg_catalog.pg_class WHERE relnamespace IN (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname IN ('vn_jupiter_b2_fixture_anchor','vn_jupiter_b2_allocation_research_v3')) AND reltoastrelid<>0))),
+-  'roles',(SELECT COALESCE(pg_catalog.jsonb_agg(pg_catalog.jsonb_build_object('oid',r.oid::text,'name',r.rolname::text,'super',r.rolsuper,'inherit',r.rolinherit,'create_role',r.rolcreaterole,'create_db',r.rolcreatedb,'login',r.rolcanlogin,'connection_limit',r.rolconnlimit,'replication',r.rolreplication,'bypass',r.rolbypassrls,'valid_until',r.rolvaliduntil::text,'config',pg_catalog.to_jsonb(r.rolconfig)) ORDER BY r.oid),'[]'::jsonb) FROM pg_catalog.pg_roles r WHERE r.oid IN (SELECT session_oid FROM vn_jupiter_b2_fixture_anchor.actor_bindings) OR r.rolname='vn_jupiter_b2_sealed_owner'),
+-  'memberships',(SELECT COALESCE(pg_catalog.jsonb_agg(pg_catalog.to_jsonb(m) ORDER BY m.oid),'[]'::jsonb) FROM pg_catalog.pg_auth_members m WHERE m.member IN (SELECT session_oid FROM vn_jupiter_b2_fixture_anchor.actor_bindings) OR m.roleid IN (SELECT session_oid FROM vn_jupiter_b2_fixture_anchor.actor_bindings) OR m.member=(SELECT oid FROM pg_catalog.pg_roles WHERE rolname='vn_jupiter_b2_sealed_owner') OR m.roleid=(SELECT oid FROM pg_catalog.pg_roles WHERE rolname='vn_jupiter_b2_sealed_owner')),
++  'roles',(SELECT COALESCE(pg_catalog.jsonb_agg(pg_catalog.jsonb_build_object('oid',r.oid::text,'name',r.rolname::text,'super',r.rolsuper,'inherit',r.rolinherit,'create_role',r.rolcreaterole,'create_db',r.rolcreatedb,'login',r.rolcanlogin,'connection_limit',r.rolconnlimit,'replication',r.rolreplication,'bypass',r.rolbypassrls,'valid_until',r.rolvaliduntil::text,'config',pg_catalog.to_jsonb(r.rolconfig)) ORDER BY r.oid),'[]'::jsonb) FROM pg_catalog.pg_roles r WHERE r.oid IN (SELECT oid FROM role_pins)),
++  'memberships',(SELECT COALESCE(pg_catalog.jsonb_agg(pg_catalog.to_jsonb(m) ORDER BY m.oid),'[]'::jsonb) FROM pg_catalog.pg_auth_members m WHERE m.member IN (SELECT oid FROM role_pins) OR m.roleid IN (SELECT oid FROM role_pins)),
+   'parameter_acl',(SELECT COALESCE(pg_catalog.jsonb_agg(pg_catalog.to_jsonb(a) ORDER BY a.oid),'[]'::jsonb) FROM pg_catalog.pg_parameter_acl a),
+   'extensions',(SELECT COALESCE(pg_catalog.jsonb_agg(pg_catalog.to_jsonb(e) ORDER BY e.oid),'[]'::jsonb) FROM pg_catalog.pg_extension e),
+   'event_triggers',(SELECT COALESCE(pg_catalog.jsonb_agg(pg_catalog.to_jsonb(e) ORDER BY e.oid),'[]'::jsonb) FROM pg_catalog.pg_event_trigger e)
+@@ -1123,6 +1128,5 @@
+ 
+ -- REVOKES
+ REVOKE ALL ON FUNCTION vn_jupiter_b2_fixture_anchor._lock_inputs(pg_catalog.text,pg_catalog.bool) FROM PUBLIC;
+-GRANT EXECUTE ON FUNCTION vn_jupiter_b2_fixture_anchor._lock_inputs(pg_catalog.text,pg_catalog.bool) TO vn_jupiter_b2_sealed_owner;
+ REVOKE ALL ON ALL TABLES IN SCHEMA vn_jupiter_b2_allocation_research_v3 FROM PUBLIC;
+ REVOKE ALL ON ALL FUNCTIONS IN SCHEMA vn_jupiter_b2_allocation_research_v3 FROM PUBLIC;
+diff --git a/services/vonneumann/tests/postgres/allocation_control_v3_fixture.py b/services/vonneumann/tests/postgres/allocation_control_v3_fixture.py
+--- a/services/vonneumann/tests/postgres/allocation_control_v3_fixture.py
++++ b/services/vonneumann/tests/postgres/allocation_control_v3_fixture.py
+@@ -23,11 +23,12 @@
+ N = 'vn_jupiter_b2_allocation_research_v3'
+ A = 'vn_jupiter_b2_fixture_anchor'
+ OWNER = 'vn_jupiter_b2_sealed_owner'
++ANCHOR_OWNER = 'vn_jupiter_b2_anchor_owner'
+ SQL_PATH = ROOT / 'db-contract/research/jupiter_allocation_control_v3.sql'
+ LOADER_PATH = ROOT / 'db-contract/research/allocation_control_v3_source.py'
+ POLICY_PATH = ROOT / 'research/b2-finite-experiment-policy-2026-10-18-v3.json'
+-SOURCE_SHA256 = 'ba927b7840f03ce8b734d679a5cb8b341adfc259c0a6fa00c04bfe00a13ea2da'
+-LOADER_SHA256 = '586ccfbd61fc770c5e59df12a442c682032d520cb07cc7b91f864bfacba97e1a'
++SOURCE_SHA256 = 'fbee6b885ddbfccfb8e84169811c68fa2824ca3de252315aa13adef51b50f1ea'
++LOADER_SHA256 = '8685280f33d423b746051117957b66a520bfde7e756749b4c1c3617b5fb69f4c'
+ POLICY_FILE_SHA256 = '0a1c8663f4f6cbf9b299cab11fcdd00a379dbe3ca3493b706ddafca9b75c0f1a'
+ POLICY_SHA256 = 'e5dca1d13839102fb1fdd261176393b73c770a95ab355eff74499169905bfba0'
+ PROFILES = {'installer':['install','register_epoch','read_original'],
+@@ -169,7 +170,6 @@
+       f'CREATE CONSTRAINT TRIGGER committed_original_guard AFTER INSERT ON {N}.original_operations\n'
+       f'DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION {N}._commit_guard();\n')
+     final=(trigger+f'\n-- REVOKES\nREVOKE ALL ON FUNCTION {A}._lock_inputs(pg_catalog.text,pg_catalog.bool) FROM PUBLIC;\n'
+-      f'GRANT EXECUTE ON FUNCTION {A}._lock_inputs(pg_catalog.text,pg_catalog.bool) TO {OWNER};\n'
+       f'REVOKE ALL ON ALL TABLES IN SCHEMA {N} FROM PUBLIC;\n'
+       f'REVOKE ALL ON ALL FUNCTIONS IN SCHEMA {N} FROM PUBLIC;\n')
+     if source.final_sql!=final:raise RuntimeError('b2_reference_guard_source_refused')
+@@ -229,21 +229,20 @@
+         allowed=sorted([OWNER]+(list(actors) if expected['public_entry'] else []))
+         if acl!=[[role,'EXECUTE',False] for role in allowed]:raise RuntimeError('b2_function_acl_refused')
+     if specs:raise RuntimeError('b2_source_functions_refused')
+-    # CLOSED LAB ONLY: this one function retains the existing trusted anchor
+-    # owner's identity. Production requires a separately reviewed NOLOGIN owner.
++    # Closed lab: the separate NOLOGIN anchor owner owns this fixed lock broker.
+     row=anchor_rows[0];expected=source.anchor_function()
+-    if row['name']!='_lock_inputs' or expected['namespace']!=A or expected['owner']!='postgres':
++    if row['name']!='_lock_inputs' or expected['namespace']!=A or expected['owner']!=ANCHOR_OWNER:
+         raise RuntimeError('b2_anchor_lock_source_refused')
+     actual={k:row[k] for k in ('owner','body','names','return','lang','kind','definer','strict','volatile','parallel','leak','set','cost','rows','support','variadic','defaults','alltypes','modes','transforms','binary','sqlbody')}
+-    wanted=dict(owner='postgres',body=expected['body'],names=['requested_scope','lock_resume_recorder'],lang='plpgsql',kind='f',definer=True,strict=False,volatile='v',parallel='u',leak=False,set=False,cost='100',rows='0',support='0',variadic='0',defaults=0,alltypes=None,modes=None,transforms=None,binary=None,sqlbody=None)
++    wanted=dict(owner=ANCHOR_OWNER,body=expected['body'],names=['requested_scope','lock_resume_recorder'],lang='plpgsql',kind='f',definer=True,strict=False,volatile='v',parallel='u',leak=False,set=False,cost='100',rows='0',support='0',variadic='0',defaults=0,alltypes=None,modes=None,transforms=None,binary=None,sqlbody=None)
+     wanted['return']='void'
+     signature=expected['signature']
+     oidargs=db.scalar("SELECT array_agg(arg.type_oid ORDER BY arg.ordinal)::text FROM pg_proc p CROSS JOIN LATERAL unnest(p.proargtypes::oid[]) WITH ORDINALITY arg(type_oid,ordinal) WHERE p.oid="+literal(signature)+'::regprocedure;')
+     expected_oidargs=db.scalar("SELECT ARRAY['pg_catalog.text'::regtype::oid,'pg_catalog.bool'::regtype::oid]::oid[]::text;")
+     if actual!=wanted or oidargs!=expected_oidargs or set(row['settings'])!={'search_path=pg_catalog, pg_temp','TimeZone=UTC','client_encoding=UTF8','standard_conforming_strings=on'}:
+         raise RuntimeError('b2_anchor_lock_source_refused')
+-    acl=json.loads(db.scalar(f"SELECT jsonb_agg(jsonb_build_array(coalesce(r.rolname,'PUBLIC'),a.privilege_type,a.is_grantable) ORDER BY coalesce(r.rolname,'PUBLIC') COLLATE \"C\") FROM pg_proc p CROSS JOIN LATERAL aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) a LEFT JOIN pg_roles r ON r.oid=a.grantee WHERE p.oid={literal(signature)}::regprocedure;"))
+-    if acl!=[[role,'EXECUTE',False] for role in sorted(['postgres',OWNER])]:
++    acl=json.loads(db.scalar(f"SELECT jsonb_agg(jsonb_build_array(coalesce(r.rolname,'PUBLIC'),a.privilege_type,a.is_grantable,pg_get_userbyid(a.grantor)) ORDER BY coalesce(r.rolname,'PUBLIC') COLLATE \"C\") FROM pg_proc p CROSS JOIN LATERAL aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) a LEFT JOIN pg_roles r ON r.oid=a.grantee WHERE p.oid={literal(signature)}::regprocedure;"))
++    if acl!=[[role,'EXECUTE',False,ANCHOR_OWNER] for role in sorted([ANCHOR_OWNER,OWNER])]:
+         raise RuntimeError('b2_anchor_lock_acl_refused')
+ 
+ 
+@@ -256,23 +255,28 @@
+       'types',(SELECT jsonb_agg(jsonb_build_array(n.nspname||'.'||t.typname,coalesce(r.rolname,'PUBLIC'),a.privilege_type,a.is_grantable,pg_get_userbyid(a.grantor)) ORDER BY n.nspname,t.typname,r.rolname,a.privilege_type) FROM pg_type t JOIN pg_namespace n ON n.oid=t.typnamespace CROSS JOIN LATERAL aclexplode(coalesce(t.typacl,acldefault('T',t.typowner))) a LEFT JOIN pg_roles r ON r.oid=a.grantee WHERE n.nspname IN({literal(A)},{literal(N)}) AND t.typtype='c'),
+       'column_grants',(SELECT count(*) FROM pg_attribute a JOIN pg_class c ON c.oid=a.attrelid JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname IN({literal(A)},{literal(N)}) AND a.attacl IS NOT NULL));"""))
+     expected=dict(schemas=[],tables=[],types=[],column_grants=0)
+-    for ns,owner in ((A,'postgres'),(N,OWNER)):
++    for ns,owner in ((A,ANCHOR_OWNER),(N,OWNER)):
+         expected['schemas'] += [[ns,owner,priv,False,owner] for priv in ('CREATE','USAGE')]
+-    expected['schemas'] += [[N,actor,'USAGE',False,OWNER] for actor in actors]+[[A,OWNER,'USAGE',False,'postgres']]
++    expected['schemas'] += [[N,actor,'USAGE',False,OWNER] for actor in actors]+[[A,OWNER,'USAGE',False,ANCHOR_OWNER]]
+     for row in source.tables():
+-        relation=row['namespace']+'.'+row['name'];owner='postgres' if row['namespace']==A else OWNER
++        relation=row['namespace']+'.'+row['name'];owner=ANCHOR_OWNER if row['namespace']==A else OWNER
+         expected['tables'] += [[relation,owner,priv,False,owner] for priv in ('SELECT','INSERT','UPDATE','DELETE','TRUNCATE','REFERENCES','TRIGGER','MAINTAIN')]
+-        if row['namespace']==A:expected['tables'] += [[relation,OWNER,'SELECT',False,'postgres']]
++        if row['namespace']==A:expected['tables'] += [[relation,OWNER,'SELECT',False,ANCHOR_OWNER]]
+         expected['types'] += [[relation,owner,'USAGE',False,owner]]
+     for key in ('schemas','tables','types'):
+         if sorted(acl[key])!=sorted(expected[key]):raise RuntimeError('b2_closed_acl_inventory_refused')
+     if acl['column_grants']!=0:raise RuntimeError('b2_column_acl_refused')
+-    for schema,wanted in ((A,'postgres'),(N,OWNER)):
++    for schema,wanted in ((A,ANCHOR_OWNER),(N,OWNER)):
+         if db.scalar(f"SELECT pg_get_userbyid(nspowner) FROM pg_namespace WHERE nspname={literal(schema)};")!=wanted:raise RuntimeError('b2_owner_refused')
+     for row in source.tables():
+-        relation=row['namespace']+'.'+row['name'];wanted='postgres' if row['namespace']==A else OWNER
++        relation=row['namespace']+'.'+row['name'];wanted=ANCHOR_OWNER if row['namespace']==A else OWNER
+         check=json.loads(db.scalar(f"SELECT jsonb_build_array(pg_get_userbyid(c.relowner),c.relkind::text,c.relpersistence::text,c.relrowsecurity,c.relforcerowsecurity,c.reloptions,(SELECT count(*) FROM pg_rewrite WHERE ev_class=c.oid),(SELECT count(*) FROM pg_policy WHERE polrelid=c.oid),(SELECT count(*) FROM pg_class x WHERE (x.oid=c.reltoastrelid OR x.oid IN(SELECT indexrelid FROM pg_index WHERE indrelid IN(c.oid,c.reltoastrelid))) AND x.relowner<>c.relowner)) FROM pg_class c WHERE c.oid={literal(relation)}::regclass;"))
+         if check!=[wanted,'r','p',False,False,None,0,0,0]:raise RuntimeError('b2_table_shape_refused')
++        type_owners=json.loads(db.scalar(f"SELECT jsonb_build_array(pg_get_userbyid(t.typowner),pg_get_userbyid(array_type.typowner)) FROM pg_type t JOIN pg_type array_type ON array_type.oid=t.typarray WHERE t.typrelid={literal(relation)}::regclass;"))
++        if type_owners!=[wanted,wanted]:raise RuntimeError('b2_table_type_owner_refused')
++        if row['namespace']==N:
++            anchor_rights=db.scalar(f"SELECT has_table_privilege({literal(ANCHOR_OWNER)},{literal(relation)},'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER,MAINTAIN') OR has_any_column_privilege({literal(ANCHOR_OWNER)},{literal(relation)},'SELECT,INSERT,UPDATE,REFERENCES') OR has_type_privilege({literal(ANCHOR_OWNER)},{literal(relation)},'USAGE');")
++            if anchor_rights!='f':raise RuntimeError('b2_anchor_native_access_refused')
+         for actor in actors:
+             rights=db.scalar(f"SELECT has_table_privilege({literal(actor)},{literal(relation)},'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER,MAINTAIN') OR has_any_column_privilege({literal(actor)},{literal(relation)},'SELECT,INSERT,UPDATE,REFERENCES') OR has_type_privilege({literal(actor)},{literal(relation)},'USAGE') OR has_type_privilege({literal(actor)},{literal(relation+'[]')},'USAGE');")
+             if rights!='f':raise RuntimeError('b2_private_table_refused')
+@@ -282,7 +286,14 @@
+     if trigger!=[['committed_original_guard',N+'.original_operations',N+'._commit_guard()',5,'O',True,True,0,'',None]]:raise RuntimeError('b2_guard_trigger_refused')
+     for actor in actors:
+         if db.scalar(f"SELECT has_schema_privilege({literal(actor)},{literal(A)},'USAGE,CREATE') OR has_schema_privilege({literal(actor)},{literal(N)},'CREATE');")!='f':raise RuntimeError('b2_schema_access_refused')
+-    if db.scalar(f"SELECT count(*) FROM pg_auth_members WHERE member IN(SELECT oid FROM pg_roles WHERE rolname IN({','.join(map(literal,[OWNER,*actors]))})) OR roleid IN(SELECT oid FROM pg_roles WHERE rolname IN({','.join(map(literal,[OWNER,*actors]))}));")!='0':raise RuntimeError('b2_membership_refused')
++    # Check both actual owner roles independently before capturing catalog gold.
++    for sealed_owner in (ANCHOR_OWNER,OWNER):
++        role=json.loads(db.scalar(f"SELECT jsonb_build_object('login',rolcanlogin,'super',rolsuper,'inherit',rolinherit,'create_role',rolcreaterole,'create_db',rolcreatedb,'replication',rolreplication,'bypass',rolbypassrls,'connection_limit',rolconnlimit,'default_expiry',rolvaliduntil IS NULL,'default_config',rolconfig IS NULL) FROM pg_catalog.pg_roles WHERE rolname={literal(sealed_owner)};"))
++        if role!=dict(login=False,super=False,inherit=False,create_role=False,create_db=False,replication=False,bypass=False,connection_limit=-1,default_expiry=True,default_config=True):
++            raise RuntimeError('b2_sealed_owner_attributes_refused')
++    if db.scalar(f"SELECT has_schema_privilege({literal(OWNER)},{literal(A)},'CREATE') OR has_schema_privilege({literal(ANCHOR_OWNER)},{literal(N)},'USAGE,CREATE');")!='f':
++        raise RuntimeError('b2_sealed_owner_cross_schema_refused')
++    if db.scalar(f"SELECT count(*) FROM pg_auth_members WHERE member IN(SELECT oid FROM pg_roles WHERE rolname IN({','.join(map(literal,[ANCHOR_OWNER,OWNER,*actors]))})) OR roleid IN(SELECT oid FROM pg_roles WHERE rolname IN({','.join(map(literal,[ANCHOR_OWNER,OWNER,*actors]))}));")!='0':raise RuntimeError('b2_membership_refused')
+ 
+ 
+ class AllocationFixture:
+@@ -313,14 +324,24 @@
+             self.actors.extend(actors.values())
+             self.scopes.append(dict(scope=scope,installation_id=u(4),actors=actors,bindings=bindings,
+                 issuer=u(9),endpoints=[u(10),u(11)],registration=u(12),epoch=u(13),stop_id=u(14),action_id=u(15)))
+-        bootstrap=f'BEGIN;\nCREATE ROLE {OWNER} NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS;\n'
++        bootstrap='BEGIN;\n'+''.join(
++            f'CREATE ROLE {owner} NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS;\n'
++            for owner in (ANCHOR_OWNER,OWNER))
+         bootstrap+=''.join(f'CREATE ROLE {actor} LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS;\n' for actor in self.actors)
+         bootstrap+=f'CREATE SCHEMA {A}; CREATE SCHEMA {N}; REVOKE ALL ON SCHEMA {A},{N} FROM PUBLIC;\n'+raw.decode()
+         db.sql(bootstrap+'COMMIT;\n',timeout=30)
+         compare_constructors(db,self.source)
+-        seal='BEGIN;\n'+''.join(f'ALTER TABLE {ns}.{name} OWNER TO {OWNER};\n' for ns,name in module.TABLES if ns==N)
++        seal=f'BEGIN;\nALTER SCHEMA {A} OWNER TO {ANCHOR_OWNER}; ALTER SCHEMA {N} OWNER TO {OWNER};\n'
++        seal+=''.join(f'ALTER TABLE {ns}.{name} OWNER TO {ANCHOR_OWNER if ns==A else OWNER};\n'
++                      for ns,name in module.TABLES)
+         seal+=''.join(f"ALTER FUNCTION {row['signature']} OWNER TO {OWNER};\n" for row in self.source.functions())
+-        seal+=f'ALTER SCHEMA {N} OWNER TO {OWNER}; GRANT USAGE ON SCHEMA {A} TO {OWNER}; GRANT SELECT ON {A}.package_inputs,{A}.actor_bindings TO {OWNER};\n'
++        broker=self.source.anchor_function()['signature']
++        seal+=f'ALTER FUNCTION {broker} OWNER TO {ANCHOR_OWNER};\n'
++        # Grant explicitly from the final anchor owner. The disposable
++        # bootstrap superuser needs no persistent role membership.
++        seal+=f'SET LOCAL ROLE {ANCHOR_OWNER}; GRANT USAGE ON SCHEMA {A} TO {OWNER};\n'
++        seal+=f'GRANT SELECT ON {A}.package_inputs,{A}.actor_bindings TO {OWNER};\n'
++        seal+=f'GRANT EXECUTE ON FUNCTION {broker} TO {OWNER}; RESET ROLE;\n'
+         seal+='REVOKE ALL ON TYPE '+','.join(ns+'.'+name for ns,name in module.TABLES)+' FROM PUBLIC;\n'
+         for actor in self.actors:seal+=f'GRANT USAGE ON SCHEMA {N} TO {actor}; GRANT EXECUTE ON FUNCTION {N}.submit(text),{N}.get_original(text) TO {actor};\n'
+         seal+='COMMIT;';db.sql(seal,timeout=30)
+diff --git a/services/vonneumann/tests/postgres/test_allocation_control_v3.py b/services/vonneumann/tests/postgres/test_allocation_control_v3.py
+--- a/services/vonneumann/tests/postgres/test_allocation_control_v3.py
++++ b/services/vonneumann/tests/postgres/test_allocation_control_v3.py
+@@ -1575,5 +1575,50 @@
+         self.assertEqual(accepted,self.f.get(acquire,reader))
+         self.assertEqual(stored,self.f.snapshot())
+ 
++    def test_dedicated_anchor_owner_denies_assumption_and_seals_role_drift(self):
++        from tests.postgres.allocation_control_v3_fixture import ANCHOR_OWNER, OWNER
++        self.assertEqual((ANCHOR_OWNER,OWNER),('vn_jupiter_b2_anchor_owner','vn_jupiter_b2_sealed_owner'))
++        self.assertEqual(self.db.identity['network'],'none')
++        before=self.f.snapshot()
++        for owner in (ANCHOR_OWNER,OWNER):
++            fresh=self.db.sql('SELECT session_user;',role=owner,check=False)
++            self.assertNotEqual(0,fresh.returncode)
++            self.assertIn('is not permitted to log in',fresh.stderr)
++            for scope in (self.s,self.other):
++                for actor in scope['actors'].values():
++                    denied=self.db.sql(f'SET ROLE {owner};',role=actor,check=False)
++                    self.assertNotEqual(0,denied.returncode)
++                    self.assertIn('42501',denied.stderr)
++        self.assertEqual(before,self.f.snapshot())
++
++        # Admitted installation still traverses the fixed lock broker without
++        # changing any protected anchor row.
++        original=self.f.command(self.s)
++        self.assertTrue(self.submit(original)['pending_commit'])
++        reader=self.s['actors']['reader']
++        committed=self.f.get(original,reader)
++        self.assert_committed(original,committed,1)
++        stored=self.f.snapshot()
++        self.assertEqual([r for r in before if r[0]==A],[r for r in stored if r[0]==A])
++
++        # These synthetic role changes never commit or publish a login.
++        getter=self.f.call('get_original',self.f.query(original),reader)
++        for drift in (
++            f'ALTER ROLE {ANCHOR_OWNER} LOGIN;',
++            'CREATE ROLE vn_jupiter_b2_owner_seal_probe NOLOGIN;'
++            f' GRANT vn_jupiter_b2_owner_seal_probe TO {ANCHOR_OWNER}'
++            ' WITH ADMIN FALSE,INHERIT FALSE,SET TRUE;',
++        ):
++            with self.subTest(drift=drift):
++                denied=self.db.sql(BEGIN+SETTINGS+drift+
++                    f'\nSET LOCAL SESSION AUTHORIZATION {reader};\nSELECT session_user;\n'+
++                    getter+'ROLLBACK;\n',check=False)
++                self.assertNotEqual(0,denied.returncode)
++                self.assertIn('b2_package_refused',denied.stderr)
++                self.assertEqual(reader+'\n',denied.stdout)
++                self.assertEqual(committed,self.f.get(original,reader))
++                self.assertEqual(stored,self.f.snapshot())
++        self.assertEqual('0',self.db.scalar("SELECT count(*) FROM pg_catalog.pg_roles WHERE rolname='vn_jupiter_b2_owner_seal_probe';"))
++
+ 
+ if __name__=='__main__':unittest.main()

@@ -60,7 +60,7 @@ export function assertDashboardBuildTarget(environment: BuildEnvironment): "offl
       environment.VERCEL_PROJECT_ID !== DASHBOARD_VERCEL_PROJECT ||
       environment.NEXT_PUBLIC_SUPABASE_URL !== DASHBOARD_SUPABASE_URL ||
       !environment.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim()) {
-    throw new Error("Dashboard preview and unreviewed builds are blocked until database isolation is configured");
+    throw new Error("Dashboard hosted builds require the verified production project and database");
   }
   return "production";
 }

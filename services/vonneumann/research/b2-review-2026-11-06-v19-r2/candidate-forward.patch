@@ -1,0 +1,75 @@
+diff --git a/services/vonneumann/tests/postgres/test_allocation_control_v3.py b/services/vonneumann/tests/postgres/test_allocation_control_v3.py
+--- a/services/vonneumann/tests/postgres/test_allocation_control_v3.py
++++ b/services/vonneumann/tests/postgres/test_allocation_control_v3.py
+@@ -1575,5 +1575,71 @@
+         self.assertEqual(accepted,self.f.get(acquire,reader))
+         self.assertEqual(stored,self.f.snapshot())
+ 
++    def test_v19_two_writer_retirement_closes_readback_and_reserved_stop(self):
++        self.assertEqual('none',self.db.identity['network'])
++        installer=self.s['actors']['installer']
++        recorder=self.s['actors']['recorder']
++        control=self.s['actors']['control']
++        reader=self.s['actors']['reader']
++        self.assertEqual((installer,recorder,control,reader),
++            ('vn_jupiter_b2_0_installer','vn_jupiter_b2_0_recorder','vn_jupiter_b2_0_control','vn_jupiter_b2_0_reader'))
++        install,acquire=self.install_and_acquire_for_resume()
++        resume=self.resume_command()
++        self.submit(resume)
++        stop=self.open_stop_command(resume)
++        self.assertEqual(self.s['stop_id'],stop['action_id'])
++        self.assertEqual('3',stop['expected_head']['native_sequence'])
++        history=[self.f.get(command,reader) for command in (install,acquire)]
++        stop_before=self.f.get(stop,reader)
++        self.assertEqual('observed_absent_unknown',stop_before['resolution'])
++        before=self.f.snapshot()
++
++        # Prove the exact reserved original is admissible before the controlled
++        # drift. This owned writer explicitly rolls back the provisional result.
++        writer=self.f.writer(control)
++        try:
++            writer.send(self.f.call('submit',stop,control))
++            pending=json.loads(writer.line())
++            self.assertTrue(pending['pending_commit'])
++            self.assertEqual(sha(canonical(stop)),pending['original_command_sha256'])
++            self.assertEqual(stop_before,self.f.get(stop,reader))
++            writer.finish('ROLLBACK;')
++        finally:
++            writer.close()
++        self.assertEqual(before,self.f.snapshot())
++
++        def rejected_get(command):
++            result=self.db.sql(SETTINGS+self.f.call('get_original',self.f.query(command),reader),role=reader,check=False)
++            self.assertNotEqual(0,result.returncode)
++            self.assertRegex(result.stderr,r'(?m)^ERROR:\s+P0001: b2_package_refused\s*$')
++            self.assertEqual('',result.stdout.strip())
++
++        try:
++            self.db.sql('ALTER ROLE vn_jupiter_b2_0_installer NOLOGIN;')
++            self.assertEqual(history[0],self.f.get(install,reader))
++            rejected_get(acquire)
++            one=self.refusal(stop,'b2_package_refused',profile='control')
++            self.assertRegex(one.stderr,r'(?m)^ERROR:\s+P0001: b2_package_refused\s*$')
++
++            self.db.sql('ALTER ROLE vn_jupiter_b2_0_recorder NOLOGIN;')
++            for role in (installer,recorder):
++                self.assertEqual('f',self.db.scalar(
++                    "SELECT rolcanlogin FROM pg_catalog.pg_roles WHERE rolname="+literal(role)+";"))
++            self.assertEqual(control,self.db.scalar('SELECT session_user;',role=control))
++            self.assertEqual(reader,self.db.scalar('SELECT session_user;',role=reader))
++            for command in (install,acquire,stop):
++                rejected_get(command)
++            two=self.refusal(stop,'b2_package_refused',profile='control')
++            self.assertRegex(two.stderr,r'(?m)^ERROR:\s+P0001: b2_package_refused\s*$')
++            self.assertEqual(before,self.f.snapshot())
++        finally:
++            # Restore only disposable role bits for fixture reuse. This is
++            # not a recovery operation against a retired deployed identity.
++            self.db.sql('BEGIN; ALTER ROLE vn_jupiter_b2_0_installer LOGIN; ALTER ROLE vn_jupiter_b2_0_recorder LOGIN; COMMIT;')
++        self.assertEqual(history,[self.f.get(command,reader) for command in (install,acquire)])
++        self.assertEqual(stop_before,self.f.get(stop,reader))
++        self.assertEqual(before,self.f.snapshot())
++
++
+ 
+ if __name__=='__main__':unittest.main()

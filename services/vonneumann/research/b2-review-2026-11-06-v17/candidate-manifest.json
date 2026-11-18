@@ -1,0 +1,78 @@
+{
+  "V16_archive_native_receipt_sha256": "fcb39ded41f46b87a660878bcf5f7ff84e94b315d161f03be2b3f61a2573e0c4",
+  "V16_manifest_sha256": "2c60d6e931facaed1798a9a2bc4649f7a112ebefce6e490d16a2e52a8a558f8c",
+  "V16_native_acceptance_separate": true,
+  "V16_native_cases_passed": 35,
+  "V16_native_run_receipt_sha256": "ea73ebd0399912a8c636b03e0eba11929d7d79d932cbd5d0336623fd94f3808a",
+  "acceptance": {
+    "commit_after_old_expiry_plus_us": 100000,
+    "expected_late_commit_SQLSTATE": "P0001",
+    "expected_late_commit_marker": "b2_fence_clock_refused",
+    "new_expiry_lower_bound": "exact committed Resume database clock + fixed 60 seconds",
+    "post_refusal": "exact original reserved open Stop at position 4",
+    "resume_after_old_issue_plus_us": 10000000,
+    "stage_after_old_expiry_minus_us": 5500000
+  },
+  "exact_repeat_composition": {
+    "base_commit": "7ff9b886a2d19de5388b86a5c3985a8705567edc",
+    "base_tree": "9d6c512e6ea6f9b036cf82f7cc67199cc57dc4ae",
+    "composed_regular_files": 936,
+    "tracked_regular_files": 930
+  },
+  "expected_tests": 1,
+  "format": "dashboard-private-b2-late-renew-v17-test-only",
+  "forward_patch_sha256": "48c3f6cd2e79765729f93c1a4566eda69a56b202c96e91c6a68a718c10b12cec",
+  "independent_review_required": true,
+  "launch_intent": {
+    "exact_single_ID": true,
+    "network_none": true,
+    "only_root_after_review": true,
+    "outer_timeout_seconds": 240
+  },
+  "native_execution": false,
+  "remote_or_credential_access": false,
+  "repository_mutation": false,
+  "retained_V16_test_methods_byte_identical": 35,
+  "source_files": [
+    {
+      "bytes": 41135,
+      "path": "services/vonneumann/B2-INSTALLATION-STOP-NATIVE-CANDIDATE-2026-10-18.md",
+      "sha256": "a181c9b745fb9f03b2d7ee361b89b08b9c7ddf5d2063f72cbfdbf5ef62423d5f",
+      "v16_sha256": "a181c9b745fb9f03b2d7ee361b89b08b9c7ddf5d2063f72cbfdbf5ef62423d5f"
+    },
+    {
+      "bytes": 12143,
+      "path": "services/vonneumann/db-contract/research/allocation_control_v3_source.py",
+      "sha256": "2c4050765059834a58b0b7f8840316f2117d631c40b19695bbd035aa99c5ddd5",
+      "v16_sha256": "2c4050765059834a58b0b7f8840316f2117d631c40b19695bbd035aa99c5ddd5"
+    },
+    {
+      "bytes": 120981,
+      "path": "services/vonneumann/db-contract/research/jupiter_allocation_control_v3.sql",
+      "sha256": "793d2fbaf9e6f4938776641c620501b9c4719b1e8a099168d8a4dabb46c6d23d",
+      "v16_sha256": "793d2fbaf9e6f4938776641c620501b9c4719b1e8a099168d8a4dabb46c6d23d"
+    },
+    {
+      "bytes": 32126,
+      "path": "services/vonneumann/research/b2-finite-experiment-policy-2026-10-18-v3.json",
+      "sha256": "0a1c8663f4f6cbf9b299cab11fcdd00a379dbe3ca3493b706ddafca9b75c0f1a",
+      "v16_sha256": "0a1c8663f4f6cbf9b299cab11fcdd00a379dbe3ca3493b706ddafca9b75c0f1a"
+    },
+    {
+      "bytes": 43615,
+      "path": "services/vonneumann/tests/postgres/allocation_control_v3_fixture.py",
+      "sha256": "be8931731f33b1f655bfa552d911bbb952e692e1c68f0963d905b8226405fa23",
+      "v16_sha256": "be8931731f33b1f655bfa552d911bbb952e692e1c68f0963d905b8226405fa23"
+    },
+    {
+      "bytes": 85597,
+      "path": "services/vonneumann/tests/postgres/test_allocation_control_v3.py",
+      "sha256": "123ea9f1530dc0e33eebe2169020446e8c2464b84f188f72003161881e02a1cd",
+      "v16_sha256": "8f1e98b5c94aca3182cfc8265af366b715315277d9f5c62d63128874d7245eb7"
+    }
+  ],
+  "test_ids": [
+    "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_renew_late_commit_refuses_old_expiry_before_new_expiry_and_open_stop_succeeds"
+  ],
+  "total_source_test_methods": 36
+}

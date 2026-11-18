@@ -1,0 +1,44 @@
+--- a/services/vonneumann/db-contract/research/jupiter_credential_handoff_lab.sql
++++ b/services/vonneumann/db-contract/research/jupiter_credential_handoff_lab.sql
+@@ -56,18 +56,18 @@
+ $handoff$;
+ 
+ -- FUNCTION _handoff_allows_renew
+-CREATE FUNCTION vn_jupiter_b2_allocation_research_v3._handoff_allows_renew(marker pg_catalog.jsonb, position pg_catalog.int8, command_sha pg_catalog.text, writer_binding pg_catalog.text, prior_fence pg_catalog.jsonb, prior_head_sha pg_catalog.text)
++CREATE FUNCTION vn_jupiter_b2_allocation_research_v3._handoff_allows_renew(marker pg_catalog.jsonb, native_position pg_catalog.int8, command_sha pg_catalog.text, writer_binding pg_catalog.text, prior_fence pg_catalog.jsonb, prior_head_sha pg_catalog.text)
+ RETURNS pg_catalog.bool
+ LANGUAGE plpgsql IMMUTABLE SECURITY INVOKER
+ SET search_path='pg_catalog','pg_temp' SET TimeZone='UTC' SET client_encoding='UTF8' SET standard_conforming_strings='on'
+ AS $handoff$
+ BEGIN
+  RETURN (writer_binding=marker#>>'{successor_binding,principal_binding_id}' AND
+-  (CASE WHEN position=4 THEN command_sha=marker->>'renew_command_sha256'
++  (CASE WHEN native_position=4 THEN command_sha=marker->>'renew_command_sha256'
+     AND prior_head_sha=marker->>'head_sha256'
+     AND prior_fence->>'holder_principal_binding_id'=marker->>'old_binding_id'
+     AND vn_jupiter_b2_allocation_research_v3._sha(vn_jupiter_b2_allocation_research_v3._c14n(prior_fence))=marker->>'fence_sha256'
+-   ELSE position BETWEEN 5 AND 16 AND prior_fence->>'holder_principal_binding_id'=writer_binding END)) IS TRUE;
++   ELSE native_position BETWEEN 5 AND 16 AND prior_fence->>'holder_principal_binding_id'=writer_binding END)) IS TRUE;
+ END;
+ $handoff$;
+ 
+--- a/services/vonneumann/tests/postgres/allocation_control_v3_fixture.py
++++ b/services/vonneumann/tests/postgres/allocation_control_v3_fixture.py
+@@ -32,7 +32,7 @@
+ POLICY_PATH = ROOT / 'research/b2-finite-experiment-policy-2026-10-18-v3.json'
+ TERMINAL_ADDON_PATH = ROOT / 'db-contract/research/jupiter_terminal_retirement_owner_lab.sql'
+ HANDOFF_ADDON_PATH = ROOT / 'db-contract/research/jupiter_credential_handoff_lab.sql'
+-HANDOFF_ADDON_SHA256 = '4db168d8822ba26505c3368305dfb401704c13a68877394d4c0c452940e7f695'
++HANDOFF_ADDON_SHA256 = '1fe518402f26deebc44b21f57bc31ad70103f00e8b8f9713c4c6c75885fea82c'
+ STOP_INTENT_ADDON_PATH = ROOT / 'db-contract/research/jupiter_stop_intent_lab.sql'
+ STOP_INTENT_ADDON_SHA256 = '90e73e9e9a13fbc5fdd07f86507e34fae010b3bc8d3d226bc5349da9d1661018'
+ TERMINAL_ADDON_SHA256 = 'a4064e365aa0ef71f8f551703b0c14596b20d42bde318cd969dce9e8d9f4c0e7'
+@@ -539,7 +539,7 @@
+     stop=held(STOP_INTENT_ADDON_PATH,STOP_INTENT_ADDON_SHA256,65536).decode('utf8')
+     handoff_signatures={
+         '_read_handoff':(N,OWNER,['requested_scope'],['text'],'jsonb',None,'s',False),
+-        '_handoff_allows_renew':(N,OWNER,['marker','position','command_sha','writer_binding','prior_fence','prior_head_sha'],
++        '_handoff_allows_renew':(N,OWNER,['marker','native_position','command_sha','writer_binding','prior_fence','prior_head_sha'],
+             ['jsonb','bigint','text','text','jsonb','text'],'boolean',None,'i',False),
+         '_handoff_catalog_preimage':(N,OWNER,['actual','old_role','new_role','issuer'],['jsonb','oid','oid','oid'],'jsonb',None,'s',False),
+         '_handoff_native':(N,OWNER,['requested_scope','requested_id','phase'],['text','uuid','text'],'text',ANCHOR_OWNER,'v',True),

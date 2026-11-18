@@ -1,0 +1,31 @@
+{
+  "base": "f317ffc4519d5a70002279458992e54465a9821f",
+  "complete_test_result": false,
+  "container_gone": true,
+  "controller_sha256": "8ab166a0ce38bd26a9413740ddd7036dc3ba630d27ad167ac45e2f88e3800dbb",
+  "dependency_inventory_sha256": "2326bfa83a1c1264ca9c6dee8bbbd282e24052016a64a322286deeff492b1ee1",
+  "elapsed": 240.34447970800102,
+  "end": "2026-11-09T19:38:42.341235+00:00",
+  "exit": -9,
+  "expected_cases": 41,
+  "fallback_cleanup": true,
+  "fixture": {
+    "image": "public.ecr.aws/supabase/postgres:17.6.1.095",
+    "image_id": "sha256:965e2dfb5a23a0d6541b6106541e777b303656ebabd4e878746b189d550c0a66",
+    "network": "none",
+    "postgres_version": "17.6"
+  },
+  "group_gone": true,
+  "interrupted": false,
+  "last_started_case": "tests.postgres.test_allocation_control_v3.AllocationControlNativeTests.test_v19_two_writer_retirement_closes_readback_and_reserved_stop",
+  "manifest_sha256": "93e72c61262c3993fa238573f832503ed9b8b82b88945f73e636212bcde5c4cf",
+  "observed_case_success_lines": 40,
+  "ordered_ids_sha256": "75c3280f8a62ec7584ddd8f8c7831af3b195a12d9ecfcc9a10437ee1727746e4",
+  "original_run_receipt_sha256": "a35b4a16d9906aff4e56f73d9170c4590fb809b84b21137001b793661851dd7c",
+  "raw_log_sha256": "2dd63e8ac4b8cd252e97a491f7fe7cf5d155fc01ac1e061a8faef068bd92c900",
+  "snapshot_sha256": "13c39846d3b1c08c08162efdf96f307a59084a3948f456348e24a42111644e99",
+  "source_count": 942,
+  "source_unchanged": true,
+  "start": "2026-11-09T19:34:41.995800+00:00",
+  "timeout": true
+}

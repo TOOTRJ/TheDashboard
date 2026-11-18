@@ -1,0 +1,256 @@
+{
+  "max": {
+    "original_receipt_sha256": "ea88b21cde0c9c8f34b52ab30ecf56b04db3e40ea87f70c4b954e3f81bd94718",
+    "receipt": {
+      "harness_sha256": "d2e5c81e8cef0e4866f25de82850e4a20f7e21d758ea8cd978cb06d2bddf2913",
+      "kind": "actual-transport-with-in-memory-synthetic-http",
+      "observation": {
+        "attempt_bound": 945,
+        "capacity_refused_at": 13,
+        "closed_exact_replay": true,
+        "completed": 12,
+        "peak_rss_bytes_after_trace": 53903360,
+        "peak_rss_bytes_before_trace": 44564480,
+        "per_packet_charge_bytes": {
+          "max": 617677,
+          "min": 617677
+        },
+        "phase_timing_ns": {
+          "block_time": {
+            "n": 12,
+            "p100_ns": 5641167,
+            "p50_ns": 5505375,
+            "p95_ns": 5641167,
+            "p99_ns": 5641167
+          },
+          "collect": {
+            "n": 12,
+            "p100_ns": 43081750,
+            "p50_ns": 42288958,
+            "p95_ns": 43081750,
+            "p99_ns": 43081750
+          },
+          "genesis": {
+            "n": 12,
+            "p100_ns": 5595042,
+            "p50_ns": 5459625,
+            "p95_ns": 5595042,
+            "p99_ns": 5595042
+          },
+          "price": {
+            "n": 12,
+            "p100_ns": 11071792,
+            "p50_ns": 10468583,
+            "p95_ns": 11071792,
+            "p99_ns": 11071792
+          }
+        },
+        "process_cpu_ns": 505147000,
+        "profile": "max",
+        "remaining_before_pre_io_threshold": -72092,
+        "retained_bytes": 7412124,
+        "retained_ids": 48,
+        "sustained_real_time_or_provider_result": false,
+        "synthetic_body_bytes": 3145728,
+        "synthetic_call_counts": {
+          "block_time": 12,
+          "genesis": 12,
+          "price": 12
+        }
+      },
+      "runtime": {
+        "certifi": "2026.7.22",
+        "httpcore": "1.0.9",
+        "httpx": "0.28.1",
+        "python": "3.12.14"
+      },
+      "sources": {
+        "requirements-dev.txt": "3f2ba893f04efc310a10df16792d00a0b2e4c441d72ac3ed58d9d94bfc276f87",
+        "tests/security_support.py": "d0ff1adaa35cd4dab046fae2ead824a0ee51cae0a1e501096a040c08cf8b7783",
+        "tests/test_provider_recorded_transport_v3.py": "3885b83a7e8eb7fabeec9370a819989e2083e21ac17ff2408ef546b84733f63f",
+        "vonneumann/market/provider_acquisition_v3.py": "27a13e85beb44d8b7236eca04e6cdfcba064854d02271873c95dfa5454ce3a06",
+        "vonneumann/market/provider_derivation_v3.py": "1663b618a7b828d4c813b3e2561d10122292293f796ea25c9513225ce83440d6",
+        "vonneumann/market/provider_recorded_transport_v3.py": "9549a4d461138e980259ed6d68b2644c3b3010642892425dabd44a0104a0d46f"
+      }
+    }
+  },
+  "padded": {
+    "original_receipt_sha256": "bb27134d0e2e4ea775af0497e00ba0bf88027a5ae10f55015688d9219ac2bbf6",
+    "receipt": {
+      "harness_sha256": "d2e5c81e8cef0e4866f25de82850e4a20f7e21d758ea8cd978cb06d2bddf2913",
+      "kind": "actual-transport-with-in-memory-synthetic-http",
+      "observation": {
+        "attempt_bound": 945,
+        "capacity_refused_at": 362,
+        "closed_exact_replay": true,
+        "completed": 361,
+        "peak_rss_bytes_after_trace": 53542912,
+        "peak_rss_bytes_before_trace": 44548096,
+        "per_packet_charge_bytes": {
+          "max": 20341,
+          "min": 20341
+        },
+        "phase_timing_ns": {
+          "block_time": {
+            "n": 361,
+            "p100_ns": 507083,
+            "p50_ns": 418084,
+            "p95_ns": 450125,
+            "p99_ns": 472500
+          },
+          "collect": {
+            "n": 361,
+            "p100_ns": 3043125,
+            "p50_ns": 2597208,
+            "p95_ns": 2720792,
+            "p99_ns": 2824333
+          },
+          "genesis": {
+            "n": 361,
+            "p100_ns": 816000,
+            "p50_ns": 417333,
+            "p95_ns": 447792,
+            "p99_ns": 507541
+          },
+          "price": {
+            "n": 361,
+            "p100_ns": 882542,
+            "p50_ns": 627417,
+            "p95_ns": 665542,
+            "p99_ns": 725000
+          }
+        },
+        "process_cpu_ns": 894493000,
+        "profile": "padded",
+        "remaining_before_pre_io_threshold": -3069,
+        "retained_bytes": 7343101,
+        "retained_ids": 1444,
+        "sustained_real_time_or_provider_result": false,
+        "synthetic_body_bytes": 2217984,
+        "synthetic_call_counts": {
+          "block_time": 361,
+          "genesis": 361,
+          "price": 361
+        }
+      },
+      "runtime": {
+        "certifi": "2026.7.22",
+        "httpcore": "1.0.9",
+        "httpx": "0.28.1",
+        "python": "3.12.14"
+      },
+      "sources": {
+        "requirements-dev.txt": "3f2ba893f04efc310a10df16792d00a0b2e4c441d72ac3ed58d9d94bfc276f87",
+        "tests/security_support.py": "d0ff1adaa35cd4dab046fae2ead824a0ee51cae0a1e501096a040c08cf8b7783",
+        "tests/test_provider_recorded_transport_v3.py": "3885b83a7e8eb7fabeec9370a819989e2083e21ac17ff2408ef546b84733f63f",
+        "vonneumann/market/provider_acquisition_v3.py": "27a13e85beb44d8b7236eca04e6cdfcba064854d02271873c95dfa5454ce3a06",
+        "vonneumann/market/provider_derivation_v3.py": "1663b618a7b828d4c813b3e2561d10122292293f796ea25c9513225ce83440d6",
+        "vonneumann/market/provider_recorded_transport_v3.py": "9549a4d461138e980259ed6d68b2644c3b3010642892425dabd44a0104a0d46f"
+      }
+    }
+  },
+  "restart": {
+    "original_receipt_sha256": "8c7b4f8ae2004749d3aefae78d27ee8f887af4b062a389989232f09772d536a8",
+    "receipt": {
+      "harness_sha256": "d2e5c81e8cef0e4866f25de82850e4a20f7e21d758ea8cd978cb06d2bddf2913",
+      "kind": "actual-transport-with-in-memory-synthetic-http",
+      "observation": {
+        "meaning": "transport has no crash-persistent original lookup; do not resubmit uncertain identities",
+        "native_recovery_proven": false,
+        "new_receipts_on_deliberate_fake_resubmission": true,
+        "owned_child_exit": "SIGKILL",
+        "same_prepared_identity": true,
+        "same_synthetic_response_bodies": true
+      },
+      "runtime": {
+        "certifi": "2026.7.22",
+        "httpcore": "1.0.9",
+        "httpx": "0.28.1",
+        "python": "3.12.14"
+      },
+      "sources": {
+        "requirements-dev.txt": "3f2ba893f04efc310a10df16792d00a0b2e4c441d72ac3ed58d9d94bfc276f87",
+        "tests/security_support.py": "d0ff1adaa35cd4dab046fae2ead824a0ee51cae0a1e501096a040c08cf8b7783",
+        "tests/test_provider_recorded_transport_v3.py": "3885b83a7e8eb7fabeec9370a819989e2083e21ac17ff2408ef546b84733f63f",
+        "vonneumann/market/provider_acquisition_v3.py": "27a13e85beb44d8b7236eca04e6cdfcba064854d02271873c95dfa5454ce3a06",
+        "vonneumann/market/provider_derivation_v3.py": "1663b618a7b828d4c813b3e2561d10122292293f796ea25c9513225ce83440d6",
+        "vonneumann/market/provider_recorded_transport_v3.py": "9549a4d461138e980259ed6d68b2644c3b3010642892425dabd44a0104a0d46f"
+      }
+    }
+  },
+  "tiny": {
+    "original_receipt_sha256": "9cd58d99be992b9dc2571fa05a9b310500ff82f98eec1d7e3f25f10850af0cff",
+    "receipt": {
+      "harness_sha256": "d2e5c81e8cef0e4866f25de82850e4a20f7e21d758ea8cd978cb06d2bddf2913",
+      "kind": "actual-transport-with-in-memory-synthetic-http",
+      "observation": {
+        "attempt_bound": 945,
+        "capacity_refused_at": null,
+        "closed_exact_replay": true,
+        "completed": 945,
+        "peak_rss_bytes_after_trace": 52510720,
+        "peak_rss_bytes_before_trace": 44564480,
+        "per_packet_charge_bytes": {
+          "max": 6606,
+          "min": 6606
+        },
+        "phase_timing_ns": {
+          "block_time": {
+            "n": 945,
+            "p100_ns": 687291,
+            "p50_ns": 331584,
+            "p95_ns": 358250,
+            "p99_ns": 390834
+          },
+          "collect": {
+            "n": 945,
+            "p100_ns": 2223500,
+            "p50_ns": 1648167,
+            "p95_ns": 1752209,
+            "p99_ns": 1907209
+          },
+          "genesis": {
+            "n": 945,
+            "p100_ns": 754833,
+            "p50_ns": 333958,
+            "p95_ns": 367167,
+            "p99_ns": 399542
+          },
+          "price": {
+            "n": 945,
+            "p100_ns": 555583,
+            "p50_ns": 312958,
+            "p95_ns": 337375,
+            "p99_ns": 392000
+          }
+        },
+        "process_cpu_ns": 1446646000,
+        "profile": "tiny",
+        "remaining_before_pre_io_threshold": 1097362,
+        "retained_bytes": 6242670,
+        "retained_ids": 3780,
+        "sustained_real_time_or_provider_result": false,
+        "synthetic_body_bytes": 247590,
+        "synthetic_call_counts": {
+          "block_time": 945,
+          "genesis": 945,
+          "price": 945
+        }
+      },
+      "runtime": {
+        "certifi": "2026.7.22",
+        "httpcore": "1.0.9",
+        "httpx": "0.28.1",
+        "python": "3.12.14"
+      },
+      "sources": {
+        "requirements-dev.txt": "3f2ba893f04efc310a10df16792d00a0b2e4c441d72ac3ed58d9d94bfc276f87",
+        "tests/security_support.py": "d0ff1adaa35cd4dab046fae2ead824a0ee51cae0a1e501096a040c08cf8b7783",
+        "tests/test_provider_recorded_transport_v3.py": "3885b83a7e8eb7fabeec9370a819989e2083e21ac17ff2408ef546b84733f63f",
+        "vonneumann/market/provider_acquisition_v3.py": "27a13e85beb44d8b7236eca04e6cdfcba064854d02271873c95dfa5454ce3a06",
+        "vonneumann/market/provider_derivation_v3.py": "1663b618a7b828d4c813b3e2561d10122292293f796ea25c9513225ce83440d6",
+        "vonneumann/market/provider_recorded_transport_v3.py": "9549a4d461138e980259ed6d68b2644c3b3010642892425dabd44a0104a0d46f"
+      }
+    }
+  }
+}

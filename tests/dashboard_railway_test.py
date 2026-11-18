@@ -104,7 +104,9 @@ class WorkerExportTests(unittest.TestCase):
    def fixture_path(value):return staging if value=='/private/tmp' else Path(value)
    try:
     with patch.object(helper,'Path',side_effect=fixture_path):result=helper.export_worker(commit,dest,read)
-    self.assertEqual(result['files'],10)
+    self.assertEqual(result['files'],9)
+    self.assertEqual(result['export_profile'],'persisted-production-v1')
+    self.assertFalse((dest/'railway.json').exists())
     self.assertEqual(dest.stat().st_mode & 0o777,0o700)
     self.assertEqual((dest/'vonneumann/server').stat().st_mode & 0o777,0o755)
     self.assertEqual((dest/'vonneumann/server/paper_app.py').stat().st_mode & 0o777,0o644)

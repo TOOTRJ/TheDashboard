@@ -198,8 +198,10 @@ def _private_configuration(key,rpc_url):
 
 class ProviderRecordedTransport:
     """One owned loop/packet and retained original result after waiter loss."""
-    def __init__(self,key,rpc_url,*,read_only_opt_in=False,bounds=None):
+    def __init__(self,key,rpc_url,*,read_only_opt_in=False,bounds=None,authorize_request=None):
         if read_only_opt_in is not True:raise RecordedTransportError('read_only_collection_closed')
+        if authorize_request is not None and not callable(authorize_request):
+            raise RecordedTransportError('request_unavailable')
         if bounds is not None and type(bounds) is not TransportBounds:raise RecordedTransportError('invalid_bounds')
         self._bounds=TransportBounds() if bounds is None else bounds;self._bounds.__post_init__()
         self._sensitive=_private_configuration(key,rpc_url)
@@ -210,6 +212,7 @@ class ProviderRecordedTransport:
         self._context,self.ca_bundle_sha256=_tls_context()
         self._transport=_transport(self._context)
         self._key,self._rpc_url=key,rpc_url
+        self._authorize_request=authorize_request
         self._loop=None;self._active=None;self._original_wire=None;self._waiter=False
         self._closed=False;self._cleanup_tasks=set();self._cleanup_failed=False;self._close_task=None
         self._results={};self._used_ids=set();self._retained_bytes=0
@@ -313,6 +316,9 @@ class ProviderRecordedTransport:
             write=self._bounds.write_us/1_000_000,pool=self._bounds.pool_us/1_000_000)
         outgoing=httpx.Request(public['method'],url,headers=headers,params=params,content=content,
                                extensions={'timeout':timeouts.as_dict()})
+        if self._authorize_request is not None:
+            await self._authorize_request(prepared, family, identity, request)
+            self._deadline(deadline_start)
         response=None;original=None
         started_wall,started_mono=self._sample()
         original_diagnostic={'record_id':identity,'provider_family':family,

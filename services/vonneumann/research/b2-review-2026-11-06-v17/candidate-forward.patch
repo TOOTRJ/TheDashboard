@@ -1,0 +1,102 @@
+diff --git a/services/vonneumann/tests/postgres/test_allocation_control_v3.py b/services/vonneumann/tests/postgres/test_allocation_control_v3.py
+--- a/services/vonneumann/tests/postgres/test_allocation_control_v3.py
++++ b/services/vonneumann/tests/postgres/test_allocation_control_v3.py
+@@ -1189,4 +1189,98 @@
+         self.assertEqual(immutable,self.f.snapshot())
+ 
+ 
++    def test_renew_late_commit_refuses_old_expiry_before_new_expiry_and_open_stop_succeeds(self):
++        _,acquire=self.install_and_acquire_for_resume()
++        reader=self.s['actors']['reader']
++        recorder=self.s['actors']['recorder']
++        acquired=json.loads(self.f.get(acquire,reader)['original_result_wire'])
++        old_fence=acquired['result_body']['original_fence_record']
++        old_issued=int(old_fence['issued_at_us'])
++        old_expiry=int(old_fence['expires_at_us'])
++        duration=60_000_000
++        self.assertEqual(old_issued+duration,old_expiry)
++
++        def database_clock_us(*, wait_until_us=None, timeout=10):
++            # This trusted test read samples the actual clock used by the
++            # owned PostgreSQL engine. It never supplies a clock to submit.
++            wait=''
++            if wait_until_us is not None:
++                wait=f"SELECT pg_catalog.pg_sleep_until(pg_catalog.to_timestamp({wait_until_us}::numeric/1000000));\n"
++            sample="SELECT pg_catalog.floor(EXTRACT(epoch FROM pg_catalog.clock_timestamp())*1000000)::bigint;"
++            return int(self.db.scalar(wait+sample,timeout=timeout))
++
++        resume_after=old_issued+10_000_000
++        self.assertGreaterEqual(database_clock_us(wait_until_us=resume_after,timeout=20),resume_after)
++        resume=self.resume_command()
++        self.submit(resume)
++        resume_reply=self.f.get(resume,reader)
++        _,resume_receipt=self.assert_committed(resume,resume_reply,3)
++        resume_commit=int(resume_receipt['commit_processing_observation']['observed_at_us'])
++        self.assertLessEqual(resume_after,resume_commit)
++        self.assertLess(resume_commit,old_expiry)
++
++        # V16 accepts a provisional Renew only when its issuance is at or
++        # after this exact Resume COMMIT observation. Its duration is fixed.
++        # This lower bound requires no read of the writer's staged fence.
++        earliest_new_expiry=resume_commit+duration
++        renew=self.f.command(self.s,'fence_renew',action_id=str(UUID(int=996001)))
++        renew['expected_fence_id']=old_fence['fence_id']
++        renew['expected_fence_revision']='1'
++        renew['body']=dict(fence_id=old_fence['fence_id'],expected_revision='1',requested_duration_us=str(duration))
++        before=self.f.snapshot()
++        absent=self.f.get(renew,reader)
++        self.assertEqual('observed_absent_unknown',absent['resolution'])
++        self.assertIsNone(absent['original_operation_pin'])
++        self.assertEqual(renew['expected_head'],absent['observed_head'])
++
++        stage_after=old_expiry-5_500_000
++        self.assertLess(database_clock_us(wait_until_us=stage_after,timeout=60),old_expiry)
++        writer=self.f.writer(recorder)
++        try:
++            before_submit=database_clock_us()
++            self.assertLessEqual(stage_after,before_submit)
++            self.assertLess(before_submit,old_expiry)
++            writer.send(self.f.call('submit',renew,recorder))
++            pending=json.loads(writer.line())
++            self.assertTrue(pending['pending_commit'])
++            self.assertEqual(sha(canonical(renew)),pending['original_command_sha256'])
++            self.assertEqual(absent,self.f.get(renew,reader))
++            after_provisional=database_clock_us()
++            self.assertLessEqual(before_submit,after_provisional)
++            self.assertLess(after_provisional,old_expiry)
++
++            before_commit=database_clock_us(wait_until_us=old_expiry+100_000,timeout=8)
++            self.assertGreaterEqual(before_commit,old_expiry+100_000)
++            self.assertLess(before_commit,earliest_new_expiry)
++            code,stderr=writer.finish(check=False)
++            after_commit=database_clock_us()
++            self.assertLessEqual(before_commit,after_commit)
++            self.assertLess(after_commit,earliest_new_expiry)
++            self.assertNotEqual(0,code)
++            self.assertRegex(stderr,r'(?m)^ERROR:\s+P0001: b2_fence_clock_refused\s*$')
++            self.assertIn('._commit_guard()',stderr)
++        finally:
++            writer.close()
++
++        self.assertEqual(before,self.f.snapshot())
++        self.assertEqual(absent,self.f.get(renew,reader))
++        fresh=copy.deepcopy(renew)
++        fresh['action_id']=str(UUID(int=996002))
++        refusal=self.refusal(fresh,'b2_fence_clock_refused',profile='recorder')
++        self.assertRegex(refusal.stderr,r'(?m)^ERROR:\s+P0001: b2_fence_clock_refused\s*$')
++        self.assertEqual('',refusal.stdout.strip())
++        self.assertEqual('observed_absent_unknown',self.f.get(fresh,reader)['resolution'])
++
++        stop=self.open_stop_command(resume)
++        self.assertEqual(self.s['stop_id'],stop['action_id'])
++        self.submit(stop)
++        result,_=self.assert_committed(stop,self.f.get(stop,reader),4)
++        self.assertEqual(dict(previous_mode='open',resulting_mode='stopped',
++            previous_control_sha256=sha(canonical(resume)),resulting_fence_revision='2'),result['result_body'])
++        head=self.f.head(self.s)
++        self.assertEqual(('stopped',None,'2','4'),
++            tuple(head[key] for key in ('source_mode','active_fence_id','fence_revision','native_sequence')))
++        self.assertEqual('observed_absent_unknown',self.f.get(renew,reader)['resolution'])
++
++
+ if __name__=='__main__':unittest.main()

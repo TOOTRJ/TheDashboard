@@ -1,0 +1,499 @@
+diff --git a/services/vonneumann/db-contract/research/jupiter_durable_acquisition_fixture_v3.sql b/services/vonneumann/db-contract/research/jupiter_durable_acquisition_fixture_v3.sql
+new file mode 100644
+index 0000000..934dcd2
+--- /dev/null
++++ b/services/vonneumann/db-contract/research/jupiter_durable_acquisition_fixture_v3.sql
+@@ -0,0 +1,191 @@
++-- Disposable network-none fixture only. No migration or hosted authority.
++BEGIN;
++CREATE ROLE dcap_owner NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT;
++CREATE ROLE dcap_recorder LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT;
++CREATE ROLE dcap_reader LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT;
++CREATE ROLE dcap_foreign LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT;
++CREATE SCHEMA dcap AUTHORIZATION dcap_owner;
++REVOKE ALL ON SCHEMA dcap FROM PUBLIC;
++SET LOCAL ROLE dcap_owner;
++ALTER DEFAULT PRIVILEGES REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC;
++CREATE TABLE dcap.scope_access (
++    scope_wire text PRIMARY KEY, recorder_oid oid NOT NULL, reader_oid oid NOT NULL,
++    issuer jsonb NOT NULL, policies jsonb NOT NULL, issuer_principal_binding_id uuid NOT NULL
++);
++CREATE TABLE dcap.packets (
++    scope_wire text PRIMARY KEY REFERENCES dcap.scope_access, reservation_id uuid NOT NULL UNIQUE,
++    capture_id uuid NOT NULL UNIQUE, availability_id uuid NOT NULL, closure_id uuid NOT NULL,
++    reservation_wire text NOT NULL, prepared_wire text NOT NULL, reservation_sha256 text NOT NULL,
++    reservation_receipt_wire text NOT NULL, capture_wire text, capture_sha256 text, capture_receipt_wire text,
++    CHECK ((capture_wire IS NULL) = (capture_sha256 IS NULL)
++       AND (capture_wire IS NULL) = (capture_receipt_wire IS NULL))
++);
++CREATE TABLE dcap.identities (original_id uuid PRIMARY KEY, scope_wire text NOT NULL REFERENCES dcap.packets);
++
++-- Same recursive JSON ordering as the held B2 research canonical encoder.
++CREATE FUNCTION dcap.c14n(v jsonb) RETURNS text LANGUAGE plpgsql IMMUTABLE STRICT
++SET search_path=pg_catalog,pg_temp AS $$
++DECLARE result text;
++BEGIN
++    CASE jsonb_typeof(v)
++    WHEN 'object' THEN
++        SELECT '{'||coalesce(string_agg(to_jsonb(x.key)::text||':'||dcap.c14n(x.value),',' ORDER BY x.key COLLATE "C"),'')||'}'
++        INTO result FROM jsonb_each(v) x;
++    WHEN 'array' THEN
++        SELECT '['||coalesce(string_agg(dcap.c14n(x.value),',' ORDER BY x.ord),'')||']'
++        INTO result FROM jsonb_array_elements(v) WITH ORDINALITY x(value,ord);
++    ELSE result:=v::text;
++    END CASE;
++    RETURN result;
++END $$;
++CREATE FUNCTION dcap.sha(v text) RETURNS text LANGUAGE sql IMMUTABLE STRICT
++SET search_path=pg_catalog,pg_temp AS $$ SELECT encode(sha256(convert_to(v,'UTF8')),'hex') $$;
++
++CREATE FUNCTION dcap.keys_are(v jsonb, expected text[]) RETURNS boolean LANGUAGE sql IMMUTABLE
++SET search_path=pg_catalog,pg_temp AS $$
++    SELECT CASE WHEN jsonb_typeof(v)='object' THEN v ?& expected AND v-expected='{}'::jsonb ELSE false END
++$$;
++
++CREATE FUNCTION dcap.reserve(s text,r text,p text,availability uuid,closure uuid) RETURNS jsonb
++LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
++DECLARE anchor dcap.scope_access%ROWTYPE; old dcap.packets%ROWTYPE; w jsonb; wanted jsonb; ids uuid[]; rid uuid; cid uuid; h text;
++BEGIN
++    SELECT * INTO anchor FROM dcap.scope_access WHERE scope_wire=s AND recorder_oid=(session_user::regrole)::oid FOR UPDATE;
++    IF NOT FOUND THEN RAISE EXCEPTION 'dcap_scope_refused' USING ERRCODE='42501'; END IF;
++    IF r IS NULL OR p IS NULL OR availability IS NULL OR closure IS NULL OR octet_length(r)>8192 OR octet_length(p)>8192 THEN
++        RAISE EXCEPTION 'dcap_reservation_shape'; END IF;
++    w:=r::jsonb;
++    IF NOT dcap.keys_are(w,ARRAY['admission_id','authority','block_time_record_id','block_time_rpc_id','capture_id','format','genesis_record_id','genesis_rpc_id','issuer','issuer_principal_binding_id','observation_id','policies','policy_sha256','price_record_id','reservation_id','scope'])
++       OR w->'authority' IS DISTINCT FROM '{"authenticated_principal":false,"calibrated_clock":false,"committed_readback":false,"hosted_authority":false,"lease_authority":false,"live_trading_authority":false,"native_admission":false,"provider_attested":false,"running_authority":false}'::jsonb
++       OR dcap.c14n(w) IS DISTINCT FROM r OR dcap.c14n(w->'scope') IS DISTINCT FROM s
++       OR w->>'format' IS DISTINCT FROM 'ga-jupiter-source-reservation-research-v3'
++       OR w->>'policy_sha256' IS DISTINCT FROM '2c48b61440f7d61f9567fa295da1c9c98a4483c2c834ec7074412d261f085640'
++       OR w->'issuer' IS DISTINCT FROM anchor.issuer OR w->'policies' IS DISTINCT FROM anchor.policies
++       OR w->>'issuer_principal_binding_id' IS DISTINCT FROM anchor.issuer_principal_binding_id::text THEN
++        RAISE EXCEPTION 'dcap_reservation_shape'; END IF;
++    wanted:=jsonb_build_object('format','ga-provider-prepared-original-readonly-packet-research-v3',
++        'transport_policy_sha256','a62184b94f88dbc248a6f3569e171a60e8a0a530addf8ed8aa943b10433f055e',
++        'binding',anchor.issuer-'endpoint_bindings',
++        'endpoints',(SELECT jsonb_agg(jsonb_build_array(x.value->'provider_family',x.value->'endpoint_binding_id') ORDER BY x.ord)
++                     FROM jsonb_array_elements(anchor.issuer->'endpoint_bindings') WITH ORDINALITY x(value,ord)),
++        'price_record_id',w->'price_record_id','genesis_record_id',w->'genesis_record_id',
++        'block_time_record_id',w->'block_time_record_id','observation_id',w->'observation_id',
++        'genesis_rpc_id',w->'genesis_rpc_id','block_time_rpc_id',w->'block_time_rpc_id');
++    IF dcap.c14n(wanted) IS DISTINCT FROM p OR w->>'genesis_rpc_id' IS DISTINCT FROM '1'
++       OR w->>'block_time_rpc_id' IS DISTINCT FROM '2' THEN RAISE EXCEPTION 'dcap_prepared_conflict'; END IF;
++    rid:=(w->>'reservation_id')::uuid; cid:=(w->>'capture_id')::uuid;
++    ids:=ARRAY[rid,cid,(w->>'admission_id')::uuid,(w->>'observation_id')::uuid,(w->>'price_record_id')::uuid,
++        (w->>'genesis_record_id')::uuid,(w->>'block_time_record_id')::uuid,availability,closure];
++    IF EXISTS (SELECT 1 FROM unnest(ARRAY['reservation_id','capture_id','admission_id','observation_id',
++        'price_record_id','genesis_record_id','block_time_record_id']) k WHERE w->>k IS DISTINCT FROM ((w->>k)::uuid)::text)
++       OR (SELECT count(DISTINCT id) FROM unnest(ids) id)<>9 OR EXISTS (
++        SELECT 1 FROM unnest(ids) id WHERE id::text IN (
++            w#>>'{scope,owner_id}',w#>>'{scope,run_id}',w#>>'{scope,market_epoch}',w#>>'{issuer,acquisition_epoch}',
++            w#>>'{issuer,issuer_binding_id}',anchor.issuer_principal_binding_id::text,
++            w#>>'{issuer,endpoint_bindings,0,endpoint_binding_id}',w#>>'{issuer,endpoint_bindings,1,endpoint_binding_id}')) THEN
++        RAISE EXCEPTION 'dcap_identity_conflict'; END IF;
++    h:=dcap.sha(r);
++    SELECT * INTO old FROM dcap.packets WHERE scope_wire=s;
++    IF FOUND THEN
++        IF old.reservation_wire=r AND old.prepared_wire=p AND old.availability_id=availability AND old.closure_id=closure THEN
++            RETURN jsonb_build_object('created',false,'reservation_sha256',h);
++        END IF;
++        RAISE EXCEPTION 'dcap_scope_unresolved';
++    END IF;
++    INSERT INTO dcap.packets (scope_wire,reservation_id,capture_id,availability_id,closure_id,reservation_wire,prepared_wire,
++        reservation_sha256,reservation_receipt_wire) VALUES (s,rid,cid,availability,closure,r,p,h,
++        dcap.c14n(jsonb_build_object('kind','fixture_reservation','reservation_id',rid,'reservation_sha256',h,
++            'scope',s::jsonb,'prepared_sha256',dcap.sha(p),'availability_id',availability,'closure_id',closure)));
++    INSERT INTO dcap.identities SELECT id,s FROM unnest(ids) id;
++    RETURN jsonb_build_object('created',true,'reservation_sha256',h);
++END $$;
++
++CREATE FUNCTION dcap.capture(s text,rid uuid,c text) RETURNS jsonb
++LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
++DECLARE anchor dcap.scope_access%ROWTYPE; old dcap.packets%ROWTYPE; w jsonb; r jsonb;
++    source jsonb; original text; record_key text; family text; maximum integer; raw bytea; index_no integer:=0; h text;
++BEGIN
++    SELECT * INTO anchor FROM dcap.scope_access WHERE scope_wire=s AND recorder_oid=(session_user::regrole)::oid FOR UPDATE;
++    IF NOT FOUND THEN RAISE EXCEPTION 'dcap_scope_refused' USING ERRCODE='42501'; END IF;
++    SELECT * INTO old FROM dcap.packets WHERE scope_wire=s AND reservation_id=rid;
++    IF NOT FOUND THEN RAISE EXCEPTION 'dcap_reservation_missing'; END IF;
++    IF c IS NULL OR octet_length(c)>1048576 THEN RAISE EXCEPTION 'dcap_capture_shape'; END IF;
++    h:=dcap.sha(c);
++    IF old.capture_wire IS NOT NULL THEN
++        IF old.capture_wire=c AND old.capture_sha256=h THEN
++            RETURN jsonb_build_object('created',false,'capture_sha256',h);
++        END IF;
++        RAISE EXCEPTION 'dcap_capture_conflict';
++    END IF;
++    w:=c::jsonb; r:=old.reservation_wire::jsonb;
++    IF NOT dcap.keys_are(w,ARRAY['authority','capsule_wires','capture_id','collection_completed','diagnostics','eligibility','failure_code','format','observation_id','policy_sha256','reservation_sha256','scope'])
++       OR dcap.c14n(w) IS DISTINCT FROM c OR dcap.c14n(w->'scope') IS DISTINCT FROM s
++       OR w->>'format' IS DISTINCT FROM 'ga-jupiter-source-capture-retention-research-v3'
++       OR w->>'policy_sha256' IS DISTINCT FROM r->>'policy_sha256' OR w->'authority' IS DISTINCT FROM r->'authority'
++       OR w->>'reservation_sha256' IS DISTINCT FROM old.reservation_sha256 OR w->>'capture_id' IS DISTINCT FROM old.capture_id::text
++       OR w->>'observation_id' IS DISTINCT FROM r->>'observation_id' OR w->'collection_completed' IS DISTINCT FROM 'true'::jsonb
++       OR w->'eligibility' IS DISTINCT FROM 'false'::jsonb OR w->'failure_code' IS DISTINCT FROM 'null'::jsonb
++       OR w->'diagnostics' IS DISTINCT FROM '[]'::jsonb OR jsonb_typeof(w->'capsule_wires') IS DISTINCT FROM 'array'
++       OR jsonb_array_length(w->'capsule_wires') IS DISTINCT FROM 3 THEN RAISE EXCEPTION 'dcap_capture_shape'; END IF;
++    FOR original IN SELECT value FROM jsonb_array_elements_text(w->'capsule_wires') LOOP
++        index_no:=index_no+1; source:=original::jsonb;
++        record_key:=(ARRAY['price_record_id','genesis_record_id','block_time_record_id'])[index_no];
++        family:=CASE WHEN index_no=1 THEN 'jupiter-price-v3' ELSE 'solana-rpc' END;
++        maximum:=CASE WHEN index_no=1 THEN 131072 ELSE 65536 END;
++        IF NOT dcap.keys_are(source,ARRAY['acquisition_epoch','canonical_public_request_wire','endpoint_binding_id','format','http_status','issuer_binding_id','market_epoch','method','owner_id','parser_policy_sha256','provider_family','raw_response_ref','received_monotonic_us','received_wall_us','record_id','request_sha256','request_started_monotonic_us','request_started_wall_us','response_base64','response_bytes','response_sha256','run_id','safe_response_metadata'])
++           OR dcap.c14n(source) IS DISTINCT FROM original OR source->>'format' IS DISTINCT FROM 'ga-provider-acquisition-capsule-research-v3'
++           OR source->>'record_id' IS DISTINCT FROM r->>record_key OR source->>'raw_response_ref' IS DISTINCT FROM r->>record_key
++           OR source->>'provider_family' IS DISTINCT FROM family OR source->>'http_status' IS DISTINCT FROM '200'
++           OR source->>'endpoint_binding_id' IS DISTINCT FROM
++              (r#>>(CASE WHEN index_no=1 THEN '{issuer,endpoint_bindings,0,endpoint_binding_id}'::text[]
++                        ELSE '{issuer,endpoint_bindings,1,endpoint_binding_id}'::text[] END))
++           OR jsonb_typeof(source->'canonical_public_request_wire') IS DISTINCT FROM 'string'
++           OR jsonb_typeof(source->'safe_response_metadata') IS DISTINCT FROM 'object'
++           OR (source->'safe_response_metadata')-ARRAY['content_type','x_ratelimit_current','x_ratelimit_remaining','x_ratelimit_reset']
++              IS DISTINCT FROM '{}'::jsonb
++           OR jsonb_typeof(source->'response_base64') IS DISTINCT FROM 'string'
++           OR source->>'owner_id' IS DISTINCT FROM r#>>'{scope,owner_id}' OR source->>'run_id' IS DISTINCT FROM r#>>'{scope,run_id}'
++           OR source->>'market_epoch' IS DISTINCT FROM r#>>'{scope,market_epoch}'
++           OR source->>'acquisition_epoch' IS DISTINCT FROM r#>>'{issuer,acquisition_epoch}'
++           OR source->>'issuer_binding_id' IS DISTINCT FROM r#>>'{issuer,issuer_binding_id}'
++           OR source->>'parser_policy_sha256' IS DISTINCT FROM r#>>'{issuer,parser_policy_sha256}'
++           OR dcap.sha(source->>'canonical_public_request_wire') IS DISTINCT FROM source->>'request_sha256'
++           OR source->>'response_base64' IS NULL OR length(source->>'response_base64')>4*((maximum+2)/3) THEN
++            RAISE EXCEPTION 'dcap_capsule_conflict'; END IF;
++        raw:=decode(source->>'response_base64','base64');
++        IF octet_length(raw) NOT BETWEEN 1 AND maximum OR source->>'response_bytes' IS DISTINCT FROM octet_length(raw)::text
++           OR encode(sha256(raw),'hex') IS DISTINCT FROM source->>'response_sha256'
++           OR replace(encode(raw,'base64'),chr(10),'') IS DISTINCT FROM source->>'response_base64' THEN
++            RAISE EXCEPTION 'dcap_raw_conflict'; END IF;
++    END LOOP;
++    UPDATE dcap.packets SET capture_wire=c,capture_sha256=h,capture_receipt_wire=dcap.c14n(jsonb_build_object(
++        'kind','fixture_capture','scope',s::jsonb,'capture_id',old.capture_id,'capture_sha256',h,
++        'reservation_sha256',old.reservation_sha256,'eligibility',false)) WHERE scope_wire=s AND reservation_id=rid;
++    RETURN jsonb_build_object('created',true,'capture_sha256',h);
++END $$;
++
++CREATE FUNCTION dcap.get_original(s text,kind text,target uuid,reservation_hash text,capture_hash text) RETURNS jsonb
++LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=pg_catalog,pg_temp AS $$
++DECLARE original dcap.packets%ROWTYPE;
++BEGIN
++    IF NOT EXISTS (SELECT 1 FROM dcap.scope_access WHERE scope_wire=s AND reader_oid=(session_user::regrole)::oid) THEN
++        RAISE EXCEPTION 'dcap_scope_refused' USING ERRCODE='42501'; END IF;
++    IF kind IS NULL OR kind NOT IN ('reservation','capture') OR target IS NULL OR reservation_hash IS NULL
++       OR NOT (reservation_hash ~ '^[a-f0-9]{64}$') OR (capture_hash IS NOT NULL AND NOT (capture_hash ~ '^[a-f0-9]{64}$'))
++       OR (kind='reservation' AND capture_hash IS NOT NULL) THEN RAISE EXCEPTION 'dcap_lookup_shape'; END IF;
++    SELECT * INTO original FROM dcap.packets WHERE scope_wire=s
++       AND target=CASE WHEN kind='reservation' THEN reservation_id ELSE capture_id END;
++    IF NOT FOUND THEN RETURN jsonb_build_object('resolution','observed_absent_unknown'); END IF;
++    IF original.reservation_sha256 IS DISTINCT FROM reservation_hash OR
++       (original.capture_sha256 IS NOT NULL AND capture_hash IS NOT NULL AND original.capture_sha256<>capture_hash) THEN
++        RAISE EXCEPTION 'dcap_lookup_conflict'; END IF;
++    IF kind='capture' AND original.capture_wire IS NULL THEN RETURN jsonb_build_object('resolution','observed_absent_unknown'); END IF;
++    RETURN jsonb_build_object('resolution','original_committed','reservation_wire',original.reservation_wire,
++        'prepared_wire',original.prepared_wire,'reservation_receipt_wire',original.reservation_receipt_wire,
++        'capture_wire',CASE WHEN kind='capture' THEN original.capture_wire END,
++        'capture_receipt_wire',CASE WHEN kind='capture' THEN original.capture_receipt_wire END);
++END $$;
++GRANT USAGE ON SCHEMA dcap TO dcap_recorder,dcap_reader,dcap_foreign;
++GRANT EXECUTE ON FUNCTION dcap.reserve(text,text,text,uuid,uuid),dcap.capture(text,uuid,text) TO dcap_recorder;
++GRANT EXECUTE ON FUNCTION dcap.get_original(text,text,uuid,text,text) TO dcap_reader,dcap_foreign;
++COMMIT;
+diff --git a/services/vonneumann/tests/postgres/test_durable_acquisition_v3.py b/services/vonneumann/tests/postgres/test_durable_acquisition_v3.py
+new file mode 100644
+index 0000000..61dde66
+--- /dev/null
++++ b/services/vonneumann/tests/postgres/test_durable_acquisition_v3.py
+@@ -0,0 +1,274 @@
++"""Owned research proof of exact reservation/capture durability and no recollection."""
++from __future__ import annotations
++
++import hashlib
++import json
++import os
++from pathlib import Path
++import unittest
++
++from tests.postgres.harness import IsolatedPostgres, OPT_IN
++from vonneumann.market import provider_acquisition_v3 as acquisition, source_admission_v3 as source
++
++ROOT = Path(__file__).resolve().parents[2]
++SQL = ROOT/'db-contract/research/jupiter_durable_acquisition_fixture_v3.sql'
++WIRES = ROOT/'tests/postgres/durable_acquisition_fixture_v3.json'
++WIRES_SHA = '58d13f9dc8e9c2175013d4b22154dd98f6aaa7d2b5131da3ad506e7d4e44d34e'
++RECORDER = 'dcap_recorder'
++READER = 'dcap_reader'
++FOREIGN = 'dcap_foreign'
++
++
++def fixed(condition, message):
++    if not condition:
++        raise RuntimeError(message)
++
++
++def digest(text):
++    return hashlib.sha256(text.encode()).hexdigest()
++
++
++def quote(text):
++    fixed(type(text) is str and '\x00' not in text,'invalid fixture input')
++    return "'"+text.replace("'","''")+"'"
++
++
++def read(row, kind):
++    return source.wire(row,kind)
++
++
++class Packet:
++    def __init__(self,row):
++        self.reservation=read(row['reservation_wire'],'Reservation')
++        self.prepared_wire=row['prepared_wire']
++        self.capture=read(row['capture_wire'],'Capture') if 'capture_wire' in row else None
++        self.expected=self.reservation.to_dict()
++        self.scope=acquisition.canonical(self.expected['scope']).decode()
++        self.availability_id=acquisition.uuid(row['availability_id'])
++        self.closure_id=acquisition.uuid(row['closure_id'])
++        self.raw_bodies=self.verify_capture(self.capture) if self.capture is not None else None
++
++    def reservation_only(self):
++        return Packet({'reservation_wire':self.reservation.wire.decode(),'prepared_wire':self.prepared_wire,
++                       'availability_id':self.availability_id,'closure_id':self.closure_id})
++
++    def verify_capture(self, capture):
++        source.validate_capture(self.reservation,capture)
++        issuer=source.issuer(self.expected['issuer'])
++        return tuple(acquisition.decode_capsule(item.encode(),issuer).raw_body
++                     for item in capture.to_dict()['capsule_wires'])
++
++    @property
++    def reserve_sql(self):
++        args=(self.scope,self.reservation.wire.decode(),self.prepared_wire,self.availability_id,self.closure_id)
++        return 'SELECT dcap.reserve('+','.join(map(quote,args))+');'
++
++    def capture_sql(self, capture):
++        args=(self.scope,self.expected['reservation_id'],capture.wire.decode())
++        return 'SELECT dcap.capture('+','.join(map(quote,args))+');'
++
++    def get_sql(self, kind, *, capture_sha=None, scope=None):
++        args=(self.scope if scope is None else scope,kind,self.expected[kind+'_id'],self.reservation.sha256)
++        return 'SELECT dcap.get_original('+','.join(map(quote,args))+','+(quote(capture_sha) if capture_sha else 'NULL')+');'
++
++    def verify_get(self,row,kind,expected_capture_sha=None):
++        if row=={'resolution':'observed_absent_unknown'}:
++            return row
++        fixed(set(row)=={'resolution','reservation_wire','prepared_wire','reservation_receipt_wire',
++                         'capture_wire','capture_receipt_wire'} and row['resolution']=='original_committed',
++              'unexpected fixture getter shape')
++        fixed(row['reservation_wire']==self.reservation.wire.decode() and row['prepared_wire']==self.prepared_wire,
++              'original reservation or plan changed')
++        reserved=json.loads(row['reservation_receipt_wire'])
++        fixed(acquisition.canonical(reserved).decode()==row['reservation_receipt_wire'] and reserved=={
++            'kind':'fixture_reservation','scope':self.expected['scope'],'reservation_id':self.expected['reservation_id'],
++            'reservation_sha256':self.reservation.sha256,'prepared_sha256':digest(self.prepared_wire),
++            'availability_id':self.availability_id,'closure_id':self.closure_id},'reservation receipt mismatch')
++        if kind=='reservation':
++            fixed(row['capture_wire'] is None and row['capture_receipt_wire'] is None,'unexpected reservation capture')
++            return row
++        capture=read(row['capture_wire'],'Capture'); recorded=json.loads(row['capture_receipt_wire'])
++        self.verify_capture(capture)
++        fixed(expected_capture_sha is None or capture.sha256==expected_capture_sha,'expected capture hash changed')
++        fixed(acquisition.canonical(recorded).decode()==row['capture_receipt_wire'] and recorded=={
++            'kind':'fixture_capture','scope':self.expected['scope'],'capture_id':self.expected['capture_id'],
++            'capture_sha256':capture.sha256,'reservation_sha256':self.reservation.sha256,'eligibility':False},
++            'capture receipt mismatch')
++        return row
++
++
++class RecoveryReader:
++    def __init__(self,db):
++        self.db=db
++
++    def reconcile(self,packet,kind,expected_capture_sha=None):
++        row=json.loads(self.db.scalar(packet.get_sql(kind,capture_sha=expected_capture_sha),role=READER))
++        return packet.verify_get(row,kind,expected_capture_sha)
++
++    @property
++    def cache_release_allowed(self):
++        # This fixture owns no admission, availability or terminal closure.
++        return False
++
++
++class Recorder(RecoveryReader):
++    """One ephemeral grant after acknowledged COMMIT and independent exact readback."""
++    def __init__(self,db):
++        super().__init__(db)
++        self._permit=None
++        self._attempted=False
++
++    def prepare(self,packet):
++        fixed(not self._attempted,'recorder already attempted a reservation')
++        self._attempted=True
++        # db.sql raises for a failed or missing transaction acknowledgment.
++        receipt=json.loads(self.db.scalar('BEGIN;\n'+packet.reserve_sql+'\nCOMMIT;',role=RECORDER))
++        fixed(set(receipt)=={'created','reservation_sha256'} and type(receipt['created']) is bool
++              and receipt['reservation_sha256']==packet.reservation.sha256,'reservation write reply mismatch')
++        if not receipt['created']:
++            return None
++        observed=self.reconcile(packet,'reservation')
++        fixed(observed['resolution']=='original_committed','reservation is unresolved')
++        permit=object(); self._permit=(permit,packet)
++        return permit
++
++    def collect_once(self,permit,collector):
++        owned=self._permit
++        fixed(owned is not None and permit is owned[0],'collection permit is unavailable')
++        self._permit=None
++        packet=owned[1]
++        capture=collector(packet.prepared_wire)
++        packet.verify_capture(capture)
++        return capture
++
++@unittest.skipUnless(os.environ.get(OPT_IN)=='1','Requires isolated PostgreSQL opt-in')
++class DurableAcquisitionNativeTests(unittest.TestCase):
++    @classmethod
++    def setUpClass(cls):
++        data=WIRES.read_bytes()
++        fixed(hashlib.sha256(data).hexdigest()==WIRES_SHA,'held fixture hash changed')
++        cls.packets=tuple(Packet(row) for row in json.loads(data))
++        cls.db=IsolatedPostgres().start()
++        cls.addClassCleanup(cls.db.close)
++        cls.db.sql(SQL.read_text(),timeout=15)
++        p=cls.packets[0]; e=p.expected
++        cls.db.sql(f'''INSERT INTO dcap.scope_access VALUES ({quote(p.scope)},'{RECORDER}'::regrole::oid,
++            '{READER}'::regrole::oid,{quote(acquisition.canonical(e['issuer']).decode())}::jsonb,
++            {quote(acquisition.canonical(e['policies']).decode())}::jsonb,{quote(e['issuer_principal_binding_id'])});''')
++
++    def setUp(self):
++        self.db.sql('TRUNCATE dcap.identities, dcap.packets;')
++        self.packet,self.other=self.packets
++        self.calls=[]
++
++    def collect(self,prepared):
++        self.calls.append(digest(prepared))
++        self.assertEqual(prepared,self.packet.prepared_wire)
++        return self.packet.capture
++
++    def refuse(self,statement,role,reason):
++        reply=self.db.sql(statement,role=role,check=False)
++        self.assertNotEqual(reply.returncode,0)
++        self.assertEqual(reply.stdout,'')
++        self.assertIn(reason,reply.stderr)
++
++    def snapshot(self):
++        return self.db.scalar("""SELECT jsonb_build_array(
++          (SELECT jsonb_agg(to_jsonb(p) ORDER BY reservation_id) FROM dcap.packets p),
++          (SELECT jsonb_agg(to_jsonb(i) ORDER BY original_id) FROM dcap.identities i));""")
++
++    def start_capture(self,capture,committed):
++        application='dashboard_dcap_'+('committed' if committed else 'provisional')
++        wait_sql='SELECT pg_sleep(10);'
++        first='SET application_name='+quote(application)+';\nBEGIN;\n'+self.packet.capture_sql(capture)+'\n'
++        statement=(first+'COMMIT;\n'+wait_sql if committed else first+wait_sql+'\nCOMMIT;')
++        session=self.db.begin_sql(statement,role=RECORDER,timeout=15)
++        guard=(f"datname=current_database() AND usename='{RECORDER}' AND backend_type='client backend' "
++               f"AND pid<>pg_backend_pid() AND application_name={quote(application)} AND wait_event='PgSleep' "
++               "AND rtrim(btrim(query,E' \\t\\r\\n'),';')='SELECT pg_sleep(10)'")
++        self.db.wait_until(f'SELECT count(*)=1 FROM pg_stat_activity WHERE {guard};',timeout=3)
++        identity=json.loads(self.db.scalar(f'SELECT jsonb_build_array(pid,backend_start::text) FROM pg_stat_activity WHERE {guard};'))
++        self.assertEqual(len(identity),2)
++        pid,started=identity
++        self.assertIs(type(pid),int); self.assertGreater(pid,0)
++        exact=f"pid={pid} AND datname=current_database() AND usename='{RECORDER}' AND backend_type='client backend' AND backend_start={quote(started)}::timestamptz"
++        return session,exact,guard
++
++    def terminate(self,session,exact,guard):
++        self.assertEqual('t',self.db.scalar(f'''SELECT coalesce((SELECT pg_terminate_backend(pid,2000)
++          FROM pg_stat_activity WHERE {exact} AND {guard}),false);''',timeout=4))
++        self.assertEqual('t',self.db.scalar(f'SELECT NOT EXISTS(SELECT 1 FROM pg_stat_activity WHERE {exact});'))
++        self.assertNotEqual(0,session.wait(timeout=5,check=False).returncode)
++
++    def check_reader_no_collection(self,packet):
++        fresh=RecoveryReader(self.db); identity=packet.reservation_only()
++        self.assertIsNone(identity.capture); self.assertIsNone(identity.raw_bodies)
++        self.assertEqual(fresh.reconcile(identity,'reservation')['resolution'],'original_committed')
++        self.assertFalse(hasattr(fresh,'prepare')); self.assertFalse(hasattr(fresh,'collect_once'))
++        retry=Recorder(self.db)
++        self.assertIsNone(retry.prepare(identity))  # Existing committed reservation supplies no new grant.
++        with self.assertRaisesRegex(RuntimeError,'collection permit is unavailable'):
++            retry.collect_once(None,self.collect)
++        self.assertFalse(fresh.cache_release_allowed)
++        self.assertEqual(len(self.calls),1)
++        return fresh,identity
++
++    def test_original_capture_commit_and_backend_loss_reconcile_without_recollection(self):
++        packet=self.packet; recorder=Recorder(self.db)
++        raw_reservation=packet.reservation.wire.decode()
++        altered=packet.reservation.to_dict(); altered['extra']='not an allowed reservation field'
++        self.refuse(packet.reserve_sql.replace(quote(raw_reservation),quote(acquisition.canonical(altered).decode())),
++                    RECORDER,'dcap_reservation_shape')
++        altered=packet.reservation.to_dict(); altered['authority']['running_authority']=True
++        self.refuse(packet.reserve_sql.replace(quote(raw_reservation),quote(acquisition.canonical(altered).decode())),
++                    RECORDER,'dcap_reservation_shape')
++        self.refuse(packet.reserve_sql.replace(quote(packet.closure_id),quote(packet.availability_id)),
++                    RECORDER,'dcap_identity_conflict')
++        permit=recorder.prepare(packet)
++        capture=recorder.collect_once(permit,self.collect)
++        with self.assertRaisesRegex(RuntimeError,'collection permit is unavailable'):
++            recorder.collect_once(permit,self.collect)
++        capsule=json.loads(capture.to_dict()['capsule_wires'][0]); capsule['response_sha256']='0'*64
++        altered=capture.to_dict(); altered['capsule_wires'][0]=acquisition.canonical(capsule).decode()
++        wrong=source.envelope('Capture',altered)
++        self.refuse(packet.capture_sql(wrong),RECORDER,'dcap_raw_conflict')
++        altered=capture.to_dict(); altered['extra']='not an allowed capture field'
++        self.refuse(packet.capture_sql(capture).replace(quote(capture.wire.decode()),quote(acquisition.canonical(altered).decode())),
++                    RECORDER,'dcap_capture_shape')
++        self.refuse(self.other.reserve_sql,RECORDER,'dcap_scope_unresolved')
++        self.refuse(packet.reserve_sql,READER,'permission denied')
++        self.refuse(packet.capture_sql(capture),READER,'permission denied')
++        self.refuse(packet.get_sql('capture'),RECORDER,'permission denied')
++        self.refuse(packet.get_sql('capture'),FOREIGN,'dcap_scope_refused')
++        self.refuse(packet.get_sql('capture',scope='{}'),READER,'dcap_scope_refused')
++        session,exact,guard=self.start_capture(capture,True)
++        self.assertEqual('t',self.db.scalar(f'SELECT capture_sha256={quote(capture.sha256)} FROM dcap.packets;'))
++        self.terminate(session,exact,guard)
++        before=self.snapshot()
++        fresh,identity=self.check_reader_no_collection(packet)
++        recovered=fresh.reconcile(identity,'capture')  # No capture bytes or digest supplied to the reader.
++        self.assertEqual(recovered['capture_wire'],capture.wire.decode())
++        self.assertEqual(identity.verify_capture(read(recovered['capture_wire'],'Capture')),packet.raw_bodies)
++        self.assertEqual(recovered,fresh.reconcile(identity,'capture',capture.sha256))
++        self.refuse(packet.get_sql('capture',capture_sha='0'*64),READER,'dcap_lookup_conflict')
++        self.assertEqual(before,self.snapshot())
++        self.assertEqual(self.db.scalar('SELECT count(*) FROM dcap.identities;'),'9')
++        self.assertFalse(fresh.cache_release_allowed)
++        self.observation={'capture_committed':True,'exact_capture_sha256':capture.sha256,
++            'exact_receipt_sha256':digest(recovered['capture_receipt_wire']),'raw_body_count':3,
++            'collector_callback_count':len(self.calls),'backend_terminated':True,'cache_release_allowed':False}
++
++    def test_provisional_capture_process_loss_remains_unknown_and_blocks_collection(self):
++        packet=self.packet; recorder=Recorder(self.db)
++        capture=recorder.collect_once(recorder.prepare(packet),self.collect)
++        before=self.snapshot()
++        session,exact,guard=self.start_capture(capture,False)
++        self.assertEqual(recorder.reconcile(packet,'capture'),{'resolution':'observed_absent_unknown'})
++        self.terminate(session,exact,guard)
++        fresh,identity=self.check_reader_no_collection(packet)
++        self.assertEqual(fresh.reconcile(identity,'capture'),{'resolution':'observed_absent_unknown'})
++        self.refuse(self.other.reserve_sql,RECORDER,'dcap_scope_unresolved')
++        self.assertEqual(before,self.snapshot())
++        self.assertEqual(self.db.scalar('SELECT count(*) FROM dcap.identities;'),'9')
++        self.observation={'capture_committed':False,'resolution':'observed_absent_unknown',
++            'collector_callback_count':len(self.calls),'backend_terminated':True,'cache_release_allowed':False}
+diff --git a/services/vonneumann/tests/postgres/durable_acquisition_fixture_v3.json b/services/vonneumann/tests/postgres/durable_acquisition_fixture_v3.json
+new file mode 100644
+index 0000000..38ac325
+--- /dev/null
++++ b/services/vonneumann/tests/postgres/durable_acquisition_fixture_v3.json
+@@ -0,0 +1,16 @@
++[
++  {
++    "availability_id": "00000000-0000-0000-0000-0000000003f0",
++    "capture_wire": "{\"authority\":{\"authenticated_principal\":false,\"calibrated_clock\":false,\"committed_readback\":false,\"hosted_authority\":false,\"lease_authority\":false,\"live_trading_authority\":false,\"native_admission\":false,\"provider_attested\":false,\"running_authority\":false},\"capsule_wires\":[\"{\\\"acquisition_epoch\\\":\\\"00000000-0000-0000-0000-000000000014\\\",\\\"canonical_public_request_wire\\\":\\\"{\\\\\\\"body_wire\\\\\\\":null,\\\\\\\"chain\\\\\\\":\\\\\\\"solana\\\\\\\",\\\\\\\"endpoint\\\\\\\":\\\\\\\"https://api.jup.ag/price/v3\\\\\\\",\\\\\\\"format\\\\\\\":\\\\\\\"ga-provider-public-request-research-v3\\\\\\\",\\\\\\\"method\\\\\\\":\\\\\\\"GET\\\\\\\",\\\\\\\"parameters\\\\\\\":{\\\\\\\"ids\\\\\\\":\\\\\\\"So11111111111111111111111111111111111111112\\\\\\\"}}\\\",\\\"endpoint_binding_id\\\":\\\"00000000-0000-0000-0000-000000000017\\\",\\\"format\\\":\\\"ga-provider-acquisition-capsule-research-v3\\\",\\\"http_status\\\":\\\"200\\\",\\\"issuer_binding_id\\\":\\\"00000000-0000-0000-0000-000000000015\\\",\\\"market_epoch\\\":\\\"00000000-0000-0000-0000-00000000000d\\\",\\\"method\\\":\\\"GET\\\",\\\"owner_id\\\":\\\"00000000-0000-0000-0000-00000000000b\\\",\\\"parser_policy_sha256\\\":\\\"912fd28c718311f9b6f72cf0327a7c6b5f4ec7cc4033744d3306064ed869ac89\\\",\\\"provider_family\\\":\\\"jupiter-price-v3\\\",\\\"raw_response_ref\\\":\\\"00000000-0000-0000-0000-0000000003ed\\\",\\\"received_monotonic_us\\\":\\\"9900000\\\",\\\"received_wall_us\\\":\\\"1800000000100000\\\",\\\"record_id\\\":\\\"00000000-0000-0000-0000-0000000003ed\\\",\\\"request_sha256\\\":\\\"071305498f10bb90e36bc23b85661952f02f4f11be32d7394e493a952b8cbfe6\\\",\\\"request_started_monotonic_us\\\":\\\"9800000\\\",\\\"request_started_wall_us\\\":\\\"1800000000000000\\\",\\\"response_base64\\\":\\\"eyJTbzExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEyIjp7InVzZFByaWNlIjoxMDAuMTIzNDU2Nzg5MDEyMzQ1Njc4LCJibG9ja0lkIjo0MiwiZGVjaW1hbHMiOjksInByaWNlQ2hhbmdlMjRoIjpudWxsfX0=\\\",\\\"response_bytes\\\":\\\"131\\\",\\\"response_sha256\\\":\\\"074cb2d828fa1ef3a553b5328630532942cb7f5b3df70c3f1ae3742f837b3ba4\\\",\\\"run_id\\\":\\\"00000000-0000-0000-0000-00000000000c\\\",\\\"safe_response_metadata\\\":{}}\",\"{\\\"acquisition_epoch\\\":\\\"00000000-0000-0000-0000-000000000014\\\",\\\"canonical_public_request_wire\\\":\\\"{\\\\\\\"body_wire\\\\\\\":\\\\\\\"{\\\\\\\\\\\\\\\"id\\\\\\\\\\\\\\\":1,\\\\\\\\\\\\\\\"jsonrpc\\\\\\\\\\\\\\\":\\\\\\\\\\\\\\\"2.0\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"method\\\\\\\\\\\\\\\":\\\\\\\\\\\\\\\"getGenesisHash\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"params\\\\\\\\\\\\\\\":[]}\\\\\\\",\\\\\\\"chain\\\\\\\":\\\\\\\"solana\\\\\\\",\\\\\\\"endpoint\\\\\\\":\\\\\\\"operator-bound-solana-rpc\\\\\\\",\\\\\\\"format\\\\\\\":\\\\\\\"ga-provider-public-request-research-v3\\\\\\\",\\\\\\\"method\\\\\\\":\\\\\\\"POST\\\\\\\",\\\\\\\"parameters\\\\\\\":{}}\\\",\\\"endpoint_binding_id\\\":\\\"00000000-0000-0000-0000-000000000018\\\",\\\"format\\\":\\\"ga-provider-acquisition-capsule-research-v3\\\",\\\"http_status\\\":\\\"200\\\",\\\"issuer_binding_id\\\":\\\"00000000-0000-0000-0000-000000000015\\\",\\\"market_epoch\\\":\\\"00000000-0000-0000-0000-00000000000d\\\",\\\"method\\\":\\\"POST\\\",\\\"owner_id\\\":\\\"00000000-0000-0000-0000-00000000000b\\\",\\\"parser_policy_sha256\\\":\\\"912fd28c718311f9b6f72cf0327a7c6b5f4ec7cc4033744d3306064ed869ac89\\\",\\\"provider_family\\\":\\\"solana-rpc\\\",\\\"raw_response_ref\\\":\\\"00000000-0000-0000-0000-0000000003ee\\\",\\\"received_monotonic_us\\\":\\\"9900000\\\",\\\"received_wall_us\\\":\\\"1800000000100000\\\",\\\"record_id\\\":\\\"00000000-0000-0000-0000-0000000003ee\\\",\\\"request_sha256\\\":\\\"d6910a38865a7015dde8280729e0299e5707236c05d346b28daa1093ab6963bf\\\",\\\"request_started_monotonic_us\\\":\\\"9800000\\\",\\\"request_started_wall_us\\\":\\\"1800000000000000\\\",\\\"response_base64\\\":\\\"eyJpZCI6MSwianNvbnJwYyI6IjIuMCIsInJlc3VsdCI6IjVleWt0NFVzRnY4UDhOSmRUUkVwWTF2enFLcVpLdmRwS3VjMTQ3ZHcyTjlkIn0=\\\",\\\"response_bytes\\\":\\\"80\\\",\\\"response_sha256\\\":\\\"d4623e600dbc6619f92f8bd5b30abeb9d26f6338f39399c1b3fae534b07ee5c0\\\",\\\"run_id\\\":\\\"00000000-0000-0000-0000-00000000000c\\\",\\\"safe_response_metadata\\\":{}}\",\"{\\\"acquisition_epoch\\\":\\\"00000000-0000-0000-0000-000000000014\\\",\\\"canonical_public_request_wire\\\":\\\"{\\\\\\\"body_wire\\\\\\\":\\\\\\\"{\\\\\\\\\\\\\\\"id\\\\\\\\\\\\\\\":2,\\\\\\\\\\\\\\\"jsonrpc\\\\\\\\\\\\\\\":\\\\\\\\\\\\\\\"2.0\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"method\\\\\\\\\\\\\\\":\\\\\\\\\\\\\\\"getBlockTime\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"params\\\\\\\\\\\\\\\":[42]}\\\\\\\",\\\\\\\"chain\\\\\\\":\\\\\\\"solana\\\\\\\",\\\\\\\"endpoint\\\\\\\":\\\\\\\"operator-bound-solana-rpc\\\\\\\",\\\\\\\"format\\\\\\\":\\\\\\\"ga-provider-public-request-research-v3\\\\\\\",\\\\\\\"method\\\\\\\":\\\\\\\"POST\\\\\\\",\\\\\\\"parameters\\\\\\\":{}}\\\",\\\"endpoint_binding_id\\\":\\\"00000000-0000-0000-0000-000000000018\\\",\\\"format\\\":\\\"ga-provider-acquisition-capsule-research-v3\\\",\\\"http_status\\\":\\\"200\\\",\\\"issuer_binding_id\\\":\\\"00000000-0000-0000-0000-000000000015\\\",\\\"market_epoch\\\":\\\"00000000-0000-0000-0000-00000000000d\\\",\\\"method\\\":\\\"POST\\\",\\\"owner_id\\\":\\\"00000000-0000-0000-0000-00000000000b\\\",\\\"parser_policy_sha256\\\":\\\"912fd28c718311f9b6f72cf0327a7c6b5f4ec7cc4033744d3306064ed869ac89\\\",\\\"provider_family\\\":\\\"solana-rpc\\\",\\\"raw_response_ref\\\":\\\"00000000-0000-0000-0000-0000000003ef\\\",\\\"received_monotonic_us\\\":\\\"9900000\\\",\\\"received_wall_us\\\":\\\"1800000000100000\\\",\\\"record_id\\\":\\\"00000000-0000-0000-0000-0000000003ef\\\",\\\"request_sha256\\\":\\\"266a4e6b4c3350146403923daf6f9e974207da68a2a24b3e934638eb0d2c07f8\\\",\\\"request_started_monotonic_us\\\":\\\"9800000\\\",\\\"request_started_wall_us\\\":\\\"1800000000000000\\\",\\\"response_base64\\\":\\\"eyJpZCI6MiwianNvbnJwYyI6IjIuMCIsInJlc3VsdCI6MTc5OTk5OTk5OH0=\\\",\\\"response_bytes\\\":\\\"44\\\",\\\"response_sha256\\\":\\\"7e5af3232b6dd8460df2b3c3878b569407948c1f28870279cb48aa9ebba86664\\\",\\\"run_id\\\":\\\"00000000-0000-0000-0000-00000000000c\\\",\\\"safe_response_metadata\\\":{}}\"],\"capture_id\":\"00000000-0000-0000-0000-0000000003eb\",\"collection_completed\":true,\"diagnostics\":[],\"eligibility\":false,\"failure_code\":null,\"format\":\"ga-jupiter-source-capture-retention-research-v3\",\"observation_id\":\"00000000-0000-0000-0000-0000000003ec\",\"policy_sha256\":\"2c48b61440f7d61f9567fa295da1c9c98a4483c2c834ec7074412d261f085640\",\"reservation_sha256\":\"20c4e6ea87e7aba9e75d420dd4bb464f100ac733b8a4d13ed0c80f1552fed5ce\",\"scope\":{\"market_epoch\":\"00000000-0000-0000-0000-00000000000d\",\"owner_id\":\"00000000-0000-0000-0000-00000000000b\",\"run_id\":\"00000000-0000-0000-0000-00000000000c\"}}",
++    "closure_id": "00000000-0000-0000-0000-0000000003f1",
++    "prepared_wire": "{\"binding\":{\"acquisition_epoch\":\"00000000-0000-0000-0000-000000000014\",\"issuer_binding_id\":\"00000000-0000-0000-0000-000000000015\",\"market_epoch\":\"00000000-0000-0000-0000-00000000000d\",\"owner_id\":\"00000000-0000-0000-0000-00000000000b\",\"parser_policy_sha256\":\"912fd28c718311f9b6f72cf0327a7c6b5f4ec7cc4033744d3306064ed869ac89\",\"run_id\":\"00000000-0000-0000-0000-00000000000c\"},\"block_time_record_id\":\"00000000-0000-0000-0000-0000000003ef\",\"block_time_rpc_id\":\"2\",\"endpoints\":[[\"jupiter-price-v3\",\"00000000-0000-0000-0000-000000000017\"],[\"solana-rpc\",\"00000000-0000-0000-0000-000000000018\"]],\"format\":\"ga-provider-prepared-original-readonly-packet-research-v3\",\"genesis_record_id\":\"00000000-0000-0000-0000-0000000003ee\",\"genesis_rpc_id\":\"1\",\"observation_id\":\"00000000-0000-0000-0000-0000000003ec\",\"price_record_id\":\"00000000-0000-0000-0000-0000000003ed\",\"transport_policy_sha256\":\"a62184b94f88dbc248a6f3569e171a60e8a0a530addf8ed8aa943b10433f055e\"}",
++    "reservation_wire": "{\"admission_id\":\"00000000-0000-0000-0000-0000000003ea\",\"authority\":{\"authenticated_principal\":false,\"calibrated_clock\":false,\"committed_readback\":false,\"hosted_authority\":false,\"lease_authority\":false,\"live_trading_authority\":false,\"native_admission\":false,\"provider_attested\":false,\"running_authority\":false},\"block_time_record_id\":\"00000000-0000-0000-0000-0000000003ef\",\"block_time_rpc_id\":\"2\",\"capture_id\":\"00000000-0000-0000-0000-0000000003eb\",\"format\":\"ga-jupiter-source-reservation-research-v3\",\"genesis_record_id\":\"00000000-0000-0000-0000-0000000003ee\",\"genesis_rpc_id\":\"1\",\"issuer\":{\"acquisition_epoch\":\"00000000-0000-0000-0000-000000000014\",\"endpoint_bindings\":[{\"endpoint_binding_id\":\"00000000-0000-0000-0000-000000000017\",\"provider_family\":\"jupiter-price-v3\"},{\"endpoint_binding_id\":\"00000000-0000-0000-0000-000000000018\",\"provider_family\":\"solana-rpc\"}],\"issuer_binding_id\":\"00000000-0000-0000-0000-000000000015\",\"market_epoch\":\"00000000-0000-0000-0000-00000000000d\",\"owner_id\":\"00000000-0000-0000-0000-00000000000b\",\"parser_policy_sha256\":\"912fd28c718311f9b6f72cf0327a7c6b5f4ec7cc4033744d3306064ed869ac89\",\"run_id\":\"00000000-0000-0000-0000-00000000000c\"},\"issuer_principal_binding_id\":\"00000000-0000-0000-0000-000000000016\",\"observation_id\":\"00000000-0000-0000-0000-0000000003ec\",\"policies\":{\"acquisition_sha256\":\"912fd28c718311f9b6f72cf0327a7c6b5f4ec7cc4033744d3306064ed869ac89\",\"native_package_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"recorder_package_sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"source_sha256\":\"3be1de572d954859002546e5d525ddb0fbda71a5ca844368381a98395571aad1\",\"transport_sha256\":\"a62184b94f88dbc248a6f3569e171a60e8a0a530addf8ed8aa943b10433f055e\"},\"policy_sha256\":\"2c48b61440f7d61f9567fa295da1c9c98a4483c2c834ec7074412d261f085640\",\"price_record_id\":\"00000000-0000-0000-0000-0000000003ed\",\"reservation_id\":\"00000000-0000-0000-0000-0000000003e9\",\"scope\":{\"market_epoch\":\"00000000-0000-0000-0000-00000000000d\",\"owner_id\":\"00000000-0000-0000-0000-00000000000b\",\"run_id\":\"00000000-0000-0000-0000-00000000000c\"}}"
++  },
++  {
++    "availability_id": "00000000-0000-0000-0000-0000000003fa",
++    "capture_wire": "{\"authority\":{\"authenticated_principal\":false,\"calibrated_clock\":false,\"committed_readback\":false,\"hosted_authority\":false,\"lease_authority\":false,\"live_trading_authority\":false,\"native_admission\":false,\"provider_attested\":false,\"running_authority\":false},\"capsule_wires\":[\"{\\\"acquisition_epoch\\\":\\\"00000000-0000-0000-0000-000000000014\\\",\\\"canonical_public_request_wire\\\":\\\"{\\\\\\\"body_wire\\\\\\\":null,\\\\\\\"chain\\\\\\\":\\\\\\\"solana\\\\\\\",\\\\\\\"endpoint\\\\\\\":\\\\\\\"https://api.jup.ag/price/v3\\\\\\\",\\\\\\\"format\\\\\\\":\\\\\\\"ga-provider-public-request-research-v3\\\\\\\",\\\\\\\"method\\\\\\\":\\\\\\\"GET\\\\\\\",\\\\\\\"parameters\\\\\\\":{\\\\\\\"ids\\\\\\\":\\\\\\\"So11111111111111111111111111111111111111112\\\\\\\"}}\\\",\\\"endpoint_binding_id\\\":\\\"00000000-0000-0000-0000-000000000017\\\",\\\"format\\\":\\\"ga-provider-acquisition-capsule-research-v3\\\",\\\"http_status\\\":\\\"200\\\",\\\"issuer_binding_id\\\":\\\"00000000-0000-0000-0000-000000000015\\\",\\\"market_epoch\\\":\\\"00000000-0000-0000-0000-00000000000d\\\",\\\"method\\\":\\\"GET\\\",\\\"owner_id\\\":\\\"00000000-0000-0000-0000-00000000000b\\\",\\\"parser_policy_sha256\\\":\\\"912fd28c718311f9b6f72cf0327a7c6b5f4ec7cc4033744d3306064ed869ac89\\\",\\\"provider_family\\\":\\\"jupiter-price-v3\\\",\\\"raw_response_ref\\\":\\\"00000000-0000-0000-0000-0000000003f7\\\",\\\"received_monotonic_us\\\":\\\"9900000\\\",\\\"received_wall_us\\\":\\\"1800000000100000\\\",\\\"record_id\\\":\\\"00000000-0000-0000-0000-0000000003f7\\\",\\\"request_sha256\\\":\\\"071305498f10bb90e36bc23b85661952f02f4f11be32d7394e493a952b8cbfe6\\\",\\\"request_started_monotonic_us\\\":\\\"9800000\\\",\\\"request_started_wall_us\\\":\\\"1800000000000000\\\",\\\"response_base64\\\":\\\"eyJTbzExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTEyIjp7InVzZFByaWNlIjoxMDAuMTIzNDU2Nzg5MDEyMzQ1Njc4LCJibG9ja0lkIjo0MiwiZGVjaW1hbHMiOjksInByaWNlQ2hhbmdlMjRoIjpudWxsfX0=\\\",\\\"response_bytes\\\":\\\"131\\\",\\\"response_sha256\\\":\\\"074cb2d828fa1ef3a553b5328630532942cb7f5b3df70c3f1ae3742f837b3ba4\\\",\\\"run_id\\\":\\\"00000000-0000-0000-0000-00000000000c\\\",\\\"safe_response_metadata\\\":{}}\",\"{\\\"acquisition_epoch\\\":\\\"00000000-0000-0000-0000-000000000014\\\",\\\"canonical_public_request_wire\\\":\\\"{\\\\\\\"body_wire\\\\\\\":\\\\\\\"{\\\\\\\\\\\\\\\"id\\\\\\\\\\\\\\\":1,\\\\\\\\\\\\\\\"jsonrpc\\\\\\\\\\\\\\\":\\\\\\\\\\\\\\\"2.0\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"method\\\\\\\\\\\\\\\":\\\\\\\\\\\\\\\"getGenesisHash\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"params\\\\\\\\\\\\\\\":[]}\\\\\\\",\\\\\\\"chain\\\\\\\":\\\\\\\"solana\\\\\\\",\\\\\\\"endpoint\\\\\\\":\\\\\\\"operator-bound-solana-rpc\\\\\\\",\\\\\\\"format\\\\\\\":\\\\\\\"ga-provider-public-request-research-v3\\\\\\\",\\\\\\\"method\\\\\\\":\\\\\\\"POST\\\\\\\",\\\\\\\"parameters\\\\\\\":{}}\\\",\\\"endpoint_binding_id\\\":\\\"00000000-0000-0000-0000-000000000018\\\",\\\"format\\\":\\\"ga-provider-acquisition-capsule-research-v3\\\",\\\"http_status\\\":\\\"200\\\",\\\"issuer_binding_id\\\":\\\"00000000-0000-0000-0000-000000000015\\\",\\\"market_epoch\\\":\\\"00000000-0000-0000-0000-00000000000d\\\",\\\"method\\\":\\\"POST\\\",\\\"owner_id\\\":\\\"00000000-0000-0000-0000-00000000000b\\\",\\\"parser_policy_sha256\\\":\\\"912fd28c718311f9b6f72cf0327a7c6b5f4ec7cc4033744d3306064ed869ac89\\\",\\\"provider_family\\\":\\\"solana-rpc\\\",\\\"raw_response_ref\\\":\\\"00000000-0000-0000-0000-0000000003f8\\\",\\\"received_monotonic_us\\\":\\\"9900000\\\",\\\"received_wall_us\\\":\\\"1800000000100000\\\",\\\"record_id\\\":\\\"00000000-0000-0000-0000-0000000003f8\\\",\\\"request_sha256\\\":\\\"d6910a38865a7015dde8280729e0299e5707236c05d346b28daa1093ab6963bf\\\",\\\"request_started_monotonic_us\\\":\\\"9800000\\\",\\\"request_started_wall_us\\\":\\\"1800000000000000\\\",\\\"response_base64\\\":\\\"eyJpZCI6MSwianNvbnJwYyI6IjIuMCIsInJlc3VsdCI6IjVleWt0NFVzRnY4UDhOSmRUUkVwWTF2enFLcVpLdmRwS3VjMTQ3ZHcyTjlkIn0=\\\",\\\"response_bytes\\\":\\\"80\\\",\\\"response_sha256\\\":\\\"d4623e600dbc6619f92f8bd5b30abeb9d26f6338f39399c1b3fae534b07ee5c0\\\",\\\"run_id\\\":\\\"00000000-0000-0000-0000-00000000000c\\\",\\\"safe_response_metadata\\\":{}}\",\"{\\\"acquisition_epoch\\\":\\\"00000000-0000-0000-0000-000000000014\\\",\\\"canonical_public_request_wire\\\":\\\"{\\\\\\\"body_wire\\\\\\\":\\\\\\\"{\\\\\\\\\\\\\\\"id\\\\\\\\\\\\\\\":2,\\\\\\\\\\\\\\\"jsonrpc\\\\\\\\\\\\\\\":\\\\\\\\\\\\\\\"2.0\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"method\\\\\\\\\\\\\\\":\\\\\\\\\\\\\\\"getBlockTime\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"params\\\\\\\\\\\\\\\":[42]}\\\\\\\",\\\\\\\"chain\\\\\\\":\\\\\\\"solana\\\\\\\",\\\\\\\"endpoint\\\\\\\":\\\\\\\"operator-bound-solana-rpc\\\\\\\",\\\\\\\"format\\\\\\\":\\\\\\\"ga-provider-public-request-research-v3\\\\\\\",\\\\\\\"method\\\\\\\":\\\\\\\"POST\\\\\\\",\\\\\\\"parameters\\\\\\\":{}}\\\",\\\"endpoint_binding_id\\\":\\\"00000000-0000-0000-0000-000000000018\\\",\\\"format\\\":\\\"ga-provider-acquisition-capsule-research-v3\\\",\\\"http_status\\\":\\\"200\\\",\\\"issuer_binding_id\\\":\\\"00000000-0000-0000-0000-000000000015\\\",\\\"market_epoch\\\":\\\"00000000-0000-0000-0000-00000000000d\\\",\\\"method\\\":\\\"POST\\\",\\\"owner_id\\\":\\\"00000000-0000-0000-0000-00000000000b\\\",\\\"parser_policy_sha256\\\":\\\"912fd28c718311f9b6f72cf0327a7c6b5f4ec7cc4033744d3306064ed869ac89\\\",\\\"provider_family\\\":\\\"solana-rpc\\\",\\\"raw_response_ref\\\":\\\"00000000-0000-0000-0000-0000000003f9\\\",\\\"received_monotonic_us\\\":\\\"9900000\\\",\\\"received_wall_us\\\":\\\"1800000000100000\\\",\\\"record_id\\\":\\\"00000000-0000-0000-0000-0000000003f9\\\",\\\"request_sha256\\\":\\\"266a4e6b4c3350146403923daf6f9e974207da68a2a24b3e934638eb0d2c07f8\\\",\\\"request_started_monotonic_us\\\":\\\"9800000\\\",\\\"request_started_wall_us\\\":\\\"1800000000000000\\\",\\\"response_base64\\\":\\\"eyJpZCI6MiwianNvbnJwYyI6IjIuMCIsInJlc3VsdCI6MTc5OTk5OTk5OH0=\\\",\\\"response_bytes\\\":\\\"44\\\",\\\"response_sha256\\\":\\\"7e5af3232b6dd8460df2b3c3878b569407948c1f28870279cb48aa9ebba86664\\\",\\\"run_id\\\":\\\"00000000-0000-0000-0000-00000000000c\\\",\\\"safe_response_metadata\\\":{}}\"],\"capture_id\":\"00000000-0000-0000-0000-0000000003f5\",\"collection_completed\":true,\"diagnostics\":[],\"eligibility\":false,\"failure_code\":null,\"format\":\"ga-jupiter-source-capture-retention-research-v3\",\"observation_id\":\"00000000-0000-0000-0000-0000000003f6\",\"policy_sha256\":\"2c48b61440f7d61f9567fa295da1c9c98a4483c2c834ec7074412d261f085640\",\"reservation_sha256\":\"3c6fb3672edd2945c907414de8046c496e9aceab237d27c306b41512e3f866d0\",\"scope\":{\"market_epoch\":\"00000000-0000-0000-0000-00000000000d\",\"owner_id\":\"00000000-0000-0000-0000-00000000000b\",\"run_id\":\"00000000-0000-0000-0000-00000000000c\"}}",
++    "closure_id": "00000000-0000-0000-0000-0000000003fb",
++    "prepared_wire": "{\"binding\":{\"acquisition_epoch\":\"00000000-0000-0000-0000-000000000014\",\"issuer_binding_id\":\"00000000-0000-0000-0000-000000000015\",\"market_epoch\":\"00000000-0000-0000-0000-00000000000d\",\"owner_id\":\"00000000-0000-0000-0000-00000000000b\",\"parser_policy_sha256\":\"912fd28c718311f9b6f72cf0327a7c6b5f4ec7cc4033744d3306064ed869ac89\",\"run_id\":\"00000000-0000-0000-0000-00000000000c\"},\"block_time_record_id\":\"00000000-0000-0000-0000-0000000003f9\",\"block_time_rpc_id\":\"2\",\"endpoints\":[[\"jupiter-price-v3\",\"00000000-0000-0000-0000-000000000017\"],[\"solana-rpc\",\"00000000-0000-0000-0000-000000000018\"]],\"format\":\"ga-provider-prepared-original-readonly-packet-research-v3\",\"genesis_record_id\":\"00000000-0000-0000-0000-0000000003f8\",\"genesis_rpc_id\":\"1\",\"observation_id\":\"00000000-0000-0000-0000-0000000003f6\",\"price_record_id\":\"00000000-0000-0000-0000-0000000003f7\",\"transport_policy_sha256\":\"a62184b94f88dbc248a6f3569e171a60e8a0a530addf8ed8aa943b10433f055e\"}",
++    "reservation_wire": "{\"admission_id\":\"00000000-0000-0000-0000-0000000003f4\",\"authority\":{\"authenticated_principal\":false,\"calibrated_clock\":false,\"committed_readback\":false,\"hosted_authority\":false,\"lease_authority\":false,\"live_trading_authority\":false,\"native_admission\":false,\"provider_attested\":false,\"running_authority\":false},\"block_time_record_id\":\"00000000-0000-0000-0000-0000000003f9\",\"block_time_rpc_id\":\"2\",\"capture_id\":\"00000000-0000-0000-0000-0000000003f5\",\"format\":\"ga-jupiter-source-reservation-research-v3\",\"genesis_record_id\":\"00000000-0000-0000-0000-0000000003f8\",\"genesis_rpc_id\":\"1\",\"issuer\":{\"acquisition_epoch\":\"00000000-0000-0000-0000-000000000014\",\"endpoint_bindings\":[{\"endpoint_binding_id\":\"00000000-0000-0000-0000-000000000017\",\"provider_family\":\"jupiter-price-v3\"},{\"endpoint_binding_id\":\"00000000-0000-0000-0000-000000000018\",\"provider_family\":\"solana-rpc\"}],\"issuer_binding_id\":\"00000000-0000-0000-0000-000000000015\",\"market_epoch\":\"00000000-0000-0000-0000-00000000000d\",\"owner_id\":\"00000000-0000-0000-0000-00000000000b\",\"parser_policy_sha256\":\"912fd28c718311f9b6f72cf0327a7c6b5f4ec7cc4033744d3306064ed869ac89\",\"run_id\":\"00000000-0000-0000-0000-00000000000c\"},\"issuer_principal_binding_id\":\"00000000-0000-0000-0000-000000000016\",\"observation_id\":\"00000000-0000-0000-0000-0000000003f6\",\"policies\":{\"acquisition_sha256\":\"912fd28c718311f9b6f72cf0327a7c6b5f4ec7cc4033744d3306064ed869ac89\",\"native_package_sha256\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"recorder_package_sha256\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"source_sha256\":\"3be1de572d954859002546e5d525ddb0fbda71a5ca844368381a98395571aad1\",\"transport_sha256\":\"a62184b94f88dbc248a6f3569e171a60e8a0a530addf8ed8aa943b10433f055e\"},\"policy_sha256\":\"2c48b61440f7d61f9567fa295da1c9c98a4483c2c834ec7074412d261f085640\",\"price_record_id\":\"00000000-0000-0000-0000-0000000003f7\",\"reservation_id\":\"00000000-0000-0000-0000-0000000003f3\",\"scope\":{\"market_epoch\":\"00000000-0000-0000-0000-00000000000d\",\"owner_id\":\"00000000-0000-0000-0000-00000000000b\",\"run_id\":\"00000000-0000-0000-0000-00000000000c\"}}"
++  }
++]

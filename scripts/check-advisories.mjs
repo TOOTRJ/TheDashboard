@@ -60,6 +60,30 @@ export function assessAudit(report, lock, policy, { mode, now = new Date() }) {
   }
 
   const allowed = new Set();
+  const checkedGraphs = new Set();
+  const sameStrings = (left, right) => {
+    if (left.length !== right.length) return false;
+    const sortedRight = [...right].sort();
+    return [...left].sort().every((value, index) => value === sortedRight[index]);
+  };
+  function exactFinding(exception, dependency, evidence) {
+    const pin = exception.findings[dependency];
+    if (!object(pin) || !object(pin.nodes) || !Array.isArray(pin.via) || !pin.via.length ||
+        pin.via.length > 32 || pin.via.some((edge) => typeof edge !== "string") ||
+        !sameStrings(pin.via, evidence.via.map((via) => typeof via === "string" ? via : via.url)) ||
+        !sameStrings(Object.keys(pin.nodes), evidence.nodes)) {
+      throw new Error(`Changed advisory dependency graph in ${dependency}`);
+    }
+    for (const node of evidence.nodes) {
+      const entry = lock.packages[node];
+      if (typeof node !== "string" || node.length > 500 || node.split("/").includes("..") ||
+          !(node === `node_modules/${dependency}` || node.endsWith(`/node_modules/${dependency}`)) ||
+          typeof pin.nodes[node] !== "string" || !pin.nodes[node] || !entry || entry.dev !== true ||
+          entry.version !== pin.nodes[node]) {
+        throw new Error(`Changed or non-development dependency in ${dependency}`);
+      }
+    }
+  }
   for (const [name] of entries) {
     for (const { leaf, path: dependencyPath } of leaves(name)) {
       const matching = policy.exceptions.filter((exception) =>
@@ -67,6 +91,7 @@ export function assessAudit(report, lock, policy, { mode, now = new Date() }) {
         exception.package === leaf.name && exception.severity === leaf.severity);
       if (matching.length !== 1) throw new Error(`Unreviewed advisory in ${name}`);
       const exception = matching[0];
+      const exactGraph = own(exception, "findings");
       const expiry = /^\d{4}-\d{2}-\d{2}$/.test(exception.expires_on ?? "")
         ? Date.parse(`${exception.expires_on}T00:00:00Z`) : NaN;
       const review = Date.parse(`${exception.reviewed_on}T00:00:00Z`);
@@ -75,13 +100,26 @@ export function assessAudit(report, lock, policy, { mode, now = new Date() }) {
           new Date(expiry).toISOString().slice(0, 10) !== exception.expires_on ||
           new Date(review).toISOString().slice(0, 10) !== exception.reviewed_on ||
           expiry <= review || typeof exception.reason !== "string" || !exception.reason.trim() ||
-          !object(exception.affected_packages) || exception.affected_packages[leaf.name] !== exception.version) {
+          (exactGraph ? (!object(exception.findings) || exception.affected_range !== leaf.range ||
+            !own(exception.findings, leaf.name)) :
+            (!object(exception.affected_packages) || exception.affected_packages[leaf.name] !== exception.version))) {
         throw new Error(`Expired or invalid exception in ${name}`);
+      }
+      if (exactGraph && !checkedGraphs.has(exception)) {
+        if (!sameStrings(Object.keys(exception.findings), entries.map(([packageName]) => packageName))) {
+          throw new Error(`Changed advisory dependency graph in ${name}`);
+        }
+        checkedGraphs.add(exception);
       }
       for (const dependency of dependencyPath) {
         const evidence = vulnerabilities[dependency];
-        if (evidence.severity !== exception.severity || !own(exception.affected_packages, dependency)) {
+        if (evidence.severity !== exception.severity ||
+            !(exactGraph ? own(exception.findings, dependency) : own(exception.affected_packages, dependency))) {
           throw new Error(`Unreviewed severity or dependency path in ${name}`);
+        }
+        if (exactGraph) {
+          exactFinding(exception, dependency, evidence);
+          continue;
         }
         for (const node of evidence.nodes) {
           const entry = lock.packages[node];
