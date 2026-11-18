@@ -239,6 +239,18 @@ class ProspectivePaperService:
         await self._align_epoch()
         self._phase = 'warming_up' if self.runtime.state is None else 'running'
         while not self._closing and not self._stop_requested:
+            # Warmup has no economic append to reveal a winning remote Stop.
+            # Read its original durable control before any history/provider I/O;
+            # provider admission separately checks Stop races during collection.
+            control = self._control(await self._journal.latest_control())
+            if control is None:
+                raise RuntimeRefused('paper_control_unavailable')
+            if self._closing or self._stop_requested:
+                break
+            self._last_control = control
+            if control['action'] == 'stop':
+                self._stop_requested = True
+                break
             batch = await self._feed.next_observation()
             if type(batch) is not SourceBatch:
                 raise RuntimeRefused('invalid_source_batch')

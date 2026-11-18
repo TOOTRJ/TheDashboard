@@ -123,6 +123,48 @@ class ProspectiveServiceTests(unittest.IsolatedAsyncioTestCase):
         await self.service._task
         await self.service.close()
 
+    async def test_external_native_stop_during_warmup_ends_without_another_provider_call(self):
+        start_id, stop_id = str(UUID(int=824)), str(UUID(int=825))
+        self.feed.release.set()
+        intervals = []
+        async def native_stop(_):
+            intervals.append(self.service._phase)
+            await self.journal.control(stop_id, 'stop')
+        self.service._sleep = native_stop
+        await self.service.start(OWNER, start_id)
+        await self.service.wait_ready()
+        await asyncio.wait_for(self.service._task, 2)
+        result = await self.service.status(OWNER)
+        self.assertEqual(result['phase'], 'stopped')
+        self.assertEqual(result['last_request_id'], stop_id)
+        self.assertFalse(result['requires_reconciliation'])
+        self.assertEqual(intervals, ['warming_up'])
+        self.assertEqual(self.feed.calls, 1)
+        self.assertEqual(self.journal.rows, [])
+        self.assertEqual([(row['action'], row['request_id']) for row in self.journal.controls],
+            [('start', start_id), ('stop', stop_id)])
+        await self.service.close()
+
+    async def test_local_stop_racing_a_retained_start_poll_cannot_launch_collection_or_replace_ack(self):
+        entered, release = asyncio.Event(), asyncio.Event()
+        original = self.journal.latest_control
+        async def held_poll():
+            result = await original()
+            if asyncio.current_task() is self.service._task:
+                entered.set(); await release.wait()
+            return result
+        self.journal.latest_control = held_poll
+        await self.service.start(OWNER, str(UUID(int=826)))
+        await asyncio.wait_for(entered.wait(), 1)
+        stop_id = str(UUID(int=827))
+        result = await self.service.stop(OWNER, stop_id)
+        self.assertEqual(result['last_request_id'], stop_id)
+        release.set(); await asyncio.wait_for(self.service._task, 2)
+        self.assertEqual((await self.service.status(OWNER))['last_request_id'], stop_id)
+        self.assertEqual((await self.service.status(OWNER))['phase'], 'stopped')
+        self.assertEqual(self.feed.calls, 0)
+        await self.service.close()
+
     async def test_history_bounds_refuse_bool_or_negative_cursor(self):
         await self.service.wait_ready()
         for cursor, limit in ((True, 1), (-1, 1), (0, 0), (0, 101)):
