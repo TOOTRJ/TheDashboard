@@ -15,8 +15,12 @@ merge. The maintained runtime joins original observations, the two-EMA model,
 atomic state/history, original-command reconciliation, restart and owner controls.
 Railway deployment `2be1bce1-32f1-4a5b-889e-f93300dc08ee` is SUCCESS/running
 from the tested export. Health/version, anonymous401, foreign-Origin403 and no-store
-checks pass. Collection is idle pending the user account-owner clarification;
-authenticated native/provider/Stop and sustained acceptance remain open.
+checks pass. The selected signed-in app account now has a fresh scoped pilot, deployed as
+`9b95c77a-060c-4e81-b5cc-d93c6963ff2c`, and the unused former login is closed.
+Owner status is verified but recovery failed because explicit empty libpq service
+triggers profile lookup. An isolated hosted repair proves the same pinned native
+TLS/SCRAM/channel-binding connection and head0; release the one-option correction
+before authenticated provider/Stop and sustained acceptance.
 
 The narrow frontend precision follow-up matches the kernel's 36-place fractional
 money strings. Four untouched real-service synthetic ASGI statuses and 61 history

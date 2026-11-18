@@ -17,7 +17,10 @@ four untouched real-service synthetic ASGI statuses and 61 history pages coverin
 bootstrap, eight held positions, a completed generation with 16 parent links,
 drawdown/fitness assessments and Stop. Its 13,027-byte held status is retained
 unmodified as a regression. All 491 frontend tests, TypeScript and targeted lint
-pass locally. This follow-up's CI/merge and production receipt are still pending;
+pass locally. PR118's frontend and six other jobs passed, but SQL1 reached2400s. Two complete
+defining-module moves preserve every discovered occurrence/order and all deadlines;
+14 sharding checks pass. The composed follow-up's full CI/merge/production receipt
+is still pending;
 it changes no worker source, workflow or package versions.
 
 The verified production public settings are `NEXT_PUBLIC_VN_SERVICE_MODE=paper-v6`
@@ -26,10 +29,15 @@ The owner dashboard is [the production Probes page](https://the-dashboard-chi.ve
 The reviewed worker activation selection is `VN_SERVICE_MODE=paper-v6`. Railway deployment `2be1bce1-32f1-4a5b-889e-f93300dc08ee` is SUCCESS/running
 from the exact tested 140-file export, manifest `2b3c8168c00748633b9f56f341558158c8c945642e3de8c941365604f7b78ce3`.
 Health200 reports paper-service-v6; anonymous status401, foreign Origin403 and docs404
-all carry no-store. The worker is idle. The signed-in browser account differs from
-the scoped pilot owner, correctly yielding404; owner selection is awaiting user
-clarification. PAPER-04/05 still require native TLS, authenticated controls, measured
-provider admission and bounded Stop/restart verification before PAPER-06. PAPER-08's long-term gap/restart, checkpoint/replay,
+all carry no-store. The user selected the signed-in app account. The old unused login is closed, and
+a new confirmed owner/run/login is deployed as `9b95c77a-060c-4e81-b5cc-d93c6963ff2c`.
+Owner-authenticated status sees the correct run but reports failed recovery before
+collection. Diagnosis identified explicit `service=''`: libpq treats it as an empty
+named service. Removing only that option in an isolated hosted process successfully
+connects with the same verify-full CA/hostname, required SCRAM/channel binding and
+PostgreSQL17, returning native head0. The actual worker repair still needs release.
+PAPER-04/05 require authenticated controls, measured provider admission and bounded
+Stop/restart verification before PAPER-06. PAPER-08's long-term gap/restart, checkpoint/replay,
 physical storage and credential-renewal gates remain open.
 
 ## November 17 native paper installation
@@ -40,8 +48,12 @@ The exact verified Dashboard Supabase project now has migration
 Same-transaction migration-history readback, exact RPC body, all seven RLS tables,
 private namespace, client permissions and absence of public/API exposure passed.
 The new login is restricted to one owner/run, has no memberships/admin/table
-permissions, and expires November24 at23:51:56UTC. Its password and original
-rollback identity remain only in ignored mode0600 files. That database check did
+permissions. The original unused login is now closed; its password and original
+rollback identity remain only in ignored mode0600 files. The approved app owner
+has a distinct private bundle, a fresh run and a login expiring November25 at
+03:22:22UTC (November24 20:22:22MST). New preparation verifies explicit app UUID/email
+at preparation and issuance; Git identity is independent. All15 operator unit cases
+and5 native closure/isolation cases pass. That database check did
 not activate Railway; the subsequent idle worker deployment is tracked above.
 
 That original migration is immutable base16. The separate forward migration17,

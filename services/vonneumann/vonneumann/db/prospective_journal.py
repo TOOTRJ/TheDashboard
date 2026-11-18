@@ -80,7 +80,7 @@ class ProspectiveSQLJournal:
                         ssl_min_protocol_version='TLSv1.2',sslnegotiation='postgres',sslsni='1',
                         require_auth='scram-sha-256',channel_binding='require',gssencmode='disable',
                         sslcrl=str(Path(folder)/'absent.crl'),sslcrldir='',passfile=str(Path(folder)/'absent.pass'),
-                        service='',connect_timeout=5,application_name='dashboard-paper-v6',
+                        connect_timeout=5,application_name='dashboard-paper-v6',
                         options='-c search_path=pg_catalog -c statement_timeout=5000 -c lock_timeout=3000 -c idle_in_transaction_session_timeout=7000 -c transaction_timeout=8000 -c synchronous_commit=on')
                     if not connection.pgconn.ssl_in_use or connection.info.server_version//10000 != 17:
                         raise JournalUnavailable('paper_connection_unverified')

@@ -33,6 +33,10 @@ BASE_SHA256 = 'd49f9646f15584a36df82c8704383bd8cc8f279d5f8064d631d7a013b56ddc44'
 HARDENING = ROOT / 'supabase/migrations/20261118010000_vonneumann_paper_v6_search_path.sql'
 HARDENING_STATE = DIRECTORY / 'search-path-hardening-original.json'
 HARDENING_VERSION, HARDENING_NAME = '20261118010000', 'vonneumann_paper_v6_search_path'
+# Installation originals remain fixed. Selecting a credential bundle changes
+# only this process's credential path, never schema history or global identity.
+BUNDLE_ROOT = ROOT / 'ssl/paper-v6-pilot-originals'
+SELECTED_BUNDLE = None
 OWNER = '1f785684-f05b-4ba7-8465-672780c93336'
 TABLES = ['artifacts', 'bindings', 'controls', 'entries', 'rejections', 'runs', 'sources']
 MAX_BODY = 65536
@@ -74,35 +78,51 @@ def _hardening_source():
     return _migration_source(HARDENING)
 
 
-def _private_directory():
+def select_bundle(name):
+    global SELECTED_BUNDLE, CREDENTIAL_STATE
+    _require(name is None or (type(name) is str and re.fullmatch(r'[a-z0-9][a-z0-9-]{0,63}', name) is not None),
+        'bounded_private_bundle_name_required')
+    SELECTED_BUNDLE = name
+    CREDENTIAL_STATE = (DIRECTORY if name is None else BUNDLE_ROOT/name) / 'credentials-original.json'
+
+
+def _private_directory(directory=None, *, create=True):
+    directory = DIRECTORY if directory is None else directory
     _require(ROOT.resolve() == ROOT and not (ROOT / 'ssl').is_symlink())
-    ignored = subprocess.run(['git', 'check-ignore', '--no-index', '-q', 'ssl/paper-v6-20261117/original.json'],
+    _require(directory == DIRECTORY or (SELECTED_BUNDLE is not None and directory == BUNDLE_ROOT/SELECTED_BUNDLE),
+        'private_operation_path_not_selected')
+    ignored_path = ('ssl/paper-v6-20261117/original.json' if directory == DIRECTORY else
+        'ssl/paper-v6-pilot-originals/'+SELECTED_BUNDLE+'/credentials-original.json')
+    ignored = subprocess.run(['git', 'check-ignore', '--no-index', '-q', ignored_path],
         cwd=ROOT, capture_output=True, timeout=5, check=False)
     _require(ignored.returncode == 0, 'private_directory_must_remain_ignored')
-    DIRECTORY.mkdir(mode=0o700, parents=False, exist_ok=True)
-    info = DIRECTORY.lstat()
-    _require(stat.S_ISDIR(info.st_mode) and info.st_uid == os.getuid()
-        and not info.st_mode & 0o077, 'owned_private_directory_required')
+    folders = (DIRECTORY,) if directory == DIRECTORY else (BUNDLE_ROOT, directory)
+    for folder in folders:
+        if create: folder.mkdir(mode=0o700, parents=False, exist_ok=True)
+        info = folder.lstat()
+        _require(not folder.is_symlink() and folder.resolve() == folder
+            and stat.S_ISDIR(info.st_mode) and info.st_uid == os.getuid()
+            and not info.st_mode & 0o077, 'owned_private_directory_required')
 
 
 def _write(path, value, *, replace=False):
-    _private_directory()
-    _require(path.parent == DIRECTORY and not path.is_symlink())
-    target = DIRECTORY / ('replacement-' + uuid4().hex + '.json') if replace else path
+    _private_directory(path.parent)
+    _require(not path.is_symlink())
+    target = path.parent / ('replacement-' + uuid4().hex + '.json') if replace else path
     descriptor = os.open(target, os.O_CREAT | os.O_EXCL | os.O_WRONLY | os.O_NOFOLLOW, 0o600)
     with os.fdopen(descriptor, 'w') as destination:
         destination.write(json.dumps(value, sort_keys=True, indent=2) + '\n')
         destination.flush(); os.fsync(destination.fileno())
     if replace:
         os.replace(target, path)
-    directory = os.open(DIRECTORY, os.O_RDONLY)
+    directory = os.open(path.parent, os.O_RDONLY)
     try: os.fsync(directory)
     finally: os.close(directory)
 
 
 def _read(path):
-    _private_directory()
-    _require(path.parent == DIRECTORY and not path.is_symlink())
+    _private_directory(path.parent, create=False)
+    _require(not path.is_symlink())
     descriptor = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
     with os.fdopen(descriptor, 'r') as source:
         info = os.fstat(source.fileno())
@@ -289,20 +309,29 @@ def apply_hardening(client):
     return result
 
 
-def _repo_email():
-    result = subprocess.run(['git', 'config', '--local', 'user.email'], cwd=ROOT,
-        capture_output=True, timeout=5, check=False)
-    value = result.stdout.decode('utf-8').strip()
-    _require(result.returncode == 0 and re.fullmatch(r'[^\s@]+@[^\s@]+\.[^\s@]+', value) is not None,
-        'verified_repository_email_required')
-    return value
+def _owner_input(owner_id, owner_email):
+    _require(type(owner_id) is str and str(UUID(owner_id)) == owner_id, 'canonical_app_owner_required')
+    _require(type(owner_email) is str and 3 <= len(owner_email) <= 320
+        and owner_email.strip() == owner_email and owner_email.isprintable()
+        and re.fullmatch(r'[^\s@]+@[^\s@]+\.[^\s@]+', owner_email) is not None,
+        'explicit_app_owner_email_required')
+    return owner_id, owner_email.casefold()
 
 
-def verify_owner(client):
+def _record_owner(record):
+    # Real retained files must contain owner_id; the legacy default supports
+    # existing pure SQL-builder callers with the former minimal fixture shape.
+    owner = record.get('owner_id', OWNER)
+    _require(type(owner) is str and str(UUID(owner)) == owner)
+    return owner
+
+
+def verify_owner(client, owner_id, owner_email):
+    owner_id, owner_email = _owner_input(owner_id, owner_email)
     client.verify()
-    row = _one(client, "SELECT id=$1::uuid AS exact_owner, lower(email)=lower($2) AS repository_email_matches, "
-        "email_confirmed_at IS NOT NULL AS confirmed FROM auth.users WHERE id=$1::uuid", (OWNER, _repo_email()))
-    _require(row == {'exact_owner': True, 'repository_email_matches': True, 'confirmed': True}, 'paper_owner_mismatch')
+    row = _one(client, "SELECT id=$1::uuid AS exact_owner, lower(email)=lower($2) AS explicit_email_matches, "
+        "email_confirmed_at IS NOT NULL AS confirmed FROM auth.users WHERE id=$1::uuid", (owner_id, owner_email))
+    _require(row == {'exact_owner': True, 'explicit_email_matches': True, 'confirmed': True}, 'paper_owner_mismatch')
 
 
 def _verifier(password):
@@ -314,12 +343,18 @@ def _verifier(password):
     return f'SCRAM-SHA-256$4096:{b64(salt)}${b64(stored)}:{b64(server)}'
 
 
-def prepare_credentials(client):
+def prepare_credentials(client, *, owner_id=None, owner_email=None):
+    _require(SELECTED_BUNDLE is not None, 'new_pilot_requires_distinct_private_bundle')
+    owner_id, owner_email = _owner_input(owner_id, owner_email)
+    _require(not CREDENTIAL_STATE.exists() and not CREDENTIAL_STATE.is_symlink(),
+        'credential_original_already_exists')
     schema = verify_schema(client)
-    verify_owner(client)
+    verify_owner(client, owner_id, owner_email)
     now = datetime.now(timezone.utc)
     password = secrets.token_hex(32)
-    record = {'format': 1, 'state': 'prepared', 'owner_id': OWNER,
+    record = {'format': 1, 'state': 'prepared', 'owner_id': owner_id,
+        'owner_email': owner_email, 'owner_selection': 'explicit-confirmed-app-account-v1',
+        'bundle_name': SELECTED_BUNDLE,
         'run_id': str(uuid4()), 'market_epoch_id': str(uuid4()), 'principal_binding_id': str(uuid4()),
         'db_login': 'vn_paper_' + uuid4().hex, 'db_password': password, 'scram_verifier': _verifier(password),
         'prepared_at': now.isoformat(), 'valid_until': (now+timedelta(days=7)).isoformat(),
@@ -330,7 +365,15 @@ def prepare_credentials(client):
 
 def _credentials():
     record = _read(CREDENTIAL_STATE)
-    _require(record.get('owner_id') == OWNER and record.get('migration_sha256') == _source()[1])
+    _require('owner_id' in record and record.get('migration_sha256') == _source()[1])
+    owner = _record_owner(record)
+    if record.get('owner_selection') is None:
+        _require(SELECTED_BUNDLE is None and owner == OWNER, 'legacy_original_scope_mismatch')
+    else:
+        _require(record.get('owner_selection') == 'explicit-confirmed-app-account-v1'
+            and SELECTED_BUNDLE is not None and record.get('bundle_name') == SELECTED_BUNDLE,
+            'explicit_owner_original_bundle_mismatch')
+        _require(_owner_input(owner, record.get('owner_email')) == (owner, record.get('owner_email')))
     for key in ('run_id', 'market_epoch_id', 'principal_binding_id'):
         _require(str(UUID(record[key])) == record[key])
     _require(re.fullmatch(r'vn_paper_[a-f0-9]{32}', record['db_login']) is not None
@@ -364,6 +407,7 @@ def credential_install_sql(record):
 
 def verify_credentials(client, record=None, *, closed=False, allow_expired=False):
     record = _credentials() if record is None else record
+    owner = _record_owner(record)
     client.verify()
     row = _one(client, "SELECT r.oid AS role_oid, b.owner_id=$2::uuid AND b.run_id=$3::uuid AS binding_exact, "
         "NOT(r.rolsuper OR r.rolcreatedb OR r.rolcreaterole OR r.rolinherit OR r.rolreplication OR r.rolbypassrls) AND r.rolconnlimit=2 AS restricted, "
@@ -373,7 +417,7 @@ def verify_credentials(client, record=None, *, closed=False, allow_expired=False
         "has_schema_privilege(r.oid,'vn_paper_v6','USAGE') AND has_function_privilege(r.oid,'vn_paper_v6.rpc(text,jsonb)','EXECUTE') AS direct_rpc, "
         "NOT EXISTS(SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='vn_paper_v6' AND c.relkind='r' AND has_table_privilege(r.oid,c.oid,'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER')) AS no_table_access "
         "FROM pg_roles r JOIN vn_paper_v6.bindings b ON b.login=r.rolname WHERE r.rolname=$1",
-        (record['db_login'], OWNER, record['run_id'], record['valid_until']))
+        (record['db_login'], owner, record['run_id'], record['valid_until']))
     _require(all(row.get(key) is True for key in ('binding_exact', 'restricted', 'role_deadline', 'no_memberships', 'direct_rpc', 'no_table_access')))
     if 'role_oid' in record:
         _require(row['role_oid'] == record['role_oid'], 'original_login_identity_changed')
@@ -385,18 +429,20 @@ def verify_credentials(client, record=None, *, closed=False, allow_expired=False
     record['role_oid'] = row['role_oid']
     record['state'] = 'closed_verified' if closed else 'issued_verified'
     _write(CREDENTIAL_STATE, record, replace=True)
-    return {'state': record['state'], 'owner_id': OWNER, 'run_id': record['run_id'],
+    return {'state': record['state'], 'owner_id': owner, 'run_id': record['run_id'],
         'valid_until': record['valid_until'], 'credential_output': False}
 
 
 def issue_credentials(client):
     record = _credentials()
     _require(record['state'] == 'prepared', 'credential_already_submitted_reconcile_only')
+    _require(record.get('owner_selection') == 'explicit-confirmed-app-account-v1',
+        'new_issuance_requires_explicit_owner_original')
     _require(datetime.fromisoformat(record['valid_until']) > datetime.now(timezone.utc))
-    verify_schema(client); verify_owner(client)
+    verify_schema(client); verify_owner(client, record['owner_id'], record['owner_email'])
     absent = _one(client, "SELECT NOT EXISTS(SELECT 1 FROM pg_roles WHERE rolname=$1) AS role_absent, "
         "NOT EXISTS(SELECT 1 FROM vn_paper_v6.bindings WHERE owner_id=$2::uuid AND run_id=$3::uuid) AS binding_absent",
-        (record['db_login'], OWNER, record['run_id']))
+        (record['db_login'], record['owner_id'], record['run_id']))
     _require(absent == {'role_absent': True, 'binding_absent': True})
     record['state'] = 'submitted_or_uncertain'; _write(CREDENTIAL_STATE, record, replace=True)
     client.verify()
@@ -408,6 +454,7 @@ def issue_credentials(client):
 def credential_close_sql(record):
     _require(type(record.get('role_oid')) is int and record['role_oid'] > 0)
     login, run, expiry = [_literal(record[key]) for key in ('db_login', 'run_id', 'valid_until')]
+    owner = _literal(_record_owner(record))
     oid = str(record['role_oid'])
     # The readback above is insufficient by itself: validate again inside this
     # transaction before addressing a role by name. The binding row stays locked
@@ -416,7 +463,7 @@ def credential_close_sql(record):
     return ("BEGIN; SET LOCAL statement_timeout='8s'; SET LOCAL lock_timeout='1s'; "
         "DO $operator$ DECLARE original_binding vn_paper_v6.bindings%ROWTYPE; BEGIN "
         "SELECT * INTO STRICT original_binding FROM vn_paper_v6.bindings WHERE login=" + login
-        + "::name AND owner_id='" + OWNER + "'::uuid AND run_id=" + run
+        + "::name AND owner_id=" + owner + "::uuid AND run_id=" + run
         + "::uuid AND expires_at=" + expiry + "::timestamptz FOR UPDATE; "
         "IF NOT EXISTS(SELECT 1 FROM pg_roles r WHERE r.rolname=" + login + " AND r.oid=" + oid
         + "::oid AND r.rolvaliduntil=" + expiry + "::timestamptz AND r.rolconnlimit=2 "
@@ -428,7 +475,7 @@ def credential_close_sql(record):
         + "::oid AND NOT r.rolcanlogin AND r.rolvaliduntil=" + expiry
         + "::timestamptz) THEN RAISE EXCEPTION 'paper_original_role_changed'; END IF; "
         "UPDATE vn_paper_v6.bindings SET expires_at=least(expires_at,clock_timestamp()) WHERE login="
-        + login + "::name AND owner_id='" + OWNER + "'::uuid AND run_id=" + run
+        + login + "::name AND owner_id=" + owner + "::uuid AND run_id=" + run
         + "::uuid AND expires_at=" + expiry + "::timestamptz; END $operator$; COMMIT;")
 
 
@@ -452,7 +499,15 @@ def main(argv=None):
     parser.add_argument('action', choices=('prepare', 'plan', 'apply-schema', 'verify',
         'prepare-hardening', 'plan-hardening', 'apply-hardening', 'verify-hardening',
         'prepare-credentials', 'issue-credentials', 'verify-credentials', 'rollback'))
-    action = parser.parse_args(argv).action
+    parser.add_argument('--bundle')
+    parser.add_argument('--owner-id')
+    parser.add_argument('--owner-email')
+    args = parser.parse_args(argv); action = args.action
+    credential_actions = {'prepare-credentials', 'issue-credentials', 'verify-credentials', 'rollback'}
+    _require(args.bundle is None or action in credential_actions, 'bundle_only_for_credential_actions')
+    _require((args.owner_id is None and args.owner_email is None) or action == 'prepare-credentials',
+        'owner_input_only_for_new_preparation')
+    if action in credential_actions: select_bundle(args.bundle)
     if action == 'prepare':
         record = prepare()
         result = {'state': record['state'], 'version': VERSION, 'sha256': record['sha256']}
@@ -471,8 +526,8 @@ def main(argv=None):
             record = _original_hardening(); result = verify_hardening(client, record)
             record['state'] = 'installed_verified'; _write(HARDENING_STATE, record, replace=True)
         elif action == 'prepare-credentials':
-            record = prepare_credentials(client)
-            result = {'state': record['state'], 'owner_id': OWNER, 'run_id': record['run_id'],
+            record = prepare_credentials(client, owner_id=args.owner_id, owner_email=args.owner_email)
+            result = {'state': record['state'], 'owner_id': record['owner_id'], 'run_id': record['run_id'],
                 'valid_until': record['valid_until']}
         elif action == 'issue-credentials': result = issue_credentials(client)
         elif action == 'verify-credentials':
