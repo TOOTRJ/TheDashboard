@@ -48,6 +48,7 @@ class RenewalNativeTests(unittest.TestCase):
     def test_existing_table_acl_or_missing_rpc_refuses_without_deadline_change(self):
         for drift,restore in (
             (f"GRANT SELECT ON vn_paper_v6.entries TO {self.login};",f"REVOKE SELECT ON vn_paper_v6.entries FROM {self.login};"),
+            (f"GRANT SELECT(owner_id) ON vn_paper_v6.entries TO {self.login};",f"REVOKE SELECT(owner_id) ON vn_paper_v6.entries FROM {self.login};"),
             (f"REVOKE EXECUTE ON FUNCTION vn_paper_v6.rpc(text,jsonb) FROM {self.login};",f"GRANT EXECUTE ON FUNCTION vn_paper_v6.rpc(text,jsonb) TO {self.login};")):
             self.db.sql(drift)
             self.assertNotEqual(self.db.sql(r.renew_sql(self.record),check=False).returncode,0)

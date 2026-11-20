@@ -226,7 +226,7 @@ def verify_schema(client, record=None, *, require_hardening=True):
         "(SELECT NOT(rolcanlogin OR rolsuper OR rolcreatedb OR rolcreaterole OR rolreplication OR rolbypassrls) FROM pg_roles WHERE rolname='vn_paper_v6_client') AS client_restricted, "
         "(SELECT p.prosecdef AND "+path_check+" AND p.proowner=n.nspowner AND encode(sha256(convert_to(p.prosrc,'UTF8')),'hex')=$1 FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE p.oid=to_regprocedure('vn_paper_v6.rpc(text,jsonb)')) AS rpc_exact, "
         "has_schema_privilege('vn_paper_v6_client','vn_paper_v6','USAGE') AND has_function_privilege('vn_paper_v6_client','vn_paper_v6.rpc(text,jsonb)','EXECUTE') AS client_rpc, "
-        "NOT EXISTS(SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='vn_paper_v6' AND c.relkind='r' AND has_table_privilege('vn_paper_v6_client',c.oid,'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER')) AS no_client_tables, "
+        "NOT EXISTS(SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='vn_paper_v6' AND c.relkind='r' AND (has_table_privilege('vn_paper_v6_client',c.oid,'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER') OR has_any_column_privilege('vn_paper_v6_client',c.oid,'SELECT,INSERT,UPDATE,REFERENCES'))) AS no_client_tables, "
         "NOT EXISTS(SELECT 1 FROM (VALUES('anon'),('authenticated'),('service_role')) r(name) WHERE has_schema_privilege(r.name,'vn_paper_v6','USAGE') OR has_function_privilege(r.name,'vn_paper_v6.rpc(text,jsonb)','EXECUTE')) AS no_api_access, "
         "NOT EXISTS(SELECT 1 FROM pg_namespace n, LATERAL aclexplode(coalesce(n.nspacl,acldefault('n',n.nspowner))) a WHERE n.nspname='vn_paper_v6' AND a.grantee=0) AS no_public_schema, "
         "NOT EXISTS(SELECT 1 FROM pg_proc p, LATERAL aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) a WHERE p.oid=to_regprocedure('vn_paper_v6.rpc(text,jsonb)') AND a.grantee=0) AS no_public_rpc", (expected_body,))
@@ -472,7 +472,7 @@ def _verify_credentials_locked(client, record, *, closed=False, allow_expired=Fa
         "b.expires_at=$4::timestamptz AS binding_deadline, b.expires_at>clock_timestamp() AS binding_active, "
         "NOT EXISTS(SELECT 1 FROM pg_auth_members WHERE member=r.oid) AS no_memberships, "
         "has_schema_privilege(r.oid,'vn_paper_v6','USAGE') AND has_function_privilege(r.oid,'vn_paper_v6.rpc(text,jsonb)','EXECUTE') AS direct_rpc, "
-        "NOT EXISTS(SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='vn_paper_v6' AND c.relkind='r' AND has_table_privilege(r.oid,c.oid,'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER')) AS no_table_access "
+        "NOT EXISTS(SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='vn_paper_v6' AND c.relkind='r' AND (has_table_privilege(r.oid,c.oid,'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER') OR has_any_column_privilege(r.oid,c.oid,'SELECT,INSERT,UPDATE,REFERENCES'))) AS no_table_access "
         "FROM pg_roles r JOIN vn_paper_v6.bindings b ON b.login=r.rolname WHERE r.rolname=$1",
         (record['db_login'], owner, record['run_id'], record['valid_until']))
     _require(all(row.get(key) is True for key in ('binding_exact', 'restricted', 'role_deadline', 'no_memberships', 'direct_rpc', 'no_table_access')))

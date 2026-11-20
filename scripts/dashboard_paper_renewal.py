@@ -62,7 +62,8 @@ def rpc_sql(alias='r'):
 
 def no_table_sql(alias='r'):
     return ("NOT EXISTS(SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace "
-        "WHERE n.nspname='vn_paper_v6' AND c.relkind='r' AND has_table_privilege("+alias+".oid,c.oid,'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER'))")
+        "WHERE n.nspname='vn_paper_v6' AND c.relkind='r' AND (has_table_privilege("+alias+".oid,c.oid,'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER') "
+        "OR has_any_column_privilege("+alias+".oid,c.oid,'SELECT,INSERT,UPDATE,REFERENCES')))")
 
 
 def envelope_sql(alias='r'):
