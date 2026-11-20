@@ -46,6 +46,20 @@ class AcquisitionError(ValueError):
     def __init__(self): super().__init__('Forward acquisition evidence is invalid or unsupported')
 
 
+class SampleUnavailable(AcquisitionError):
+    """A parsed original missed a freshness bound; it never becomes a mark.
+
+    This distinction carries no storage/retry authority. Callers may discard a
+    pending sample only after exact original readback and before artifact I/O.
+    All structural, binding and clock-causality failures remain AcquisitionError.
+    """
+    def __init__(self, reason):
+        if type(reason) is not str or reason not in ('provider_receipt_expired', 'provider_source_expired'):
+            raise AcquisitionError()
+        super().__init__()
+        self.reason = reason
+
+
 def require(condition):
     if not condition: raise AcquisitionError()
 
@@ -401,7 +415,10 @@ def assess_record_age(capsule, binding, clock, *, source_second=None, previous=N
         if source_second is not None:
             source_lower = max(source_lower, counter(old['source_age_floor_us'])+elapsed)
             source_upper = max(source_upper, counter(old['source_age_ceiling_us'])+upper_elapsed)
-    require(upper < MAX_RECEIPT_AGE_US and (source_upper is None or source_upper <= MAX_SOURCE_AGE_US))
+    if upper >= MAX_RECEIPT_AGE_US:
+        raise SampleUnavailable('provider_receipt_expired')
+    if source_upper is not None and source_upper > MAX_SOURCE_AGE_US:
+        raise SampleUnavailable('provider_source_expired')
     value = {'format': AGE_FORMAT, 'record_id': row['record_id'], 'capsule_sha256': checked.sha256,
         'source_second': None if source_second is None else str(source_second),
         'receipt_age_floor_us': str(lower), 'receipt_age_ceiling_us': str(upper),

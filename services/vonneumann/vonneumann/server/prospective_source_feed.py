@@ -103,9 +103,11 @@ class ProspectiveSourceFeed:
             binding.acquisition_epoch, binding.issuer_binding_id, recorder_package_sha256)
         self.interval_seconds = interval_seconds
         self._marks, self._history, self._series = [], None, None
+        self._mark_clocks = {}
         self._publications, self._history_digests = [], []
         self._pending, self._pending_native, self._transport = None, None, None
         self._admit_attempted = False
+        self._recipe_attempted = False
         self._next_monotonic = None
         self._history_gap = False
         self._closed, self._restored, self._busy = False, False, False
@@ -125,9 +127,9 @@ class ProspectiveSourceFeed:
     def status(self):
         complete = set()
         for mark in self._marks:
-            reference = mark.to_dict()['reference']
-            minute = int(reference['accepted_at_us']) // 60_000_000 * 60
-            if minute * 1_000_000 < int(reference['available_at_upper_us']) <= (minute + 60) * 1_000_000:
+            accepted, available = self._mark_clock(mark)
+            minute = accepted // 60_000_000 * 60
+            if minute * 1_000_000 < available <= (minute + 60) * 1_000_000:
                 complete.add(minute)
         latest = max(complete, default=None)
         consecutive = 0
@@ -179,13 +181,27 @@ class ProspectiveSourceFeed:
 
     ack_history = set_consumed_history_sha256
 
+    def _mark_clock(self, mark):
+        # These immutable objects were constructed/replayed through the public
+        # parser. Cache only bookkeeping clocks, bound to the identical object.
+        # Revalidating thousands of full wires during status/trim ages the fresh
+        # observation before model admission on the small production CPU.
+        cached = self._mark_clocks.get(id(mark))
+        if cached is None or cached[0] is not mark:
+            reference = mark.to_dict()['reference']
+            cached = (mark, int(reference['accepted_at_us']), int(reference['available_at_upper_us']))
+            self._mark_clocks[id(mark)] = cached
+        return cached[1:]
+
     def _trim_marks(self):
         if not self._marks:
+            self._mark_clocks.clear()
             return
-        latest = max(int(mark.to_dict()['reference']['accepted_at_us']) for mark in self._marks)
+        latest = max(self._mark_clock(mark)[0] for mark in self._marks)
         cutoff = latest - MARK_CACHE_WINDOW_US
         self._marks = [mark for mark in self._marks
-            if int(mark.to_dict()['reference']['accepted_at_us']) >= cutoff]
+            if self._mark_clock(mark)[0] >= cutoff]
+        self._mark_clocks = {id(mark): self._mark_clocks[id(mark)] for mark in self._marks}
 
     async def _persist(self, recipe):
         returned = await self.store.put(recipe.kind, recipe.sha256, recipe.wire)
@@ -315,6 +331,22 @@ class ProspectiveSourceFeed:
         # A retry of recipe persistence keeps the first independent read clock.
         return self._pending_native
 
+    async def _complete_unavailable(self, reason):
+        from .prospective_service import SourceBatch
+        _require(self._pending is not None and self._pending_native is not None
+            and not self._recipe_attempted, 'source_original_or_artifact_unresolved')
+        # Cleanup belongs to this original. A failed/cancelled close must retain
+        # its latch; collecting a replacement while cleanup is unknown is unsafe.
+        if self._transport is not None:
+            await self._transport.close()
+            self._transport = None
+        self._pending, self._pending_native = None, None
+        self._admit_attempted = False
+        self._metrics['source_process_samples_unavailable'] += 1
+        self._metrics['source_last_safe_error'] = reason
+        self._sample_duration()
+        return SourceBatch(None, safe_error='provider_sample_unavailable')
+
     async def _history_update(self, now_us):
         if self._history is None:
             end = ((now_us - source.COMPLETION_MARGIN_US) // 1_000_000 // source.BAR_SECONDS) * source.BAR_SECONDS
@@ -325,12 +357,12 @@ class ProspectiveSourceFeed:
             if now_us < end * 1_000_000 + source.COMPLETION_MARGIN_US:
                 return None, None
         marks = tuple(mark for mark in self._marks
-            if start * 1_000_000 <= int(mark.to_dict()['reference']['accepted_at_us']) < end * 1_000_000)
+            if start * 1_000_000 <= self._mark_clock(mark)[0] < end * 1_000_000)
         if not marks or len(marks) > source.MAX_RECORDS:
             return None, None
-        minutes = {int(mark.to_dict()['reference']['accepted_at_us']) // 60_000_000 * 60
-            for mark in marks if int(mark.to_dict()['reference']['available_at_upper_us']) <=
-                (int(mark.to_dict()['reference']['accepted_at_us']) // 60_000_000 + 1) * 60_000_000}
+        minutes = {self._mark_clock(mark)[0] // 60_000_000 * 60
+            for mark in marks if self._mark_clock(mark)[1] <=
+                (self._mark_clock(mark)[0] // 60_000_000 + 1) * 60_000_000}
         if any(minute not in minutes for minute in range(start, end, 60)):
             self._history_gap = self._history is not None
             return None, None
@@ -356,7 +388,8 @@ class ProspectiveSourceFeed:
         # Every original remains in the native source journal and recipe store.
         keep_from = (end - source.WARMUP_MINUTES * 60) * 1_000_000
         self._marks = [mark for mark in self._marks
-            if int(mark.to_dict()['reference']['accepted_at_us']) >= keep_from]
+            if self._mark_clock(mark)[0] >= keep_from]
+        self._mark_clocks = {id(mark): self._mark_clocks[id(mark)] for mark in self._marks}
         return history, series
 
     async def next_observation(self):
@@ -388,6 +421,7 @@ class ProspectiveSourceFeed:
                 _require(len(packet_wire) <= MAX_PACKET_BYTES, 'source_packet_too_large')
                 self._pending = (str(uuid4()), packet_wire)
                 self._admit_attempted = False
+                self._recipe_attempted = False
             native = await self._measure('source_last_native_retention_duration_us', self._retain_pending())
             packet_id, wire = self._pending
             packet, prepared, clock, capsules = decode_packet(wire)
@@ -395,29 +429,31 @@ class ProspectiveSourceFeed:
                 # A known failed read is safe to try again on a later tick only
                 # after this exact attempt's retained original is independently
                 # observed. Uncertain database outcomes keep the pending ID.
-                self._pending, self._pending_native = None, None
-                self._admit_attempted = False
-                if self._transport is not None:
-                    await self._transport.close(); self._transport = None
-                self._metrics['source_process_samples_unavailable'] += 1
-                self._metrics['source_last_safe_error'] = 'provider_sample_unavailable'
-                self._sample_duration()
-                return SourceBatch(None, safe_error='provider_sample_unavailable')
-            observed = derivation.derive_observation(*capsules, prepared.binding, clock,
-                observation_id=prepared.observation_id)
-            reference = source.RecordReference(self.binding.owner_id, self.binding.run_id,
-                self.binding.market_epoch, prepared.binding.acquisition_epoch, prepared.observation_id,
-                observed.sha256, packet_id, native['sequence'], native['accepted_at_us'],
-                native['available_at_upper_us'], prepared.binding.issuer_binding_id,
-                self.package_sha256, native['receipt_sha256'])
-            mark, recipe = mark_recipe(*capsules, prepared.binding, clock, reference)
+                return await self._complete_unavailable('provider_sample_unavailable')
+            try:
+                # Only pure parsing/mark construction may classify a retained
+                # sample as permanently unavailable. No artifact call is inside
+                # this catch, and an earlier uncertain write keeps its latch.
+                observed = derivation.derive_observation(*capsules, prepared.binding, clock,
+                    observation_id=prepared.observation_id)
+                reference = source.RecordReference(self.binding.owner_id, self.binding.run_id,
+                    self.binding.market_epoch, prepared.binding.acquisition_epoch, prepared.observation_id,
+                    observed.sha256, packet_id, native['sequence'], native['accepted_at_us'],
+                    native['available_at_upper_us'], prepared.binding.issuer_binding_id,
+                    self.package_sha256, native['receipt_sha256'])
+                mark, recipe = mark_recipe(*capsules, prepared.binding, clock, reference)
+            except acquisition.SampleUnavailable as error:
+                return await self._complete_unavailable(error.reason)
+            self._recipe_attempted = True
             await self._measure('source_last_recipe_duration_us', self._persist(recipe))
+            if self._transport is not None:
+                await self._transport.close()
+                self._transport = None
             self._marks.append(mark)
             self._trim_marks()
             self._pending, self._pending_native = None, None
             self._admit_attempted = False
-            if self._transport is not None:
-                await self._transport.close(); self._transport = None
+            self._recipe_attempted = False
             self._metrics['source_process_samples_accepted'] += 1
             self._metrics['source_last_safe_error'] = None
             self._metrics['source_last_success_at_us'] = native['accepted_at_us']
