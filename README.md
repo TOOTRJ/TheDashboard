@@ -15,17 +15,22 @@ projections.
 ## Current implementation status — 2026-11-17
 
 Vercel hosts the authenticated dashboard, Supabase stores application data and the
-paper ledger, and Railway hosts the Python worker. The production frontend is
-PR117 (`fbe9d93e`); the verified Railway deployment
-`04c592a8-61c6-4ebc-ad34-16c789a4e1c9` remains closed while the continuous paper
-runtime is connected and tested. The earlier supervised v5 hour demonstrated one
-mechanical replacement; it did not prove continuous recovery or profitable trading.
+paper ledger, and Railway hosts the Python worker. PR119 is merged and production
+verified; Railway deployment `3848ab59-c044-487c-a115-c41dd94b46a5` is collecting
+genuine observations for the approved app owner. The actual Start/collect/Stop
+canary and stopped-source restart recovery passed. A fresh continuous warmup is
+running; first evaluation/replacement and longer reliability acceptance remain
+open. Closed deployment `04c592a8-61c6-4ebc-ad34-16c789a4e1c9` remains an eligible
+rollback candidate. The earlier supervised v5 hour is historical evidence and
+does not establish this pilot's evolution or profitability.
 
 The active work joins the two-EMA prospective model to durable observations,
 restartable state, owner controls and dashboard history. Initial warm-up requires
 915 complete qualifying minutes, followed by a full 60-minute evaluation before
-the first replacement. Source adoption, native fault checks and the hosted
-operating checks remain required before declaring that pilot accepted.
+the first replacement. Source adoption and the bounded native/hosted launch
+checks are accepted. Stale-sample recovery, finite credential renewal, genuine-gap
+succession and terminal/storage headroom remain prioritized in the active TODO
+before claiming reliable unattended operation.
 
 This personal application uses one production Supabase database and one Vercel
 project. Pull requests retain offline verification; only `main` automatically
