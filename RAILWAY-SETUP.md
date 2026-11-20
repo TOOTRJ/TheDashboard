@@ -4,6 +4,33 @@ The user approved a **$20/month ceiling for the initial paper pilot** on 2026-10
 This is a spending constraint, not a selected paid subscription, resource estimate,
 production cadence or approval to change account-wide billing for other projects.
 
+## Reliability follow-up — November 20, 2026 MST
+
+The first continuous paper run reached bootstrap but failed before evaluation or
+replacement. The exact owner-bound database scope retained 2,017 sources and
+1,982 artifacts. The final status showed no pending source and zero source-feed
+failures, but 15.107 seconds of sample processing and 14.612 seconds since the
+earliest original receipt. Repeated full-wire parsing of roughly 1,674 retained
+marks in status/rolling-cache bookkeeping is an avoidable fresh-path cost. A
+local equivalent-original benchmark measured 0.656 seconds for the old scan and
+0.000427 seconds for cached trim plus status; this is not target-host acceptance.
+The independently reproduced stale-pending latch is a separate defect.
+
+The original owner Stop was sent once and independently matched in native
+storage. The HTTP acknowledgment was not observed; it was not blindly retried.
+Native head is now 2, and authenticated browser status is stopped with no open
+positions. All source history remains retained. An already missing history
+interval cannot be repaired by changing clocks or replaying a new identity.
+
+The next local candidate includes narrow stale-sample classification, cleanup
+before clearing pending work, identity-bound process bookkeeping, and a pure
+current-mark preflight before economic preparation. It also includes finite
+credential renewal with immutable initial bytes, serialized lifecycle operations,
+exact role/OID/binding checks and native permission postconditions. No renewal or
+new schema migration has been applied. Release requires the composed exact-head
+checks, review and explicit hosted acceptance; a new owner-bound run must pass
+its own complete warmup/evaluation gate. See [the active TODO](TODO.md#active-production-paper-plan--november-17-2026).
+
 ## Production paper pilot checkpoint — November 17, 2026 MST
 
 PR119 is merged as `39789c7821421b51050330b039b3578c12574f89`; tree

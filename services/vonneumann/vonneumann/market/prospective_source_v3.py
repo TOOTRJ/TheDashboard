@@ -232,16 +232,20 @@ Old source receipts cannot become fresh by changing a native reference clock.
     a.require(reference.accepted_at_us >= lower and reference.available_at_upper_us >= upper)
     age = a.counter(value['source_age_ceiling_us'], a.MAX_SOURCE_AGE_US)
     age += max(0, reference.accepted_at_us-lower)
-    a.require(age <= a.MAX_SOURCE_AGE_US)
     pins = value['record_pins']; a.require(len(pins) == len(value['record_ages']) == 3)
+    receipt_expired = False
     for pin, recorded_age in zip(pins, value['record_ages']):
         receipt = a.counter(pin['received_wall_us'])
-        a.require(receipt <= reference.accepted_at_us+a.FUTURE_US
-            and reference.available_at_upper_us-receipt < a.MAX_RECEIPT_AGE_US
-            and a.counter(recorded_age['receipt_age_ceiling_us'])+
-                max(0, reference.available_at_upper_us-lower) < a.MAX_RECEIPT_AGE_US)
+        a.require(receipt <= reference.accepted_at_us+a.FUTURE_US)
+        receipt_expired |= (reference.available_at_upper_us-receipt >= a.MAX_RECEIPT_AGE_US
+            or a.counter(recorded_age['receipt_age_ceiling_us'])+
+                max(0, reference.available_at_upper_us-lower) >= a.MAX_RECEIPT_AGE_US)
     a.require(a.counter(value['estimated_source_second'], a.MAX_SECOND)*1_000_000
         <= reference.accepted_at_us+a.FUTURE_US)
+    if receipt_expired:
+        raise a.SampleUnavailable('provider_receipt_expired')
+    if age > a.MAX_SOURCE_AGE_US:
+        raise a.SampleUnavailable('provider_source_expired')
     row = {'format': MARK_FORMAT, 'profile': PROFILE, 'source_policy_sha256': POLICY_SHA256,
         'scope': _scope(reference), 'acquisition_epoch': reference.acquisition_epoch,
         'reference': _reference_wire(reference), 'price_decimal': value['price_decimal'],
@@ -281,18 +285,22 @@ or historical mark receives a new receipt, sequence, process epoch or authority.
     original_mono = a.counter(original['monotonic_us'])
     a.require(clock.wall_lower_us >= original_wall and clock.monotonic_us >= original_mono
         and clock.wall_lower_us >= reference.available_at_upper_us)
-    latest = 0
+    latest, receipt_expired = 0, False
     for pin in value['record_pins']:
         receipt, receipt_mono = a.counter(pin['received_wall_us']), a.counter(pin['received_monotonic_us'])
-        a.require(clock.monotonic_us >= receipt_mono and receipt <= clock.wall_lower_us+a.FUTURE_US
-            and max(0, clock.wall_upper_us-receipt, clock.monotonic_us-receipt_mono) < a.MAX_RECEIPT_AGE_US)
+        a.require(clock.monotonic_us >= receipt_mono and receipt <= clock.wall_lower_us+a.FUTURE_US)
+        receipt_expired |= max(0, clock.wall_upper_us-receipt,
+            clock.monotonic_us-receipt_mono) >= a.MAX_RECEIPT_AGE_US
         latest = max(latest, receipt)
     source_us = a.counter(value['estimated_source_second'], a.MAX_SECOND)*1_000_000
     age = max(0, clock.wall_upper_us-source_us,
         a.counter(value['source_age_at_acceptance_ceiling_us'])+max(0, clock.wall_upper_us-reference.accepted_at_us),
         a.counter(value['source_age_at_observation_ceiling_us'])+clock.monotonic_us-original_mono)
-    a.require(source_us <= clock.wall_lower_us+a.FUTURE_US and age <= a.MAX_SOURCE_AGE_US
-        and clock.wall_lower_us >= latest)
+    a.require(source_us <= clock.wall_lower_us+a.FUTURE_US and clock.wall_lower_us >= latest)
+    if receipt_expired:
+        raise a.SampleUnavailable('provider_receipt_expired')
+    if age > a.MAX_SOURCE_AGE_US:
+        raise a.SampleUnavailable('provider_source_expired')
     return mark
 
 

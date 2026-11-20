@@ -237,7 +237,7 @@ class PaperOperatorTests(unittest.TestCase):
             'can_login': True, 'binding_deadline': True, 'binding_active': True}
         client = type('Client', (), {'verify': lambda self: None})()
         with patch.object(operator, '_one', return_value=row):
-            with self.assertRaises(operator.Refused): operator.verify_credentials(client, record)
+            with self.assertRaises(operator.Refused): operator._verify_credentials_locked(client, record)
 
     def test_expired_exact_original_can_pass_closing_preflight_but_not_active_verification(self):
         record = {'db_login': 'vn_paper_'+uuid4().hex, 'run_id': str(uuid4()),
@@ -246,9 +246,9 @@ class PaperOperatorTests(unittest.TestCase):
             'no_memberships': True, 'direct_rpc': True, 'no_table_access': True,
             'can_login': True, 'binding_deadline': True, 'binding_active': False}
         client = type('Client', (), {'verify': lambda self: None})()
-        with patch.object(operator, '_one', return_value=row), patch.object(operator, '_write'):
-            with self.assertRaises(operator.Refused): operator.verify_credentials(client, record)
-            result = operator.verify_credentials(client, record, allow_expired=True)
+        with patch.object(operator, '_one', return_value=row), patch.object(operator, '_save_credential_status_locked'):
+            with self.assertRaises(operator.Refused): operator._verify_credentials_locked(client, record)
+            result = operator._verify_credentials_locked(client, record, allow_expired=True)
         self.assertEqual(result['state'], 'issued_verified')
         sql = operator.credential_close_sql(record)
         before_alter = sql.split("EXECUTE format('ALTER ROLE", 1)[0]

@@ -15,14 +15,14 @@ projections.
 ## Current implementation status — 2026-11-17
 
 Vercel hosts the authenticated dashboard, Supabase stores application data and the
-paper ledger, and Railway hosts the Python worker. PR119 is merged and production
-verified; Railway deployment `3848ab59-c044-487c-a115-c41dd94b46a5` is collecting
-genuine observations for the approved app owner. The actual Start/collect/Stop
-canary and stopped-source restart recovery passed. A fresh continuous warmup is
-running; first evaluation/replacement and longer reliability acceptance remain
-open. Closed deployment `04c592a8-61c6-4ebc-ad34-16c789a4e1c9` remains an eligible
-rollback candidate. The earlier supervised v5 hour is historical evidence and
-does not establish this pilot's evolution or profitability.
+paper ledger, and Railway hosts the Python worker. PR119 and documentation PR120
+are merged. The first continuous run reached bootstrap but failed before its
+first evaluation; its original owner Stop is now independently verified at head
+2, with zero open positions and all history retained. The next local reliability
+candidate addresses repeated mark parsing and stale-sample/current-mark recovery,
+plus finite credential renewal. Its release and a fresh pilot's complete
+observation gate remain pending. The dated checkpoint in
+[the preflight](CONFIGURATION-PREFLIGHT.md) records the evidence and boundaries.
 
 The active work joins the two-EMA prospective model to durable observations,
 restartable state, owner controls and dashboard history. Initial warm-up requires

@@ -226,7 +226,7 @@ def verify_schema(client, record=None, *, require_hardening=True):
         "(SELECT NOT(rolcanlogin OR rolsuper OR rolcreatedb OR rolcreaterole OR rolreplication OR rolbypassrls) FROM pg_roles WHERE rolname='vn_paper_v6_client') AS client_restricted, "
         "(SELECT p.prosecdef AND "+path_check+" AND p.proowner=n.nspowner AND encode(sha256(convert_to(p.prosrc,'UTF8')),'hex')=$1 FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE p.oid=to_regprocedure('vn_paper_v6.rpc(text,jsonb)')) AS rpc_exact, "
         "has_schema_privilege('vn_paper_v6_client','vn_paper_v6','USAGE') AND has_function_privilege('vn_paper_v6_client','vn_paper_v6.rpc(text,jsonb)','EXECUTE') AS client_rpc, "
-        "NOT EXISTS(SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='vn_paper_v6' AND c.relkind='r' AND has_table_privilege('vn_paper_v6_client',c.oid,'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER')) AS no_client_tables, "
+        "NOT EXISTS(SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='vn_paper_v6' AND c.relkind='r' AND (has_table_privilege('vn_paper_v6_client',c.oid,'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER') OR has_any_column_privilege('vn_paper_v6_client',c.oid,'SELECT,INSERT,UPDATE,REFERENCES'))) AS no_client_tables, "
         "NOT EXISTS(SELECT 1 FROM (VALUES('anon'),('authenticated'),('service_role')) r(name) WHERE has_schema_privilege(r.name,'vn_paper_v6','USAGE') OR has_function_privilege(r.name,'vn_paper_v6.rpc(text,jsonb)','EXECUTE')) AS no_api_access, "
         "NOT EXISTS(SELECT 1 FROM pg_namespace n, LATERAL aclexplode(coalesce(n.nspacl,acldefault('n',n.nspowner))) a WHERE n.nspname='vn_paper_v6' AND a.grantee=0) AS no_public_schema, "
         "NOT EXISTS(SELECT 1 FROM pg_proc p, LATERAL aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) a WHERE p.oid=to_regprocedure('vn_paper_v6.rpc(text,jsonb)') AND a.grantee=0) AS no_public_rpc", (expected_body,))
@@ -363,7 +363,7 @@ def prepare_credentials(client, *, owner_id=None, owner_email=None):
     return record
 
 
-def _credentials():
+def _initial_credentials():
     record = _read(CREDENTIAL_STATE)
     _require('owner_id' in record and record.get('migration_sha256') == _source()[1])
     owner = _record_owner(record)
@@ -382,6 +382,53 @@ def _credentials():
     start, end = [datetime.fromisoformat(record[key]) for key in ('prepared_at', 'valid_until')]
     _require(start.utcoffset() == end.utcoffset() == timedelta(0) and end-start == timedelta(days=7))
     return record
+
+
+def _renewal_module():
+    path = ROOT / 'scripts/dashboard_paper_renewal.py'
+    spec = importlib.util.spec_from_file_location('dashboard_finite_paper_renewal', path)
+    module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
+    return module
+
+
+def _credential_guard():
+    return _renewal_module().credential_lock(CREDENTIAL_STATE)
+
+
+def _renewal_store():
+    return _renewal_module().RenewalStore(CREDENTIAL_STATE)
+
+
+def _credentials_locked():
+    initial = _initial_credentials()
+    if not (CREDENTIAL_STATE.parent / 'renewals').exists() and not (CREDENTIAL_STATE.parent / 'credential-status-after-renewal.json').exists():
+        return initial
+    return _renewal_store()._effective_record()
+
+
+def _credentials():
+    with _credential_guard():
+        return _credentials_locked()
+
+
+def _save_credential_status_locked(record):
+    current = _credentials_locked()
+    _require(all(record.get(key) == current.get(key) for key in ('owner_id', 'run_id', 'db_login', 'valid_until')))
+    if current.get('role_oid') is not None:
+        _require(record.get('role_oid') == current['role_oid'])
+    if current['state'] == 'closed_verified':
+        _require(record['state'] == 'closed_verified', 'closed_credential_receipt_is_terminal')
+    if current['state'] == 'close_submitted_or_uncertain':
+        _require(record['state'] != 'issued_verified', 'unresolved_close_receipt_is_retained')
+    if current.get('role_oid') is not None:
+        _renewal_store()._save_credential_status(record)
+    else:
+        _write(CREDENTIAL_STATE, record, replace=True)
+
+
+def _save_credential_status(record):
+    with _credential_guard():
+        _save_credential_status_locked(record)
 
 
 def _literal(value):
@@ -406,7 +453,17 @@ def credential_install_sql(record):
 
 
 def verify_credentials(client, record=None, *, closed=False, allow_expired=False):
-    record = _credentials() if record is None else record
+    with _credential_guard():
+        current = _credentials_locked()
+        if record is not None:
+            _require(all(record.get(key) == current.get(key) for key in ('owner_id', 'run_id', 'db_login', 'valid_until')),
+                'stale_credential_scope_or_deadline')
+            if record.get('role_oid') is not None:
+                _require(record['role_oid'] == current.get('role_oid'))
+        return _verify_credentials_locked(client, current, closed=closed, allow_expired=allow_expired)
+
+
+def _verify_credentials_locked(client, record, *, closed=False, allow_expired=False):
     owner = _record_owner(record)
     client.verify()
     row = _one(client, "SELECT r.oid AS role_oid, b.owner_id=$2::uuid AND b.run_id=$3::uuid AS binding_exact, "
@@ -415,7 +472,7 @@ def verify_credentials(client, record=None, *, closed=False, allow_expired=False
         "b.expires_at=$4::timestamptz AS binding_deadline, b.expires_at>clock_timestamp() AS binding_active, "
         "NOT EXISTS(SELECT 1 FROM pg_auth_members WHERE member=r.oid) AS no_memberships, "
         "has_schema_privilege(r.oid,'vn_paper_v6','USAGE') AND has_function_privilege(r.oid,'vn_paper_v6.rpc(text,jsonb)','EXECUTE') AS direct_rpc, "
-        "NOT EXISTS(SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='vn_paper_v6' AND c.relkind='r' AND has_table_privilege(r.oid,c.oid,'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER')) AS no_table_access "
+        "NOT EXISTS(SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='vn_paper_v6' AND c.relkind='r' AND (has_table_privilege(r.oid,c.oid,'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER') OR has_any_column_privilege(r.oid,c.oid,'SELECT,INSERT,UPDATE,REFERENCES'))) AS no_table_access "
         "FROM pg_roles r JOIN vn_paper_v6.bindings b ON b.login=r.rolname WHERE r.rolname=$1",
         (record['db_login'], owner, record['run_id'], record['valid_until']))
     _require(all(row.get(key) is True for key in ('binding_exact', 'restricted', 'role_deadline', 'no_memberships', 'direct_rpc', 'no_table_access')))
@@ -428,7 +485,7 @@ def verify_credentials(client, record=None, *, closed=False, allow_expired=False
             and (allow_expired or row['binding_active'] is True))
     record['role_oid'] = row['role_oid']
     record['state'] = 'closed_verified' if closed else 'issued_verified'
-    _write(CREDENTIAL_STATE, record, replace=True)
+    _save_credential_status_locked(record)
     return {'state': record['state'], 'owner_id': owner, 'run_id': record['run_id'],
         'valid_until': record['valid_until'], 'credential_output': False}
 
@@ -444,7 +501,7 @@ def issue_credentials(client):
         "NOT EXISTS(SELECT 1 FROM vn_paper_v6.bindings WHERE owner_id=$2::uuid AND run_id=$3::uuid) AS binding_absent",
         (record['db_login'], record['owner_id'], record['run_id']))
     _require(absent == {'role_absent': True, 'binding_absent': True})
-    record['state'] = 'submitted_or_uncertain'; _write(CREDENTIAL_STATE, record, replace=True)
+    record['state'] = 'submitted_or_uncertain'; _save_credential_status(record)
     client.verify()
     try: _query(client, credential_install_sql(record), read_only=False)
     except Exception: pass
@@ -480,33 +537,43 @@ def credential_close_sql(record):
 
 
 def rollback(client):
-    record = _credentials()
+    with _credential_guard():
+        return _rollback_locked(client)
+
+
+def _rollback_locked(client):
+    record = _credentials_locked()
     _require(type(record.get('role_oid')) is int and record['role_oid'] > 0,
         'original_issued_role_oid_required')
     # Expiry bars new RPC work but must not prevent closing this exact login.
     # No role is dropped and no other scope or environment is changed.
-    verify_credentials(client, record, allow_expired=True)
-    record['state'] = 'close_submitted_or_uncertain'; _write(CREDENTIAL_STATE, record, replace=True)
+    _verify_credentials_locked(client, record, allow_expired=True)
+    record['state'] = 'close_submitted_or_uncertain'; _save_credential_status_locked(record)
     client.verify()
     sql = credential_close_sql(record)
     try: _query(client, sql, read_only=False)
     except Exception: pass
-    return verify_credentials(client, record, closed=True)
+    return _verify_credentials_locked(client, record, closed=True)
 
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('action', choices=('prepare', 'plan', 'apply-schema', 'verify',
         'prepare-hardening', 'plan-hardening', 'apply-hardening', 'verify-hardening',
-        'prepare-credentials', 'issue-credentials', 'verify-credentials', 'rollback'))
+        'prepare-credentials', 'issue-credentials', 'verify-credentials', 'rollback',
+        'prepare-renewal', 'apply-renewal', 'reconcile-renewal'))
     parser.add_argument('--bundle')
     parser.add_argument('--owner-id')
     parser.add_argument('--owner-email')
+    parser.add_argument('--new-valid-until')
+    parser.add_argument('--renewal-id')
     args = parser.parse_args(argv); action = args.action
-    credential_actions = {'prepare-credentials', 'issue-credentials', 'verify-credentials', 'rollback'}
+    credential_actions = {'prepare-credentials', 'issue-credentials', 'verify-credentials', 'rollback', 'prepare-renewal', 'apply-renewal', 'reconcile-renewal'}
     _require(args.bundle is None or action in credential_actions, 'bundle_only_for_credential_actions')
     _require((args.owner_id is None and args.owner_email is None) or action == 'prepare-credentials',
         'owner_input_only_for_new_preparation')
+    _require(args.new_valid_until is None or action == 'prepare-renewal')
+    _require(args.renewal_id is None or action in ('apply-renewal', 'reconcile-renewal'))
     if action in credential_actions: select_bundle(args.bundle)
     if action == 'prepare':
         record = prepare()
@@ -529,6 +596,14 @@ def main(argv=None):
             record = prepare_credentials(client, owner_id=args.owner_id, owner_email=args.owner_email)
             result = {'state': record['state'], 'owner_id': record['owner_id'], 'run_id': record['run_id'],
                 'valid_until': record['valid_until']}
+        elif action in ('prepare-renewal', 'apply-renewal', 'reconcile-renewal'):
+            verify_schema(client)
+            with _credential_guard():
+                _initial_credentials()
+                store = _renewal_store()
+                if action == 'prepare-renewal': result = store._prepare(client, args.new_valid_until)
+                elif action == 'apply-renewal': result = store._apply(client, args.renewal_id)
+                else: result = store._reconcile(client, args.renewal_id)
         elif action == 'issue-credentials': result = issue_credentials(client)
         elif action == 'verify-credentials':
             record = _credentials()

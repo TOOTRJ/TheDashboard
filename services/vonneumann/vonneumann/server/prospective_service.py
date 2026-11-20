@@ -283,6 +283,18 @@ class ProspectivePaperService:
                 if history is not None and history.sha256 == self.runtime.state.to_dict()['source']['history_sha256']:
                     history = series = None
                 inputs = self._inputs()
+                try:
+                    # The archived mark can age during CPU work or scheduling.
+                    # A known expired mark is an unavailable live opportunity,
+                    # not an uncertain economic write. Only this pure preflight
+                    # is caught; generic proof failures and any later dispatch
+                    # uncertainty still fail closed with their original IDs.
+                    source.validate_current_mark(batch.mark, inputs.clock,
+                        expected_mark_sha256=batch.mark.sha256)
+                except acquisition.SampleUnavailable:
+                    self._phase, self._last_failure = 'waiting_data', 'current_mark_expired'
+                    await self._sleep(self._interval)
+                    continue
                 # Collection may cross a completed-bar boundary after the feed
                 # checked publication readiness. Protection still consumes this
                 # genuine mark; decision waits for its exact completed history.

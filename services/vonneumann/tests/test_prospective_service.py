@@ -1,13 +1,14 @@
 """Durable owner controls, warmup Stop and bounded restored history."""
 import asyncio
 import unittest
+from unittest.mock import patch
 from uuid import UUID
 
 from tests.security_support import deny_network
 with deny_network():
     from tests.test_prospective_runtime import MemoryJournal
     from tests.test_prospective_ga_v3_model import fill_policy, new_inputs, inputs_for_mark
-    from tests.test_prospective_source_v3 import mark, seal, END, OWNER, RUN, MARKET, PROCESS, PRINCIPAL, PACKAGE
+    from tests.test_prospective_source_v3 import mark, seal, replaced_mark, END, OWNER, RUN, MARKET, PROCESS, PRINCIPAL, PACKAGE
     from vonneumann.market import prospective_source_v3 as source
     from vonneumann.research.prospective_ga_v3_policy import V3Config, SourceBinding
     from vonneumann.server.prospective_service import ProspectivePaperService, SourceBatch
@@ -78,6 +79,164 @@ class ProspectiveServiceTests(unittest.IsolatedAsyncioTestCase):
         self.config = V3Config(OWNER, RUN, MARKET, self.feed.current_binding, fill_policy())
         self.service = ProspectivePaperService(self.journal, self.feed,
             self.config, artifacts=EmptyArtifacts())
+
+    async def seeded_service(self, observations, *, sleep=asyncio.sleep):
+        # These are literal provider-derived originals, not an imported JSON
+        # state. Seed the real model and replay that journal through the service.
+        if not hasattr(type(self), '_seed_history'):
+            marks = tuple(mark(index, price='100') for index in range(915))
+            type(self)._seed_history = source.derive_sampled_history(seal(marks))
+            type(self)._seed_series = source.derive_close_series(self._seed_history,
+                expected_history_sha256=self._seed_history.sha256)
+        history, series = self._seed_history, self._seed_series
+        artifacts = {('history', history.sha256): history, ('series', series.sha256): series,
+            **{('mark', item.sha256): item for item in observations}}
+        reader = lambda kind, digest: artifacts[(kind, digest)]
+        runtime = ProspectiveRuntime(OWNER, RUN, self.journal, reader)
+        await runtime.submit(runtime.prepare_bootstrap(self.config, history, series,
+            inputs=new_inputs((END+5)*1_000_000, 54_905_000_000)), command_id=str(UUID(int=900)))
+        class ReadyArtifacts:
+            async def restore(self): pass
+        ready = ReadyArtifacts(); ready.reader = reader
+        service = ProspectivePaperService(self.journal, self.feed, self.config,
+            artifacts=ready, sleep=sleep)
+        self.addAsyncCleanup(service.close)
+        return service, runtime.state.to_dict(), reader
+
+    async def test_expired_archived_mark_waits_before_preparation_then_next_fresh_sample_runs(self):
+        stale, fresh = mark(915, price='100'), mark(916, price='100')
+        calls, phases, clocks = [], [], []
+        waiting, release = asyncio.Event(), asyncio.Event()
+        service, initial, reader = await self.seeded_service((stale, fresh))
+        current = [inputs_for_mark(stale, serial=300, generation=1, offset=5_000_001)]
+        def logical_inputs(**kwargs):
+            clocks.append(current[0].clock)
+            value = current[0]
+            return new_inputs(value.event_us, value.clock.monotonic_us,
+                serial=300+len(clocks), generation=1)
+        service._inputs = logical_inputs
+        async def next_observation():
+            index = len(calls); calls.append(index)
+            if index == 0:
+                return SourceBatch(stale)
+            if index == 1:
+                current[0] = inputs_for_mark(fresh, serial=310, generation=1)
+                return SourceBatch(fresh)
+            waiting.set(); await release.wait()
+            return SourceBatch(fresh)
+        self.feed.next_observation = next_observation
+        stale_wire, fresh_wire = stale.wire, fresh.wire
+        async def paced(seconds):
+            phases.append(service._phase)
+            self.assertEqual(seconds, service._interval)
+            if len(phases) == 1:
+                status = await service.status(OWNER)
+                self.assertEqual((status['phase'], status['last_failure']),
+                    ('waiting_data', 'current_mark_expired'))
+                self.assertFalse(status['requires_reconciliation'])
+                self.assertEqual(service.runtime.state.to_dict(), initial)
+                self.assertEqual(len(self.journal.rows), 1)
+                self.assertFalse(service.runtime.pending)
+                protective.assert_not_called(); observation.assert_not_called()
+            await asyncio.sleep(0)
+        service._sleep = paced
+        try:
+            with patch.object(service.runtime, 'prepare_protective', wraps=service.runtime.prepare_protective) as protective, \
+                    patch.object(service.runtime, 'prepare_observation', wraps=service.runtime.prepare_observation) as observation:
+                await service.start(OWNER, str(UUID(int=901)))
+                await asyncio.wait_for(waiting.wait(), 15)
+                status = await service.status(OWNER)
+                self.assertEqual((status['phase'], status['last_failure']), ('running', None))
+                self.assertEqual(phases, ['waiting_data', 'running'])
+                self.assertEqual(protective.call_count, 1)
+                self.assertEqual(observation.call_count, 1)
+                self.assertEqual([row.to_dict()['witness']['kind'] for row in self.journal.rows],
+                    ['bootstrap', 'protective', 'decision'])
+                self.assertEqual([row.to_dict()['witness']['mark_sha256'] for row in self.journal.rows[1:]],
+                    [fresh.sha256, fresh.sha256])
+                self.assertEqual((stale.wire, fresh.wire), (stale_wire, fresh_wire))
+                await service.stop(OWNER, str(UUID(int=902)))
+                release.set(); await service._task
+            restored = ProspectiveRuntime(OWNER, RUN, self.journal, reader)
+            restored.restore(self.journal.rows)
+            self.assertEqual(restored.state.to_dict(), service.runtime.state.to_dict())
+            self.assertEqual(restored.state.to_dict()['status'], 'stopped')
+        finally:
+            release.set()
+
+    async def test_stop_while_expired_sample_waits_commits_only_stop_and_no_replacement_sample(self):
+        # This sample is beyond the next completed-bar boundary. An expired
+        # sample must not reach even the history-unavailable protection branch.
+        stale = mark(930, price='100')
+        waiting, release = asyncio.Event(), asyncio.Event()
+        calls = []
+        async def paced(_):
+            waiting.set(); await release.wait()
+        service, initial, reader = await self.seeded_service((stale,), sleep=paced)
+        cutoff = (inputs_for_mark(stale, serial=320).clock.wall_lower_us-source.COMPLETION_MARGIN_US) // (
+            source.BAR_SECONDS*1_000_000) * source.BAR_SECONDS
+        self.assertNotEqual(initial['source']['history_end'], cutoff)
+        serial = [320]
+        def logical_inputs(**kwargs):
+            serial[0] += 1
+            return inputs_for_mark(stale, serial=serial[0], generation=1, offset=5_000_001)
+        service._inputs = logical_inputs
+        async def next_observation():
+            calls.append(stale.sha256)
+            return SourceBatch(stale)
+        self.feed.next_observation = next_observation
+        try:
+            await service.start(OWNER, str(UUID(int=903)))
+            await asyncio.wait_for(waiting.wait(), 15)
+            self.assertEqual(service.runtime.state.to_dict(), initial)
+            self.assertEqual(len(self.journal.rows), 1)
+            stop_id = str(UUID(int=904))
+            acknowledgement = await service.stop(OWNER, stop_id)
+            self.assertEqual(acknowledgement['last_request_id'], stop_id)
+            self.assertEqual(self.journal.controls[-1]['action'], 'stop')
+            release.set(); await asyncio.wait_for(service._task, 10)
+            status = await service.status(OWNER)
+            self.assertEqual((status['phase'], status['last_request_id']), ('stopped', stop_id))
+            self.assertEqual(calls, [stale.sha256])
+            self.assertEqual([row.to_dict()['witness']['kind'] for row in self.journal.rows],
+                ['bootstrap', 'control'])
+            self.assertEqual(service.runtime.state.to_dict()['positions'], initial['positions'])
+            restored = ProspectiveRuntime(OWNER, RUN, self.journal, reader)
+            restored.restore(self.journal.rows)
+            self.assertEqual(restored.state.to_dict(), service.runtime.state.to_dict())
+        finally:
+            release.set()
+
+    async def test_expired_sample_with_malformed_proof_wrong_scope_or_causality_still_fails_closed(self):
+        stale = mark(915, price='100')
+        row = stale.to_dict()
+        expired = inputs_for_mark(stale, serial=330, generation=1, offset=5_000_001)
+        for label, sample, inputs in (
+            ('malformed_policy_hash', replaced_mark(stale, source_policy_sha256='f'*64), expired),
+            ('wrong_epoch', stale, new_inputs(expired.event_us, expired.clock.monotonic_us,
+                serial=331, generation=1, epoch=str(UUID(int=999)))),
+            ('before_native_readback', stale, new_inputs(int(row['reference']['available_at_upper_us'])-1,
+                expired.clock.monotonic_us, serial=332, generation=1)),
+        ):
+            with self.subTest(label=label):
+                self.journal, self.feed = ControlledJournal(), WaitingFeed()
+                service, initial, _ = await self.seeded_service((sample,))
+                service._inputs = lambda **kwargs: inputs
+                calls, intervals = [], []
+                async def next_observation():
+                    calls.append(label); return SourceBatch(sample)
+                async def paced(seconds): intervals.append(seconds)
+                self.feed.next_observation, service._sleep = next_observation, paced
+                await service.start(OWNER, str(UUID(int=905)))
+                await service.wait_ready()
+                await asyncio.wait_for(service._task, 15)
+                status = await service.status(OWNER)
+                self.assertEqual((status['phase'], status['last_failure']), ('failed', 'paper_operation_failed'))
+                self.assertEqual(calls, [label]); self.assertEqual(intervals, [])
+                self.assertEqual(service.runtime.state.to_dict(), initial)
+                self.assertEqual(len(self.journal.rows), 1)
+                self.assertFalse(service.runtime.pending)
+                await service.close()
 
     async def test_stop_during_inflight_warmup_is_durable_and_bars_bootstrap(self):
         start_id, stop_id = str(UUID(int=700)), str(UUID(int=701))
@@ -341,7 +500,8 @@ class ProspectiveServiceTests(unittest.IsolatedAsyncioTestCase):
             (END+900)*1_000_000+source.COMPLETION_MARGIN_US-1), (None, None))
         # A later, real missing minute cannot be recreated by an ordinary retry.
         gap = SimpleNamespace(_history=advanced, _marks=list(marks[915:940])+list(marks[941:945]),
-            _history_gap=False)
+            _history_gap=False, _mark_clocks={})
+        gap._mark_clock = lambda item: ProspectiveSourceFeed._mark_clock(gap, item)
         self.assertEqual(await ProspectiveSourceFeed._history_update(gap,
             (END+1800)*1_000_000+source.COMPLETION_MARGIN_US), (None, None))
         self.assertTrue(gap._history_gap)

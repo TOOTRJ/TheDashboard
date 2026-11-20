@@ -295,8 +295,21 @@ def derive_observation(price_capsule, genesis_capsule, block_time_capsule, bindi
     raw_refs = [row['raw_response_ref'] for _, row in capsules]
     a.require(len(set(raw_refs)) == len(raw_refs))
     a.require(all(row['acquisition_epoch'] == clock.acquisition_epoch for _, row in capsules))
-    ages = [a.assess_record_age(capsule, binding, clock,
-        source_second=source_second if capsule is price_capsule else None).to_dict() for capsule, _ in capsules]
+    # Check every record even if an earlier one is merely stale. A malformed
+    # later clock/proof must remain a hard failure, never an unavailable sample.
+    ages, unavailable = [], None
+    for capsule, _ in capsules:
+        try:
+            ages.append(a.assess_record_age(capsule, binding, clock,
+                source_second=source_second if capsule is price_capsule else None).to_dict())
+        except a.SampleUnavailable as error:
+            unavailable = unavailable or error
+    if unavailable is not None:
+        # The live collector supplies no predecessor. Do not downgrade an
+        # unverified optional predecessor to a merely stale sample.
+        if previous_observation is not None or expected_previous_observation_sha256 is not None:
+            raise a.AcquisitionError()
+        raise unavailable
     source_age = ages[0]
     pins = [_pin(row, capsule) for capsule, row in capsules]
     _carried_source(previous_observation, expected_previous_observation_sha256,
